@@ -6,8 +6,6 @@ export interface OpenUIClientOptions {
   apiKey?: string;
   /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
   apiBaseUrl?: string;
-  /** The model that generates artifacts, as `provider/model`. Defaults to `anthropic/claude-sonnet-4.6`. */
-  model?: string;
   fetch?: typeof globalThis.fetch;
 }
 
@@ -16,7 +14,7 @@ export interface ArtifactLibrary {
   toSpec(): LibrarySpec;
 }
 
-/** A data tool, as you pass it to `createInterpreter`. Only what generation needs is sent, never `execute`. */
+/** A data tool, as you pass it to `openui.createInterpreter`. Only what generation needs is sent, never `execute`. */
 export type ArtifactTool = Omit<ToolDefinition, "name"> & { execute?: unknown };
 
 export interface CreateArtifactBase {
@@ -28,13 +26,18 @@ export interface CreateArtifactBase {
   prompt: string;
   /** The signed-in user, from your session. Users only read and edit their own artifacts. */
   userId: string;
-  /** Overrides the client's `model` for this artifact. */
-  model?: string;
+  /** The model that generates the artifact, as `provider/model`, such as `anthropic/claude-sonnet-4.6`. */
+  model: string;
   /**
    * `false` keeps the artifact out of OpenUI Cloud storage: the result also has
    * `done`, which resolves with the finished artifact for you to save. Default `true`.
    */
   store?: boolean;
+}
+
+/** How to make a create or edit call, apart from what it asks for. */
+export interface ArtifactRequestOptions {
+  /** Cancels the call while it waits for the artifact's id. */
   signal?: AbortSignal;
 }
 
@@ -53,36 +56,29 @@ export interface CreateStaticArtifactParams extends CreateArtifactBase {
   promptOptions?: ArtifactPromptOptions;
 }
 
-/** Slides use built-in components and no data tools. */
-export interface CreateSlidesParams extends CreateArtifactBase {
-  library?: never;
-  tools?: never;
-  promptOptions?: never;
-}
-
-/** Reports use built-in components and no data tools. */
-export type CreateReportParams = CreateSlidesParams;
-
-interface EditArtifactBase {
+type EditArtifactBase = {
   id: string;
   /** The change to make, and any data it needs. */
   prompt: string;
   userId: string;
-  /** Live and static artifacts: the library they were created with. */
-  library?: ArtifactLibrary;
-  /** Live artifacts: the data tools they were created with. */
-  tools?: Record<string, ArtifactTool>;
-  /** With `library`: extend the prompt, as when creating. */
+  /** The library the artifact was created with. */
+  library: ArtifactLibrary;
+  /** Extend the prompt, as when creating. */
   promptOptions?: ArtifactPromptOptions;
-  /** Overrides the client's `model` for this edit. */
-  model?: string;
-  signal?: AbortSignal;
-}
-
-export type EditArtifactParams =
-  | (EditArtifactBase & { store?: true; content?: string })
+  /** The model that makes the edit, as `provider/model`. */
+  model: string;
+} & (
+  | { store?: true; content?: string }
   /** An artifact in your own storage: pass its saved `content`. */
-  | (EditArtifactBase & { store: false; content: string });
+  | { store: false; content: string }
+);
+
+export type EditLiveArtifactParams = EditArtifactBase & {
+  /** The data tools it was created with: an edit that changes a `Query` regenerates its script from them. */
+  tools: Record<string, ArtifactTool>;
+};
+
+export type EditStaticArtifactParams = EditArtifactBase & { tools?: never };
 
 export interface ArtifactResult {
   id: string;

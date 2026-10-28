@@ -1,5 +1,6 @@
+import { isRecord, type CloudApi } from "../client/api";
+import { OpenUIApiError } from "../client/types";
 import { abortable } from "../shared/abort";
-import { THESYS_API_BASE_URL } from "../shared/constants";
 import {
   ToolExecutionError,
   type Interpreter,
@@ -14,9 +15,6 @@ import {
 const MAX_ROUNDS = 8;
 const MAX_TOOL_CALLS = 16;
 const DEFAULT_TIMEOUT_MS = 60_000;
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
 
 function invalidResponse(): never {
   throw new ToolExecutionError("Invalid script execution response", "invalid_response", 502);
@@ -34,21 +32,15 @@ export function toToolDefinitions(
   }));
 }
 
-/**
- * Runs an artifact's data tools on your server. Register your tools once, then
- * call `execute` with each request the renderer sends: direct tool calls run
- * here, and generated scripts run in OpenUI Cloud, calling back into your tools.
- */
+/** The interpreter behind `openui.createInterpreter`, on the client's API key. */
 export function createInterpreter<Context = undefined>(
+  api: CloudApi,
   options: InterpreterOptions<Context>,
 ): Interpreter<Context> {
   const tools = Object.fromEntries(
     Object.entries(options.tools).map(([name, tool]) => [name, tool.execute]),
   );
   const definitions = toToolDefinitions(options.tools);
-  const endpoint = `${(options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "")}/v1/app/execute`;
-  const fetchFn = options.fetch ?? globalThis.fetch;
-  const apiKey = options.apiKey;
 
   async function execute(
     input: InterpreterRequest,
@@ -105,13 +97,6 @@ export function createInterpreter<Context = undefined>(
         );
       }
 
-      if (!apiKey?.trim()) {
-        throw new ToolExecutionError(
-          "Pass apiKey to createInterpreter to execute generated scripts",
-          "missing_api_key",
-        );
-      }
-
       let state: string | undefined;
       let toolResults: ScriptToolResult[] = [];
       const seen = new Set<string>();
@@ -130,7 +115,6 @@ export function createInterpreter<Context = undefined>(
           ),
           signal,
         );
-        if (!isRecord(response)) invalidResponse();
         if (response["status"] === "done") return response["result"];
         if (response["status"] === "error") {
           const error = response["error"];
@@ -211,37 +195,20 @@ export function createInterpreter<Context = undefined>(
     }
   }
 
-  async function executeRound(body: unknown, signal: AbortSignal): Promise<unknown> {
-    signal.throwIfAborted();
-    const response = await fetchFn(endpoint, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
-    });
-    let result: unknown;
+  // One script round; API failures surface as tool errors, with the same code and status.
+  async function executeRound(
+    body: unknown,
+    signal: AbortSignal,
+  ): Promise<Record<string, unknown>> {
     try {
-      result = await response.json();
-    } catch {
+      return await api.post("/v1/app/execute", body, signal);
+    } catch (error) {
       signal.throwIfAborted();
-      throw new ToolExecutionError(
-        `Could not read script execution response (HTTP ${response.status})`,
-        "invalid_response",
-        response.status,
-      );
+      if (error instanceof OpenUIApiError) {
+        throw new ToolExecutionError(error.message, error.code, error.status);
+      }
+      throw error;
     }
-    signal.throwIfAborted();
-    if (!response.ok) {
-      const error = isRecord(result) && isRecord(result["error"]) ? result["error"] : undefined;
-      throw new ToolExecutionError(
-        typeof error?.["message"] === "string"
-          ? error["message"]
-          : `Script execution failed: HTTP ${response.status}`,
-        typeof error?.["code"] === "string" ? error["code"] : "http_error",
-        response.status,
-      );
-    }
-    return result;
   }
 
   return { definitions, execute };

@@ -1,31 +1,25 @@
 import { generateSystemPrompt } from "@openuidev/lang-core";
+import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { readSSE } from "../shared/sse";
 import { toToolDefinitions } from "../tools/execute";
-import { isRecord, type CloudApi } from "./api";
+import { apiError, isRecord, type CloudApi } from "./api";
 import {
   OpenUIApiError,
   type ArtifactError,
   type ArtifactLibrary,
   type ArtifactPromptOptions,
+  type ArtifactRequestOptions,
   type ArtifactResult,
   type ArtifactResultFor,
   type ArtifactTool,
-  type CreateArtifactBase,
   type CreateLiveArtifactParams,
-  type CreateReportParams,
-  type CreateSlidesParams,
   type CreateStaticArtifactParams,
-  type EditArtifactParams,
+  type EditLiveArtifactParams,
+  type EditStaticArtifactParams,
   type GeneratedArtifact,
 } from "./types";
 
-type ArtifactKind = "live" | "static" | "slides" | "report";
-
-type CreateParams = CreateArtifactBase & {
-  library?: ArtifactLibrary;
-  tools?: Record<string, ArtifactTool>;
-  promptOptions?: ArtifactPromptOptions;
-};
+type ArtifactKind = "live" | "static";
 
 const MAX_RECONNECTS = 3;
 const ERROR_CODES = new Set<string>(["not-found", "generation-failed", "network-error"]);
@@ -36,14 +30,10 @@ function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
 }
 
-const BUILT_IN = { library: "components", tools: "data", promptOptions: "prompts" } as const;
-
-// Type-checked callers can't pass these; plain JavaScript callers can.
-function reject(params: object, keys: Array<keyof typeof BUILT_IN>, kind: string): void {
-  for (const key of keys) {
-    if ((params as Record<string, unknown>)[key] !== undefined) {
-      invalidInput(`${kind} use built-in ${BUILT_IN[key]}: remove \`${key}\``);
-    }
+// Type-checked callers can't pass tools for a static artifact; plain JavaScript callers can.
+function rejectTools(params: object): void {
+  if ((params as Record<string, unknown>)["tools"] !== undefined) {
+    invalidInput("Static artifacts don't run data tools: remove `tools`");
   }
 }
 
@@ -81,6 +71,12 @@ function requireUser(userId: unknown): void {
   }
 }
 
+function requireModel(model: unknown): void {
+  if (typeof model !== "string" || !model.trim()) {
+    invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
+  }
+}
+
 /**
  * What a tool returns to the model: a sentence, then the artifact's header line
  * for the renderer. A new `version` tells renderers there's a newer revision.
@@ -107,96 +103,91 @@ function toolResponse(
 interface GenerationInput {
   userId: string;
   prompt: string;
-  model: string | undefined;
+  model: string;
   /** The config block from your library, tools and prompt options. */
-  config?: string;
-  /** The previous version, for an edit of an artifact in your own storage. */
-  previous?: string;
+  config: string;
   thesys: Record<string, unknown>;
   signal?: AbortSignal;
 }
 
 /** Create and edit artifacts. Each call returns as soon as the artifact has an id. */
 export class Artifacts {
-  constructor(
-    private readonly api: CloudApi,
-    private readonly model: string,
-  ) {}
+  constructor(private readonly api: CloudApi) {}
 
   /** Your components, with live data from your tools. */
-  async createLive<P extends CreateLiveArtifactParams>(params: P): Promise<ArtifactResultFor<P>> {
-    return this.create("live", params);
+  async createLive<P extends CreateLiveArtifactParams>(
+    params: P,
+    options?: ArtifactRequestOptions,
+  ): Promise<ArtifactResultFor<P>> {
+    return this.create("live", params, options);
   }
 
   /** Your components, no data tools. */
   async createStatic<P extends CreateStaticArtifactParams>(
     params: P,
+    options?: ArtifactRequestOptions,
   ): Promise<ArtifactResultFor<P>> {
-    reject(params, ["tools"], "Static artifacts don't run data tools; they");
-    return this.create("static", params);
+    rejectTools(params);
+    return this.create("static", params, options);
   }
 
-  /** A slide deck, with built-in components. */
-  async createSlides<P extends CreateSlidesParams>(params: P): Promise<ArtifactResultFor<P>> {
-    reject(params, ["library", "tools", "promptOptions"], "Slides");
-    return this.create("slides", params);
+  /**
+   * Edits a live artifact in place, with the library and data tools it was
+   * created with. Renderers keep the current version until the edit is ready.
+   */
+  async editLive<P extends EditLiveArtifactParams>(
+    params: P,
+    options?: ArtifactRequestOptions,
+  ): Promise<ArtifactResultFor<P>> {
+    return this.edit(params, options);
   }
 
-  /** A report, with built-in components. */
-  async createReport<P extends CreateReportParams>(params: P): Promise<ArtifactResultFor<P>> {
-    reject(params, ["library", "tools", "promptOptions"], "Reports");
-    return this.create("report", params);
+  /** Edits a static artifact in place, with the library it was created with. */
+  async editStatic<P extends EditStaticArtifactParams>(
+    params: P,
+    options?: ArtifactRequestOptions,
+  ): Promise<ArtifactResultFor<P>> {
+    rejectTools(params);
+    return this.edit(params, options);
   }
 
-  /** Edits an artifact in place. Renderers keep the current version until the edit is ready. */
-  async edit<P extends EditArtifactParams>(params: P): Promise<ArtifactResultFor<P>> {
-    const { id, prompt, userId, library, tools, promptOptions, content, store, model, signal } =
-      params;
+  private async edit<P extends EditLiveArtifactParams | EditStaticArtifactParams>(
+    params: P,
+    { signal }: ArtifactRequestOptions = {},
+  ): Promise<ArtifactResultFor<P>> {
+    const { id, prompt, userId, library, tools, promptOptions, content, store, model } = params;
     if (typeof id !== "string" || !id) invalidInput("id is required");
     requireUser(userId);
+    requireModel(model);
     if (store === false && typeof content !== "string") {
       invalidInput("With store: false, pass the artifact's saved content");
     }
-    if (!library && (tools || promptOptions)) {
-      invalidInput("tools and promptOptions need the artifact's library");
-    }
-    // OpenUI Cloud edits the version it stores; your own storage sends it along:
-    // in the config for your library's artifacts, as is for slides and reports.
+    // OpenUI Cloud edits the version it stores; your own storage sends it as the config's base.
     const started = await this.start({
       userId,
       prompt,
       model,
-      ...(library && { config: cloudConfig({ library, tools, promptOptions, content }) }),
-      ...(!library && content !== undefined && { previous: content }),
+      config: cloudConfig({ library, tools, promptOptions, content }),
       thesys: { id, ...(store !== undefined && { store }) },
       signal,
     });
     return this.result<P>(started, undefined, undefined, store);
   }
 
-  private async create<P extends CreateParams>(
+  private async create<P extends CreateLiveArtifactParams | CreateStaticArtifactParams>(
     kind: ArtifactKind,
     params: P,
+    { signal }: ArtifactRequestOptions = {},
   ): Promise<ArtifactResultFor<P>> {
-    const {
-      title,
-      description,
-      prompt,
-      userId,
-      library,
-      tools,
-      promptOptions,
-      store,
-      model,
-      signal,
-    } = params;
+    const { title, description, prompt, userId, library, tools, promptOptions, store, model } =
+      params;
     requireUser(userId);
+    requireModel(model);
     const id = await this.start({
       userId,
       prompt,
       model,
-      // Slides and reports use built-in libraries: no config.
-      ...(library && { config: cloudConfig({ library, tools, promptOptions, title }) }),
+      config: cloudConfig({ library, tools, promptOptions, title }),
       thesys: {
         c1_artifact_type: kind,
         title,
@@ -208,34 +199,49 @@ export class Artifacts {
     return this.result<P>(id, kind, title, store);
   }
 
-  /** Mints the user's frontend token, so the artifact is theirs, and starts generating. */
+  /**
+   * Mints the user's frontend token, so the artifact is theirs, and starts
+   * generating in the background. Resolves with the artifact's id as soon as it has one.
+   */
   private async start({
     userId,
     prompt,
     model,
     config,
-    previous,
     thesys,
     signal,
-  }: GenerationInput) {
+  }: GenerationInput): Promise<string> {
     const { token } = await this.api.post("/v1/frontend-tokens", { user_id: userId }, signal);
     if (typeof token !== "string" || !token) {
       throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
     }
-    return this.api.generate(
-      {
-        model: model ?? this.model,
+    const response = await this.api.request("/v1/artifact/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", [FRONTEND_TOKEN_HEADER]: token },
+      body: JSON.stringify({
+        model,
         stream: true,
         messages: [
-          ...(config ? [{ role: "system", content: config }] : []),
-          ...(previous ? [{ role: "assistant", content: previous }] : []),
+          { role: "system", content: config },
           { role: "user", content: prompt },
         ],
         // Chat completions metadata values are strings.
         metadata: { thesys: JSON.stringify(thesys) },
-      },
-      { frontendToken: token, signal },
-    );
+      }),
+      signal,
+    });
+    if (!response.ok) throw await apiError(response);
+    const id = response.headers.get(ARTIFACT_ID_HEADER);
+    // The generation carries on in OpenUI Cloud; renderers read it from there.
+    await response.body?.cancel().catch(() => undefined);
+    if (!id) {
+      throw new OpenUIApiError(
+        "OpenUI Cloud didn't start a background artifact",
+        "invalid_response",
+        502,
+      );
+    }
+    return id;
   }
 
   private result<P>(
@@ -281,8 +287,11 @@ async function follow(api: CloudApi, id: string): Promise<GeneratedArtifact> {
 
   for (;;) {
     try {
-      const response = await api.stream(`/v1/artifacts/${encodeURIComponent(id)}/stream`, {
-        lastEventId,
+      const response = await api.request(`/v1/artifacts/${encodeURIComponent(id)}/stream`, {
+        headers: {
+          Accept: "text/event-stream",
+          ...(lastEventId && { "Last-Event-ID": lastEventId }),
+        },
       });
       if (response.status === 404) return fail("not-found", "The artifact was not found.");
       if (response.ok && response.body) {
