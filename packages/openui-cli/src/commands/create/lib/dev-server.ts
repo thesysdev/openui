@@ -1,12 +1,15 @@
 import * as http from "node:http";
+import * as net from "node:net";
 
 import { runCommand, type CommandResult } from "../../../lib/process-runner";
 
 export type DevCommandResult = CommandResult & { timedOut: boolean };
 
 export type DevCommandOptions = {
-  /** Stop the dev server when it does not respond within this window. */
+  /** Stop the dev server when it is not listening on its port within this window. */
   startupTimeoutMs?: number;
+  /** Called once the dev server is listening (only with `startupTimeoutMs`). */
+  onStarted?: (url: string) => void;
 };
 
 const DEFAULT_READY_WAIT_MS = 60_000;
@@ -22,16 +25,28 @@ function isServerReady(url: string): Promise<boolean> {
   });
 }
 
-async function waitUntilReady(
-  url: string,
+function isPortListening(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = net.connect({ port, host: "localhost" });
+    socket.setTimeout(1_000);
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("timeout", () => socket.destroy());
+    socket.once("error", () => resolve(false));
+    socket.once("close", () => resolve(false));
+  });
+}
+
+async function waitUntil(
+  check: () => Promise<boolean>,
   timeoutMs: number,
   didExit: () => boolean,
 ): Promise<boolean> {
-  // A free port is not necessarily accepting connections yet. Wait for the dev
-  // server to respond so the browser does not open to a connection-refused page.
   const timeoutAt = Date.now() + timeoutMs;
   while (!didExit() && Date.now() < timeoutAt) {
-    if (await isServerReady(url)) return true;
+    if (await check()) return true;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return false;
@@ -62,18 +77,27 @@ export async function runDevCommand(
     env: { ...process.env, PORT: String(port) },
     signal: abort.signal,
   });
-  const startupTimeoutMs = options.startupTimeoutMs;
-  void waitUntilReady(url, startupTimeoutMs ?? DEFAULT_READY_WAIT_MS, () => exited).then(
-    async (ready) => {
-      if (ready) return openInBrowser(url);
-      if (exited || startupTimeoutMs === undefined) return;
-      timedOut = true;
-      console.error(
-        `\nDevelopment server did not respond at ${url} within ${Math.round(startupTimeoutMs / 1000)}s. Stopping it.`,
-      );
-      abort.abort();
-    },
-  );
+  const didExit = () => exited;
+  void (async () => {
+    const { startupTimeoutMs } = options;
+    if (startupTimeoutMs !== undefined) {
+      if (!(await waitUntil(() => isPortListening(port), startupTimeoutMs, didExit))) {
+        if (exited) return;
+        timedOut = true;
+        console.error(
+          `\nDevelopment server did not start on ${url} within ${Math.round(startupTimeoutMs / 1000)}s. Stopping it.`,
+        );
+        abort.abort();
+        return;
+      }
+      options.onStarted?.(url);
+    }
+    // A listening port is not necessarily serving pages yet. Wait for the dev
+    // server to respond so the browser does not open to a connection-refused page.
+    if (await waitUntil(() => isServerReady(url), DEFAULT_READY_WAIT_MS, didExit)) {
+      await openInBrowser(url);
+    }
+  })();
   const result = await resultPromise;
   exited = true;
   return { ...result, timedOut };

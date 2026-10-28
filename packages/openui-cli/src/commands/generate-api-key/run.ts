@@ -17,7 +17,7 @@ export interface GenerateApiKeyOptions {
 }
 
 const DEFAULT_ENV_KEY = "THESYS_API_KEY";
-const DEV_STARTUP_TIMEOUT_MS = 60_000;
+const DEV_STARTUP_TIMEOUT_MS = 5_000;
 
 function hasDevScript(cwd: string): boolean {
   return typeof tryReadPackageJson(cwd)?.scripts?.["dev"] === "string";
@@ -83,6 +83,7 @@ export async function runGenerateApiKey(
   console.info(`\nStarting the development server...\n\n> ${runCmd} run dev\n`);
   const devResult = await runDevCommand(runCmd, ctx.cwd, {
     startupTimeoutMs: DEV_STARTUP_TIMEOUT_MS,
+    onStarted: (url) => console.info(`\n✅ Development server started at ${url}`),
   });
   const stoppedByUser =
     !devResult.timedOut &&
