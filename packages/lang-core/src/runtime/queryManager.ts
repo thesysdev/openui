@@ -107,6 +107,8 @@ interface MutationEntry {
 interface CacheEntry {
   data: unknown;
   inFlight: boolean;
+  /** The last fetch failed: settled, so it is fetched again only on invalidate or refresh. */
+  failed?: boolean;
 }
 
 // ── Utilities ────────────────────────────────────────────────────────────────
@@ -166,20 +168,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     };
 
     for (const [sid, q] of queries) {
-      const entry = cache.get(q.cacheKey);
-      if (entry && entry.data !== undefined) {
-        // Use settled data (even while refetching — shows last good value)
-        out[sid] = entry.data;
-      } else if (q.prevCacheKey) {
-        const prev = cache.get(q.prevCacheKey);
-        if (prev && prev.data !== undefined) {
-          out[sid] = prev.data;
-        } else {
-          out[sid] = q.defaults;
-        }
-      } else {
-        out[sid] = q.defaults;
-      }
+      out[sid] = getResult(sid);
       if (isPending(sid)) {
         out.__openui_loading.push(sid);
         if (q.everFetched) out.__openui_refetching.push(sid);
@@ -247,6 +236,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       }
 
       entry.data = data ?? null;
+      entry.failed = false;
       current.everFetched = true;
       current.error = undefined;
 
@@ -258,6 +248,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         cleanupCacheEntry(prevKey);
       }
     } catch (err) {
+      entry.failed = true;
       // Only update error state if this fetch is still current
       const current = queries.get(statementId);
       if (current && current.cacheKey === fetchKey) {
@@ -377,8 +368,8 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
 
       // Fire fetch if no settled data and not already in-flight
       const entry = cache.get(cacheKey);
-      const hasSettledData = entry && entry.data !== undefined && !entry.inFlight;
-      if (toolProvider && !hasSettledData && !entry?.inFlight) {
+      const settled = entry && (entry.data !== undefined || entry.failed);
+      if (toolProvider && !settled && !entry?.inFlight) {
         executeFetch(cacheKey, node.statementId);
       }
 
@@ -426,14 +417,8 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   function getResult(statementId: string): unknown {
     const q = queries.get(statementId);
     if (!q) return null;
-    const entry = cache.get(q.cacheKey);
-    if (entry && entry.data !== undefined) return entry.data;
-    // Fall back to previous cache entry while loading
-    if (q.prevCacheKey) {
-      const prev = cache.get(q.prevCacheKey);
-      if (prev && prev.data !== undefined) return prev.data;
-    }
-    return q.defaults;
+    const data = getData(statementId);
+    return data !== undefined ? data : q.defaults;
   }
 
   function isLoading(statementId: string): boolean {
