@@ -8,18 +8,7 @@ export type {
   ArtifactStreamState,
   UseArtifactStreamOptions,
 } from "./cloud/artifactStream";
-export {
-  FRONTEND_TOKEN_HEADER,
-  createFctFetch,
-  createFrontendTokenManager,
-  toFrontendTokenManager,
-} from "./cloud/frontendTokenManager";
-export type {
-  FrontendTokenManager,
-  FrontendTokenManagerOptions,
-  FrontendTokenSource,
-  MintFrontendTokenResponse,
-} from "./cloud/frontendTokenManager";
+export type { FrontendTokenSource } from "./cloud/frontendTokenManager";
 export { createInterpreterToolProvider } from "./cloud/interpreter";
 export type {
   Interpreter,
@@ -33,8 +22,6 @@ export { useOpenuiCloudStorage } from "./cloud/openuiCloud";
 export type { OpenuiCloudFeatures, OpenuiCloudOptions } from "./cloud/openuiCloud";
 export { OpenUICloudProvider } from "./cloud/OpenUICloudProvider";
 export type { OpenUICloudProviderProps } from "./cloud/OpenUICloudProvider";
-export { cloudRequest, nextCursorOf } from "./cloud/wire";
-export type { CloudListEnvelope } from "./cloud/wire";
 export { useActiveDetailedView } from "./hooks/useActiveDetailedView";
 export { useArtifactList } from "./hooks/useArtifactList";
 export type { ArtifactListFilter } from "./hooks/useArtifactList";
@@ -55,7 +42,7 @@ export {
   useArtifactRendererRegistry,
 } from "./store/ArtifactRenderersContext";
 export { defineArtifactRenderer } from "./store/artifactRendererTypes";
-export { ArtifactStorageProvider, useArtifactStorage } from "./store/ArtifactStorageContext";
+export { useArtifactStorage } from "./store/ArtifactStorageContext";
 export { artifactViewId, parseArtifactViewId } from "./store/artifactViewId";
 export { ChatProvider } from "./store/ChatProvider";
 export { DetailedViewContext, useDetailedViewStore } from "./store/DetailedViewContext";

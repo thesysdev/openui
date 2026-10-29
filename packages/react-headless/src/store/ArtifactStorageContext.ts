@@ -14,12 +14,3 @@ export const ArtifactStorageContext = createContext<ArtifactStorage | null>(null
  * @category Hooks
  */
 export const useArtifactStorage = (): ArtifactStorage | null => useContext(ArtifactStorageContext);
-
-/**
- * Supplies an {@link ArtifactStorage} to artifact renderers outside a
- * `ChatProvider`, e.g. `<ArtifactStorageProvider value={storage.artifact}>`.
- * Inside a `ChatProvider`, `storage.artifact` is provided already.
- *
- * @category Components
- */
-export const ArtifactStorageProvider = ArtifactStorageContext.Provider;
