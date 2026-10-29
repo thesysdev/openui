@@ -1,10 +1,11 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { ok, paintAttrs, POINTS } from "../svgHelpers";
-import { PolylineSchema } from "./schema";
+import { z } from "zod/v4";
+import { color } from "../style";
+import { ok, paintAttrs, POINTS } from "./helpers";
 
-export * from "./schema";
+export const PolylineSchema = z.object({ points: z.string(), stroke: color.optional(), strokeWidth: z.number().optional(), fill: color.optional(), opacity: z.number().optional() });
 
 export const Polyline = defineComponent({
   name: "Polyline",

@@ -1,10 +1,10 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { n, paintAttrs } from "../svgHelpers";
-import { CircleSchema } from "./schema";
+import { z } from "zod/v4";
+import { n, paint, paintAttrs } from "./helpers";
 
-export * from "./schema";
+export const CircleSchema = z.object({ cx: z.number(), cy: z.number(), r: z.number(), ...paint });
 
 export const Circle = defineComponent({
   name: "Circle",

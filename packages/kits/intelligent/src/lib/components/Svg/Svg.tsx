@@ -1,11 +1,16 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { size } from "../style";
-import { ok } from "../svgHelpers";
-import { SvgSchema } from "./schema";
+import { z } from "zod/v4";
+import { children, length, size } from "../style";
+import { ok } from "./helpers";
 
-export * from "./schema";
+export const SvgSchema = z.object({
+  children,
+  viewBox: z.string(),
+  width: length.optional(),
+  height: length.optional(),
+});
 
 export const Svg = defineComponent({
   name: "Svg",

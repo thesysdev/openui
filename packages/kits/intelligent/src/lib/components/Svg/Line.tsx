@@ -1,10 +1,11 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { n, paintAttrs } from "../svgHelpers";
-import { LineSchema } from "./schema";
+import { z } from "zod/v4";
+import { color } from "../style";
+import { n, paintAttrs } from "./helpers";
 
-export * from "./schema";
+export const LineSchema = z.object({ x1: z.number(), y1: z.number(), x2: z.number(), y2: z.number(), stroke: color.optional(), strokeWidth: z.number().optional(), opacity: z.number().optional() });
 
 export const Line = defineComponent({
   name: "Line",

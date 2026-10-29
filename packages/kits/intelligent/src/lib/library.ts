@@ -39,7 +39,7 @@ import { MapView } from "./components/Map";
 import { Icon } from "./components/Icon";
 import { Image } from "./components/Image";
 import { SearchImage } from "./components/SearchImage";
-import { svgComponents } from "./components/svgComponents";
+import { svgComponents } from "./components/Svg";
 import { Table } from "./components/Table";
 import { Caption } from "./components/Caption";
 import { Link } from "./components/Link";

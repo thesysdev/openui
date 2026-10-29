@@ -1,11 +1,19 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { fg } from "../style";
-import { n } from "../svgHelpers";
-import { SvgTextSchema } from "./schema";
+import { z } from "zod/v4";
+import { color, fg } from "../style";
+import { n } from "./helpers";
 
-export * from "./schema";
+export const SvgTextSchema = z.object({
+  text: z.string(),
+  x: z.number(),
+  y: z.number(),
+  size: z.number().optional(),
+  fill: color.optional(),
+  anchor: z.enum(["start", "middle", "end"]).optional(),
+  weight: z.enum(["normal", "medium", "semibold"]).optional(),
+});
 
 export const SvgText = defineComponent({
   name: "SvgText",

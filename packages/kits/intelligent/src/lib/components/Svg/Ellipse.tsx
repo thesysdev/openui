@@ -1,10 +1,10 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { n, paintAttrs } from "../svgHelpers";
-import { EllipseSchema } from "./schema";
+import { z } from "zod/v4";
+import { n, paint, paintAttrs } from "./helpers";
 
-export * from "./schema";
+export const EllipseSchema = z.object({ cx: z.number(), cy: z.number(), rx: z.number(), ry: z.number(), ...paint });
 
 export const Ellipse = defineComponent({
   name: "Ellipse",

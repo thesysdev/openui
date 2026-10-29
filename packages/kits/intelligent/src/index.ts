@@ -63,5 +63,5 @@ export { Chart } from "./lib/components/Chart";
 export { Table } from "./lib/components/Table";
 export { MapMarker } from "./lib/components/Map";
 export { MapView } from "./lib/components/Map";
-export { svgComponents } from "./lib/components/svgComponents";
+export { svgComponents } from "./lib/components/Svg";
 export { HtmlView } from "./lib/components/HtmlView";

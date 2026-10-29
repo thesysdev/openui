@@ -1,10 +1,10 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { ok, paintAttrs } from "../svgHelpers";
-import { PathSchema } from "./schema";
+import { z } from "zod/v4";
+import { ok, paint, paintAttrs } from "./helpers";
 
-export * from "./schema";
+export const PathSchema = z.object({ d: z.string(), ...paint });
 
 const PATH = /^[MmLlHhVvCcSsQqTtAaZz\d\s,.eE+-]*$/;
 

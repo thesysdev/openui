@@ -1,10 +1,10 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { ok, paintAttrs, POINTS } from "../svgHelpers";
-import { PolygonSchema } from "./schema";
+import { z } from "zod/v4";
+import { ok, paint, paintAttrs, POINTS } from "./helpers";
 
-export * from "./schema";
+export const PolygonSchema = z.object({ points: z.string(), ...paint });
 
 export const Polygon = defineComponent({
   name: "Polygon",

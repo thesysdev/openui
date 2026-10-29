@@ -1,10 +1,11 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { opacity } from "../svgHelpers";
-import { GSchema } from "./schema";
+import { z } from "zod/v4";
+import { children } from "../style";
+import { opacity } from "./helpers";
 
-export * from "./schema";
+export const GSchema = z.object({ children, transform: z.string().optional(), opacity: z.number().optional() });
 
 // Each transform function with a valid argument count, so a value built from
 // state that is not set yet (like "rotate( 90 80)") is dropped, not sent to the DOM.

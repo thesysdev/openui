@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { color, fg } from "./style";
+import { color, fg } from "../style";
 
 // Every attribute is checked here; nothing can load a resource or run code.
 export const n = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : undefined);

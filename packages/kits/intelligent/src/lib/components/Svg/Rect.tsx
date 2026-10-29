@@ -1,10 +1,10 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { n, paintAttrs } from "../svgHelpers";
-import { RectSchema } from "./schema";
+import { z } from "zod/v4";
+import { n, paint, paintAttrs } from "./helpers";
 
-export * from "./schema";
+export const RectSchema = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number(), ...paint, rx: z.number().optional() });
 
 export const Rect = defineComponent({
   name: "Rect",
