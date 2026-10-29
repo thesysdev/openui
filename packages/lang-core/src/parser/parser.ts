@@ -10,8 +10,8 @@ import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
 import {
   createStatementReuse,
+  materializeToolArgs,
   materializeValue,
-  nameRawCallArgs,
   withStatementId,
   type StatementCache,
   type StatementReuse,
@@ -127,26 +127,30 @@ function extractStatements(
       case "state":
         stateDeclarations[stmt.id] = materializeValue(stmt.init, ctx);
         break;
-      case "query":
-        nameRawCallArgs(stmt.call.args, ctx, stmt.id);
+      case "query": {
+        const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
+        // Aliases can hide state reads that the raw statement did not expose.
+        const deps = collectQueryDeps(args[1]);
         queryStatements.push({
           statementId: stmt.id,
-          toolAST: stmt.call.args[0] ?? null,
-          argsAST: stmt.call.args[1] ?? null,
-          defaultsAST: stmt.call.args[2] ?? null,
-          refreshAST: stmt.call.args[3] ?? null,
-          deps: stmt.deps,
+          toolAST: args[0] ?? null,
+          argsAST: args[1] ?? null,
+          defaultsAST: args[2] ?? null,
+          refreshAST: args[3] ?? null,
+          deps: deps.length > 0 ? deps : undefined,
           complete: true,
         });
         break;
-      case "mutation":
-        nameRawCallArgs(stmt.call.args, ctx, stmt.id);
+      }
+      case "mutation": {
+        const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
         mutationStatements.push({
           statementId: stmt.id,
-          toolAST: stmt.call.args[0] ?? null,
-          argsAST: stmt.call.args[1] ?? null,
+          toolAST: args[0] ?? null,
+          argsAST: args[1] ?? null,
         });
         break;
+      }
     }
   }
 
