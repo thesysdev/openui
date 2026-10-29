@@ -101,25 +101,8 @@ export function isElementNode(value: unknown): value is ElementNode {
   );
 }
 
-/**
- * The place of a child that is not written yet, kept in its array while streaming
- * when the parser runs with `pendingSlots` (e.g. `Stack([intro, chart])` before `chart = ...`).
- * Also follows the value of the statement that is still streaming.
- */
-export interface PendingSlot {
-  type: "pending";
-  /** The referenced statement name. */
-  ref: string;
-}
-
-export function isPendingSlot(value: unknown): value is PendingSlot {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    (value as Record<string, unknown>).type === "pending" &&
-    typeof (value as Record<string, unknown>).ref === "string"
-  );
-}
+/** Stands in, while streaming, for a child not written yet. Never leaves the parser. */
+export const PENDING_SLOT = { type: "pending" } as const;
 
 /**
  * Validation error codes for schema-related issues.
@@ -164,9 +147,9 @@ export interface MaterializeCtx {
   currentStatementId?: string;
   /** Statement IDs not yet reached — delete as they're touched. Remaining = orphaned. */
   unreached?: Set<string>;
-  /** Keep a PendingSlot in arrays for refs not written yet (streaming only). */
+  /** Mark in arrays where a child not written yet goes (streaming with smoothStreaming). */
   pendingSlots?: boolean;
-  /** The statement still streaming; its array slots are followed by a PendingSlot. */
+  /** The statement still being written. */
   streamingStatementId?: string;
 }
 

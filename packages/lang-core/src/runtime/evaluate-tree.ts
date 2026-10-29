@@ -8,10 +8,8 @@
  */
 
 import type { Library } from "../library";
-import { isASTNode } from "../parser/ast";
 import {
   isElementNode,
-  isPendingSlot,
   type ElementNode,
   type OpenUIError,
   type ParseResult,
@@ -109,45 +107,4 @@ function evaluatePropValue(
     recurseElement: (el) => evaluateElementProps(el, evalCtx),
     recurse: (v, rs) => evaluatePropValue(v, evalCtx, schemaCtx, rs),
   });
-}
-
-/**
- * Ordered reveal for a tree parsed with `pendingSlots`: everything after the first
- * pending slot in reading order (props in order, depth first) is held back, so while
- * streaming new content only appears at the end. Lists after the hold point are empty,
- * other values keep theirs, and no pending slot is left in the output. Works on parsed
- * trees (AST nodes are kept as they are) and evaluated ones. Returns the same node when
- * nothing is held, so a complete parse passes through unchanged.
- */
-export function revealInOrder(root: ElementNode): ElementNode {
-  let held = false;
-  const visit = (value: unknown): unknown => {
-    if (value == null || typeof value !== "object" || isASTNode(value)) return value;
-    if (Array.isArray(value)) {
-      if (held) return value.length ? [] : value;
-      let out: unknown[] | undefined;
-      for (let i = 0; i < value.length; i++) {
-        const item = value[i];
-        if (isPendingSlot(item)) {
-          held = true;
-          return out ?? value.slice(0, i);
-        }
-        const next = visit(item);
-        if (next !== item && !out) out = value.slice(0, i);
-        out?.push(next);
-        // The hold point was inside this item: later siblings wait
-        if (held) return out ?? value.slice(0, i + 1);
-      }
-      return out ?? value;
-    }
-    const obj = isElementNode(value) ? value.props : (value as Record<string, unknown>);
-    let changed: Record<string, unknown> | undefined;
-    for (const [key, item] of Object.entries(obj)) {
-      const next = visit(item);
-      if (next !== item) (changed ??= { ...obj })[key] = next;
-    }
-    if (!changed) return value;
-    return isElementNode(value) ? { ...value, props: changed } : changed;
-  };
-  return visit(root) as ElementNode;
 }

@@ -242,13 +242,13 @@ interface RendererProps<L extends Library = Library> {
 
 ### Smooth streaming
 
-Statements can arrive in any order, so while a response streams a later child can show up before an earlier one (`root = Stack([intro, chart, summary])` with `summary` written before `chart`). Pass `smoothStreaming` to show content in the order it was written: anything after a child that has not arrived yet is held back, so nothing jumps. Everything held is shown when the stream ends.
+Statements can arrive in any order, so while a response streams a later child can show up before an earlier one (`root = Stack([intro, chart, summary])` with `summary` written before `chart`). Pass `smoothStreaming` to show content in the order it was written: anything after a child that has not arrived yet waits for it, so nothing jumps.
 
 ```tsx
 <Renderer response={text} library={library} isStreaming={streaming} smoothStreaming />
 ```
 
-It is off by default, and only changes what is shown while `isStreaming` is true. Under the hood the streaming parser runs with `{ pendingSlots: true }` and the tree goes through `revealInOrder()`, both exported from `@openuidev/lang-core`.
+It is off by default, and only changes what is shown while `isStreaming` is true. Other renderers get the same behavior from `createStreamingParser(schema, root, { smoothStreaming: true })`.
 
 ## Renderer slots
 
@@ -373,12 +373,12 @@ function createParser(schema: LibraryJSONSchema, rootName?: string): Parser;
 function createStreamingParser(
   schema: LibraryJSONSchema,
   rootName?: string,
-  options?: ParseOptions,
+  options?: StreamParserOptions,
 ): StreamParser;
 
-interface ParseOptions {
-  /** While streaming, keep { type: "pending", ref } in arrays for refs not written yet. */
-  pendingSlots?: boolean;
+interface StreamParserOptions {
+  /** While streaming, leave out of `root` anything after a child not written yet. */
+  smoothStreaming?: boolean;
 }
 
 interface Parser {

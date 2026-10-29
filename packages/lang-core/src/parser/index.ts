@@ -14,7 +14,7 @@ export type {
 } from "./types";
 
 export { createParser, createStreamingParser, parse } from "./parser";
-export type { ParseOptions, Parser, StreamParser } from "./parser";
+export type { Parser, StreamParser, StreamParserOptions } from "./parser";
 
 export { enrichErrors } from "./enrich-errors";
 

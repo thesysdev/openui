@@ -5,7 +5,13 @@
 import type { ASTNode } from "./ast";
 import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
-import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
+import {
+  isElementNode,
+  PENDING_SLOT,
+  type CallDef,
+  type MaterializeCtx,
+  type ParamDef,
+} from "./types";
 import {
   buildParamsSignature,
   INVALID,
@@ -312,20 +318,16 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
         if (e.k === "Ph") continue;
         const unresBefore = ctx.unres.length;
         const value = materializeValue(e, ctx);
-        // While streaming, a ref not written yet or still streaming keeps its place; so does an
-        // inline component dropped because one of its props refers to a statement not written yet
-        const pending = ctx.pendingSlots
-          ? e.k === "Ref"
-            ? !ctx.syms.has(e.n) || e.n === ctx.streamingStatementId
-              ? e.n
-              : undefined
-            : e.k === "Comp" && value === null && ctx.unres.length > unresBefore
-              ? ctx.unres[unresBefore]!
-              : undefined
-          : undefined;
         // Drop null entries from component/ref resolution (incomplete props, unresolved refs, unknown components)
         if (value !== null || (e.k !== "Comp" && e.k !== "Ref")) items.push(value);
-        if (pending !== undefined) items.push({ type: "pending", ref: pending });
+        // While streaming, mark where a child waiting on a statement not written yet goes,
+        // and the end of the statement still being written
+        if (
+          ctx.pendingSlots &&
+          ((value === null && ctx.unres.length > unresBefore) ||
+            (e.k === "Ref" && e.n === ctx.streamingStatementId))
+        )
+          items.push(PENDING_SLOT);
       }
       return items;
     }

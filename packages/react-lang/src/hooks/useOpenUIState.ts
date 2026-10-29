@@ -6,7 +6,6 @@ import {
   createStreamingParser,
   evaluate,
   evaluateRoot,
-  revealInOrder,
   type ActionEvent,
   type ActionPlan,
   type EvalContext,
@@ -44,7 +43,7 @@ export interface UseOpenUIStateOptions {
   response: string | null;
   library: Library;
   isStreaming: boolean;
-  /** Hold content after the first child not written yet (see `RendererProps.smoothStreaming`). */
+  /** See `RendererProps.smoothStreaming`. */
   smoothStreaming?: boolean;
   onAction?: (event: ActionEvent) => void;
   onStateUpdate?: (state: Record<string, unknown>) => void;
@@ -110,10 +109,7 @@ export function useOpenUIState(
   // ─── Streaming parser (incremental — caches completed statements) ───
   const schema = useMemo(() => library.toJSONSchema(), [library]);
   const sp = useMemo(
-    () =>
-      smoothStreaming
-        ? createStreamingParser(schema, library.root, { pendingSlots: true })
-        : createStreamingParser(schema, library.root),
+    () => createStreamingParser(schema, library.root, { smoothStreaming }),
     [schema, library.root, smoothStreaming],
   );
   // Library functions: the schema's entries plus each `fn`, for the evaluator
@@ -137,13 +133,7 @@ export function useOpenUIState(
       : null;
     if (!bundle.program) return null;
     try {
-      const parsed = sp.set(bundle.program, !isStreaming);
-      // Hold back what comes after a child not written yet. Done before anything reads the
-      // result, so pending slots never reach evaluation, components, errors or devtools.
-      // A complete parse has no pending slots and passes through unchanged.
-      if (!smoothStreaming || !parsed.root) return parsed;
-      const root = revealInOrder(parsed.root);
-      return root === parsed.root ? parsed : { ...parsed, root };
+      return sp.set(bundle.program, !isStreaming);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       parseExceptionRef.current = {
@@ -154,7 +144,7 @@ export function useOpenUIState(
       };
       return null;
     }
-  }, [sp, bundle.program, bundle.error, isStreaming, smoothStreaming]);
+  }, [sp, bundle.program, bundle.error, isStreaming]);
 
   // ─── Store (holds everything: $bindings + form fields) ───
   const store = useMemo<Store>(() => createStore(), []);

@@ -13,6 +13,7 @@ import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
   isElementNode,
+  PENDING_SLOT,
   type ElementNode,
   type JSONSchemaDef,
   type LibraryJSONSchema,
@@ -211,19 +212,41 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
-export interface ParseOptions {
+export interface StreamParserOptions {
   /**
-   * While the input is still streaming, keep a `{ type: "pending", ref }` slot in the
-   * root tree's arrays for refs not written yet, and after the statement still streaming,
-   * instead of dropping them. Lets a renderer reveal content in source order (see
-   * `revealInOrder`). State defaults never get slots. Complete parses are unchanged.
+   * While streaming, show content in the order it was written: anything after a child
+   * not written yet is left out of `root` until that child arrives. Complete parses are unchanged.
    */
-  pendingSlots?: boolean;
+  smoothStreaming?: boolean;
 }
 
-/** Pending slots are on while streaming; `streamingId` is the statement still being written. */
-interface PendingInfo {
-  streamingId: string | undefined;
+/**
+ * Everything after the first pending slot in reading order (props in order, depth first)
+ * is held back: later lists are emptied, other values keep theirs. Removes every slot.
+ */
+function holdBack(root: ElementNode): ElementNode {
+  let held = false;
+  const visit = (value: unknown): unknown => {
+    if (value == null || typeof value !== "object" || isASTNode(value)) return value;
+    if (Array.isArray(value)) {
+      if (held) return value.length ? [] : value;
+      const out: unknown[] = [];
+      for (const item of value) {
+        if (item === PENDING_SLOT) {
+          held = true;
+          break;
+        }
+        out.push(visit(item));
+        if (held) break;
+      }
+      return out;
+    }
+    const obj = isElementNode(value) ? value.props : (value as Record<string, unknown>);
+    const out: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(obj)) out[key] = visit(item);
+    return isElementNode(value) ? { ...value, props: out } : out;
+  };
+  return visit(root) as ElementNode;
 }
 
 function buildResult(
@@ -234,7 +257,7 @@ function buildResult(
   cat: ParamMap | undefined,
   rootName?: string,
   partialRef?: PartialRef,
-  pending?: PendingInfo,
+  pending?: { streamingId?: string },
 ): ParseResult {
   const entry = pickEntry(stmtMap, rootName);
 
@@ -277,7 +300,7 @@ function buildResult(
     }
   }
 
-  // Slots are for the rendered tree only: state defaults are data the runtime computes with
+  // State defaults and Query/Mutation args never get slots
   ctx.pendingSlots = false;
   const { stateDeclarations, queryStatements, mutationStatements } = extractStatements(
     typedStmts,
@@ -303,7 +326,7 @@ function buildResult(
   const orphaned = entry ? [...unreached] : [];
 
   return {
-    root,
+    root: root && pending ? holdBack(root) : root,
     ...(rootExpression ? { rootExpression } : {}),
     meta: {
       incomplete: wasIncomplete,
@@ -514,7 +537,7 @@ export interface StreamParser {
 export function createStreamParser(
   cat: ParamMap,
   rootName?: string,
-  options?: ParseOptions,
+  options?: StreamParserOptions,
 ): StreamParser {
   let buf = ""; // raw accumulated input (kept for set() diffing)
   // Preprocessed view of `buf` (fences + comments stripped, same as parse()'s
@@ -618,8 +641,7 @@ export function createStreamParser(
     refreshCleaned();
     const pendingStart = scanNewCompleted();
     const pendingText = cleaned.slice(pendingStart).trim();
-    // Until the stream is complete, later statements may still arrive
-    const slots = options?.pendingSlots && !complete;
+    const slots = options?.smoothStreaming && !complete;
 
     // No pending text — all statements are complete
     if (!pendingText) {
@@ -632,7 +654,7 @@ export function createStreamParser(
         cat,
         rootName,
         undefined,
-        slots ? { streamingId: undefined } : undefined,
+        slots ? {} : undefined,
       );
     }
 
@@ -651,7 +673,7 @@ export function createStreamParser(
         cat,
         rootName,
         undefined,
-        slots ? { streamingId: undefined } : undefined,
+        slots ? {} : undefined,
       );
     }
 
@@ -805,7 +827,7 @@ export function createParser(schema: LibraryJSONSchema, rootName?: string): Pars
 export function createStreamingParser(
   schema: LibraryJSONSchema,
   rootName?: string,
-  options?: ParseOptions,
+  options?: StreamParserOptions,
 ): StreamParser {
   return createStreamParser(compileSchema(schema), rootName, options);
 }

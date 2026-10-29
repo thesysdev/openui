@@ -39,8 +39,7 @@ export interface RendererProps<L extends Library = Library> {
   isStreaming?: boolean;
   /**
    * While streaming, show content in the order it was written: anything after a child
-   * that has not arrived yet is held back, so nothing jumps. Everything held is shown
-   * when the stream ends.
+   * not written yet waits for it, so nothing jumps.
    * @default false
    */
   smoothStreaming?: boolean;
