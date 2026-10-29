@@ -479,6 +479,7 @@ function getValidationErrorCounts(
     "excess-args": 0,
     "type-mismatch": 0,
     "unknown-function": 0,
+    "query-cycle": 0,
     "no-root": 0,
   };
 

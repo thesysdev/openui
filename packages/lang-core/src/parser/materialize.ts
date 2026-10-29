@@ -7,6 +7,7 @@ import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
 import {
   isElementNode,
+  PENDING_SLOT,
   type CallDef,
   type ElementNode,
   type MaterializeCtx,
@@ -141,35 +142,35 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
   let result: unknown;
   if (memo.has(key)) result = memo.get(key);
   else {
-    const prevStatementId = ctx.currentStatementId;
-    ctx.currentStatementId = name;
     ctx.visited.add(name);
     try {
-      const kept = reuse?.entries.get(cacheKey);
-      if (kept && isFresh(kept, ctx, reuse!)) {
-        // Reach and report what it read, as materializing it would
-        reuse!.frame = undefined;
-        try {
-          for (const r of kept.reads) resolveRef(r.name, ctx, "mode" in r ? r.mode : mode);
-        } finally {
-          reuse!.frame = frame;
+      result = withStatement(ctx, name, () => {
+        const kept = reuse?.entries.get(cacheKey);
+        if (kept && isFresh(kept, ctx, reuse!)) {
+          // Reach and report what it read, as materializing it would
+          reuse!.frame = undefined;
+          try {
+            for (const r of kept.reads) resolveRef(r.name, ctx, "mode" in r ? r.mode : mode);
+          } finally {
+            reuse!.frame = frame;
+          }
+          for (const e of kept.errors) ctx.errors.push({ ...e });
+          memo.set(key, kept.value);
+          return kept.value;
         }
-        for (const e of kept.errors) ctx.errors.push({ ...e });
-        result = kept.value;
-        memo.set(key, result);
-      } else {
         const unresBefore = ctx.unres.length;
         const errorsBefore = ctx.errors.length;
         const own = reuse && { reads: [] as Read[], ok: !reuse.streaming.has(name) };
         if (reuse) reuse.frame = own;
+        let value: unknown;
         try {
-          result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+          value = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
         } finally {
           if (reuse) reuse.frame = frame;
         }
-        if (mode === "value" && isElementNode(result)) result = withStatementId(result, name);
+        if (mode === "value" && isElementNode(value)) value = withStatementId(value, name);
         if (ctx.unres.length === unresBefore) {
-          memo.set(key, result);
+          memo.set(key, value);
           if (own?.ok) {
             const errors = ctx.errors.slice(errorsBefore).filter((e) => e.statementId === name);
             const entry = {
@@ -177,7 +178,7 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
               name,
               mode,
               ast: target,
-              value: result,
+              value,
               reads: own.reads,
               errors,
             };
@@ -185,9 +186,9 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
             reuse!.fresh.set(entry, true);
           }
         }
-      }
+        return value;
+      });
     } finally {
-      ctx.currentStatementId = prevStatementId;
       ctx.visited.delete(name);
     }
   }
@@ -197,6 +198,17 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     else frame.ok = false;
   }
   return result;
+}
+
+/** Run fn with ctx.currentStatementId set to id, so the issues it reports name that statement. */
+export function withStatement<R>(ctx: MaterializeCtx, id: string, fn: () => R): R {
+  const prev = ctx.currentStatementId;
+  ctx.currentStatementId = id;
+  try {
+    return fn();
+  } finally {
+    ctx.currentStatementId = prev;
+  }
 }
 
 /** Registry calls (functions and steps) and reserved calls stay AST for the runtime. */
@@ -272,21 +284,6 @@ function materializeCall(
   return def.kind === "action"
     ? { k: "Comp", name: "Action", args: [{ k: "Arr", els: [] }] }
     : { k: "Null" };
-}
-
-/** Resolve tool value references while retaining AST for runtime state and result reads. */
-export function materializeToolArgs(
-  args: ASTNode[],
-  ctx: MaterializeCtx,
-  statementId: string,
-): ASTNode[] {
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = statementId;
-  try {
-    return args.map((arg) => materializeExpr(arg, ctx));
-  } finally {
-    ctx.currentStatementId = prevStatementId;
-  }
 }
 
 /**
@@ -441,10 +438,18 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
       for (const e of node.els) {
         // Drop unresolved placeholders from arrays
         if (e.k === "Ph") continue;
+        const unresBefore = ctx.unres.length;
         const value = materializeValue(e, ctx);
         // Drop null entries from component/ref resolution (incomplete props, unresolved refs, unknown components)
-        if (value === null && (e.k === "Comp" || e.k === "Ref")) continue;
-        items.push(value);
+        if (value !== null || (e.k !== "Comp" && e.k !== "Ref")) items.push(value);
+        // While streaming, mark where a child waiting on a statement not written yet goes,
+        // and the end of the statement still being written
+        if (
+          ctx.pendingSlots &&
+          ((value === null && ctx.unres.length > unresBefore) ||
+            (e.k === "Ref" && e.n === ctx.streamingStatementId))
+        )
+          items.push(PENDING_SLOT);
       }
       return items;
     }
