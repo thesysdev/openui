@@ -40,6 +40,23 @@ export const radiusSchema = z.union([z.enum(["sm", "md", "lg", "xl", "full"]), z
 tagSchemaId(radiusSchema, "Radius");
 /** How a photo fills its box: Image and SearchImage. */
 export const fitSchema = z.enum(["cover", "contain"]);
+/**
+ * A field's validation inside a Form, checked before anything is sent to the
+ * assistant. The same shape as the chat and dashboard kits' rules, so a model
+ * writes one format for all three: {required: true, min: 1, email: true}.
+ */
+export const rulesSchema = z.object({
+  required: z.boolean().optional(),
+  email: z.boolean().optional(),
+  url: z.boolean().optional(),
+  numeric: z.boolean().optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  minLength: z.number().optional(),
+  maxLength: z.number().optional(),
+  pattern: z.string().optional(),
+});
+tagSchemaId(rulesSchema, "Rules");
 
 export const option = z.union([z.string(), z.object({ value: z.string(), label: z.string() })]);
 export type Option = z.infer<typeof option>;

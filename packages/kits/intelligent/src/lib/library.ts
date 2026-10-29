@@ -17,7 +17,8 @@ import { Checkbox } from "./components/Checkbox";
 import { DatePicker } from "./components/DatePicker";
 import { RadioGroup } from "./components/RadioGroup";
 import { HtmlView } from "./components/html-view";
-import { Box, Card, Col, Form, Grid, Row, Spacer } from "./components/layout";
+import { Box, Card, Col, Grid, Row, Spacer } from "./components/layout";
+import { Form } from "./components/Form";
 import { Divider } from "./components/Divider";
 import { MapMarker, MapView } from "./components/map/map";
 import { Icon } from "./components/media";
@@ -61,6 +62,7 @@ export const baseComponentGroups = [
       notes: [
         "- An input's first argument is its value, usually a $variable that other statements read.",
         '- Every input either changes something shown on the page, or sits in a Form whose submit Button sends a short first-person @ToAssistant ("Help me choose a bike"); the form values go with it. No dead inputs.',
+        '- In a Form, a field\'s last argument rules is checked before the form sends, and an error shows under the field. Rules is {required?, min?, max?, minLength?, maxLength?, email?, url?, numeric?, pattern?}: Input($email, "Email", "text", null, {required: true, email: true}).',
       ],
     },
     { name: "Media and data", components: ["SearchImage", "Image", "Icon", "Table", "Chart", "Map", "MapMarker", "YouTube"] },

@@ -3,7 +3,7 @@
 import { Input as RCInput } from "@openuidev/react-components";
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import { useState } from "react";
-import { Field, useFieldName } from "../controlHelpers";
+import { Field, useFieldName, useFieldRules } from "../controlHelpers";
 import { InputSchema } from "./schema";
 
 export * from "./schema";
@@ -13,12 +13,14 @@ export const Input = defineComponent({
   props: InputSchema,
   description: "Text or number field; a number field stores numbers.",
   component: function InputView({ props, statementId }) {
-    const field = useStateField(useFieldName(props.label, statementId), props.value);
+    const name = useFieldName(props.label, statementId);
+    const field = useStateField(name, props.value);
+    const rules = useFieldRules(name, props.rules, field.value);
     const numeric = props.type === "number";
     // A number field shows what is typed ("1." or "-") until it parses.
     const [draft, setDraft] = useState<string | null>(null);
     return (
-      <Field label={props.label}>
+      <Field label={props.label} required={rules.required} error={rules.error}>
         <RCInput
           // "large" lines the field up with DatePicker's trigger (42px); the
           // default "medium" is 36px, which left the controls uneven.
@@ -28,7 +30,11 @@ export const Input = defineComponent({
           value={draft ?? String(field.value ?? "")}
           placeholder={props.placeholder}
           aria-label={props.label ? undefined : props.placeholder}
+          aria-required={rules.required || undefined}
+          aria-invalid={rules.error ? true : undefined}
+          hasError={!!rules.error}
           onChange={(event) => {
+            rules.clear();
             const text = event.target.value;
             if (!numeric) return field.setValue(text);
             setDraft(text);
@@ -36,7 +42,10 @@ export const Input = defineComponent({
             if (text.trim() === "") field.setValue(null as unknown as number);
             else if (Number.isFinite(parsed)) field.setValue(parsed);
           }}
-          onBlur={() => setDraft(null)}
+          onBlur={() => {
+            setDraft(null);
+            rules.check();
+          }}
         />
       </Field>
     );

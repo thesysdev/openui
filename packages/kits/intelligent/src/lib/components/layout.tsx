@@ -1,7 +1,7 @@
 "use client";
 
-import { defineComponent, FormNameContext } from "@openuidev/react-lang";
-import { useId, type CSSProperties } from "react";
+import { defineComponent } from "@openuidev/react-lang";
+import type { CSSProperties } from "react";
 import { z } from "zod/v4";
 import { bg, children, color, onColor, cx, length, radius, radiusSchema, size, space } from "./style";
 
@@ -138,26 +138,9 @@ export const Card = defineComponent({
   ),
 });
 
-
 export const Spacer = defineComponent({
   name: "Spacer",
   props: z.object({}),
   description: "Fills the free space in a Row.",
   component: () => <div className="iui-spacer" aria-hidden />,
-});
-
-export const Form = defineComponent({
-  name: "Form",
-  props: z.object({ children }),
-  description: "Groups fields; their values go with any @ToAssistant inside.",
-  component: function FormView({ props, renderNode, statementId }) {
-    const id = useId();
-    return (
-      <FormNameContext.Provider value={statementId ?? id}>
-        <form className="iui-form" onSubmit={(event) => event.preventDefault()}>
-          {renderNode(props.children)}
-        </form>
-      </FormNameContext.Provider>
-    );
-  },
 });

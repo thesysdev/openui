@@ -173,6 +173,10 @@
 
 /* Fields */
 .iui-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+/* Validation inside a Form: a required field's marker, and its error under the field. */
+.iui-required { margin-left: 2px; }
+.iui-field-error { display: flex; align-items: center; gap: 6px; color: var(--iui-danger); font-size: 13px; line-height: 18px; }
+.iui-field-error > svg { flex: none; }
 .iui-input { width: 100%; min-width: 0; min-height: 42px; padding: 10px 12px; border: 1px solid var(--iui-border-strong); border-radius: var(--iui-radius-md); background: var(--iui-canvas); color: var(--iui-ink); font-size: 16px; line-height: 1.4; font-variant-numeric: tabular-nums; outline: none; transition: border-color .15s, box-shadow .15s; }
 .iui-input::placeholder { color: var(--iui-faint); opacity: 1; }
 .iui-input:focus, .iui-input:focus-visible { border-color: var(--iui-focus); box-shadow: 0 0 0 2px color-mix(in srgb, var(--iui-focus) 18%, transparent); outline: none; }
@@ -215,12 +219,12 @@
 .iui-check > input { flex: none; width: 17px; height: 17px; margin: 0; accent-color: var(--iui-ink); cursor: pointer; }
 .iui-check > span { transition: color .15s; }
 .iui-check.is-done > span { color: var(--iui-muted); text-decoration: line-through; }
+.iui-checkbox { display: inline-flex; flex-direction: column; gap: 6px; }
 .iui-radio-group { display: flex; flex-direction: column; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .iui-radio-group > legend { padding: 0; margin-bottom: 10px; }
-.iui-radio-group > div { display: flex; flex-direction: column; gap: 2px; }
 .iui-choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 /* Short choices are pills; explanatory choices are quiet cards */
-.iui-radio-pills > div { flex-direction: row; flex-wrap: wrap; gap: var(--iui-control-gap); }
+.iui-radio-pills > div { display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--iui-control-gap); }
 .iui-radio-cards > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--iui-control-gap); }
 .iui-choice { position: relative; display: flex; align-items: center; min-height: 42px; padding: 9px 16px; border: 1px solid var(--iui-border); border-radius: 999px; background: transparent; color: var(--iui-ink); font-size: 15px; line-height: 22px; cursor: pointer; transition: background .15s, border-color .15s; }
 .iui-choice > input { position: absolute; opacity: 0; width: 1px; height: 1px; }

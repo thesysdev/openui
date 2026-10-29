@@ -19,7 +19,8 @@ export {
 
 // The components, so a host can compose its own library from a subset or add
 // its own, exactly as the coach and chess libraries do in Open Intelligent UI.
-export { Box, Card, Col, Form, Grid, Row, Spacer } from "./lib/components/layout";
+export { Box, Card, Col, Grid, Row, Spacer } from "./lib/components/layout";
+export { Form } from "./lib/components/Form";
 export { Divider } from "./lib/components/Divider";
 export { Caption, Link, List, ListItem, Text, Title } from "./lib/components/text";
 export { Badge } from "./lib/components/Badge";
