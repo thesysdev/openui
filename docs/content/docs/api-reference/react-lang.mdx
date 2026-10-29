@@ -242,7 +242,7 @@ interface RendererProps<L extends Library = Library> {
 
 ### Stream in order
 
-Statements can arrive in any order, so while a response streams a later child can show up before an earlier one (`root = Stack([intro, chart, summary])` with `summary` written before `chart`). Pass `streamInOrder` to show content in the order it was written: anything after a child that has not arrived yet waits for it, so nothing jumps. A child that never arrives holds what follows it until the stream ends.
+Statements can arrive in any order, so while a response streams a later child can show up before an earlier one (`root = Stack([intro, chart, summary])` with `summary` written before `chart`). Pass `streamInOrder` to show content in the order it was written: anything after a child that has not arrived yet waits for it, so nothing jumps. A child that never arrives holds what follows it until the stream ends. A component with children in more than one prop, such as a form's fields and buttons, appears once all of them have arrived.
 
 ```tsx
 <Renderer response={text} library={library} isStreaming={streaming} streamInOrder />

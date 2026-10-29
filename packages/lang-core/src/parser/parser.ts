@@ -300,16 +300,18 @@ export interface StreamParserOptions {
 }
 
 /**
- * Everything after the first pending slot in reading order (props in order, depth first)
- * is held back: later lists are emptied, other values keep theirs. Removes every slot and
- * returns the same object for anything with nothing held or removed inside.
+ * Holds back everything after a child not written yet: the rest of its list, and the rest of
+ * every list up the tree. Sibling props keep their content: a list renders in order, but props
+ * render in an order the component chooses. For the same reason an element with children in
+ * more than one prop (a form's fields and buttons) is left out whole until all of them are
+ * written. Removes every slot and returns the same object for anything with nothing held or
+ * removed inside.
  */
-function trimAfterPending(root: ElementNode): ElementNode {
+function trimAfterPending(root: ElementNode): ElementNode | null {
   let held = false;
   const visit = (value: unknown): unknown => {
     if (value == null || typeof value !== "object" || isASTNode(value)) return value;
     if (Array.isArray(value)) {
-      if (held) return value.length ? [] : value;
       let out: unknown[] | undefined;
       for (let i = 0; i < value.length; i++) {
         const item = value[i];
@@ -318,22 +320,37 @@ function trimAfterPending(root: ElementNode): ElementNode {
           return out ?? value.slice(0, i);
         }
         const next = visit(item);
-        if (next !== item) out ??= value.slice(0, i);
-        out?.push(next);
+        if (next !== item) {
+          out ??= value.slice(0, i);
+          if (next !== null) out.push(next);
+        } else out?.push(item);
         if (held) return out ?? value.slice(0, i + 1);
       }
       return out ?? value;
     }
+    const element = isElementNode(value);
     const obj = isElementNode(value) ? value.props : (value as Record<string, unknown>);
     let out: Record<string, unknown> | undefined;
+    let heldInside = false;
+    let childProps = 0;
     for (const [key, item] of Object.entries(obj)) {
+      if (element && hasElementChild(item)) childProps++;
+      held = false;
       const next = visit(item);
+      heldInside ||= held;
       if (next !== item) (out ??= { ...obj })[key] = next;
     }
+    held = heldInside;
+    if (element && held && childProps > 1) return null;
     if (!out) return value;
-    return isElementNode(value) ? { ...value, props: out } : out;
+    return element ? { ...value, props: out } : out;
   };
-  return visit(root) as ElementNode;
+  return visit(root) as ElementNode | null;
+}
+
+function hasElementChild(value: unknown): boolean {
+  if (isElementNode(value)) return true;
+  return Array.isArray(value) && value.some((item) => item === PENDING_SLOT || isElementNode(item));
 }
 
 function buildResult(
