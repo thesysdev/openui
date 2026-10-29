@@ -1,3 +1,0 @@
-root = Stack([Metric("A", @Count(a)), Metric("B", @Count(b))])
-a = Query("listA", {after: b}, [])
-b = Query("listB", {after: a}, [])

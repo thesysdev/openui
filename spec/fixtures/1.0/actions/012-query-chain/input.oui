@@ -1,4 +1,0 @@
-root = Stack([Metric("Orders", @Count(orders.rows))])
-cust = Query("listCustomers", {region: "EU"}, [])
-ids = cust.id
-orders = Query("listOrders", {customerIds: ids}, {rows: []})
