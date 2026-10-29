@@ -1,6 +1,6 @@
 "use client";
 
-// Artifacts from OpenUI Cloud: the live and static renderers and their state.
+// Artifacts from OpenUI Cloud: the live and static renderers, their slots and state.
 export { OpenUICloudProvider } from "@openuidev/react-headless";
 export type {
   FrontendTokenSource,
@@ -23,3 +23,11 @@ export type { ArtifactRendererBaseProps } from "../components/CloudArtifact/Arti
 export { useArtifactRenderer } from "../components/CloudArtifact/contexts";
 export type { ArtifactRendererState } from "../components/CloudArtifact/contexts";
 export type { ArtifactError, ArtifactErrorCode } from "../components/CloudArtifact/errors";
+export type {
+  ChromeProps,
+  CloseButtonProps,
+  ErrorProps,
+  LoaderProps,
+  PartProps,
+  PreviewProps,
+} from "../components/CloudArtifact/slots";
