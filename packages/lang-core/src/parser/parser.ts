@@ -225,7 +225,7 @@ export interface StreamParserOptions {
  * is held back: later lists are emptied, other values keep theirs. Removes every slot and
  * returns the same object for anything with nothing held or removed inside.
  */
-function holdBack(root: ElementNode): ElementNode {
+function trimAfterPending(root: ElementNode): ElementNode {
   let held = false;
   const visit = (value: unknown): unknown => {
     if (value == null || typeof value !== "object" || isASTNode(value)) return value;
@@ -334,7 +334,7 @@ function buildResult(
   const orphaned = entry ? [...unreached] : [];
 
   return {
-    root: root && pending ? holdBack(root) : root,
+    root: root && pending ? trimAfterPending(root) : root,
     ...(rootExpression ? { rootExpression } : {}),
     meta: {
       incomplete: wasIncomplete,
