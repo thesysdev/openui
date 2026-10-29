@@ -12,47 +12,10 @@ import {
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { z } from "zod/v4";
 import { choice, choiceList, Field, numberText, optionList, options, useFieldName, useRunAction } from "./controlHelpers";
-import { Glyph } from "./glyph";
+import { ButtonView } from "./Button";
 import { bg, children, color, onColor, cx, option, radius, radiusSchema, space, textOf, toOption, type Option } from "./style";
 
 // Actions
-export const Button = defineComponent({
-  name: "Button",
-  props: z.object({
-    label: z.string(),
-    action: action().optional(),
-    variant: z.enum(["solid", "outline", "soft", "ghost"]).optional(),
-    color: z.enum(["primary", "danger", "success"]).optional(),
-    size: z.enum(["sm", "md", "lg"]).optional(),
-    icon: z.string().optional(),
-    disabled: z.boolean().optional(),
-    block: z.boolean().optional(),
-  }),
-  description: "icon is a lucide name.",
-  component: ({ props }) => {
-    const run = useRunAction();
-    const streaming = useIsStreaming();
-    const label = String(props.label ?? "");
-    return (
-      <button
-        type="button"
-        className={cx(
-          "iui-button",
-          `iui-button-${props.variant ?? "solid"}`,
-          props.color && props.color !== "primary" && `iui-button-${props.color}`,
-          `iui-button-${props.size ?? "md"}`,
-          props.block && "iui-block",
-        )}
-        disabled={!!props.disabled || streaming}
-        onClick={() => run(label, props.action, true)}
-      >
-        {props.icon ? <Glyph name={props.icon} size={props.size === "sm" ? 14 : 16} /> : null}
-        {label}
-      </button>
-    );
-  },
-});
-
 export const Pressable = defineComponent({
   name: "Pressable",
   props: z.object({
@@ -268,14 +231,12 @@ export const Timer = defineComponent({
           <span className="iui-timer-time">{clock(left)}</span>
         </div>
         <div className="iui-timer-actions">
-          <button type="button" className="iui-button iui-button-solid iui-button-sm" disabled={streaming || left === 0} onClick={toggle}>
-            <Glyph name={running ? "pause" : "play"} size={14} />
+          <ButtonView variant="solid" size="sm" icon={running ? "pause" : "play"} disabled={streaming || left === 0} onClick={toggle}>
             {running ? "Pause" : startedAt === null || left === 0 ? "Start" : "Resume"}
-          </button>
-          <button type="button" className="iui-button iui-button-ghost iui-button-sm" disabled={streaming || startedAt === null} onClick={reset}>
-            <Glyph name="rotate-ccw" size={14} />
+          </ButtonView>
+          <ButtonView variant="ghost" size="sm" icon="rotate-ccw" disabled={streaming || startedAt === null} onClick={reset}>
             Reset
-          </button>
+          </ButtonView>
         </div>
       </div>
     );
