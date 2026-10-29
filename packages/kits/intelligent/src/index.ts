@@ -22,7 +22,9 @@ export {
 export { Box, Card, Col, Grid, Row, Spacer } from "./lib/components/layout";
 export { Form } from "./lib/components/Form";
 export { Divider } from "./lib/components/Divider";
-export { Caption, Link, List, ListItem, Text, Title } from "./lib/components/text";
+export { Caption, Link, Text, Title } from "./lib/components/text";
+export { List } from "./lib/components/List";
+export { ListItem } from "./lib/components/ListItem";
 export { Badge } from "./lib/components/Badge";
 export { Label } from "./lib/components/Label";
 export { Markdown } from "./lib/components/Markdown";

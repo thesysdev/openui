@@ -4,8 +4,7 @@ import { defineComponent } from "@openuidev/react-lang";
 import { ArrowUpRight } from "lucide-react";
 import { Fragment } from "react";
 import { z } from "zod/v4";
-import { Glyph } from "./glyph";
-import { inline, MarkdownBlocks } from "./markdownBlocks";
+import { inline } from "./markdownBlocks";
 import { children, color, cx, fg, webUrl } from "./style";
 
 const str = (value: unknown) => (value == null ? "" : String(value));
@@ -98,61 +97,3 @@ export const Link = defineComponent({
     );
   },
 });
-
-type ItemElement = { type: "element"; typeName: string; props: Record<string, unknown> };
-const isItem = (value: unknown): value is ItemElement =>
-  !!value && typeof value === "object" && (value as ItemElement).type === "element" && (value as ItemElement).typeName === "ListItem";
-
-export const ListItem = defineComponent({
-  name: "ListItem",
-  props: z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    marker: z.string().optional(),
-    children: children.optional(),
-  }),
-  description: "marker replaces the bullet or number, e.g. a time or an emoji.",
-  // Rendered by List; on its own it shows its content.
-  component: ({ props, renderNode }) => (
-    <div className="iui-list-body">
-      <div className="iui-list-title">{inline(str(props.title))}</div>
-      {props.description ? <div className="iui-list-description">{inline(str(props.description))}</div> : null}
-      {props.children ? <div className="iui-list-children">{renderNode(props.children)}</div> : null}
-    </div>
-  ),
-});
-
-export const List = defineComponent({
-  name: "List",
-  props: z.object({
-    items: z.array(z.union([z.string(), ListItem.ref])),
-    marker: z.enum(["bullet", "number", "none"]).optional(),
-    timeline: z.boolean().optional(),
-  }),
-  description: "timeline joins the markers with a line.",
-  component: ({ props, renderNode }) => {
-    const items = (Array.isArray(props.items) ? props.items.flat() : []) as unknown[];
-    const marker = props.marker ?? "bullet";
-    const textMarkers = items.some((item) => isItem(item) && typeof item.props.marker === "string" && item.props.marker.length > 2);
-    const Tag = marker === "number" ? "ol" : "ul";
-    return (
-      <Tag className={cx("iui-list", `iui-list-${marker}`, props.timeline && "iui-timeline", textMarkers && "iui-list-wide")}>
-        {items.map((item, i) => {
-          if (item == null) return null;
-          const custom = isItem(item) && typeof item.props.marker === "string" && item.props.marker ? item.props.marker : null;
-          const step = !!custom && /^[0-9A-Za-z]{1,2}$/.test(custom);
-          const rich = isItem(item) && (!!item.props.description || !!item.props.children);
-          return (
-            <li key={i} className={cx(rich && "iui-list-rich")}>
-              <span className={cx("iui-list-marker", custom && (step ? "iui-list-marker-chip" : "iui-list-marker-text"))} aria-hidden={!custom}>
-                {step ? <span>{custom}</span> : custom ?? (marker === "number" ? i + 1 : null)}
-              </span>
-              {isItem(item) ? renderNode(item) : <div className="iui-list-body">{inline(str(item))}</div>}
-            </li>
-          );
-        })}
-      </Tag>
-    );
-  },
-});
-
