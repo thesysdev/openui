@@ -326,12 +326,12 @@ function sameLineCode(text: string): string | null {
   return untagged !== text && STATEMENT_START.test(untagged) ? untagged : null;
 }
 
-const SCRIPT_OPENER = /^[ \t]*```[ \t]*(?:js|javascript)\b/i;
+const SCRIPT_OPENER = /^[ \t]*```[ \t]*openui-js\b/i;
 const FENCE_CLOSE = /^[ \t]*```[ \t]*\r?$/;
 
-/** Drop ```js blocks (scripts written after the program), unless the block holds an OpenUI program. */
+/** Drop ```openui-js blocks (scripts written after the program), unless the block holds an OpenUI program. */
 function dropScriptBlocks(input: string): string {
-  if (!/^[ \t]*```[ \t]*(?:js|javascript)\b/im.test(input)) return input;
+  if (!/^[ \t]*```[ \t]*openui-js\b/im.test(input)) return input;
   const lines = input.split("\n");
   const out: string[] = [];
   // A line that starts inside a "..." string is never an opener. Only statement text opens strings:
