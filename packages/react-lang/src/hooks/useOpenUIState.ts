@@ -13,7 +13,9 @@ import {
   type OpenUIError,
   type ParseResult,
   type QueryManager,
+  type QueryNode,
   type QuerySnapshot,
+  type QueryStatementInfo,
   type Store,
   type ToolProvider,
 } from "@openuidev/lang-core";
@@ -212,17 +214,16 @@ export function useOpenUIState(
   );
 
   // ─── Evaluate and submit queries ───
-  useEffect(() => {
-    // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
-    if (blocked) return;
-
-    const queryStmts = result?.queryStatements ?? [];
-    const evaluatedNodes = queryStmts.map((qn) => {
+  // Reads the store and query results live: the manager calls it again for a query whose
+  // waited-on result changed, after this render.
+  const evaluateQuery = useCallback(
+    (qn: QueryStatementInfo): QueryNode => {
       const relevantDeps: Record<string, unknown> = {};
       const toolName = qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "";
       if (qn.deps) {
+        const state = store.getSnapshot();
         for (const ref of qn.deps) {
-          relevantDeps[ref] = storeSnapshot[ref];
+          relevantDeps[ref] = state[ref];
         }
       }
       if (scriptNames.has(toolName)) relevantDeps.__openuiScriptRevision = scriptRevision;
@@ -236,20 +237,19 @@ export function useOpenUIState(
           : undefined,
         deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
         complete: qn.complete,
+        waitFor: qn.waitFor,
       };
-    });
+    },
+    [evaluationContext, store, scriptRevision, scriptNames],
+  );
 
-    // Always call — empty array clears removed queries and their errors
-    queryManager.evaluateQueries(evaluatedNodes);
-  }, [
-    blocked,
-    result?.queryStatements,
-    evaluationContext,
-    queryManager,
-    storeSnapshot,
-    scriptRevision,
-    scriptNames,
-  ]);
+  useEffect(() => {
+    // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
+    if (blocked) return;
+    // Always call: an empty list clears removed queries and their errors
+    queryManager.evaluateStatements(result?.queryStatements ?? [], evaluateQuery);
+    // storeSnapshot: a state value the queries read changed.
+  }, [blocked, result?.queryStatements, queryManager, evaluateQuery, storeSnapshot]);
 
   // ─── Register mutations ───
   useEffect(() => {

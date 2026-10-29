@@ -139,6 +139,7 @@ export type ValidationIssue =
   | { code: "inline-reserved" }
   | { code: "excess-args"; declared: number; got: number }
   | { code: "unknown-function" }
+  | { code: "query-cycle"; cycle: string[] }
   | { code: "no-root"; reason: "missing" | "not-component" | "fallback" };
 
 function validationMessage(component: string, path: string, issue: ValidationIssue): string {
@@ -157,6 +158,8 @@ function validationMessage(component: string, path: string, issue: ValidationIss
       return `${component} takes ${issue.declared} arg(s), got ${issue.got} (${issue.got - issue.declared} excess dropped)`;
     case "unknown-function":
       return `Unknown function "@${component}": not a built-in or action step. The call evaluates to null`;
+    case "query-cycle":
+      return `Queries ${issue.cycle.join(", ")} read each other's results, so none of them can run first. They do not run`;
     case "no-root":
       if (issue.reason === "not-component") return "root does not evaluate to a component";
       if (issue.reason === "fallback") {

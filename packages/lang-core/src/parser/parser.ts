@@ -9,7 +9,7 @@ import { isASTNode, walkAST } from "./ast";
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeToolArgs, materializeValue } from "./materialize";
+import { materializeExpr, materializeValue, withStatement } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -61,6 +61,42 @@ export function collectQueryDeps(node: unknown): string[] {
   return [...refs];
 }
 
+/** Names of the queries whose results the given expressions read (RuntimeRef to a Query). */
+function collectQueryReads(nodes: (ASTNode | undefined)[]): string[] {
+  const reads = new Set<string>();
+  for (const node of nodes) {
+    if (!node) continue;
+    walkAST(node, (current) => {
+      if (current.k === "RuntimeRef" && current.refType === "query") reads.add(current.n);
+    });
+  }
+  return [...reads];
+}
+
+/**
+ * Queries that read each other's results, directly or around a loop, can never run first.
+ * Returns each loop found (a query that reads itself is one), members in statement order.
+ */
+function findQueryCycles(queries: QueryStatementInfo[]): string[][] {
+  const order = new Map(queries.map((q, i) => [q.statementId, i]));
+  const reads = new Map(queries.map((q) => [q.statementId, q.waitFor ?? []]));
+  const done = new Set<string>();
+  const path: string[] = [];
+  const cycles: string[][] = [];
+  const visit = (id: string) => {
+    path.push(id);
+    for (const dep of reads.get(id)!) {
+      const at = path.indexOf(dep);
+      if (at >= 0) cycles.push(path.slice(at).sort((a, b) => order.get(a)! - order.get(b)!));
+      else if (reads.has(dep) && !done.has(dep)) visit(dep);
+    }
+    path.pop();
+    done.add(id);
+  };
+  for (const q of queries) if (!done.has(q.statementId)) visit(q.statementId);
+  return cycles;
+}
+
 /**
  * A state default is evaluated once, with the defaults declared above it; query results read as
  * null. Library functions and actions only exist in the client, so a default calling one is null.
@@ -96,13 +132,11 @@ function onlyBuiltinFunctions(node: ASTNode): boolean {
 function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
   // Query(...) → query declaration — check BEFORE $var to handle `$foo = Query(...)` correctly
   if (expr.k === "Comp" && expr.name === RESERVED_CALLS.Query) {
-    const deps = collectQueryDeps(expr.args[1]);
     return {
       kind: "query",
       id: raw.id,
       call: { callee: RESERVED_CALLS.Query, args: expr.args },
       expr,
-      deps: deps.length > 0 ? deps : undefined,
     };
   }
   // Mutation(...) → mutation declaration
@@ -154,9 +188,12 @@ function extractStatements(
         );
         break;
       case "query": {
-        const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
+        const args = withStatement(ctx, stmt.id, () =>
+          stmt.call.args.map((arg) => materializeExpr(arg, ctx)),
+        );
         // Aliases can hide state reads that the raw statement did not expose.
         const deps = collectQueryDeps(args[1]);
+        const waitFor = collectQueryReads([args[0], args[1]]);
         queryStatements.push({
           statementId: stmt.id,
           toolAST: args[0] ?? null,
@@ -164,12 +201,15 @@ function extractStatements(
           defaultsAST: args[2] ?? null,
           refreshAST: args[3] ?? null,
           deps: deps.length > 0 ? deps : undefined,
+          waitFor: waitFor.length > 0 ? waitFor : undefined,
           complete: true,
         });
         break;
       }
       case "mutation": {
-        const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
+        const args = withStatement(ctx, stmt.id, () =>
+          stmt.call.args.map((arg) => materializeExpr(arg, ctx)),
+        );
         mutationStatements.push({
           statementId: stmt.id,
           toolAST: args[0] ?? null,
@@ -178,6 +218,13 @@ function extractStatements(
         break;
       }
     }
+  }
+
+  // A query waits for the queries it reads; a group that reads each other can never start.
+  for (const cycle of findQueryCycles(queryStatements)) {
+    withStatement(ctx, cycle[0]!, () =>
+      pushValidationIssue(ctx, "Query", "", { code: "query-cycle", cycle }),
+    );
   }
 
   // Auto-declare: any $var referenced in code but not explicitly declared → null default.
