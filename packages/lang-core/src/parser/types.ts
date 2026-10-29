@@ -148,7 +148,7 @@ export interface MaterializeCtx {
   currentStatementId?: string;
   /** Statement IDs not yet reached — delete as they're touched. Remaining = orphaned. */
   unreached?: Set<string>;
-  /** Mark in arrays where a child not written yet goes (streaming with smoothStreaming). */
+  /** Mark in arrays where a child not written yet goes (streaming with streamInOrder). */
   pendingSlots?: boolean;
   /** The statement still being written. */
   streamingStatementId?: string;
