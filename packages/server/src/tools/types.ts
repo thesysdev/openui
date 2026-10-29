@@ -29,8 +29,6 @@ export interface InterpreterRequest {
   arguments?: Record<string, unknown>;
   /** The artifact the call is for. Generated scripts run from its stored content. */
   id?: string;
-  /** The artifact's content, for artifacts kept in your own storage. Takes precedence over `id`. */
-  response?: string;
 }
 
 export type InterpreterExecuteOptions<Context = undefined> = {
