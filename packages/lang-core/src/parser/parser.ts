@@ -296,7 +296,7 @@ export interface StreamParserOptions {
    * While streaming, show content in the order it was written: anything after a child
    * not written yet is left out of `root` until that child arrives. Complete parses are unchanged.
    */
-  smoothStreaming?: boolean;
+  streamInOrder?: boolean;
 }
 
 /**
@@ -679,7 +679,7 @@ export function createStreamParser(
     refreshCleaned();
     const pendingStart = scanNewCompleted();
     const pendingText = cleaned.slice(pendingStart).trim();
-    const slots = options?.smoothStreaming && !complete;
+    const slots = options?.streamInOrder && !complete;
 
     // No pending text — all statements are complete
     if (!pendingText) {

@@ -42,7 +42,7 @@ export interface RendererProps<L extends Library = Library> {
    * not written yet waits for it, so nothing jumps.
    * @default false
    */
-  smoothStreaming?: boolean;
+  streamInOrder?: boolean;
   /** Callback when a component triggers an action. Typed by the library's custom actions. */
   onAction?: (event: LibraryActionEvent<L>) => void;
   /**
@@ -201,7 +201,7 @@ function RendererRoot<L extends Library = Library>({
   response,
   library,
   isStreaming = false,
-  smoothStreaming = false,
+  streamInOrder = false,
   onAction,
   onStateUpdate,
   initialState,
@@ -249,7 +249,7 @@ function RendererRoot<L extends Library = Library>({
         response,
         library,
         isStreaming,
-        smoothStreaming,
+        streamInOrder,
         // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
         onAction: onAction as ((event: ActionEvent) => void) | undefined,
         onStateUpdate,
