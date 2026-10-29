@@ -1,4 +1,5 @@
 import type { CloudPromptOptions, LibrarySpec } from "@openuidev/lang-core";
+import type { McpOption } from "../tools/mcp";
 import type { ToolDefinition } from "../tools/types";
 
 export interface OpenUIClientOptions {
@@ -26,14 +27,17 @@ interface ArtifactToolOptionsBase {
   promptOptions?: ArtifactPromptOptions;
 }
 
-export interface LiveArtifactToolOptions extends ArtifactToolOptionsBase {
-  kind: "live";
-  tools: Record<string, ArtifactDataTool>;
-}
+/** Your data tools, an MCP server's, or both. Pass the same to `openui.createInterpreter`. */
+type LiveDataTools =
+  | { tools: Record<string, ArtifactDataTool>; mcp?: McpOption<never> }
+  | { tools?: Record<string, ArtifactDataTool>; mcp: McpOption<never> };
+
+export type LiveArtifactToolOptions = ArtifactToolOptionsBase & { kind: "live" } & LiveDataTools;
 
 export interface StaticArtifactToolOptions extends ArtifactToolOptionsBase {
   kind: "static";
   tools?: never;
+  mcp?: never;
 }
 
 export interface CreateArtifactParams {
@@ -63,7 +67,7 @@ export interface RequestOptions {
 export interface ArtifactResult {
   id: string;
   /** Return this from your tool as is, and pass the same string to the renderer. */
-  toolResponse: string;
+  response: string;
 }
 
 export type ArtifactToolOptions = LiveArtifactToolOptions | StaticArtifactToolOptions;
