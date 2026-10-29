@@ -1,5 +1,5 @@
 import { SITE_OPEN_GRAPH } from "@/lib/page-metadata";
-import { BASE_URL } from "@/lib/source";
+import { BASE_URL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { AGENT_SETUP_PROMPT, AgentPicker } from "./components/AgentPicker/AgentPicker";
 import { LangShowcase } from "./components/LangShowcase/LangShowcase";

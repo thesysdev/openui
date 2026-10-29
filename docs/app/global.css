@@ -2,8 +2,11 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 @import "../shared/design-system/styles/variables/index.css";
-@import "@openuidev/react-ui/styles/index.css";
-@import "@openuidev/thesys/styles.css";
+/* Only the design tokens and the button styles marketing pages use. The full
+   component styles load with WebsiteThemeProvider, and the Thesys styles in the
+   layouts that render Thesys components, so they stay off marketing pages. */
+@import "@openuidev/react-ui/defaults.css";
+@import "@openuidev/react-ui/styles/button.css";
 @import "./docs-theme.css";
 
 body {

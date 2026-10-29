@@ -2,6 +2,8 @@
 
 import { Renderer } from "@openuidev/react-lang";
 import { ThemeProvider, openuiLibrary } from "@openuidev/react-ui";
+// The blog layout only loads the design tokens; this demo needs the component styles.
+import "@openuidev/react-ui/styles/index.css";
 
 // The spec "the model wrote". No data in it; the runtime resolves the references.
 const SPEC = `$days = "7"

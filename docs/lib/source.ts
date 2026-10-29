@@ -2,8 +2,9 @@ import { type InferPageType, loader } from "fumadocs-core/source";
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
 import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
 import { blogPosts, docs, integrationGuides } from "fumadocs-mdx:collections/server";
+import { BASE_URL } from "./site-url";
 
-export const BASE_URL = "https://www.openui.com";
+export { BASE_URL };
 
 /** Docs sections served from their own top-level path, like `/cookbooks`, instead of under `/docs`. */
 export const TOP_LEVEL_SECTIONS = ["cookbooks", "demos"];

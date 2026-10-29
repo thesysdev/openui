@@ -1,6 +1,6 @@
 import { C1DocsDialog } from "@/components/C1DocsDialog";
 import { DocsRouteLayout } from "@/components/docs-route-layout";
-import { WebsiteThemeProvider } from "@/components/website-theme-provider";
+import { MarketingThemeProvider } from "@/components/marketing-theme-provider";
 import { source } from "@/lib/source";
 import type { ReactNode } from "react";
 
@@ -13,11 +13,11 @@ const NO_SIDEBAR_URLS = source
 /** The docs chrome (navbar tabs and sidebar) shared by `/docs` and the top-level sections. */
 export function DocsShell({ children }: { children: ReactNode }) {
   return (
-    <WebsiteThemeProvider>
+    <MarketingThemeProvider>
       <C1DocsDialog />
       <DocsRouteLayout tree={source.getPageTree()} noSidebarUrls={NO_SIDEBAR_URLS}>
         {children}
       </DocsRouteLayout>
-    </WebsiteThemeProvider>
+    </MarketingThemeProvider>
   );
 }
