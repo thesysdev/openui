@@ -319,6 +319,11 @@ function quoteOpenAfter(line: string, open: boolean): boolean {
   return open;
 }
 
+/** Whether a block's first code line (after blank and comment lines) starts a statement. */
+function startsProgram(block: string): boolean {
+  return STATEMENT_START.test(block.replace(/^(\s*(\/\/|#)[^\n]*\n)+/, ""));
+}
+
 /** Extract the program from markdown code fences, or return the input when no fence holds one. */
 export function stripFences(input: string): string {
   const blocks: string[] = [];
@@ -349,7 +354,7 @@ export function stripFences(input: string): string {
     body = code === null ? [] : [code];
   }
   if (body !== null && !script) blocks.push(body.join("\n")); // unterminated (streaming)
-  if (blocks.some((b) => STATEMENT_START.test(b))) return blocks.join("\n");
+  if (blocks.some(startsProgram)) return blocks.join("\n");
   // No fence starts a program: use an unfenced program (a stray closing ```, or ```js helpers).
   const unfenced = outside.some((l) => STATEMENT_START.test(l));
   return unfenced || blocks.every((b) => b.trim() === "") ? outside.join("\n") : blocks.join("\n");
