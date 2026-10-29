@@ -45,6 +45,24 @@ a shared, cross-instance session-and-IP rate limiter, Cloud organization budgets
 an approved conversation retention/deletion process are in place. Same-origin validation is an
 additional browser safeguard, not a substitute for those cost controls.
 
+### Taking the hosted demos offline
+
+Set this variable and redeploy to take the hosted demos offline:
+
+```bash
+NEXT_PUBLIC_DEMOS_DISABLED=1
+```
+
+- `/chat`, `/compare`, `/demo/github` and `/openui-vs-json` still load, but a send opens the
+  "Hosted demos are temporarily offline" dialog instead of calling the model.
+- The proxied demos (`/demo/f1-dashboard`, `/demo/trip-planner`, `/demo/intelligent-ui`) show an
+  offline page with the command to run them locally.
+- `proxy.ts` answers the demos' model API routes with a 402 for anyone calling them directly.
+
+The flag is inlined at build time, so switching it needs a redeploy. The proxied demo slugs are
+listed both in `lib/demos-offline.ts` and in `proxiedDemos` in `next.config.mjs`, so keep the two
+lists in sync.
+
 ## Project structure
 
 ```
