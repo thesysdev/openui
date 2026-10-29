@@ -12,7 +12,7 @@ import {
   type ArtifactToolOptions,
 } from "./types";
 
-type ArtifactKind = "live" | "static";
+type ArtifactType = "live" | "static";
 
 function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
@@ -29,31 +29,31 @@ function invalidLibrary(error: unknown): never {
  * What a tool returns to the model: a sentence, then the artifact's header line
  * for the renderer. A new `version` tells renderers there's a newer revision.
  */
-function toolResponse(id: string, kind: ArtifactKind, title?: string): string {
+function toolResponse(id: string, type: ArtifactType, title?: string): string {
   const version = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  const header = { artifact_id: id, type: kind, ...(title && { name: title }), version };
+  const header = { artifact_id: id, type, ...(title && { name: title }), version };
   const sentence =
     title === undefined
-      ? `Editing the ${kind} artifact; the user sees the new version when it's ready.`
-      : `Started the ${kind} artifact "${title}"; the user sees it as it's generated.`;
+      ? `Editing the ${type} artifact; the user sees the new version when it's ready.`
+      : `Started the ${type} artifact "${title}"; the user sees it as it's generated.`;
   return `${sentence}\n]]>openui:artifact ${JSON.stringify(header)}\n`;
 }
 
 /** The artifact tool behind `openui.defineArtifactTool`. */
 export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions): ArtifactTool {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { kind, library, model, promptOptions, tools, mcp } = options;
-  if (kind !== "live" && kind !== "static") invalidInput('kind must be "live" or "static"');
+  const { type = "static", library, model, promptOptions, tools, mcp } = options;
+  if (type !== "live" && type !== "static") invalidInput('type must be "live" or "static"');
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
   if (typeof library?.toSpec !== "function") {
     invalidInput("library is required, such as one from createLibrary");
   }
-  if (kind === "live" && !isRecord(tools) && mcp === undefined) {
+  if (type === "live" && !isRecord(tools) && mcp === undefined) {
     invalidInput("Live artifacts need data tools: pass `tools`, `mcp`, or both");
   }
-  if (kind === "static" && (tools !== undefined || mcp !== undefined)) {
+  if (type === "static" && (tools !== undefined || mcp !== undefined)) {
     invalidInput("Static artifacts don't run data tools: remove `tools` and `mcp`");
   }
 
@@ -67,7 +67,7 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
 
   /** What generation sees of your data tools and the MCP server's. */
   async function toolDefinitions() {
-    if (kind === "static") return undefined;
+    if (type === "static") return undefined;
     if (!loadMcp) return toToolDefinitions(tools ?? {});
     try {
       return toToolDefinitions(mergeTools(tools, await loadMcp()));
@@ -121,7 +121,7 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
           { role: "user", content: prompt },
         ],
         // Chat completions metadata values are strings.
-        metadata: { thesys: JSON.stringify({ c1_artifact_type: kind, ...thesys }) },
+        metadata: { thesys: JSON.stringify({ c1_artifact_type: type, ...thesys }) },
       }),
       signal,
     });
@@ -140,19 +140,19 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
   }
 
   return {
-    kind,
+    type,
 
     async create({ userId, title, description, prompt }, { signal } = {}): Promise<ArtifactResult> {
       const thesys = { title, ...(description !== undefined && { description }) };
       const id = await start(userId, prompt, title, thesys, signal);
-      return { id, response: toolResponse(id, kind, title) };
+      return { id, response: toolResponse(id, type, title) };
     },
 
-    // OpenUI Cloud edits the version it stores, and checks it's this kind.
+    // OpenUI Cloud edits the version it stores, and checks it's this type.
     async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
       const edited = await start(userId, prompt, undefined, { id }, signal);
-      return { id: edited, response: toolResponse(edited, kind) };
+      return { id: edited, response: toolResponse(edited, type) };
     },
   };
 }
