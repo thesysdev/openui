@@ -53,6 +53,10 @@ export function cloudArtifactStorage({
       const query = new URLSearchParams();
       if (params?.name !== undefined && params.name !== "") query.set("name", params.name);
       for (const type of params?.type ?? []) query.append("kind", type);
+      for (const type of params?.artifactType ?? []) query.append("type", type);
+      if (params?.pinned !== undefined) query.set("pinned", String(params.pinned));
+      if (params?.threadId !== undefined) query.set("conversation_id", params.threadId);
+      if (params?.order !== undefined) query.set("order", params.order);
       if (params?.cursor !== undefined) query.set("after", params.cursor);
       query.set("limit", String(params?.limit ?? pageLimit));
       const res = await request(`/v1/artifacts?${query.toString()}`);
