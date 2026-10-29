@@ -281,22 +281,14 @@
 .iui-html-view-wait { display: grid; place-items: center; height: 100%; color: var(--iui-muted); font-size: 13px; }
 
 /* Carousel, popover, code, quote, math, video, flashcard, confetti */
-/* Items keep their borders and rings inside themselves; the track's 4px block
-   padding (pulled back with a negative margin) leaves room for focus rings. */
-.iui-carousel { position: relative; min-width: 0; }
-.iui-carousel-track { display: flex; gap: 12px; margin-block: -4px; padding-block: 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.iui-carousel-track::-webkit-scrollbar { display: none; }
-.iui-carousel-item { flex: none; max-width: 85%; min-width: 0; scroll-snap-align: start; display: flex; flex-direction: column; }
+/* Scrolling, snapping and the arrows come from react-components. The track
+   keeps 4px of block padding (pulled back with a negative margin) so items'
+   focus rings are not clipped, and contains overscroll so a sideways swipe at
+   the end does not navigate back. */
+.iui-carousel { min-width: 0; }
+.iui-carousel-track { margin-block: -4px; padding-block: 4px; overscroll-behavior-x: contain; }
+.iui-carousel-item { flex: none; max-width: 85%; min-width: 0; display: flex; flex-direction: column; }
 .iui-carousel-item > .iui-card, .iui-carousel-item > .iui-pressable { height: 100%; }
-.iui-carousel-nav { position: absolute; top: 50%; z-index: 2; display: grid; place-items: center; width: 34px; height: 34px; margin-top: -17px; border: 1px solid var(--iui-border); border-radius: 50%; background: var(--iui-canvas); color: var(--iui-ink); box-shadow: 0 1px 3px rgb(0 0 0 / 14%); cursor: pointer; }
-/* Same frosted glass as the map controls, since these sit over photos. */
-.iui-carousel-nav { border-color: transparent; background: var(--iui-glass); backdrop-filter: blur(12px) saturate(1.4); box-shadow: inset 0 0 0 1px var(--iui-glass-ring), 0 2px 12px rgb(0 0 0 / 8%); transition: background-color 120ms ease-out, box-shadow 120ms ease-out, opacity 120ms ease-out; }
-.iui-carousel-nav:hover { background: var(--iui-glass-hover); }
-@media (prefers-reduced-motion: reduce) { .iui-carousel-nav { transition: none; } }
-.iui-carousel-nav.is-prev { left: 8px; }
-.iui-carousel-nav.is-next { right: 8px; }
-.iui-carousel-nav:hover { background: var(--iui-surface); }
-@media (hover: none) { .iui-carousel-nav { display: none; } }
 
 .iui-popover-trigger { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .iui-popover-trigger:hover { color: var(--iui-muted); }

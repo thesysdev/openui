@@ -82,21 +82,6 @@ export const Caption = defineComponent({
 
 
 
-export const Badge = defineComponent({
-  name: "Badge",
-  props: z.object({
-    text: z.string(),
-    color: z.enum(["neutral", "info", "success", "warning", "danger", "purple", "pink"]).optional(),
-    icon: z.string().optional(),
-  }),
-  description: "Pill tag; icon is an optional leading lucide name.",
-  component: ({ props }) => (
-    <span className={`iui-badge iui-badge-${props.color ?? "neutral"}`}>
-      {props.icon ? <Glyph name={props.icon} size={14} /> : null}
-      {str(props.text)}
-    </span>
-  ),
-});
 
 export const Link = defineComponent({
   name: "Link",

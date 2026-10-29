@@ -21,7 +21,8 @@ export {
 // its own, exactly as the coach and chess libraries do in Open Intelligent UI.
 export { Box, Card, Col, Form, Grid, Row, Spacer } from "./lib/components/layout";
 export { Divider } from "./lib/components/Divider";
-export { Badge, Caption, Link, List, ListItem, Text, Title } from "./lib/components/text";
+export { Caption, Link, List, ListItem, Text, Title } from "./lib/components/text";
+export { Badge } from "./lib/components/Badge";
 export { Label } from "./lib/components/Label";
 export { Markdown } from "./lib/components/Markdown";
 export { Button, IconButton, Pressable, SegmentedControl, Slider, Timer } from "./lib/components/controls";
@@ -31,11 +32,12 @@ export { Select } from "./lib/components/Select";
 export { Checkbox } from "./lib/components/Checkbox";
 export { DatePicker } from "./lib/components/DatePicker";
 export { RadioGroup } from "./lib/components/RadioGroup";
-export { Carousel, Celebration, Flashcard, MathBlock, Popover, Quote, YouTube } from "./lib/components/extra";
+export { Carousel } from "./lib/components/Carousel";
+export { Celebration, Flashcard, MathBlock, Popover, Quote, YouTube } from "./lib/components/extra";
 export { Code } from "./lib/components/Code";
 export { Icon, Image, SearchImage } from "./lib/components/media";
 export { Chart } from "./lib/components/Chart";
-export { Table } from "./lib/components/table";
+export { Table } from "./lib/components/Table";
 export { MapMarker, MapView } from "./lib/components/map/map";
 export { svgComponents } from "./lib/components/svg";
 export { HtmlView } from "./lib/components/html-view";
