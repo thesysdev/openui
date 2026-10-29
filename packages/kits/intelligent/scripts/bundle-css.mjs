@@ -41,7 +41,7 @@ const sheetsUnder = (root) => {
 const ORDER = [
   "lib/components/theme.css",
   "lib/components/components.css",
-  "lib/components/map/map.css",
+  "lib/components/Map/map.css",
 ];
 
 const found = sheetsUnder("src");
@@ -61,7 +61,7 @@ for (const rel of found) {
 const maplibre = require.resolve("maplibre-gl/dist/maplibre-gl.css");
 const parts = [];
 for (const rel of ORDER) {
-  if (rel === "lib/components/map/map.css") {
+  if (rel === "lib/components/Map/map.css") {
     parts.push(`/* maplibre-gl/dist/maplibre-gl.css */\n${readFileSync(maplibre, "utf8")}`);
   }
   parts.push(`/* ${rel} */\n${readFileSync(join("src", rel), "utf8")}`);

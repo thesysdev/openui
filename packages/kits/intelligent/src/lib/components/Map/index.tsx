@@ -1,21 +1,25 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-
-import { defineComponent, reactive, useIsStreaming, useStateField } from "@openuidev/react-lang";
-import { useEffect, useId, useRef, useState } from "react";
+import { defineComponent, useIsStreaming, useStateField } from "@openuidev/react-lang";
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
-import { z } from "zod/v4";
+import { useEffect, useId, useRef, useState } from "react";
 import { useColorScheme } from "../scheme";
-import { loadMapLibre, rasterStyle, vectorStyle, type MapLibre } from "./basemap";
-import { boundsOf, coordinate, createPinElement, lngLat, partialLine, pinEmoji, reducedMotion, type LatLng } from "./map-utils";
+import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./basemap";
+import { boundsOf, coordinate, createPinElement, type LatLng, lngLat, partialLine, pinEmoji, reducedMotion } from "./map-utils";
 import { useDialog } from "./use-dialog";
 import { useStreetRoute } from "./use-street-route";
+import { MapSchema } from "./schema";
+
+export * from "./schema";
 
 const ROUTE = "route";
+
 // Room for the controls on top and for labels, which hang below and beside each pin.
 const FRAME_PADDING = { top: 70, left: 72, bottom: 50, right: 72 };
+
 const FLY_MS = 920;
+
 const DRAW_MS = 760;
 
 type Place = { key: string; label: string; lat: number; lng: number; category?: string; icon: string | null; order: number };
@@ -50,27 +54,9 @@ function placesOf(markers: unknown, streaming: boolean): Place[] {
   return out;
 }
 
-export const MapMarker = defineComponent({
-  name: "MapMarker",
-  props: z.object({
-    label: z.string(),
-    lat: z.number(),
-    lng: z.number(),
-    category: z.string().optional(),
-    icon: z.string().optional(),
-  }),
-  description: "A place on a Map; icon is one emoji, else the pin shows its number.",
-  component: () => null,
-});
-
 export const MapView = defineComponent({
   name: "Map",
-  props: z.object({
-    markers: z.array(MapMarker.ref),
-    route: z.boolean().optional(),
-    selected: reactive(z.string().optional()),
-    height: z.number().optional(),
-  }),
+  props: MapSchema,
   description: "Street map fitted to its markers. route draws the road path in marker order; selected holds the clicked marker's label.",
   component: function MapComponent({ props, statementId }) {
     const streaming = useIsStreaming();

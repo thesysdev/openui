@@ -2,14 +2,17 @@
 
 import { defineComponent, useIsStreaming } from "@openuidev/react-lang";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { z } from "zod/v4";
-import { useColorScheme } from "./scheme";
+import { useColorScheme } from "../scheme";
+import { HtmlViewSchema } from "./schema";
+
+export * from "./schema";
 
 // The page runs in a sandboxed iframe: scripts only, an opaque origin (no
 // allow-same-origin, so no access to this app, its cookies or storage), no
 // forms, popups or navigation of the app. Its CSP allows inline code and a few
 // script CDNs, and no network otherwise.
 const CDNS = "https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://esm.sh";
+
 const CSP = [
   "default-src 'none'",
   `script-src 'unsafe-inline' ${CDNS}`,
@@ -24,7 +27,9 @@ const CSP = [
 ].join("; ");
 
 const MIN_HEIGHT = 80;
+
 const MAX_HEIGHT = 2400;
+
 const AUTO_START = 360;
 
 // Reports the content height to the parent, so the view fits the page. The
@@ -39,11 +44,7 @@ function documentFor(html: string, scheme: "light" | "dark") {
 
 export const HtmlView = defineComponent({
   name: "HtmlView",
-  props: z.object({
-    html: z.string(),
-    height: z.number().optional(),
-    title: z.string().optional(),
-  }),
+  props: HtmlViewSchema,
   description: "Sandboxed HTML page with inline JS, for games and canvas. No network except script CDNs. Fits its content unless height is set.",
   component: function HtmlViewView({ props }) {
     const streaming = useIsStreaming();
