@@ -42,7 +42,7 @@ const envApiKey = (): string | undefined =>
   ];
 
 export function createCloudApi(options: OpenUIClientOptions): CloudApi {
-  const base = (options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "");
+  const base = (options.baseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "");
   const fetchFn: typeof globalThis.fetch = (input, init) =>
     (options.fetch ?? globalThis.fetch)(input, init);
 

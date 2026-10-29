@@ -6,7 +6,7 @@ export interface OpenUIClientOptions {
   /** Defaults to the `THESYS_API_KEY` environment variable. */
   apiKey?: string;
   /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
-  apiBaseUrl?: string;
+  baseUrl?: string;
   fetch?: typeof globalThis.fetch;
 }
 
