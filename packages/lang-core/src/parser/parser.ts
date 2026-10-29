@@ -334,115 +334,66 @@ function buildResult(
 // Public API
 // ─────────────────────────────────────────────────────────────────────────────
 
-function skipString(input: string, start: number): number {
-  if (input[start] !== '"') return start;
-  let i = start + 1;
-  while (i < input.length) {
-    const c = input[i];
-    if (c === "\\") {
-      i += 2; // skip escape character and the escaped character
-    } else if (c === '"') {
-      return i + 1; // return index after the closing quote
-    } else {
-      i++;
-    }
-  }
-  return i; // return length if string was unclosed
+/** Text that starts an OpenUI Lang statement (`name =` or `$name =`). */
+const STATEMENT_START = /^\s*\$?[A-Za-z_]\w*\s*=(?!=)/;
+/** A line that starts with ```, then an optional tag and the rest of the line. */
+const FENCE_LINE = /^[ \t]*```[ \t]*([\w.+-]*)[ \t]*(.*?)[ \t]*\r?$/;
+
+/** Code on a fence opener's line (```openui root = ... or ```root = ...), or null. */
+function openerCode(tag: string, rest: string): string | null {
+  if (STATEMENT_START.test(rest)) return rest;
+  if (tag && /^=(?!=)/.test(rest)) return tag + " " + rest;
+  return null;
 }
 
-/** Extract code from markdown fences, or return as-is if no fences found.
- *  String-context-aware: skips ``` inside double-quoted strings. */
+/** Whether a "..." string is open after this line (escapes honored). */
+function quoteOpenAfter(line: string, open: boolean): boolean {
+  for (let i = 0; i < line.length; i++) {
+    if (open && line[i] === "\\") i++;
+    else if (line[i] === '"') open = !open;
+  }
+  return open;
+}
+
+/** Whether a block's first code line (after blank and comment lines) starts a statement. */
+function startsProgram(block: string): boolean {
+  return STATEMENT_START.test(block.replace(/^(\s*(\/\/|#)[^\n]*\n)+/, ""));
+}
+
+/** Extract the program from markdown code fences, or return the input when no fence holds one. */
 export function stripFences(input: string): string {
   const blocks: string[] = [];
-  let i = 0;
-
-  while (i < input.length) {
-    // Scan for opening ``` while tracking string context
-    let fenceStart = -1;
-    while (i < input.length) {
-      const nextI = skipString(input, i);
-      if (nextI > i) {
-        i = nextI;
-        continue;
-      }
-
-      const c = input[i];
-      if (
-        c === "`" &&
-        i + 1 < input.length &&
-        input[i + 1] === "`" &&
-        i + 2 < input.length &&
-        input[i + 2] === "`"
-      ) {
-        fenceStart = i;
-        break;
-      }
-      i++;
+  const outside: string[] = [];
+  let body: string[] | null = null;
+  let script = false;
+  let inString = false;
+  for (const line of input.split("\n")) {
+    const fence = inString ? null : FENCE_LINE.exec(line);
+    if (!fence) {
+      if (script) continue;
+      (body ?? outside).push(line);
+      // Only statement lines open strings, so a prose quote like `5"` is harmless.
+      if (inString || STATEMENT_START.test(line)) inString = quoteOpenAfter(line, inString);
+      continue;
     }
-
-    if (fenceStart === -1) break;
-
-    // Skip language tag until newline
-    let j = fenceStart + 3;
-    while (j < input.length && input[j] !== "\n") j++;
-    if (j >= input.length) {
-      // No newline after opening fence (streaming) — take everything after fence marker + lang tag
-      blocks.push(input.slice(fenceStart + 3).replace(/^[^\n]*\n?/, ""));
-      i = input.length;
-      break;
+    const [, tag = "", rest = ""] = fence;
+    if (body !== null) {
+      // Any fence line closes an open fence; what follows it on that line is ignored.
+      if (!script) blocks.push(body.join("\n"));
+      body = null;
+      script = false;
+      continue;
     }
-    j++; // skip the newline
-
-    // Scan for closing ``` while tracking string context
-    let closePos = -1;
-    let k = j;
-    while (k < input.length) {
-      const nextK = skipString(input, k);
-      if (nextK > k) {
-        k = nextK;
-        continue;
-      }
-      const c = input[k];
-      if (
-        c === "`" &&
-        k + 1 < input.length &&
-        input[k + 1] === "`" &&
-        k + 2 < input.length &&
-        input[k + 2] === "`"
-      ) {
-        closePos = k;
-        break;
-      }
-      k++;
-    }
-
-    if (closePos !== -1) {
-      blocks.push(input.slice(j, closePos));
-      i = closePos + 3;
-    } else {
-      // No closing fence found (streaming) — take everything after opening fence
-      blocks.push(input.slice(j));
-      i = input.length;
-    }
+    if (rest.includes("```")) continue; // a ``` pair on one line is inline code in prose
+    const code = openerCode(tag, rest);
+    script = tag.toLowerCase() === "openui-js";
+    body = code === null ? [] : [code];
   }
-
-  if (blocks.length > 0) return blocks.join("\n");
-
-  // Fallback: if input starts with ``` but wasn't matched (e.g. no newline after fence)
-  if (input.startsWith("```")) {
-    let j = 3;
-    while (j < input.length && input[j] !== "\n") j++;
-    const start = j < input.length ? j + 1 : 3;
-    // Try to strip trailing ```
-    const body = input.slice(start);
-    const trailingFence = body.lastIndexOf("```");
-    if (trailingFence !== -1) {
-      return body.slice(0, trailingFence);
-    }
-    return body;
-  }
-
-  return input;
+  if (body !== null && !script) blocks.push(body.join("\n")); // unterminated (streaming)
+  if (blocks.some(startsProgram)) return blocks.join("\n");
+  // No fence starts a program: use an unfenced program (a stray closing ```, or ```js helpers).
+  const unfenced = outside.some((l) => STATEMENT_START.test(l));
+  return unfenced || blocks.every((b) => b.trim() === "") ? outside.join("\n") : blocks.join("\n");
 }
 
 /** Strip // and # line comments outside of strings (handles both " and ' delimiters). */
