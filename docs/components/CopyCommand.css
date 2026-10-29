@@ -6,7 +6,8 @@
   padding: 6px 6px 6px 14px;
   border-radius: 8px;
   background: var(--openui-inverted-background, #101010);
-  color: var(--openui-text-accent-primary, #f8f8f8);
+  /* The inverted background flips with the theme; --openui-background is its opposite. */
+  color: var(--openui-background, #f8f8f8);
 }
 
 /* Keep the command on one line; a long one scrolls sideways. */
@@ -38,5 +39,5 @@
 
 .copy-command-button:hover {
   opacity: 1;
-  background: rgb(255 255 255 / 12%);
+  background: color-mix(in srgb, currentColor 12%, transparent);
 }

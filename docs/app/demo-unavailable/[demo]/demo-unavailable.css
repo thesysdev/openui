@@ -76,7 +76,7 @@
 .demo-unavailable-primary {
   border: 1px solid var(--openui-inverted-background, #101010);
   background: var(--openui-inverted-background, #101010);
-  color: var(--openui-text-accent-primary, #fff);
+  color: var(--openui-background, #fff);
 }
 
 .demo-unavailable-primary:hover {

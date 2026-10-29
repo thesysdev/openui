@@ -7,7 +7,7 @@
   border: 1px solid var(--openui-inverted-background, #101010);
   border-radius: 8px;
   background: var(--openui-inverted-background, #101010);
-  color: var(--openui-text-accent-primary, #fff);
+  color: var(--openui-background, #fff);
   font-size: 13px;
   font-weight: 550;
   cursor: pointer;
