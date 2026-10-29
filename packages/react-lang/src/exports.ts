@@ -98,7 +98,7 @@ export {
   parseStructuredRules,
   validate,
 } from "@openuidev/lang-core";
-export type { ParsedRule, ValidatorFn } from "@openuidev/lang-core";
+export type { ParsedRule, ValidatorContext, ValidatorFn } from "@openuidev/lang-core";
 
 export type { ResponseMetadata } from "./responseBundle";
 export { WithPreviewRenderer, useRendererPreview } from "./WithPreviewRenderer";
