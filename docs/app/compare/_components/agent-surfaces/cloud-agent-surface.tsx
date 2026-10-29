@@ -11,13 +11,11 @@ import { ComparisonSurfaceWelcome } from "./comparison-surface-welcome";
 
 interface CloudAgentSurfaceProps {
   registry: ComparisonControllerRegistry;
-  /** Opens the demo credits dialog. Read once, so pass a stable function. */
-  onCreditsExhausted?: () => void;
 }
 
-export function CloudAgentSurface({ registry, onCreditsExhausted }: CloudAgentSurfaceProps) {
+export function CloudAgentSurface({ registry }: CloudAgentSurfaceProps) {
   const [userId] = useState(getOrCreateCloudUserId);
-  const [llm] = useState(() => createCloudChatLLM({ onCreditsExhausted }));
+  const [llm] = useState(createCloudChatLLM);
   const cloudFetch = useMemo<typeof fetch>(() => {
     return async (input, init) => {
       if (typeof input !== "string" || input !== "/api/openui-cloud/frontend-token") {

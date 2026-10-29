@@ -71,15 +71,9 @@
   line-height: 1.55;
 }
 
-.demo-credits-dialog-commands-wrap {
-  position: relative;
-  margin: 18px 0 0;
-}
-
-/* Right padding leaves room for the copy button. */
 .demo-credits-dialog-commands {
-  margin: 0;
-  padding: 14px 48px 14px 14px;
+  margin: 18px 0 0;
+  padding: 14px;
   overflow-x: auto;
   border: 1px solid var(--openui-border-default, rgb(0 0 0 / 12%));
   border-radius: 8px;
@@ -97,6 +91,7 @@
   margin-top: 18px;
 }
 
+.demo-credits-dialog-primary,
 .demo-credits-dialog-secondary {
   display: inline-flex;
   align-items: center;
@@ -111,10 +106,20 @@
   cursor: pointer;
 }
 
+.demo-credits-dialog-primary {
+  border: 1px solid var(--openui-interactive-accent-default, #111);
+  background: var(--openui-interactive-accent-default, #111);
+  color: var(--openui-text-accent-primary, #fff);
+}
+
 .demo-credits-dialog-secondary {
   border: 1px solid var(--openui-border-interactive, rgb(0 0 0 / 16%));
   background: transparent;
   color: var(--openui-text-neutral-primary, #111);
+}
+
+.demo-credits-dialog-primary:hover {
+  background: var(--openui-interactive-accent-hover, #2a2a2a);
 }
 
 .demo-credits-dialog-secondary:hover {
@@ -135,26 +140,4 @@
     align-items: stretch;
     flex-direction: column;
   }
-}
-
-.demo-credits-dialog-copy {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 6px;
-  background: var(--openui-inverted-background, #101010);
-  color: var(--openui-text-accent-primary, #f8f8f8);
-  cursor: pointer;
-  opacity: 0.75;
-}
-
-.demo-credits-dialog-copy:hover {
-  opacity: 1;
-  background: rgb(255 255 255 / 12%);
 }

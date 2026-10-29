@@ -1,6 +1,8 @@
 "use client";
 
 import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
+import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
+import { areDemosDisabled } from "@/lib/demo-credits";
 import { OPENUI_CLOUD_UNAVAILABLE_MESSAGE } from "@/lib/openui-cloud/errors";
 import dynamic from "next/dynamic";
 import {
@@ -149,6 +151,10 @@ export function ComparePageClient({
 
   const submitToAll = useCallback(
     (content: string) => {
+      if (areDemosDisabled()) {
+        openDemosOfflineDialog();
+        return;
+      }
       const controllers = getReadyControllers();
       if (!controllers) return;
       const states = controllers.map((controller) => controller.getSnapshot());
@@ -293,12 +299,7 @@ export function ComparePageClient({
                         registry={registry}
                       />
                     )}
-                    {mode === "cloud" && (
-                      <CloudAgentSurface
-                        registry={registry}
-                        onCreditsExhausted={handleCreditsExhausted}
-                      />
-                    )}
+                    {mode === "cloud" && <CloudAgentSurface registry={registry} />}
                   </SurfaceErrorBoundary>
                   {!snapshot.isReady && !snapshot.threadError && !unavailableModes.has(mode) ? (
                     <div className={styles.panelLoadingOverlay}>

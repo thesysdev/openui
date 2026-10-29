@@ -1,7 +1,8 @@
 "use client";
 
 import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
-import { isDemoCreditsErrorPayload } from "@/lib/demo-credits";
+import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
+import { areDemosDisabled, isDemoCreditsErrorPayload } from "@/lib/demo-credits";
 import { mergeStatements } from "@openuidev/react-lang";
 import { Button } from "@openuidev/react-ui";
 import { encode } from "gpt-tokenizer";
@@ -350,6 +351,10 @@ export default function GitHubDemoPage() {
   const send = useCallback(
     async (text: string) => {
       if (!text.trim() || isStreaming) return;
+      if (areDemosDisabled()) {
+        openDemosOfflineDialog();
+        return;
+      }
       const trimmed = text.trim();
 
       setConvCollapsed(false);

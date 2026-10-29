@@ -1,0 +1,18 @@
+/* Black, like the command box: the site does not use the blue accent here. */
+.demos-offline-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--openui-inverted-background, #101010);
+  border-radius: 8px;
+  background: var(--openui-inverted-background, #101010);
+  color: var(--openui-text-accent-primary, #fff);
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.demos-offline-dialog-close:hover {
+  opacity: 0.85;
+}

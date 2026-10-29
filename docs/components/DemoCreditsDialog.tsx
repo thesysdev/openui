@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  areDemosDisabled,
-  DEMO_CREDITS_EXHAUSTED_MESSAGE,
-  DEMO_CREDITS_LOCAL_COMMANDS,
-  DEMOS_PAUSED_LOCAL_MESSAGE,
-} from "@/lib/demo-credits";
+import { DEMO_CREDITS_EXHAUSTED_MESSAGE, DEMO_CREDITS_LOCAL_COMMANDS } from "@/lib/demo-credits";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useCopyButton } from "fumadocs-ui/utils/use-copy-button";
-import { Check, Copy, Download, X } from "lucide-react";
+import { Download, X } from "lucide-react";
 import "./DemoCreditsDialog.css";
 
 type DemoCreditsDialogProps = {
@@ -17,10 +11,6 @@ type DemoCreditsDialogProps = {
 };
 
 export function DemoCreditsDialog({ open, onClose }: DemoCreditsDialogProps) {
-  const offline = areDemosDisabled();
-  const commands = DEMO_CREDITS_LOCAL_COMMANDS.join("\n");
-  const [copied, onCopy] = useCopyButton(() => navigator.clipboard.writeText(commands));
-
   return (
     <Dialog.Root
       open={open}
@@ -42,31 +32,26 @@ export function DemoCreditsDialog({ open, onClose }: DemoCreditsDialogProps) {
           </div>
 
           <Dialog.Title asChild>
-            <h2>
-              {offline
-                ? "Hosted demos are temporarily offline"
-                : "Hosted demo credits are recharging"}
-            </h2>
+            <h2>Hosted demo credits are recharging</h2>
           </Dialog.Title>
           <Dialog.Description asChild>
-            <p>{offline ? DEMOS_PAUSED_LOCAL_MESSAGE : DEMO_CREDITS_EXHAUSTED_MESSAGE}</p>
+            <p>{DEMO_CREDITS_EXHAUSTED_MESSAGE}</p>
           </Dialog.Description>
 
-          <div className="demo-credits-dialog-commands-wrap">
-            <pre className="demo-credits-dialog-commands">
-              <code>{commands}</code>
-            </pre>
-            <button
-              type="button"
-              className="demo-credits-dialog-copy"
-              aria-label={copied ? "Commands copied" : "Copy commands"}
-              onClick={onCopy}
-            >
-              {copied ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}
-            </button>
-          </div>
+          <pre className="demo-credits-dialog-commands">
+            <code>{DEMO_CREDITS_LOCAL_COMMANDS.join("\n")}</code>
+          </pre>
 
           <div className="demo-credits-dialog-actions">
+            <a
+              className="demo-credits-dialog-primary"
+              href="https://github.com/thesysdev/openui"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Download size={14} />
+              Download repo
+            </a>
             <Dialog.Close asChild>
               <button className="demo-credits-dialog-secondary">Close</button>
             </Dialog.Close>

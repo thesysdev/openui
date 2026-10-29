@@ -3,9 +3,11 @@ export const DEMO_CREDITS_EXHAUSTED_CODE = "demo_credits_exhausted";
 export const DEMO_CREDITS_EXHAUSTED_MESSAGE =
   "We're recharging the hosted demo credits. Until then, please download the repo and run it locally to see the live demo.";
 
-// The interactive CLI walks through the API key and setup, so one command is enough.
 export const DEMO_CREDITS_LOCAL_COMMANDS = [
-  "pnpm dlx @openuidev/cli@latest create --name openui-demo",
+  "pnpm dlx @openuidev/cli@latest create --name openui-demo --no-interactive",
+  "cd openui-demo",
+  "pnpm dlx @openuidev/cli@latest generate-api-key",
+  "pnpm dev",
 ] as const;
 
 export type DemoCreditsErrorPayload = {
@@ -58,15 +60,20 @@ export function createDemoCreditsExhaustedResponse(): Response {
 
 /* ── Hosted demos switch ──
    Set NEXT_PUBLIC_DEMOS_DISABLED=1 and redeploy to take the hosted demos
-   offline: proxy.ts answers their API routes with a 402, which opens
-   DemoCreditsDialog with the offline copy, and the proxied demos' pages show a
-   notice instead. Unset it and redeploy to bring them back. */
+   offline: the in-app demos open DemosOfflineDialog instead of sending,
+   proxy.ts answers their API routes with a 402 for anyone calling them
+   directly, and the proxied demos' pages show a notice instead. Unset it and
+   redeploy to bring them back. */
 
 export const DEMOS_PAUSED_MESSAGE =
   "Hosted demos are temporarily offline. Thanks for your patience while we bring them back.";
 
 export const DEMOS_PAUSED_LOCAL_MESSAGE =
   "You can still try OpenUI on your machine: scaffold a starter app and run it locally.";
+
+/** Scaffolds a starter app; the interactive CLI walks through the API key and setup. */
+export const DEMOS_PAUSED_LOCAL_COMMAND =
+  "pnpm dlx @openuidev/cli@latest create --name openui-demo";
 
 /** Inlined at build time, so it reads the same on the server and in the browser. */
 export function areDemosDisabled(): boolean {
@@ -75,7 +82,7 @@ export function areDemosDisabled(): boolean {
 
 /* API routes that spend model credits for the in-app demos. The Cloud
    frontend-token route stays open: its tokens reach only the Conversations
-   API, and the Cloud chat needs one to send, which is what opens the dialog. */
+   API, and /chat creates a conversation before its send is stopped. */
 export const IN_APP_DEMO_API_PATHS = [
   "/api/chat",
   "/api/demo/github/stream",

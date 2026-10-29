@@ -1,0 +1,42 @@
+.copy-command {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 6px 6px 6px 14px;
+  border-radius: 8px;
+  background: var(--openui-inverted-background, #101010);
+  color: var(--openui-text-accent-primary, #f8f8f8);
+}
+
+/* Keep the command on one line; a long one scrolls sideways. */
+.copy-command pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 0;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.copy-command-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.copy-command-button:hover {
+  opacity: 1;
+  background: rgb(255 255 255 / 12%);
+}

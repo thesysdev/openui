@@ -2,19 +2,20 @@
 
 import { useCopyButton } from "fumadocs-ui/utils/use-copy-button";
 import { Check, Copy } from "lucide-react";
+import "./CopyCommand.css";
 
 /** The local-run command in a dark box, with a copy button pinned to its right edge. */
 export function CopyCommand({ command }: { command: string }) {
   const [copied, onCopy] = useCopyButton(() => navigator.clipboard.writeText(command));
 
   return (
-    <div className="demo-unavailable-commands">
+    <div className="copy-command">
       <pre>
         <code>{command}</code>
       </pre>
       <button
         type="button"
-        className="demo-unavailable-copy"
+        className="copy-command-button"
         aria-label={copied ? "Command copied" : "Copy command"}
         onClick={onCopy}
       >

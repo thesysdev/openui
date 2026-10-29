@@ -1,4 +1,5 @@
-import { isDemoCreditsErrorPayload } from "@/lib/demo-credits";
+import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
+import { areDemosDisabled } from "@/lib/demo-credits";
 import { DEFAULT_MODEL } from "@/lib/openui-cloud/models";
 import type { ChatLLM } from "@openuidev/react-headless";
 import {
@@ -16,8 +17,6 @@ interface CloudChatLLMOptions {
   shouldSendFullHistory?: (threadId: string) => boolean;
   onFullHistoryAccepted?: (threadId: string) => void;
   onPromptSubmitted?: (observation: CloudChatObservation) => void;
-  /** Called when the chat route answers with the demo-credits 402. Read once, so pass a stable function. */
-  onCreditsExhausted?: () => void;
 }
 
 export interface CloudChatObservation {
@@ -32,6 +31,13 @@ export function createCloudChatLLM(options: CloudChatLLMOptions = {}): CloudChat
     streamAdapter: openAIResponsesAdapter(),
     messageFormat: openAIConversationMessageFormat,
     fetch: async (input, init) => {
+      // /chat has no submit handler of its own, so the send is stopped here.
+      if (areDemosDisabled()) {
+        openDemosOfflineDialog();
+        return new Response("data: [DONE]\n\n", {
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      }
       const payload = JSON.parse(String(init?.body)) as {
         threadId: string;
         messages: unknown[];
@@ -55,20 +61,6 @@ export function createCloudChatLLM(options: CloudChatLLMOptions = {}): CloudChat
       }
 
       if (!response.ok) {
-        const errorPayload = await response
-          .clone()
-          .json()
-          .catch(() => ({}));
-        if (
-          options.onCreditsExhausted &&
-          isDemoCreditsErrorPayload((errorPayload as { error?: unknown }).error)
-        ) {
-          options.onCreditsExhausted();
-          // End the turn quietly; the dialog explains what happened.
-          return new Response("data: [DONE]\n\n", {
-            headers: { "Content-Type": "text/event-stream" },
-          });
-        }
         return response;
       }
 

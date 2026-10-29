@@ -56,12 +56,7 @@ const { artifactRenderers, artifactCategories } = defineArtifactCategories([
   },
 ]);
 
-interface CloudAgentSurfaceProps {
-  /** Opens the demo credits dialog. Read once, so pass a stable function. */
-  onCreditsExhausted?: () => void;
-}
-
-export function CloudAgentSurface({ onCreditsExhausted }: CloudAgentSurfaceProps) {
+export function CloudAgentSurface() {
   const { resolvedTheme } = useTheme();
   const mode = resolvedTheme === "dark" ? "dark" : "light";
   const [selectedModel, setSelectedModel] = usePersistedCloudModel();
@@ -72,7 +67,6 @@ export function CloudAgentSurface({ onCreditsExhausted }: CloudAgentSurfaceProps
       initialModel: getPersistedCloudModel(),
       shouldSendFullHistory: (threadId) => forkRegistry.shouldSeed(threadId),
       onFullHistoryAccepted: (threadId) => forkRegistry.markSeeded(threadId),
-      onCreditsExhausted,
       onPromptSubmitted: ({ threadId, model }) => {
         captureChatDemoEvent(
           CHAT_DEMO_EVENTS.promptSubmit,

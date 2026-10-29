@@ -1,3 +1,4 @@
+import { CopyCommand } from "@/components/CopyCommand";
 import { WebsiteThemeProvider } from "@/components/website-theme-provider";
 import {
   DEMOS_PAUSED_MESSAGE,
@@ -9,7 +10,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CopyCommand } from "./copy-command";
 import "./demo-unavailable.css";
 
 /* proxy.ts rewrites /demo/<slug> here while NEXT_PUBLIC_DEMOS_DISABLED is set, so the
