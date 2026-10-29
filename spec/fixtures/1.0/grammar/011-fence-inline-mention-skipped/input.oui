@@ -1,4 +1,0 @@
-Wrap the answer in ```openui``` like this:
-```openui
-root = Stack([Text("hi")])
-```
