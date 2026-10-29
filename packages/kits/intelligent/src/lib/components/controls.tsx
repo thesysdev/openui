@@ -1,19 +1,11 @@
 "use client";
 
-import {
-  action,
-  defineComponent,
-  reactive,
-  useFormName,
-  useIsStreaming,
-  useStateField,
-  useTriggerAction,
-} from "@openuidev/react-lang";
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import { action, defineComponent, reactive, useIsStreaming, useStateField } from "@openuidev/react-lang";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { z } from "zod/v4";
-import { choice, choiceList, Field, numberText, optionList, options, useFieldName, useRunAction } from "./controlHelpers";
 import { ButtonView } from "./Button";
-import { bg, children, color, onColor, cx, option, radius, radiusSchema, space, textOf, toOption, type Option } from "./style";
+import { numberText, useFieldName, useRunAction } from "./controlHelpers";
+import { bg, children, color, onColor, cx, radius, radiusSchema, space, textOf } from "./style";
 
 // Actions
 export const Pressable = defineComponent({
@@ -63,59 +55,6 @@ export const Pressable = defineComponent({
 });
 
 // Inputs
-
-
-
-
-
-
-
-
-
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-
-const clock = (seconds: number) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  const mm = h ? String(m).padStart(2, "0") : String(m);
-  return `${h ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
-};
-
-
-
-
-
-
-
-
-export const SegmentedControl = defineComponent({
-  name: "SegmentedControl",
-  props: z.object({ value: reactive(z.string()), options, block: z.boolean().optional() }),
-  description: "2 to 4 short choices in a row.",
-  component: function SegmentedView({ props, statementId }) {
-    const field = useStateField(useFieldName(undefined, statementId), props.value);
-    const value = field.value == null ? "" : String(field.value);
-    return (
-      <div className={cx("iui-segmented", props.block && "iui-block")} role="radiogroup">
-        {optionList(props.options).map((o, i) => (
-          <button
-            key={`${o.value}-${i}`}
-            type="button"
-            role="radio"
-            aria-checked={o.value === value}
-            className={cx(o.value === value && "is-selected")}
-            onClick={() => field.setValue(o.value)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    );
-  },
-});
-
 
 export const Slider = defineComponent({
   name: "Slider",
@@ -178,11 +117,13 @@ export const Slider = defineComponent({
   },
 });
 
-
-
-
-
-
+const clock = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mm = h ? String(m).padStart(2, "0") : String(m);
+  return `${h ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
+};
 
 export const Timer = defineComponent({
   name: "Timer",
