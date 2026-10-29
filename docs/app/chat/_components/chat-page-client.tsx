@@ -1,5 +1,6 @@
 "use client";
 
+import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
 import {
   CHAT_DEMO_EVENTS,
   captureChatDemoEvent,
@@ -12,6 +13,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -158,6 +160,9 @@ export function ChatPageClient() {
     [hostViewport, viewport],
   );
 
+  const [creditsDialogOpen, setCreditsDialogOpen] = useState(false);
+  const handleCreditsExhausted = useCallback(() => setCreditsDialogOpen(true), []);
+
   return (
     <main className={styles.page}>
       <h1 className={styles.srOnly}>OpenUI Cloud Chat</h1>
@@ -174,10 +179,11 @@ export function ChatPageClient() {
       >
         <div className={styles.agentFrame} data-viewport={viewport}>
           <CloudSurfaceErrorBoundary>
-            <CloudAgentSurface />
+            <CloudAgentSurface onCreditsExhausted={handleCreditsExhausted} />
           </CloudSurfaceErrorBoundary>
         </div>
       </section>
+      <DemoCreditsDialog open={creditsDialogOpen} onClose={() => setCreditsDialogOpen(false)} />
     </main>
   );
 }

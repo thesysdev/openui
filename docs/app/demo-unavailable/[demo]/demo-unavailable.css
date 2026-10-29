@@ -1,0 +1,129 @@
+.demo-unavailable {
+  position: relative;
+  display: grid;
+  /* Cap the column at the viewport so the no-wrap command scrolls inside the card. */
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--openui-background, #fafafa);
+}
+
+.demo-unavailable-shot {
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Dark enough for the card to stand out, light enough to see the demo. */
+.demo-unavailable-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(10 10 10 / 45%);
+  backdrop-filter: blur(2px);
+}
+
+.demo-unavailable-card {
+  position: relative;
+  width: min(600px, 100%);
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid var(--openui-border-default, rgb(0 0 0 / 12%));
+  border-radius: 8px;
+  background: var(--openui-foreground, #fff);
+  color: var(--openui-text-neutral-primary, #111);
+  box-shadow: var(--openui-shadow-2xl, 0 24px 80px rgb(0 0 0 / 24%));
+}
+
+.demo-unavailable-card h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.demo-unavailable-card p {
+  margin: 8px 0 0;
+  color: var(--openui-text-neutral-secondary, #555);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.demo-unavailable-commands {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 6px 6px 6px 14px;
+  border-radius: 8px;
+  background: var(--openui-inverted-background, #101010);
+  color: var(--openui-text-accent-primary, #f8f8f8);
+}
+
+/* Keep the command on one line; a long one scrolls sideways. */
+.demo-unavailable-commands pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 0;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.demo-unavailable-copy {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.demo-unavailable-copy:hover {
+  opacity: 1;
+  background: rgb(255 255 255 / 12%);
+}
+
+.demo-unavailable-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.demo-unavailable-primary,
+.demo-unavailable-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 550;
+  text-decoration: none;
+}
+
+/* Black, like the command box, not the blue accent. */
+.demo-unavailable-primary {
+  border: 1px solid var(--openui-inverted-background, #101010);
+  background: var(--openui-inverted-background, #101010);
+  color: var(--openui-text-accent-primary, #fff);
+}
+
+.demo-unavailable-primary:hover {
+  opacity: 0.85;
+}
+
+.demo-unavailable-secondary {
+  border: 1px solid var(--openui-border-interactive, rgb(0 0 0 / 16%));
+  color: var(--openui-text-neutral-primary, #111);
+}
