@@ -222,7 +222,8 @@ export interface StreamParserOptions {
 
 /**
  * Everything after the first pending slot in reading order (props in order, depth first)
- * is held back: later lists are emptied, other values keep theirs. Removes every slot.
+ * is held back: later lists are emptied, other values keep theirs. Removes every slot and
+ * returns the same object for anything with nothing held or removed inside.
  */
 function holdBack(root: ElementNode): ElementNode {
   let held = false;
@@ -230,20 +231,27 @@ function holdBack(root: ElementNode): ElementNode {
     if (value == null || typeof value !== "object" || isASTNode(value)) return value;
     if (Array.isArray(value)) {
       if (held) return value.length ? [] : value;
-      const out: unknown[] = [];
-      for (const item of value) {
+      let out: unknown[] | undefined;
+      for (let i = 0; i < value.length; i++) {
+        const item = value[i];
         if (item === PENDING_SLOT) {
           held = true;
-          break;
+          return out ?? value.slice(0, i);
         }
-        out.push(visit(item));
-        if (held) break;
+        const next = visit(item);
+        if (next !== item) out ??= value.slice(0, i);
+        out?.push(next);
+        if (held) return out ?? value.slice(0, i + 1);
       }
-      return out;
+      return out ?? value;
     }
     const obj = isElementNode(value) ? value.props : (value as Record<string, unknown>);
-    const out: Record<string, unknown> = {};
-    for (const [key, item] of Object.entries(obj)) out[key] = visit(item);
+    let out: Record<string, unknown> | undefined;
+    for (const [key, item] of Object.entries(obj)) {
+      const next = visit(item);
+      if (next !== item) (out ??= { ...obj })[key] = next;
+    }
+    if (!out) return value;
     return isElementNode(value) ? { ...value, props: out } : out;
   };
   return visit(root) as ElementNode;
