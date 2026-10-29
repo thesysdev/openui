@@ -13,6 +13,7 @@ import {
   materializeValue,
   nameRawCallArgs,
   withStatementId,
+  type StatementCache,
   type StatementReuse,
 } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
@@ -324,21 +325,8 @@ function skipString(input: string, start: number): number {
 /** Extract code from markdown fences, or return as-is if no fences found.
  *  String-context-aware: skips ``` inside double-quoted strings. */
 export function stripFences(input: string): string {
-  return scanFences(input).text;
-}
-
-/**
- * How appending text without a backtick changes `stripFences` output:
- * "none" (no fence) and "open" (inside an unclosed block) append it, "closed" ignores it,
- * "other" needs a full rescan.
- */
-type FenceTail = "none" | "open" | "closed" | "other";
-
-function scanFences(input: string): { text: string; tail: FenceTail } {
-  // No ``` anywhere: no fence can be found (the scan below would return the input as is).
-  if (!input.includes("```")) return { text: input, tail: "none" };
+  if (!input.includes("```")) return input;
   const blocks: string[] = [];
-  let tail: FenceTail = "none";
   let i = 0;
 
   while (i < input.length) {
@@ -373,7 +361,6 @@ function scanFences(input: string): { text: string; tail: FenceTail } {
     if (j >= input.length) {
       // No newline after opening fence (streaming) — take everything after fence marker + lang tag
       blocks.push(input.slice(fenceStart + 3).replace(/^[^\n]*\n?/, ""));
-      tail = "other";
       i = input.length;
       break;
     }
@@ -404,17 +391,15 @@ function scanFences(input: string): { text: string; tail: FenceTail } {
 
     if (closePos !== -1) {
       blocks.push(input.slice(j, closePos));
-      tail = "closed";
       i = closePos + 3;
     } else {
       // No closing fence found (streaming) — take everything after opening fence
       blocks.push(input.slice(j));
-      tail = "open";
       i = input.length;
     }
   }
 
-  if (blocks.length > 0) return { text: blocks.join("\n"), tail };
+  if (blocks.length > 0) return blocks.join("\n");
 
   // Fallback: if input starts with ``` but wasn't matched (e.g. no newline after fence)
   if (input.startsWith("```")) {
@@ -425,65 +410,42 @@ function scanFences(input: string): { text: string; tail: FenceTail } {
     const body = input.slice(start);
     const trailingFence = body.lastIndexOf("```");
     if (trailingFence !== -1) {
-      return { text: body.slice(0, trailingFence), tail: "other" };
+      return body.slice(0, trailingFence);
     }
-    return { text: body, tail: "other" };
+    return body;
   }
 
-  return { text: input, tail };
+  return input;
 }
 
-/**
- * Strips // and # line comments outside of strings (" and ' delimiters; a string may
- * span lines). Text is fed with append(), all at once or in pieces (stream parser): the
- * output is the same.
- */
-class CommentStripper {
-  out = "";
-  private lineStart = 0; // start of the current line in `out`
-  private quote = 0; // char code of the open string's quote, 0 outside strings
-  private esc = false;
-  private inComment = false;
-  private slash = false;
-
-  append(text: string): this {
-    let { out, lineStart, quote, esc, inComment, slash } = this;
-    let run = inComment ? -1 : 0; // start of the not-yet-appended slice of `text`
-    for (let i = 0; i < text.length; i++) {
-      const c = text.charCodeAt(i);
-      if (c === 10 /* \n */) {
-        if (run < 0) run = i;
-        lineStart = out.length + (i + 1 - run);
-        inComment = esc = slash = false;
-      } else if (run < 0) {
-        continue;
-      } else if (quote) {
-        if (esc) esc = false;
-        else if (c === 92 /* \\ */) esc = true;
-        else if (c === quote) quote = 0;
-      } else if (c === 34 /* " */ || c === 39 /* ' */) {
-        quote = c;
-        slash = false;
-      } else if (c === 35 /* # */ || (c === 47 /* / */ && slash)) {
-        out += text.slice(run, i);
-        const cut = c === 35 ? out.length : out.length - 1;
-        out = out.slice(0, lineStart) + out.slice(lineStart, cut).trimEnd();
-        run = -1;
-        inComment = true;
-        slash = false;
-      } else {
-        slash = c === 47;
-      }
+/** Strip // and # line comments outside of strings (" and ' delimiters; a string may span lines). */
+function stripComments(input: string): string {
+  let out = "";
+  let start = 0; // first char not yet copied to `out`
+  let lineStart = 0;
+  let quote = 0; // char code of the open string's quote, 0 outside strings
+  for (let i = 0; i < input.length; i++) {
+    const c = input.charCodeAt(i);
+    if (c === 10 /* \n */) lineStart = i + 1;
+    else if (quote) {
+      // An escape skips the next char of the same line
+      if (c === 92 /* \\ */ && i + 1 < input.length && input.charCodeAt(i + 1) !== 10) i++;
+      else if (c === quote) quote = 0;
+    } else if (c === 34 /* " */ || c === 39 /* ' */) quote = c;
+    else if (c === 35 /* # */ || (c === 47 /* / */ && input.charCodeAt(i + 1) === 47)) {
+      out += input.slice(start, lineStart) + input.slice(lineStart, i).trimEnd();
+      i = input.indexOf("\n", i);
+      if (i === -1) return out;
+      start = i;
+      lineStart = i + 1;
     }
-    if (run >= 0) out += run === 0 ? text : text.slice(run);
-    Object.assign(this, { out, lineStart, quote, esc, inComment, slash });
-    return this;
   }
+  return start === 0 ? input : out + input.slice(start);
 }
 
 /** Clean LLM response: strip fences, comments, whitespace. */
 function preprocess(input: string): string {
-  return new CommentStripper().append(stripFences(input.trim())).out.trim();
+  return stripComments(stripFences(input.trim())).trim();
 }
 
 /**
@@ -538,13 +500,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   let completedCount = 0;
 
   // Statement values kept across passes (see StatementReuse); valid while their ASTs are.
-  const reused = new Map<string, unknown>();
+  const reused: StatementCache = new Map();
   const NONE: ReadonlySet<string> = new Set();
-
-  // Incremental preprocess: `stripper.out` is the comment-stripped output of stripFences(buf),
-  // extended per chunk while the fence state allows it (see FenceTail), else rebuilt.
-  let fenceTail: FenceTail = "other";
-  let stripper = new CommentStripper();
 
   function addStmt(text: string) {
     // `text` is sliced from `cleaned`, so it's already fence/comment-free.
@@ -563,22 +520,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   // and shifted the stripped output), the watermark + cache are stale, so reset
   // and re-scan. When the prefix is stable (the common streaming case) the cache
   // is kept; pending text is overlaid on a copy when building the current result.
-  function refreshCleaned(delta: string) {
-    if (fenceTail !== "other" && !delta.includes("`")) {
-      const before = stripper.out.length;
-      if (fenceTail !== "closed") stripper.append(delta);
-      // Text only appended: the completed prefix stays valid.
-      if (fenceTail === "closed" || stripper.out.length === before + delta.length) {
-        cleaned = stripper.out.trim();
-        return;
-      }
-      // A comment skipped or cut text (the cut can also drop the last newline): check below.
-    } else {
-      const fenced = scanFences(buf);
-      fenceTail = fenced.tail;
-      stripper = new CommentStripper().append(fenced.text);
-    }
-    const next = stripper.out.trim();
+  function refreshCleaned() {
+    const next = preprocess(buf);
     if (next.slice(0, completedEnd) !== cleaned.slice(0, completedEnd)) {
       completedEnd = 0;
       completedStmtMap.clear();
@@ -648,8 +591,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     return stmtStart; // start of the current pending (incomplete) statement
   }
 
-  function currentResult(delta = "", complete = false): ParseResult {
-    refreshCleaned(delta);
+  function currentResult(complete = false): ParseResult {
+    refreshCleaned();
     const pendingStart = scanNewCompleted();
     const pendingText = cleaned.slice(pendingStart).trim();
 
@@ -729,25 +672,23 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     completedEnd = 0;
     completedStmtMap.clear();
     completedCount = 0;
-    fenceTail = "other";
     reused.clear();
   }
 
   return {
     push(chunk, complete) {
       buf += chunk;
-      return currentResult(chunk, complete);
+      return currentResult(complete);
     },
     set(fullText, complete) {
-      // slice + === is a memcmp; startsWith compares char by char (~25x slower in V8).
+      // slice + === compares memory; startsWith compares char by char
       if (fullText.length < buf.length || fullText.slice(0, buf.length) !== buf) {
         reset();
       }
-      const delta = fullText.slice(buf.length);
-      buf = fullText; // same text; avoids re-flattening a concatenated buffer per call
-      return currentResult(delta, complete);
+      buf = fullText;
+      return currentResult(complete);
     },
-    getResult: (complete) => currentResult("", complete),
+    getResult: currentResult,
   };
 }
 
