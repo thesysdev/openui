@@ -60,34 +60,6 @@ export function collectQueryDeps(node: unknown): string[] {
   return [...refs];
 }
 
-/**
- * An expression default (`$total = 1 + 2`, `$tax = $price * 0.18`) is evaluated once, here, so the
- * store starts with a value rather than the expression's syntax. Expressions nested in a list or
- * object default are evaluated too. It reads the defaults of states declared before it; query
- * results and references read as null. A default that calls a library function or an action is
- * kept as written: those run only in the client, not at parse time.
- */
-function stateDefault(value: unknown, declared: Record<string, unknown>): unknown {
-  if (isASTNode(value)) {
-    if (!onlyBuiltinFunctions(value)) return value;
-    try {
-      return evaluate(value, {
-        getState: (name) => declared[name] ?? null,
-        resolveRef: () => null,
-      });
-    } catch {
-      return null;
-    }
-  }
-  if (Array.isArray(value)) return value.map((item) => stateDefault(item, declared));
-  if (value && typeof value === "object" && !isElementNode(value)) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [key, stateDefault(item, declared)]),
-    );
-  }
-  return value;
-}
-
 /** True when every call in the expression is a built-in function such as @Count or @Round. */
 function onlyBuiltinFunctions(node: ASTNode): boolean {
   let ok = true;
@@ -155,12 +127,21 @@ function extractStatements(
 
   for (const stmt of stmts) {
     switch (stmt.kind) {
-      case "state":
-        stateDeclarations[stmt.id] = stateDefault(
-          materializeValue(stmt.init, ctx),
-          stateDeclarations,
-        );
+      case "state": {
+        // An expression default is evaluated once with the defaults declared above it. Library
+        // functions and actions only exist in the client, so a default calling one is null.
+        let value = materializeValue(stmt.init, ctx);
+        if (isASTNode(value)) {
+          value = onlyBuiltinFunctions(value)
+            ? evaluate(value, {
+                getState: (name) => stateDeclarations[name] ?? null,
+                resolveRef: () => null,
+              })
+            : null;
+        }
+        stateDeclarations[stmt.id] = value;
         break;
+      }
       case "query":
         nameRawCallArgs(stmt.call.args, ctx, stmt.id);
         queryStatements.push({
