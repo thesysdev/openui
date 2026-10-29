@@ -2,7 +2,7 @@
 // Query Manager — reactive data fetching for openui-lang
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { OpenUIError } from "../parser/types";
+import type { OpenUIError, QueryStatementInfo } from "../parser/types";
 import { McpToolError } from "./mcp";
 import { ToolNotFoundError } from "./toolProvider";
 
@@ -59,6 +59,16 @@ export interface QuerySnapshot extends Record<string, unknown> {
 }
 
 export interface QueryManager {
+  /**
+   * Evaluate the program's queries with `toNode`, which must read the current state and query
+   * results when called. A query that reads another query's result waits for it, and the manager
+   * calls `toNode` again for that reader whenever the result it reads changes.
+   */
+  evaluateStatements(
+    statements: QueryStatementInfo[],
+    toNode: (statement: QueryStatementInfo) => QueryNode,
+  ): void;
+  /** Submit already evaluated queries. Readers are not re-evaluated when a result changes. */
   evaluateQueries(queryNodes: QueryNode[]): void;
   getResult(statementId: string): unknown;
   /** The fetched result, or undefined before the first one (unlike getResult, never the defaults). */
@@ -157,6 +167,13 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   let snapshotJson = JSON.stringify(snapshot);
   let disposed = false;
   let generation = 0;
+
+  // Set by evaluateStatements, so readers can be re-evaluated when a result they read changes.
+  let statements: QueryStatementInfo[] = [];
+  let toNode: ((statement: QueryStatementInfo) => QueryNode) | null = null;
+  const nodes = new Map<string, QueryNode>();
+  /** For each reader, the result of each query it reads when its node was last built. */
+  const seen = new Map<string, Map<string, unknown>>();
 
   // ── Snapshot & notification ──────────────────────────────────────────────
 
@@ -288,6 +305,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       } else {
         if (rebuildSnapshot()) notify();
       }
+      reevaluateReaders();
     }
   }
 
@@ -301,7 +319,56 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
 
   // ── Query evaluation ─────────────────────────────────────────────────────
 
+  function buildNode(statement: QueryStatementInfo): QueryNode {
+    const reads = new Map<string, unknown>();
+    for (const id of statement.waitFor ?? []) reads.set(id, getData(id));
+    const node = toNode!(statement);
+    seen.set(statement.statementId, reads);
+    nodes.set(statement.statementId, node);
+    return node;
+  }
+
+  function evaluateStatements(
+    next: QueryStatementInfo[],
+    nextToNode: (statement: QueryStatementInfo) => QueryNode,
+  ) {
+    if (disposed) return;
+    statements = next;
+    toNode = nextToNode;
+    nodes.clear();
+    seen.clear();
+    applyNodes(next.map(buildNode));
+    reevaluateReaders();
+  }
+
+  /**
+   * Re-evaluate only the readers whose waited-on result changed since their node was built, and
+   * submit them with the other nodes unchanged. A query is never re-evaluated because of its own
+   * result, so one whose args are not deterministic does not loop. Each round follows one more
+   * link of a chain; the bound only stops a chain that is a cycle.
+   */
+  function reevaluateReaders() {
+    for (let round = 0; round <= statements.length; round++) {
+      if (disposed || !toNode) return;
+      const stale = new Set(
+        statements.filter((s) =>
+          s.waitFor?.some((id) => getData(id) !== seen.get(s.statementId)?.get(id)),
+        ),
+      );
+      if (stale.size === 0) return;
+      applyNodes(statements.map((s) => (stale.has(s) ? buildNode(s) : nodes.get(s.statementId)!)));
+    }
+  }
+
   function evaluateQueries(queryNodes: QueryNode[]) {
+    statements = [];
+    toNode = null;
+    nodes.clear();
+    seen.clear();
+    applyNodes(queryNodes);
+  }
+
+  function applyNodes(queryNodes: QueryNode[]) {
     if (disposed) return;
 
     const activeIds = new Set(queryNodes.map((n) => n.statementId));
@@ -580,6 +647,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   }
 
   return {
+    evaluateStatements,
     evaluateQueries,
     getResult,
     getData,

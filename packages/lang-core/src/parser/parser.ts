@@ -60,10 +60,10 @@ export function collectQueryDeps(node: unknown): string[] {
 }
 
 /** Names of the queries whose results the given expressions read (RuntimeRef to a Query). */
-function collectQueryReads(nodes: unknown[]): string[] {
+function collectQueryReads(nodes: (ASTNode | undefined)[]): string[] {
   const reads = new Set<string>();
   for (const node of nodes) {
-    if (!isASTNode(node)) continue;
+    if (!node) continue;
     walkAST(node, (current) => {
       if (current.k === "RuntimeRef" && current.refType === "query") reads.add(current.n);
     });
