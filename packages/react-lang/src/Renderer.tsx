@@ -173,6 +173,10 @@ function renderDeep(value: unknown): React.ReactNode {
 /** See OpenUIState.renderRevision: every RenderNode re-renders when it changes. */
 const RenderRevisionContext = createContext<unknown>(null);
 
+// Statement element pairs found to render the same. Elements are immutable, so a pair stays
+// the same: when the parser's partial flag flips, unchanged statements compare in O(1).
+const sameElements = new WeakMap<object, WeakSet<object>>();
+
 /**
  * True when two values render the same: equal plain data, with elements compared on what
  * RenderNodeInner reads (typeName, statementId, props). `partial` is skipped: the parser sets
@@ -191,12 +195,23 @@ function rendersSame(a: unknown, b: unknown): boolean {
   const eb = b as ElementNode;
   // Elements as renderDeep tells them apart
   if (ea.type === "element" || eb.type === "element") {
-    return (
+    if (sameElements.get(ea)?.has(eb)) return true;
+    const same =
       ea.type === eb.type &&
       ea.typeName === eb.typeName &&
       ea.statementId === eb.statementId &&
-      rendersSame(ea.props, eb.props)
-    );
+      rendersSame(ea.props, eb.props);
+    // Only statements: elements built while evaluating (an @Each row) are new every time
+    if (same && ea.statementId !== undefined) {
+      for (const [x, y] of [
+        [ea, eb],
+        [eb, ea],
+      ]) {
+        const seen = sameElements.get(x) ?? new WeakSet<object>();
+        sameElements.set(x, seen.add(y));
+      }
+    }
+    return same;
   }
   // Class instances (dates, maps, values from library functions) compare by identity
   const proto = Object.getPrototypeOf(a);
