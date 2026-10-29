@@ -471,7 +471,6 @@ function startsProgram(block: string): boolean {
 
 /** Extract the program from markdown code fences, or return the input when no fence holds one. */
 export function stripFences(input: string): string {
-  if (!input.includes("```")) return input;
   const blocks: string[] = [];
   const outside: string[] = [];
   let body: string[] | null = null;
@@ -506,29 +505,38 @@ export function stripFences(input: string): string {
   return unfenced || blocks.every((b) => b.trim() === "") ? outside.join("\n") : blocks.join("\n");
 }
 
-/** Strip // and # line comments outside of strings (" and ' delimiters; a string may span lines). */
+/** Strip // and # line comments outside of strings (handles both " and ' delimiters). */
 function stripComments(input: string): string {
-  let out = "";
-  let start = 0; // first char not yet copied to `out`
-  let lineStart = 0;
-  let quote = 0; // char code of the open string's quote, 0 outside strings
-  for (let i = 0; i < input.length; i++) {
-    const c = input.charCodeAt(i);
-    if (c === 10 /* \n */) lineStart = i + 1;
-    else if (quote) {
-      // An escape skips the next char of the same line
-      if (c === 92 /* \\ */ && i + 1 < input.length && input.charCodeAt(i + 1) !== 10) i++;
-      else if (c === quote) quote = 0;
-    } else if (c === 34 /* " */ || c === 39 /* ' */) quote = c;
-    else if (c === 35 /* # */ || (c === 47 /* / */ && input.charCodeAt(i + 1) === 47)) {
-      out += input.slice(start, lineStart) + input.slice(lineStart, i).trimEnd();
-      i = input.indexOf("\n", i);
-      if (i === -1) return out;
-      start = i;
-      lineStart = i + 1;
-    }
-  }
-  return start === 0 ? input : out + input.slice(start);
+  let inStr: false | '"' | "'" = false;
+  return input
+    .split("\n")
+    .map((line) => {
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (inStr) {
+          if (c === "\\" && i + 1 < line.length) {
+            i++; // skip escaped char
+            continue;
+          }
+          if (c === inStr) inStr = false;
+          continue;
+        }
+        if (c === '"' || c === "'") {
+          inStr = c;
+          continue;
+        }
+        // // style comments
+        if (c === "/" && line[i + 1] === "/") {
+          return line.substring(0, i).trimEnd();
+        }
+        // # style comments (Python/YAML style — LLMs sometimes use these)
+        if (c === "#") {
+          return line.substring(0, i).trimEnd();
+        }
+      }
+      return line;
+    })
+    .join("\n");
 }
 
 /** Clean LLM response: strip fences, comments, whitespace. */
@@ -614,7 +622,7 @@ export function createStreamParser(
   // is kept; pending text is overlaid on a copy when building the current result.
   function refreshCleaned() {
     const next = preprocess(buf);
-    if (next.slice(0, completedEnd) !== cleaned.slice(0, completedEnd)) {
+    if (!next.startsWith(cleaned.slice(0, completedEnd))) {
       completedEnd = 0;
       completedStmtMap.clear();
       completedCount = 0;
