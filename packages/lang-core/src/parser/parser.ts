@@ -9,7 +9,7 @@ import { isASTNode, walkAST } from "./ast";
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeValue, nameRawCallArgs } from "./materialize";
+import { materializeToolArgs, materializeValue } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -142,26 +142,30 @@ function extractStatements(
         stateDeclarations[stmt.id] = value;
         break;
       }
-      case "query":
-        nameRawCallArgs(stmt.call.args, ctx, stmt.id);
+      case "query": {
+        const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
+        // Aliases can hide state reads that the raw statement did not expose.
+        const deps = collectQueryDeps(args[1]);
         queryStatements.push({
           statementId: stmt.id,
-          toolAST: stmt.call.args[0] ?? null,
-          argsAST: stmt.call.args[1] ?? null,
-          defaultsAST: stmt.call.args[2] ?? null,
-          refreshAST: stmt.call.args[3] ?? null,
-          deps: stmt.deps,
+          toolAST: args[0] ?? null,
+          argsAST: args[1] ?? null,
+          defaultsAST: args[2] ?? null,
+          refreshAST: args[3] ?? null,
+          deps: deps.length > 0 ? deps : undefined,
           complete: true,
         });
         break;
-      case "mutation":
-        nameRawCallArgs(stmt.call.args, ctx, stmt.id);
+      }
+      case "mutation": {
+        const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
         mutationStatements.push({
           statementId: stmt.id,
-          toolAST: stmt.call.args[0] ?? null,
-          argsAST: stmt.call.args[1] ?? null,
+          toolAST: args[0] ?? null,
+          argsAST: args[1] ?? null,
         });
         break;
+      }
     }
   }
 
