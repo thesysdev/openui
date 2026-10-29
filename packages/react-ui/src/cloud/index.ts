@@ -11,18 +11,18 @@ export type {
   OpenUICloudProviderProps,
 } from "@openuidev/react-headless";
 
+export {
+  LiveArtifactRenderer,
+  StaticArtifactRenderer,
+} from "../components/CloudArtifact/ArtifactRenderer";
+export type {
+  LiveArtifactRendererProps,
+  StaticArtifactRendererProps,
+} from "../components/CloudArtifact/ArtifactRenderer";
 export type { ArtifactRendererBaseProps } from "../components/CloudArtifact/ArtifactRendererRoot";
 export { useArtifactRenderer } from "../components/CloudArtifact/contexts";
 export type { ArtifactRendererState } from "../components/CloudArtifact/contexts";
 export type { ArtifactError, ArtifactErrorCode } from "../components/CloudArtifact/errors";
-export {
-  LiveArtifactRenderer,
-  StaticArtifactRenderer,
-} from "../components/CloudArtifact/LiveArtifactRenderer";
-export type {
-  LiveArtifactRendererProps,
-  StaticArtifactRendererProps,
-} from "../components/CloudArtifact/LiveArtifactRenderer";
 export type {
   ChromeProps,
   CloseButtonProps,
