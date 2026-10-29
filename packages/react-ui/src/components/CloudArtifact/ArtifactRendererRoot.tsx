@@ -8,11 +8,41 @@ import {
 } from "@openuidev/react-headless";
 import type { McpClientLike, OpenUIError } from "@openuidev/react-lang";
 import clsx from "clsx";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  Children,
+  Fragment,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
-import { RendererStateContext, type ArtifactRendererState } from "./contexts";
+import {
+  ContentConfigContext,
+  RendererStateContext,
+  type ArtifactRendererState,
+  type ContentConfig,
+} from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
-import { Chrome, Content, Preview } from "./parts";
+import {
+  Chrome,
+  ChromeActions,
+  ChromeLoader,
+  ChromeTitle,
+  CloseButton,
+  Content,
+  Error as ErrorSlot,
+  Loading,
+  Preview,
+  PreviewDescription,
+  PreviewLoader,
+  PreviewTitle,
+  RegionProvider,
+} from "./slots";
 
 /** Props every artifact renderer takes. */
 export interface ArtifactRendererBaseProps {
@@ -35,8 +65,10 @@ export interface ArtifactRendererBaseProps {
   className?: string;
   /** Receives the artifact's error, if any, with `Renderer`'s own. */
   onError?: (errors: Array<OpenUIError | ArtifactError>) => void;
-  /** Buttons in the open artifact's bar, next to its close button, such as "Edit". */
+  /** Buttons in the open artifact's bar, next to its close button. A `Chrome` slot's `actions` win. */
   actions?: ReactNode;
+  /** Slots: `Preview` and `Chrome`. */
+  children?: ReactNode;
 }
 
 /** What a renderer gets to draw the artifact itself. */
@@ -63,7 +95,41 @@ const NO_ID_ERROR: ArtifactError = {
   message: "This response doesn’t reference an artifact.",
 };
 
-/** The shared renderer: streaming, live data, errors, open state and layout. */
+/** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
+function extractRegions(children: ReactNode) {
+  let preview: ReactElement | undefined;
+  let chrome: ReactElement | undefined;
+  Children.forEach(children, (child) => {
+    if (!isValidElement(child)) return;
+    const slot = child.type === Preview ? "Preview" : child.type === Chrome ? "Chrome" : null;
+    if (!slot) return;
+    if ((slot === "Preview" ? preview : chrome) !== undefined) {
+      console.warn(`[ArtifactRenderer] Multiple <${slot}> slot children — using the first.`);
+    } else if (slot === "Preview") preview = child;
+    else chrome = child;
+  });
+  return { preview, chrome };
+}
+
+/**
+ * Standalone mode shows only the chrome's `Content`. Look for it through plain
+ * elements and fragments; a `Content` inside your own component can't be seen
+ * from here, so the default `Content` is used then.
+ */
+function findContent(node: ReactNode): ReactElement | null {
+  let found: ReactElement | null = null;
+  Children.forEach(node, (child) => {
+    if (found || !isValidElement(child)) return;
+    if (child.type === Content) {
+      found = child;
+    } else if (typeof child.type === "string" || child.type === Fragment || child.type === Chrome) {
+      found = findContent((child.props as { children?: ReactNode }).children);
+    }
+  });
+  return found;
+}
+
+/** The shared renderer: streaming, live data, errors, open state, slots and layout. */
 export function ArtifactRendererRoot({
   response,
   id: idProp,
@@ -75,6 +141,7 @@ export function ArtifactRendererRoot({
   defaultOpen = false,
   className,
   actions,
+  children,
   interpreter,
   onError,
   renderContent,
@@ -195,34 +262,72 @@ export function ArtifactRendererRoot({
   );
 
   const program = stream.program;
-  const body = (
-    <Content isEmpty={!program}>
-      {renderContent({
-        program,
-        isStreaming,
-        toolProvider: interpreter ? toolProvider : undefined,
-        rendererKey,
-        onError: handleRendererErrors,
-      })}
-    </Content>
+  const contentConfig = useMemo<ContentConfig>(
+    () => ({
+      isEmpty: !program,
+      render: () =>
+        renderContent({
+          program,
+          isStreaming,
+          toolProvider: interpreter ? toolProvider : undefined,
+          rendererKey,
+          onError: handleRendererErrors,
+        }),
+    }),
+    [
+      program,
+      isStreaming,
+      interpreter,
+      toolProvider,
+      rendererKey,
+      handleRendererErrors,
+      renderContent,
+    ],
   );
-  const chrome = <Chrome actions={actions}>{body}</Chrome>;
+
+  // ── Slots and layout ──
+  const regions = useMemo(() => extractRegions(children), [children]);
+  const chrome = (
+    <RegionProvider region="chrome">
+      {regions.chrome ?? <Chrome actions={actions} />}
+    </RegionProvider>
+  );
 
   return (
     <RendererStateContext.Provider value={state}>
-      <div className={clsx("openui-artifact", className)}>
-        {preview ? (
-          <>
-            <Preview />
-            {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
-            {isOpen &&
-              renderInHtmlElement !== null &&
-              (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
-          </>
-        ) : (
-          body
-        )}
-      </div>
+      <ContentConfigContext.Provider value={contentConfig}>
+        <div className={clsx("openui-artifact", className)}>
+          {preview ? (
+            <>
+              <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
+              {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
+              {isOpen &&
+                renderInHtmlElement !== null &&
+                (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
+            </>
+          ) : (
+            <RegionProvider region="chrome">
+              {findContent(regions.chrome) ?? <Content />}
+            </RegionProvider>
+          )}
+        </div>
+      </ContentConfigContext.Provider>
     </RendererStateContext.Provider>
   );
 }
+
+/** The slots every renderer carries, such as `LiveArtifactRenderer.Preview`. */
+export const slots = {
+  Preview,
+  PreviewTitle,
+  PreviewDescription,
+  PreviewLoader,
+  Chrome,
+  ChromeTitle,
+  ChromeLoader,
+  ChromeActions,
+  CloseButton,
+  Content,
+  Loading,
+  Error: ErrorSlot,
+};
