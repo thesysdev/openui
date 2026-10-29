@@ -53,34 +53,6 @@ export const Button = defineComponent({
   },
 });
 
-export const IconButton = defineComponent({
-  name: "IconButton",
-  props: z.object({
-    icon: z.string(),
-    action: action().optional(),
-    label: z.string().optional(),
-    variant: z.enum(["outline", "ghost", "solid"]).optional(),
-  }),
-  description: "Round icon-only button; label is read aloud.",
-  component: ({ props }) => {
-    const run = useRunAction();
-    const streaming = useIsStreaming();
-    const label = props.label || String(props.icon ?? "");
-    return (
-      <button
-        type="button"
-        className={cx("iui-icon-button", `iui-icon-button-${props.variant ?? "outline"}`)}
-        aria-label={label}
-        title={props.label || undefined}
-        disabled={streaming}
-        onClick={() => run(label, props.action, false)}
-      >
-        <Glyph name={props.icon} size={16} />
-      </button>
-    );
-  },
-});
-
 export const Pressable = defineComponent({
   name: "Pressable",
   props: z.object({

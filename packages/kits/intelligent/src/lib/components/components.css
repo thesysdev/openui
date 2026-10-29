@@ -140,13 +140,12 @@
 :is(.iui-button-outline, .iui-button-soft, .iui-button-ghost).iui-button-success { color: var(--iui-success); }
 .iui-button:disabled { opacity: .4; cursor: not-allowed; }
 .iui-block { width: 100%; align-self: stretch; }
-.iui-icon-button { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border: 1px solid var(--iui-border); border-radius: 50%; background: var(--iui-canvas); color: var(--iui-ink); cursor: pointer; transition: background .15s; }
-.iui-icon-button-ghost { border-color: transparent; background: transparent; color: var(--iui-muted); }
-.iui-icon-button-solid { border-color: var(--iui-ink); background: var(--iui-ink); color: var(--iui-on-ink); }
-.iui-icon-button:not(:disabled):hover { background: var(--iui-hover); color: var(--iui-ink); }
-.iui-icon-button:not(:disabled):active { background: var(--iui-pressed); }
-.iui-icon-button-solid:not(:disabled):hover { background: var(--iui-ink-hover); color: var(--iui-on-ink); }
-.iui-icon-button:disabled { opacity: .4; cursor: not-allowed; }
+/* IconButton is react-components' IconButton. These point its colour tokens at
+   the kit's, so it follows the kit's light and dark themes even without a host
+   OpenUI theme: solid is ink rather than the blue accent, and ghost is muted. */
+.iui-icon-button { --openui-text-neutral-primary: var(--iui-ink); --openui-border-interactive: var(--iui-border); --openui-highlight: var(--iui-hover); }
+.iui-icon-button-solid { --openui-interactive-accent-default: var(--iui-ink); --openui-interactive-accent-hover: var(--iui-ink-hover); --openui-interactive-accent-pressed: var(--iui-ink); --openui-interactive-accent-disabled: var(--iui-ink); --openui-text-accent-primary: var(--iui-on-ink); --openui-border-accent: var(--iui-ink); }
+.iui-icon-button-ghost { --openui-text-neutral-primary: var(--iui-muted); }
 
 /* The hover and selection rings are outlines drawn inside the tile (painted over
    its content), so a scrolling row, a clipped Box or a Table cell never cuts them off. */

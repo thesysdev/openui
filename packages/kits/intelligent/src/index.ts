@@ -25,7 +25,8 @@ export { Caption, Link, List, ListItem, Text, Title } from "./lib/components/tex
 export { Badge } from "./lib/components/Badge";
 export { Label } from "./lib/components/Label";
 export { Markdown } from "./lib/components/Markdown";
-export { Button, IconButton, Pressable, SegmentedControl, Slider, Timer } from "./lib/components/controls";
+export { Button, Pressable, SegmentedControl, Slider, Timer } from "./lib/components/controls";
+export { IconButton } from "./lib/components/IconButton";
 export { Input } from "./lib/components/Input";
 export { TextArea } from "./lib/components/TextArea";
 export { Select } from "./lib/components/Select";
