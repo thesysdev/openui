@@ -9,5 +9,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .iui-image > img { transition: none; }
-  .iui-image::before { animation: none; }
+  .iui-image:not(.is-loaded)::before { animation: none; }
 }
