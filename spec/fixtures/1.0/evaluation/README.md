@@ -13,4 +13,4 @@ These cases protect a client from computing different values than other clients 
 | 010-function-registered | The custom function @Upper runs ("HI"), and `@Count([1, 2]) + ""` gives "2". | [3.6](../../../language.md#36-custom-functions) |
 | 011-function-null-required-arg | @Upper given an unset `$variable` or an unresolved reference evaluates to null with no error, so the prop is left out. | [3.6](../../../language.md#36-custom-functions) |
 | 012-kind-query-dollar-name | `$items = Query(...)` is a query statement, and `$items.rows` reads the state store, not the result, so @Count gives 0 with no error. | [2.1](../../../language.md#21-statement-kinds) |
-| 013-builtin-math-on-lists | @Round, @Floor, @Ceil and @Abs given a list apply to each element (nested lists too) and keep null elements as null; a single number still gives a number. | [3.4](../../../language.md#34-built-in-functions) |
+| 013-builtin-math-on-lists | @Round, @Floor, @Ceil and @Abs given a list apply to each element (nested lists too, null counts as 0); a single number still gives a number. | [3.4](../../../language.md#34-built-in-functions) |

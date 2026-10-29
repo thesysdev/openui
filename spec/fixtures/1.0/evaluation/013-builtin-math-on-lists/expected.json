@@ -7,9 +7,9 @@
           "type": "Table",
           "props": {
             "columns": [
-              { "type": "Col", "props": { "label": "Rounded", "data": [1.3, 2.7, null] } },
-              { "type": "Col", "props": { "label": "Floor", "data": [1, 2, null] } },
-              { "type": "Col", "props": { "label": "Ceil", "data": [2, 3, null] } },
+              { "type": "Col", "props": { "label": "Rounded", "data": [1.3, 2.7, 0] } },
+              { "type": "Col", "props": { "label": "Floor", "data": [1, 2, 0] } },
+              { "type": "Col", "props": { "label": "Ceil", "data": [2, 3, 0] } },
               { "type": "Col", "props": { "label": "Abs", "data": [3, 4.5, [1, 2]] } }
             ]
           }

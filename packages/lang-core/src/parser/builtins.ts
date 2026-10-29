@@ -33,11 +33,10 @@ function toNumber(val: unknown): number {
 }
 
 const sumOf = (arr: unknown[]) => arr.reduce((a: number, b: unknown) => a + toNumber(b), 0);
-/** Applies a numeric function to a number, or to each element of a list (nested lists too); null elements stay null.
- *  Typed as the prompt shows it (number | number[]). */
+/** Applies a numeric function to a number, or to each element of a list (nested lists too). */
 const elementwise = (value: unknown, fn: (n: number) => number): number | number[] =>
   Array.isArray(value)
-    ? (value.map((item) => (item == null ? null : elementwise(item, fn))) as number[])
+    ? (value.map((item) => elementwise(item, fn)) as number[])
     : fn(toNumber(value));
 const numberOrList = () => z.union([z.number(), z.array(z.number())]);
 const array = () => z.array(z.any());
@@ -174,7 +173,7 @@ const builtins: BuiltinFunction[] = [
   }),
   defineFunction({
     name: "Round",
-    description: "Round to N decimal places (default 0). A list is rounded element by element",
+    description: "Round to N decimal places (default 0)",
     params: z.object({ number: numberOrList(), decimals: z.number().optional() }),
     returns: numberOrList(),
     fn: ({ number, decimals }) => {
@@ -185,21 +184,21 @@ const builtins: BuiltinFunction[] = [
   }),
   defineFunction({
     name: "Abs",
-    description: "Absolute value. A list is handled element by element",
+    description: "Absolute value",
     params: z.object({ number: numberOrList() }),
     returns: numberOrList(),
     fn: ({ number }) => elementwise(number, Math.abs),
   }),
   defineFunction({
     name: "Floor",
-    description: "Round down to nearest integer. A list is handled element by element",
+    description: "Round down to nearest integer",
     params: z.object({ number: numberOrList() }),
     returns: numberOrList(),
     fn: ({ number }) => elementwise(number, Math.floor),
   }),
   defineFunction({
     name: "Ceil",
-    description: "Round up to nearest integer. A list is handled element by element",
+    description: "Round up to nearest integer",
     params: z.object({ number: numberOrList() }),
     returns: numberOrList(),
     fn: ({ number }) => elementwise(number, Math.ceil),
