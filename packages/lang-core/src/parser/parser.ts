@@ -60,6 +60,25 @@ export function collectQueryDeps(node: unknown): string[] {
   return [...refs];
 }
 
+/**
+ * A state default is evaluated once, with the defaults declared above it; query results read as
+ * null. Library functions and actions only exist in the client, so a default calling one is null.
+ */
+function stateDefault(value: unknown, declared: Record<string, unknown>): unknown {
+  if (isASTNode(value)) {
+    return onlyBuiltinFunctions(value)
+      ? evaluate(value, { getState: (name) => declared[name] ?? null, resolveRef: () => null })
+      : null;
+  }
+  if (Array.isArray(value)) return value.map((item) => stateDefault(item, declared));
+  if (value && typeof value === "object" && !isElementNode(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, stateDefault(v, declared)]),
+    );
+  }
+  return value;
+}
+
 /** True when every call in the expression is a built-in function such as @Count or @Round. */
 function onlyBuiltinFunctions(node: ASTNode): boolean {
   let ok = true;
@@ -127,21 +146,12 @@ function extractStatements(
 
   for (const stmt of stmts) {
     switch (stmt.kind) {
-      case "state": {
-        // An expression default is evaluated once with the defaults declared above it. Library
-        // functions and actions only exist in the client, so a default calling one is null.
-        let value = materializeValue(stmt.init, ctx);
-        if (isASTNode(value)) {
-          value = onlyBuiltinFunctions(value)
-            ? evaluate(value, {
-                getState: (name) => stateDeclarations[name] ?? null,
-                resolveRef: () => null,
-              })
-            : null;
-        }
-        stateDeclarations[stmt.id] = value;
+      case "state":
+        stateDeclarations[stmt.id] = stateDefault(
+          materializeValue(stmt.init, ctx),
+          stateDeclarations,
+        );
         break;
-      }
       case "query": {
         const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
         // Aliases can hide state reads that the raw statement did not expose.
