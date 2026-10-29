@@ -34,8 +34,16 @@ export interface Artifact extends ArtifactSummary {
 export interface ArtifactListParams {
   /** Partial-match search on `title`. Server-side. */
   name?: string;
-  /** Filter by artifact types. Server-side. */
+  /** Filter by artifact types (kinds, such as `dashboard` or `slides`). Server-side. */
   type?: string[];
+  /** Filter by how artifacts get their data. An untyped dashboard counts as static. Server-side. */
+  artifactType?: ("live" | "static")[];
+  /** `true`: only pinned artifacts; `false`: only unpinned ones. Server-side. */
+  pinned?: boolean;
+  /** Only artifacts from this thread. Server-side. */
+  threadId?: string;
+  /** Newest first (`desc`, the default) or oldest first. */
+  order?: "asc" | "desc";
   cursor?: string;
   limit?: number;
 }
