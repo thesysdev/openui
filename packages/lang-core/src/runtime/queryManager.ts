@@ -238,7 +238,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       entry.data = data ?? null;
       entry.failed = false;
       current.everFetched = true;
-      current.error = undefined;
+      for (const q of queries.values()) if (q.cacheKey === fetchKey) q.error = undefined;
 
       // Clean up previous cache entry — clear prevCacheKey FIRST so
       // cleanupCacheEntry doesn't see this query as a live reference.
@@ -248,42 +248,29 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         cleanupCacheEntry(prevKey);
       }
     } catch (err) {
-      entry.failed = true;
-      // Only update error state if this fetch is still current
-      const current = queries.get(statementId);
-      if (current && current.cacheKey === fetchKey) {
-        if (err instanceof ToolNotFoundError) {
-          current.error = {
-            source: "query",
-            code: "tool-not-found",
-            message: `Query tool "${toolName}" not found`,
-            statementId,
-            component: "Query",
-            toolName,
-            hint: err.availableTools.length
-              ? `Available tools: ${err.availableTools.join(", ")}`
-              : undefined,
-          };
-        } else if (err instanceof McpToolError) {
-          current.error = {
-            source: "query",
-            code: "mcp-error",
-            message: `Query "${toolName}" returned an error: ${err.toolErrorText}`,
-            statementId,
-            component: "Query",
-            toolName,
-          };
-        } else {
-          const msg = err instanceof Error ? err.message : String(err);
-          current.error = {
-            source: "query",
-            code: "tool-error",
-            message: `Query "${toolName}" failed: ${msg}`,
-            statementId,
-            component: "Query",
-            toolName,
-          };
-        }
+      const failure =
+        err instanceof ToolNotFoundError
+          ? {
+              code: "tool-not-found" as const,
+              message: `Query tool "${toolName}" not found`,
+              hint: err.availableTools.length
+                ? `Available tools: ${err.availableTools.join(", ")}`
+                : undefined,
+            }
+          : err instanceof McpToolError
+            ? {
+                code: "mcp-error" as const,
+                message: `Query "${toolName}" returned an error: ${err.toolErrorText}`,
+              }
+            : {
+                code: "tool-error" as const,
+                message: `Query "${toolName}" failed: ${err instanceof Error ? err.message : String(err)}`,
+              };
+      // Every query still on this key shares the failure, and is settled by it.
+      for (const [sid, q] of queries) {
+        if (q.cacheKey !== fetchKey) continue;
+        q.error = { source: "query", statementId: sid, component: "Query", toolName, ...failure };
+        entry.failed = true;
       }
       console.error(`Query "${toolName}" failed:`, err);
     } finally {
