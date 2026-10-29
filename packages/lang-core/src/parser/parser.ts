@@ -622,7 +622,8 @@ export function createStreamParser(
   // is kept; pending text is overlaid on a copy when building the current result.
   function refreshCleaned() {
     const next = preprocess(buf);
-    if (!next.startsWith(cleaned.slice(0, completedEnd))) {
+    // As in set(): slice + === compares memory
+    if (next.slice(0, completedEnd) !== cleaned.slice(0, completedEnd)) {
       completedEnd = 0;
       completedStmtMap.clear();
       completedCount = 0;
