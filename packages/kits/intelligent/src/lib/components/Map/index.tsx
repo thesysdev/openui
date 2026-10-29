@@ -2,11 +2,15 @@
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import { defineComponent, useIsStreaming, useStateField } from "@openuidev/react-lang";
-import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
+import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useId, useRef, useState } from "react";
 import { useColorScheme } from "../scheme";
 import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./basemap";
-import { boundsOf, coordinate, createPinElement, type LatLng, lngLat, partialLine, pinEmoji, reducedMotion } from "./map-utils";
+import { MapControls, type RouteKind } from "./controls";
+import { boundsOf, type LatLng, lngLat, reducedMotion } from "./map-utils";
+import { type PinEntry, syncPins } from "./pins";
+import { placesOf } from "./places";
+import { animateLine, ensureRouteLayer, setLine } from "./route-line";
 import { useDialog } from "./use-dialog";
 import { useStreetRoute } from "./use-street-route";
 import { createMapSchema, MapMarkerSchema } from "./schema";
@@ -20,46 +24,15 @@ export const MapMarker = defineComponent({
   component: () => null,
 });
 
-const ROUTE = "route";
-
 // Room for the controls on top and for labels, which hang below and beside each pin.
 const FRAME_PADDING = { top: 70, left: 72, bottom: 50, right: 72 };
+
+// "Show every place" frames the places a little tighter than the first fit.
+const RECENTER_PADDING = { top: 55, left: 34, bottom: 35, right: 40 };
 
 const FLY_MS = 920;
 
 const DRAW_MS = 760;
-
-type Place = { key: string; label: string; lat: number; lng: number; category?: string; icon: string | null; order: number };
-
-function setLine(map: MapLibreMap, points: LatLng[]) {
-  (map.getSource(ROUTE) as GeoJSONSource | undefined)?.setData({
-    type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: points.map(lngLat) },
-  });
-}
-
-/** Markers as plain data. While streaming, only finished markers count, so a half-written -12 never moves a pin. */
-function placesOf(markers: unknown, streaming: boolean): Place[] {
-  const seen = new Map<string, number>();
-  const out: Place[] = [];
-  (Array.isArray(markers) ? markers.flat() : []).forEach((item, order) => {
-    const el = item as { type?: string; partial?: boolean; props?: Record<string, unknown> } | null;
-    if (el?.type !== "element" || !el.props || (streaming && el.partial)) return;
-    const { label, lat, lng, category, icon } = el.props;
-    if (typeof label !== "string" || !label.trim() || !coordinate({ lat, lng })) return;
-    const count = seen.get(label) ?? 0;
-    seen.set(label, count + 1);
-    out.push({
-      key: count ? `${label} (${count + 1})` : label,
-      label,
-      lat: lat as number,
-      lng: lng as number,
-      category: typeof category === "string" && category.trim() ? category.trim() : undefined,
-      icon: pinEmoji(icon),
-      order,
-    });
-  });
-  return out;
-}
 
 export const MapView = defineComponent({
   name: "Map",
@@ -73,7 +46,7 @@ export const MapView = defineComponent({
     const container = useRef<HTMLDivElement>(null);
     const surface = useRef<HTMLDivElement>(null);
     const map = useRef<MapLibreMap | null>(null);
-    const markers = useRef(new Map<string, { marker: Marker; element: HTMLDivElement; pin: HTMLSpanElement; label: HTMLSpanElement }>());
+    const markers = useRef(new Map<string, PinEntry>());
     const fitPoints = useRef<LatLng[]>([]);
     const fitSignature = useRef("");
     const linePoints = useRef<LatLng[]>([]);
@@ -99,7 +72,7 @@ export const MapView = defineComponent({
     const placeSignature = JSON.stringify(places.map((p) => [p.key, p.lat, p.lng, p.icon, p.category, p.order]));
     const routingKey = visible.map((p) => `${p.lng},${p.lat}`).join(";");
     const streetPoints = useStreetRoute(routingKey, !!props.route);
-    const routeKind = !props.route ? "none" : streetPoints?.length ? "street" : streetPoints === null ? "overview" : "loading";
+    const routeKind: RouteKind = !props.route ? "none" : streetPoints?.length ? "street" : streetPoints === null ? "overview" : "loading";
     select.current = (label) => selection.setValue(label);
     useDialog(container, expanded, () => setExpanded(false));
 
@@ -125,8 +98,7 @@ export const MapView = defineComponent({
       // Re-adds the route line whenever a style (vector, dark or fallback) finishes loading.
       instance.on("style.load", () => {
         const ink = getComputedStyle(container.current ?? document.body).getPropertyValue("--iui-ink").trim() || "#272727";
-        if (!instance.getSource(ROUTE)) instance.addSource(ROUTE, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-        if (!instance.getLayer(ROUTE)) instance.addLayer({ id: ROUTE, type: "line", source: ROUTE, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ink, "line-width": 3.2 } });
+        ensureRouteLayer(instance, ink);
         setLine(instance, linePoints.current);
         setReady(true);
       });
@@ -165,31 +137,9 @@ export const MapView = defineComponent({
     // Reconcile pins with the visible places; existing pins update in place.
     useEffect(() => {
       if (!lib || !ready || !map.current) return;
-      const keys = new Set(visible.map((p) => p.key));
-      for (const [key, entry] of markers.current) {
-        if (!keys.has(key)) { entry.marker.remove(); markers.current.delete(key); }
-      }
-      visible.forEach((place) => {
-        let entry = markers.current.get(place.key);
-        if (!entry) {
-          const pinElement = createPinElement(() => {
-            select.current(place.label);
-            if (expandedNow.current) setExpanded(false);
-          });
-          // Anchor the pin's centre (not the label below it) on the coordinate.
-          const marker = new lib.Marker({ element: pinElement.element, anchor: "top", offset: [0, -17] }).setLngLat(lngLat([place.lat, place.lng])).addTo(map.current!);
-          entry = { marker, ...pinElement };
-          markers.current.set(place.key, entry);
-        }
-        entry.marker.setLngLat(lngLat([place.lat, place.lng]));
-        entry.element.style.zIndex = selected === place.label ? "2" : "";
-        entry.element.title = place.label;
-        entry.element.setAttribute("aria-label", place.label);
-        entry.element.setAttribute("aria-pressed", String(selected === place.label));
-        entry.pin.classList.toggle("is-selected", selected === place.label);
-        entry.pin.classList.toggle("is-numbered", !place.icon);
-        entry.pin.textContent = place.icon ?? String(place.order + 1);
-        entry.label.textContent = place.label;
+      syncPins(lib, map.current, markers.current, visible, selected, (place) => {
+        select.current(place.label);
+        if (expandedNow.current) setExpanded(false);
       });
       fitPoints.current = visible.map((p) => [p.lat, p.lng] as LatLng);
       if (fitPoints.current.length && !anchored.current) {
@@ -230,24 +180,14 @@ export const MapView = defineComponent({
         setLine(instance, linePoints.current);
         return;
       }
-      const start = performance.now();
-      let frame = requestAnimationFrame(function draw(now) {
-        const t = Math.min(1, (now - start) / DRAW_MS);
-        setLine(instance, partialLine(positions, t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2));
-        if (t < 1) frame = requestAnimationFrame(draw);
-        else lineDrawn.current = true;
-      });
-      return () => { cancelAnimationFrame(frame); setLine(instance, linePoints.current); };
+      const stop = animateLine(instance, positions, DRAW_MS, () => { lineDrawn.current = true; });
+      return () => { stop(); setLine(instance, linePoints.current); };
     }, [ready, framedKey, routingKey, streetPoints, props.route, streaming]);
 
     useEffect(() => {
       const frame = requestAnimationFrame(() => map.current?.resize());
       return () => cancelAnimationFrame(frame);
     }, [expanded]);
-
-    const routeNote = routeKind === "street" ? "The line follows streets (OSRM / OpenStreetMap, driving profile); it is an overview, not turn-by-turn directions."
-      : routeKind === "none" ? "" : "The line joins the places in order. Street routing is loading or unavailable.";
-    const routeStatus = { street: "Street route loaded.", overview: "Street routing unavailable. Showing direct connections.", loading: "Street route loading.", none: "" }[routeKind];
 
     return (
       <div className="iui-map-slot" style={{ minHeight: height }}>
@@ -261,26 +201,20 @@ export const MapView = defineComponent({
           tabIndex={expanded ? -1 : undefined}
         >
           <div className="iui-map-surface" ref={surface} />
-          <div className="iui-map-top-left">
-            {categories.length > 1 && (
-              <label className="iui-map-pill iui-map-filter">
-                <select aria-label="Filter places" value={group} onChange={(event) => setGroup(event.target.value)}>
-                  <option value="all">All places</option>
-                  {categories.map((category) => <option key={category} value={category}>{category}</option>)}
-                </select>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
-              </label>
-            )}
-            <button className="iui-map-pill iui-map-recenter" type="button" aria-label="Show every place" onClick={() => {
-              if (fitPoints.current.length) map.current?.fitBounds(boundsOf(fitPoints.current), { padding: { top: 55, left: 34, bottom: 35, right: 40 }, maxZoom: 14 });
-            }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m4.5 4.5 15 5a1 1 0 0 1 0 1.9l-6.1 2-2 6.1a1 1 0 0 1-1.9 0l-5-15z"/></svg></button>
-            <button className="iui-map-info" type="button" aria-label="About this map" aria-expanded={infoOpen} onClick={() => setInfoOpen(!infoOpen)}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 9v5"/><circle cx="10" cy="6.3" r=".6" fill="currentColor" stroke="none"/></svg></button>
-          </div>
-          <button className="iui-map-pill iui-map-expand" type="button" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? "Collapse" : "Expand"}<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M12 4h4v4M8 16H4v-4M16 12v4h-4M4 8V4h4"/></svg></button>
-          {infoOpen && <div className="iui-map-note">Drag to explore and use + and − to zoom. Select a place to highlight it. {routeNote}</div>}
-          {routeKind === "overview" && <div className="iui-map-overview">Route overview</div>}
-          <span className="iui-map-status" role="status">{routeStatus}</span>
-          {mapError && <div className="iui-map-error" role="status">Map tiles are temporarily unavailable. The places are still shown.</div>}
+          <MapControls
+            categories={categories}
+            group={group}
+            onGroup={setGroup}
+            onRecenter={() => {
+              if (fitPoints.current.length) map.current?.fitBounds(boundsOf(fitPoints.current), { padding: RECENTER_PADDING, maxZoom: 14 });
+            }}
+            infoOpen={infoOpen}
+            onToggleInfo={() => setInfoOpen(!infoOpen)}
+            expanded={expanded}
+            onToggleExpand={() => setExpanded(!expanded)}
+            routeKind={routeKind}
+            mapError={mapError}
+          />
         </div>
       </div>
     );
