@@ -1,13 +1,14 @@
 "use client";
 
 import { defineComponent, useStateField } from "@openuidev/react-lang";
+import { ButtonView } from "../Button";
 import { optionList, useFieldName } from "../controlHelpers";
 import { cx } from "../style";
 import { SegmentedControlSchema } from "./schema";
 
 export * from "./schema";
 
-/** The kit's own pill track: a radiogroup of buttons, the chosen one a raised pill. */
+/** A pill track: a radiogroup whose options are the kit's buttons, the chosen one a raised pill. */
 export const SegmentedControl = defineComponent({
   name: "SegmentedControl",
   props: SegmentedControlSchema,
@@ -18,16 +19,17 @@ export const SegmentedControl = defineComponent({
     return (
       <div className={cx("iui-segmented", props.block && "iui-block")} role="radiogroup">
         {optionList(props.options).map((o, i) => (
-          <button
+          <ButtonView
             key={`${o.value}-${i}`}
-            type="button"
+            variant="ghost"
+            size="sm"
             role="radio"
             aria-checked={o.value === value}
-            className={cx(o.value === value && "is-selected")}
+            className={cx("iui-segment", o.value === value && "is-selected")}
             onClick={() => field.setValue(o.value)}
           >
             {o.label}
-          </button>
+          </ButtonView>
         ))}
       </div>
     );

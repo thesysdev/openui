@@ -29,13 +29,14 @@ type Look = {
   block?: boolean | null;
 };
 
-/** react-components' Button in the kit's look. Button draws with it, and so do Timer's own buttons. */
+/** react-components' Button in the kit's look. Button draws with it, and so do Timer's buttons and SegmentedControl's options. */
 export function ButtonView({
   variant: variantProp,
   size: sizeProp,
   color,
   icon,
   block,
+  className,
   children,
   ...rest
 }: Look & Omit<ComponentProps<typeof RCButton>, "variant" | "size" | "color">) {
@@ -52,6 +53,7 @@ export function ButtonView({
         color && color !== "primary" && `iui-button-${color}`,
         `iui-button-${size}`,
         block && "iui-block",
+        className,
       )}
       iconLeft={icon ? <Glyph name={icon} size={size === "sm" ? 14 : 16} /> : undefined}
       {...rest}

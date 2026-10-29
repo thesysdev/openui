@@ -143,6 +143,10 @@
   --openui-highlight: var(--iui-hover);
 }
 .iui-row > .iui-button { align-self: center; }
+/* The kit's display and transitions over react-components' (0,1,0) ones: inline,
+   so a button can sit in a line of text; and only colours animate, so the
+   focus ring appears at once rather than easing in with `all`. */
+.iui-button.openui-button-base { display: inline-flex; transition: background-color .15s, border-color .15s, color .15s; }
 .iui-button-sm { min-height: 32px; --openui-space-s-m: 12px; }
 .iui-button-md { --openui-space-s-m: 16px; }
 .iui-button-lg { min-height: 44px; --openui-space-m: 20px; --openui-text-label-default: 560 15px/1.2 var(--iui-font); }
@@ -153,7 +157,7 @@
 .iui-button:not(.iui-button-sm) svg { width: 16px; height: 16px; }
 .iui-button-solid {
   --openui-interactive-accent-default: var(--iui-ink); --openui-interactive-accent-hover: var(--iui-ink-hover);
-  --openui-interactive-accent-pressed: var(--iui-ink); --openui-interactive-accent-disabled: var(--iui-ink);
+  --openui-interactive-accent-pressed: var(--iui-ink-hover); --openui-interactive-accent-disabled: var(--iui-ink);
   --openui-text-accent-primary: var(--iui-on-ink); --openui-border-accent: transparent;
 }
 /* Fills react-components hard-codes as transparent: above its base rules (0,2,0)
@@ -162,6 +166,8 @@
 .iui-button.iui-button-soft:not(:disabled), .iui-button.iui-button-soft.openui-button-base:disabled { background-color: var(--iui-surface); }
 .iui-button-soft { --openui-highlight: var(--iui-pressed); --openui-border-interactive: transparent; }
 .iui-button-ghost { --openui-space-s-m: 10px; --openui-space-m: 10px; --openui-border-interactive: transparent; }
+/* Pressed: the kit's 8%, where react-components reuses the 5% hover. Solid stays on its hover shade (above). */
+.iui-button:is(.iui-button-outline, .iui-button-ghost):not(.iui-segment):active { --openui-highlight: var(--iui-pressed); }
 .iui-button-danger {
   --openui-interactive-accent-default: var(--iui-danger); --openui-interactive-accent-hover: var(--iui-danger);
   --openui-interactive-accent-pressed: var(--iui-danger); --openui-interactive-accent-disabled: var(--iui-danger);
@@ -223,10 +229,16 @@
 
 .iui-segmented { display: inline-flex; align-self: flex-start; gap: 2px; max-width: 100%; padding: 3px; overflow-x: auto; border-radius: 999px; background: var(--iui-surface); scrollbar-width: none; }
 .iui-segmented.iui-block { display: flex; }
-.iui-segmented > button { flex: 1 0 auto; padding: 6px 14px; border: 0; border-radius: 999px; background: transparent; color: var(--iui-muted); font-size: 13px; line-height: 1.4; white-space: nowrap; cursor: pointer; transition: background .2s, color .2s; }
-.iui-segmented > button:hover:not(.is-selected) { color: var(--iui-ink); }
-.iui-segmented > button.is-selected { background: var(--iui-canvas); color: var(--iui-ink); font-weight: 560; box-shadow: var(--iui-shadow-sm), 0 0 0 1px var(--iui-border); }
-:root[data-openui-theme="dark"] .iui-segmented > button.is-selected, [data-theme="dark"] .iui-segmented > button.is-selected { background: var(--iui-surface-strong); }
+/* Each option is the kit's Button (ghost, small) reshaped into a segment: muted
+   text and no hover fill until chosen, then a raised pill. Colours go through
+   its tokens; padding, border, height, weight and the chosen fill are set at
+   (0,3,0)+, above react-components' size and variant rules. */
+.iui-segment { --openui-text-neutral-primary: var(--iui-muted); --openui-highlight: transparent; --iui-segment-fill: var(--iui-canvas); }
+.iui-segment:hover, .iui-segment.is-selected { --openui-text-neutral-primary: var(--iui-ink); }
+:is(:root[data-openui-theme="dark"], [data-theme="dark"]) .iui-segment { --iui-segment-fill: var(--iui-surface-strong); }
+.iui-segment.is-selected { --openui-highlight: var(--iui-segment-fill); }
+.iui-segmented > .iui-button.iui-segment { flex: 1 0 auto; min-height: 0; padding: 6px 14px; border-width: 0; font-size: 13px; line-height: 1.4; font-weight: 400; transition: background-color .2s, color .2s; }
+.iui-segmented > .iui-button.iui-segment.is-selected { background-color: var(--iui-segment-fill); font-weight: 560; box-shadow: var(--iui-shadow-sm), 0 0 0 1px var(--iui-border); }
 
 /* Range: a 24px pill track with an 18px thumb inside a 40px hit area. */
 .iui-slider { display: flex; flex-direction: column; min-width: 0; }
@@ -378,7 +390,7 @@
   .iui-list-wide > li, .iui-timeline.iui-list-wide > li { grid-template-columns: 64px minmax(0, 1fr); column-gap: 20px; }
   .iui-timeline.iui-list-wide > li:not(:last-child)::after { right: calc(100% - 64px - 10px); }
   .iui-timeline.iui-list-wide .iui-list-marker-text::after { left: calc(64px + 6px); }
-  .iui-segmented > button { padding: 6px 11px; }
+  .iui-segmented > .iui-button.iui-segment { padding: 6px 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
