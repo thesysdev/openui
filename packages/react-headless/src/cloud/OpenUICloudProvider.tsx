@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, type ReactNode } from "react";
-import { ArtifactStorageProvider } from "../store/ArtifactStorageContext";
+import { ArtifactStorageContext } from "../store/ArtifactStorageContext";
 import type { FrontendTokenSource } from "./frontendTokenManager";
 import { useOpenuiCloudStorage, type OpenuiCloudOptions } from "./openuiCloud";
 
@@ -33,6 +33,8 @@ export function OpenUICloudProvider({ token, children, ...options }: OpenUICloud
 
   const storage = useOpenuiCloudStorage({ ...options, token: source });
   return (
-    <ArtifactStorageProvider value={storage.artifact ?? null}>{children}</ArtifactStorageProvider>
+    <ArtifactStorageContext.Provider value={storage.artifact ?? null}>
+      {children}
+    </ArtifactStorageContext.Provider>
   );
 }

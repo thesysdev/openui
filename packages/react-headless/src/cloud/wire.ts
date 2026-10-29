@@ -36,7 +36,7 @@ export interface CloudArtifact {
   object: "openui.artifact";
   /** Absent for artifacts created outside a conversation. */
   conversation_id?: string;
-  kind: string; // 'slides' | 'report' | 'live' | 'static'
+  kind: string; // 'slides' | 'report' | 'dashboard'
   name?: string;
   version?: string; // server bumps via String(Date.now()) when omitted
   /** Absent from list responses. */
