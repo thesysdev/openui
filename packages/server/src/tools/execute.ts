@@ -82,20 +82,15 @@ export function createInterpreter<Context = undefined>(
 
     try {
       if (Object.hasOwn(tools, input.name)) return await dispatch(input.name, args);
-      // Generated scripts run from the artifact: its content when you store it, else its id.
-      const source =
-        typeof input.response === "string" && input.response.trim()
-          ? { response: input.response }
-          : typeof input.id === "string" && input.id
-            ? { artifact_id: input.id }
-            : null;
-      if (!source) {
+      // Generated scripts run from the artifact OpenUI Cloud stores.
+      if (typeof input.id !== "string" || !input.id) {
         throw new ToolExecutionError(
-          `Unknown tool: ${input.name}. Send the artifact's id or content for script execution.`,
+          `Unknown tool: ${input.name}. Send the artifact's id to run its scripts.`,
           "tool_not_found",
           404,
         );
       }
+      const source = { artifact_id: input.id };
 
       let state: string | undefined;
       let toolResults: ScriptToolResult[] = [];
