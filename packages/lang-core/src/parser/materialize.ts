@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { ASTNode } from "./ast";
-import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST, walkAST } from "./ast";
+import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
 import {
@@ -143,23 +143,19 @@ function materializeCall(
     : { k: "Null" };
 }
 
-// Query("s", {n: @Count(rows)}): names @Count's args in place.
-// Literal library args are checked like props; an invalid call keeps raw names and is null at runtime.
-export function nameRawCallArgs(args: ASTNode[], ctx: MaterializeCtx, statementId: string): void {
+/** Resolve tool value references while retaining AST for runtime state and result reads. */
+export function materializeToolArgs(
+  args: ASTNode[],
+  ctx: MaterializeCtx,
+  statementId: string,
+): ASTNode[] {
   const prevStatementId = ctx.currentStatementId;
   ctx.currentStatementId = statementId;
-  const seen = new Set<ASTNode>(); // walkAST visits nested calls through args and mappedProps
-  for (const arg of args) {
-    walkAST(arg, (node) => {
-      if (node.k !== "Comp" || seen.has(node)) return;
-      seen.add(node);
-      const def = getCallDefs(ctx.cat).get(node.name);
-      if (!def || def.lazy) return;
-      const checked = def.builtin ? null : mapCallArgs(node.name, node.args, def, ctx);
-      node.mappedProps = checked ?? nameArgs(node.args, def.params);
-    });
+  try {
+    return args.map((arg) => materializeExpr(arg, ctx));
+  } finally {
+    ctx.currentStatementId = prevStatementId;
   }
-  ctx.currentStatementId = prevStatementId;
 }
 
 /**
