@@ -1,0 +1,6 @@
+.iui-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.iui-label { color: var(--iui-ink); font-size: 14px; line-height: 1.4; font-weight: 560; }
+/* Validation inside a Form: a required field's marker, and its error under the field. */
+.iui-required { margin-left: 2px; }
+.iui-field-error { display: flex; align-items: center; gap: 6px; color: var(--iui-danger); font-size: 13px; line-height: 18px; }
+.iui-field-error > svg { flex: none; }

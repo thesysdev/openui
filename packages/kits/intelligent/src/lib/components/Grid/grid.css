@@ -1,0 +1,2 @@
+.iui-grid { display: grid; min-width: 0; }
+.iui-grid > * { min-width: 0; }

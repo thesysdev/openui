@@ -1,0 +1,4 @@
+.iui-row > .iui-badge { align-self: center; flex: none; }
+/* Purple and pink: react-components' Tag has no such variant, so the kit tints it. */
+.iui-badge-purple { background: var(--iui-badge-purple-soft); color: var(--iui-badge-purple); }
+.iui-badge-pink { background: var(--iui-badge-pink-soft); color: var(--iui-badge-pink); }

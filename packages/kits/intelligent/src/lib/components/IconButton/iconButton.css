@@ -1,0 +1,6 @@
+/* IconButton is react-components' IconButton. These point its colour tokens at
+   the kit's, so it follows the kit's light and dark themes even without a host
+   OpenUI theme: solid is ink rather than the blue accent, and ghost is muted. */
+.iui-icon-button { --openui-text-neutral-primary: var(--iui-ink); --openui-border-interactive: var(--iui-border); --openui-highlight: var(--iui-hover); }
+.iui-icon-button-solid { --openui-interactive-accent-default: var(--iui-ink); --openui-interactive-accent-hover: var(--iui-ink-hover); --openui-interactive-accent-pressed: var(--iui-ink); --openui-interactive-accent-disabled: var(--iui-ink); --openui-text-accent-primary: var(--iui-on-ink); --openui-border-accent: var(--iui-ink); }
+.iui-icon-button-ghost { --openui-text-neutral-primary: var(--iui-muted); }

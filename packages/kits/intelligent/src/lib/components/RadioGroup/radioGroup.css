@@ -1,0 +1,11 @@
+.iui-radio-group { display: flex; flex-direction: column; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.iui-radio-group > legend { padding: 0; margin-bottom: 10px; }
+.iui-choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* Short choices are pills (the cards style draws with react-components' OptionCards). */
+.iui-radio-pills > div { display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--iui-control-gap); }
+.iui-choice { position: relative; display: flex; align-items: center; min-height: 42px; padding: 9px 16px; border: 1px solid var(--iui-border); border-radius: 999px; background: transparent; color: var(--iui-ink); font-size: 15px; line-height: 22px; cursor: pointer; transition: background .15s, border-color .15s; }
+.iui-choice > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.iui-choice:hover { background: var(--iui-hover); }
+.iui-radio-pills .iui-choice.is-selected { border-color: var(--iui-ink); background: var(--iui-ink); color: var(--iui-on-ink); }
+.iui-choice-description { color: var(--iui-muted); font-size: 14px; line-height: 21px; }
+.iui-choice:has(:focus-visible) { outline: 2px solid var(--iui-focus); outline-offset: 2px; }

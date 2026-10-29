@@ -1,0 +1,11 @@
+.iui-text { margin: 0; overflow-wrap: anywhere; line-height: 1.6; white-space: pre-line; }
+.iui-inline { display: inline-flex; vertical-align: -0.15em; margin: 0 1px; }
+.iui-inline > .iui-badge { vertical-align: 0.1em; }
+.iui-text-xs { font-size: 12px; line-height: 1.6; }
+.iui-text-sm { font-size: 14px; line-height: 1.55; }
+.iui-text-md { font-size: 16px; line-height: 1.6; }
+.iui-text-lg { font-size: 18px; line-height: 1.55; }
+.iui-weight-normal { font-weight: 440; }
+.iui-weight-medium { font-weight: 560; }
+.iui-weight-semibold { font-weight: 640; }
+.iui-clamp { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }

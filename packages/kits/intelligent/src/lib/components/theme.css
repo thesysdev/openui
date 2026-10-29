@@ -144,3 +144,7 @@
   --iui-photo-empty: var(--iui-surface);
   --iui-photo-empty-icon: var(--iui-border-strong);
 }
+
+/* Weights are set with font-weight (Inter 440 / 560 / 640), so drop the
+   "wght" variation the page body sets for react-ui text. */
+[class*="iui-"] { font-variation-settings: normal; }

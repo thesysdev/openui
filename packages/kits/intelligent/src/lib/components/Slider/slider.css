@@ -1,0 +1,16 @@
+/* Range: a 24px pill track with an 18px thumb inside a 40px hit area. */
+.iui-slider { --iui-range-thumb-size: 18px; display: flex; flex-direction: column; min-width: 0; }
+.iui-slider-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 1.4; }
+.iui-slider-head > label { color: var(--iui-ink); overflow-wrap: anywhere; }
+.iui-slider-head > output { color: var(--iui-ink); font-size: 12px; font-weight: 560; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.iui-range { appearance: none; -webkit-appearance: none; display: block; width: 100%; min-width: 0; height: 40px; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.iui-range::-webkit-slider-runnable-track { height: 24px; border: 3px solid transparent; border-radius: 999px; background: var(--iui-range-track); }
+.iui-range::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: var(--iui-range-thumb-size, 18px); height: var(--iui-range-thumb-size, 18px); margin: 0; border: 0; border-radius: 50%; background: var(--iui-range-thumb); }
+.iui-range::-moz-range-track { height: 24px; border-radius: 999px; background: var(--iui-range-track); }
+.iui-range::-moz-range-thumb { width: var(--iui-range-thumb-size, 18px); height: var(--iui-range-thumb-size, 18px); border: 0; border-radius: 50%; background: var(--iui-range-thumb); }
+.iui-range::-moz-range-progress { background: transparent; }
+.iui-range:focus-visible { outline: 2px solid var(--iui-focus); outline-offset: 2px; border-radius: 12px; }
+.iui-slider-marks { position: relative; height: 18px; margin-top: -2px; color: var(--iui-muted); font-size: 11px; line-height: 18px; }
+.iui-slider-marks > span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.iui-slider-marks > span.is-start { transform: translateX(-9px); }
+.iui-slider-marks > span.is-end { transform: translateX(calc(-100% + 9px)); }

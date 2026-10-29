@@ -1,0 +1,3 @@
+.iui-popover-trigger { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.iui-popover-trigger:hover { color: var(--iui-muted); }
+.iui-popover { position: fixed; z-index: 2000; display: flex; flex-direction: column; gap: 8px; width: max-content; max-width: min(280px, calc(100vw - 24px)); padding: 12px 14px; border: 1px solid var(--iui-border); border-radius: var(--iui-radius-lg); background: var(--iui-canvas); color: var(--iui-ink); box-shadow: var(--iui-shadow); font: 440 14px/1.5 var(--iui-font); }

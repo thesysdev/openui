@@ -1,0 +1,3 @@
+.iui-link { color: inherit; text-decoration: underline; text-decoration-color: var(--iui-border-strong); text-underline-offset: 3px; }
+.iui-link:hover { text-decoration-color: currentColor; }
+.iui-link-arrow { display: inline; width: 0.85em; height: 0.85em; margin-left: 2px; vertical-align: -0.05em; }

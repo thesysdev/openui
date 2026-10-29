@@ -1,0 +1,13 @@
+.iui-title { color: var(--iui-ink); font-weight: 640; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.iui-title-sm { font-size: 15px; line-height: 1.5; }
+.iui-title-md { font-size: 17px; line-height: 1.4; letter-spacing: -0.2px; }
+.iui-title-lg { font-size: 21px; line-height: 1.3; letter-spacing: -0.55px; }
+.iui-title-xl { font-size: 25px; line-height: 1.2; font-weight: 640; letter-spacing: -0.8px; }
+.iui-title-2xl { font-size: 32px; line-height: 1.15; font-weight: 640; letter-spacing: -1px; }
+.iui-title-3xl { font-size: 40px; line-height: 1.1; font-weight: 640; letter-spacing: -1.4px; }
+
+@media (max-width: 640px) {
+  .iui-title-lg { font-size: 19px; }
+  .iui-title-2xl { font-size: 28px; }
+  .iui-title-3xl { font-size: 34px; }
+}

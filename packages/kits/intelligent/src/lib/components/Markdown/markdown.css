@@ -1,0 +1,14 @@
+/* Markdown prose: a ChatGPT-like rhythm. Paragraphs 16/1.65 with 12px between
+   blocks, more air above a heading than below it, lists tucked under their lead-in. */
+.iui-markdown { display: flex; flex-direction: column; min-width: 0; font-size: 16px; line-height: 1.65; overflow-wrap: anywhere; }
+.iui-markdown > * { margin: 0; }
+.iui-markdown > * + * { margin-top: 12px; }
+.iui-markdown > p + :is(ul, ol) { margin-top: 6px; }
+.iui-markdown > * + .iui-md-h { margin-top: 26px; }
+.iui-markdown > .iui-md-h + * { margin-top: 8px; }
+.iui-markdown ul, .iui-markdown ol { padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.iui-markdown li { padding-left: 2px; }
+.iui-markdown li::marker { color: var(--iui-muted); }
+.iui-markdown ol > li::marker { font-variant-numeric: tabular-nums; font-weight: 560; }
+.iui-markdown blockquote { padding: 12px 16px; border-left: 3px solid var(--iui-border-strong); border-radius: 0 12px 12px 0; background: var(--iui-surface); color: var(--iui-ink); }
+.iui-markdown hr { width: 100%; border: 0; border-top: 1px solid var(--iui-border); margin-block: 20px; }

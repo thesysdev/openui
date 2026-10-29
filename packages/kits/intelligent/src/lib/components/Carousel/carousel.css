@@ -1,0 +1,8 @@
+/* Scrolling, snapping and the arrows come from react-components. The track
+   keeps 4px of block padding (pulled back with a negative margin) so items'
+   focus rings are not clipped, and contains overscroll so a sideways swipe at
+   the end does not navigate back. */
+.iui-carousel { min-width: 0; }
+.iui-carousel-track { margin-block: -4px; padding-block: 4px; overscroll-behavior-x: contain; }
+.iui-carousel-item { flex: none; max-width: 85%; min-width: 0; display: flex; flex-direction: column; }
+.iui-carousel-item > .iui-card, .iui-carousel-item > .iui-pressable { height: 100%; }

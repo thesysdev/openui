@@ -4,10 +4,45 @@
 // component from here styles it. Without this, `import { Card } from
 // "@openuidev/intelligent-kit"` renders unstyled, because only library.ts
 // pulls the sheets in. Listed in package.json "sideEffects" so bundlers keep
-// them; non-bundler hosts can load dist/styles.css instead.
+// them; non-bundler hosts can load dist/styles.css instead. The list and its
+// order are the same as in src/lib/library.ts.
 import "./lib/components/theme.css";
-import "./lib/components/components.css";
+import "./lib/components/Col/col.css";
+import "./lib/components/Row/row.css";
+import "./lib/components/Grid/grid.css";
+import "./lib/components/Spacer/spacer.css";
+import "./lib/components/Card/card.css";
+import "./lib/components/Form/form.css";
+import "./lib/components/Title/title.css";
+import "./lib/components/Text/text.css";
+import "./lib/components/Caption/caption.css";
+import "./lib/components/controlHelpers.css";
+import "./lib/components/Link/link.css";
+import "./lib/components/Badge/badge.css";
+import "./lib/components/Icon/icon.css";
+import "./lib/components/List/list.css";
+import "./lib/components/markdownBlocks.css";
+import "./lib/components/Markdown/markdown.css";
+import "./lib/components/Button/button.css";
+import "./lib/components/IconButton/iconButton.css";
+import "./lib/components/Pressable/pressable.css";
+import "./lib/components/SegmentedControl/segmentedControl.css";
+import "./lib/components/Slider/slider.css";
+import "./lib/components/Timer/timer.css";
+import "./lib/components/Checkbox/checkbox.css";
+import "./lib/components/RadioGroup/radioGroup.css";
+import "./lib/components/photo.css";
+import "./lib/components/Svg/svg.css";
+import "./lib/components/HtmlView/htmlView.css";
+import "./lib/components/Carousel/carousel.css";
+import "./lib/components/Popover/popover.css";
+import "./lib/components/Quote/quote.css";
+import "./lib/components/Math/math.css";
+import "./lib/components/YouTube/youTube.css";
+import "./lib/components/Flashcard/flashcard.css";
+import "./lib/components/Celebration/celebration.css";
 import "./lib/components/Map/map.css";
+import "./lib/components/shared.css";
 
 // Host configuration: where SearchImage and Map fetch from.
 export {

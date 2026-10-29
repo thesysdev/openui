@@ -1,0 +1,13 @@
+.iui-image { position: relative; display: grid; place-items: center; width: 100%; min-width: 0; overflow: hidden; background: var(--iui-photo-empty); }
+.iui-image:not(.is-loaded)::before { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--iui-canvas) 55%, transparent) 50%, transparent 70%) 0 0 / 220% 100%; animation: iui-shimmer 1.4s linear infinite; }
+.iui-image:has(.iui-image-empty)::before { display: none; }
+@keyframes iui-shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.iui-image > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; }
+.iui-image.is-contain > img { object-fit: contain; }
+.iui-image.is-loaded > img { opacity: 1; }
+.iui-image-empty { width: 26px; height: 26px; color: var(--iui-photo-empty-icon); }
+
+@media (prefers-reduced-motion: reduce) {
+  .iui-image > img { transition: none; }
+  .iui-image::before { animation: none; }
+}

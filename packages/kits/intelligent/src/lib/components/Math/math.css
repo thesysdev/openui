@@ -1,0 +1,3 @@
+.iui-math.is-block { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.iui-math .katex { font-size: 1.12em; }
+.iui-math.is-block .katex-display { margin: 0; }

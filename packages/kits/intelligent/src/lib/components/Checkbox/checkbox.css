@@ -1,0 +1,5 @@
+.iui-check { display: inline-flex; align-items: center; gap: 9px; min-height: 28px; color: var(--iui-ink); cursor: pointer; }
+.iui-check > input { flex: none; width: 17px; height: 17px; margin: 0; accent-color: var(--iui-ink); cursor: pointer; }
+.iui-check > span { transition: color .15s; }
+.iui-check.is-done > span { color: var(--iui-muted); text-decoration: line-through; }
+.iui-checkbox { display: inline-flex; flex-direction: column; gap: 6px; }

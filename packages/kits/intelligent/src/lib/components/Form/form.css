@@ -1,0 +1,2 @@
+.iui-form { display: flex; flex-direction: column; gap: var(--iui-field-gap); min-width: 0; }
+.iui-form > .iui-row:last-child:has(> .iui-button), .iui-form > .iui-button:last-child { margin-top: calc(var(--iui-action-gap) - var(--iui-field-gap)); }
