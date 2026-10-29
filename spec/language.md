@@ -346,12 +346,11 @@ openCount = @Count(tickets.rows)
 The state store is a flat map from `$name` to value, scoped to one rendered program.
 
 - A state declaration gives the default. An undeclared `$name` is declared automatically with the default null.
-- An expression default (`$total = 1 + 2`, `$tax = $price * 0.18`), including one nested in a list or object default, is evaluated once, when the program is parsed, with the built-in functions. It reads the defaults of states declared before it; a state declared after it, a query result, and a reference read as null (so `$z * 2` with a later `$z` gives 0). It does not update afterwards: a value that should follow other values is a plain statement (`tax = $price * 0.18`). A default that calls a library function or an action is kept as written, since those run only in the client.
 - Defaults apply only when the variable has no value yet. Parsing again, while streaming or after an edit, MUST NOT overwrite a value the user produced.
 - Persisted state from the host is applied over the defaults at initialization.
 - Parsing again never deletes a key.
 
-Fixtures: `state/*-store-*`, `state/*-default-*`
+Fixtures: `state/*-store-*`
 
 ### 5.2 Two-way binding
 
