@@ -15,30 +15,65 @@ export interface ArtifactLibrary {
 }
 
 /** A data tool, as you pass it to `openui.createInterpreter`. Only what generation needs is sent, never `execute`. */
-export type ArtifactTool = Omit<ToolDefinition, "name"> & { execute?: unknown };
+export type ArtifactDataTool = Omit<ToolDefinition, "name"> & { execute?: unknown };
 
-export interface CreateArtifactBase {
+/** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */
+export type ArtifactPromptOptions = CloudPromptOptions;
+
+interface ArtifactToolOptionsBase {
+  library: ArtifactLibrary;
+  model: string;
+  promptOptions?: ArtifactPromptOptions;
+}
+
+export interface LiveArtifactToolOptions extends ArtifactToolOptionsBase {
+  kind: "live";
+  tools: Record<string, ArtifactDataTool>;
+}
+
+export interface StaticArtifactToolOptions extends ArtifactToolOptionsBase {
+  kind: "static";
+  tools?: never;
+}
+
+export interface CreateArtifactParams {
+  /** The signed-in user, from your session. Users only read and edit their own artifacts. */
+  userId: string;
   /** A short title, such as "Q3 sales by region". */
   title: string;
   /** One sentence on what the artifact shows. */
   description?: string;
   /** What to build. The subagent sees only this, so include any data it needs. */
   prompt: string;
-  /** The signed-in user, from your session. Users only read and edit their own artifacts. */
+}
+
+export interface EditArtifactParams {
+  id: string;
   userId: string;
-  /** The model that generates the artifact, as `provider/model`, such as `anthropic/claude-sonnet-4.6`. */
-  model: string;
-  /**
-   * `false` keeps the artifact out of OpenUI Cloud storage: the result also has
-   * `done`, which resolves with the finished artifact for you to save. Default `true`.
-   */
-  store?: boolean;
+  /** The change to make, and any data it needs. */
+  prompt: string;
 }
 
 /** How to make a call, apart from what it asks for. */
 export interface RequestOptions {
   /** Cancels the call while it waits for OpenUI Cloud. */
   signal?: AbortSignal;
+}
+
+export interface ArtifactResult {
+  id: string;
+  /** Return this from your tool as is, and pass the same string to the renderer. */
+  toolResponse: string;
+}
+
+export type ArtifactToolOptions = LiveArtifactToolOptions | StaticArtifactToolOptions;
+
+/** Creates and edits one kind of artifact. Each call returns as soon as the artifact has an id. */
+export interface ArtifactTool {
+  readonly kind: ArtifactToolOptions["kind"];
+  create(params: CreateArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;
+  /** Edits in place. Renderers keep the current version until the edit is ready. */
+  edit(params: EditArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;
 }
 
 export interface CreateFrontendTokenParams {
@@ -53,82 +88,6 @@ export interface FrontendToken {
   /** When it expires, in unix seconds. */
   expires_at: number;
 }
-
-/** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */
-export type ArtifactPromptOptions = CloudPromptOptions;
-
-export interface CreateLiveArtifactParams extends CreateArtifactBase {
-  library: ArtifactLibrary;
-  tools: Record<string, ArtifactTool>;
-  promptOptions?: ArtifactPromptOptions;
-}
-
-export interface CreateStaticArtifactParams extends CreateArtifactBase {
-  library: ArtifactLibrary;
-  tools?: never;
-  promptOptions?: ArtifactPromptOptions;
-}
-
-type EditArtifactBase = {
-  id: string;
-  /** The change to make, and any data it needs. */
-  prompt: string;
-  userId: string;
-  /** The library the artifact was created with. */
-  library: ArtifactLibrary;
-  /** Extend the prompt, as when creating. */
-  promptOptions?: ArtifactPromptOptions;
-  /** The model that makes the edit, as `provider/model`. */
-  model: string;
-} & (
-  | { store?: true; content?: string }
-  /** An artifact in your own storage: pass its saved `content`. */
-  | { store: false; content: string }
-);
-
-export type EditLiveArtifactParams = EditArtifactBase & {
-  /** The data tools it was created with: an edit that changes a `Query` regenerates its script from them. */
-  tools: Record<string, ArtifactTool>;
-};
-
-export type EditStaticArtifactParams = EditArtifactBase & { tools?: never };
-
-export interface ArtifactResult {
-  id: string;
-  /** Return this from your tool as is, and pass the same string to the renderer. */
-  toolResponse: string;
-}
-
-/** Why an artifact couldn't be generated. */
-export interface ArtifactError {
-  source: "artifact";
-  code: "not-found" | "generation-failed" | "network-error";
-  message: string;
-}
-
-/** A finished artifact, from `done` with `store: false`. */
-export interface GeneratedArtifact {
-  id: string;
-  type?: string;
-  title?: string;
-  description?: string;
-  /** The generated artifact. Save it as is. */
-  content: string;
-  /** What the subagent built. If it failed, what went wrong. */
-  summary?: string;
-  /** Only if it failed. */
-  error?: ArtifactError;
-}
-
-export interface UnstoredArtifactResult extends ArtifactResult {
-  /** Resolves when generation ends, with the artifact to save. Never rejects. */
-  done: Promise<GeneratedArtifact>;
-}
-
-/** `done` comes back only with `store: false`. */
-export type ArtifactResultFor<Params> = Params extends { store: false }
-  ? UnstoredArtifactResult
-  : ArtifactResult;
 
 /** Failures from the OpenUI Cloud API expose a stable code and the HTTP status. */
 export class OpenUIApiError extends Error {
