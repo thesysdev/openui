@@ -32,17 +32,18 @@ export interface LiveArtifactRendererProps<
 /** `Renderer` shows its own spinner while queries load; the `Loading` slot owns that here. */
 const NO_QUERY_LOADER = <></>;
 
-function useRendererContent<L extends Library>(
-  library: L,
-  {
-    onAction,
-    onStateUpdate,
-    initialState,
-    onParseResult,
-    publishObservability,
-  }: PassThroughRendererProps<L>,
-) {
-  return useCallback(
+/** Both renderers: a live one passes `interpreter`, a static one doesn't. */
+function ArtifactRendererImpl<L extends Library>({
+  library,
+  interpreter,
+  onAction,
+  onStateUpdate,
+  initialState,
+  onParseResult,
+  publishObservability,
+  ...base
+}: StaticArtifactRendererProps<L> & { interpreter?: Interpreter }) {
+  const renderContent = useCallback(
     ({ program, isStreaming, toolProvider, rendererKey, onError }: RenderContentArgs) => (
       <Renderer
         key={rendererKey}
@@ -61,46 +62,16 @@ function useRendererContent<L extends Library>(
     ),
     [library, onAction, onStateUpdate, initialState, onParseResult, publishObservability],
   );
-}
-
-function LiveArtifactRendererImpl<L extends Library>({
-  library,
-  interpreter,
-  onAction,
-  onStateUpdate,
-  initialState,
-  onParseResult,
-  publishObservability,
-  ...base
-}: LiveArtifactRendererProps<L>) {
-  const renderContent = useRendererContent(library, {
-    onAction,
-    onStateUpdate,
-    initialState,
-    onParseResult,
-    publishObservability,
-  });
   return <ArtifactRendererRoot {...base} interpreter={interpreter} renderContent={renderContent} />;
 }
 
-function StaticArtifactRendererImpl<L extends Library>({
-  library,
-  onAction,
-  onStateUpdate,
-  initialState,
-  onParseResult,
-  publishObservability,
-  ...base
-}: StaticArtifactRendererProps<L>) {
-  const renderContent = useRendererContent(library, {
-    onAction,
-    onStateUpdate,
-    initialState,
-    onParseResult,
-    publishObservability,
-  });
-  return <ArtifactRendererRoot {...base} renderContent={renderContent} />;
-}
+const LiveArtifactRendererImpl = <L extends Library>(props: LiveArtifactRendererProps<L>) => (
+  <ArtifactRendererImpl {...props} />
+);
+
+const StaticArtifactRendererImpl = <L extends Library>(props: StaticArtifactRendererProps<L>) => (
+  <ArtifactRendererImpl {...props} />
+);
 
 /**
  * Renders a live artifact, such as a dashboard: built from your components,
