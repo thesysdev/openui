@@ -78,7 +78,7 @@
   border: 1px solid var(--openui-border-default, rgb(0 0 0 / 12%));
   border-radius: 8px;
   background: var(--openui-inverted-background, #101010);
-  color: var(--openui-text-accent-primary, #f8f8f8);
+  color: var(--openui-background, #f8f8f8);
   font-size: 12px;
   line-height: 1.6;
 }
