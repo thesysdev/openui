@@ -2,4 +2,4 @@
 "@openuidev/lang-core": patch
 ---
 
-Code fences: an inline ```` ```openui``` ```` mention in prose no longer swallows the real fence after it, a one-line fence (```` ```openui root = ...``` ````) renders, and a program followed by a lone closing fence renders instead of showing nothing. A fence opener after prose on the same line keeps working.
+Code fences: a fence opens and closes on lines that start with ` ``` `, so an inline ` ```openui``` ` mention in prose no longer swallows the real fence after it. Code on the opener's line (` ```openui root = ... `) is kept. ` ```openui-js ` script blocks are skipped. A program written outside fences now renders when the fences around it hold no program, such as a lone closing fence after the program or ` ```js ` helper blocks.
