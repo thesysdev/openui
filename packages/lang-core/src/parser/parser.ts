@@ -1,3 +1,4 @@
+import { evaluate } from "../runtime/evaluator";
 import {
   captureParserParseException,
   captureParserParseResult,
@@ -60,6 +61,34 @@ export function collectQueryDeps(node: unknown): string[] {
 }
 
 /**
+ * A state default is evaluated once, with the defaults declared above it; query results read as
+ * null. Library functions and actions only exist in the client, so a default calling one is null.
+ */
+function stateDefault(value: unknown, declared: Record<string, unknown>): unknown {
+  if (isASTNode(value)) {
+    return onlyBuiltinFunctions(value)
+      ? evaluate(value, { getState: (name) => declared[name] ?? null, resolveRef: () => null })
+      : null;
+  }
+  if (Array.isArray(value)) return value.map((item) => stateDefault(item, declared));
+  if (value && typeof value === "object" && !isElementNode(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, stateDefault(v, declared)]),
+    );
+  }
+  return value;
+}
+
+/** True when every call in the expression is a built-in function such as @Count or @Round. */
+function onlyBuiltinFunctions(node: ASTNode): boolean {
+  let ok = true;
+  walkAST(node, (current) => {
+    if (current.k === "Comp" && BUILTIN_CALLS.get(current.name)?.kind !== "function") ok = false;
+  });
+  return ok;
+}
+
+/**
  * Classify a raw statement + parsed expression into a typed Statement.
  * Determined at parse time from token type + expression shape.
  */
@@ -118,7 +147,10 @@ function extractStatements(
   for (const stmt of stmts) {
     switch (stmt.kind) {
       case "state":
-        stateDeclarations[stmt.id] = materializeValue(stmt.init, ctx);
+        stateDeclarations[stmt.id] = stateDefault(
+          materializeValue(stmt.init, ctx),
+          stateDeclarations,
+        );
         break;
       case "query": {
         const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
