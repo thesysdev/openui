@@ -3,4 +3,4 @@
 "@openuidev/react-lang": minor
 ---
 
-Chained queries: a Query whose tool name or arguments read another query's result now waits for that result, then runs, and runs again whenever it changes. Queries that read each other report `query-cycle` and do not run. Chained queries run in react-lang in 1.1; vue-lang, svelte-lang and angular-lang do not wait yet.
+Chained queries: a Query whose tool name or arguments read another query's result now waits for that result, then runs, and runs again whenever it changes. Queries that read each other report `query-cycle` and do not run. The query manager does the waiting (`evaluateStatements`), so a renderer gets it by handing over the parsed queries; react-lang does in 1.1.
