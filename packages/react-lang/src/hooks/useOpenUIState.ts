@@ -15,6 +15,7 @@ import {
   type QueryManager,
   type QueryNode,
   type QuerySnapshot,
+  type QueryStatementInfo,
   type Store,
   type ToolProvider,
 } from "@openuidev/lang-core";
@@ -206,51 +207,13 @@ export function useOpenUIState(
     [store, queryManager, functions, schema.actions],
   );
 
-  // Results of the queries other queries read: their args are re-evaluated when one arrives.
-  // Compared by identity, so an unrelated snapshot change does not re-evaluate every query.
-  const waitedOn = useMemo(
-    () => [...new Set((result?.queryStatements ?? []).flatMap((qn) => qn.waitFor ?? []))],
-    [result?.queryStatements],
-  );
-  const waitedDataRef = useRef<unknown[]>([]);
-  const waitedData = useMemo(() => {
-    const next = waitedOn.map((id) => queryManager.getData(id));
-    const prev = waitedDataRef.current;
-    if (next.length === prev.length && next.every((value, i) => value === prev[i])) return prev;
-    return (waitedDataRef.current = next);
-    // querySnapshot: recompute when a result arrives.
-  }, [waitedOn, queryManager, querySnapshot]);
-
-  // When only a waited-on result changed, re-evaluate just the queries that read it: evaluating
-  // the others again would refetch one whose args are not deterministic, and loop.
-  const lastEvalRef = useRef<{
-    key: unknown[];
-    waited: unknown[];
-    nodes: Map<string, QueryNode>;
-  } | null>(null);
-
   // ─── Evaluate and submit queries ───
-  useEffect(() => {
-    // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
-    if (blocked) return;
+  const queryNodesRef = useRef(new Map<string, QueryNode>());
+  // The result of each waited-on query when its readers were last evaluated.
+  const waitedRef = useRef(new Map<string, unknown>());
 
-    const key = [
-      result?.queryStatements,
-      evaluationContext,
-      queryManager,
-      storeSnapshot,
-      scriptRevision,
-      scriptNames,
-    ];
-    const last = lastEvalRef.current;
-    const onlyWaited = !!last && key.every((value, i) => value === last.key[i]);
-    const changed = new Set(
-      onlyWaited ? waitedOn.filter((_, i) => waitedData[i] !== last.waited[i]) : waitedOn,
-    );
-    const queryStmts = result?.queryStatements ?? [];
-    const evaluatedNodes = queryStmts.map((qn): QueryNode => {
-      const prev = onlyWaited ? last.nodes.get(qn.statementId) : undefined;
-      if (prev && !qn.waitFor?.some((id) => changed.has(id))) return prev;
+  const evaluateQuery = useCallback(
+    (qn: QueryStatementInfo): QueryNode => {
       const relevantDeps: Record<string, unknown> = {};
       const toolName = qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "";
       if (qn.deps) {
@@ -259,6 +222,7 @@ export function useOpenUIState(
         }
       }
       if (scriptNames.has(toolName)) relevantDeps.__openuiScriptRevision = scriptRevision;
+      for (const id of qn.waitFor ?? []) waitedRef.current.set(id, queryManager.getData(id));
       return {
         statementId: qn.statementId,
         toolName,
@@ -271,27 +235,41 @@ export function useOpenUIState(
         complete: qn.complete,
         waitFor: qn.waitFor,
       };
-    });
+    },
+    [evaluationContext, queryManager, storeSnapshot, scriptRevision, scriptNames],
+  );
 
-    lastEvalRef.current = {
-      key,
-      waited: waitedData,
-      nodes: new Map(evaluatedNodes.map((node) => [node.statementId, node])),
-    };
-    // Always call — empty array clears removed queries and their errors
-    queryManager.evaluateQueries(evaluatedNodes);
-    // waitedData: args that read another query's result are re-evaluated when it arrives.
-  }, [
-    blocked,
-    result?.queryStatements,
-    evaluationContext,
-    queryManager,
-    storeSnapshot,
-    waitedOn,
-    waitedData,
-    scriptRevision,
-    scriptNames,
-  ]);
+  const submitQueries = useCallback(
+    (nodes: QueryNode[]) => {
+      queryNodesRef.current = new Map(nodes.map((node) => [node.statementId, node]));
+      // Always call — empty array clears removed queries and their errors
+      queryManager.evaluateQueries(nodes);
+    },
+    [queryManager],
+  );
+
+  useEffect(() => {
+    // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
+    if (blocked) return;
+    submitQueries((result?.queryStatements ?? []).map(evaluateQuery));
+  }, [blocked, result?.queryStatements, evaluateQuery, submitQueries]);
+
+  // When a waited-on result arrives, re-evaluate only the queries that read it: evaluating the
+  // others again would refetch one whose args are not deterministic, and loop.
+  useEffect(() => {
+    if (blocked) return;
+    const stmts = result?.queryStatements ?? [];
+    const stale = stmts.filter((qn) =>
+      qn.waitFor?.some((id) => queryManager.getData(id) !== waitedRef.current.get(id)),
+    );
+    if (stale.length === 0) return;
+    submitQueries(
+      stmts.map((qn) =>
+        stale.includes(qn) ? evaluateQuery(qn) : queryNodesRef.current.get(qn.statementId)!,
+      ),
+    );
+    // querySnapshot: a waited-on result arrived.
+  }, [blocked, result?.queryStatements, querySnapshot, queryManager, evaluateQuery, submitQueries]);
 
   // ─── Register mutations ───
   useEffect(() => {
