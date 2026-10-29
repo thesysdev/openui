@@ -3,9 +3,23 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { inline } from "../markdownBlocks";
 import { cx, str } from "../style";
-import { ListSchema } from "./schema";
+import { createListSchema, ListItemSchema } from "./schema";
 
 export * from "./schema";
+
+export const ListItem = defineComponent({
+  name: "ListItem",
+  props: ListItemSchema,
+  description: "marker replaces the bullet or number, e.g. a time or an emoji.",
+  // Rendered by List; on its own it shows its content.
+  component: ({ props, renderNode }) => (
+    <div className="iui-list-body">
+      <div className="iui-list-title">{inline(str(props.title))}</div>
+      {props.description ? <div className="iui-list-description">{inline(str(props.description))}</div> : null}
+      {props.children ? <div className="iui-list-children">{renderNode(props.children)}</div> : null}
+    </div>
+  ),
+});
 
 type ItemElement = { type: "element"; typeName: string; props: Record<string, unknown> };
 const isItem = (value: unknown): value is ItemElement =>
@@ -19,7 +33,7 @@ const isItem = (value: unknown): value is ItemElement =>
  */
 export const List = defineComponent({
   name: "List",
-  props: ListSchema,
+  props: createListSchema(ListItem),
   description: "timeline joins the markers with a line.",
   component: ({ props, renderNode }) => {
     const items = (Array.isArray(props.items) ? props.items.flat() : []) as unknown[];

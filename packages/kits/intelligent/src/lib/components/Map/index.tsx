@@ -9,9 +9,16 @@ import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./basemap
 import { boundsOf, coordinate, createPinElement, type LatLng, lngLat, partialLine, pinEmoji, reducedMotion } from "./map-utils";
 import { useDialog } from "./use-dialog";
 import { useStreetRoute } from "./use-street-route";
-import { MapSchema } from "./schema";
+import { createMapSchema, MapMarkerSchema } from "./schema";
 
 export * from "./schema";
+
+export const MapMarker = defineComponent({
+  name: "MapMarker",
+  props: MapMarkerSchema,
+  description: "A place on a Map; icon is one emoji, else the pin shows its number.",
+  component: () => null,
+});
 
 const ROUTE = "route";
 
@@ -56,7 +63,7 @@ function placesOf(markers: unknown, streaming: boolean): Place[] {
 
 export const MapView = defineComponent({
   name: "Map",
-  props: MapSchema,
+  props: createMapSchema(MapMarker),
   description: "Street map fitted to its markers. route draws the road path in marker order; selected holds the clicked marker's label.",
   component: function MapComponent({ props, statementId }) {
     const streaming = useIsStreaming();
