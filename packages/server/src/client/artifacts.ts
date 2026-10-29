@@ -1,6 +1,8 @@
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { toToolDefinitions } from "../tools/execute";
+import { mcpToolLoader, mergeTools } from "../tools/mcp";
+import { ToolExecutionError } from "../tools/types";
 import { apiError, isRecord, type CloudApi } from "./api";
 import { createFrontendToken } from "./frontend-token";
 import {
@@ -40,7 +42,7 @@ function toolResponse(id: string, kind: ArtifactKind, title?: string): string {
 /** The artifact tool behind `openui.defineArtifactTool`. */
 export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions): ArtifactTool {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { kind, library, model, promptOptions, tools } = options;
+  const { kind, library, model, promptOptions, tools, mcp } = options;
   if (kind !== "live" && kind !== "static") invalidInput('kind must be "live" or "static"');
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
@@ -48,9 +50,11 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
   if (typeof library?.toSpec !== "function") {
     invalidInput("library is required, such as one from createLibrary");
   }
-  if (kind === "live" && !isRecord(tools)) invalidInput("Live artifacts need `tools`");
-  if (kind === "static" && tools !== undefined) {
-    invalidInput("Static artifacts don't run data tools: remove `tools`");
+  if (kind === "live" && !isRecord(tools) && mcp === undefined) {
+    invalidInput("Live artifacts need data tools: pass `tools`, `mcp`, or both");
+  }
+  if (kind === "static" && (tools !== undefined || mcp !== undefined)) {
+    invalidInput("Static artifacts don't run data tools: remove `tools` and `mcp`");
   }
 
   let spec: LibrarySpec;
@@ -59,22 +63,37 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
   } catch (error) {
     invalidLibrary(error);
   }
-  const script = tools && { tools: toToolDefinitions(tools) };
+  const loadMcp = mcp === undefined ? undefined : mcpToolLoader(mcp);
+
+  /** What generation sees of your data tools and the MCP server's. */
+  async function toolDefinitions() {
+    if (kind === "static") return undefined;
+    if (!loadMcp) return toToolDefinitions(tools ?? {});
+    try {
+      return toToolDefinitions(mergeTools(tools, await loadMcp()));
+    } catch (error) {
+      if (error instanceof ToolExecutionError) {
+        throw new OpenUIApiError(error.message, error.code, error.status);
+      }
+      throw error;
+    }
+  }
 
   /** OpenUI Cloud's config block: your library, prompt options and data tools. */
-  const config = (title?: string): string => {
+  async function config(title?: string): Promise<string> {
+    const definitions = await toolDefinitions();
     try {
       return generateSystemPrompt({
         cloud: true,
         library: spec,
         ...(promptOptions && { promptOptions }),
-        ...(script && { script }),
+        ...(definitions && { script: { tools: definitions } }),
         ...(title !== undefined && { meta: { name: title } }),
       });
     } catch (error) {
       invalidLibrary(error);
     }
-  };
+  }
 
   /**
    * Mints the user's frontend token, so the artifact is theirs, and starts
@@ -87,7 +106,10 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
     thesys: Record<string, unknown>,
     signal?: AbortSignal,
   ): Promise<string> {
-    const { token } = await createFrontendToken(api, userId, signal);
+    const [{ token }, system] = await Promise.all([
+      createFrontendToken(api, userId, signal),
+      config(title),
+    ]);
     const response = await api.request("/v1/artifact/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", [FRONTEND_TOKEN_HEADER]: token },
@@ -95,7 +117,7 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
         model,
         stream: true,
         messages: [
-          { role: "system", content: config(title) },
+          { role: "system", content: system },
           { role: "user", content: prompt },
         ],
         // Chat completions metadata values are strings.
@@ -123,14 +145,14 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
     async create({ userId, title, description, prompt }, { signal } = {}): Promise<ArtifactResult> {
       const thesys = { title, ...(description !== undefined && { description }) };
       const id = await start(userId, prompt, title, thesys, signal);
-      return { id, toolResponse: toolResponse(id, kind, title) };
+      return { id, response: toolResponse(id, kind, title) };
     },
 
     // OpenUI Cloud edits the version it stores, and checks it's this kind.
     async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
       const edited = await start(userId, prompt, undefined, { id }, signal);
-      return { id: edited, toolResponse: toolResponse(edited, kind) };
+      return { id: edited, response: toolResponse(edited, kind) };
     },
   };
 }

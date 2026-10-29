@@ -1,3 +1,5 @@
+import type { McpOption } from "./mcp";
+
 /** Provider-neutral metadata passed to generation, without server handlers. */
 export interface ToolDefinition {
   name: string;
@@ -37,12 +39,12 @@ export type InterpreterExecuteOptions<Context = undefined> = {
   timeoutMs?: number;
 } & (undefined extends Context ? { context?: Context } : { context: Context });
 
-export interface InterpreterOptions<Context = undefined> {
-  tools: Record<string, DataTool<Context>>;
-}
+/** Your data tools, an MCP server's, or both: pass what you passed to `defineArtifactTool`. */
+export type InterpreterOptions<Context = undefined> =
+  | { tools: Record<string, DataTool<Context>>; mcp?: McpOption<Context> }
+  | { tools?: Record<string, DataTool<Context>>; mcp: McpOption<Context> };
 
 export interface Interpreter<Context = undefined> {
-  definitions: ToolDefinition[];
   execute(
     request: InterpreterRequest,
     ...options: undefined extends Context

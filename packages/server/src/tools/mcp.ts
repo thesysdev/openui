@@ -1,44 +1,31 @@
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { ToolExecutionError, type DataTool } from "./types";
 
-/** A tool as an MCP server lists it. */
-export interface McpToolInfo {
-  name: string;
-  description?: string;
-  inputSchema: Record<string, unknown>;
-  annotations?: { readOnlyHint?: boolean };
-}
-
-/** What an MCP tool call returns. */
-export interface McpCallToolResult {
-  content?: unknown;
-  structuredContent?: unknown;
-  isError?: boolean;
-  /** The result shape of servers on the older protocol. */
-  toolResult?: unknown;
-  [key: string]: unknown;
-}
-
 /** An MCP client, such as `Client` from `@modelcontextprotocol/sdk`. */
-export interface McpToolClient {
-  listTools(params?: { cursor?: string }): Promise<{ tools: McpToolInfo[]; nextCursor?: string }>;
-  callTool(
-    params: { name: string; arguments?: Record<string, unknown> },
-    resultSchema?: undefined,
-    options?: { signal?: AbortSignal },
-  ): Promise<McpCallToolResult>;
-}
+export type McpToolClient = Pick<Client, "listTools" | "callTool">;
 
-export interface McpToolsOptions<Context = undefined> {
-  /** Which tools to expose, by name or with a filter. Default: all of them. */
-  include?: string[] | ((tool: McpToolInfo) => boolean);
-  /** Example outputs by tool name, so artifacts know the shape of the data. */
+type McpCallToolResult = Awaited<ReturnType<McpToolClient["callTool"]>>;
+
+/** Which tools an MCP server offers your artifacts, and how calls reach it. */
+export interface McpConfig<Context = undefined> {
+  client: McpToolClient;
+  /**
+   * Which tools to offer, by MCP name or with a filter. Default: the tools the
+   * server marks read-only (`readOnlyHint`), since scripts run on every view.
+   */
+  include?: string[] | ((tool: Tool) => boolean);
+  /** Example outputs by MCP tool name, so artifacts know the shape of the data. */
   outputs?: Record<string, unknown>;
   /**
    * The client each call goes through, such as one with the signed-in user's
-   * credentials from `context`. Defaults to the client you pass.
+   * credentials from `context`. Defaults to `client`.
    */
   connect?: (context: Context) => McpToolClient | Promise<McpToolClient>;
 }
+
+/** An MCP server's tools as data tools: its client, or a config with it. */
+export type McpOption<Context = undefined> = McpToolClient | McpConfig<Context>;
 
 const textOf = (content: unknown): string | undefined => {
   if (!Array.isArray(content)) return undefined;
@@ -61,42 +48,77 @@ function resultOf(result: McpCallToolResult): unknown {
   }
 }
 
+function invalidTools(message: string): never {
+  throw new ToolExecutionError(message, "invalid_tools");
+}
+
+/** Generation needs tool names like `get_sales`; MCP names often have `-` or `.`. */
+const toolKey = (name: string) => name.replace(/[^A-Za-z0-9_]/g, "_").replace(/^(?=\d)/, "_");
+
+/** Your tools plus the MCP server's, refusing two with one name. */
+export function mergeTools<T>(own: Record<string, T> | undefined, mcp: Record<string, T>) {
+  for (const name of Object.keys(mcp)) {
+    if (own && Object.hasOwn(own, name)) {
+      invalidTools(`Two data tools are named ${name}: rename yours or leave the MCP one out`);
+    }
+  }
+  return { ...own, ...mcp };
+}
+
 /**
- * Data tools from an MCP server, ready for `openui.createInterpreter` and
- * `openui.artifacts`. Lists the server's tools once; each call goes through
- * `connect(context)`, or the client you pass.
- *
- * ```ts
- * const dataTools = {
- *   ...ownTools,
- *   ...(await mcpTools(mcp, { connect: (context) => mcpClientFor(context.userId) })),
- * };
- * ```
+ * Lists an MCP server's tools on first use, and the same ones after that: an
+ * MCP tool becomes a data tool, and its calls go through `connect(context)`.
+ * A failed listing is retried on the next call.
  */
-export async function mcpTools<Context = undefined>(
-  client: McpToolClient,
-  options: McpToolsOptions<Context> = {},
-): Promise<Record<string, DataTool<Context>>> {
-  const { include, outputs, connect } = options;
-  const listed: McpToolInfo[] = [];
-  let cursor: string | undefined;
-  do {
-    const page = await client.listTools(cursor ? { cursor } : undefined);
-    listed.push(...page.tools);
-    cursor = page.nextCursor;
-  } while (cursor);
+export function mcpToolLoader<Context>(
+  option: McpOption<Context>,
+): () => Promise<Record<string, DataTool<Context>>> {
+  const isClient = typeof (option as McpToolClient).listTools === "function";
+  const { client, include, outputs, connect }: McpConfig<Context> = isClient
+    ? { client: option as McpToolClient }
+    : (option as McpConfig<Context>);
+  if (typeof client?.listTools !== "function") {
+    invalidTools("mcp takes an MCP client, or { client } with one");
+  }
+  let loading: Promise<Record<string, DataTool<Context>>> | undefined;
 
-  const included = (tool: McpToolInfo) =>
-    include === undefined
-      ? true
-      : typeof include === "function"
-        ? include(tool)
-        : include.includes(tool.name);
+  async function load(): Promise<Record<string, DataTool<Context>>> {
+    const listed: Tool[] = [];
+    let cursor: string | undefined;
+    try {
+      do {
+        const page = await client.listTools(cursor ? { cursor } : undefined);
+        listed.push(...page.tools);
+        cursor = page.nextCursor;
+      } while (cursor);
+    } catch (error) {
+      throw new ToolExecutionError(
+        `Couldn't list the MCP server's tools: ${error instanceof Error ? error.message : String(error)}`,
+        "mcp_error",
+        502,
+      );
+    }
 
-  return Object.fromEntries(
-    listed.filter(included).map((tool): [string, DataTool<Context>] => [
-      tool.name,
-      {
+    const included = listed.filter((tool) =>
+      include === undefined
+        ? tool.annotations?.readOnlyHint === true
+        : typeof include === "function"
+          ? include(tool)
+          : include.includes(tool.name),
+    );
+    if (!included.length) {
+      invalidTools(
+        include === undefined
+          ? "The MCP server marks no tools read-only: pick them with `include`"
+          : "No MCP tools match `include`",
+      );
+    }
+
+    const tools: Record<string, DataTool<Context>> = {};
+    for (const tool of included) {
+      const key = toolKey(tool.name);
+      if (Object.hasOwn(tools, key)) invalidTools(`Two MCP tools map to the name ${key}`);
+      tools[key] = {
         ...(tool.description !== undefined && { description: tool.description }),
         parameters: tool.inputSchema,
         ...(outputs && Object.hasOwn(outputs, tool.name) && { output: outputs[tool.name] }),
@@ -114,7 +136,16 @@ export async function mcpTools<Context = undefined>(
           }
           return resultOf(result);
         },
-      },
-    ]),
-  );
+      };
+    }
+    return tools;
+  }
+
+  return () => {
+    loading ??= load().catch((error: unknown) => {
+      loading = undefined;
+      throw error;
+    });
+    return loading;
+  };
 }

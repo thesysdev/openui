@@ -1,6 +1,7 @@
 import { isRecord, type CloudApi } from "../client/api";
 import { OpenUIApiError } from "../client/types";
 import { abortable } from "../shared/abort";
+import { mcpToolLoader, mergeTools } from "./mcp";
 import {
   ToolExecutionError,
   type Interpreter,
@@ -10,6 +11,7 @@ import {
   type ScriptToolCall,
   type ScriptToolResult,
   type ToolDefinition,
+  type ToolHandler,
 } from "./types";
 
 const MAX_ROUNDS = 8;
@@ -37,10 +39,16 @@ export function createInterpreter<Context = undefined>(
   api: CloudApi,
   options: InterpreterOptions<Context>,
 ): Interpreter<Context> {
-  const tools = Object.fromEntries(
-    Object.entries(options.tools).map(([name, tool]) => [name, tool.execute]),
-  );
-  const definitions = toToolDefinitions(options.tools);
+  if (options?.tools === undefined && options?.mcp === undefined) {
+    throw new ToolExecutionError("Pass `tools`, `mcp`, or both", "invalid_tools");
+  }
+  const loadMcp = options.mcp === undefined ? undefined : mcpToolLoader(options.mcp);
+  const handlers = async () =>
+    Object.fromEntries(
+      Object.entries(
+        loadMcp ? mergeTools(options.tools, await loadMcp()) : (options.tools ?? {}),
+      ).map(([name, tool]) => [name, tool.execute]),
+    );
 
   async function execute(
     input: InterpreterRequest,
@@ -67,6 +75,7 @@ export function createInterpreter<Context = undefined>(
     );
     const signal = controller.signal;
 
+    let tools: Record<string, ToolHandler<Context>> = {};
     const dispatch = async (name: string, toolArgs: Record<string, unknown>) => {
       signal.throwIfAborted();
       if (!Object.hasOwn(tools, name) || typeof tools[name] !== "function") {
@@ -81,6 +90,7 @@ export function createInterpreter<Context = undefined>(
     };
 
     try {
+      tools = await abortable(handlers(), signal);
       if (Object.hasOwn(tools, input.name)) return await dispatch(input.name, args);
       // Generated scripts run from the artifact OpenUI Cloud stores.
       if (typeof input.id !== "string" || !input.id) {
@@ -206,5 +216,5 @@ export function createInterpreter<Context = undefined>(
     }
   }
 
-  return { definitions, execute };
+  return { execute };
 }
