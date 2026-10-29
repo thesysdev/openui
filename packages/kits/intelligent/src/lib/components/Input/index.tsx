@@ -39,6 +39,9 @@ export const Input = defineComponent({
             if (!numeric) return field.setValue(text);
             setDraft(text);
             const parsed = Number(text.replace(/,/g, ""));
+            // An emptied number field holds null -- neither 0 nor "" -- so a program can
+            // tell "empty" from zero. The schema types the value string | number,
+            // and widening it would change the prompt, hence the cast.
             if (text.trim() === "") field.setValue(null as unknown as number);
             else if (Number.isFinite(parsed)) field.setValue(parsed);
           }}

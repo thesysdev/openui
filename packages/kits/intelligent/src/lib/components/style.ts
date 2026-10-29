@@ -1,4 +1,4 @@
-import { tagSchemaId } from "@openuidev/react-lang";
+import { tagSchemaId, type ElementNode } from "@openuidev/react-lang";
 import type { CSSProperties } from "react";
 import { z } from "zod/v4";
 
@@ -150,3 +150,7 @@ export const textOf = (element: HTMLElement | null) => (element?.innerText ?? ""
 /** Coerce a prop to a string; null and undefined become "". Shared by the
     extracted component directories, which cannot reach text.tsx's local copy. */
 export const str = (value: unknown) => (value == null ? "" : String(value));
+
+/** A component in a prop's value, as opposed to plain text or a number. */
+export const isElement = (value: unknown): value is ElementNode =>
+  !!value && typeof value === "object" && (value as { type?: unknown }).type === "element";

@@ -10,14 +10,12 @@ import {
 } from "@openuidev/react-components";
 import { defineComponent } from "@openuidev/react-lang";
 import { inline } from "../markdownBlocks";
+import { isElement } from "../style";
 import { TableSchema } from "./schema";
 
 export * from "./schema";
 
 const NUMERIC = /^[-+−]?[$€£¥₹]?\s?\d[\d,]*(\.\d+)?\s?(%|[kKmMbB]|bn)?$/;
-const isElement = (value: unknown) =>
-  !!value && typeof value === "object" && (value as { type?: unknown }).type === "element";
-
 export const Table = defineComponent({
   name: "Table",
   props: TableSchema,

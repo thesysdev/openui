@@ -1,8 +1,8 @@
 "use client";
 
-import { defineComponent } from "@openuidev/react-lang";
+import { defineComponent, type ElementNode } from "@openuidev/react-lang";
 import { inline } from "../markdownBlocks";
-import { cx, str } from "../style";
+import { cx, isElement, str } from "../style";
 import { createListSchema, ListItemSchema } from "./schema";
 
 export * from "./schema";
@@ -21,9 +21,7 @@ export const ListItem = defineComponent({
   ),
 });
 
-type ItemElement = { type: "element"; typeName: string; props: Record<string, unknown> };
-const isItem = (value: unknown): value is ItemElement =>
-  !!value && typeof value === "object" && (value as ItemElement).type === "element" && (value as ItemElement).typeName === "ListItem";
+const isItem = (value: unknown): value is ElementNode => isElement(value) && value.typeName === "ListItem";
 
 /**
  * A text list: bullets, numbers or no marker; a per-item marker (a time, an

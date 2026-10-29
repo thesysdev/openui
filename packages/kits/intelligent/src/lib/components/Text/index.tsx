@@ -3,12 +3,10 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { Fragment } from "react";
 import { inline } from "../markdownBlocks";
-import { cx, fg, str } from "../style";
+import { cx, fg, isElement, str } from "../style";
 import { TextSchema } from "./schema";
 
 export * from "./schema";
-
-const isNode = (value: unknown) => !!value && typeof value === "object" && (value as { type?: unknown }).type === "element";
 
 export const Text = defineComponent({
   name: "Text",
@@ -29,7 +27,7 @@ export const Text = defineComponent({
       >
         {Array.isArray(props.text)
           ? (props.text as unknown[]).flat().map((part, i) =>
-              isNode(part) ? <span key={i} className="iui-inline">{renderNode(part)}</span> : <Fragment key={i}>{inline(str(part), `t${i}`)}</Fragment>,
+              isElement(part) ? <span key={i} className="iui-inline">{renderNode(part)}</span> : <Fragment key={i}>{inline(str(part), `t${i}`)}</Fragment>,
             )
           : inline(str(props.text))}
       </p>
