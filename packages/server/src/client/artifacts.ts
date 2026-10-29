@@ -44,7 +44,15 @@ const ARTIFACT_KINDS = new Set<string>(["dashboard", "slides", "report"]);
 /** The artifact tool behind `openui.defineArtifactTool`. */
 export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions): ArtifactTool {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { type = "static", kind = "dashboard", library, model, promptOptions, tools, mcp } = options;
+  const {
+    type = "static",
+    kind = "dashboard",
+    library,
+    model,
+    promptOptions,
+    tools,
+    mcp,
+  } = options;
   if (type !== "live" && type !== "static") invalidInput('type must be "live" or "static"');
   if (!ARTIFACT_KINDS.has(kind)) invalidInput('kind must be "dashboard", "slides" or "report"');
   if (typeof model !== "string" || !model.trim()) {
@@ -82,20 +90,16 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
     }
   }
 
-  /** OpenUI Cloud's config block: your library, prompt options and data tools. */
-  async function config(title?: string): Promise<string> {
-    const definitions = await toolDefinitions();
-    try {
-      return generateSystemPrompt({
-        cloud: true,
-        library: spec,
-        ...(promptOptions && { promptOptions }),
-        ...(definitions && { script: { tools: definitions } }),
-        ...(title !== undefined && { meta: { name: title } }),
-      });
-    } catch (error) {
-      invalidLibrary(error);
-    }
+  // OpenUI Cloud's config block: your library and prompt options. The same for every call.
+  let system: string;
+  try {
+    system = generateSystemPrompt({
+      cloud: true,
+      library: spec,
+      ...(promptOptions && { promptOptions }),
+    });
+  } catch (error) {
+    invalidLibrary(error);
   }
 
   /**
@@ -105,13 +109,13 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
   async function start(
     userId: string,
     prompt: string,
-    title: string | undefined,
     thesys: Record<string, unknown>,
     signal?: AbortSignal,
   ): Promise<string> {
-    const [{ token }, system] = await Promise.all([
+    // Data tools ride with the artifact's details: OpenUI Cloud generates scripts from them.
+    const [{ token }, definitions] = await Promise.all([
       createFrontendToken(api, userId, signal),
-      config(title),
+      toolDefinitions(),
     ]);
     const response = await api.request("/v1/artifact/chat/completions", {
       method: "POST",
@@ -124,7 +128,13 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
           { role: "user", content: prompt },
         ],
         // Chat completions metadata values are strings.
-        metadata: { thesys: JSON.stringify({ c1_artifact_type: type, ...thesys }) },
+        metadata: {
+          thesys: JSON.stringify({
+            c1_artifact_type: type,
+            ...thesys,
+            ...(definitions && { tools: definitions }),
+          }),
+        },
       }),
       signal,
     });
@@ -148,14 +158,14 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
 
     async create({ userId, title, description, prompt }, { signal } = {}): Promise<ArtifactResult> {
       const thesys = { title, kind, ...(description !== undefined && { description }) };
-      const id = await start(userId, prompt, title, thesys, signal);
+      const id = await start(userId, prompt, thesys, signal);
       return { id, response: toolResponse(id, type, title) };
     },
 
     // OpenUI Cloud edits the version it stores, and checks it's this type.
     async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      const edited = await start(userId, prompt, undefined, { id }, signal);
+      const edited = await start(userId, prompt, { id }, signal);
       return { id: edited, response: toolResponse(edited, type) };
     },
   };
