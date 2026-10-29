@@ -5,7 +5,6 @@ import { Renderer, type Library, type RendererProps } from "@openuidev/react-lan
 import { useCallback } from "react";
 import {
   ArtifactRendererRoot,
-  slots,
   type ArtifactRendererBaseProps,
   type RenderContentArgs,
 } from "./ArtifactRendererRoot";
@@ -65,25 +64,21 @@ function ArtifactRendererImpl<L extends Library>({
   return <ArtifactRendererRoot {...base} interpreter={interpreter} renderContent={renderContent} />;
 }
 
-const LiveArtifactRendererImpl = <L extends Library>(props: LiveArtifactRendererProps<L>) => (
-  <ArtifactRendererImpl {...props} />
-);
-
-const StaticArtifactRendererImpl = <L extends Library>(props: StaticArtifactRendererProps<L>) => (
-  <ArtifactRendererImpl {...props} />
-);
-
 /**
  * Renders a live artifact, such as a dashboard: built from your components,
  * with live data from your data tools through `interpreter`.
  *
  * @category Components
  */
-export const LiveArtifactRenderer = Object.assign(LiveArtifactRendererImpl, slots);
+export function LiveArtifactRenderer<L extends Library>(props: LiveArtifactRendererProps<L>) {
+  return <ArtifactRendererImpl {...props} />;
+}
 
 /**
  * Renders a static artifact: built from your components, without data tools.
  *
  * @category Components
  */
-export const StaticArtifactRenderer = Object.assign(StaticArtifactRendererImpl, slots);
+export function StaticArtifactRenderer<L extends Library>(props: StaticArtifactRendererProps<L>) {
+  return <ArtifactRendererImpl {...props} />;
+}
