@@ -49,7 +49,7 @@ export const Slider = defineComponent({
             {marks.map((m, i) => {
               const at = (m.value - min) / (max - min);
               return (
-                <span key={i} className={cx(at <= 0.02 && "is-start", at >= 0.98 && "is-end")} style={{ left: `calc(9px + (100% - 18px) * ${at})` }}>
+                <span key={i} className={cx(at <= 0.02 && "is-start", at >= 0.98 && "is-end")} style={{ left: `calc(var(--iui-range-thumb-size) / 2 + (100% - var(--iui-range-thumb-size)) * ${at})` }}>
                   {m.label}
                 </span>
               );
