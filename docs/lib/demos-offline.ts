@@ -31,22 +31,30 @@ export const IN_APP_DEMO_API_PATHS = [
 ] as const;
 
 /* Demos deployed as their own Vercel projects and proxied under /demo/<slug>.
-   Keep the slugs in step with proxiedDemos in next.config.mjs. */
+   Keep the slugs in step with proxiedDemos in next.config.mjs. The screenshots
+   are captures of each hosted demo at 2x: desktop 1440x900, mobile 390x844. */
+function offlineScreenshots(slug: string) {
+  return {
+    desktop: `/demo-unavailable/${slug}-desktop.jpg`,
+    mobile: `/demo-unavailable/${slug}-mobile.jpg`,
+  };
+}
+
 export const PROXIED_DEMOS = {
   "f1-dashboard": {
     title: "F1 Dashboard",
     repo: "thesysdev/openui-f1-dashboard",
-    screenshot: "/homepage/showcase/f1-season.jpg",
+    screenshots: offlineScreenshots("f1-dashboard"),
   },
   "trip-planner": {
     title: "Trip Planner",
     repo: "thesysdev/openui-trip-planner",
-    screenshot: "/homepage/showcase/travel-answer.jpg",
+    screenshots: offlineScreenshots("trip-planner"),
   },
   "intelligent-ui": {
     title: "Open Intelligent UI",
     repo: "thesysdev/open-intelligent-ui",
-    screenshot: "/demo-unavailable/open-intelligent-ui.jpg",
+    screenshots: offlineScreenshots("intelligent-ui"),
   },
 } as const;
 

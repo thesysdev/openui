@@ -7,7 +7,7 @@ import {
   proxiedDemoLocalCommand,
 } from "@/lib/demos-offline";
 import type { Metadata } from "next";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import "./demo-unavailable.css";
@@ -27,20 +27,25 @@ export function generateStaticParams() {
 export default async function DemoUnavailablePage(props: PageProps<"/demo-unavailable/[demo]">) {
   const { demo } = await props.params;
   if (!isProxiedDemoSlug(demo)) notFound();
-  const { title, repo, screenshot } = PROXIED_DEMOS[demo];
+  const { title, repo, screenshots } = PROXIED_DEMOS[demo];
+
+  // One <picture>, so each screen size downloads only its own capture.
+  const common = { alt: "", sizes: "100vw", quality: 95, priority: true };
+  const {
+    props: { srcSet: desktopSrcSet },
+  } = getImageProps({ ...common, src: screenshots.desktop, width: 2880, height: 1800 });
+  const {
+    props: { srcSet: mobileSrcSet, ...mobileImg },
+  } = getImageProps({ ...common, src: screenshots.mobile, width: 780, height: 1688 });
 
   return (
     <WebsiteThemeProvider>
       <main className="demo-unavailable">
         {/* The demo itself, dimmed behind the notice like a dialog's backdrop. */}
-        <Image
-          className="demo-unavailable-shot"
-          src={screenshot}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-        />
+        <picture>
+          <source media="(min-width: 768px)" srcSet={desktopSrcSet} />
+          <img {...mobileImg} alt="" srcSet={mobileSrcSet} className="demo-unavailable-shot" />
+        </picture>
         <div className="demo-unavailable-backdrop" aria-hidden="true" />
         <div className="demo-unavailable-card">
           <h1>{title} is offline</h1>
