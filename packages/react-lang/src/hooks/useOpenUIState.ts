@@ -525,6 +525,8 @@ export function useOpenUIState(
       store,
       evaluationContext,
       reportError,
+      // A store write gives a new value, so memoized components that read the store re-render
+      storeSnapshot,
     ],
   );
 
