@@ -37,6 +37,23 @@ export type ThemeProps = {
   cssSelector?: string;
 };
 
+/**
+ * One context per name for the whole page. The package ships several bundles
+ * (the root entry, `genui-lib`, each component subpath, in ESM and CJS), and
+ * each bundle that includes this module would otherwise create its own
+ * context: a `ThemeProvider` imported from one entry would then be invisible
+ * to `useTheme` and the themed components imported from another. Keyed on
+ * `globalThis` with `Symbol.for`, every copy finds the same context object.
+ */
+function sharedContext<T>(name: string, defaultValue: T): React.Context<T> {
+  const registry = globalThis as typeof globalThis & {
+    [key: symbol]: React.Context<unknown> | undefined;
+  };
+  const key = Symbol.for(`@openuidev/react-ui/${name}`);
+  registry[key] ??= createContext<unknown>(defaultValue);
+  return registry[key] as React.Context<T>;
+}
+
 type ThemeContextType = {
   theme: Theme;
   mode: ThemeMode;
@@ -47,7 +64,7 @@ type ThemeContextType = {
  * React context that carries the resolved theme, active mode, and a CSS class
  * name for portals. Consumed via {@link useTheme}.
  */
-export const ThemeContext = createContext<ThemeContextType>({
+export const ThemeContext = sharedContext<ThemeContextType>("ThemeContext", {
   theme: defaultLightTheme,
   mode: "light",
   portalThemeClassName: "",
@@ -80,7 +97,8 @@ const themes = {
 // ---------------------------------------------------------------------------
 // Internal context for nesting detection
 // ---------------------------------------------------------------------------
-const OPENUI_THEME_SENTINEL = Symbol("openui-theme-provider");
+// Symbol.for, so every bundled copy of this module writes the same key.
+const OPENUI_THEME_SENTINEL = Symbol.for("@openuidev/react-ui/theme-provider");
 
 type InternalContextType = {
   [OPENUI_THEME_SENTINEL]: true;
@@ -89,7 +107,7 @@ type InternalContextType = {
   portalThemeClassName: string;
 };
 
-const InternalContext = createContext<InternalContextType | null>(null);
+const InternalContext = sharedContext<InternalContextType | null>("ThemeInternalContext", null);
 
 // ---------------------------------------------------------------------------
 // Dev-mode warning deduplication
