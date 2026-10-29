@@ -6,9 +6,9 @@ description: Let your agent create and edit artifacts, then render them in your 
 Artifacts are UIs, such as dashboards, that your agent creates and edits during a conversation. You add them to
 your agent as tools you write, and render them with React components.
 
-There are two kinds:
+There are two types:
 
-| Kind   | What it is                                                                           | Render with              |
+| Type   | What it is                                                                           | Render with              |
 | ------ | ------------------------------------------------------------------------------------ | ------------------------ |
 | Live   | Built from your components, with live data from your tools. For example, a dashboard | `LiveArtifactRenderer`   |
 | Static | Built from your components, with the data in the prompt                              | `StaticArtifactRenderer` |
@@ -133,7 +133,7 @@ import { dataTools, mcpTools } from "./data-tools";
 export const openui = new OpenUIClient();
 
 export const dashboards = openui.defineArtifactTool({
-  kind: "live",
+  type: "live",
   library: dashboardLibrary,
   model: "anthropic/claude-sonnet-4.6",
   tools: dataTools,
@@ -143,7 +143,7 @@ export const dashboards = openui.defineArtifactTool({
 
 | Option          | Description                                                                                    |
 | --------------- | ---------------------------------------------------------------------------------------------- |
-| `kind`          | `"live"` or `"static"`                                                                         |
+| `type`          | `"live"`, or `"static"` (the default)                                                          |
 | `library`       | Your library from step 1                                                                       |
 | `model`         | The model that builds and edits the artifacts, as `provider/model`                             |
 | `tools`, `mcp`  | Live only: your data tools, an MCP server's, or both                                           |
@@ -245,7 +245,7 @@ The edit also returns right away. While the edit is generated, every renderer sh
 current version, with `isStreaming` true, then switches to the edited version once it is ready. The edit replaces
 the artifact in place, built with your library and data tools as they are now.
 
-An artifact tool edits artifacts of its own kind only: editing a static artifact with a live tool fails.
+An artifact tool edits artifacts of its own type only: editing a static artifact with a live tool fails.
 
 ## 4. Add an interpreter
 
@@ -609,11 +609,11 @@ clear. For the details of a failed data call, `useRendererQuery()` works as it d
 ## Static artifacts
 
 Static artifacts are built from your components with the data in the prompt, so they never change after they're
-built. They have no data tools, so they need no interpreter (step 4), and their renderer takes no `interpreter`:
+built. Static is the default `type`, so leave it out. They have no data tools, so they need no interpreter (step 4),
+and their renderer takes no `interpreter`:
 
 ```ts title="server/openui.ts"
 export const charts = openui.defineArtifactTool({
-  kind: "static",
   library: dashboardLibrary,
   model: "anthropic/claude-sonnet-4.6",
 });
