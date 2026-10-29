@@ -50,79 +50,61 @@ export function withStatementId(el: ElementNode, id: string): ElementNode {
   return { ...el, statementId: id };
 }
 
-/** A ref read while materializing a statement; `rt` marks a Query/Mutation, kept as its AST. */
-interface RefRead {
-  ref: string;
-  mode: "value" | "expr";
-  value: unknown;
-  rt?: true;
-}
-
-/** What a statement's materialization did, in order: its own errors and the refs it read. */
-type StatementLog = (ValidationError | RefRead)[];
+/** A ref a kept statement read: another kept statement, or a Query/Mutation by its AST. */
+type Read = CachedStatement | { name: string; ast: ASTNode };
 
 interface CachedStatement {
+  key: string;
+  name: string;
+  mode: "value" | "expr";
   ast: ASTNode;
   value: unknown;
-  log: StatementLog;
+  reads: Read[];
+  /** Errors the statement reported itself, replayed when it is reused. */
+  errors: ValidationError[];
 }
+
+export type StatementCache = Map<string, CachedStatement>;
 
 /**
  * Keeps statement values across stream parser passes, so an unchanged statement gives the
- * same object on every chunk. A value is reused while its statement's AST object is the same
- * (the stream parser keeps completed statements), the pass has the same `partial`, and every
- * ref it read gives the same value again; reusing it replays its errors in order and its reads.
- * Not kept: a statement that hit an unresolved or cyclic ref, a statement still being written,
- * and anything that read one.
+ * same object on every chunk. A kept value is reused while its statement's AST object is the
+ * same (the stream parser keeps completed statements), it is not being written, and every ref
+ * it read is reused too. Not kept: a statement being written, one that hit an unresolved or
+ * cyclic ref, and one that read a statement not kept.
  */
 export interface StatementReuse {
   /** Kept across passes, keyed by `${partial}:${mode}:${name}`. */
-  entries: Map<string, unknown>;
+  entries: StatementCache;
   /** Statements still being written. */
   streaming: ReadonlySet<string>;
-  /** Per pass: logs of the statements being materialized, innermost last; null while replaying. */
-  frames: ({ log: StatementLog; mark: number } | null)[];
-  /** Per pass: counts reads of statements still being written. */
-  volatile: number;
-  /** Per pass: whether an entry can be reused. */
-  fresh: Map<string, boolean>;
+  /** Per pass: whether a kept statement can be reused (true for the ones kept this pass). */
+  fresh: Map<CachedStatement, boolean>;
+  /** Per pass: the refs read by the statement being materialized; ok is false if one is not kept. */
+  frame?: { reads: Read[]; ok: boolean };
 }
 
 export function createStatementReuse(
-  entries: Map<string, unknown>,
+  entries: StatementCache,
   streaming: ReadonlySet<string>,
 ): StatementReuse {
-  return { entries, streaming, frames: [], volatile: 0, fresh: new Map() };
+  return { entries, streaming, fresh: new Map() };
 }
 
-/** The errors the frame's statement pushed itself since its last nested read. */
-function flushErrors(frame: { log: StatementLog; mark: number }, ctx: MaterializeCtx): void {
-  for (let i = frame.mark; i < ctx.errors.length; i++) frame.log.push(ctx.errors[i]!);
-  frame.mark = ctx.errors.length;
-}
-
-function isFresh(key: string, name: string, ctx: MaterializeCtx, reuse: StatementReuse): boolean {
-  const known = reuse.fresh.get(key);
-  if (known !== undefined) return known;
-  const entry = reuse.entries.get(key) as CachedStatement | undefined;
-  let ok = !!entry && entry.ast === ctx.syms.get(name) && !reuse.streaming.has(name);
-  for (let i = 0; ok && i < entry!.log.length; i++) {
-    const read = entry!.log[i]!;
-    if (!("ref" in read)) continue;
-    if (reuse.streaming.has(read.ref)) ok = false;
-    else if (read.rt) ok = ctx.syms.get(read.ref) === read.value;
-    else {
-      const memoKey = `${read.mode}:${read.ref}`;
-      if (ctx.memo?.has(memoKey)) ok = ctx.memo.get(memoKey) === read.value;
-      else {
-        const depKey = key.slice(0, 2) + memoKey;
-        ok =
-          (reuse.entries.get(depKey) as CachedStatement | undefined)?.value === read.value &&
-          isFresh(depKey, read.ref, ctx, reuse);
-      }
-    }
+function isFresh(e: CachedStatement, ctx: MaterializeCtx, reuse: StatementReuse): boolean {
+  let ok = reuse.fresh.get(e);
+  if (ok === undefined) {
+    ok =
+      reuse.entries.get(e.key) === e &&
+      ctx.syms.get(e.name) === e.ast &&
+      !reuse.streaming.has(e.name) &&
+      e.reads.every((r) =>
+        "key" in r
+          ? isFresh(r, ctx, reuse)
+          : ctx.syms.get(r.name) === r.ast && !reuse.streaming.has(r.name),
+      );
+    reuse.fresh.set(e, ok);
   }
-  reuse.fresh.set(key, ok);
   return ok;
 }
 
@@ -144,55 +126,63 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
   const target = ctx.syms.get(name)!;
   ctx.unreached?.delete(name);
   const reuse = ctx.reuse;
-  const parent = reuse?.frames[reuse.frames.length - 1];
-  if (reuse?.streaming.has(name)) reuse.volatile++;
-  if (parent) flushErrors(parent, ctx);
+  const frame = reuse?.frame;
+  if (frame && reuse!.streaming.has(name)) frame.ok = false;
   // Query/Mutation declarations → RuntimeRef (resolved at runtime by evaluator)
   if (target.k === "Comp" && isReservedCall(target.name)) {
     const refType =
       target.name === RESERVED_CALLS.Mutation ? ("mutation" as const) : ("query" as const);
-    parent?.log.push({ ref: name, mode, value: target, rt: true });
+    frame?.reads.push({ name, ast: target });
     return { k: "RuntimeRef", n: name, refType };
   }
   const key = `${mode}:${name}`;
+  const cacheKey = (ctx.partial ? "1:" : "0:") + key;
   const memo = (ctx.memo ??= new Map());
   let result: unknown;
   if (memo.has(key)) result = memo.get(key);
   else {
-    const cacheKey = (ctx.partial ? "1:" : "0:") + key;
     const prevStatementId = ctx.currentStatementId;
     ctx.currentStatementId = name;
     ctx.visited.add(name);
     try {
-      if (reuse && isFresh(cacheKey, name, ctx, reuse)) {
-        const entry = reuse.entries.get(cacheKey) as CachedStatement;
-        reuse.frames.push(null);
+      const kept = reuse?.entries.get(cacheKey);
+      if (kept && isFresh(kept, ctx, reuse!)) {
+        // Reach and report what it read, as materializing it would
+        reuse!.frame = undefined;
         try {
-          for (const item of entry.log) {
-            if ("ref" in item) resolveRef(item.ref, ctx, item.mode);
-            else ctx.errors.push({ ...item });
-          }
+          for (const r of kept.reads) resolveRef(r.name, ctx, "mode" in r ? r.mode : mode);
         } finally {
-          reuse.frames.pop();
+          reuse!.frame = frame;
         }
-        result = entry.value;
+        for (const e of kept.errors) ctx.errors.push({ ...e });
+        result = kept.value;
         memo.set(key, result);
       } else {
         const unresBefore = ctx.unres.length;
-        const volatileBefore = reuse?.volatile;
-        const frame = reuse && { log: [] as StatementLog, mark: ctx.errors.length };
-        if (frame) reuse!.frames.push(frame);
+        const errorsBefore = ctx.errors.length;
+        const own = reuse && { reads: [] as Read[], ok: !reuse.streaming.has(name) };
+        if (reuse) reuse.frame = own;
         try {
           result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
         } finally {
-          if (frame) reuse!.frames.pop();
+          if (reuse) reuse.frame = frame;
         }
         if (mode === "value" && isElementNode(result)) result = withStatementId(result, name);
         if (ctx.unres.length === unresBefore) {
           memo.set(key, result);
-          if (frame && reuse!.volatile === volatileBefore && !reuse!.streaming.has(name)) {
-            flushErrors(frame, ctx);
-            reuse!.entries.set(cacheKey, { ast: target, value: result, log: frame.log });
+          if (own?.ok) {
+            const errors = ctx.errors.slice(errorsBefore).filter((e) => e.statementId === name);
+            const entry = {
+              key: cacheKey,
+              name,
+              mode,
+              ast: target,
+              value: result,
+              reads: own.reads,
+              errors,
+            };
+            reuse!.entries.set(cacheKey, entry);
+            reuse!.fresh.set(entry, true);
           }
         }
       }
@@ -201,9 +191,10 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
       ctx.visited.delete(name);
     }
   }
-  if (parent) {
-    parent.mark = ctx.errors.length;
-    parent.log.push({ ref: name, mode, value: result });
+  if (frame) {
+    const dep = reuse!.entries.get(cacheKey);
+    if (dep && reuse!.fresh.get(dep)) frame.reads.push(dep);
+    else frame.ok = false;
   }
   return result;
 }
