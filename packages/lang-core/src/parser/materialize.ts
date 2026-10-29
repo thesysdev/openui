@@ -53,18 +53,29 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     return { k: "RuntimeRef", n: name, refType };
   }
   ctx.visited.add(name);
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = name;
   try {
-    const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
-    // Tag ElementNode with its source statement name
-    if (mode === "value" && isElementNode(result)) {
-      result.statementId = name;
-    }
-    return result;
+    return withStatement(ctx, name, () => {
+      const result =
+        mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+      // Tag ElementNode with its source statement name
+      if (mode === "value" && isElementNode(result)) {
+        result.statementId = name;
+      }
+      return result;
+    });
   } finally {
-    ctx.currentStatementId = prevStatementId;
     ctx.visited.delete(name);
+  }
+}
+
+/** Run fn with ctx.currentStatementId set to id, so the issues it reports name that statement. */
+export function withStatement<R>(ctx: MaterializeCtx, id: string, fn: () => R): R {
+  const prev = ctx.currentStatementId;
+  ctx.currentStatementId = id;
+  try {
+    return fn();
+  } finally {
+    ctx.currentStatementId = prev;
   }
 }
 
@@ -141,21 +152,6 @@ function materializeCall(
   return def.kind === "action"
     ? { k: "Comp", name: "Action", args: [{ k: "Arr", els: [] }] }
     : { k: "Null" };
-}
-
-/** Resolve tool value references while retaining AST for runtime state and result reads. */
-export function materializeToolArgs(
-  args: ASTNode[],
-  ctx: MaterializeCtx,
-  statementId: string,
-): ASTNode[] {
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = statementId;
-  try {
-    return args.map((arg) => materializeExpr(arg, ctx));
-  } finally {
-    ctx.currentStatementId = prevStatementId;
-  }
 }
 
 /**
