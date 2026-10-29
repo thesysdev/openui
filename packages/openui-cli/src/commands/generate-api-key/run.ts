@@ -1,4 +1,3 @@
-import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { assertValidApiKeyName, CloudAuthError, mintCloudApiKey } from "../../lib/auth/mint";
@@ -6,27 +5,29 @@ import { AuthTelemetryClient } from "../../lib/auth/telemetry";
 import type { CliContext } from "../../lib/context";
 import { resolveInstallPackageManager } from "../../lib/detect-package-manager";
 import { assertValidEnvVarName, DEFAULT_ENV_FILE, upsertEnvVar } from "../../lib/env";
+import { tryReadPackageJson } from "../../lib/package-json";
+import { runDevCommand } from "../create/lib/dev-server";
 import { GenerateApiKeyTelemetryClient } from "./lib/telemetry";
 
 export interface GenerateApiKeyOptions {
   file?: string;
   key?: string;
   name?: string;
+  dev?: boolean;
 }
 
 const DEFAULT_ENV_KEY = "THESYS_API_KEY";
+const DEV_STARTUP_TIMEOUT_MS = 5_000;
+
+function hasDevScript(cwd: string): boolean {
+  return typeof tryReadPackageJson(cwd)?.scripts?.["dev"] === "string";
+}
 
 function resolveProjectName(explicit: string | undefined, cwd: string): string {
   const trimmed = explicit?.trim();
   if (trimmed) return trimmed;
-  try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(cwd, "package.json"), "utf8")) as {
-      name?: unknown;
-    };
-    if (typeof pkg.name === "string" && pkg.name.trim()) return pkg.name.trim();
-  } catch {
-    /* no package.json, or it isn't valid JSON */
-  }
+  const pkgName = tryReadPackageJson(cwd)?.name;
+  if (typeof pkgName === "string" && pkgName.trim()) return pkgName.trim();
   return path.basename(cwd) || "OpenUI Cloud App";
 }
 
@@ -75,4 +76,24 @@ export async function runGenerateApiKey(
     env_key: envKey,
     duration_ms: Date.now() - t0,
   });
+
+  if (options.dev === false || !hasDevScript(ctx.cwd)) return;
+
+  const { runCmd } = resolveInstallPackageManager();
+  console.info(`\nStarting the development server...\n\n> ${runCmd} run dev\n`);
+  const devResult = await runDevCommand(runCmd, ctx.cwd, {
+    startupTimeoutMs: DEV_STARTUP_TIMEOUT_MS,
+    onStarted: (url) => console.info(`\n✅ Development server started at ${url}`),
+  });
+  const stoppedByUser =
+    !devResult.timedOut &&
+    (devResult.status === 0 ||
+      devResult.status === 130 ||
+      devResult.status === 143 ||
+      devResult.signal === "SIGINT" ||
+      devResult.signal === "SIGTERM");
+  if (stoppedByUser) return;
+
+  console.error(`\nDevelopment server did not start. Retry with:\n\n> ${runCmd} run dev\n`);
+  process.exitCode = devResult.timedOut ? 1 : (devResult.status ?? 1);
 }
