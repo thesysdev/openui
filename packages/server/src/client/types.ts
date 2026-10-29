@@ -32,10 +32,11 @@ type LiveDataTools =
   | { tools: Record<string, ArtifactDataTool>; mcp?: McpOption<never> }
   | { tools?: Record<string, ArtifactDataTool>; mcp: McpOption<never> };
 
-export type LiveArtifactToolOptions = ArtifactToolOptionsBase & { kind: "live" } & LiveDataTools;
+export type LiveArtifactToolOptions = ArtifactToolOptionsBase & { type: "live" } & LiveDataTools;
 
 export interface StaticArtifactToolOptions extends ArtifactToolOptionsBase {
-  kind: "static";
+  /** The default: your components, with the data in the prompt. */
+  type?: "static";
   tools?: never;
   mcp?: never;
 }
@@ -72,9 +73,9 @@ export interface ArtifactResult {
 
 export type ArtifactToolOptions = LiveArtifactToolOptions | StaticArtifactToolOptions;
 
-/** Creates and edits one kind of artifact. Each call returns as soon as the artifact has an id. */
+/** Creates and edits one type of artifact. Each call returns as soon as the artifact has an id. */
 export interface ArtifactTool {
-  readonly kind: ArtifactToolOptions["kind"];
+  readonly type: "live" | "static";
   create(params: CreateArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;
   /** Edits in place. Renderers keep the current version until the edit is ready. */
   edit(params: EditArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;
