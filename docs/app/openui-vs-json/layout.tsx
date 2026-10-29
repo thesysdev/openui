@@ -1,7 +1,7 @@
 import "@/app/demos/layout.css";
 import { DemosOfflineDialog } from "@/components/DemosOfflineDialog";
 import { WebsiteThemeProvider } from "@/components/website-theme-provider";
-import { areDemosDisabled } from "@/lib/demo-credits";
+import { DEMOS_DISABLED } from "@/lib/demos-offline";
 import { createPageMetadata } from "@/lib/page-metadata";
 import type { ReactNode } from "react";
 import page from "./metadata";
@@ -12,7 +12,7 @@ export default function DemosLayout({ children }: { children: ReactNode }) {
   return (
     <WebsiteThemeProvider>
       {children}
-      {areDemosDisabled() && <DemosOfflineDialog />}
+      {DEMOS_DISABLED && <DemosOfflineDialog />}
     </WebsiteThemeProvider>
   );
 }

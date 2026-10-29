@@ -5,7 +5,7 @@ import {
   isProxiedDemoSlug,
   PROXIED_DEMOS,
   proxiedDemoLocalCommand,
-} from "@/lib/demo-credits";
+} from "@/lib/demos-offline";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";

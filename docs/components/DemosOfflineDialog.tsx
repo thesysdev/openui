@@ -1,7 +1,7 @@
 "use client";
 
 import { CopyCommand } from "@/components/CopyCommand";
-import { DEMOS_PAUSED_LOCAL_COMMAND, DEMOS_PAUSED_LOCAL_MESSAGE } from "@/lib/demo-credits";
+import { DEMOS_PAUSED_LOCAL_COMMAND, DEMOS_PAUSED_LOCAL_MESSAGE } from "@/lib/demos-offline";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CloudOff, X } from "lucide-react";
 import { useSyncExternalStore } from "react";

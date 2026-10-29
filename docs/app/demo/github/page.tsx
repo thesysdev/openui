@@ -2,7 +2,8 @@
 
 import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
 import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
-import { areDemosDisabled, isDemoCreditsErrorPayload } from "@/lib/demo-credits";
+import { isDemoCreditsErrorPayload } from "@/lib/demo-credits";
+import { DEMOS_DISABLED } from "@/lib/demos-offline";
 import { mergeStatements } from "@openuidev/react-lang";
 import { Button } from "@openuidev/react-ui";
 import { encode } from "gpt-tokenizer";
@@ -351,7 +352,7 @@ export default function GitHubDemoPage() {
   const send = useCallback(
     async (text: string) => {
       if (!text.trim() || isStreaming) return;
-      if (areDemosDisabled()) {
+      if (DEMOS_DISABLED) {
         openDemosOfflineDialog();
         return;
       }

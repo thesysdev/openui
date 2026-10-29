@@ -1,9 +1,9 @@
 import {
-  areDemosDisabled,
   createDemosPausedResponse,
+  DEMOS_DISABLED,
   IN_APP_DEMO_API_PATHS,
   isProxiedDemoSlug,
-} from "@/lib/demo-credits";
+} from "@/lib/demos-offline";
 import { isMarkdownPreferred, rewritePath } from "fumadocs-core/negotiation";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -26,7 +26,7 @@ function pausedDemoResponse(request: NextRequest): NextResponse | Response | und
 }
 
 export default function proxy(request: NextRequest) {
-  if (areDemosDisabled()) {
+  if (DEMOS_DISABLED) {
     const paused = pausedDemoResponse(request);
     if (paused) return paused;
   }

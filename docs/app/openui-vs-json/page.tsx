@@ -12,7 +12,8 @@ import {
 } from "@/app/demos/constants";
 import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
 import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
-import { areDemosDisabled, isDemoCreditsErrorPayload } from "@/lib/demo-credits";
+import { isDemoCreditsErrorPayload } from "@/lib/demo-credits";
+import { DEMOS_DISABLED } from "@/lib/demos-offline";
 import { Send, Square } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useRef, useState } from "react";
@@ -50,7 +51,7 @@ export default function DemosPage() {
 
   const handleSubmit = useCallback(async () => {
     if (!prompt.trim() || status === "streaming") return;
-    if (areDemosDisabled()) {
+    if (DEMOS_DISABLED) {
       openDemosOfflineDialog();
       return;
     }

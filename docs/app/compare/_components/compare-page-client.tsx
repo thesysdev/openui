@@ -2,7 +2,7 @@
 
 import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
 import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
-import { areDemosDisabled } from "@/lib/demo-credits";
+import { DEMOS_DISABLED } from "@/lib/demos-offline";
 import { OPENUI_CLOUD_UNAVAILABLE_MESSAGE } from "@/lib/openui-cloud/errors";
 import dynamic from "next/dynamic";
 import {
@@ -151,7 +151,7 @@ export function ComparePageClient({
 
   const submitToAll = useCallback(
     (content: string) => {
-      if (areDemosDisabled()) {
+      if (DEMOS_DISABLED) {
         openDemosOfflineDialog();
         return;
       }
