@@ -21,7 +21,12 @@ export type ArtifactDataTool = Omit<ToolDefinition, "name"> & { execute?: unknow
 /** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */
 export type ArtifactPromptOptions = CloudPromptOptions;
 
+/** What an artifact is, for listing and filtering. It doesn't change how it's generated. */
+export type ArtifactKind = "dashboard" | "slides" | "report";
+
 interface ArtifactToolOptionsBase {
+  /** Saved with each artifact; `dashboard` by default. */
+  kind?: ArtifactKind;
   library: ArtifactLibrary;
   model: string;
   promptOptions?: ArtifactPromptOptions;
@@ -76,6 +81,7 @@ export type ArtifactToolOptions = LiveArtifactToolOptions | StaticArtifactToolOp
 /** Creates and edits one type of artifact. Each call returns as soon as the artifact has an id. */
 export interface ArtifactTool {
   readonly type: "live" | "static";
+  readonly kind: ArtifactKind;
   create(params: CreateArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;
   /** Edits in place. Renderers keep the current version until the edit is ready. */
   edit(params: EditArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;

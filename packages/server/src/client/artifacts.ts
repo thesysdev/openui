@@ -39,11 +39,14 @@ function toolResponse(id: string, type: ArtifactType, title?: string): string {
   return `${sentence}\n]]>openui:artifact ${JSON.stringify(header)}\n`;
 }
 
+const ARTIFACT_KINDS = new Set<string>(["dashboard", "slides", "report"]);
+
 /** The artifact tool behind `openui.defineArtifactTool`. */
 export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions): ArtifactTool {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { type = "static", library, model, promptOptions, tools, mcp } = options;
+  const { type = "static", kind = "dashboard", library, model, promptOptions, tools, mcp } = options;
   if (type !== "live" && type !== "static") invalidInput('type must be "live" or "static"');
+  if (!ARTIFACT_KINDS.has(kind)) invalidInput('kind must be "dashboard", "slides" or "report"');
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
@@ -141,9 +144,10 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
 
   return {
     type,
+    kind,
 
     async create({ userId, title, description, prompt }, { signal } = {}): Promise<ArtifactResult> {
-      const thesys = { title, ...(description !== undefined && { description }) };
+      const thesys = { title, kind, ...(description !== undefined && { description }) };
       const id = await start(userId, prompt, title, thesys, signal);
       return { id, response: toolResponse(id, type, title) };
     },

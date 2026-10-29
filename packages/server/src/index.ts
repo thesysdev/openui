@@ -2,6 +2,7 @@ export { OpenUIClient } from "./client/client";
 export { OpenUIApiError } from "./client/types";
 export type {
   ArtifactDataTool,
+  ArtifactKind,
   ArtifactLibrary,
   ArtifactPromptOptions,
   ArtifactResult,
