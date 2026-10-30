@@ -1,7 +1,9 @@
 "use client";
 
+import clsx from "clsx";
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useRef } from "react";
-import { bg, cx, onColor, radius as radiusOf, space, type Color, type Radius } from "../../shared/style";
+import { bg, onColor, radius as radiusOf, space, type Color, type Radius } from "../../shared/style";
+import { names, styles } from "./pressable.styles";
 
 export interface PressableProps {
   /** Called with the tile's element, e.g. to read its text. */
@@ -40,7 +42,7 @@ export function Pressable({ onPress, selected, disabled, padding, background, ra
       tabIndex={0}
       aria-pressed={selected === undefined ? undefined : !!selected}
       aria-disabled={disabled || undefined}
-      className={cx("openui-intelligent-pressable", selected && "is-selected")}
+      className={clsx(styles.root, names.root)}
       style={{ padding: space(padding), background: bg(background), ...onColor(background), borderRadius: radiusOf(radius) }}
       onClick={onClick}
       onKeyDown={onKeyDown}

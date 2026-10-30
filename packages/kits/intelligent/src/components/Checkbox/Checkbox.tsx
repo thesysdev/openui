@@ -1,6 +1,7 @@
 import { CheckBoxItem } from "@openuidev/react-components";
-import { cx } from "../../shared/style";
+import clsx from "clsx";
 import { FieldError } from "../Field";
+import { names, styles } from "./checkbox.styles";
 
 export interface CheckboxProps {
   label: string;
@@ -15,10 +16,8 @@ export interface CheckboxProps {
 
 /** react-components' CheckBoxItem, with the kit's strike-through and a field error. */
 export function Checkbox({ label, checked, onChange, lineThrough, required, error }: CheckboxProps) {
-  // CheckBoxItem has no lineThrough, so the kit's class still supplies the
-  // strike-through that to-do lists in the prompt examples rely on.
   return (
-    <span className={cx("openui-intelligent-checkbox", lineThrough && checked && "openui-intelligent-check is-done")}>
+    <span className={clsx(styles.root, names.root)} data-done={(lineThrough && checked) || undefined}>
       <CheckBoxItem label={label} checked={checked} aria-required={required || undefined} aria-invalid={error ? true : undefined} onChange={onChange} />
       <FieldError error={error} />
     </span>

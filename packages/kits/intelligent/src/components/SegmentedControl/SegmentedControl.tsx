@@ -1,5 +1,6 @@
-import { cx } from "../../shared/style";
+import clsx from "clsx";
 import { Button } from "../Button";
+import { names, styles } from "./segmentedControl.styles";
 
 export interface SegmentedOption {
   value: string;
@@ -18,7 +19,7 @@ export interface SegmentedControlProps {
 /** A pill track: a radiogroup whose options are the kit's buttons, the chosen one a raised pill. */
 export function SegmentedControl({ options, value, onChange, block }: SegmentedControlProps) {
   return (
-    <div className={cx("openui-intelligent-segmented", block && "openui-intelligent-block")} role="radiogroup">
+    <div className={clsx(styles.root, names.root, block && [styles.block, names.block])} role="radiogroup">
       {options.map((o, i) => (
         <Button
           key={`${o.value}-${i}`}
@@ -26,7 +27,7 @@ export function SegmentedControl({ options, value, onChange, block }: SegmentedC
           size="sm"
           role="radio"
           aria-checked={o.value === value}
-          className={cx("openui-intelligent-segment", o.value === value && "is-selected")}
+          className={clsx(styles.option, names.option)}
           onClick={() => onChange(o.value)}
         >
           {o.label}

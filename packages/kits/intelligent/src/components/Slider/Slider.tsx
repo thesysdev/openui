@@ -1,7 +1,9 @@
 "use client";
 
+import clsx from "clsx";
 import { useId } from "react";
-import { cx, numberText } from "../../shared/style";
+import { numberText } from "../../shared/style";
+import { names, styles, THUMB } from "./slider.styles";
 
 export interface SliderMark {
   value: number;
@@ -33,16 +35,16 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
   const marks = (marksProp ?? []).filter((m) => m && Number.isFinite(m.value) && m.value >= min && m.value <= max);
   const id = useId();
   return (
-    <div className="openui-intelligent-slider">
+    <div className={clsx(styles.root, names.root)}>
       {(label || unitProp) && (
-        <div className="openui-intelligent-slider-head">
-          <label htmlFor={id}>{label}</label>
-          <output htmlFor={id}>{readout}</output>
+        <div className={clsx(styles.head, names.head)}>
+          <label htmlFor={id} className={clsx(styles.label, names.label)}>{label}</label>
+          <output htmlFor={id} className={clsx(styles.output, names.output)}>{readout}</output>
         </div>
       )}
       <input
         id={id}
-        className="openui-intelligent-range"
+        className={clsx(styles.range, names.range)}
         type="range"
         min={min}
         max={max}
@@ -53,11 +55,11 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
         onChange={(event) => onChange(Number(event.target.value))}
       />
       {marks.length > 0 && (
-        <div className="openui-intelligent-slider-marks" aria-hidden>
+        <div className={clsx(styles.marks, names.marks)} aria-hidden>
           {marks.map((m, i) => {
             const at = (m.value - min) / (max - min);
             return (
-              <span key={i} className={cx(at <= 0.02 && "is-start", at >= 0.98 && "is-end")} style={{ left: `calc(var(--openui-intelligent-range-thumb-size) / 2 + (100% - var(--openui-intelligent-range-thumb-size)) * ${at})` }}>
+              <span key={i} className={clsx(styles.mark, names.mark)} data-edge={at <= 0.02 ? "start" : at >= 0.98 ? "end" : undefined} style={{ left: `calc(${THUMB} / 2 + (100% - ${THUMB}) * ${at})` }}>
                 {m.label}
               </span>
             );

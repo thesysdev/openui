@@ -1,4 +1,0 @@
-.openui-intelligent-row > .openui-intelligent-badge { align-self: center; flex: none; }
-/* Purple and pink: react-components' Tag has no such variant, so the kit tints it. */
-.openui-intelligent-badge-purple { background: var(--openui-intelligent-badge-purple-soft, #efebf7); color: var(--openui-intelligent-badge-purple, #5d4596); }
-.openui-intelligent-badge-pink { background: var(--openui-intelligent-badge-pink-soft, #f7eaf1); color: var(--openui-intelligent-badge-pink, #94456d); }

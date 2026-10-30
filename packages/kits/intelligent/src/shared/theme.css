@@ -82,6 +82,10 @@
   --openui-intelligent-radius-2xl: 20px;
   --openui-intelligent-photo-empty: var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent));
   --openui-intelligent-photo-empty-icon: var(--openui-intelligent-border-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 10%, transparent));
+  /* What a component reads privately and dark mode retunes. */
+  --_openui-intelligent-button-on-status: #fff;
+  --_openui-intelligent-segment-fill: var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff));
+  --_openui-intelligent-pressable-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5'/%3E%3C/svg%3E");
 }
 
 :root[data-openui-theme="dark"],
@@ -143,6 +147,10 @@
   --openui-intelligent-ring: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d));
   --openui-intelligent-photo-empty: var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent));
   --openui-intelligent-photo-empty-icon: var(--openui-intelligent-border-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 10%, transparent));
+  /* What a component reads privately and dark mode retunes. */
+  --_openui-intelligent-button-on-status: #121212;
+  --_openui-intelligent-segment-fill: var(--openui-intelligent-surface-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent));
+  --_openui-intelligent-pressable-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23171717' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5'/%3E%3C/svg%3E");
 }
 
 /* #124 registers light token defaults on the root, in a layer, so a dark fallback

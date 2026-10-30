@@ -1,4 +1,0 @@
-/* Rules that span components, until each control carries its own. */
-
-/* One focus ring for the kit's controls. */
-:is(.openui-intelligent-button, .openui-intelligent-icon-button, .openui-intelligent-pressable, .openui-intelligent-segmented > button, .openui-intelligent-link, .openui-intelligent-check > input):focus-visible { outline: 2px solid var(--openui-intelligent-focus, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d))); outline-offset: 3px; }

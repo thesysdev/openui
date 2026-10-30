@@ -1,10 +1,11 @@
 "use client";
 
 import { OptionCards, RadioGroup as RCRadioGroup, RadioItem } from "@openuidev/react-components";
+import clsx from "clsx";
 import { useId } from "react";
-import { cx } from "../../shared/style";
 import { FieldError, RequiredMark } from "../Field";
 import { names as fieldNames, styles as fieldStyles } from "../Field/field.styles";
+import { names, styles } from "./radioGroup.styles";
 
 export interface RadioOption {
   value: string;
@@ -41,13 +42,13 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
   if (variant === "pills") {
     // The kit's pills, unchanged.
     body = (
-      <div>
+      <div className={clsx(styles.track, names.track)}>
         {options.map((o, i) => (
-          <label key={`${o.value}-${i}`} className={cx("openui-intelligent-choice", o.value === value && "is-selected")}>
-            <input type="radio" name={name} checked={o.value === value} onChange={() => onChange(o.value)} />
-            <span className="openui-intelligent-choice-text">
+          <label key={`${o.value}-${i}`} className={clsx(styles.option, names.option)} data-selected={o.value === value || undefined}>
+            <input type="radio" className={clsx(styles.input, names.input)} name={name} checked={o.value === value} onChange={() => onChange(o.value)} />
+            <span className={clsx(styles.text, names.text)}>
               <span>{o.label}</span>
-              {o.description ? <span className="openui-intelligent-choice-description">{o.description}</span> : null}
+              {o.description ? <span className={clsx(styles.description, names.description)}>{o.description}</span> : null}
             </span>
           </label>
         ))}
@@ -72,9 +73,9 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
     );
   }
   return (
-    <fieldset className={cx("openui-intelligent-radio-group", variant === "pills" && "openui-intelligent-radio-pills")}>
+    <fieldset className={clsx(styles.root, names.root, variant === "pills" && names.pills)}>
       {label ? (
-        <legend className={cx(fieldStyles.label, fieldNames.label)}>
+        <legend className={clsx(fieldStyles.label, fieldNames.label, styles.legend, names.legend)}>
           {label}
           {required ? <RequiredMark /> : null}
         </legend>

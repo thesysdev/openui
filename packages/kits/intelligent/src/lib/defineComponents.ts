@@ -5,23 +5,12 @@
 // wins). src/index.ts imports the same list; the build checks both against
 // the sheets on disk.
 import "../shared/theme.css";
-import "./Badge/badge.css";
-import "../components/Button/button.css";
-import "./IconButton/iconButton.css";
-import "../components/Pressable/pressable.css";
-import "../components/SegmentedControl/segmentedControl.css";
-import "../components/Slider/slider.css";
-import "../components/Timer/timer.css";
-import "../components/Checkbox/checkbox.css";
-import "../components/RadioGroup/radioGroup.css";
 import "../components/Photo/photo.css";
 import "../components/HtmlView/htmlView.css";
-import "../components/Carousel/carousel.css";
 import "../components/Popover/popover.css";
 import "../components/Flashcard/flashcard.css";
 import "../components/Celebration/celebration.css";
 import "../components/Map/map.css";
-import "../shared/shared.css";
 import { Chart } from "./Chart";
 import { Carousel } from "./Carousel";
 import { Celebration } from "./Celebration";

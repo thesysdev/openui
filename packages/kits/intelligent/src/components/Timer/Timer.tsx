@@ -1,9 +1,10 @@
 "use client";
 
+import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
-import { cx } from "../../shared/style";
 import { names as fieldNames, styles as fieldStyles } from "../Field/field.styles";
 import { Button } from "../Button";
+import { names, styles } from "./timer.styles";
 
 export interface TimerProps {
   /** Seconds left. The timer counts it down through onSecondsChange. */
@@ -55,12 +56,12 @@ export function Timer({ seconds, onSecondsChange, label, disabled }: TimerProps)
   const done = left === 0 && startedAt !== null;
 
   return (
-    <div className={cx("openui-intelligent-timer", running && "is-running", done && "is-done")} role="timer" aria-label={label || "Timer"}>
-      <div className="openui-intelligent-timer-read">
-        {label && <span className={cx(fieldStyles.label, fieldNames.label)}>{label}</span>}
-        <span className="openui-intelligent-timer-time">{clock(left)}</span>
+    <div className={clsx(styles.root, names.root)} data-state={done ? "done" : running ? "running" : undefined} role="timer" aria-label={label || "Timer"}>
+      <div className={clsx(styles.read, names.read)}>
+        {label && <span className={clsx(fieldStyles.label, fieldNames.label)}>{label}</span>}
+        <span className={clsx(styles.time, names.time)}>{clock(left)}</span>
       </div>
-      <div className="openui-intelligent-timer-actions">
+      <div className={clsx(styles.actions, names.actions)}>
         <Button variant="solid" size="sm" icon={running ? "pause" : "play"} disabled={disabled || left === 0} onClick={toggle}>
           {running ? "Pause" : startedAt === null || left === 0 ? "Start" : "Resume"}
         </Button>
