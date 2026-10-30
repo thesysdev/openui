@@ -1,0 +1,64 @@
+{
+  "upstream": "f08a660535e55b5b2a24a0eb68568edaf9e4fe4b",
+  "sourceTree": "bf6be546007f96c87689c7b47c29e1f09175f6f6",
+  "sha256": "fe5946480f541220cfa5f4e535462f192975ca5d12b1af22aa6873b0b3bfdd15",
+  "bytes": 721350,
+  "lockSha256": "1c8c81dc00c8717afd390d204c683bf1851baf01f0ed9b9f395d01b43b5a497e",
+  "adapterSha256": "ae6d7eac444447154547f19daa66dab9539333ab47f62395ff7be2c50ec72ff1",
+  "telemetry": "excluded at build time: native host has no process, fetch or install telemetry",
+  "bridge": "opaque captures resolve through upstream EvaluationContext.resolveRef; core-created ActionPlan objects retain provenance; host-authored plans execute at the native boundary",
+  "authoring": {
+    "rules": [
+      "lang-core createLibrary",
+      "lang-core library.extend",
+      "lang-core compileSchema",
+      "lang-core schemaSignature/buildSignature"
+    ],
+    "transport": "Pinned Zod fromJSONSchema plus JSON/Zod reference identity. LibrarySpec and signatures come directly from the shared core.",
+    "removedNativeRules": [
+      "component/call naming and parameter-order checks",
+      "namespace/group validation copies",
+      "JSON Schema compiler and action-ref inlining",
+      "slot add/remove/override algorithms",
+      "signature type rendering",
+      "static action schema copies"
+    ]
+  },
+  "hostCapabilities": [
+    "UTF-8 encoding for WHATWG URL",
+    "timers and tool Promise callbacks",
+    "bounded no-flag ECMAScript pattern validation"
+  ],
+  "compatibility": [
+    "serializer precedence and lossless keys",
+    "materialization depth/node budgets"
+  ],
+  "retainedPatches": [
+    {
+      "module": "parser/serialize.ts",
+      "reason": "Pinned serializer loses grouping and fails to quote nonidentifier keys during editing round trips.",
+      "removal": "Adopt an upstream release with equivalent verified round-trip fixes."
+    },
+    {
+      "module": "parser/materialize.ts",
+      "reason": "Preserve tested 256-level and 100000-node bounds for native model input.",
+      "removal": "Equivalent shared-core or host execution bounds verified on Apple runtimes."
+    },
+    {
+      "module": "utils/validation.ts",
+      "reason": "Delegate pattern execution to the existing bounded native backend; stock JSC RegExp has no portable per-call budget.",
+      "removal": "Equivalent bounded pattern execution in the shared core or host runtime."
+    }
+  ],
+  "removedSemanticOverrides": [
+    "raw message context API compatibility",
+    "batch parsing on streaming finalization and implicit stream reset",
+    "legacy schema spelling, ordered-wire and signature projection",
+    "Store shallow-object identity replacement",
+    "merge duplicate-ID normalization",
+    "extra slot, branch, template and argument validation",
+    "Query/Mutation statement-reference expansion",
+    "query retry suppression and skipInitialFetch",
+    "evaluator capture dispatch and native-plan provenance exemption"
+  ]
+}

@@ -1,0 +1,54 @@
+"Select" = "请选择";
+"Start date" = "开始日期";
+"End date" = "结束日期";
+"Clear" = "清除";
+"Value unavailable" = "数值暂不可用";
+"Sections" = "内容分组";
+"Select date" = "选择日期";
+"Cancel" = "取消";
+"Done" = "完成";
+"In progress" = "处理中";
+"On" = "开启";
+"Off" = "关闭";
+"Selected" = "已选择";
+"Not selected" = "未选择";
+
+"Close" = "关闭";
+
+"Changed cells" = "处修改";
+
+"Reset" = "重置";
+
+"Save Changes" = "保存修改";
+"Map" = "地图";
+"Expand map" = "展开地图";
+"Open place" = "打开地点";
+"Swipe to change place" = "左右滑动切换地点";
+"Loading image" = "图片加载中";
+"Image unavailable" = "图片暂不可用";
+"Retry" = "重试";
+"Open original image" = "打开原图";
+"%lld images unavailable" = "%lld 张图片暂不可用";
+"Image descriptions" = "图片说明";
+"All photos" = "全部图片";
+"Show all photos" = "查看全部图片";
+"Close gallery" = "关闭图库";
+"View image" = "查看图片";
+
+"Previous page" = "上一页";
+"Next page" = "下一页";
+"Copy code" = "复制代码";
+"Copied to clipboard" = "已复制到剪贴板";
+"Loading data" = "正在加载数据";
+"Hidden" = "已隐藏";
+"Visible" = "显示中";
+"Sources" = "来源";
+"Value" = "数值";
+
+"Previous place" = "上一个地点";
+
+"Next place" = "下一个地点";
+
+"Show all places" = "显示全部地点";
+
+"Places" = "地点列表";
