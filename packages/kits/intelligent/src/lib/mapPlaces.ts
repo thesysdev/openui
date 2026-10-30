@@ -1,5 +1,5 @@
-import { coordinate, pinEmoji } from "../../components/Map/map-utils";
-import type { Place } from "../../components/Map/place";
+import { coordinate, pinEmoji } from "../components/Map/map-utils";
+import type { Place } from "../components/Map/place";
 
 /** Markers as plain data. While streaming, only finished markers count, so a half-written -12 never moves a pin. */
 export function placesOf(markers: unknown, streaming: boolean): Place[] {

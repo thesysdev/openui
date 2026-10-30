@@ -24,8 +24,7 @@
         "types": "./dist/lib/index.d.cts",
         "default": "./dist/lib/index.cjs"
       }
-    },
-    "./styles.css": "./dist/styles.css"
+    }
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -45,7 +44,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsdown && node scripts/bundle-css.mjs",
+    "build": "tsdown",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

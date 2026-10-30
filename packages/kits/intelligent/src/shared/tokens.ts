@@ -1,7 +1,10 @@
+import "./theme.css";
+
 /**
  * The kit's design tokens as they are written in its styles, each with its light
  * value as a fallback. theme.css holds the values, for light and dark. A neutral
- * reads through to the OpenUI theme, so the kit follows a host's theme.
+ * reads through to the OpenUI theme, so the kit follows a host's theme. Importing
+ * the sheet here means anything that uses a token brings the theme with it.
  */
 export const tokens = {
   font: "var(--openui-intelligent-font, var(--openui-font-body, \"Inter\", sans-serif))",

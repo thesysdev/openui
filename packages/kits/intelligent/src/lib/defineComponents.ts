@@ -1,10 +1,3 @@
-// Stylesheets in cascade order. Order matters where two sheets style one
-// element at the same specificity: tokens first, Button before
-// SegmentedControl (segments retune its tokens), markdownBlocks before
-// Markdown (the prose rhythm sets the margins), and shared last (its spacing
-// wins). src/index.ts imports the same list; the build checks both against
-// the sheets on disk.
-import "../shared/theme.css";
 import { Chart } from "./Chart";
 import { Carousel } from "./Carousel";
 import { Celebration } from "./Celebration";
@@ -59,7 +52,7 @@ import { Markdown } from "./Markdown";
  * a working tool rather than a form sent back to the assistant.
  *
  * Importing this runs no createLibrary, so a host can spread it into its own
- * library or take a subset. The stylesheets come with it for the same reason.
+ * library or take a subset.
  */
 export const baseComponents = [
     Col, Row, Box, Grid, Card, Carousel, Popover, Divider, Spacer,

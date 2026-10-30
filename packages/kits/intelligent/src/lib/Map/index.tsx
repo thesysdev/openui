@@ -3,7 +3,7 @@
 import { defineComponent, useIsStreaming, useStateField } from "@openuidev/react-lang";
 import { useId } from "react";
 import { MapView as StreetMap } from "../../components/Map";
-import { placesOf } from "./places";
+import { placesOf } from "../mapPlaces";
 import { createMapSchema, MapMarkerSchema } from "./schema";
 
 export * from "./schema";

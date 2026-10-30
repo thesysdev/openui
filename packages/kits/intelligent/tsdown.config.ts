@@ -10,8 +10,9 @@ export default defineConfig({
   target: "es2022",
   outDir: "dist",
   clean: true,
-  // The stylesheets ship as files, not inlined: tsdown leaves the
-  // `import "./theme.css"` specifiers in place and scripts/bundle-css.mjs
-  // copies the sheets next to them (and concatenates dist/styles.css).
+  // The styles are goober; only the tokens are a stylesheet, because their
+  // selectors reach elements the kit does not class. It ships as a file, and
+  // maplibre-gl's and katex's sheets stay imports of those packages.
   external: [/\.css$/],
+  copy: [{ from: "src/shared/theme.css", to: "dist/shared" }],
 });

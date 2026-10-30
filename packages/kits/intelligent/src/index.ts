@@ -1,11 +1,5 @@
 "use client";
 
-// The stylesheets, so importing a component from here styles it. Listed in
-// package.json "sideEffects" so bundlers keep them; hosts without a bundler
-// can load dist/styles.css instead. The list and its order are the same as in
-// lib/defineComponents.ts.
-import "./shared/theme.css";
-
 // Host configuration: where Photo (SearchImage, Image) and Map fetch from.
 export {
   configureIntelligentKit,
