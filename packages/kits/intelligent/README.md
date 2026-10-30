@@ -25,14 +25,9 @@ dashboard kits, it draws with react-components where that has the component
 import { library, promptOptions } from "@openuidev/intelligent-kit/lib";
 ```
 
-Both entrypoints pull the stylesheets in, so under a bundler the components are
-styled with no extra import. Hosts without a bundler can load the concatenated
-sheet instead, which also carries maplibre-gl's own stylesheet so `Map` is
-styled:
-
-```ts
-import "@openuidev/intelligent-kit/styles.css";
-```
+The components bring their own styles, so there is nothing else to import. A
+bundler is required: the kit imports `theme.css` and the sheets of maplibre-gl and
+KaTeX.
 
 ```tsx
 <Renderer response={program} library={library} />
@@ -54,28 +49,55 @@ Laid out like the dashboard kit:
 
 ```
 src/
-  index.ts                          "use client", the stylesheets, the host
-                                    configuration and the kit's own components
+  index.ts                          "use client", the host configuration and the
+                                    kit's own components
   components/<Name>/                the kit's own React components, no openui-lang:
-    <Name>.tsx  index.ts  <name>.css
-  shared/                           what both halves need: theme.css, shared.css,
+    <Name>.tsx  <name>.styles.ts  index.ts
+  shared/                           what both halves need: theme.css (the tokens),
+                                    tokens.ts, flow.styles.ts (the spacing system),
                                     style.ts (prop values to CSS), scheme.ts, config.ts
   lib/
     index.ts                        the library and every component definition
     <Name>/{index.tsx, schema.ts}   one binding per library component
     Svg/                            the drawing family, one file per shape
-    defineComponents.ts             the definitions and the stylesheet order
+    defineComponents.ts             the definitions
     openuiIntelligentLibrary.ts     the library and its groups
-    helpers.ts  controlHelpers.ts  actions.ts  functions/  prompt-options/
+    helpers.ts  controlHelpers.ts  mapPlaces.ts  actions.ts  functions/  prompt-options/
 ```
 
 A binding maps the model's props onto components and draws no markup of its
-own. Eleven bind straight to react-components (`Badge`, `Chart`, `Code`,
-`DatePicker`, `Divider`, `IconButton`, `Input`, `Label`, `Select`, `Table`,
-`TextArea`); the rest render a component from `src/components`, which holds
-whatever the kit draws itself: its layout, text and media, the map, and the
-controls with their own look (`Button`, `SegmentedControl`, `Slider`, `Timer`,
-`Checkbox`, `RadioGroup`, `Field`).
+own. Nine bind straight to react-components (`Chart`, `Code`, `DatePicker`,
+`Divider`, `Input`, `Label`, `Select`, `Table`, `TextArea`); the rest render a
+component from `src/components`, which holds whatever the kit draws itself: its
+layout, text and media, the map, and the controls with their own look (`Badge`,
+`Button`, `IconButton`, `SegmentedControl`, `Slider`, `Timer`, `Checkbox`,
+`RadioGroup`, `Field`).
+
+## Styling
+
+Styles follow the same flat contract as `@openuidev/react-components`, and it needs
+that package's flat-styles release ([#124](https://github.com/ankit-thesys/openui-comp/pull/124)):
+
+- Every element has one generated class and one stable class. Each `<name>.styles.ts`
+  exports them as `styles` and `names`, and all stable classes start with
+  `openui-intelligent-`, so a plain class in your stylesheet can target and override them.
+- Variants set private `--_openui-intelligent-*` variables that the parts read. States are
+  attributes such as `aria-pressed`, `aria-checked`, `data-state` and `data-selected`.
+- Every token has a fallback, so components still render without `theme.css` or a provider.
+- Where the kit changes a react-components element, it uses the kit class plus that
+  element's stable class, such as `&.openui-button`: react-components registers its rules
+  at first render, so one class would tie and lose.
+- `theme.css` is the one plain stylesheet: its selectors reach elements the kit does not
+  class, such as a `data-theme` on your own element.
+
+A few rules are not flat, because the kit does not render the elements they reach: the
+spacing system and card-sized type (the model's children), a Row's or Grid's children, a
+Form's closing action, the photo row (which needs `!important` to beat inline styles), and
+the sheets over KaTeX's and maplibre's DOM.
+
+On the server, `getComponentStyles()` from react-components collects the kit's styles
+too. As with react-components, streaming SSR is not supported in first paint: the kit is
+unstyled until the page's JavaScript runs.
 
 ## Configuration
 
@@ -112,12 +134,14 @@ Light is the default. Switch to dark with either attribute:
 ```
 
 `data-theme` works on any element; `data-openui-theme` is matched as
-`:root[data-openui-theme="dark"]`, so it only takes effect on `<html>`.
+`:root[data-openui-theme="dark"]`, so it only takes effect on `<html>`. Without an
+OpenUI theme, either one also sets the `--openui-*` neutrals, at zero weight, so
+react-components' controls go dark too and any theme of yours still wins.
 
-Colours are CSS custom properties in `theme.css` (`--iui-*`). Only the base
+Colours are CSS custom properties in `theme.css` (`--openui-intelligent-*`). Only the base
 neutrals and the status, chart and map colours are set directly; borders,
 surfaces, hover, focus and range tracks are derived from
-`--iui-ink` and `--iui-canvas` with `color-mix`, so re-pointing those two
+`--openui-intelligent-ink` and `--openui-intelligent-canvas` with `color-mix`, so re-pointing those two
 re-tunes the whole scale.
 
 ### With an OpenUI theme
@@ -125,8 +149,8 @@ re-tunes the whole scale.
 The neutrals read through to the OpenUI theme variables:
 
 ```css
---iui-ink: var(--openui-text-neutral-primary, #0d0d0d);
---iui-canvas: var(--openui-foreground, #ffffff);
+--openui-intelligent-ink: var(--openui-text-neutral-primary, #0d0d0d);
+--openui-intelligent-canvas: var(--openui-foreground, #ffffff);
 ```
 
 So in an app that already has an OpenUI theme — `AgentInterface` or
@@ -161,7 +185,7 @@ Root `Col`, 55 components in 6 groups, 59 `@functions`, 1 action
 | Root | `Card` | `Stack` | `Col` |
 | Registered | 84 | 82 | 55 |
 | `@functions` | — | — | 59 |
-| Styling | goober | goober | CSS files |
+| Styling | goober | goober | goober |
 
 ## Parity with the source app
 

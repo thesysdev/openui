@@ -7,7 +7,7 @@
     "outDir": "dist",
     "types": ["node", "react", "react-dom"],
 
-    // src/lib is vendored from the Open Intelligent UI app, which compiles under
+    // The code comes from the Open Intelligent UI app, which compiles under
     // `strict` but not these two flags. Keeping them on here would mean editing
     // ~30 call sites in code that is meant to track upstream, so every future
     // sync would conflict. The flags stay on for the other kits.

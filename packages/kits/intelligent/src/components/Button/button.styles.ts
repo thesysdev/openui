@@ -115,7 +115,7 @@ export const styles = {
       }
     `,
     outline: css`
-      &.openui-button:not(:hover),
+      &.openui-button:not(:hover,:active),
       &.openui-button:disabled {
         background-color: ${tokens.canvas};
       }
@@ -126,7 +126,7 @@ export const styles = {
     soft: css`
       --openui-highlight: ${tokens.pressed};
       --openui-border-interactive: transparent;
-      &.openui-button:not(:hover),
+      &.openui-button:not(:hover,:active),
       &.openui-button:disabled {
         background-color: ${tokens.surface};
       }
