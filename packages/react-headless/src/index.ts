@@ -1,5 +1,27 @@
+export { parseArtifactReference } from "./cloud/artifactReference";
+export type { ArtifactReference } from "./cloud/artifactReference";
+export { useArtifactStream } from "./cloud/artifactStream";
+export type {
+  ArtifactStreamError,
+  ArtifactStreamErrorCode,
+  ArtifactStreamSnapshot,
+  ArtifactStreamState,
+  UseArtifactStreamOptions,
+} from "./cloud/artifactStream";
+export type { FrontendTokenSource } from "./cloud/frontendTokenManager";
+export { createInterpreterToolProvider } from "./cloud/interpreter";
+export type {
+  Interpreter,
+  InterpreterConfig,
+  InterpreterFunction,
+  InterpreterRequest,
+  InterpreterToolProvider,
+  InterpreterToolProviderOptions,
+} from "./cloud/interpreter";
 export { useOpenuiCloudStorage } from "./cloud/openuiCloud";
 export type { OpenuiCloudFeatures, OpenuiCloudOptions } from "./cloud/openuiCloud";
+export { OpenUICloudProvider } from "./cloud/OpenUICloudProvider";
+export type { OpenUICloudProviderProps } from "./cloud/OpenUICloudProvider";
 export { useActiveDetailedView } from "./hooks/useActiveDetailedView";
 export { useArtifactList } from "./hooks/useArtifactList";
 export type { ArtifactListFilter } from "./hooks/useArtifactList";
@@ -51,6 +73,8 @@ export type {
   ArtifactCategory,
   ArtifactListParams,
   ArtifactStorage,
+  ArtifactStreamEvent,
+  ArtifactStreamOptions,
   ArtifactSummary,
   ChatLLM,
   ChatStorage,

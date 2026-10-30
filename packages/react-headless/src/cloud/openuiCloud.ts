@@ -6,8 +6,8 @@ import type { ChatStorage } from "../adapters/types";
 import { cloudArtifactStorage } from "./artifactStorage";
 import {
   createFctFetch,
-  createFrontendTokenManager,
-  type FrontendTokenManager,
+  toFrontendTokenManager,
+  type FrontendTokenSource,
 } from "./frontendTokenManager";
 import { cloudThreadStorage } from "./threadStorage";
 
@@ -32,7 +32,7 @@ export interface OpenuiCloudOptions {
    * rides the `x-thesys-frontend-token` header on every /v1 call. The frontend
    * token is minted server-side; the master key never reaches the browser.
    */
-  token: string | (() => Promise<string>);
+  token: FrontendTokenSource;
   /** Which storage surfaces to wire. Omit to enable all. */
   features?: OpenuiCloudFeatures;
   /** fetch override (tests / SSR). Defaults to globalThis.fetch. */
@@ -78,7 +78,10 @@ export function useOpenuiCloudStorage(options: OpenuiCloudOptions): ChatStorage 
 /** The actual storage wiring — a pure factory with no React, memoised by the
  *  hook above. */
 function createCloudStorage(options: OpenuiCloudOptions): ChatStorage {
-  const tokens = toTokenManager(options);
+  const tokens = toFrontendTokenManager(options.token, {
+    fetch: options.fetch,
+    refreshSkewSeconds: options.refreshSkewSeconds,
+  });
   const fctFetch = createFctFetch(tokens, options.fetch);
   const artifactOn = options.features?.artifact ?? true;
   const baseUrl = options.apiBaseUrl ?? DEFAULT_API_BASE_URL;
@@ -90,26 +93,4 @@ function createCloudStorage(options: OpenuiCloudOptions): ChatStorage {
     storage.artifact = cloudArtifactStorage({ baseUrl, fetch: fctFetch });
   }
   return storage;
-}
-
-/** Normalize the `token` option into a FrontendTokenManager. */
-function toTokenManager(options: OpenuiCloudOptions): FrontendTokenManager {
-  if (typeof options.token === "string") {
-    return createFrontendTokenManager({
-      mintUrl: options.token,
-      fetch: options.fetch,
-      refreshSkewSeconds: options.refreshSkewSeconds,
-    });
-  }
-  const provider = options.token;
-  let current: string | null = null;
-  return {
-    async getToken(): Promise<string> {
-      current = await provider();
-      return current;
-    },
-    invalidate(staleToken?: string): void {
-      if (staleToken === undefined || staleToken === current) current = null;
-    },
-  };
 }

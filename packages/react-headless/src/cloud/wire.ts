@@ -34,11 +34,11 @@ export interface CloudConversationItem {
 export interface CloudArtifact {
   id: string;
   object: "openui.artifact";
-  conversation_id: string;
-  kind: string; // 'slides' | 'report'
+  conversation_id?: string;
+  kind: string; // 'slides' | 'report' | 'dashboard'
   name?: string;
   version?: string; // server bumps via String(Date.now()) when omitted
-  content: string;
+  content?: string;
   created_at: number;
   updated_at?: number;
 }

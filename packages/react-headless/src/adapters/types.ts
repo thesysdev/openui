@@ -34,10 +34,37 @@ export interface Artifact extends ArtifactSummary {
 export interface ArtifactListParams {
   /** Partial-match search on `title`. Server-side. */
   name?: string;
-  /** Filter by artifact types. Server-side. */
+  /** Filter by artifact types (kinds, such as `dashboard` or `slides`). Server-side. */
   type?: string[];
+  /** `true`: only pinned artifacts; `false`: only unpinned ones. Server-side. */
+  pinned?: boolean;
+  /** Only artifacts from this thread. Server-side. */
+  threadId?: string;
+  /** Newest first (`desc`, the default) or oldest first. */
+  order?: "asc" | "desc";
   cursor?: string;
   limit?: number;
+}
+
+/**
+ * One event on an artifact's stream: its reference first, then its content in
+ * pieces, then `end` (or `error`). `eventId` is the resume point after a
+ * dropped connection.
+ */
+export type ArtifactStreamEvent =
+  | {
+      type: "reference";
+      eventId?: string;
+      data: { id: string; type?: string; definition?: string; title?: string };
+    }
+  | { type: "delta"; eventId?: string; data: { text: string } }
+  | { type: "end"; eventId?: string }
+  | { type: "error"; eventId?: string; data: { code?: string; message?: string } };
+
+export interface ArtifactStreamOptions {
+  /** Resume after this event. */
+  lastEventId?: string;
+  signal?: AbortSignal;
 }
 
 export interface ArtifactStorage {
@@ -45,6 +72,13 @@ export interface ArtifactStorage {
   get(id: string): Promise<Artifact>;
   /** Persist edited artifact content. Called by renderer implementations (via `useArtifactStorage`), not by the framework. */
   update(patch: { id: string; content: unknown }): Promise<ArtifactSummary>;
+  /**
+   * Optional. Stream an artifact while it is generated, or replay a finished
+   * one. A missing artifact yields one `error` event with code `not-found`,
+   * and one the caller may not read, code `unauthorized`; a failed
+   * connection throws and is retried. Storages without it are read with `get`.
+   */
+  stream?(id: string, options?: ArtifactStreamOptions): AsyncIterable<ArtifactStreamEvent>;
 }
 
 /**

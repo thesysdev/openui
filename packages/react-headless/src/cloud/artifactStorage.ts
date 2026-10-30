@@ -2,9 +2,22 @@ import type {
   Artifact,
   ArtifactListParams,
   ArtifactStorage,
+  ArtifactStreamEvent,
+  ArtifactStreamOptions,
   ArtifactSummary,
 } from "../adapters/types";
+import { readSse } from "./sse";
 import { cloudRequest, nextCursorOf, type CloudArtifact, type CloudListEnvelope } from "./wire";
+
+const STREAM_EVENT_TYPES = new Set(["reference", "delta", "end", "error"]);
+
+function parseJson(data: string): unknown {
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
 
 export interface CloudArtifactStorageOptions {
   /** OpenUI Cloud API origin, e.g. "http://localhost:3102". */
@@ -20,7 +33,7 @@ function toSummary(artifact: CloudArtifact): ArtifactSummary {
     id: artifact.id,
     title: artifact.name ?? artifact.id,
     type: artifact.kind,
-    threadId: artifact.conversation_id,
+    threadId: artifact.conversation_id ?? "",
     updatedAt: (artifact.updated_at ?? artifact.created_at) * 1000,
   };
 }
@@ -31,6 +44,7 @@ export function cloudArtifactStorage({
   pageLimit = 100,
 }: CloudArtifactStorageOptions): ArtifactStorage {
   const request = cloudRequest(fetchImpl, baseUrl);
+  const base = baseUrl.replace(/\/+$/, "");
 
   return {
     /** GET /v1/artifacts?[name=][kind=…]&limit[&after=]. Omitting the
@@ -39,6 +53,9 @@ export function cloudArtifactStorage({
       const query = new URLSearchParams();
       if (params?.name !== undefined && params.name !== "") query.set("name", params.name);
       for (const type of params?.type ?? []) query.append("kind", type);
+      if (params?.pinned !== undefined) query.set("pinned", String(params.pinned));
+      if (params?.threadId !== undefined) query.set("conversation_id", params.threadId);
+      if (params?.order !== undefined) query.set("order", params.order);
       if (params?.cursor !== undefined) query.set("after", params.cursor);
       query.set("limit", String(params?.limit ?? pageLimit));
       const res = await request(`/v1/artifacts?${query.toString()}`);
@@ -67,6 +84,49 @@ export function cloudArtifactStorage({
         body: JSON.stringify({ content }),
       });
       return toSummary((await res.json()) as CloudArtifact);
+    },
+
+    /** GET /v1/artifacts/:id/stream (SSE). Replays a finished artifact the
+     *  same way; `Last-Event-ID` resumes a dropped stream. */
+    async *stream(
+      id: string,
+      options?: ArtifactStreamOptions,
+    ): AsyncGenerator<ArtifactStreamEvent> {
+      const headers: Record<string, string> = { Accept: "text/event-stream" };
+      if (options?.lastEventId) headers["Last-Event-ID"] = options.lastEventId;
+      const res = await fetchImpl(`${base}/v1/artifacts/${encodeURIComponent(id)}/stream`, {
+        headers,
+        signal: options?.signal,
+      });
+      if (res.status === 404) {
+        yield {
+          type: "error",
+          data: { code: "not-found", message: "This artifact was deleted, or you can't see it." },
+        };
+        return;
+      }
+      // A 401 already got a fresh token (createFctFetch); retrying won't change either.
+      if (res.status === 401 || res.status === 403) {
+        yield {
+          type: "error",
+          data: {
+            code: "unauthorized",
+            message: "Your session expired, or you can't see this artifact.",
+          },
+        };
+        return;
+      }
+      if (!res.ok || !res.body) {
+        throw new Error(`OpenUI Cloud: stream ${id} failed: ${res.status} ${res.statusText}`);
+      }
+      for await (const message of readSse(res.body)) {
+        if (!STREAM_EVENT_TYPES.has(message.event)) continue;
+        yield {
+          type: message.event,
+          eventId: message.id,
+          data: parseJson(message.data),
+        } as ArtifactStreamEvent;
+      }
     },
   };
 }
