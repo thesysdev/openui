@@ -15,63 +15,13 @@ interface ParsedStatement {
   raw: string;
 }
 
-function splitStatementSource(input: string): string[] {
-  const stmts: string[] = [];
-  let depth = 0;
-  let inStr: false | '"' | "'" = false;
-  let esc = false;
-  let start = 0;
-
-  for (let i = 0; i < input.length; i++) {
-    const c = input[i];
-
-    if (esc) {
-      esc = false;
-      continue;
-    }
-    if (c === "\\" && inStr) {
-      esc = true;
-      continue;
-    }
-    if (inStr) {
-      if (c === inStr) inStr = false;
-      continue;
-    }
-    if (c === '"' || c === "'") {
-      inStr = c;
-      continue;
-    }
-
-    if (c === "(" || c === "[" || c === "{") depth++;
-    else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
-    else if (c === "\n" && depth <= 0) {
-      const stmt = input.slice(start, i).trim();
-      if (stmt) stmts.push(stmt);
-      start = i + 1;
-    }
-  }
-
-  const tail = input.slice(start).trim();
-  if (tail) stmts.push(tail);
-  return stmts;
-}
-
+/** Split with the parser's own `split()` and keep each statement's source text. */
 function parseStatements(input: string): ParsedStatement[] {
-  const trimmed = input.trim();
-  if (!trimmed) return [];
-
-  const result: ParsedStatement[] = [];
-  for (const raw of splitStatementSource(trimmed)) {
-    const stmt = split(tokenize(raw))[0];
-    if (!stmt) continue;
-    result.push({
-      id: stmt.id,
-      ast: parseExpression(stmt.tokens),
-      raw,
-    });
-  }
-
-  return result;
+  return split(tokenize(input)).map((stmt) => ({
+    id: stmt.id,
+    ast: parseExpression(stmt.tokens),
+    raw: input.slice(stmt.start, stmt.end).trimEnd(),
+  }));
 }
 
 /**

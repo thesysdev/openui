@@ -24,7 +24,7 @@ export function tokenize(src: string): Token[] {
 
     // ── Newline ────────────────────────────────────────────────────────
     if (c === "\n") {
-      tokens.push({ t: T.Newline });
+      tokens.push({ t: T.Newline, start: i });
       i++;
       continue;
     }
@@ -315,7 +315,7 @@ export function tokenize(src: string): Token[] {
           src[i] === "_")
       )
         i++;
-      tokens.push({ t: T.StateVar, v: src.slice(start, i) });
+      tokens.push({ t: T.StateVar, v: src.slice(start, i), start });
       continue;
     }
 
@@ -346,7 +346,7 @@ export function tokenize(src: string): Token[] {
       }
       // PascalCase → component type name; lowercase → variable reference
       const kind = c >= "A" && c <= "Z" ? T.Type : T.Ident;
-      tokens.push({ t: kind, v: word });
+      tokens.push({ t: kind, v: word, start });
       continue;
     }
 
@@ -375,6 +375,6 @@ export function tokenize(src: string): Token[] {
     i++; // skip any other character (e.g. #, emojis)
   }
 
-  tokens.push({ t: T.EOF });
+  tokens.push({ t: T.EOF, start: n });
   return tokens;
 }
