@@ -101,9 +101,6 @@ export function isElementNode(value: unknown): value is ElementNode {
   );
 }
 
-/** Stands in, while streaming, for a child not written yet. Never leaves the parser. */
-export const PENDING_SLOT = { type: "pending" } as const;
-
 /**
  * Validation error codes for schema-related issues.
  */
@@ -148,10 +145,6 @@ export interface MaterializeCtx {
   currentStatementId?: string;
   /** Statement IDs not yet reached — delete as they're touched. Remaining = orphaned. */
   unreached?: Set<string>;
-  /** Mark in arrays where a child not written yet goes (streaming with smoothStreaming). */
-  pendingSlots?: boolean;
-  /** The statement still being written. */
-  streamingStatementId?: string;
 }
 
 /**
