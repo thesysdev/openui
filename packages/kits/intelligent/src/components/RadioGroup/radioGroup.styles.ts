@@ -28,6 +28,7 @@ export const styles = {
 
     & .openui-radio-group {
       gap: 2px;
+      border: 0;
     }
     & .openui-radio-item-container {
       align-items: center;
