@@ -1,4 +1,6 @@
+import clsx from "clsx";
 import type { LngLatBoundsLike } from "maplibre-gl";
+import { names, styles } from "./map.styles";
 
 /** [lat, lng]. MapLibre itself takes [lng, lat]; convert with `lngLat`. */
 export type LatLng = [number, number];
@@ -43,17 +45,33 @@ export function pinEmoji(value: unknown): string | null {
 }
 
 /** A focusable pin with a label underneath; Enter/Space and click both select it. */
+/**
+ * A CSS colour as MapLibre can parse it. A theme's tokens may be oklch, which it rejects with an
+ * error that would drop the map to its fallback tiles, so a canvas resolves the colour to rgba.
+ */
+export function mapColor(value: string, fallback = "#272727"): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 1;
+  const context = canvas.getContext("2d");
+  if (!context) return fallback;
+  context.fillStyle = fallback;
+  context.fillStyle = value || fallback;
+  context.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+  return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+}
+
 export function createPinElement(onSelect: () => void) {
   const element = document.createElement("div");
-  element.className = "openui-intelligent-map-marker";
+  element.className = clsx(styles.marker, names.marker);
   element.tabIndex = 0;
   element.setAttribute("role", "button");
   const content = document.createElement("div");
-  content.className = "openui-intelligent-map-marker-content";
+  content.className = clsx(styles.markerContent, names.markerContent);
   const pin = document.createElement("span");
-  pin.className = "openui-intelligent-map-pin";
+  pin.className = clsx(styles.pin, names.pin);
   const label = document.createElement("span");
-  label.className = "openui-intelligent-map-label";
+  label.className = clsx(styles.label, names.label);
   content.append(pin, label);
   element.append(content);
   element.addEventListener("click", onSelect);

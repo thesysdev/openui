@@ -123,8 +123,6 @@ const RADIUS: Record<string, string> = {
 };
 export const radius = (value: unknown) => (typeof value === "string" ? RADIUS[value] : size(value));
 
-export const cx = (...names: (string | false | null | undefined)[]) => names.filter(Boolean).join(" ") || undefined;
-
 /** A short plain-text name for an element, from its rendered text, for action messages. */
 export const textOf = (element: HTMLElement | null) => (element?.innerText ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
 

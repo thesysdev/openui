@@ -1,8 +1,10 @@
 "use client";
 
+import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { tokens } from "../../shared/tokens";
+import { DRIFT, names, SPIN, styles } from "./celebration.styles";
 
 export interface CelebrationProps {
   /** Confetti bursts when this turns true. */
@@ -30,17 +32,18 @@ export function Celebration({ when, paused }: CelebrationProps) {
   }, [burst]);
   if (!burst || typeof document === "undefined") return null;
   return createPortal(
-    <div className="openui-intelligent-confetti" aria-hidden key={burst}>
+    <div className={clsx(styles.root, names.root)} aria-hidden key={burst}>
       {Array.from({ length: 70 }, (_, i) => (
         <i
           key={i}
+          className={clsx(styles.piece, names.piece)}
           style={{
             left: `${(i * 37) % 100}%`,
             background: CONFETTI[i % CONFETTI.length],
             animationDelay: `${(i % 10) * 40}ms`,
             animationDuration: `${1200 + ((i * 53) % 900)}ms`,
-            ["--x" as string]: `${((i * 71) % 200) - 100}px`,
-            ["--r" as string]: `${(i * 97) % 720}deg`,
+            [DRIFT as string]: `${((i * 71) % 200) - 100}px`,
+            [SPIN as string]: `${(i * 97) % 720}deg`,
           }}
         />
       ))}

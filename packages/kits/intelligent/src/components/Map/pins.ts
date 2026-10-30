@@ -32,8 +32,8 @@ export function syncPins(
     entry.element.title = place.label;
     entry.element.setAttribute("aria-label", place.label);
     entry.element.setAttribute("aria-pressed", String(selected === place.label));
-    entry.pin.classList.toggle("is-selected", selected === place.label);
-    entry.pin.classList.toggle("is-numbered", !place.icon);
+    entry.pin.toggleAttribute("data-selected", selected === place.label);
+    entry.pin.toggleAttribute("data-numbered", !place.icon);
     entry.pin.textContent = place.icon ?? String(place.order + 1);
     entry.label.textContent = place.label;
   });

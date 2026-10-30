@@ -5,12 +5,6 @@
 // wins). src/index.ts imports the same list; the build checks both against
 // the sheets on disk.
 import "../shared/theme.css";
-import "../components/Photo/photo.css";
-import "../components/HtmlView/htmlView.css";
-import "../components/Popover/popover.css";
-import "../components/Flashcard/flashcard.css";
-import "../components/Celebration/celebration.css";
-import "../components/Map/map.css";
 import { Chart } from "./Chart";
 import { Carousel } from "./Carousel";
 import { Celebration } from "./Celebration";

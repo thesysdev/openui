@@ -7,10 +7,12 @@
  * loading shimmer, the empty state and free aspect ratios.
  */
 
+import clsx from "clsx";
 import { ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { endpoints } from "../../shared/config";
-import { cx, radius, webUrl, type Radius } from "../../shared/style";
+import { radius, webUrl, type Radius } from "../../shared/style";
+import { names, styles } from "./photo.styles";
 
 // Image search
 const searches = new Map<string, Promise<string[]>>();
@@ -89,7 +91,8 @@ export function Photo(props: PhotoProps) {
   const ratio = typeof props.aspectRatio === "number" && props.aspectRatio > 0.2 && props.aspectRatio < 5 ? props.aspectRatio : 1.5;
   return (
     <div
-      className={cx("openui-intelligent-photo", props.fit === "contain" && "is-contain", loaded === current && "is-loaded")}
+      className={clsx(styles.root, names.root, props.fit === "contain" && [styles.contain, names.contain])}
+      data-state={loaded === current ? "loaded" : settled ? "empty" : undefined}
       style={{ aspectRatio: ratio, borderRadius: radius(props.radius ?? "lg") }}
       role={current ? undefined : "img"}
       aria-label={current ? undefined : alt}
@@ -97,6 +100,7 @@ export function Photo(props: PhotoProps) {
       {current ? (
         <img
           key={current}
+          className={clsx(styles.image, names.image)}
           src={current}
           alt={alt}
           loading="lazy"
@@ -105,7 +109,7 @@ export function Photo(props: PhotoProps) {
           onError={() => setFailed((list) => [...list, current])}
         />
       ) : settled ? (
-        <ImageIcon aria-hidden className="openui-intelligent-photo-empty" strokeWidth={1.5} />
+        <ImageIcon aria-hidden className={clsx(styles.empty, names.empty)} strokeWidth={1.5} />
       ) : null}
     </div>
   );

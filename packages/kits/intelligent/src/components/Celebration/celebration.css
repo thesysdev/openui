@@ -1,7 +1,0 @@
-.openui-intelligent-confetti { position: fixed; inset: 0; z-index: 3000; overflow: hidden; pointer-events: none; }
-.openui-intelligent-confetti > i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; animation: openui-intelligent-confetti 1.6s cubic-bezier(.2, .6, .4, 1) forwards; }
-@keyframes openui-intelligent-confetti { to { transform: translate(var(--x), 105vh) rotate(var(--r)); opacity: .7; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .openui-intelligent-confetti { display: none; }
-}

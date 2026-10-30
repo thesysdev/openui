@@ -5,12 +5,6 @@
 // can load dist/styles.css instead. The list and its order are the same as in
 // lib/defineComponents.ts.
 import "./shared/theme.css";
-import "./components/Photo/photo.css";
-import "./components/HtmlView/htmlView.css";
-import "./components/Popover/popover.css";
-import "./components/Flashcard/flashcard.css";
-import "./components/Celebration/celebration.css";
-import "./components/Map/map.css";
 
 // Host configuration: where Photo (SearchImage, Image) and Map fetch from.
 export {

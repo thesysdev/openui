@@ -1,7 +1,9 @@
 "use client";
 
+import clsx from "clsx";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { names, styles } from "./popover.styles";
 
 /** Space kept between the panel and the screen edge, and between the panel and its trigger. */
 const EDGE = 12;
@@ -83,7 +85,7 @@ export function Popover({ trigger, children }: PopoverProps) {
         ref={button}
         id={triggerId}
         type="button"
-        className="openui-intelligent-popover-trigger"
+        className={clsx(styles.trigger, names.trigger)}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
@@ -100,7 +102,7 @@ export function Popover({ trigger, children }: PopoverProps) {
             role="dialog"
             aria-labelledby={triggerId}
             tabIndex={-1}
-            className="openui-intelligent-popover"
+            className={clsx(styles.panel, names.panel)}
             // Measured first (hidden), then placed: see the layout effect above.
             style={at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: "hidden" }}
             data-theme={button.current?.closest("[data-theme]")?.getAttribute("data-theme") ?? undefined}

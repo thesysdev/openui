@@ -1,3 +1,0 @@
-.openui-intelligent-html-view { position: relative; width: 100%; min-width: 0; overflow: hidden; border: 1px solid var(--openui-intelligent-border, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent)); border-radius: var(--openui-intelligent-radius-lg, 12px); background: var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)); }
-.openui-intelligent-html-view > iframe { display: block; width: 100%; height: 100%; border: 0; background: transparent; }
-.openui-intelligent-html-view-wait { display: grid; place-items: center; height: 100%; color: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); font-size: 13px; }

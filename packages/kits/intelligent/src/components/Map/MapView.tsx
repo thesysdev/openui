@@ -1,15 +1,17 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
+import clsx from "clsx";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { useColorScheme } from "../../shared/scheme";
 import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./basemap";
 import { MapControls, type RouteKind } from "./controls";
-import { boundsOf, type LatLng, lngLat, reducedMotion } from "./map-utils";
+import { boundsOf, type LatLng, lngLat, mapColor, reducedMotion } from "./map-utils";
 import type { Place } from "./place";
 import { type PinEntry, syncPins } from "./pins";
 import { animateLine, ensureRouteLayer, setLine } from "./route-line";
+import { names, styles } from "./map.styles";
 import { useDialog } from "./use-dialog";
 import { useStreetRoute } from "./use-street-route";
 
@@ -92,8 +94,8 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     let fellBack = false;
     // Re-adds the route line whenever a style (vector, dark or fallback) finishes loading.
     instance.on("style.load", () => {
-      const ink = getComputedStyle(container.current ?? document.body).getPropertyValue("--openui-intelligent-ink").trim() || "#272727";
-      ensureRouteLayer(instance, ink);
+      const ink = getComputedStyle(container.current ?? document.body).getPropertyValue("--openui-intelligent-ink").trim();
+      ensureRouteLayer(instance, mapColor(ink));
       setLine(instance, linePoints.current);
       setReady(true);
     });
@@ -185,17 +187,17 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
   }, [expanded]);
 
   return (
-    <div className="openui-intelligent-map-slot" style={{ minHeight: height }}>
+    <div className={clsx(styles.slot, names.slot)} style={{ minHeight: height }}>
       <div
         ref={container}
-        className={`openui-intelligent-map${expanded ? " is-expanded" : ""}`}
+        className={clsx(styles.root, names.root)}
         style={expanded ? undefined : { height }}
         role={expanded ? "dialog" : "region"}
         aria-modal={expanded || undefined}
         aria-label="Map"
         tabIndex={expanded ? -1 : undefined}
       >
-        <div className="openui-intelligent-map-surface" ref={surface} />
+        <div className={clsx(styles.surface, names.surface)} ref={surface} />
         <MapControls
           categories={categories}
           group={group}
