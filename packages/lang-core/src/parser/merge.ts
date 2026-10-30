@@ -103,9 +103,9 @@ export function mergeStatements(existing: string, patch: string, rootId = "root"
   const order: string[] = [];
 
   for (const stmt of existingStmts) {
+    if (!merged.has(stmt.id)) order.push(stmt.id);
     merged.set(stmt.id, stmt.raw);
     asts.set(stmt.id, stmt.ast);
-    order.push(stmt.id);
   }
 
   for (const stmt of patchStmts) {

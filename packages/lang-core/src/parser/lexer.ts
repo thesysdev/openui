@@ -171,6 +171,12 @@ export function tokenize(src: string): Token[] {
       continue;
     }
 
+    // ── Line comment: // or # to the end of the line ─────────────────
+    if (c === "#" || (c === "/" && src[i + 1] === "/")) {
+      while (i < n && src[i] !== "\n") i++;
+      continue;
+    }
+
     // ── Slash ─────────────────────────────────────────────────────────
     if (c === "/") {
       tokens.push({ t: T.Slash });
