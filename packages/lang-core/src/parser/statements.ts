@@ -9,6 +9,9 @@ export interface RawStmt {
   /** Token type of the LHS identifier — used to classify statement kind */
   idTokenType: T;
   tokens: Token[];
+  /** Source offsets: `start` at the identifier, `end` at the newline (or end of input) closing the statement. */
+  start?: number;
+  end?: number;
 }
 
 /**
@@ -130,7 +133,14 @@ export function split(tokens: Token[]): RawStmt[] {
       expr.push(tokens[pos++]);
     }
 
-    if (expr.length) stmts.push({ id, idTokenType, tokens: expr });
+    if (expr.length)
+      stmts.push({
+        id,
+        idTokenType,
+        tokens: expr,
+        start: tok.start,
+        end: tokens[pos]?.start,
+      });
   }
 
   return stmts;

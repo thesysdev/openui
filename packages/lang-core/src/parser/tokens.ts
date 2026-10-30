@@ -49,4 +49,6 @@ export const enum T {
 export type Token = {
   t: T;
   v?: string | number;
+  /** Source offset. Set on the tokens that can open or close a statement: identifiers, newlines, EOF. */
+  start?: number;
 };
