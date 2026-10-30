@@ -153,6 +153,11 @@ export function nameRawCallArgs(args: ASTNode[], ctx: MaterializeCtx, statementI
     walkAST(arg, (node) => {
       if (node.k !== "Comp" || seen.has(node)) return;
       seen.add(node);
+      // Tool expressions stay raw AST, bypassing the materializeExpr/Value checks.
+      if (node.fn && !isRuntimeCall(node.name, ctx)) {
+        pushValidationIssue(ctx, node.name, "", { code: "unknown-function" });
+        return;
+      }
       const def = getCallDefs(ctx.cat).get(node.name);
       if (!def || def.lazy) return;
       const checked = def.builtin ? null : mapCallArgs(node.name, node.args, def, ctx);
