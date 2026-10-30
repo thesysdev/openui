@@ -359,6 +359,31 @@ describe("jsonToOpenUI", () => {
       expect(result).toBe("root = Title(($a + $b) * $c)");
     });
 
+    it("keeps parens on a right operand of equal precedence", () => {
+      const node: ElementNode = {
+        type: "element",
+        typeName: "Title",
+        props: {
+          text: {
+            k: "BinOp",
+            op: "-",
+            left: { k: "StateRef", n: "$a" },
+            right: {
+              k: "BinOp",
+              op: "-",
+              left: { k: "StateRef", n: "$b" },
+              right: { k: "StateRef", n: "$c" },
+            },
+          },
+        },
+        partial: false,
+        hasDynamicProps: true,
+      };
+      const result = jsonToOpenUI(node, library);
+      // $a - $b - $c would parse as ($a - $b) - $c
+      expect(result).toBe("root = Title($a - ($b - $c))");
+    });
+
     it("serializes Ternary", () => {
       const node: ElementNode = {
         type: "element",
