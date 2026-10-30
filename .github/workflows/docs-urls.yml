@@ -1,0 +1,54 @@
+name: Docs URLs
+
+# Builds the docs site and checks docs/urls.txt: every URL in it must still be a page or redirect
+# to one, and every page must be listed. See docs/scripts/check-urls.mjs.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/docs-urls.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-urls-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  urls:
+    name: Removed URLs have redirects
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: v24.21.0
+          cache: pnpm
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages the docs site uses
+        run: pnpm --filter "@openuidev/docs^..." --workspace-concurrency=1 run build
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+
+      - name: Build docs site
+        working-directory: docs
+        run: pnpm build
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Check URLs
+        working-directory: docs
+        run: node scripts/check-urls.mjs --base origin/${{ github.base_ref }}

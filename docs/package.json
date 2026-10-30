@@ -13,6 +13,8 @@
     "lint": "eslint",
     "format:fix": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:urls": "node scripts/check-urls.mjs",
+    "urls:update": "node scripts/update-urls.mjs",
     "check:benchmark-agents": "node scripts/check-benchmark-agent-readability.mjs && node scripts/check-benchmark-answer-contracts.mjs",
     "check:benchmark-answer-contracts": "node scripts/check-benchmark-answer-contracts.mjs",
     "audit:benchmark-publication": "node scripts/audit-benchmark-publication.mjs"

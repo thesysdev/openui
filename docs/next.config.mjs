@@ -428,6 +428,16 @@ const config = {
         destination: "/benchmarks/language",
         permanent: true,
       },
+      // Pages removed or renamed without a redirect at the time.
+      ...Object.entries({
+        "/docs/openui-lang/specification-v01": "/docs/openui-lang/specification/v0.1",
+        "/docs/openui-lang/specification-v05": "/docs/openui-lang/specification/v0.5",
+        "/docs/openui-lang/builtins": "/docs/openui-lang/functions",
+        "/docs/openui-lang/standard-library": "/docs/api-reference/react-ui",
+        "/docs/api-reference/lang-react": "/docs/api-reference/react-lang",
+        "/docs/introduction": "/docs",
+        "/docs/agent/guides/migrating": "/docs/agent/getting-started/introduction",
+      }).map(([source, destination]) => ({ source, destination, permanent: true })),
     ];
   },
   async rewrites() {
