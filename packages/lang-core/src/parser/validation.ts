@@ -1,7 +1,6 @@
 import { isASTNode } from "./ast";
 import {
   isElementNode,
-  PENDING_SLOT,
   type ElementNode,
   type MaterializeCtx,
   type ParamDef,
@@ -389,7 +388,6 @@ export function validateSchemaValue(
   if (value == null) return value;
   // Dynamic runtime expressions ($var, builtins) resolve later — don't flag.
   if (isASTNode(value)) return value;
-  if (value === PENDING_SLOT) return value;
   // Child components: only their position is checked here.
   if (isElementNode(value)) {
     return validateElementPosition(value, s, component, path, ctx) ? INVALID : value;
