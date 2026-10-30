@@ -1,9 +1,9 @@
 "use client";
 
-import { CodeBlock } from "@openuidev/react-components";
 import { defineComponent } from "@openuidev/react-lang";
-import { CodeSchema } from "./schema";
+import { Code as CodeView } from "../../components/Code";
 import { str } from "../../shared/style";
+import { CodeSchema } from "./schema";
 
 export * from "./schema";
 
@@ -11,7 +11,5 @@ export const Code = defineComponent({
   name: "Code",
   props: CodeSchema,
   description: "Code block with a copy button.",
-  component: ({ props }) => (
-    <CodeBlock language={str(props.language) || "text"} codeString={str(props.code)} />
-  ),
+  component: ({ props }) => <CodeView code={str(props.code)} language={str(props.language)} />,
 });

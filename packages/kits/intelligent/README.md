@@ -66,7 +66,7 @@ src/
 ```
 
 A binding maps the model's props onto components and draws no markup of its
-own. Nine bind straight to react-components (`Chart`, `Code`, `DatePicker`,
+own. Eight bind straight to react-components (`Chart`, `DatePicker`,
 `Divider`, `Input`, `Label`, `Select`, `Table`, `TextArea`); the rest render a
 component from `src/components`, which holds whatever the kit draws itself: its
 layout, text and media, the map, and the controls with their own look (`Badge`,
@@ -93,7 +93,7 @@ that package's flat-styles release ([#124](https://github.com/ankit-thesys/openu
 A few rules are not flat, because the kit does not render the elements they reach: the
 spacing system and card-sized type (the model's children), a Row's or Grid's children, a
 Form's closing action, the photo row (which needs `!important` to beat inline styles), and
-the sheets over KaTeX's and maplibre's DOM.
+the rules over the DOM of KaTeX, maplibre and react-components' Checkbox, RadioItem and OptionCards.
 
 On the server, `getComponentStyles()` from react-components collects the kit's styles
 too. As with react-components, streaming SSR is not supported in first paint: the kit is
@@ -180,7 +180,7 @@ Root `Col`, 55 components in 6 groups, 59 `@functions`, 1 action
 
 | | `chat-kit` | `dashboard-kit` | `intelligent-kit` |
 |---|---|---|---|
-| Its own components | 3 | 14 | 35 |
+| Its own components | 3 | 14 | 36 |
 | Rendering peer | `react-components` | `react-components` | `react-components` |
 | Root | `Card` | `Dashboard` | `Col` |
 | Registered | 84 | 48 | 55 |

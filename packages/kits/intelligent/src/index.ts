@@ -18,6 +18,7 @@ export * from "./components/Card";
 export * from "./components/Carousel";
 export * from "./components/Celebration";
 export * from "./components/Checkbox";
+export * from "./components/Code";
 export * from "./components/Col";
 export * from "./components/Field";
 export * from "./components/Flashcard";

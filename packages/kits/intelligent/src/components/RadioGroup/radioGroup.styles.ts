@@ -12,7 +12,10 @@ export const names = {
   description: "openui-intelligent-radio-group-description",
 } as const;
 
-/** Short choices are pills (the cards style draws with react-components' OptionCards). */
+/**
+ * Short choices are pills. The list and the cards are react-components' RadioItem and OptionCards, so
+ * their look goes by those stable classes.
+ */
 export const styles = {
   root: css`
     display: flex;
@@ -22,6 +25,68 @@ export const styles = {
     margin: 0;
     padding: 0;
     border: 0;
+
+    & .openui-radio-group {
+      gap: 2px;
+    }
+    & .openui-radio-item-container {
+      align-items: center;
+      gap: 9px;
+      min-height: 28px;
+      padding: 0;
+    }
+    & .openui-radio-item {
+      width: 17px;
+      height: 17px;
+      margin: 0;
+      --_openui-radio-item-stroke: ${tokens.muted};
+      --_openui-radio-item-fill: transparent;
+      --_openui-radio-item-inner: transparent;
+      --_openui-radio-item-hover-inner: ${tokens.hover};
+    }
+    & .openui-radio-item[data-state="checked"] {
+      --_openui-radio-item-stroke: ${tokens.ink};
+      --_openui-radio-item-fill: transparent;
+      --_openui-radio-item-inner: ${tokens.ink};
+      --_openui-radio-item-hover-inner: ${tokens.ink};
+    }
+    & .openui-radio-item-label {
+      font: inherit;
+      letter-spacing: inherit;
+      color: ${tokens.ink};
+    }
+
+    & .openui-option-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+      gap: ${tokens.controlGap};
+    }
+    & .openui-option-cards-row {
+      display: contents;
+    }
+    & .openui-option-cards-item[data-span] {
+      grid-column: auto;
+    }
+    & .openui-option-cards-card {
+      padding: 14px 16px;
+      border-color: ${tokens.border};
+    }
+    & .openui-option-cards-card[aria-checked="true"] {
+      border-color: ${tokens.ink};
+      background-color: ${tokens.pressed};
+      box-shadow: inset 0 0 0 1px ${tokens.ink};
+    }
+    & .openui-option-cards-title {
+      color: ${tokens.ink};
+      font-size: 15px;
+      line-height: 22px;
+      font-weight: 560;
+    }
+    & .openui-option-cards-subtitle {
+      color: ${tokens.muted};
+      font-size: 14px;
+      line-height: 21px;
+    }
   `,
   legend: css`
     padding: 0;
