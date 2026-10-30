@@ -1,5 +1,7 @@
+import clsx from "clsx";
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-import { cx, fg, type Color } from "../../shared/style";
+import { fg, type Color } from "../../shared/style";
+import { names, styles } from "./text.styles";
 
 export interface TextProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "color"> {
   size?: "xs" | "sm" | "md" | "lg";
@@ -19,7 +21,14 @@ const Text = forwardRef<HTMLParagraphElement, TextProps>(
     return (
       <p
         ref={ref}
-        className={cx("openui-intelligent-text", size && `openui-intelligent-text-${size}`, weight && `openui-intelligent-weight-${weight}`, lines ? "openui-intelligent-clamp" : undefined, className)}
+        className={clsx(
+          styles.root,
+          names.root,
+          size ? [styles.size[size], names.size[size]] : names.size.default,
+          weight && [styles.weight[weight], names.weight[weight]],
+          lines && [styles.clamp, names.clamp],
+          className,
+        )}
         style={{
           color: fg(color),
           fontStyle: italic ? "italic" : undefined,
@@ -40,7 +49,7 @@ Text.displayName = "Text";
 
 /** Holds a component (an Icon, a Badge, a Math) in a line of Text, aligned with the words. */
 function TextInline({ children }: { children?: ReactNode }) {
-  return <span className="openui-intelligent-inline">{children}</span>;
+  return <span className={clsx(styles.inline, names.inline)}>{children}</span>;
 }
 
 export { Text, TextInline };

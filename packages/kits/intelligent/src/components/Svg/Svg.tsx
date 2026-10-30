@@ -1,5 +1,7 @@
+import clsx from "clsx";
 import type { ReactNode } from "react";
 import { size, type Length } from "../../shared/style";
+import { names, styles } from "./svg.styles";
 
 export interface SvgProps {
   /** "minX minY width height", e.g. "0 0 240 160". */
@@ -20,7 +22,7 @@ export function Svg({ viewBox: viewBoxProp, width, height, children }: SvgProps)
   const natural = Number(viewBox.trim().split(/[\s,]+/)[2]);
   const maxWidth = width == null && natural > 0 ? `${Math.max(280, natural * 1.5)}px` : undefined;
   return (
-    <svg className="openui-intelligent-svg" viewBox={viewBox} style={{ width: size(width) ?? "100%", maxWidth, height: size(height) }} role="img" preserveAspectRatio="xMidYMid meet">
+    <svg className={clsx(styles.root, names.root)} viewBox={viewBox} style={{ width: size(width) ?? "100%", maxWidth, height: size(height) }} role="img" preserveAspectRatio="xMidYMid meet">
       {children}
     </svg>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cx } from "../../shared/style";
+import { names as fieldNames, styles as fieldStyles } from "../Field/field.styles";
 import { Button } from "../Button";
 
 export interface TimerProps {
@@ -56,7 +57,7 @@ export function Timer({ seconds, onSecondsChange, label, disabled }: TimerProps)
   return (
     <div className={cx("openui-intelligent-timer", running && "is-running", done && "is-done")} role="timer" aria-label={label || "Timer"}>
       <div className="openui-intelligent-timer-read">
-        {label && <span className="openui-intelligent-label">{label}</span>}
+        {label && <span className={cx(fieldStyles.label, fieldNames.label)}>{label}</span>}
         <span className="openui-intelligent-timer-time">{clock(left)}</span>
       </div>
       <div className="openui-intelligent-timer-actions">

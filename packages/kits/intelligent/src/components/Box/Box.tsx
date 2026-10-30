@@ -1,6 +1,11 @@
+import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
+import { flow, flowName } from "../../shared/flow.styles";
 import { tokens } from "../../shared/tokens";
-import { bg, cx, flexStyle, onColor, radius as radiusOf, size, space, type Align, type Color, type Justify, type Length, type Radius } from "../../shared/style";
+import { bg, flexStyle, onColor, radius as radiusOf, size, space, type Align, type Color, type Justify, type Length, type Radius } from "../../shared/style";
+import { names as colNames, styles as colStyles } from "../Col/col.styles";
+import { names as rowNames, styles as rowStyles } from "../Row/row.styles";
+import { names } from "./box.styles";
 
 export interface BoxProps extends Omit<HTMLAttributes<HTMLDivElement>, "color"> {
   /** A column (the default) or a row. */
@@ -30,7 +35,7 @@ const Box = forwardRef<HTMLDivElement, BoxProps>(
     return (
       <div
         ref={ref}
-        className={cx("openui-intelligent-box", row ? "openui-intelligent-row" : "openui-intelligent-col", !row && gap == null && "openui-intelligent-flow", className)}
+        className={clsx(names.root, row ? [rowStyles.root, rowNames.root] : [colStyles.root, colNames.root], !row && gap == null && [flow, flowName], className)}
         style={{
           ...flexStyle({ gap, align, justify, wrap }, !row),
           padding: space(padding),

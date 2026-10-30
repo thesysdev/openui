@@ -1,5 +1,7 @@
+import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { cx, flexStyle, type Align, type Justify } from "../../shared/style";
+import { flexStyle, type Align, type Justify } from "../../shared/style";
+import { names, styles } from "./row.styles";
 
 export interface RowProps extends HTMLAttributes<HTMLDivElement> {
   /** Space between children in 4px steps. */
@@ -11,7 +13,7 @@ export interface RowProps extends HTMLAttributes<HTMLDivElement> {
 
 /** Horizontal layout; items are vertically centered. */
 const Row = forwardRef<HTMLDivElement, RowProps>(({ gap, align, justify, wrap, className, style, children, ...rest }, ref) => (
-  <div ref={ref} className={cx("openui-intelligent-row", className)} style={{ ...flexStyle({ gap, align, justify, wrap }), ...style }} {...rest}>
+  <div ref={ref} className={clsx(styles.root, names.root, className)} style={{ ...flexStyle({ gap, align, justify, wrap }), ...style }} {...rest}>
     {children}
   </div>
 ));

@@ -1,6 +1,7 @@
+import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { cx } from "../../shared/style";
 import { MarkdownBlocks } from "./markdownBlocks";
+import { names, styles } from "./markdown.styles";
 
 export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
   /** Markdown: headings, lists, quotes, code, rules and | tables |. */
@@ -13,7 +14,7 @@ export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
  * would render as a line of pipes.
  */
 const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(({ text, className, ...rest }, ref) => (
-  <div ref={ref} className={cx("openui-intelligent-markdown", className)} {...rest}>
+  <div ref={ref} className={clsx(styles.root, names.root, className)} {...rest}>
     <MarkdownBlocks text={text} />
   </div>
 ));

@@ -1,3 +1,6 @@
+import clsx from "clsx";
+import { names, styles } from "./youTube.styles";
+
 const YT = /(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/)([\w-]{11})|^([\w-]{11})$/;
 
 export interface YouTubeProps {
@@ -12,8 +15,9 @@ export function YouTube({ video, title }: YouTubeProps) {
   const id = m?.[1] ?? m?.[2];
   if (!id) return null;
   return (
-    <div className="openui-intelligent-video">
+    <div className={clsx(styles.root, names.root)}>
       <iframe
+        className={clsx(styles.frame, names.frame)}
         src={`https://www.youtube-nocookie.com/embed/${id}`}
         title={title || "YouTube video"}
         loading="lazy"

@@ -1,13 +1,13 @@
-.openui-intelligent-image { position: relative; display: grid; place-items: center; width: 100%; min-width: 0; overflow: hidden; background: var(--openui-intelligent-photo-empty, var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent))); }
-.openui-intelligent-image:not(.is-loaded)::before { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)) 55%, transparent) 50%, transparent 70%) 0 0 / 220% 100%; animation: openui-intelligent-shimmer 1.4s linear infinite; }
-.openui-intelligent-image:has(.openui-intelligent-image-empty)::before { display: none; }
+.openui-intelligent-photo { position: relative; display: grid; place-items: center; width: 100%; min-width: 0; overflow: hidden; background: var(--openui-intelligent-photo-empty, var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent))); }
+.openui-intelligent-photo:not(.is-loaded)::before { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)) 55%, transparent) 50%, transparent 70%) 0 0 / 220% 100%; animation: openui-intelligent-shimmer 1.4s linear infinite; }
+.openui-intelligent-photo:has(.openui-intelligent-photo-empty)::before { display: none; }
 @keyframes openui-intelligent-shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
-.openui-intelligent-image > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; }
-.openui-intelligent-image.is-contain > img { object-fit: contain; }
-.openui-intelligent-image.is-loaded > img { opacity: 1; }
-.openui-intelligent-image-empty { width: 26px; height: 26px; color: var(--openui-intelligent-photo-empty-icon, var(--openui-intelligent-border-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 10%, transparent))); }
+.openui-intelligent-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; }
+.openui-intelligent-photo.is-contain > img { object-fit: contain; }
+.openui-intelligent-photo.is-loaded > img { opacity: 1; }
+.openui-intelligent-photo-empty { width: 26px; height: 26px; color: var(--openui-intelligent-photo-empty-icon, var(--openui-intelligent-border-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 10%, transparent))); }
 
 @media (prefers-reduced-motion: reduce) {
-  .openui-intelligent-image > img { transition: none; }
-  .openui-intelligent-image:not(.is-loaded)::before { animation: none; }
+  .openui-intelligent-photo > img { transition: none; }
+  .openui-intelligent-photo:not(.is-loaded)::before { animation: none; }
 }

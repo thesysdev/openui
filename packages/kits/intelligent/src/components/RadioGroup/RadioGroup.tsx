@@ -4,6 +4,7 @@ import { OptionCards, RadioGroup as RCRadioGroup, RadioItem } from "@openuidev/r
 import { useId } from "react";
 import { cx } from "../../shared/style";
 import { FieldError, RequiredMark } from "../Field";
+import { names as fieldNames, styles as fieldStyles } from "../Field/field.styles";
 
 export interface RadioOption {
   value: string;
@@ -73,7 +74,7 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
   return (
     <fieldset className={cx("openui-intelligent-radio-group", variant === "pills" && "openui-intelligent-radio-pills")}>
       {label ? (
-        <legend className="openui-intelligent-label">
+        <legend className={cx(fieldStyles.label, fieldNames.label)}>
           {label}
           {required ? <RequiredMark /> : null}
         </legend>

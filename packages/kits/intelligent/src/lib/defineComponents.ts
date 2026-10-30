@@ -5,22 +5,7 @@
 // wins). src/index.ts imports the same list; the build checks both against
 // the sheets on disk.
 import "../shared/theme.css";
-import "../components/Col/col.css";
-import "../components/Row/row.css";
-import "../components/Grid/grid.css";
-import "../components/Spacer/spacer.css";
-import "../components/Card/card.css";
-import "../components/Form/form.css";
-import "../components/Title/title.css";
-import "../components/Text/text.css";
-import "../components/Caption/caption.css";
-import "../components/Field/field.css";
-import "../components/Link/link.css";
 import "./Badge/badge.css";
-import "../components/Icon/icon.css";
-import "../components/List/list.css";
-import "../components/Markdown/markdownBlocks.css";
-import "../components/Markdown/markdown.css";
 import "../components/Button/button.css";
 import "./IconButton/iconButton.css";
 import "../components/Pressable/pressable.css";
@@ -30,13 +15,9 @@ import "../components/Timer/timer.css";
 import "../components/Checkbox/checkbox.css";
 import "../components/RadioGroup/radioGroup.css";
 import "../components/Photo/photo.css";
-import "../components/Svg/svg.css";
 import "../components/HtmlView/htmlView.css";
 import "../components/Carousel/carousel.css";
 import "../components/Popover/popover.css";
-import "../components/Quote/quote.css";
-import "../components/Math/math.css";
-import "../components/YouTube/youTube.css";
 import "../components/Flashcard/flashcard.css";
 import "../components/Celebration/celebration.css";
 import "../components/Map/map.css";

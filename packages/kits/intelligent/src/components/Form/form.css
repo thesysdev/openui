@@ -1,2 +1,0 @@
-.openui-intelligent-form { display: flex; flex-direction: column; gap: var(--openui-intelligent-field-gap, 24px); min-width: 0; }
-.openui-intelligent-form > .openui-intelligent-row:last-child:has(> .openui-intelligent-button), .openui-intelligent-form > .openui-intelligent-button:last-child { margin-top: calc(var(--openui-intelligent-action-gap, 40px) - var(--openui-intelligent-field-gap, 24px)); }
