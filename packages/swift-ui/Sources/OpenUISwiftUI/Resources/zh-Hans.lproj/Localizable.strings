@@ -52,3 +52,8 @@
 "Show all places" = "显示全部地点";
 
 "Places" = "地点列表";
+
+// Embedded SVG and WebView presentation.
+"Illustration unavailable" = "这张图暂时无法显示。";
+"Content unavailable" = "这部分内容暂时无法显示。";
+"Reload" = "重新加载";

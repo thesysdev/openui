@@ -1,10 +1,9 @@
 import Foundation
 import OpenUILang
-import OpenUISwiftUI
 import SwiftUI
 import WebKit
 
-/// Optional presentation primitives. They do not change the upstream catalog.
+/// Opt-in embedded presentation primitives in OpenUISwiftUI. They do not change the upstream catalog.
 public enum OpenUIWebComponents {
     public static func install(into base: OpenUIComponentLibrary) throws -> OpenUIComponentLibrary {
         let height = ParamDef(name: "height", required: false, schema: .object([
@@ -228,7 +227,7 @@ private struct NativeEmbeddedContent: View {
             if let description = context.string(svg ? "alt" : "title"), !description.isEmpty {
                 Text(description).openUIFont(context.theme.typography.caption)
             } else {
-                Text(svg ? "Illustration unavailable" : "Content unavailable", bundle: .module)
+                Text(svg ? "Illustration unavailable" : "Content unavailable", bundle: NativeControlResources.bundle)
                     .openUIFont(context.theme.typography.caption)
             }
             Spacer(minLength: 0)
@@ -237,7 +236,7 @@ private struct NativeEmbeddedContent: View {
                     guard context.canActivate else { return }
                     failed = false; attempt += 1
                 } label: {
-                    Text("Reload", bundle: .module).openUIFont(context.theme.typography.actionCompact).openUIControlTarget()
+                    Text("Reload", bundle: NativeControlResources.bundle).openUIFont(context.theme.typography.actionCompact).openUIControlTarget()
                 }.buttonStyle(.plain).disabled(!context.canInteract)
             }
         }.foregroundStyle(context.theme.secondary)

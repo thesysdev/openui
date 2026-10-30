@@ -1,0 +1,47 @@
+name: Build Swift
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Package.swift'
+      - 'packages/swift-lang/**'
+      - 'packages/swift-ui/**'
+      - 'packages/lang-core/**'
+      - 'spec/**'
+      - '.github/workflows/build-swift.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Package.swift'
+      - 'packages/swift-lang/**'
+      - 'packages/swift-ui/**'
+      - 'packages/lang-core/**'
+      - 'spec/**'
+      - '.github/workflows/build-swift.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: Verify bundled shared core
+        run: |
+          npm ci --prefix packages/swift-lang/scripts --ignore-scripts
+          node packages/swift-lang/scripts/build.mjs
+          git diff --exit-code -- packages/swift-lang/Sources/OpenUILang/Resources
+      - name: SDK tests through the distribution manifest
+        run: swift test
+      - name: Authoring validator
+        run: node --test packages/swift-lang/validation/validation.test.mjs
+      - name: iOS Simulator compile through the distribution manifest
+        run: >-
+          swift build --scratch-path "$RUNNER_TEMP/openui-ios"
+          --triple arm64-apple-ios16.0-simulator
+          --sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)"

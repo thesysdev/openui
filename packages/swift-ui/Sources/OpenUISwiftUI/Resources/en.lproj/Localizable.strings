@@ -52,3 +52,8 @@
 "Show all places" = "Show all places";
 
 "Places" = "Places";
+
+// Embedded SVG and WebView presentation.
+"Illustration unavailable" = "This illustration could not be displayed.";
+"Content unavailable" = "This content could not be displayed.";
+"Reload" = "Reload";

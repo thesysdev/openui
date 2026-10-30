@@ -101,7 +101,8 @@ must not align to the top of an empty maximum-height frame. Inline cards keep an
 system material behind fully opaque content; Reduce Transparency uses the opaque
 control surface. Fullscreen content continues to respect its safe-area inset.
 Custom content uses ordinary registered components. No ratings, metadata or routes
-are inferred from labels. SVG and WebView are installed through `OpenUIWeb`.
+are inferred from labels. SVG and WebView are opt-in registrations through
+`OpenUIWebComponents.install(into:)` in `OpenUISwiftUI`.
 
 ## Platform boundaries
 

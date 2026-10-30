@@ -21,6 +21,23 @@ final class ResourceBundleTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: runtime), try Data(contentsOf: original))
     }
 
+    func testRootPackageRuntimeTakesPriorityWithoutEvaluatingSwiftPMFallback() throws {
+        let (root, host) = try applicationFixture()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let expected = try XCTUnwrap(host.resourceURL).appendingPathComponent("openui_OpenUILang.bundle")
+        try FileManager.default.copyItem(at: LangCoreResources.bundle.bundleURL, to: expected)
+        var usedFallback = false
+        let selected = LangCoreResources.resolve(in: host) {
+            usedFallback = true
+            return LangCoreResources.bundle
+        }
+        XCTAssertFalse(usedFallback, "A packaged app must not depend on a development build directory")
+        XCTAssertEqual(selected.bundleURL.resolvingSymlinksInPath(), expected.resolvingSymlinksInPath())
+        let runtime = try XCTUnwrap(selected.url(forResource: "lang-core", withExtension: "js"))
+        let original = try XCTUnwrap(LangCoreResources.bundle.url(forResource: "lang-core", withExtension: "js"))
+        XCTAssertEqual(try Data(contentsOf: runtime), try Data(contentsOf: original))
+    }
+
     func testMissingPackagedRuntimeUsesSwiftPMFallback() throws {
         let (root, host) = try applicationFixture()
         defer { try? FileManager.default.removeItem(at: root) }

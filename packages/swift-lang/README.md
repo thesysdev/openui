@@ -1,13 +1,24 @@
 # swift-lang
 
 Apple-platform bindings for the shared OpenUI `lang-core`. The SwiftPM product and
-import are `OpenUILang`; the package identity is `swift-lang`. Swift 6 tools build
+import are `OpenUILang`; the nested development package identity is `swift-lang`. Swift 6 tools build
 in Swift 5 language mode on iOS 16+ and macOS 13+. JavaScriptCore is required.
 
 Parsing, streaming completion, expression evaluation, library extension, Schema,
 Prompt generation, Store, query lifecycle and message handling delegate to the
 pinned shared core. Native code supplies typed values, lossless UTF-16 transport,
 async tools, cancellation and host action execution. There is no Linux fallback.
+
+## Installation
+
+The repository-root `Package.swift` exposes `OpenUILang` and `OpenUISwiftUI` for
+remote SwiftPM dependencies. A language-only consumer selects `OpenUILang` from
+the `openui` package; a native UI consumer selects `OpenUISwiftUI`, which depends
+on this module automatically. See the [Swift installation instructions](../swift-ui/README.md#installation)
+for the current trial branch and release status.
+
+The manifest in this directory remains a local development entry point. Do not
+add it and the root package to the same application dependency graph.
 
 ## Use an exported library
 

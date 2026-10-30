@@ -3,7 +3,6 @@ import OpenUILang
 import SwiftUI
 import XCTest
 @testable import OpenUISwiftUI
-@testable import OpenUIWeb
 #if os(macOS)
 import AppKit
 import WebKit
@@ -61,6 +60,7 @@ final class ResourceAndEmbeddedTests: XCTestCase {
         let standard = try OpenUIStandardComponents.library()
         let extended = try installingPresentation(into: standard)
         XCTAssertEqual(standard.library.components.count, 82)
+        for name in ["SVG", "WebView"] { XCTAssertNil(standard.registry[name], "Importing the UI product must not install embedded components") }
         XCTAssertEqual(extended.library.components.count, 85)
         for name in ["SVG", "WebView", "Popover"] { XCTAssertNotNil(extended.registry[name]) }
         for original in standard.library.components {

@@ -10,9 +10,12 @@ enum NativeControlResources {
     static let bundle = resolve(in: .main) { .module }
 
     static func resolve(in host: Bundle, fallback: () -> Bundle) -> Bundle {
-        if let resources = host.resourceURL,
-           let embedded = Bundle(url: resources.appendingPathComponent("swift-ui_OpenUISwiftUI.bundle")) {
-            return embedded
+        if let resources = host.resourceURL {
+            for name in ["openui_OpenUISwiftUI.bundle", "swift-ui_OpenUISwiftUI.bundle"] {
+                if let embedded = Bundle(url: resources.appendingPathComponent(name)) {
+                    return embedded
+                }
+            }
         }
         return fallback()
     }

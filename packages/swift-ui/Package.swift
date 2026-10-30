@@ -7,7 +7,6 @@ let package = Package(
   platforms: [.macOS(.v13), .iOS(.v16)],
   products: [
     .library(name: "OpenUISwiftUI", targets: ["OpenUISwiftUI"]),
-    .library(name: "OpenUIWeb", targets: ["OpenUIWeb"]),
     ],
     dependencies: [
         .package(path: "../swift-lang"),
@@ -23,15 +22,9 @@ let package = Package(
             resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        .target(
-            name: "OpenUIWeb",
-            dependencies: ["OpenUISwiftUI", .product(name: "OpenUILang", package: "swift-lang")],
-            resources: [.process("Resources")],
-            swiftSettings: [.swiftLanguageMode(.v5)]
-        ),
         .testTarget(
             name: "OpenUISwiftUITests",
-            dependencies: ["OpenUISwiftUI", "OpenUIWeb"],
+            dependencies: ["OpenUISwiftUI"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]

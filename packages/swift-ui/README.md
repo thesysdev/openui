@@ -10,6 +10,44 @@ The standard collection defaults to neutral native typography, grouped forms and
 
 Composition programs, preview applications and Simulator acceptance captures are maintained separately from this SDK-only distribution. They consume the installed registry and unchanged language runtime; they are not library dependencies or part of the SDK unit-test suite.
 
+## Installation
+
+Add the repository URL in Xcode's **File > Add Package Dependencies**, then select
+**OpenUISwiftUI**. It includes the OpenUILang dependency; there is no separate
+OpenUIWeb product. Swift 6 tools, iOS 16+ and macOS 13+ are required.
+
+The repository-root `Package.swift` is the remote SwiftPM entry point. Source and
+resources stay in the two package directories; no implementation is duplicated.
+For the current, unreleased contribution, use this trial branch:
+
+```swift
+.package(
+    url: "https://github.com/zyfn/openui.git",
+    branch: "codex/swift-sdk-refinement-20261030"
+)
+```
+
+A consuming package target selects:
+
+```swift
+.product(name: "OpenUISwiftUI", package: "openui")
+```
+
+```swift
+import OpenUILang
+import OpenUISwiftUI
+```
+
+For a language-only consumer, select `OpenUILang` instead. Do not add the root
+package and its nested development packages to the same dependency graph.
+Consumers need neither Node.js nor manual repository checkouts. Commit the app's
+`Package.resolved` to preserve the selected revision.
+
+No Swift SDK semantic-version release is published by this change. After the
+maintainers choose and publish a complete semantic-version Git tag, consumers
+can use a version requirement instead of the trial branch. The tag belongs to
+the chosen distribution repository; npm package versions are independent.
+
 ## Optional native map
 
 `OpenUIStandardComponents.library()` retains the 82 pinned upstream registrations.
@@ -56,16 +94,17 @@ and declares their CRS.
 
 ## Optional web and contextual content
 
-Add the optional SwiftPM product `OpenUIWeb` when SVG or web content is required:
+SVG and WebView are included in `OpenUISwiftUI` and remain opt-in component
+registrations. Importing the UI module alone does not expose them to the model:
 
 ```swift
-import OpenUIWeb
+import OpenUISwiftUI
 let native = try OpenUIPopoverComponents.install(into: OpenUIMapComponents.library())
 let installed = try OpenUIWebComponents.install(into: native)
 ```
 
-Popover is a pure SwiftUI extension. SVG and WebView use WebKit in the separate
-target; page JavaScript is disabled by default and can be enabled by host policy.
+Popover is a pure SwiftUI extension. SVG and WebView use WebKit inside the same
+UI target; page JavaScript is disabled by default and can be enabled by host policy.
 All native media use `OpenUIResourceContext`; WebKit owns its document subresources.
 The base product also uses a private WebKit renderer for offline mathematical
 equations. It does not register a general web component.
@@ -229,7 +268,10 @@ For Xcode GUI builds, open `Package.swift` or an application that consumes the p
 
 The repository's `Build Swift` workflow configures package suites and the iOS Simulator compile on macOS, using the bundled shared core. The JavaScriptCore adapter targets Apple platforms. This is independent of pnpm/npm packaging. A local consumer can use `.package(path: "../openui/packages/swift-ui")` and select the `OpenUISwiftUI` product.
 
-Native value and ToolProvider interfaces are documented in the language package. Package identities are `swift-lang` and `swift-ui`; products are `OpenUILang`, `OpenUISwiftUI` and the optional `OpenUIWeb`.
+Native value and ToolProvider interfaces are documented in the language package.
+The remote package identity is `openui`, with products `OpenUILang` and
+`OpenUISwiftUI`. The nested `swift-lang` and `swift-ui` packages remain local
+SDK development entry points.
 
 Maintainers rebuilding the rich-text resources use Node.js at development time:
 
@@ -257,7 +299,7 @@ A changed request cancels the previous load; an obsolete result cannot replace
 current content. Gallery previews share the same loaded resource.
 
 `OpenUIPopoverComponents.install(into:)` registers the native Popover extension.
-`OpenUIWebComponents.install(into:)` from the optional OpenUIWeb target registers
+`OpenUIWebComponents.install(into:)` from `OpenUISwiftUI` registers
 SVG and WebView. They do not change the 82 upstream component contracts.
 SVG accepts an inline XML document or resource URL and preserves its viewBox.
 WebView accepts HTML or a URL, measures content by default, and uses a scrollable

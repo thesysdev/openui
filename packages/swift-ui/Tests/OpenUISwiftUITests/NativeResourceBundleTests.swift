@@ -21,6 +21,27 @@ final class NativeResourceBundleTests: XCTestCase {
         let folder = try XCTUnwrap(selected.path(forResource: language, ofType: "lproj"))
         let localized = try XCTUnwrap(Bundle(path: folder))
         XCTAssertEqual(localized.localizedString(forKey: "Start date", value: nil, table: nil), "开始日期")
+        XCTAssertEqual(localized.localizedString(forKey: "Illustration unavailable", value: nil, table: nil), "这张图暂时无法显示。")
+    }
+
+    func testRootPackageLocalizationTakesPriorityWithoutEvaluatingSwiftPMFallback() throws {
+        let (root, host) = try applicationFixture()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let expected = try XCTUnwrap(host.resourceURL).appendingPathComponent("openui_OpenUISwiftUI.bundle")
+        try FileManager.default.copyItem(at: NativeControlResources.bundle.bundleURL, to: expected)
+        var usedFallback = false
+        let selected = NativeControlResources.resolve(in: host) {
+            usedFallback = true
+            return NativeControlResources.bundle
+        }
+        XCTAssertFalse(usedFallback, "A packaged app must not depend on a development build directory")
+        XCTAssertEqual(selected.bundleURL.resolvingSymlinksInPath(), expected.resolvingSymlinksInPath())
+        XCTAssertNotNil(selected.url(forResource: "upstream-catalog", withExtension: "json"), "The full standard catalog must ship inside the app resource bundle")
+        let language = try XCTUnwrap(Bundle.preferredLocalizations(from: selected.localizations, forPreferences: ["zh-Hans"]).first)
+        let folder = try XCTUnwrap(selected.path(forResource: language, ofType: "lproj"))
+        let localized = try XCTUnwrap(Bundle(path: folder))
+        XCTAssertEqual(localized.localizedString(forKey: "Start date", value: nil, table: nil), "开始日期")
+        XCTAssertEqual(localized.localizedString(forKey: "Illustration unavailable", value: nil, table: nil), "这张图暂时无法显示。")
     }
 
     func testMissingPackagedLocalizationUsesSwiftPMFallback() throws {

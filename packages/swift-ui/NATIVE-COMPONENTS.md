@@ -39,7 +39,7 @@ form writes and business actions keep their separate completion checks.
 - `OpenUIMapComponents`: Map for supplied locations, icon markers, default place
   cards and optional ordinary component pages. No geocoding or fabricated routes.
 - `OpenUIPopoverComponents`: native contextual explanations.
-- `OpenUIWebComponents` from the optional OpenUIWeb product: SVG and WebView.
+- `OpenUIWebComponents` in `OpenUISwiftUI`: opt-in SVG and WebView.
 
 These extensions are not part of the upstream default 82. Installation extends
 existing slots through the core; hosts can independently choose their generation
@@ -71,8 +71,8 @@ downloads. Rebuild it with `npm ci --ignore-scripts` then `npm run build` in
 
 Rich text similarly bundles the pinned Remark/KaTeX dependencies. Native blocks
 remain SwiftUI; a private nonpersistent WebKit view rasterizes equations using
-embedded fonts. General SVG/WebView components still require the optional
-OpenUIWeb product. Citation metadata is supplied by `CardSourceProvider`, using
+embedded fonts. General SVG/WebView components are in the same UI module and still require
+explicit registration through `OpenUIWebComponents.install(into:)`. Citation metadata is supplied by `CardSourceProvider`, using
 the upstream source fields rather than extending the language syntax.
 
 Chart inspection uses a shared native detail panel: the selected category is a

@@ -1,5 +1,5 @@
 import XCTest
-@testable import OpenUIWeb
+@testable import OpenUISwiftUI
 
 final class EmbeddedPreparationTests: XCTestCase {
   func testValidInlineSvgWinsOverAnExtraneousResourceField() {

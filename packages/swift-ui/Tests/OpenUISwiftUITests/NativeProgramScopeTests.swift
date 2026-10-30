@@ -3,7 +3,6 @@ import AppKit
 import OpenUILang
 import SwiftUI
 import XCTest
-import OpenUIWeb
 import WebKit
 @testable import OpenUISwiftUI
 

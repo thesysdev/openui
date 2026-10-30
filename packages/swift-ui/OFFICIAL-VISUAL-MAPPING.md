@@ -84,7 +84,7 @@ semantic color must not silently become the chart series palette.
 | Chart family | shared surrounding text and colors with existing series palette | native axis measurement, legend balance and canvas scaling; radar uses numbered axes plus complete category key |
 | Map | shared typography/surfaces and action hierarchy | native extension: map gestures, pins, local selection and resource lifecycle |
 | Modal, Popover | shared content roles, overlay surface and spacing | native presentation, safe area, dismissal and focus |
-| SVG, WebView | shared boundary, state and surface presentation | optional OpenUIWeb extensions; authored web content owns its internal CSS |
+| SVG, WebView | shared boundary, state and surface presentation | opt-in extensions in OpenUISwiftUI; authored web content owns its internal CSS |
 | Loading, unavailable, empty | same visual tokens; localized user-facing state | preserve adjacent facts/actions and reserved media frame; diagnostics separate |
 
 Data-only registrations (Col, Series, ScatterSeries, Point, Slice, TabItem,

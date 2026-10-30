@@ -42,9 +42,12 @@ enum LangCoreResources {
     static let bundle = resolve(in: .main) { .module }
 
     static func resolve(in host: Bundle, fallback: () -> Bundle) -> Bundle {
-        if let resources = host.resourceURL,
-           let embedded = Bundle(url: resources.appendingPathComponent("swift-lang_OpenUILang.bundle")) {
-            return embedded
+        if let resources = host.resourceURL {
+            for name in ["openui_OpenUILang.bundle", "swift-lang_OpenUILang.bundle"] {
+                if let embedded = Bundle(url: resources.appendingPathComponent(name)) {
+                    return embedded
+                }
+            }
         }
         return fallback()
     }

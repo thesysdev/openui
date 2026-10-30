@@ -102,7 +102,7 @@ provides native rendering, resource hooks and optional presentation capabilities
 preserves the semantics that builder implements; new behavior needs its own
 renderer. Export the actual resulting LibrarySpec.
 
-For SVG/WebView add the optional OpenUIWeb product. Popover stays in the base
-SwiftUI package as an opt-in extension. Native PromptOptions and Table cell
+SVG/WebView and Popover live in `OpenUISwiftUI` as opt-in component extensions.
+No additional SwiftPM product or module import is required. Native PromptOptions and Table cell
 policies are explicit caller choices; base prompt generation and unrestricted
 Table rendering retain the upstream default capabilities.
