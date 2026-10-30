@@ -4,6 +4,7 @@ import { abortable } from "../shared/abort";
 import { mcpToolLoader, mergeTools } from "./mcp";
 import {
   ToolExecutionError,
+  type DataTool,
   type Interpreter,
   type InterpreterExecuteOptions,
   type InterpreterOptions,
@@ -34,20 +35,25 @@ export function toToolDefinitions(
   }));
 }
 
-/** The interpreter behind `openui.createInterpreter`, on the client's API key. */
-export function createInterpreter<Context = undefined>(
-  api: CloudApi,
+/** Your data tools and an MCP server's, merged. MCP tools are listed on first use, then reused. */
+export function dataToolLoader<Context>(
   options: InterpreterOptions<Context>,
-): Interpreter<Context> {
+): () => Promise<Record<string, DataTool<Context>>> {
   if (options?.tools === undefined && options?.mcp === undefined) {
     throw new ToolExecutionError("Pass `tools`, `mcp`, or both", "invalid_tools");
   }
   const loadMcp = options.mcp === undefined ? undefined : mcpToolLoader(options.mcp);
+  return async () => (loadMcp ? mergeTools(options.tools, await loadMcp()) : (options.tools ?? {}));
+}
+
+/** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
+export function createInterpreter<Context = undefined>(
+  api: CloudApi,
+  loadTools: () => Promise<Record<string, DataTool<Context>>>,
+): Interpreter<Context> {
   const handlers = async () =>
     Object.fromEntries(
-      Object.entries(
-        loadMcp ? mergeTools(options.tools, await loadMcp()) : (options.tools ?? {}),
-      ).map(([name, tool]) => [name, tool.execute]),
+      Object.entries(await loadTools()).map(([name, tool]) => [name, tool.execute]),
     );
 
   async function execute(
