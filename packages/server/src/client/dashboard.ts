@@ -102,11 +102,10 @@ export function defineDashboard<Context>(
   async function start(
     userId: string,
     prompt: string,
-    thesys: Record<string, unknown>,
-    title: string | undefined,
+    call: { title?: string; artifactId?: string },
     signal?: AbortSignal,
   ): Promise<string> {
-    // The config block carries what generation needs; metadata, which dashboard and (on edits) which artifact.
+    // Everything rides in the config block: tools and title for generation, which dashboard and artifact for OpenUI Cloud.
     const [{ token }, definitions] = await Promise.all([
       createFrontendToken(api, userId, signal),
       toolDefinitions(),
@@ -118,13 +117,9 @@ export function defineDashboard<Context>(
         model,
         stream: true,
         messages: [
-          { role: "system", content: config(definitions, title) },
+          { role: "system", content: config({ tools: definitions, definition: name, ...call }) },
           { role: "user", content: prompt },
         ],
-        // Chat completions metadata values are strings.
-        metadata: {
-          thesys: JSON.stringify({ definition: name, ...thesys }),
-        },
       }),
       signal,
     });
@@ -146,14 +141,14 @@ export function defineDashboard<Context>(
     name,
 
     async create({ userId, title, prompt }, { signal } = {}): Promise<ArtifactResult> {
-      const id = await start(userId, prompt, {}, title, signal);
+      const id = await start(userId, prompt, { title }, signal);
       return { id, response: toolResponse(id, name, title) };
     },
 
     // OpenUI Cloud edits the version it stores, and checks this dashboard made it.
     async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      const edited = await start(userId, prompt, { id }, undefined, signal);
+      const edited = await start(userId, prompt, { artifactId: id }, signal);
       return { id: edited, response: toolResponse(edited, name) };
     },
 
