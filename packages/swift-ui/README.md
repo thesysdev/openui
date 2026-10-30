@@ -12,19 +12,15 @@ Composition programs, preview applications and Simulator acceptance captures are
 
 ## Installation
 
-Add the repository URL in Xcode's **File > Add Package Dependencies**, then select
-**OpenUISwiftUI**. It includes the OpenUILang dependency; there is no separate
-OpenUIWeb product. Swift 6 tools, iOS 16+ and macOS 13+ are required.
+The repository-root `Package.swift` exposes `OpenUISwiftUI` and `OpenUILang`.
+Select `OpenUISwiftUI` for native rendering; it includes the language dependency.
+Swift 6 tools, iOS 16+ and macOS 13+ are required.
 
-The repository-root `Package.swift` is the remote SwiftPM entry point. Source and
-resources stay in the two package directories; no implementation is duplicated.
-For the current, unreleased contribution, use this trial branch:
+To develop or review the SDK before release, add the repository checkout as a
+local package in Xcode, or use:
 
 ```swift
-.package(
-    url: "https://github.com/zyfn/openui.git",
-    branch: "codex/swift-sdk-refinement-20261030"
-)
+.package(path: "../openui")
 ```
 
 A consuming package target selects:
@@ -38,15 +34,14 @@ import OpenUILang
 import OpenUISwiftUI
 ```
 
-For a language-only consumer, select `OpenUILang` instead. Do not add the root
-package and its nested development packages to the same dependency graph.
-Consumers need neither Node.js nor manual repository checkouts. Commit the app's
-`Package.resolved` to preserve the selected revision.
+After the SDK is merged and released, use `https://github.com/thesysdev/openui.git`
+in Xcode's **File > Add Package Dependencies** and select a release containing
+the Swift SDK. A Swift SDK version tag has not been published yet.
 
-No Swift SDK semantic-version release is published by this change. After the
-maintainers choose and publish a complete semantic-version Git tag, consumers
-can use a version requirement instead of the trial branch. The tag belongs to
-the chosen distribution repository; npm package versions are independent.
+For a language-only consumer, select `OpenUILang`. The nested manifests in
+`packages/swift-lang` and `packages/swift-ui` are local development entry points;
+use either the root package or the nested packages in an application's dependency
+graph. Consumers do not need Node.js to build the checked-in runtime and UI resources.
 
 ## Optional native map
 

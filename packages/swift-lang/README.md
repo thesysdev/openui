@@ -15,7 +15,7 @@ The repository-root `Package.swift` exposes `OpenUILang` and `OpenUISwiftUI` for
 remote SwiftPM dependencies. A language-only consumer selects `OpenUILang` from
 the `openui` package; a native UI consumer selects `OpenUISwiftUI`, which depends
 on this module automatically. See the [Swift installation instructions](../swift-ui/README.md#installation)
-for the current trial branch and release status.
+for local development and release availability.
 
 The manifest in this directory remains a local development entry point. Do not
 add it and the root package to the same application dependency graph.
