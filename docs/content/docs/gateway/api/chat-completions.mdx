@@ -37,11 +37,18 @@ const completion = await gateway.chat.completions.create({
     { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
     { role: "user", content: "Compare quarterly revenue by region." },
   ],
+  safety_identifier: userId, // stable ID of the end user making this request
   stream: true,
 });
 ```
 
 The assistant message contains OpenUI Lang. When the request is configured for OpenUI generation, the Gateway validates and corrects that language while it streams.
+
+<Callout type="warn">
+  Send `safety_identifier` with every request you make for an end user. Without it, model providers
+  attribute policy violations to your whole organization. See [Safety
+  Identifier](/docs/gateway/safety-identifier).
+</Callout>
 
 ## Plain text requests
 
@@ -51,6 +58,7 @@ The endpoint also supports ordinary model traffic. Send your own system prompt w
 const completion = await gateway.chat.completions.create({
   model: "anthropic/claude-sonnet-5",
   messages: [{ role: "user", content: "Summarize this support ticket." }],
+  safety_identifier: userId,
 });
 ```
 

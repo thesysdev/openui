@@ -65,6 +65,7 @@ const completion = await gateway.chat.completions.create({
     { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
     { role: "user", content: "Compare quarterly revenue by region." },
   ],
+  safety_identifier: userId, // stable ID of the end user making this request
   stream: true,
 });
 ```
@@ -83,6 +84,7 @@ const response = await gateway.responses.create({
   model: "openai/gpt-5",
   input: "Compare quarterly revenue by region.",
   instructions: generateSystemPrompt({ cloud: true, library }),
+  safety_identifier: userId, // stable ID of the end user making this request
   stream: true,
 });
 ```
