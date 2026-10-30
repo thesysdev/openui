@@ -5,6 +5,7 @@
     "index",
     "generate-openui-lang",
     "authentication",
+    "safety-identifier",
     "models",
     "reliability",
     "prompt-caching",

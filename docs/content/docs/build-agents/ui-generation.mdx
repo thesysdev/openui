@@ -82,6 +82,7 @@ const gateway = new OpenAI({
 const completion = await gateway.chat.completions.create({
   model: "openai/gpt-5",
   messages: [{ role: "system", content: openuiInstructions }, ...messages],
+  safety_identifier: userId, // stable ID of the end user making this request
   stream: true,
 });
 ```

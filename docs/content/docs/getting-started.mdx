@@ -67,6 +67,7 @@ const completion = await gateway.chat.completions.create({
     { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
     { role: "user", content: "Compare quarterly revenue by region." },
   ],
+  safety_identifier: userId, // stable ID of the end user making this request
   stream: true,
 });
 ```
