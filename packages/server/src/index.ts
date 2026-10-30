@@ -1,21 +1,17 @@
 export { OpenUIClient } from "./client/client";
 export { OpenUIApiError } from "./client/types";
 export type {
-  ArtifactDataTool,
-  ArtifactKind,
   ArtifactLibrary,
   ArtifactPromptOptions,
   ArtifactResult,
-  ArtifactTool,
-  ArtifactToolOptions,
-  CreateArtifactParams,
+  CreateDashboardParams,
   CreateFrontendTokenParams,
-  EditArtifactParams,
+  Dashboard,
+  DashboardOptions,
+  EditDashboardParams,
   FrontendToken,
-  LiveArtifactToolOptions,
   OpenUIClientOptions,
   RequestOptions,
-  StaticArtifactToolOptions,
 } from "./client/types";
 export type { McpConfig, McpOption, McpToolClient } from "./tools/mcp";
 export { ToolExecutionError } from "./tools/types";
@@ -23,7 +19,6 @@ export type {
   DataTool,
   Interpreter,
   InterpreterExecuteOptions,
-  InterpreterOptions,
   InterpreterRequest,
   ToolDefinition,
   ToolHandler,

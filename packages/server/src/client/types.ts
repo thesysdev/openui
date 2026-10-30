@@ -1,6 +1,6 @@
 import type { CloudPromptOptions, LibrarySpec } from "@openuidev/lang-core";
 import type { McpOption } from "../tools/mcp";
-import type { ToolDefinition } from "../tools/types";
+import type { DataTool, Interpreter } from "../tools/types";
 
 export interface OpenUIClientOptions {
   /** Defaults to the `THESYS_API_KEY` environment variable. */
@@ -15,38 +15,28 @@ export interface ArtifactLibrary {
   toSpec(): LibrarySpec;
 }
 
-/** A data tool, as you pass it to `openui.createInterpreter`. Only what generation needs is sent, never `execute`. */
-export type ArtifactDataTool = Omit<ToolDefinition, "name"> & { execute?: unknown };
-
 /** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */
 export type ArtifactPromptOptions = CloudPromptOptions;
 
-/** What an artifact is, for listing and filtering. It doesn't change how it's generated. */
-export type ArtifactKind = "dashboard" | "slides" | "report";
+/** Your data tools, an MCP server's, or both. The dashboard's interpreter runs them. */
+type DashboardDataTools<Context> =
+  | { tools: Record<string, DataTool<Context>>; mcp?: McpOption<Context> }
+  | { tools?: Record<string, DataTool<Context>>; mcp: McpOption<Context> };
 
-interface ArtifactToolOptionsBase {
-  /** Saved with each artifact; `dashboard` by default. */
-  kind?: ArtifactKind;
+export type DashboardOptions<Context = undefined> = {
+  /**
+   * Your name for this dashboard, such as "sales": 1 to 64 letters, digits,
+   * `_` or `-`, and different for every dashboard you define. Its artifacts
+   * remember it, so `openui.interpreter` runs their data tools with this one.
+   */
+  name: string;
   library: ArtifactLibrary;
+  /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
   promptOptions?: ArtifactPromptOptions;
-}
+} & DashboardDataTools<Context>;
 
-/** Your data tools, an MCP server's, or both. Pass the same to `openui.createInterpreter`. */
-type LiveDataTools =
-  | { tools: Record<string, ArtifactDataTool>; mcp?: McpOption<never> }
-  | { tools?: Record<string, ArtifactDataTool>; mcp: McpOption<never> };
-
-export type LiveArtifactToolOptions = ArtifactToolOptionsBase & { type: "live" } & LiveDataTools;
-
-export interface StaticArtifactToolOptions extends ArtifactToolOptionsBase {
-  /** The default: your components, with the data in the prompt. */
-  type?: "static";
-  tools?: never;
-  mcp?: never;
-}
-
-export interface CreateArtifactParams {
+export interface CreateDashboardParams {
   /** The signed-in user, from your session. Users only read and edit their own artifacts. */
   userId: string;
   /** A short title, such as "Q3 sales by region". */
@@ -57,7 +47,7 @@ export interface CreateArtifactParams {
   prompt: string;
 }
 
-export interface EditArtifactParams {
+export interface EditDashboardParams {
   id: string;
   userId: string;
   /** The change to make, and any data it needs. */
@@ -76,15 +66,14 @@ export interface ArtifactResult {
   response: string;
 }
 
-export type ArtifactToolOptions = LiveArtifactToolOptions | StaticArtifactToolOptions;
-
-/** Creates and edits one type of artifact. Each call returns as soon as the artifact has an id. */
-export interface ArtifactTool {
-  readonly type: "live" | "static";
-  readonly kind: ArtifactKind;
-  create(params: CreateArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;
+/** Creates and edits live dashboards. Each call returns as soon as the artifact has an id. */
+export interface Dashboard<Context = undefined> {
+  readonly name: string;
+  create(params: CreateDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;
   /** Edits in place. Renderers keep the current version until the edit is ready. */
-  edit(params: EditArtifactParams, options?: RequestOptions): Promise<ArtifactResult>;
+  edit(params: EditDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;
+  /** Runs this dashboard's data tools and generated scripts on your server. */
+  readonly interpreter: Interpreter<Context>;
 }
 
 export interface CreateFrontendTokenParams {

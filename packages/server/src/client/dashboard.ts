@@ -1,18 +1,18 @@
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
-import { toToolDefinitions } from "../tools/execute";
-import { mcpToolLoader, mergeTools } from "../tools/mcp";
+import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { ToolExecutionError } from "../tools/types";
 import { apiError, isRecord, type CloudApi } from "./api";
 import { createFrontendToken } from "./frontend-token";
 import {
   OpenUIApiError,
   type ArtifactResult,
-  type ArtifactTool,
-  type ArtifactToolOptions,
+  type Dashboard,
+  type DashboardOptions,
 } from "./types";
 
-type ArtifactType = "live" | "static";
+/** How a dashboard's name may look: it rides with every artifact it makes. */
+export const DASHBOARD_NAME = /^[A-Za-z0-9_-]{1,64}$/;
 
 function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
@@ -29,43 +29,40 @@ function invalidLibrary(error: unknown): never {
  * What a tool returns to the model: a sentence, then the artifact's header line
  * for the renderer. A new `version` tells renderers there's a newer revision.
  */
-function toolResponse(id: string, type: ArtifactType, title?: string): string {
+function toolResponse(id: string, definition: string, title?: string): string {
   const version = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  const header = { artifact_id: id, type, ...(title && { name: title }), version };
+  const header = {
+    artifact_id: id,
+    type: "live",
+    definition,
+    ...(title && { name: title }),
+    version,
+  };
   const sentence =
     title === undefined
-      ? `Editing the ${type} artifact; the user sees the new version when it's ready.`
-      : `Started the ${type} artifact "${title}"; the user sees it as it's generated.`;
+      ? "Editing the dashboard; the user sees the new version when it's ready."
+      : `Started the dashboard "${title}"; the user sees it as it's generated.`;
   return `${sentence}\n]]>openui:artifact ${JSON.stringify(header)}\n`;
 }
 
-const ARTIFACT_KINDS = new Set<string>(["dashboard", "slides", "report"]);
-
-/** The artifact tool behind `openui.defineArtifactTool`. */
-export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions): ArtifactTool {
+/** The dashboard behind `openui.defineDashboard`. */
+export function defineDashboard<Context>(
+  api: CloudApi,
+  options: DashboardOptions<Context>,
+): Dashboard<Context> {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const {
-    type = "static",
-    kind = "dashboard",
-    library,
-    model,
-    promptOptions,
-    tools,
-    mcp,
-  } = options;
-  if (type !== "live" && type !== "static") invalidInput('type must be "live" or "static"');
-  if (!ARTIFACT_KINDS.has(kind)) invalidInput('kind must be "dashboard", "slides" or "report"');
+  const { name, library, model, promptOptions, tools, mcp } = options;
+  if (typeof name !== "string" || !DASHBOARD_NAME.test(name)) {
+    invalidInput('name is required: 1 to 64 letters, digits, "_" or "-", such as "sales"');
+  }
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
   if (typeof library?.toSpec !== "function") {
     invalidInput("library is required, such as one from createLibrary");
   }
-  if (type === "live" && !isRecord(tools) && mcp === undefined) {
-    invalidInput("Live artifacts need data tools: pass `tools`, `mcp`, or both");
-  }
-  if (type === "static" && (tools !== undefined || mcp !== undefined)) {
-    invalidInput("Static artifacts don't run data tools: remove `tools` and `mcp`");
+  if (!isRecord(tools) && mcp === undefined) {
+    invalidInput("Dashboards need data tools: pass `tools`, `mcp`, or both");
   }
 
   let spec: LibrarySpec;
@@ -74,14 +71,13 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
   } catch (error) {
     invalidLibrary(error);
   }
-  const loadMcp = mcp === undefined ? undefined : mcpToolLoader(mcp);
+  // One list of tools for generation and the interpreter; MCP tools are listed once.
+  const loadTools = dataToolLoader<Context>({ tools, mcp } as DashboardOptions<Context>);
 
   /** What generation sees of your data tools and the MCP server's. */
   async function toolDefinitions() {
-    if (type === "static") return undefined;
-    if (!loadMcp) return toToolDefinitions(tools ?? {});
     try {
-      return toToolDefinitions(mergeTools(tools, await loadMcp()));
+      return toToolDefinitions(await loadTools());
     } catch (error) {
       if (error instanceof ToolExecutionError) {
         throw new OpenUIApiError(error.message, error.code, error.status);
@@ -130,9 +126,10 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
         // Chat completions metadata values are strings.
         metadata: {
           thesys: JSON.stringify({
-            c1_artifact_type: type,
+            c1_artifact_type: "live",
+            definition: name,
             ...thesys,
-            ...(definitions && { tools: definitions }),
+            tools: definitions,
           }),
         },
       }),
@@ -153,20 +150,25 @@ export function defineArtifactTool(api: CloudApi, options: ArtifactToolOptions):
   }
 
   return {
-    type,
-    kind,
+    name,
 
     async create({ userId, title, description, prompt }, { signal } = {}): Promise<ArtifactResult> {
-      const thesys = { title, kind, ...(description !== undefined && { description }) };
+      const thesys = {
+        title,
+        kind: "dashboard",
+        ...(description !== undefined && { description }),
+      };
       const id = await start(userId, prompt, thesys, signal);
-      return { id, response: toolResponse(id, type, title) };
+      return { id, response: toolResponse(id, name, title) };
     },
 
-    // OpenUI Cloud edits the version it stores, and checks it's this type.
+    // OpenUI Cloud edits the version it stores, and checks this dashboard made it.
     async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
       const edited = await start(userId, prompt, { id }, signal);
-      return { id: edited, response: toolResponse(edited, type) };
+      return { id: edited, response: toolResponse(edited, name) };
     },
+
+    interpreter: createInterpreter<Context>(api, loadTools),
   };
 }
