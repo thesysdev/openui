@@ -7,7 +7,6 @@ import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
 import {
   isElementNode,
-  PENDING_SLOT,
   type CallDef,
   type ElementNode,
   type MaterializeCtx,
@@ -438,18 +437,10 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
       for (const e of node.els) {
         // Drop unresolved placeholders from arrays
         if (e.k === "Ph") continue;
-        const unresBefore = ctx.unres.length;
         const value = materializeValue(e, ctx);
         // Drop null entries from component/ref resolution (incomplete props, unresolved refs, unknown components)
-        if (value !== null || (e.k !== "Comp" && e.k !== "Ref")) items.push(value);
-        // While streaming, mark where a child waiting on a statement not written yet goes,
-        // and the end of the statement still being written
-        if (
-          ctx.pendingSlots &&
-          ((value === null && ctx.unres.length > unresBefore) ||
-            (e.k === "Ref" && e.n === ctx.streamingStatementId))
-        )
-          items.push(PENDING_SLOT);
+        if (value === null && (e.k === "Comp" || e.k === "Ref")) continue;
+        items.push(value);
       }
       return items;
     }
