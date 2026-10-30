@@ -471,6 +471,7 @@ function startsProgram(block: string): boolean {
 
 /** Extract the program from markdown code fences, or return the input when no fence holds one. */
 export function stripFences(input: string): string {
+  if (!input.includes("```")) return input; // no fence anywhere: nothing to extract
   const blocks: string[] = [];
   const outside: string[] = [];
   let body: string[] | null = null;
