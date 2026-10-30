@@ -1,50 +1,6 @@
 import OpenUILang
 import SwiftUI
 
-/// Native presentation for the pinned standard catalog, without extra DSL names.
-enum OpenUIContentComponents {
-  static var components: [OpenUIComponent] {
-    [
-      OpenUIReference.component("CardHeader") { NativeHeading(context: $0, compact: false) },
-      OpenUIReference.component("InlineHeader") { NativeHeading(context: $0, compact: true) },
-      OpenUIReference.component("MarkDownRenderer") { NativeMarkdown(context: $0) },
-      OpenUIReference.component("Callout") { NativeCallout(context: $0, reactive: true) },
-      OpenUIReference.component("TextCallout") { NativeCallout(context: $0, reactive: false) },
-      OpenUIReference.component("ImageBlock") { NativeImageBlock(context: $0) },
-      OpenUIReference.component("ImageGallery") { NativeImageGallery(context: $0) },
-      OpenUIReference.component("Text") { NativeInlineText(context: $0, bold: false) },
-      OpenUIReference.component("BoldText") { NativeInlineText(context: $0, bold: true) },
-      OpenUIReference.component("IconText") {
-        NativeMediaText(context: $0, media: .icon)
-      },
-      OpenUIReference.component("ImageText") {
-        NativeMediaText(context: $0, media: .thumbnail)
-      },
-      OpenUIReference.component("ImageTextLarge") {
-        NativeMediaText(context: $0, media: .banner)
-      },
-      OpenUIReference.component("Icon") { NativeIcon(context: $0) },
-      OpenUIReference.component("IconButton") { NativeIconButton(context: $0) },
-      OpenUIReference.component("Tag") { NativeTag(context: $0) },
-      OpenUIReference.component("TagBlock") { NativeTagBlock(context: $0) },
-      OpenUIReference.component("EntityList") { NativeEntityList(context: $0) },
-      OpenUIReference.component("ListBlock") { NativeListBlock(context: $0) },
-      OpenUIReference.component("ListItem") { NativeListItem(context: $0) },
-      OpenUIReference.component("Steps") { NativeSteps(context: $0) },
-      OpenUIReference.component("StepsItem") { _ in EmptyView() },
-      OpenUIReference.component("Carousel") { NativeCarousel(context: $0) },
-      OpenUIReference.component("Modal") { NativeModal(context: $0) },
-    ]
-      + ["Snippet", "Overview", "Context", "Composite", "Visual"].flatMap { kind in
-        [
-          OpenUIReference.component(kind + "CardItem") { NativeCardItem(context: $0, kind: kind) },
-          OpenUIReference.component(kind + "CardBlock") {
-            NativeCardBlock(context: $0, kind: kind)
-          },
-        ]
-      }
-  }
-}
 
 struct NativeHeading: View {
   let context: OpenUIComponentContext
@@ -182,8 +138,8 @@ struct NativeInlineText: View {
   let bold: Bool
   private var style: NativeRichTextStyle {
     let size = context.string("size") ?? "sm"
-    let font = context.theme.typography.inline(size)
-    return .init(font: bold ? font.weight(context.theme.typography.heading.weight) : font,
+    let font = context.theme.typography.inline(size, emphasized: bold)
+    return .init(font: font,
       numeric: context.string("variant") == "number")
   }
   var body: some View {

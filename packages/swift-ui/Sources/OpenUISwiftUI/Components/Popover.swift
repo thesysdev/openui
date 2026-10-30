@@ -1,25 +1,8 @@
 import OpenUILang
 import SwiftUI
 
-/// Optional native contextual explanations, without a WebKit dependency.
-public enum OpenUIPopoverComponents {
-    public static func install(into base: OpenUIComponentLibrary) throws -> OpenUIComponentLibrary {
-        let popover = OpenUIComponent(name: "Popover", description: """
-            Contextual detail anchored to a compact trigger, such as Icon or short TextContent.
-            The SDK makes the trigger an accessible button; do not nest a Button/IconButton inside
-            it. content is ordinary component content. Use for optional explanations without adding
-            rows to the page; keep essential content visible outside the popover.
-            """, params: [OpenUIParameter.slot("trigger", multiple: false, required: true),
-                OpenUIParameter.slot("content", multiple: false, required: true), OpenUIParameter.string("label", required: false)]) {
-                    NativeContextPopover(context: $0)
-                }
-        return try base.extending(adding: [popover], slots: [
-            "Popover": base.standardContentSlots,
-        ])
-    }
-}
 
-private struct NativeContextPopover: View {
+struct NativeContextPopover: View {
     let context: OpenUIComponentContext
     @State private var presented = false
     var body: some View {

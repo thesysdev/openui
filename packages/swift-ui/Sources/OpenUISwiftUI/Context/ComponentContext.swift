@@ -1,151 +1,6 @@
 import SwiftUI
 import OpenUILang
 
-/// Semantic defaults can be replaced by the product without changing programs.
-public struct OpenUITheme {
-    // Pinned react-ui f08a6605 neutral palette, converted from OKLCH to sRGB.
-    // Translucent roles remain translucent so nested surfaces do not gain a tint.
-    public var foreground = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFAFAFA)
-    public var secondary = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFAFAFA).opacity(0.6)
-    public var canvas = NativeControlPalette.adaptive(light: 0xF5F5F5, dark: 0x0A0A0A)
-    public var surface = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFDFDFD).opacity(0.04)
-    public var border = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFDFDFD).opacity(0.06)
-    public var interactiveBorder = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFDFDFD).opacity(0.12)
-    public var subtleSurface = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFDFDFD).opacity(0.02)
-    // The assistant uses the reference's neutral brand treatment. A product
-    // accent remains an explicit theme override, not a default blue CTA.
-    public var accent = NativeControlPalette.ink
-    public var accentForeground: Color? = nil
-    public var controlSurface = NativeControlPalette.adaptive(light: 0xFDFDFD, dark: 0x171717)
-    public var error = NativeControlPalette.error
-    public var info = NativeControlPalette.info
-    public var success = NativeControlPalette.success
-    public var warning = NativeControlPalette.warning
-    // Layout tokens use the upstream ThemeProvider names and defaults.
-    public var space000: CGFloat = 0
-    public var space3xs: CGFloat = 2
-    public var space2xs: CGFloat = 4
-    public var spaceXs: CGFloat = 6
-    public var spaceS: CGFloat = 8
-    public var spaceSM: CGFloat = 10
-    public var spaceM: CGFloat = 12
-    public var spaceML: CGFloat = 16
-    public var spaceL: CGFloat = 18
-    public var spaceXl: CGFloat = 24
-    public var space2xl: CGFloat = 36
-    public var space3xl: CGFloat = 48
-    public var radiusM: CGFloat = 8
-    public var radiusL: CGFloat = 10
-    public var radiusXl: CGFloat = 12
-    public var radius2xl: CGFloat = 14
-    public var radius3xl: CGFloat = 16
-    public var radius5xl: CGFloat = 24
-
-    // Existing native configuration remains source-compatible. An explicit
-    // override wins; otherwise the component follows the shared token.
-    private var controlRadiusOverride: CGFloat?
-    private var cardRadiusOverride: CGFloat?
-    private var overlayRadiusOverride: CGFloat?
-    private var mediaRadiusOverride: CGFloat?
-    private var cardPaddingOverride: CGFloat?
-    private var contentSpacingOverride: CGFloat?
-    public var controlCornerRadius: CGFloat {
-        get { controlRadiusOverride ?? radiusL }
-        set { controlRadiusOverride = newValue }
-    }
-    public var cornerRadius: CGFloat {
-        get { cardRadiusOverride ?? radius3xl }
-        set { cardRadiusOverride = newValue }
-    }
-    public var overlayCornerRadius: CGFloat {
-        get { overlayRadiusOverride ?? radius5xl }
-        set { overlayRadiusOverride = newValue }
-    }
-    public var cardPadding: CGFloat {
-        get { cardPaddingOverride ?? spaceM }
-        set { cardPaddingOverride = newValue }
-    }
-    public var contentSpacing: CGFloat {
-        get { contentSpacingOverride ?? spaceM }
-        set { contentSpacingOverride = newValue }
-    }
-    public var mediaCornerRadius: CGFloat {
-        get { mediaRadiusOverride ?? radiusM }
-        set { mediaRadiusOverride = newValue }
-    }
-    func cardRadius(for kind: String) -> CGFloat {
-        if let override = cardRadiusOverride {
-            return max(0, override - (kind == "Context" ? 4 : ["Overview", "Snippet"].contains(kind) ? 2 : 0))
-        }
-        return kind == "Context" ? radiusXl : ["Overview", "Snippet"].contains(kind) ? radius2xl : radius3xl
-    }
-    // Inverted text is independent of a chart/host canvas override.
-    public var invertedForeground = NativeControlPalette.adaptive(light: 0xF5F5F5, dark: 0x0A0A0A)
-    private var invertedBackgroundOverride: Color?
-    public var invertedBackground: Color {
-        get { invertedBackgroundOverride ?? foreground }
-        set { invertedBackgroundOverride = newValue }
-    }
-    private var linkOverride: Color?
-    public var link: Color {
-        get { linkOverride ?? foreground }
-        set { linkOverride = newValue }
-    }
-    #if os(iOS)
-    public var minimumControlTargetSize: CGFloat = 44
-    #else
-    public var minimumControlTargetSize: CGFloat = 24
-    #endif
-    public var typography = OpenUITypography()
-    public var motion = OpenUIMotion()
-    public var thumbnailSize: CGFloat = 112
-    public var compactThumbnailSize: CGFloat = 80
-    public var inlineThumbnailSize: CGFloat = 40
-    public var minimumTextColumnWidth: CGFloat = 160
-    public var coverAspectRatio: CGFloat = 3 / 2
-    public var maximumCarouselCardWidth: CGFloat = 320
-    public var carouselPeek: CGFloat = 32
-    public var cardBorderWidth: CGFloat = 1
-    public var cardShadowOpacity: Double = 0
-    public var cardShadowRadius: CGFloat = 0
-    public var cardShadowY: CGFloat = 0
-    public var metricSurface = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFDFDFD).opacity(0.04)
-    private var customDataColors: [Color]?
-    /// Explicit host colors retain their existing override behavior.
-    public var dataColors: [Color] {
-        get { customDataColors ?? NativeChartPalette.swatches(count: 6).map(\.color) }
-        set { customDataColors = newValue }
-    }
-    public func chartColors(forSeriesCount count: Int) -> [Color] {
-        if let customDataColors { return customDataColors.isEmpty ? [accent] : customDataColors }
-        return NativeChartPalette.swatches(count: count).map(\.color)
-    }
-    public var chartGrid = NativeControlPalette.adaptive(light: 0xE8EAEE, dark: 0x34373C)
-    public var chartAxis = NativeControlPalette.adaptive(light: 0x6A6F78, dark: 0xB4BBC6)
-    public var minimumCardWidth: CGFloat = 240
-    public var minimumCompactCardWidth: CGFloat = 160
-    public var minimumChoiceWidth: CGFloat = 136
-    public init() {}
-
-    public func spacing(_ token: String?) -> CGFloat {
-        switch token {
-        case "none": return space000
-        case "3xs": return space3xs
-        case "2xs": return space2xs
-        case "xs": return spaceXs
-        case "s": return spaceS
-        case "sm": return spaceSM
-        case "ml": return spaceML
-        case "l": return spaceL
-        case "xl": return spaceXl
-        case "2xl": return space2xl
-        case "3xl": return space3xl
-        default: return spaceM
-        }
-    }
-}
-
-private struct OpenUIThemeKey: EnvironmentKey { static let defaultValue = OpenUITheme() }
 private struct OpenUIResourcesKey: EnvironmentKey { static let defaultValue: [String: Value] = [:] }
 private struct OpenUIFormKey: EnvironmentKey { static let defaultValue: String? = nil }
 private struct OpenUIProgramScopeKey: EnvironmentKey { static let defaultValue: ObjectIdentifier? = nil }
@@ -160,10 +15,6 @@ extension EnvironmentValues {
     var openUIInlineLinksReady: Bool {
         get { self[NativeInlineLinksKey.self] }
         set { self[NativeInlineLinksKey.self] = newValue }
-    }
-    public var openUITheme: OpenUITheme {
-        get { self[OpenUIThemeKey.self] }
-        set { self[OpenUIThemeKey.self] = newValue }
     }
     public var openUIResources: [String: Value] {
         get { self[OpenUIResourcesKey.self] }
@@ -180,7 +31,6 @@ extension EnvironmentValues {
 }
 
 extension View {
-    public func openUITheme(_ value: OpenUITheme) -> some View { environment(\.openUITheme, value) }
     /// Resources belong to this host/message, not a process-global store.
     public func openUIResources(_ value: [String: Value]) -> some View { environment(\.openUIResources, value) }
     public func openUIForm(_ name: String?) -> some View {
@@ -361,76 +211,3 @@ private struct NativeProgramIdentity: Hashable {
     let revision: Int
 }
 
-/// For a card with one primary action. Its label must contain presentation only,
-/// not nested buttons. The host decides how the resulting event is handled.
-public struct OpenUIActionSurface<Content: View>: View {
-    private let context: OpenUIComponentContext
-    private enum Dispatch { case plan(ActionPlan), value(String, Value?) }
-    private let dispatch: Dispatch
-    private let content: Content
-    private let role: ButtonRole?
-    private let useNativeStyle: Bool
-    private let validateForm: Bool
-    private let showsProgress: Bool
-    // Source readiness can change interaction eligibility without changing props.
-    @EnvironmentObject private var state: OpenUIState
-    @Environment(\.openUIFormValidation) private var validation
-    @State private var performing = false
-
-    public init(context: OpenUIComponentContext, action: ActionPlan, role: ButtonRole? = nil, useNativeStyle: Bool = false, validateForm: Bool = false, showsProgress: Bool = false, @ViewBuilder content: () -> Content) {
-        self.context = context; self.dispatch = .plan(action); self.content = content()
-        self.role = role; self.useNativeStyle = useNativeStyle; self.validateForm = validateForm
-        self.showsProgress = showsProgress
-    }
-
-    public init(context: OpenUIComponentContext, message: String, action: Value? = nil, role: ButtonRole? = nil, useNativeStyle: Bool = false, validateForm: Bool = false, showsProgress: Bool = false, @ViewBuilder content: () -> Content) {
-        self.context = context; self.dispatch = .value(message, action); self.content = content()
-        self.role = role; self.useNativeStyle = useNativeStyle; self.validateForm = validateForm
-        self.showsProgress = showsProgress
-    }
-
-    @ViewBuilder public var body: some View {
-        if useNativeStyle { button } else { button.buttonStyle(.plain) }
-    }
-    private var button: some View {
-        Button(role:role) {
-            guard !performing, context.canActivate else { return }
-            if validateForm && needsValidation && validation?.validateAll() == false { return }
-            performing = true
-            Task { @MainActor in
-                defer { performing = false }
-                switch dispatch {
-                case .plan(let plan): await context.perform(plan)
-                case .value(let message, let action): await context.triggerAction(message, action: action)
-                }
-            }
-        } label: {
-            Group {
-                if useNativeStyle { content }
-                else { content.openUIControlTarget(alignment: .leading) }
-            }.contentShape(Rectangle())
-                .opacity(showsProgress && performing ? 0 : 1)
-                .overlay {
-                    if showsProgress && performing { ProgressView().controlSize(.small) }
-                }
-        }
-        .accessibilityValue(showsProgress && performing ? Text("In progress", bundle: NativeControlResources.bundle) : Text(""))
-        .disabled(!context.canInteract || performing)
-    }
-    private var needsValidation: Bool {
-        let plan: ActionPlan?
-        switch dispatch {
-        case .plan(let action): plan = action
-        case .value(_,let value):
-            if case .actionPlan(let action) = value { plan = action } else { plan = nil }
-        }
-        return NativeFormValidation.requiresValidation(plan)
-    }
-}
-
-public enum OpenUIActions {
-    public static func openURL(_ url: String) -> ActionPlan { ActionPlan(steps: [.openUrl(urlAST: .str(url))]) }
-    public static func continueConversation(_ message: String, context: ASTNode? = nil) -> ActionPlan {
-        ActionPlan(steps: [.continueConversation(messageAST: .str(message), contextAST: context)])
-    }
-}

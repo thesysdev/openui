@@ -3,35 +3,6 @@ import OpenUILang
 import SwiftUI
 import WebKit
 
-/// Opt-in embedded presentation primitives in OpenUISwiftUI. They do not change the upstream catalog.
-public enum OpenUIWebComponents {
-    public static func install(into base: OpenUIComponentLibrary) throws -> OpenUIComponentLibrary {
-        let height = ParamDef(name: "height", required: false, schema: .object([
-            .init(key: "type", value: .string("number")), .init(key: "minimum", value: .number(1))
-        ]))
-        let svg = OpenUIComponent(name: "SVG", description: """
-            A scalable vector illustration, diagram or custom data graphic. Supply a complete SVG
-            document in content, or its resource URL in src. Never invent an image URL. The viewBox
-            determines proportions; omitted height follows its actual rendered content. alt describes
-            its meaning and provides a readable fallback. For inline graphics use
-            SVG(content, null, alt, height): src is a resource URL, never an identifier.
-            Valid inline content takes precedence if both sources are supplied. Keep essential
-            facts in native text/charts as well. Scripts are disabled. Prefer standard charts for ordinary numeric data.
-            """, params: [OpenUIParameter.string("content", required: false), OpenUIParameter.string("src", required: false),
-                OpenUIParameter.string("alt", required: false), height]) { NativeEmbeddedContent(context: $0, svg: true) }
-        let web = OpenUIComponent(name: "WebView", description: """
-            Embedded web content for an existing webpage or a self-contained HTML visualization
-            that native components cannot express. Supply html or src, not both. Omitted height
-            follows content; an explicit height creates a scrollable viewport. Links open through
-            the normal URL handler. Prefer native components for ordinary cards, forms and text.
-            Page JavaScript is disabled by default and controlled by SDK policy, never by generated content.
-            """, params: [OpenUIParameter.string("html", required: false), OpenUIParameter.string("src", required: false),
-                OpenUIParameter.string("title", required: false), height]) { NativeEmbeddedContent(context: $0, svg: false) }
-        let names = ["SVG", "WebView"]
-        return try base.extending(adding: [svg, web], slots: Dictionary(uniqueKeysWithValues:
-            names.map { ($0, base.standardContentSlots) }))
-    }
-}
 
 /// Web execution is an application capability, not a model-controlled flag.
 public struct OpenUIWebPolicy {
@@ -120,7 +91,7 @@ private struct NativeEmbeddedInput: Hashable {
     let javaScript: Bool
 }
 
-private struct NativeEmbeddedContent: View {
+struct NativeEmbeddedContent: View {
     let context: OpenUIComponentContext
     let svg: Bool
     @Environment(\.openUIResourceContext) private var resources

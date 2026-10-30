@@ -7,25 +7,6 @@ import UIKit
 import AppKit
 #endif
 
-struct NativeRichTextStyle {
-  var font: OpenUIFont?
-  var numeric = false
-  var color: Color?
-  static func textContent(_ size: String?, theme: OpenUITheme) -> Self {
-    let font: OpenUIFont?
-    switch size {
-    case "small": font = theme.typography.detail
-    case "small-heavy": font = theme.typography.detail.weight(theme.typography.heading.weight)
-    case "large": font = theme.typography.title.weight(theme.typography.body.weight)
-    case "large-heavy": font = theme.typography.title
-    case "default": font = theme.typography.body
-    default: font = nil
-    }
-    // Size variants select a reading scale, not an information-priority color.
-    return .init(font: font, color: theme.foreground)
-  }
-}
-
 /// Shared native Markdown presentation. Remark owns text parsing and extensions;
 /// MarkdownUI lays out native blocks, and CodeBlock shares the standard renderer.
 struct NativeMarkdownText: View {
@@ -72,7 +53,7 @@ struct NativeMarkdownText: View {
         FontDigitVariant(style.numeric || font.monospacedDigits ? .monospaced : .normal)
       }
       .markdownTextStyle(\.link) { ForegroundColor(theme.link) }
-      .markdownTextStyle(\.strong) { FontWeight(theme.typography.heading.weight) }
+      .markdownTextStyle(\.strong) { FontWeight(theme.typography.bodyHeavy.weight) }
       .markdownSoftBreakMode(mode == .markdown ? .space : .lineBreak)
       .markdownBlockStyle(\.paragraph) { configuration in
         configuration.label.fixedSize(horizontal: false, vertical: true)

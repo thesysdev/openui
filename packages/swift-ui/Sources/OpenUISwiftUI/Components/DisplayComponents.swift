@@ -1,30 +1,8 @@
 import OpenUILang
 import SwiftUI
 
-enum OpenUIDisplayComponents {
-    static var components: [OpenUIComponent] {
-        return [
-            OpenUIReference.component("Label") {
-                Text($0.string("text") ?? "").openUIFont($0.theme.typography.body)
-            },
-            OpenUIReference.component("Separator") { context in NativeSeparator(context: context) },
-            OpenUIReference.component("CodeBlock") { NativeCodeBlock(context: $0) },
-            OpenUIReference.component("Col") { _ in EmptyView() },
-            OpenUIReference.component("Table") { NativeDataTable(context: $0) },
-            OpenUIReference.component("EditableTable") { NativeEditableTable(context: $0) },
-            OpenUIReference.component("AccordionItem") { _ in EmptyView() },
-            OpenUIReference.component("Accordion") { NativeAccordion(context: $0) },
-            OpenUIReference.component("MetricIndicatorWithStrikethrough") {
-                NativeMetric(context: $0, inline: false)
-            },
-            OpenUIReference.component("MetricIndicatorInline") {
-                NativeMetric(context: $0, inline: true)
-            },
-        ]
-    }
-}
 
-private struct NativeSeparator: View {
+struct NativeSeparator: View {
     let context: OpenUIComponentContext
     @ViewBuilder var body: some View {
         Group {
@@ -37,7 +15,7 @@ private struct NativeSeparator: View {
     }
 }
 
-private struct NativeMetric: View {
+struct NativeMetric: View {
     let context: OpenUIComponentContext
     var inline: Bool
     var body: some View {
@@ -120,7 +98,7 @@ struct NativeAccordionSelection {
     }
 }
 
-private struct NativeAccordion: View {
+struct NativeAccordion: View {
     let context: OpenUIComponentContext
     @State private var local = NativeAccordionSelection()
     private var items: [OpenUIRenderChild] { context.children("items") }
@@ -163,7 +141,7 @@ private struct NativeAccordion: View {
 
 }
 
-private struct NativeDataTable: View {
+struct NativeDataTable: View {
     struct Column: Identifiable {
         let id: String
         let title: String

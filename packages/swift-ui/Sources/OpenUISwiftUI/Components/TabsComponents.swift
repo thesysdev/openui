@@ -1,12 +1,6 @@
 @_spi(RuntimeInspection) import OpenUILang
 import SwiftUI
 
-enum OpenUISelectionComponents {
-    static var components: [OpenUIComponent] {
-        [OpenUIReference.component("TabItem") { _ in EmptyView() },
-         OpenUIReference.component("Tabs") { NativeTabsView(context: $0) }]
-    }
-}
 
 struct NativeTabPanel: Identifiable, Equatable {
     let id: OpenUIString
@@ -54,7 +48,7 @@ struct NativeTabsSelection {
     }
 }
 
-private struct NativeTabsView: View {
+struct NativeTabsView: View {
     let context: OpenUIComponentContext
     @Environment(\.dynamicTypeSize) private var textSize
     @State private var local = NativeTabsSelection()

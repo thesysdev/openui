@@ -170,3 +170,14 @@ used `.medium`; it now uses the configurable `bodyHeavy` role (body size, native
 semibold). This is the intended default visual correction. Image cropping and
 footer composition are outside this change. Font-specific extra line spacing
 is optional; the existing global fallback remains unchanged.
+
+### Source organization and theme inheritance
+
+The native module separates Components, GenUILib, Context, Theme and internal
+helpers, while retaining its existing renderer/state entry files. This is a source-organization change, with no new
+products or component definitions. Local theme updates use SwiftUI
+`transformEnvironment`, preserving inherited values without a second resolver.
+The complete-value API still replaces its scope. TextContent, Text, BoldText and
+Markdown emphasis now select body typography rather than borrowing heading
+weights/sizes; defaults are retained. The reference Stack/Card gap map uses a
+literal zero for `none`, which is kept independent of `space000`.

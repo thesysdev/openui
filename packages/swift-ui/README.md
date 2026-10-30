@@ -10,6 +10,8 @@ The standard collection defaults to neutral native typography, grouped forms and
 
 Composition programs, preview applications and Simulator acceptance captures are maintained separately from this SDK-only distribution. They consume the installed registry and unchanged language runtime; they are not library dependencies or part of the SDK unit-test suite.
 
+For source organization and theme ownership, see [Architecture](ARCHITECTURE.md).
+
 ## Installation
 
 The repository-root `Package.swift` exposes `OpenUISwiftUI` and `OpenUILang`.

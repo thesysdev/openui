@@ -2,117 +2,6 @@ import MapKit
 import OpenUILang
 import SwiftUI
 
-/// An opt-in platform component. The pinned upstream collection remains 82 names.
-public enum OpenUIMapComponents {
-  public static func library(
-    id: String? = nil, basemapCoordinateSystem: OpenUIMapCoordinateSystem = .wgs84
-  ) throws -> OpenUIComponentLibrary {
-    try install(
-      into: OpenUIStandardComponents.library(id: id),
-      basemapCoordinateSystem: basemapCoordinateSystem)
-  }
-
-  public static func install(
-    into base: OpenUIComponentLibrary,
-    basemapCoordinateSystem: OpenUIMapCoordinateSystem = .wgs84
-  ) throws -> OpenUIComponentLibrary {
-    let map = OpenUIComponent(
-      name: "Map",
-      description: """
-        Native map for supplied places and route vertices. Never geocode, invent coordinates,
-        or connect places when routes are absent. Points have stable id, title, lat and lng;
-        optional subtitle, imageSrc, url and icon are factual place metadata. icon is an SF Symbol
-        name, never a rating. Each routes entry
-        is one actual polyline segment. crs states whether coordinates are wgs84 or gcj02.
-        A bound value is the selected point id. size controls map prominence. Optional content
-        is an object keyed by point id; each value is an ordinary component or array of components.
-        Content appears as horizontally swipeable ordinary components INSIDE the map's bottom
-        edge, without pagination chrome. The camera reserves space above this content. Swiping selects
-        the corresponding marker; selecting a marker displays its page. Compose each page with
-        Card, Stack, ImageText, Buttons etc. When content is omitted, valid supplied points use a
-        compact default place card with title and available subtitle/image. No missing facts are
-        invented. No coordinates means no point or place card. Routes alone may still render.
-        """,
-      params: [
-        .init(
-          name: "points", required: true,
-          schema: .object([
-            .init(key: "type", value: .string("array")),
-            .init(key: "items", value: pointSchema),
-          ])),
-        .init(
-          name: "routes", required: false,
-          schema: .object([
-            .init(key: "type", value: .string("array")),
-            .init(
-              key: "items",
-              value: .object([
-                .init(key: "type", value: .string("array")),
-                .init(key: "items", value: coordinateSchema),
-              ])),
-          ])),
-        OpenUIParameter.selection("value", required: false),
-        OpenUIParameter.string(
-          "size", required: false, values: ["compact", "regular", "expanded"]),
-        OpenUIParameter.string("crs", required: false, values: ["wgs84", "gcj02"]),
-        .init(name: "content", required: false, schema: .object([
-          .init(key: "type", value: .string("object")),
-          .init(key: "additionalProperties", value: .object([])),
-          .init(key: "description", value: .string("Point id to component/page content. Use the same stable ids as points; each value may be a component or an array.")),
-        ])),
-      ]
-    ) { context in
-      NativeMapBlock(context: context, basemapCoordinateSystem: basemapCoordinateSystem)
-    }
-    // Stack.children accepts any component already. These typed slots require
-    // explicit extension through lang-core's existing authoring API.
-    return try base.extending(
-      adding: [map],
-      slots: [
-        "Map": base.standardContentSlots
-      ])
-  }
-
-  private static let coordinateSchema: JSONValue = .object([
-    .init(key: "type", value: .string("object")),
-    .init(
-      key: "properties",
-      value: .object([
-        .init(key: "lat", value: degreeSchema(min: -90, max: 90)),
-        .init(key: "lng", value: degreeSchema(min: -180, max: 180)),
-      ])),
-    .init(key: "required", value: .array([.string("lat"), .string("lng")])),
-    .init(key: "additionalProperties", value: .boolean(false)),
-  ])
-  private static let pointSchema: JSONValue = .object([
-    .init(key: "type", value: .string("object")),
-    .init(
-      key: "properties",
-      value: .object([
-        .init(key: "id", value: .object([.init(key: "type", value: .string("string"))])),
-        .init(key: "title", value: .object([.init(key: "type", value: .string("string"))])),
-        .init(key: "subtitle", value: .object([.init(key: "type", value: .string("string"))])),
-        .init(key: "imageSrc", value: .object([.init(key: "type", value: .string("string"))])),
-        .init(key: "url", value: .object([.init(key: "type", value: .string("string"))])),
-        .init(key: "icon", value: .object([.init(key: "type", value: .string("string"))])),
-        .init(key: "lat", value: degreeSchema(min: -90, max: 90)),
-        .init(key: "lng", value: degreeSchema(min: -180, max: 180)),
-      ])),
-    .init(
-      key: "required",
-      value: .array(
-        ["id", "title", "lat", "lng"].map(JSONValue.string))),
-    .init(key: "additionalProperties", value: .boolean(false)),
-  ])
-
-  private static func degreeSchema(min: Int, max: Int) -> JSONValue {
-    .object([
-      .init(key: "type", value: .string("number")),
-      .init(key: "minimum", value: .number(Double(min))),
-      .init(key: "maximum", value: .number(Double(max))),
-    ])
-  }
-}
 
 /// MapKit basemap coordinates vary by region; the host selects what its map
 /// displays. The OpenUI program declares the source CRS with Map.crs.
@@ -234,7 +123,7 @@ struct NativeMapData: Equatable {
   }
 }
 
-private struct NativeMapBlock: View {
+struct NativeMapBlock: View {
   let context: OpenUIComponentContext
   let basemapCoordinateSystem: OpenUIMapCoordinateSystem
   @State private var localSelection: OpenUIString?

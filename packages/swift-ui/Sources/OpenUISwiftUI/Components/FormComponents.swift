@@ -1,34 +1,8 @@
 import OpenUILang
 import SwiftUI
 
-enum OpenUIFormComponents {
-    static let fieldNames = ["Input", "TextArea", "Select", "CheckBoxGroup", "RadioGroup", "SwitchGroup", "DatePicker", "Slider"]
-    static var components: [OpenUIComponent] {
-        [
-            OpenUIReference.component("Form") { OpenUINativeForm(context: $0) },
-            OpenUIReference.component("FormControl") { OpenUINativeFormControl(context: $0) },
-            OpenUIReference.component("Buttons") { OpenUINativeButtons(context: $0) },
-            OpenUIReference.component("Input") { OpenUINativeField(context: $0, kind: .input) },
-            OpenUIReference.component("TextArea") { OpenUINativeField(context: $0, kind: .textArea) },
-            OpenUIReference.component("Select") { OpenUINativeField(context: $0, kind: .select) },
-            OpenUIReference.component("RadioGroup") { OpenUINativeField(context: $0, kind: .radio) },
-            OpenUIReference.component("CheckBoxGroup") { OpenUINativeField(context: $0, kind: .checkbox) },
-            OpenUIReference.component("SwitchGroup") { OpenUINativeField(context: $0, kind: .switches) },
-            OpenUIReference.component("Slider") { OpenUINativeField(context: $0, kind: .slider) },
-            OpenUIReference.component("DatePicker") { OpenUINativeField(context: $0, kind: .date) },
-            OpenUIReference.component("Chips") { OpenUINativeField(context: $0, kind: .chips) },
-            OpenUIReference.component("OptionCards") { OpenUINativeField(context: $0, kind: .optionCards) },
-            OpenUIReference.component("SelectItem") { _ in EmptyView() },
-            OpenUIReference.component("RadioItem") { _ in EmptyView() },
-            OpenUIReference.component("CheckBoxItem") { _ in EmptyView() },
-            OpenUIReference.component("SwitchItem") { _ in EmptyView() },
-            OpenUIReference.component("ChipItem") { _ in EmptyView() },
-            OpenUIReference.component("OptionCard") { _ in EmptyView() }
-        ]
-    }
-}
 
-private struct OpenUINativeForm: View {
+struct OpenUINativeForm: View {
     let context: OpenUIComponentContext
     @StateObject private var validation = NativeFormValidation()
     var body: some View {
@@ -46,7 +20,7 @@ private struct OpenUINativeForm: View {
     }
 }
 
-private struct OpenUINativeFormControl: View {
+struct OpenUINativeFormControl: View {
     let context: OpenUIComponentContext
     var body: some View {
         VStack(alignment: .leading, spacing: context.theme.spacing("s")) {
@@ -66,7 +40,7 @@ private struct OpenUINativeFormControl: View {
     }
 }
 
-private struct OpenUINativeButtons: View {
+struct OpenUINativeButtons: View {
     let context: OpenUIComponentContext
     @Environment(\.layoutDirection) private var direction
     var body: some View {

@@ -1,39 +1,6 @@
 import SwiftUI
 import OpenUILang
 
-public enum OpenUIStandardComponents {
-    public static func library(id: String? = nil) throws -> OpenUIComponentLibrary {
-        try OpenUIComponentLibrary(components: components, root: "Stack", id: id, componentGroups: OpenUIReference.groups)
-    }
-    public static var components: [OpenUIComponent] {
-        let implementations = OpenUISelectionComponents.components + OpenUIFormComponents.components
-            + OpenUIDisplayComponents.components + OpenUIContentComponents.components
-            + OpenUIChartComponents.components + [
-            OpenUIReference.component("Stack") {
-                OpenUIStack(context: $0, wrapJustifyBetweenAsStart: true)
-                    .layoutValue(key: OpenUIFlexGrowKey.self, value: true)
-            },
-            OpenUIReference.component("TextContent") { context in
-                NativeMarkdownText(text: context.string("text") ?? "", mode: .textContent,
-                    style: .textContent(context.string("size"), theme: context.theme))
-            },
-            OpenUIReference.component("Image") { NativeContentImage(context: $0) },
-            OpenUIReference.component("Button") { OpenUINativeButton(context: $0) },
-            OpenUIReference.component("Card") { context in
-                OpenUIStack(context: context)
-                    .modifier(OpenUICardSurface(theme: context.theme, variant: context.string("variant")))
-                    .layoutValue(key: OpenUIFlexGrowKey.self, value: true)
-            }
-        ]
-        let byName = Dictionary(uniqueKeysWithValues: implementations.map { ($0.definition.name, $0) })
-        return OpenUIReference.definitions.map { definition in
-            guard let component = byName[definition.name] else { preconditionFailure("Missing native renderer: " + definition.name) }
-            return component
-        }
-    }
-
-}
-
 struct OpenUICardSurface: ViewModifier {
     let theme: OpenUITheme
     let variant: String?
@@ -67,7 +34,7 @@ extension EnvironmentValues {
     }
 }
 
-private struct OpenUIStack: View {
+struct OpenUIStack: View {
     let context: OpenUIComponentContext
     // Upstream Stack normalizes wrapped space-between; upstream Card does not.
     var wrapJustifyBetweenAsStart = false
@@ -92,7 +59,7 @@ private struct OpenUIStack: View {
     private var stretches: Bool { context.string("align") == nil || context.string("align") == "stretch" }
 }
 
-private struct NativeContentImage: View {
+struct NativeContentImage: View {
     let context: OpenUIComponentContext
     @Environment(\.openUIContainerDirectionKnown) private var directionKnown
     var body: some View {

@@ -9,8 +9,10 @@ final class NativeDesignTests: XCTestCase {
         var theme = OpenUITheme()
         theme.typography.body.size = 21
         theme.typography.detail.size = 18
-        theme.typography.title.size = 26
-        theme.typography.title.weight = .bold
+        theme.typography.title.size = 30
+        theme.typography.title.weight = .light
+        theme.typography.bodyLarge.size = 26
+        theme.typography.bodyLargeHeavy.weight = .bold
         theme.typography.display.size = 32
         theme.typography.display.weight = .bold
         theme.typography.family = "Example typeface"

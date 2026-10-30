@@ -1,18 +1,6 @@
 import OpenUILang
 import SwiftUI
 
-enum OpenUIChartComponents {
-  static let chartNames = [
-    "BarChart", "LineChart", "AreaChart", "RadarChart", "HorizontalBarChart", "PieChart",
-    "RadialChart", "SingleStackedBarChart", "ScatterChart",
-  ]
-  static var components: [OpenUIComponent] {
-    chartNames.map { name in OpenUIReference.component(name) { NativeChart(context: $0) } }
-      + ["Series", "Slice", "ScatterSeries", "Point"].map { name in
-        OpenUIReference.component(name) { _ in EmptyView() }
-      }
-  }
-}
 
 /// Accept both evaluated component references and inline schema objects, just
 /// as the upstream chart data helpers do. No schema coercion happens here.

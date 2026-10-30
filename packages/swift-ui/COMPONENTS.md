@@ -65,6 +65,8 @@ Standard Card uses exactly the official seven parameters (`children`, `variant`,
 
 ## Theme overrides
 
+For the source layout and ownership boundaries, see [Architecture](ARCHITECTURE.md).
+
 `OpenUITheme` exposes the upstream spacing token names (`spaceXs`, `spaceS`,
 `spaceM`, `spaceL`, etc.). The defaults match the pinned reference. `Stack` and
 `Card` continue to accept the same Lang gap enums and default to `m`; the native
@@ -82,16 +84,33 @@ OpenUIRenderer(state: state, registry: installed.registry)
     .openUITheme(theme)
 ```
 
+For a local override that inherits the current theme, use the update overload:
+
+```swift
+someContent.openUITheme { theme in
+    theme.spaceM = 16
+    theme.typography.bodyHeavy.weight = .bold
+}
+```
+
+`openUITheme(themeValue)` still replaces the complete theme in that subtree.
+The closure changes only the inherited fields it assigns. `gap="none"` always
+means zero; other official gap names resolve through the current spacing tokens.
+
 `cardPadding` and `contentSpacing` follow `spaceM` unless explicitly assigned.
 Existing overrides take precedence. The native corner-radius properties follow
 the corresponding radius tokens unless assigned directly. Control hit targets,
 chart geometry, and platform-owned control metrics are not spacing tokens.
 
-`ImageTextLarge` uses `typography.bodyHeavy`, matching the reference's
+`ImageTextLarge` and default-size `BoldText` use `typography.bodyHeavy`, matching the reference's
 `TextBlockView(highlight-text, sm)` role. Its default size follows `body` and its
 native emphasis is semibold; callers may override the complete role. This fixes
 the former medium-weight banner title without enlarging other text. The existing
-width-derived cover crop and card/footer layout are unchanged.
+width-derived cover crop and card/footer layout are unchanged. Body sizes use
+`detail`, `body`, and `bodyLarge`, with separate `detailHeavy`, `bodyHeavy`, and
+`bodyLargeHeavy` emphasis roles. Applications that previously used `title` or
+`heading.weight` to style body variants should now configure the body role;
+heading overrides only affect headings.
 
 `OpenUIFont.lineSpacing` optionally overrides the typography-wide additional
 line spacing for one role, in em. Nil retains the existing default. This is
