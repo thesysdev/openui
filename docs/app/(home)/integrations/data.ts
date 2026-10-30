@@ -322,6 +322,30 @@ const integrationCatalog: Integration[] = [
     ],
   },
   {
+    slug: "a2ui",
+    name: "A2UI",
+    seoTitle: "A2UI React renderer and client with OpenUI Lang",
+    seoDescription:
+      "Render A2UI v1.0 surfaces in React with OpenUI. Keep A2UI's protocol for surfaces, data models and actions, and stream components as compact OpenUI Lang.",
+    logo: "https://a2ui.org/assets/favicon.svg",
+    category: "ai-frameworks",
+    type: "Agent UI protocol",
+    summary:
+      "@openuidev/a2ui implements the A2UI v1.0 surface lifecycle (createSurface, updateComponents, updateDataModel, actions and functions) with OpenUI Lang statements as the component payload, plus an optional React renderer.",
+    howItWorks:
+      "A2UI defines what an agent says about a UI surface; AG-UI or any other transport carries the messages. The @openuidev/a2ui client keeps A2UI's message envelopes but sends components as OpenUI Lang statements instead of A2UI component JSON, so surfaces stream in fewer tokens and render progressively. Both the agent and the renderer must agree on that payload format.",
+    install: "npm install @openuidev/a2ui zod @openuidev/react-lang @openuidev/react-ui",
+    links: [
+      ...packageLinks("@openuidev/a2ui", "a2ui", "/docs/api-reference/a2ui"),
+      {
+        label: "OpenUI vs A2UI vs json-render",
+        href: "/docs/openui-lang/comparison",
+        kind: "Guide",
+      },
+      { label: "A2UI specification", href: "https://a2ui.org", kind: "Website" },
+    ],
+  },
+  {
     slug: "grok-build",
     name: "Grok Build",
     seoTitle: "Grok Build generative UI with OpenUI",
@@ -535,6 +559,7 @@ const popularityOrder: Record<IntegrationCategoryId, string[]> = {
     "mastra",
     "grok-build",
     "ag-ui",
+    "a2ui",
     "vercel-eve",
     "google-adk",
   ],
