@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { OpenUIError, QueryStatementInfo } from "../parser/types";
+import { evaluate, type EvaluationContext } from "./evaluator";
 import { McpToolError } from "./mcp";
 import { ToolNotFoundError } from "./toolProvider";
 
@@ -60,19 +61,29 @@ export interface QuerySnapshot extends Record<string, unknown> {
 
 export interface QueryManager {
   /**
-   * Evaluate the program's queries with `toNode`, which must read the current state and query
-   * results when called. A query that reads another query's result waits for it, and the manager
-   * calls `toNode` again for that reader whenever the result it reads changes.
+   * Run the program's queries (`ParseResult.queryStatements`). This is the way to drive queries,
+   * and chained queries need it: a query that reads another query's result waits for it, and is
+   * evaluated again whenever that result changes.
+   *
+   * Each query's tool name, args, defaults and refresh interval are evaluated with `context`, and
+   * the $state values its args read are part of its cache key, so a change refetches it. The
+   * manager evaluates again after a fetch, so `context` must read the current state and query
+   * results when called, not a copy taken earlier.
+   *
+   * `options.extraDeps(toolName)` returns more values for a query's cache key: a change refetches
+   * the query.
    */
   evaluateStatements(
     statements: QueryStatementInfo[],
-    toNode: (statement: QueryStatementInfo) => QueryNode,
+    context: EvaluationContext,
+    options?: { extraDeps?: (toolName: string) => Record<string, unknown> | undefined },
   ): void;
-  /** Submit already evaluated queries. Readers are not re-evaluated when a result changes. */
+  /**
+   * Submit already evaluated queries. Readers are not evaluated again when a result changes, so
+   * chained queries need `evaluateStatements`.
+   */
   evaluateQueries(queryNodes: QueryNode[]): void;
   getResult(statementId: string): unknown;
-  /** The fetched result, or undefined before the first one (unlike getResult, never the defaults). */
-  getData(statementId: string): unknown;
   isLoading(statementId: string): boolean;
   isAnyLoading(): boolean;
   invalidate(statementIds?: string[]): void;
@@ -165,6 +176,30 @@ function sameSnapshot(a: QuerySnapshot, b: QuerySnapshot): boolean {
     for (let j = 0; j < x.length; j++) if (x[j] !== y[j]) return false;
   }
   return true;
+}
+
+/** Evaluate a query statement. `context` is read now, so it sees the current state and results. */
+function toQueryNode(
+  statement: QueryStatementInfo,
+  context: EvaluationContext,
+  extraDeps?: (toolName: string) => Record<string, unknown> | undefined,
+): QueryNode {
+  const toolName = statement.toolAST ? (evaluate(statement.toolAST, context) as string) : "";
+  const deps: Record<string, unknown> = {};
+  for (const ref of statement.deps ?? []) deps[ref] = context.getState(ref);
+  Object.assign(deps, extraDeps?.(toolName));
+  return {
+    statementId: statement.statementId,
+    toolName,
+    args: statement.argsAST ? evaluate(statement.argsAST, context) : null,
+    defaults: statement.defaultsAST ? evaluate(statement.defaultsAST, context) : null,
+    refreshInterval: statement.refreshAST
+      ? (evaluate(statement.refreshAST, context) as number)
+      : undefined,
+    deps: Object.keys(deps).length > 0 ? deps : undefined,
+    complete: statement.complete,
+    waitFor: statement.waitFor,
+  };
 }
 
 // ── Factory ──────────────────────────────────────────────────────────────────
@@ -347,11 +382,12 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
 
   function evaluateStatements(
     next: QueryStatementInfo[],
-    nextToNode: (statement: QueryStatementInfo) => QueryNode,
+    context: EvaluationContext,
+    options?: { extraDeps?: (toolName: string) => Record<string, unknown> | undefined },
   ) {
     if (disposed) return;
     statements = next;
-    toNode = nextToNode;
+    toNode = (statement) => toQueryNode(statement, context, options?.extraDeps);
     nodes.clear();
     seen.clear();
     applyNodes(next.map(buildNode));
@@ -667,7 +703,6 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     evaluateStatements,
     evaluateQueries,
     getResult,
-    getData,
     isLoading,
     isAnyLoading,
     invalidate,
