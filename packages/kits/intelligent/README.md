@@ -180,10 +180,10 @@ Root `Col`, 55 components in 6 groups, 59 `@functions`, 1 action
 
 | | `chat-kit` | `dashboard-kit` | `intelligent-kit` |
 |---|---|---|---|
-| Components | registry only | registry only | registry + **its own** |
+| Its own components | 3 | 14 | 35 |
 | Rendering peer | `react-components` | `react-components` | `react-components` |
-| Root | `Card` | `Stack` | `Col` |
-| Registered | 84 | 82 | 55 |
+| Root | `Card` | `Dashboard` | `Col` |
+| Registered | 84 | 48 | 55 |
 | `@functions` | — | — | 59 |
 | Styling | goober | goober | goober |
 
