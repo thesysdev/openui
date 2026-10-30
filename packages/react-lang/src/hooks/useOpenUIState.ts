@@ -216,7 +216,9 @@ export function useOpenUIState(
       const toolName = qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "";
       if (qn.deps) {
         for (const ref of qn.deps) {
-          relevantDeps[ref] = storeSnapshot[ref];
+          // Match argument evaluation: an earlier effect may have initialized the
+          // store since this render captured storeSnapshot.
+          relevantDeps[ref] = store.get(ref);
         }
       }
       if (scriptNames.has(toolName)) relevantDeps.__openuiScriptRevision = scriptRevision;
@@ -240,6 +242,7 @@ export function useOpenUIState(
     result?.queryStatements,
     evaluationContext,
     queryManager,
+    store,
     storeSnapshot,
     scriptRevision,
     scriptNames,
