@@ -1,7 +1,10 @@
 "use client";
 
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { BevelButton } from "../../components/Button/BevelButton";
 import { FoldHeader } from "../../components/FoldHeader/FoldHeader";
 import { LogoBubbles } from "../../components/LogoBubbles/LogoBubbles";
+import { RendererChips } from "../../components/RendererChips/RendererChips";
 import { stackChipStyles, type StackChipItem } from "../../components/StackChip/StackChip";
 import styles from "./CompatibilitySection.module.css";
 
@@ -285,8 +288,22 @@ export function CompatibilitySection() {
       <FoldHeader
         id="integrations-title"
         title="Works with the tools you already use."
-        subtitle="Works with any model, any frontend framework, and any design system or component library you already use."
-      />
+        subtitle={
+          <>
+            Keep your model, your agent code and your design system. One spec renders natively
+            in <RendererChips /> and more.
+          </>
+        }
+      >
+        <div className={styles.headerCta}>
+          <BevelButton
+            variant="primary"
+            href="/docs/integrations"
+            label="View integrations"
+            badge={<ArrowRight size={16} weight="bold" />}
+          />
+        </div>
+      </FoldHeader>
       <div className={styles.container}>
         <ul className={styles.cards}>
           {STACK_ROWS.map((row, index) => (
