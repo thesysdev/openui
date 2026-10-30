@@ -23,13 +23,13 @@
 /* The kit's display and transitions over react-components' (0,1,0) ones: inline,
    so a button can sit in a line of text; and only colours animate, so the
    focus ring appears at once rather than easing in with `all`. */
-.iui-button.openui-button-base { display: inline-flex; transition: background-color .15s, border-color .15s, color .15s; }
+.iui-button.openui-button { display: inline-flex; transition: background-color .15s, border-color .15s, color .15s; }
 .iui-button-sm { min-height: 32px; --openui-space-s-m: 12px; }
 .iui-button-md { --openui-space-s-m: 16px; }
 .iui-button-lg { min-height: 44px; --openui-space-m: 20px; --openui-text-label-default: 560 15px/1.2 var(--iui-font); }
 /* The page's font, like the kit's other text; react-components' font shorthand
    names a family, and its size rules sit at (0,2,0), so this is (0,3,0). */
-.iui-button.openui-button-base:is(.iui-button-sm, .iui-button-md, .iui-button-lg) { font-family: inherit; }
+.iui-button.openui-button:is(.iui-button-sm, .iui-button-md, .iui-button-lg) { font-family: inherit; }
 .iui-button.iui-button-sm svg { width: 14px; height: 14px; }
 .iui-button:not(.iui-button-sm) svg { width: 16px; height: 16px; }
 .iui-button-solid {
@@ -39,8 +39,8 @@
 }
 /* Fills react-components hard-codes as transparent: above its base rules (0,2,0)
    and its disabled rules (0,3,0); its hover rules (0,4,0) still apply. */
-.iui-button.iui-button-outline:not(:disabled), .iui-button.iui-button-outline.openui-button-base:disabled { background-color: var(--iui-canvas); }
-.iui-button.iui-button-soft:not(:disabled), .iui-button.iui-button-soft.openui-button-base:disabled { background-color: var(--iui-surface); }
+.iui-button.iui-button-outline:not(:disabled), .iui-button.iui-button-outline.openui-button:disabled { background-color: var(--iui-canvas); }
+.iui-button.iui-button-soft:not(:disabled), .iui-button.iui-button-soft.openui-button:disabled { background-color: var(--iui-surface); }
 .iui-button-soft { --openui-highlight: var(--iui-pressed); --openui-border-interactive: transparent; }
 .iui-button-ghost { --openui-space-s-m: 10px; --openui-space-m: 10px; --openui-border-interactive: transparent; }
 /* Pressed: the kit's 8%, where react-components reuses the 5% hover. Solid stays on its hover shade (above). */

@@ -145,6 +145,15 @@
   --iui-photo-empty-icon: var(--iui-border-strong);
 }
 
+/* #124 registers light token defaults on the root, in a layer, so a dark fallback
+   written var(--openui-foreground, #171717) would never apply. Zero weight beats
+   that layer and loses to any host rule, wherever the host's CSS loads. */
+:where([data-theme="dark"]) {
+  --openui-foreground: #171717;
+  --openui-text-neutral-primary: #ececec;
+  --openui-text-neutral-secondary: rgb(255 255 255 / 60%);
+}
+
 /* Weights are set with font-weight (Inter 440 / 560 / 640), so drop the
    "wght" variation the page body sets for react-ui text. */
 [class*="iui-"] { font-variation-settings: normal; }
