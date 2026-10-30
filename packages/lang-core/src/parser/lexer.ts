@@ -378,7 +378,7 @@ export function tokenize(src: string): Token[] {
       continue;
     }
 
-    i++; // skip any other character (e.g. #, emojis)
+    i++; // skip any other character (e.g. emojis)
   }
 
   tokens.push({ t: T.EOF, start: n });
