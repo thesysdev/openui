@@ -106,7 +106,7 @@ export function defineDashboard<Context>(
     title: string | undefined,
     signal?: AbortSignal,
   ): Promise<string> {
-    // The config block carries what generation needs; metadata carries what OpenUI Cloud keeps.
+    // The config block carries what generation needs; metadata, which dashboard and (on edits) which artifact.
     const [{ token }, definitions] = await Promise.all([
       createFrontendToken(api, userId, signal),
       toolDefinitions(),
@@ -123,11 +123,7 @@ export function defineDashboard<Context>(
         ],
         // Chat completions metadata values are strings.
         metadata: {
-          thesys: JSON.stringify({
-            c1_artifact_type: "live",
-            definition: name,
-            ...thesys,
-          }),
+          thesys: JSON.stringify({ definition: name, ...thesys }),
         },
       }),
       signal,
@@ -149,13 +145,8 @@ export function defineDashboard<Context>(
   return {
     name,
 
-    async create({ userId, title, description, prompt }, { signal } = {}): Promise<ArtifactResult> {
-      const thesys = {
-        title,
-        kind: "dashboard",
-        ...(description !== undefined && { description }),
-      };
-      const id = await start(userId, prompt, thesys, title, signal);
+    async create({ userId, title, prompt }, { signal } = {}): Promise<ArtifactResult> {
+      const id = await start(userId, prompt, {}, title, signal);
       return { id, response: toolResponse(id, name, title) };
     },
 

@@ -41,8 +41,6 @@ export interface CreateDashboardParams {
   userId: string;
   /** A short title, such as "Q3 sales by region". */
   title: string;
-  /** One sentence on what the artifact shows. */
-  description?: string;
   /** What to build. The subagent sees only this, so include any data it needs. */
   prompt: string;
 }
