@@ -14,9 +14,10 @@ which recreates ChatGPT's Intelligent UI on OpenUI.
 pnpm add @openuidev/intelligent-kit@0.0.0-beta.0
 ```
 
-`@openuidev/react-lang`, `@openuidev/lang-core`, `react`, `react-dom` and `zod`
-are peer dependencies. Unlike the chat and dashboard kits, this one **ships its
-own components**, so it does not depend on `@openuidev/react-components`.
+`@openuidev/react-components`, `@openuidev/react-lang`, `@openuidev/lang-core`,
+`react`, `react-dom` and `zod` are peer dependencies. Like the chat and
+dashboard kits, it draws with react-components where that has the component
+(Button, Input, Select, Table, the charts, ...); the rest are the kit's own.
 
 ## Usage
 
@@ -39,10 +40,42 @@ import "@openuidev/intelligent-kit/styles.css";
 
 - `/lib` exports `library`, `baseComponents`, `baseComponentGroups`,
   `promptOptions`, `dashboardPromptOptions`, `functions`, `actions`,
-  `runLibraryAction`, the four worked examples and `demoToolSpecs` (the Query
-  tool specs `dashboardPromptOptions` advertises to a model).
-- The root entrypoint exports every component definition (so a host can compose
-  its own library from a subset, or extend this one) and the kit configuration.
+  `runLibraryAction`, the four worked examples, `demoToolSpecs` (the Query
+  tool specs `dashboardPromptOptions` advertises to a model), and every
+  component definition, so a host can compose its own library from a subset or
+  extend this one.
+- The root entrypoint exports the kit's own React components (`Card`, `Col`,
+  `Popover`, `MapView`, ...), usable without openui-lang, and the kit
+  configuration.
+
+## Layout
+
+Laid out like the dashboard kit:
+
+```
+src/
+  index.ts                          "use client", the stylesheets, the host
+                                    configuration and the kit's own components
+  components/<Name>/                the kit's own React components, no openui-lang:
+    <Name>.tsx  index.ts  <name>.css
+  shared/                           what both halves need: theme.css, shared.css,
+                                    style.ts (prop values to CSS), scheme.ts, config.ts
+  lib/
+    index.ts                        the library and every component definition
+    <Name>/{index.tsx, schema.ts}   one binding per library component
+    Svg/                            the drawing family, one file per shape
+    defineComponents.ts             the definitions and the stylesheet order
+    openuiIntelligentLibrary.ts     the library and its groups
+    helpers.ts  controlHelpers.ts  actions.ts  functions/  prompt-options/
+```
+
+A binding maps the model's props onto components and draws no markup of its
+own. Eleven bind straight to react-components (`Badge`, `Chart`, `Code`,
+`DatePicker`, `Divider`, `IconButton`, `Input`, `Label`, `Select`, `Table`,
+`TextArea`); the rest render a component from `src/components`, which holds
+whatever the kit draws itself: its layout, text and media, the map, and the
+controls with their own look (`Button`, `SegmentedControl`, `Slider`, `Timer`,
+`Checkbox`, `RadioGroup`, `Field`).
 
 ## Configuration
 
@@ -123,8 +156,8 @@ Root `Col`, 55 components in 6 groups, 59 `@functions`, 1 action
 
 | | `chat-kit` | `dashboard-kit` | `intelligent-kit` |
 |---|---|---|---|
-| Components | registry only | registry only | **ships its own** |
-| Rendering peer | `react-components` | `react-components` | none |
+| Components | registry only | registry only | registry + **its own** |
+| Rendering peer | `react-components` | `react-components` | `react-components` |
 | Root | `Card` | `Stack` | `Col` |
 | Registered | 84 | 82 | 55 |
 | `@functions` | — | — | 59 |
@@ -144,10 +177,11 @@ compared literally across versions.
 
 ## Note on strictness
 
-`src/lib` is vendored from the source app, which compiles under `strict` but not
-`noUncheckedIndexedAccess` or `noPropertyAccessFromIndexSignature`. Those two
-flags are turned off for this package only (`tsconfig.json`), so the vendored
-code can track upstream without every sync becoming a conflict. They remain on
+The components and the library come from the source app, which compiles under
+`strict` but not `noUncheckedIndexedAccess` or
+`noPropertyAccessFromIndexSignature`. Those two flags are turned off for this
+package only (`tsconfig.json`), so the code can track upstream without every
+sync becoming a conflict. They remain on
 for the other kits.
 
 ## Scripts
