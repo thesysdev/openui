@@ -11,7 +11,7 @@ export interface ColProps extends HTMLAttributes<HTMLDivElement> {
 
 /** Vertical layout. */
 const Col = forwardRef<HTMLDivElement, ColProps>(({ gap, align, justify, wrap, className, style, children, ...rest }, ref) => (
-  <div ref={ref} className={cx("iui-col", gap == null && "iui-flow", className)} style={{ ...flexStyle({ gap, align, justify, wrap }, true), ...style }} {...rest}>
+  <div ref={ref} className={cx("openui-intelligent-col", gap == null && "openui-intelligent-flow", className)} style={{ ...flexStyle({ gap, align, justify, wrap }, true), ...style }} {...rest}>
     {children}
   </div>
 ));

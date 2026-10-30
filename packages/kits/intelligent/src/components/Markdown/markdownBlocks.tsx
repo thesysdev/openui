@@ -20,7 +20,7 @@ export function inline(text: string, key = "i"): ReactNode {
     if (m.index) out.push(rest.slice(0, m.index));
     const token = m[0];
     const k = `${key}-${n++}`;
-    if (m[1]) out.push(<code key={k} className="iui-code">{token.slice(1, -1)}</code>);
+    if (m[1]) out.push(<code key={k} className="openui-intelligent-code">{token.slice(1, -1)}</code>);
     else if (m[2]) out.push(<strong key={k}>{inline(token.slice(2, -2), k)}</strong>);
     else if (m[3]) out.push(<s key={k}>{inline(token.slice(2, -2), k)}</s>);
     else if (m[4]) out.push(<em key={k}>{inline(token.slice(1, -1), k)}</em>);
@@ -30,7 +30,7 @@ export function inline(text: string, key = "i"): ReactNode {
       const href = webUrl(token.slice(close + 2, -1));
       out.push(
         href ? (
-          <a key={k} className="iui-link" href={href} target="_blank" rel="noopener noreferrer">
+          <a key={k} className="openui-intelligent-link" href={href} target="_blank" rel="noopener noreferrer">
             {inline(label, k)}
           </a>
         ) : (
@@ -127,18 +127,18 @@ export function MarkdownBlocks({ text }: { text: string }) {
             return <blockquote key={k}>{inline(b.text, k)}</blockquote>;
           case "h":
             return (
-              <div key={k} role="heading" aria-level={b.level + 1} className={`iui-md-h iui-md-h${b.level}`}>
+              <div key={k} role="heading" aria-level={b.level + 1} className={`openui-intelligent-md-h openui-intelligent-md-h${b.level}`}>
                 {inline(b.text, k)}
               </div>
             );
           case "code":
             return (
-              <pre key={k} className="iui-code-block">
+              <pre key={k} className="openui-intelligent-code-block">
                 <code>{b.text}</code>
               </pre>
             );
           case "hr":
-            return <hr key={k} className="iui-divider" />;
+            return <hr key={k} className="openui-intelligent-divider" />;
           case "list": {
             const items = b.items.map((t, j) => <li key={j}>{inline(t, `${k}-${j}`)}</li>);
             return b.ordered ? (
@@ -151,8 +151,8 @@ export function MarkdownBlocks({ text }: { text: string }) {
           }
           case "table":
             return (
-              <div key={k} className="iui-table-scroll">
-                <table className="iui-table">
+              <div key={k} className="openui-intelligent-table-scroll">
+                <table className="openui-intelligent-table">
                   <thead>
                     <tr>{b.head.map((h, j) => <th key={j}>{inline(h, `${k}-h${j}`)}</th>)}</tr>
                   </thead>

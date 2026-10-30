@@ -1,3 +1,3 @@
-.iui-link { color: inherit; text-decoration: underline; text-decoration-color: var(--iui-border-strong); text-underline-offset: 3px; }
-.iui-link:hover { text-decoration-color: currentColor; }
-.iui-link-arrow { display: inline; width: 0.85em; height: 0.85em; margin-left: 2px; vertical-align: -0.05em; }
+.openui-intelligent-link { color: inherit; text-decoration: underline; text-decoration-color: var(--openui-intelligent-border-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 10%, transparent)); text-underline-offset: 3px; }
+.openui-intelligent-link:hover { text-decoration-color: currentColor; }
+.openui-intelligent-link-arrow { display: inline; width: 0.85em; height: 0.85em; margin-left: 2px; vertical-align: -0.05em; }

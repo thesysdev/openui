@@ -12,7 +12,7 @@ export function YouTube({ video, title }: YouTubeProps) {
   const id = m?.[1] ?? m?.[2];
   if (!id) return null;
   return (
-    <div className="iui-video">
+    <div className="openui-intelligent-video">
       <iframe
         src={`https://www.youtube-nocookie.com/embed/${id}`}
         title={title || "YouTube video"}

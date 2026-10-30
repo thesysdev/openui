@@ -10,7 +10,7 @@ export type FormProps = HTMLAttributes<HTMLDivElement>;
  * dashboard kits do the same.
  */
 const Form = forwardRef<HTMLDivElement, FormProps>(({ className, children, ...rest }, ref) => (
-  <div ref={ref} role="form" className={cx("iui-form", className)} {...rest}>
+  <div ref={ref} role="form" className={cx("openui-intelligent-form", className)} {...rest}>
     {children}
   </div>
 ));

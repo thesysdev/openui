@@ -18,7 +18,7 @@ export function Checkbox({ label, checked, onChange, lineThrough, required, erro
   // CheckBoxItem has no lineThrough, so the kit's class still supplies the
   // strike-through that to-do lists in the prompt examples rely on.
   return (
-    <span className={cx("iui-checkbox", lineThrough && checked && "iui-check is-done")}>
+    <span className={cx("openui-intelligent-checkbox", lineThrough && checked && "openui-intelligent-check is-done")}>
       <CheckBoxItem label={label} checked={checked} aria-required={required || undefined} aria-invalid={error ? true : undefined} onChange={onChange} />
       <FieldError error={error} />
     </span>

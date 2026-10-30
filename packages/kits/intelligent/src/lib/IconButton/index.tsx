@@ -12,8 +12,8 @@ export * from "./schema";
 /**
  * outline, ghost and solid map to react-components' secondary, tertiary and
  * primary. primary is the blue accent there, so the kit's
- * iui-icon-button-solid class points that accent at the kit's ink and solid
- * stays black; iui-icon-button-ghost keeps the ghost icon muted.
+ * openui-intelligent-icon-button-solid class points that accent at the kit's ink and solid
+ * stays black; openui-intelligent-icon-button-ghost keeps the ghost icon muted.
  */
 const VARIANT = { outline: "secondary", ghost: "tertiary", solid: "primary" } as const;
 
@@ -33,7 +33,7 @@ export const IconButton = defineComponent({
         variant={VARIANT[variant]}
         shape="circle"
         size="small"
-        className={cx("iui-icon-button", `iui-icon-button-${variant}`)}
+        className={cx("openui-intelligent-icon-button", `openui-intelligent-icon-button-${variant}`)}
         aria-label={label}
         title={props.label || undefined}
         disabled={streaming}

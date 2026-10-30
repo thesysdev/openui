@@ -14,7 +14,7 @@ export interface CardProps extends HTMLAttributes<HTMLElement> {
 const Card = forwardRef<HTMLElement, CardProps>(({ variant, padding, gap, className, style, children, ...rest }, ref) => (
   <section
     ref={ref}
-    className={cx("iui-card", variant === "soft" && "iui-card-soft", gap == null && "iui-flow", className)}
+    className={cx("openui-intelligent-card", variant === "soft" && "openui-intelligent-card-soft", gap == null && "openui-intelligent-flow", className)}
     style={{ padding: space(padding), gap: space(gap), ...style }}
     {...rest}
   >

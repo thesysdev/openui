@@ -1,2 +1,2 @@
-.iui-video { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--iui-radius-lg); background: #000; }
-.iui-video > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.openui-intelligent-video { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--openui-intelligent-radius-lg, 12px); background: #000; }
+.openui-intelligent-video > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }

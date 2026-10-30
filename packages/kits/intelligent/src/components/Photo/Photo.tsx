@@ -89,7 +89,7 @@ export function Photo(props: PhotoProps) {
   const ratio = typeof props.aspectRatio === "number" && props.aspectRatio > 0.2 && props.aspectRatio < 5 ? props.aspectRatio : 1.5;
   return (
     <div
-      className={cx("iui-image", props.fit === "contain" && "is-contain", loaded === current && "is-loaded")}
+      className={cx("openui-intelligent-image", props.fit === "contain" && "is-contain", loaded === current && "is-loaded")}
       style={{ aspectRatio: ratio, borderRadius: radius(props.radius ?? "lg") }}
       role={current ? undefined : "img"}
       aria-label={current ? undefined : alt}
@@ -105,7 +105,7 @@ export function Photo(props: PhotoProps) {
           onError={() => setFailed((list) => [...list, current])}
         />
       ) : settled ? (
-        <ImageIcon aria-hidden className="iui-image-empty" strokeWidth={1.5} />
+        <ImageIcon aria-hidden className="openui-intelligent-image-empty" strokeWidth={1.5} />
       ) : null}
     </div>
   );

@@ -12,5 +12,5 @@ export interface MathBlockProps {
 export function MathBlock({ tex, inline }: MathBlockProps) {
   const html = katex.renderToString(tex, { displayMode: !inline, throwOnError: false, trust: false, strict: "ignore", output: "htmlAndMathml" });
   // KaTeX escapes its input and is configured without \href or \includegraphics.
-  return inline ? <span className="iui-math" dangerouslySetInnerHTML={{ __html: html }} /> : <div className="iui-math is-block" dangerouslySetInnerHTML={{ __html: html }} />;
+  return inline ? <span className="openui-intelligent-math" dangerouslySetInnerHTML={{ __html: html }} /> : <div className="openui-intelligent-math is-block" dangerouslySetInnerHTML={{ __html: html }} />;
 }

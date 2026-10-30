@@ -33,16 +33,16 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
   const marks = (marksProp ?? []).filter((m) => m && Number.isFinite(m.value) && m.value >= min && m.value <= max);
   const id = useId();
   return (
-    <div className="iui-slider">
+    <div className="openui-intelligent-slider">
       {(label || unitProp) && (
-        <div className="iui-slider-head">
+        <div className="openui-intelligent-slider-head">
           <label htmlFor={id}>{label}</label>
           <output htmlFor={id}>{readout}</output>
         </div>
       )}
       <input
         id={id}
-        className="iui-range"
+        className="openui-intelligent-range"
         type="range"
         min={min}
         max={max}
@@ -53,11 +53,11 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
         onChange={(event) => onChange(Number(event.target.value))}
       />
       {marks.length > 0 && (
-        <div className="iui-slider-marks" aria-hidden>
+        <div className="openui-intelligent-slider-marks" aria-hidden>
           {marks.map((m, i) => {
             const at = (m.value - min) / (max - min);
             return (
-              <span key={i} className={cx(at <= 0.02 && "is-start", at >= 0.98 && "is-end")} style={{ left: `calc(var(--iui-range-thumb-size) / 2 + (100% - var(--iui-range-thumb-size)) * ${at})` }}>
+              <span key={i} className={cx(at <= 0.02 && "is-start", at >= 0.98 && "is-end")} style={{ left: `calc(var(--openui-intelligent-range-thumb-size) / 2 + (100% - var(--openui-intelligent-range-thumb-size)) * ${at})` }}>
                 {m.label}
               </span>
             );

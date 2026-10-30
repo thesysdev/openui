@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { tokens } from "../../shared/tokens";
 
 export interface CelebrationProps {
   /** Confetti bursts when this turns true. */
@@ -10,7 +11,7 @@ export interface CelebrationProps {
   paused?: boolean;
 }
 
-const CONFETTI = ["var(--iui-chart-1)", "var(--iui-chart-2)", "var(--iui-chart-3)", "var(--iui-chart-4)", "var(--iui-chart-5)", "var(--iui-chart-6)"];
+const CONFETTI = [tokens.chart1, tokens.chart2, tokens.chart3, tokens.chart4, tokens.chart5, tokens.chart6];
 
 /** Bursts confetti over the page when its condition turns true. */
 export function Celebration({ when, paused }: CelebrationProps) {
@@ -29,7 +30,7 @@ export function Celebration({ when, paused }: CelebrationProps) {
   }, [burst]);
   if (!burst || typeof document === "undefined") return null;
   return createPortal(
-    <div className="iui-confetti" aria-hidden key={burst}>
+    <div className="openui-intelligent-confetti" aria-hidden key={burst}>
       {Array.from({ length: 70 }, (_, i) => (
         <i
           key={i}

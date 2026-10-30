@@ -20,7 +20,7 @@ export function Svg({ viewBox: viewBoxProp, width, height, children }: SvgProps)
   const natural = Number(viewBox.trim().split(/[\s,]+/)[2]);
   const maxWidth = width == null && natural > 0 ? `${Math.max(280, natural * 1.5)}px` : undefined;
   return (
-    <svg className="iui-svg" viewBox={viewBox} style={{ width: size(width) ?? "100%", maxWidth, height: size(height) }} role="img" preserveAspectRatio="xMidYMid meet">
+    <svg className="openui-intelligent-svg" viewBox={viewBox} style={{ width: size(width) ?? "100%", maxWidth, height: size(height) }} role="img" preserveAspectRatio="xMidYMid meet">
       {children}
     </svg>
   );

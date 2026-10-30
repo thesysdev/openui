@@ -12,7 +12,7 @@ export * from "./schema";
  * Tag covers five of the schema's seven colours exactly. "purple" and "pink"
  * have no counterpart, so those two fall back to Tag's neutral and the kit's
  * own class supplies the colour -- the same approach Checkbox uses to keep
- * lineThrough. iui-badge stays on every badge for the kit's layout rules: no
+ * lineThrough. openui-intelligent-badge stays on every badge for the kit's layout rules: no
  * shrinking in a Row, aligned inside Text, closer under a Title.
  */
 const VARIANT = {
@@ -39,7 +39,7 @@ export const Badge = defineComponent({
         variant={VARIANT[color]}
         size="sm"
         icon={props.icon ? <Glyph name={props.icon} size={14} /> : undefined}
-        className={cx("iui-badge", UNMAPPED.has(color) && `iui-badge-${color}`)}
+        className={cx("openui-intelligent-badge", UNMAPPED.has(color) && `openui-intelligent-badge-${color}`)}
       />
     );
   },

@@ -8,7 +8,7 @@ export interface QuoteProps extends Omit<BlockquoteHTMLAttributes<HTMLQuoteEleme
 
 /** A quotation or a callout with a side rule. */
 const Quote = forwardRef<HTMLQuoteElement, QuoteProps>(({ cite, className, children, ...rest }, ref) => (
-  <blockquote ref={ref} className={cx("iui-quote", className)} {...rest}>
+  <blockquote ref={ref} className={cx("openui-intelligent-quote", className)} {...rest}>
     <p>{children}</p>
     {cite != null ? <cite>{cite}</cite> : null}
   </blockquote>

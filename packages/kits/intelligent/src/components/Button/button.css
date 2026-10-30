@@ -3,59 +3,59 @@
    weight, the kit's sizes, ink for solid, the kit's danger and success, no
    shadow. The few values it hard-codes (icon size, the outline and soft fills)
    are set directly, at a specificity that beats its own rules. */
-.iui-button {
+.openui-intelligent-button {
   justify-content: center; align-self: flex-start; flex: none; min-height: 36px; white-space: nowrap;
-  --openui-text-label-default: 560 14px/1.2 var(--iui-font);
-  --openui-text-label-sm: 560 13px/1.2 var(--iui-font);
+  --openui-text-label-default: 560 14px/1.2 var(--openui-intelligent-font, var(--openui-font-body, "Inter", sans-serif));
+  --openui-text-label-sm: 560 13px/1.2 var(--openui-intelligent-font, var(--openui-font-body, "Inter", sans-serif));
   --openui-text-label-default-letter-spacing: normal;
   --openui-text-label-sm-letter-spacing: normal;
   --openui-font-variation-regular: normal;
   --openui-radius-s: 999px; --openui-radius-m: 999px; --openui-radius-l: 999px;
   --openui-space-xs: 7px;
   --openui-shadow-m: none;
-  --openui-text-neutral-primary: var(--iui-ink);
-  --openui-text-neutral-tertiary: var(--iui-ink);
-  --openui-border-interactive: var(--iui-border);
+  --openui-text-neutral-primary: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d));
+  --openui-text-neutral-tertiary: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d));
+  --openui-border-interactive: var(--openui-intelligent-border, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent));
   --openui-border-default: transparent;
-  --openui-highlight: var(--iui-hover);
+  --openui-highlight: var(--openui-intelligent-hover, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 5%, transparent));
 }
-.iui-row > .iui-button { align-self: center; }
+.openui-intelligent-row > .openui-intelligent-button { align-self: center; }
 /* The kit's display and transitions over react-components' (0,1,0) ones: inline,
    so a button can sit in a line of text; and only colours animate, so the
    focus ring appears at once rather than easing in with `all`. */
-.iui-button.openui-button { display: inline-flex; transition: background-color .15s, border-color .15s, color .15s; }
-.iui-button-sm { min-height: 32px; --openui-space-s-m: 12px; }
-.iui-button-md { --openui-space-s-m: 16px; }
-.iui-button-lg { min-height: 44px; --openui-space-m: 20px; --openui-text-label-default: 560 15px/1.2 var(--iui-font); }
+.openui-intelligent-button.openui-button { display: inline-flex; transition: background-color .15s, border-color .15s, color .15s; }
+.openui-intelligent-button-sm { min-height: 32px; --openui-space-s-m: 12px; }
+.openui-intelligent-button-md { --openui-space-s-m: 16px; }
+.openui-intelligent-button-lg { min-height: 44px; --openui-space-m: 20px; --openui-text-label-default: 560 15px/1.2 var(--openui-intelligent-font, var(--openui-font-body, "Inter", sans-serif)); }
 /* The page's font, like the kit's other text; react-components' font shorthand
    names a family, and its size rules sit at (0,2,0), so this is (0,3,0). */
-.iui-button.openui-button:is(.iui-button-sm, .iui-button-md, .iui-button-lg) { font-family: inherit; }
-.iui-button.iui-button-sm svg { width: 14px; height: 14px; }
-.iui-button:not(.iui-button-sm) svg { width: 16px; height: 16px; }
-.iui-button-solid {
-  --openui-interactive-accent-default: var(--iui-ink); --openui-interactive-accent-hover: var(--iui-ink-hover);
-  --openui-interactive-accent-pressed: var(--iui-ink-hover); --openui-interactive-accent-disabled: var(--iui-ink);
-  --openui-text-accent-primary: var(--iui-on-ink); --openui-border-accent: transparent;
+.openui-intelligent-button.openui-button:is(.openui-intelligent-button-sm, .openui-intelligent-button-md, .openui-intelligent-button-lg) { font-family: inherit; }
+.openui-intelligent-button.openui-intelligent-button-sm svg { width: 14px; height: 14px; }
+.openui-intelligent-button:not(.openui-intelligent-button-sm) svg { width: 16px; height: 16px; }
+.openui-intelligent-button-solid {
+  --openui-interactive-accent-default: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); --openui-interactive-accent-hover: var(--openui-intelligent-ink-hover, color-mix(in oklch, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 82%, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff))));
+  --openui-interactive-accent-pressed: var(--openui-intelligent-ink-hover, color-mix(in oklch, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 82%, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)))); --openui-interactive-accent-disabled: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d));
+  --openui-text-accent-primary: var(--openui-intelligent-on-ink, var(--openui-foreground, #ffffff)); --openui-border-accent: transparent;
 }
 /* Fills react-components hard-codes as transparent: above its base rules (0,2,0)
    and its disabled rules (0,3,0); its hover rules (0,4,0) still apply. */
-.iui-button.iui-button-outline:not(:disabled), .iui-button.iui-button-outline.openui-button:disabled { background-color: var(--iui-canvas); }
-.iui-button.iui-button-soft:not(:disabled), .iui-button.iui-button-soft.openui-button:disabled { background-color: var(--iui-surface); }
-.iui-button-soft { --openui-highlight: var(--iui-pressed); --openui-border-interactive: transparent; }
-.iui-button-ghost { --openui-space-s-m: 10px; --openui-space-m: 10px; --openui-border-interactive: transparent; }
+.openui-intelligent-button.openui-intelligent-button-outline:not(:disabled), .openui-intelligent-button.openui-intelligent-button-outline.openui-button:disabled { background-color: var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)); }
+.openui-intelligent-button.openui-intelligent-button-soft:not(:disabled), .openui-intelligent-button.openui-intelligent-button-soft.openui-button:disabled { background-color: var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent)); }
+.openui-intelligent-button-soft { --openui-highlight: var(--openui-intelligent-pressed, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent)); --openui-border-interactive: transparent; }
+.openui-intelligent-button-ghost { --openui-space-s-m: 10px; --openui-space-m: 10px; --openui-border-interactive: transparent; }
 /* Pressed: the kit's 8%, where react-components reuses the 5% hover. Solid stays on its hover shade (above). */
-.iui-button:is(.iui-button-outline, .iui-button-ghost):not(.iui-segment):active { --openui-highlight: var(--iui-pressed); }
-.iui-button-danger {
-  --openui-interactive-accent-default: var(--iui-danger); --openui-interactive-accent-hover: var(--iui-danger);
-  --openui-interactive-accent-pressed: var(--iui-danger); --openui-interactive-accent-disabled: var(--iui-danger);
-  --openui-text-accent-primary: #fff; --openui-text-neutral-primary: var(--iui-danger); --openui-text-neutral-tertiary: var(--iui-danger);
+.openui-intelligent-button:is(.openui-intelligent-button-outline, .openui-intelligent-button-ghost):not(.openui-intelligent-segment):active { --openui-highlight: var(--openui-intelligent-pressed, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent)); }
+.openui-intelligent-button-danger {
+  --openui-interactive-accent-default: var(--openui-intelligent-danger, #c1322c); --openui-interactive-accent-hover: var(--openui-intelligent-danger, #c1322c);
+  --openui-interactive-accent-pressed: var(--openui-intelligent-danger, #c1322c); --openui-interactive-accent-disabled: var(--openui-intelligent-danger, #c1322c);
+  --openui-text-accent-primary: #fff; --openui-text-neutral-primary: var(--openui-intelligent-danger, #c1322c); --openui-text-neutral-tertiary: var(--openui-intelligent-danger, #c1322c);
 }
-.iui-button-success {
-  --openui-interactive-accent-default: var(--iui-success); --openui-interactive-accent-hover: var(--iui-success);
-  --openui-interactive-accent-pressed: var(--iui-success); --openui-interactive-accent-disabled: var(--iui-success);
-  --openui-text-accent-primary: #fff; --openui-text-neutral-primary: var(--iui-success); --openui-text-neutral-tertiary: var(--iui-success);
+.openui-intelligent-button-success {
+  --openui-interactive-accent-default: var(--openui-intelligent-success, #00805d); --openui-interactive-accent-hover: var(--openui-intelligent-success, #00805d);
+  --openui-interactive-accent-pressed: var(--openui-intelligent-success, #00805d); --openui-interactive-accent-disabled: var(--openui-intelligent-success, #00805d);
+  --openui-text-accent-primary: #fff; --openui-text-neutral-primary: var(--openui-intelligent-success, #00805d); --openui-text-neutral-tertiary: var(--openui-intelligent-success, #00805d);
 }
-:is(:root[data-openui-theme="dark"], [data-theme="dark"]) .iui-button:is(.iui-button-danger, .iui-button-success) { --openui-text-accent-primary: #121212; }
-.iui-button-solid:is(.iui-button-danger, .iui-button-success):not(:disabled):hover { filter: brightness(1.08); }
-.iui-button:disabled { opacity: .4; }
-.iui-block { width: 100%; align-self: stretch; }
+:is(:root[data-openui-theme="dark"], [data-theme="dark"]) .openui-intelligent-button:is(.openui-intelligent-button-danger, .openui-intelligent-button-success) { --openui-text-accent-primary: #121212; }
+.openui-intelligent-button-solid:is(.openui-intelligent-button-danger, .openui-intelligent-button-success):not(:disabled):hover { filter: brightness(1.08); }
+.openui-intelligent-button:disabled { opacity: .4; }
+.openui-intelligent-block { width: 100%; align-self: stretch; }

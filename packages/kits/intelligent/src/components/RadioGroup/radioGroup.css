@@ -1,11 +1,11 @@
-.iui-radio-group { display: flex; flex-direction: column; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
-.iui-radio-group > legend { padding: 0; margin-bottom: 10px; }
-.iui-choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.openui-intelligent-radio-group { display: flex; flex-direction: column; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.openui-intelligent-radio-group > legend { padding: 0; margin-bottom: 10px; }
+.openui-intelligent-choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 /* Short choices are pills (the cards style draws with react-components' OptionCards). */
-.iui-radio-pills > div { display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--iui-control-gap); }
-.iui-choice { position: relative; display: flex; align-items: center; min-height: 42px; padding: 9px 16px; border: 1px solid var(--iui-border); border-radius: 999px; background: transparent; color: var(--iui-ink); font-size: 15px; line-height: 22px; cursor: pointer; transition: background .15s, border-color .15s; }
-.iui-choice > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.iui-choice:hover { background: var(--iui-hover); }
-.iui-radio-pills .iui-choice.is-selected { border-color: var(--iui-ink); background: var(--iui-ink); color: var(--iui-on-ink); }
-.iui-choice-description { color: var(--iui-muted); font-size: 14px; line-height: 21px; }
-.iui-choice:has(:focus-visible) { outline: 2px solid var(--iui-focus); outline-offset: 2px; }
+.openui-intelligent-radio-pills > div { display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--openui-intelligent-control-gap, 8px); }
+.openui-intelligent-choice { position: relative; display: flex; align-items: center; min-height: 42px; padding: 9px 16px; border: 1px solid var(--openui-intelligent-border, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent)); border-radius: 999px; background: transparent; color: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); font-size: 15px; line-height: 22px; cursor: pointer; transition: background .15s, border-color .15s; }
+.openui-intelligent-choice > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.openui-intelligent-choice:hover { background: var(--openui-intelligent-hover, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 5%, transparent)); }
+.openui-intelligent-radio-pills .openui-intelligent-choice.is-selected { border-color: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); background: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); color: var(--openui-intelligent-on-ink, var(--openui-foreground, #ffffff)); }
+.openui-intelligent-choice-description { color: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); font-size: 14px; line-height: 21px; }
+.openui-intelligent-choice:has(:focus-visible) { outline: 2px solid var(--openui-intelligent-focus, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d))); outline-offset: 2px; }

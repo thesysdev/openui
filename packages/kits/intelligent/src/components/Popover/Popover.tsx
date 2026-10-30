@@ -83,7 +83,7 @@ export function Popover({ trigger, children }: PopoverProps) {
         ref={button}
         id={triggerId}
         type="button"
-        className="iui-popover-trigger"
+        className="openui-intelligent-popover-trigger"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
@@ -100,7 +100,7 @@ export function Popover({ trigger, children }: PopoverProps) {
             role="dialog"
             aria-labelledby={triggerId}
             tabIndex={-1}
-            className="iui-popover"
+            className="openui-intelligent-popover"
             // Measured first (hidden), then placed: see the layout effect above.
             style={at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: "hidden" }}
             data-theme={button.current?.closest("[data-theme]")?.getAttribute("data-theme") ?? undefined}

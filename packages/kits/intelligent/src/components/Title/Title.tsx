@@ -17,7 +17,7 @@ const Title = forwardRef<HTMLDivElement, TitleProps>(({ size, color, className, 
       ref={ref}
       role="heading"
       aria-level={HEADING_LEVEL[sizeName] ?? 3}
-      className={cx(`iui-title iui-title-${sizeName}`, className)}
+      className={cx(`openui-intelligent-title openui-intelligent-title-${sizeName}`, className)}
       style={{ color: fg(color), ...style }}
       {...rest}
     >

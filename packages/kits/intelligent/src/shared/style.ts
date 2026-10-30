@@ -5,6 +5,7 @@
  * "sm" to "xl", "full" or px. Anything a model writes is checked first.
  */
 import type { CSSProperties } from "react";
+import { tokens } from "./tokens";
 
 /** A token or a CSS color. */
 export type Color = string;
@@ -40,20 +41,25 @@ export function webUrl(value: unknown): string | null {
 // Values to CSS
 const STATUS = ["info", "success", "warning", "danger", "purple", "pink"] as const;
 const FOREGROUND: Record<string, string> = {
-  ink: "var(--iui-ink)",
-  muted: "var(--iui-muted)",
-  faint: "var(--iui-faint)",
-  canvas: "var(--iui-canvas)",
-  surface: "var(--iui-surface)",
-  ...Object.fromEntries(STATUS.map((s) => [s, `var(--iui-${s})`])),
-  ...Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`chart${i + 1}`, `var(--iui-chart-${i + 1})`])),
+  ink: tokens.ink,
+  muted: tokens.muted,
+  faint: tokens.faint,
+  canvas: tokens.canvas,
+  surface: tokens.surface,
+  ...Object.fromEntries(STATUS.map((s) => [s, tokens[s]])),
+  chart1: tokens.chart1,
+  chart2: tokens.chart2,
+  chart3: tokens.chart3,
+  chart4: tokens.chart4,
+  chart5: tokens.chart5,
+  chart6: tokens.chart6,
 };
 const BACKGROUND: Record<string, string> = {
   ...FOREGROUND,
-  surface: "var(--iui-surface)",
-  "surface-strong": "var(--iui-surface-strong)",
-  border: "var(--iui-border)",
-  ...Object.fromEntries(STATUS.map((s) => [s, `var(--iui-${s}-soft)`])),
+  surface: tokens.surface,
+  "surface-strong": tokens.surfaceStrong,
+  border: tokens.border,
+  ...Object.fromEntries(STATUS.map((s) => [s, tokens[`${s}Soft`]])),
 };
 
 const cssValue = (value: unknown) => (typeof value === "string" && value.trim() && isSafeCss(value) ? value.trim() : undefined);
@@ -92,9 +98,9 @@ export function onColor(background: unknown): CSSProperties {
   if (!ink) return {};
   return {
     color: ink,
-    "--iui-ink": ink,
-    "--iui-muted": `color-mix(in srgb, ${ink} 72%, transparent)`,
-    "--iui-faint": `color-mix(in srgb, ${ink} 55%, transparent)`,
+    "--openui-intelligent-ink": ink,
+    "--openui-intelligent-muted": `color-mix(in srgb, ${ink} 72%, transparent)`,
+    "--openui-intelligent-faint": `color-mix(in srgb, ${ink} 55%, transparent)`,
   } as CSSProperties;
 }
 
@@ -109,10 +115,10 @@ export function size(value: unknown): string | undefined {
 }
 
 const RADIUS: Record<string, string> = {
-  sm: "var(--iui-radius-sm)",
-  md: "var(--iui-radius-md)",
-  lg: "var(--iui-radius-lg)",
-  xl: "var(--iui-radius-xl)",
+  sm: tokens.radiusSm,
+  md: tokens.radiusMd,
+  lg: tokens.radiusLg,
+  xl: tokens.radiusXl,
   full: "999px",
 };
 export const radius = (value: unknown) => (typeof value === "string" ? RADIUS[value] : size(value));

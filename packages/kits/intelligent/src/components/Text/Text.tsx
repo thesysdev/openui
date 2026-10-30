@@ -19,7 +19,7 @@ const Text = forwardRef<HTMLParagraphElement, TextProps>(
     return (
       <p
         ref={ref}
-        className={cx("iui-text", size && `iui-text-${size}`, weight && `iui-weight-${weight}`, lines ? "iui-clamp" : undefined, className)}
+        className={cx("openui-intelligent-text", size && `openui-intelligent-text-${size}`, weight && `openui-intelligent-weight-${weight}`, lines ? "openui-intelligent-clamp" : undefined, className)}
         style={{
           color: fg(color),
           fontStyle: italic ? "italic" : undefined,
@@ -40,7 +40,7 @@ Text.displayName = "Text";
 
 /** Holds a component (an Icon, a Badge, a Math) in a line of Text, aligned with the words. */
 function TextInline({ children }: { children?: ReactNode }) {
-  return <span className="iui-inline">{children}</span>;
+  return <span className="openui-intelligent-inline">{children}</span>;
 }
 
 export { Text, TextInline };

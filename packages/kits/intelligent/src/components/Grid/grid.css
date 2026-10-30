@@ -1,2 +1,2 @@
-.iui-grid { display: grid; min-width: 0; }
-.iui-grid > * { min-width: 0; }
+.openui-intelligent-grid { display: grid; min-width: 0; }
+.openui-intelligent-grid > * { min-width: 0; }

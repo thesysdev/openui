@@ -21,7 +21,7 @@ export interface ButtonProps extends Omit<ComponentProps<typeof RCButton>, "vari
 /**
  * react-components' Button with the Intelligent UI look. solid, outline, soft
  * and ghost map to primary, secondary, tertiary and tertiary; the kit's
- * iui-button-* classes point the button's --openui-* tokens at the kit's own
+ * openui-intelligent-button-* classes point the button's --openui-* tokens at the kit's own
  * (a pill, 560 weight, ink for solid, the kit's danger and success), so it
  * follows the kit's light and dark themes. Timer's buttons and
  * SegmentedControl's options are this Button too.
@@ -35,11 +35,11 @@ export function Button({ variant: variantProp, size: sizeProp, color, icon, bloc
       variant={VARIANT[variant]}
       size={SIZE[size]}
       className={cx(
-        "iui-button",
-        `iui-button-${variant}`,
-        color && color !== "primary" && `iui-button-${color}`,
-        `iui-button-${size}`,
-        block && "iui-block",
+        "openui-intelligent-button",
+        `openui-intelligent-button-${variant}`,
+        color && color !== "primary" && `openui-intelligent-button-${color}`,
+        `openui-intelligent-button-${size}`,
+        block && "openui-intelligent-block",
         className,
       )}
       iconLeft={icon ? <Glyph name={icon} size={size === "sm" ? 14 : 16} /> : undefined}

@@ -1,3 +1,3 @@
-.iui-quote { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 14px 16px; border-left: 3px solid var(--iui-ink); border-radius: 0 12px 12px 0; background: var(--iui-surface); }
-.iui-quote > p { margin: 0; font-size: 16px; line-height: 1.6; }
-.iui-quote > cite { color: var(--iui-muted); font-size: 13px; font-style: normal; }
+.openui-intelligent-quote { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 14px 16px; border-left: 3px solid var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); border-radius: 0 12px 12px 0; background: var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent)); }
+.openui-intelligent-quote > p { margin: 0; font-size: 16px; line-height: 1.6; }
+.openui-intelligent-quote > cite { color: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); font-size: 13px; font-style: normal; }

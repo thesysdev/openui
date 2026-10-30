@@ -1,22 +1,22 @@
-.iui-card {
+.openui-intelligent-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
   width: 100%;
   padding: 20px;
-  border: 1px solid var(--iui-border);
-  border-radius: var(--iui-radius-xl);
-  background: var(--iui-canvas);
+  border: 1px solid var(--openui-intelligent-border, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent));
+  border-radius: var(--openui-intelligent-radius-xl, 14px);
+  background: var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff));
   font-size: 14px;
   line-height: 1.55;
 }
-.iui-card-soft { border-color: transparent; background: var(--iui-surface); padding: 20px; }
-.iui-card .iui-card { border-radius: var(--iui-radius-lg); padding: 16px; }
+.openui-intelligent-card-soft { border-color: transparent; background: var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent)); padding: 20px; }
+.openui-intelligent-card .openui-intelligent-card { border-radius: var(--openui-intelligent-radius-lg, 12px); padding: 16px; }
 /* A small or medium title that opens a card reads as the card title: 14/20 Medium, with a 13/18 secondary subtitle. */
-.iui-card > :is(.iui-title-sm, .iui-title-md):first-child, .iui-card > .iui-row:first-child :is(.iui-title-sm, .iui-title-md) { font-size: 14px; line-height: 20px; font-weight: 560; }
-.iui-card > :is(.iui-title-sm, .iui-title-md):first-child + :is(.iui-caption, .iui-text), .iui-card > .iui-row:first-child :is(.iui-title-sm, .iui-title-md) + :is(.iui-caption, .iui-text) { margin-top: 2px; color: var(--iui-muted); font-size: 13px; line-height: 18px; }
+.openui-intelligent-card > :is(.openui-intelligent-title-sm, .openui-intelligent-title-md):first-child, .openui-intelligent-card > .openui-intelligent-row:first-child :is(.openui-intelligent-title-sm, .openui-intelligent-title-md) { font-size: 14px; line-height: 20px; font-weight: 560; }
+.openui-intelligent-card > :is(.openui-intelligent-title-sm, .openui-intelligent-title-md):first-child + :is(.openui-intelligent-caption, .openui-intelligent-text), .openui-intelligent-card > .openui-intelligent-row:first-child :is(.openui-intelligent-title-sm, .openui-intelligent-title-md) + :is(.openui-intelligent-caption, .openui-intelligent-text) { margin-top: 2px; color: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); font-size: 13px; line-height: 18px; }
 
 @media (max-width: 640px) {
-  .iui-card { padding: 16px; }
-  .iui-card-soft { padding: 16px; }
+  .openui-intelligent-card { padding: 16px; }
+  .openui-intelligent-card-soft { padding: 16px; }
 }

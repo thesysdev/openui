@@ -1,16 +1,16 @@
-.iui-segmented { display: inline-flex; align-self: flex-start; gap: 2px; max-width: 100%; padding: 3px; overflow-x: auto; border-radius: 999px; background: var(--iui-surface); scrollbar-width: none; }
-.iui-segmented.iui-block { display: flex; }
+.openui-intelligent-segmented { display: inline-flex; align-self: flex-start; gap: 2px; max-width: 100%; padding: 3px; overflow-x: auto; border-radius: 999px; background: var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 4%, transparent)); scrollbar-width: none; }
+.openui-intelligent-segmented.openui-intelligent-block { display: flex; }
 /* Each option is the kit's Button (ghost, small) reshaped into a segment: muted
    text and no hover fill until chosen, then a raised pill. Colours go through
    its tokens; padding, border, height, weight and the chosen fill are set at
    (0,3,0)+, above react-components' size and variant rules. */
-.iui-segment { --openui-text-neutral-primary: var(--iui-muted); --openui-highlight: transparent; --iui-segment-fill: var(--iui-canvas); }
-.iui-segment:hover, .iui-segment.is-selected { --openui-text-neutral-primary: var(--iui-ink); }
-:is(:root[data-openui-theme="dark"], [data-theme="dark"]) .iui-segment { --iui-segment-fill: var(--iui-surface-strong); }
-.iui-segment.is-selected { --openui-highlight: var(--iui-segment-fill); }
-.iui-segmented > .iui-button.iui-segment { flex: 1 0 auto; min-height: 0; padding: 6px 14px; border-width: 0; font-size: 13px; line-height: 1.4; font-weight: 400; transition: background-color .2s, color .2s; }
-.iui-segmented > .iui-button.iui-segment.is-selected { background-color: var(--iui-segment-fill); font-weight: 560; box-shadow: var(--iui-shadow-sm), 0 0 0 1px var(--iui-border); }
+.openui-intelligent-segment { --openui-text-neutral-primary: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); --openui-highlight: transparent; --openui-intelligent-segment-fill: var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)); }
+.openui-intelligent-segment:hover, .openui-intelligent-segment.is-selected { --openui-text-neutral-primary: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); }
+:is(:root[data-openui-theme="dark"], [data-theme="dark"]) .openui-intelligent-segment { --openui-intelligent-segment-fill: var(--openui-intelligent-surface-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent)); }
+.openui-intelligent-segment.is-selected { --openui-highlight: var(--openui-intelligent-segment-fill); }
+.openui-intelligent-segmented > .openui-intelligent-button.openui-intelligent-segment { flex: 1 0 auto; min-height: 0; padding: 6px 14px; border-width: 0; font-size: 13px; line-height: 1.4; font-weight: 400; transition: background-color .2s, color .2s; }
+.openui-intelligent-segmented > .openui-intelligent-button.openui-intelligent-segment.is-selected { background-color: var(--openui-intelligent-segment-fill); font-weight: 560; box-shadow: var(--openui-intelligent-shadow-sm, 0 1px 3px rgb(0 0 0 / 5%)), 0 0 0 1px var(--openui-intelligent-border, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent)); }
 
 @media (max-width: 640px) {
-  .iui-segmented > .iui-button.iui-segment { padding: 6px 11px; }
+  .openui-intelligent-segmented > .openui-intelligent-button.openui-intelligent-segment { padding: 6px 11px; }
 }

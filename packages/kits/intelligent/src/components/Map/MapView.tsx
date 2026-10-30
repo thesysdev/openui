@@ -92,7 +92,7 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     let fellBack = false;
     // Re-adds the route line whenever a style (vector, dark or fallback) finishes loading.
     instance.on("style.load", () => {
-      const ink = getComputedStyle(container.current ?? document.body).getPropertyValue("--iui-ink").trim() || "#272727";
+      const ink = getComputedStyle(container.current ?? document.body).getPropertyValue("--openui-intelligent-ink").trim() || "#272727";
       ensureRouteLayer(instance, ink);
       setLine(instance, linePoints.current);
       setReady(true);
@@ -185,17 +185,17 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
   }, [expanded]);
 
   return (
-    <div className="iui-map-slot" style={{ minHeight: height }}>
+    <div className="openui-intelligent-map-slot" style={{ minHeight: height }}>
       <div
         ref={container}
-        className={`iui-map${expanded ? " is-expanded" : ""}`}
+        className={`openui-intelligent-map${expanded ? " is-expanded" : ""}`}
         style={expanded ? undefined : { height }}
         role={expanded ? "dialog" : "region"}
         aria-modal={expanded || undefined}
         aria-label="Map"
         tabIndex={expanded ? -1 : undefined}
       >
-        <div className="iui-map-surface" ref={surface} />
+        <div className="openui-intelligent-map-surface" ref={surface} />
         <MapControls
           categories={categories}
           group={group}

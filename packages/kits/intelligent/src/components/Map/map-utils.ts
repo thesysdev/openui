@@ -45,15 +45,15 @@ export function pinEmoji(value: unknown): string | null {
 /** A focusable pin with a label underneath; Enter/Space and click both select it. */
 export function createPinElement(onSelect: () => void) {
   const element = document.createElement("div");
-  element.className = "iui-map-marker";
+  element.className = "openui-intelligent-map-marker";
   element.tabIndex = 0;
   element.setAttribute("role", "button");
   const content = document.createElement("div");
-  content.className = "iui-map-marker-content";
+  content.className = "openui-intelligent-map-marker-content";
   const pin = document.createElement("span");
-  pin.className = "iui-map-pin";
+  pin.className = "openui-intelligent-map-pin";
   const label = document.createElement("span");
-  label.className = "iui-map-label";
+  label.className = "openui-intelligent-map-label";
   content.append(pin, label);
   element.append(content);
   element.addEventListener("click", onSelect);

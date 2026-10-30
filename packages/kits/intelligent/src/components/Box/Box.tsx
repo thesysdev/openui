@@ -1,4 +1,5 @@
 import { forwardRef, type HTMLAttributes } from "react";
+import { tokens } from "../../shared/tokens";
 import { bg, cx, flexStyle, onColor, radius as radiusOf, size, space, type Align, type Color, type Justify, type Length, type Radius } from "../../shared/style";
 
 export interface BoxProps extends Omit<HTMLAttributes<HTMLDivElement>, "color"> {
@@ -29,7 +30,7 @@ const Box = forwardRef<HTMLDivElement, BoxProps>(
     return (
       <div
         ref={ref}
-        className={cx("iui-box", row ? "iui-row" : "iui-col", !row && gap == null && "iui-flow", className)}
+        className={cx("openui-intelligent-box", row ? "openui-intelligent-row" : "openui-intelligent-col", !row && gap == null && "openui-intelligent-flow", className)}
         style={{
           ...flexStyle({ gap, align, justify, wrap }, !row),
           padding: space(padding),
@@ -37,7 +38,7 @@ const Box = forwardRef<HTMLDivElement, BoxProps>(
           ...onColor(background),
           borderRadius: radiusOf(radius),
           overflow: radius !== undefined ? "clip" : undefined,
-          border: border ? "1px solid var(--iui-border)" : undefined,
+          border: border ? `1px solid ${tokens.border}` : undefined,
           width: size(width),
           height: size(height),
           // null, like an omitted argument, means no flex.

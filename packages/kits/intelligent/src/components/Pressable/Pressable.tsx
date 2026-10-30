@@ -40,7 +40,7 @@ export function Pressable({ onPress, selected, disabled, padding, background, ra
       tabIndex={0}
       aria-pressed={selected === undefined ? undefined : !!selected}
       aria-disabled={disabled || undefined}
-      className={cx("iui-pressable", selected && "is-selected")}
+      className={cx("openui-intelligent-pressable", selected && "is-selected")}
       style={{ padding: space(padding), background: bg(background), ...onColor(background), borderRadius: radiusOf(radius) }}
       onClick={onClick}
       onKeyDown={onKeyDown}

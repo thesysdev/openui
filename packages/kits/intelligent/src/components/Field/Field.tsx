@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 /** A required field's marker after its label. */
 export const RequiredMark = () => (
-  <span className="iui-required" aria-hidden="true">
+  <span className="openui-intelligent-required" aria-hidden="true">
     *
   </span>
 );
@@ -12,7 +12,7 @@ export const RequiredMark = () => (
 export function FieldError({ error }: { error?: string }) {
   if (!error) return null;
   return (
-    <span className="iui-field-error" role="alert">
+    <span className="openui-intelligent-field-error" role="alert">
       <CircleAlert size={14} aria-hidden />
       {error}
     </span>
@@ -32,9 +32,9 @@ export interface FieldProps {
 export function Field({ label, required, error, children: content }: FieldProps) {
   if (!label && !error) return <>{content}</>;
   return (
-    <label className="iui-field">
+    <label className="openui-intelligent-field">
       {label ? (
-        <span className="iui-label">
+        <span className="openui-intelligent-label">
           {label}
           {required ? <RequiredMark /> : null}
         </span>

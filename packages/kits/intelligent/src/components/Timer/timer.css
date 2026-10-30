@@ -1,6 +1,6 @@
-.iui-timer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; min-width: 0; padding: 12px 16px; border: 1px solid var(--iui-border); border-radius: var(--iui-radius-lg); }
-.iui-timer-read { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.iui-timer-time { font-size: 32px; line-height: 1.1; font-weight: 640; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-.iui-timer.is-running .iui-timer-time { color: var(--iui-ink); }
-.iui-timer.is-done .iui-timer-time { color: var(--iui-success); }
-.iui-timer-actions { display: flex; gap: 8px; }
+.openui-intelligent-timer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; min-width: 0; padding: 12px 16px; border: 1px solid var(--openui-intelligent-border, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 8%, transparent)); border-radius: var(--openui-intelligent-radius-lg, 12px); }
+.openui-intelligent-timer-read { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.openui-intelligent-timer-time { font-size: 32px; line-height: 1.1; font-weight: 640; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.openui-intelligent-timer.is-running .openui-intelligent-timer-time { color: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); }
+.openui-intelligent-timer.is-done .openui-intelligent-timer-time { color: var(--openui-intelligent-success, #00805d); }
+.openui-intelligent-timer-actions { display: flex; gap: 8px; }

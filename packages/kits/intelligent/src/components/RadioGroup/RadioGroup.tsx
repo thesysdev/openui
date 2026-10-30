@@ -42,11 +42,11 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
     body = (
       <div>
         {options.map((o, i) => (
-          <label key={`${o.value}-${i}`} className={cx("iui-choice", o.value === value && "is-selected")}>
+          <label key={`${o.value}-${i}`} className={cx("openui-intelligent-choice", o.value === value && "is-selected")}>
             <input type="radio" name={name} checked={o.value === value} onChange={() => onChange(o.value)} />
-            <span className="iui-choice-text">
+            <span className="openui-intelligent-choice-text">
               <span>{o.label}</span>
-              {o.description ? <span className="iui-choice-description">{o.description}</span> : null}
+              {o.description ? <span className="openui-intelligent-choice-description">{o.description}</span> : null}
             </span>
           </label>
         ))}
@@ -71,9 +71,9 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
     );
   }
   return (
-    <fieldset className={cx("iui-radio-group", variant === "pills" && "iui-radio-pills")}>
+    <fieldset className={cx("openui-intelligent-radio-group", variant === "pills" && "openui-intelligent-radio-pills")}>
       {label ? (
-        <legend className="iui-label">
+        <legend className="openui-intelligent-label">
           {label}
           {required ? <RequiredMark /> : null}
         </legend>

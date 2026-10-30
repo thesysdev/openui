@@ -2,7 +2,7 @@
    so the spacing below wins over their margin resets. */
 
 /* One focus ring for the kit's controls. */
-:is(.iui-button, .iui-icon-button, .iui-pressable, .iui-segmented > button, .iui-link, .iui-check > input):focus-visible { outline: 2px solid var(--iui-focus); outline-offset: 3px; }
+:is(.openui-intelligent-button, .openui-intelligent-icon-button, .openui-intelligent-pressable, .openui-intelligent-segmented > button, .openui-intelligent-link, .openui-intelligent-check > input):focus-visible { outline: 2px solid var(--openui-intelligent-focus, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d))); outline-offset: 3px; }
 
 /* Spacing system. One scale (4/8/12/16/24px, tokens in theme.css) in three
    tiers that always nest: inner < group < section.
@@ -11,19 +11,19 @@
      to the block it introduces.
    - inner (8px): a title to its own subtitle, tags or paragraph; tight (4px)
      for an eyebrow caption above a title. */
-.iui-flow > * + * { margin-top: var(--iui-space-section); }
-.iui-flow > .iui-title + * { margin-top: var(--iui-space-group); }
-:is(.iui-flow .iui-flow, .iui-card.iui-flow) > * + * { margin-top: var(--iui-space-group); }
-.iui-flow > .iui-text + .iui-text { margin-top: var(--iui-space-group); }
-.iui-flow > .iui-title + :is(.iui-text, .iui-caption, .iui-row:has(> .iui-badge)) { margin-top: var(--iui-space-inner); }
-.iui-flow > .iui-caption + .iui-title { margin-top: var(--iui-space-tight); }
+.openui-intelligent-flow > * + * { margin-top: var(--openui-intelligent-space-section, 24px); }
+.openui-intelligent-flow > .openui-intelligent-title + * { margin-top: var(--openui-intelligent-space-group, 12px); }
+:is(.openui-intelligent-flow .openui-intelligent-flow, .openui-intelligent-card.openui-intelligent-flow) > * + * { margin-top: var(--openui-intelligent-space-group, 12px); }
+.openui-intelligent-flow > .openui-intelligent-text + .openui-intelligent-text { margin-top: var(--openui-intelligent-space-group, 12px); }
+.openui-intelligent-flow > .openui-intelligent-title + :is(.openui-intelligent-text, .openui-intelligent-caption, .openui-intelligent-row:has(> .openui-intelligent-badge)) { margin-top: var(--openui-intelligent-space-inner, 8px); }
+.openui-intelligent-flow > .openui-intelligent-caption + .openui-intelligent-title { margin-top: var(--openui-intelligent-space-tight, 4px); }
 
 /* Inside a card or a grid cell, titles are card-sized (18/24) and body text is 15/22. */
-:is(.iui-card, .iui-grid > .iui-flow, .iui-carousel-item > .iui-flow) > :is(.iui-title-lg, .iui-title-xl, .iui-title-2xl, .iui-title-3xl) { font-size: 18px; line-height: 24px; letter-spacing: -0.3px; }
-:is(.iui-card, .iui-grid > .iui-flow, .iui-carousel-item > .iui-flow) > .iui-text:not(.iui-text-xs, .iui-text-sm, .iui-text-lg) { font-size: 15px; line-height: 22px; }
+:is(.openui-intelligent-card, .openui-intelligent-grid > .openui-intelligent-flow, .openui-intelligent-carousel-item > .openui-intelligent-flow) > :is(.openui-intelligent-title-lg, .openui-intelligent-title-xl, .openui-intelligent-title-2xl, .openui-intelligent-title-3xl) { font-size: 18px; line-height: 24px; letter-spacing: -0.3px; }
+:is(.openui-intelligent-card, .openui-intelligent-grid > .openui-intelligent-flow, .openui-intelligent-carousel-item > .openui-intelligent-flow) > .openui-intelligent-text:not(.openui-intelligent-text-xs, .openui-intelligent-text-sm, .openui-intelligent-text-lg) { font-size: 15px; line-height: 22px; }
 
 /* Media row: a photo beside text. The photo is a fixed 4:3, a third of the row
    (120-200px), 16px from text that starts at the photo's top edge. */
-.iui-row:has(> :is(.iui-image, .iui-box:has(> .iui-image:only-child))) { align-items: flex-start !important; gap: var(--iui-space-group-lg) !important; }
-.iui-row > :is(.iui-image, .iui-box:has(> .iui-image:only-child)) { flex: none !important; width: clamp(120px, 33%, 200px) !important; }
-.iui-row > .iui-box:has(> .iui-image:only-child) > .iui-image, .iui-row > .iui-image { aspect-ratio: 4 / 3 !important; height: auto !important; }
+.openui-intelligent-row:has(> :is(.openui-intelligent-image, .openui-intelligent-box:has(> .openui-intelligent-image:only-child))) { align-items: flex-start !important; gap: var(--openui-intelligent-space-group-lg, 16px) !important; }
+.openui-intelligent-row > :is(.openui-intelligent-image, .openui-intelligent-box:has(> .openui-intelligent-image:only-child)) { flex: none !important; width: clamp(120px, 33%, 200px) !important; }
+.openui-intelligent-row > .openui-intelligent-box:has(> .openui-intelligent-image:only-child) > .openui-intelligent-image, .openui-intelligent-row > .openui-intelligent-image { aspect-ratio: 4 / 3 !important; height: auto !important; }

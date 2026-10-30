@@ -13,7 +13,7 @@ export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
  * would render as a line of pipes.
  */
 const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(({ text, className, ...rest }, ref) => (
-  <div ref={ref} className={cx("iui-markdown", className)} {...rest}>
+  <div ref={ref} className={cx("openui-intelligent-markdown", className)} {...rest}>
     <MarkdownBlocks text={text} />
   </div>
 ));

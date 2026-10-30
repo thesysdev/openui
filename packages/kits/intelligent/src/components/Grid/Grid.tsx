@@ -19,7 +19,7 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(({ columns: columnsProp, gap:
   return (
     <div
       ref={ref}
-      className={cx("iui-grid", className)}
+      className={cx("openui-intelligent-grid", className)}
       style={{
         gap,
         gridTemplateColumns: min ? `repeat(auto-fill, minmax(min(100%, ${min}), 1fr))` : `repeat(${columns}, minmax(0, 1fr))`,

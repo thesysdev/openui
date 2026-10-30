@@ -54,12 +54,12 @@ export function Timer({ seconds, onSecondsChange, label, disabled }: TimerProps)
   const done = left === 0 && startedAt !== null;
 
   return (
-    <div className={cx("iui-timer", running && "is-running", done && "is-done")} role="timer" aria-label={label || "Timer"}>
-      <div className="iui-timer-read">
-        {label && <span className="iui-label">{label}</span>}
-        <span className="iui-timer-time">{clock(left)}</span>
+    <div className={cx("openui-intelligent-timer", running && "is-running", done && "is-done")} role="timer" aria-label={label || "Timer"}>
+      <div className="openui-intelligent-timer-read">
+        {label && <span className="openui-intelligent-label">{label}</span>}
+        <span className="openui-intelligent-timer-time">{clock(left)}</span>
       </div>
-      <div className="iui-timer-actions">
+      <div className="openui-intelligent-timer-actions">
         <Button variant="solid" size="sm" icon={running ? "pause" : "play"} disabled={disabled || left === 0} onClick={toggle}>
           {running ? "Pause" : startedAt === null || left === 0 ? "Start" : "Resume"}
         </Button>

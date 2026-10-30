@@ -20,10 +20,10 @@ export interface CarouselProps {
 export function Carousel({ items, itemWidth, gap }: CarouselProps) {
   const width = Math.min(640, Math.max(80, itemWidth ?? 240));
   return (
-    <RCCarousel className="iui-carousel">
-      <CarouselContent className="iui-carousel-track" style={gap != null ? { gap: Math.max(0, gap) * 4 } : undefined}>
+    <RCCarousel className="openui-intelligent-carousel">
+      <CarouselContent className="openui-intelligent-carousel-track" style={gap != null ? { gap: Math.max(0, gap) * 4 } : undefined}>
         {items.map((item, i) => (
-          <div key={i} className="iui-carousel-item" style={{ width }}>
+          <div key={i} className="openui-intelligent-carousel-item" style={{ width }}>
             {item}
           </div>
         ))}

@@ -2,6 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
+import { tokens } from "../../shared/tokens";
 import { n } from "./helpers";
 import { fg } from "../../shared/style";
 import { color } from "../helpers";
@@ -28,7 +29,7 @@ export const SvgText = defineComponent({
       fill={fg(props.fill) ?? "currentColor"}
       textAnchor={props.anchor ?? "start"}
       fontWeight={props.weight === "semibold" ? 640 : props.weight === "medium" ? 560 : 440}
-      fontFamily="var(--iui-font)"
+      fontFamily={tokens.font}
     >
       {String(props.text ?? "")}
     </text>

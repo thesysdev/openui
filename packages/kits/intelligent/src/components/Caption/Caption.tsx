@@ -7,7 +7,7 @@ export interface CaptionProps extends Omit<HTMLAttributes<HTMLParagraphElement>,
 
 /** Small secondary text. */
 const Caption = forwardRef<HTMLParagraphElement, CaptionProps>(({ color, className, style, children, ...rest }, ref) => (
-  <p ref={ref} className={cx("iui-caption", className)} style={{ color: fg(color), ...style }} {...rest}>
+  <p ref={ref} className={cx("openui-intelligent-caption", className)} style={{ color: fg(color), ...style }} {...rest}>
     {children}
   </p>
 ));

@@ -1,33 +1,33 @@
 /* Lists: dots, ink number circles, or a text lane (times); timeline joins them. */
-.iui-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.iui-list > li { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: 12px; align-items: start; }
-.iui-list-bullet:not(.iui-timeline):not(.iui-list-wide) > li { grid-template-columns: 14px minmax(0, 1fr); column-gap: 8px; }
-.iui-list-none > li { grid-template-columns: minmax(0, 1fr); }
-.iui-list-none .iui-list-marker:empty { display: none; }
-.iui-list-wide > li { grid-template-columns: 76px minmax(0, 1fr); column-gap: 16px; }
-.iui-list-rich { padding-bottom: 4px; }
-.iui-list-marker { display: flex; align-items: center; justify-content: center; height: 1.55em; color: var(--iui-muted); }
-.iui-list-bullet .iui-list-marker:empty::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--iui-faint); }
-.iui-list-number .iui-list-marker:not(.iui-list-marker-text) { align-self: start; width: 24px; height: 24px; border-radius: 50%; background: var(--iui-ink); color: var(--iui-on-ink); font-size: 13px; line-height: 1; font-variant-numeric: tabular-nums; }
+.openui-intelligent-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.openui-intelligent-list > li { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: 12px; align-items: start; }
+.openui-intelligent-list-bullet:not(.openui-intelligent-timeline):not(.openui-intelligent-list-wide) > li { grid-template-columns: 14px minmax(0, 1fr); column-gap: 8px; }
+.openui-intelligent-list-none > li { grid-template-columns: minmax(0, 1fr); }
+.openui-intelligent-list-none .openui-intelligent-list-marker:empty { display: none; }
+.openui-intelligent-list-wide > li { grid-template-columns: 76px minmax(0, 1fr); column-gap: 16px; }
+.openui-intelligent-list-rich { padding-bottom: 4px; }
+.openui-intelligent-list-marker { display: flex; align-items: center; justify-content: center; height: 1.55em; color: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); }
+.openui-intelligent-list-bullet .openui-intelligent-list-marker:empty::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--openui-intelligent-faint, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); }
+.openui-intelligent-list-number .openui-intelligent-list-marker:not(.openui-intelligent-list-marker-text) { align-self: start; width: 24px; height: 24px; border-radius: 50%; background: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); color: var(--openui-intelligent-on-ink, var(--openui-foreground, #ffffff)); font-size: 13px; line-height: 1; font-variant-numeric: tabular-nums; }
 /* Short custom markers ("1", "2", "A") read as steps: white numerals on an ink chip. */
-.iui-list-marker-chip > span { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--iui-ink); color: var(--iui-on-ink); font-size: 12px; line-height: 1; font-weight: 560; font-variant-numeric: tabular-nums; }
-.iui-list:has(.iui-list-marker-chip):not(.iui-list-wide) > li { grid-template-columns: 24px minmax(0, 1fr); column-gap: 12px; }
-.iui-list-marker-text { justify-content: flex-start; color: var(--iui-muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.iui-list-rich .iui-list-title { font-weight: 560; }
-.iui-list-description { margin-top: 2px; color: var(--iui-muted); font-size: 0.93em; line-height: 1.55; }
-.iui-list-children { margin-top: 8px; }
-.iui-timeline { gap: 0; }
-.iui-timeline > li { padding-bottom: 18px; }
-.iui-timeline > li:last-child { padding-bottom: 0; }
-.iui-timeline > li:not(:last-child)::after { content: ""; position: absolute; top: 1.7em; bottom: 0.15em; left: 11.5px; width: 1px; background: var(--iui-border-strong); }
-.iui-timeline.iui-list-wide > li:not(:last-child)::after { left: auto; right: calc(100% - 76px - 8px); }
-.iui-timeline.iui-list-none:not(.iui-list-wide) > li::after { content: none; }
-.iui-timeline.iui-list-bullet .iui-list-marker:empty::before { width: 9px; height: 9px; background: var(--iui-canvas); box-shadow: inset 0 0 0 2px var(--iui-ink); }
-.iui-timeline.iui-list-wide .iui-list-marker-text::after { content: ""; position: absolute; left: calc(76px + 4px); top: 0.55em; width: 9px; height: 9px; border-radius: 50%; background: var(--iui-canvas); box-shadow: inset 0 0 0 2px var(--iui-ink); }
-.iui-timeline.iui-list-wide > li { grid-template-columns: 76px minmax(0, 1fr); column-gap: 24px; }
+.openui-intelligent-list-marker-chip > span { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); color: var(--openui-intelligent-on-ink, var(--openui-foreground, #ffffff)); font-size: 12px; line-height: 1; font-weight: 560; font-variant-numeric: tabular-nums; }
+.openui-intelligent-list:has(.openui-intelligent-list-marker-chip):not(.openui-intelligent-list-wide) > li { grid-template-columns: 24px minmax(0, 1fr); column-gap: 12px; }
+.openui-intelligent-list-marker-text { justify-content: flex-start; color: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.openui-intelligent-list-rich .openui-intelligent-list-title { font-weight: 560; }
+.openui-intelligent-list-description { margin-top: 2px; color: var(--openui-intelligent-muted, var(--openui-text-neutral-secondary, rgb(0 0 0 / 60%))); font-size: 0.93em; line-height: 1.55; }
+.openui-intelligent-list-children { margin-top: 8px; }
+.openui-intelligent-timeline { gap: 0; }
+.openui-intelligent-timeline > li { padding-bottom: 18px; }
+.openui-intelligent-timeline > li:last-child { padding-bottom: 0; }
+.openui-intelligent-timeline > li:not(:last-child)::after { content: ""; position: absolute; top: 1.7em; bottom: 0.15em; left: 11.5px; width: 1px; background: var(--openui-intelligent-border-strong, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 10%, transparent)); }
+.openui-intelligent-timeline.openui-intelligent-list-wide > li:not(:last-child)::after { left: auto; right: calc(100% - 76px - 8px); }
+.openui-intelligent-timeline.openui-intelligent-list-none:not(.openui-intelligent-list-wide) > li::after { content: none; }
+.openui-intelligent-timeline.openui-intelligent-list-bullet .openui-intelligent-list-marker:empty::before { width: 9px; height: 9px; background: var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)); box-shadow: inset 0 0 0 2px var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); }
+.openui-intelligent-timeline.openui-intelligent-list-wide .openui-intelligent-list-marker-text::after { content: ""; position: absolute; left: calc(76px + 4px); top: 0.55em; width: 9px; height: 9px; border-radius: 50%; background: var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)); box-shadow: inset 0 0 0 2px var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)); }
+.openui-intelligent-timeline.openui-intelligent-list-wide > li { grid-template-columns: 76px minmax(0, 1fr); column-gap: 24px; }
 
 @media (max-width: 640px) {
-  .iui-list-wide > li, .iui-timeline.iui-list-wide > li { grid-template-columns: 64px minmax(0, 1fr); column-gap: 20px; }
-  .iui-timeline.iui-list-wide > li:not(:last-child)::after { right: calc(100% - 64px - 10px); }
-  .iui-timeline.iui-list-wide .iui-list-marker-text::after { left: calc(64px + 6px); }
+  .openui-intelligent-list-wide > li, .openui-intelligent-timeline.openui-intelligent-list-wide > li { grid-template-columns: 64px minmax(0, 1fr); column-gap: 20px; }
+  .openui-intelligent-timeline.openui-intelligent-list-wide > li:not(:last-child)::after { right: calc(100% - 64px - 10px); }
+  .openui-intelligent-timeline.openui-intelligent-list-wide .openui-intelligent-list-marker-text::after { left: calc(64px + 6px); }
 }

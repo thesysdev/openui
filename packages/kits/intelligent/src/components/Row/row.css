@@ -1,2 +1,2 @@
-.iui-row { display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
-.iui-row > * { min-width: 0; }
+.openui-intelligent-row { display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
+.openui-intelligent-row > * { min-width: 0; }

@@ -39,9 +39,9 @@ const MAX_HEIGHT = 2400;
 const AUTO_START = 360;
 
 // Reports the content height to the parent, so the view fits the page. The
-// parent can ask again ("iui-html-view-measure"): a server-rendered frame may
+// parent can ask again ("openui-intelligent-html-view-measure"): a server-rendered frame may
 // report before the app is listening.
-const REPORTER = `<script>(function(){var last=0;function send(){var h=Math.ceil(document.documentElement.getBoundingClientRect().height);if(Math.abs(h-last)>1){last=h;parent.postMessage({type:"iui-html-view-height",height:h},"*")}}addEventListener("message",function(e){if(e.source===parent&&e.data==="iui-html-view-measure"){last=0;send()}});addEventListener("load",send);new ResizeObserver(send).observe(document.documentElement);send()})()</script>`;
+const REPORTER = `<script>(function(){var last=0;function send(){var h=Math.ceil(document.documentElement.getBoundingClientRect().height);if(Math.abs(h-last)>1){last=h;parent.postMessage({type:"openui-intelligent-html-view-height",height:h},"*")}}addEventListener("message",function(e){if(e.source===parent&&e.data==="openui-intelligent-html-view-measure"){last=0;send()}});addEventListener("load",send);new ResizeObserver(send).observe(document.documentElement);send()})()</script>`;
 
 function documentFor(html: string, scheme: "light" | "dark") {
   // The policy comes first, so it covers everything in the model's markup.
@@ -62,21 +62,21 @@ export function HtmlView({ html, height, title, pending }: HtmlViewProps) {
     const onMessage = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
       const data = event.data as { type?: unknown; height?: unknown };
-      if (data?.type === "iui-html-view-height" && typeof data.height === "number" && Number.isFinite(data.height)) {
+      if (data?.type === "openui-intelligent-html-view-height" && typeof data.height === "number" && Number.isFinite(data.height)) {
         setMeasured(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, data.height)));
       }
     };
     window.addEventListener("message", onMessage);
-    frame.current?.contentWindow?.postMessage("iui-html-view-measure", "*");
+    frame.current?.contentWindow?.postMessage("openui-intelligent-html-view-measure", "*");
     return () => window.removeEventListener("message", onMessage);
   }, [fixed]);
 
   // A page that is still streaming would reload on every chunk; it runs once complete.
   const boxHeight = fixed ?? measured ?? AUTO_START;
   return (
-    <div ref={box} className="iui-html-view" style={{ height: boxHeight }}>
+    <div ref={box} className="openui-intelligent-html-view" style={{ height: boxHeight }}>
       {pending ? (
-        <div className="iui-html-view-wait">Preparing the interactive view…</div>
+        <div className="openui-intelligent-html-view-wait">Preparing the interactive view…</div>
       ) : (
         <iframe ref={frame} title={title || "Interactive view"} sandbox="allow-scripts" srcDoc={srcDoc} referrerPolicy="no-referrer" loading="lazy" />
       )}

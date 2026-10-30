@@ -18,7 +18,7 @@ export interface SegmentedControlProps {
 /** A pill track: a radiogroup whose options are the kit's buttons, the chosen one a raised pill. */
 export function SegmentedControl({ options, value, onChange, block }: SegmentedControlProps) {
   return (
-    <div className={cx("iui-segmented", block && "iui-block")} role="radiogroup">
+    <div className={cx("openui-intelligent-segmented", block && "openui-intelligent-block")} role="radiogroup">
       {options.map((o, i) => (
         <Button
           key={`${o.value}-${i}`}
@@ -26,7 +26,7 @@ export function SegmentedControl({ options, value, onChange, block }: SegmentedC
           size="sm"
           role="radio"
           aria-checked={o.value === value}
-          className={cx("iui-segment", o.value === value && "is-selected")}
+          className={cx("openui-intelligent-segment", o.value === value && "is-selected")}
           onClick={() => onChange(o.value)}
         >
           {o.label}
