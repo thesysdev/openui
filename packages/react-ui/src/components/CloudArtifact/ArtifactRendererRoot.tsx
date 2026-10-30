@@ -157,8 +157,12 @@ export function ArtifactRendererRoot({
   const [rendererKey, setRendererKey] = useState(0);
   const interpreterRef = useRef(interpreter);
   interpreterRef.current = interpreter;
-  const requestRef = useRef<{ id: string | null; response?: string }>({ id });
-  requestRef.current = { id, response: content };
+  const requestRef = useRef<{ id: string | null; definition?: string; response?: string }>({
+    id,
+  });
+  // The definition comes from the stream, or the tool response before it connects.
+  const definition = stream.definition ?? reference?.definition;
+  requestRef.current = { id, ...(definition && { definition }), response: content };
 
   const toolProvider = useMemo(
     () =>
