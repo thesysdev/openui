@@ -36,7 +36,8 @@ import OpenUISwiftUI
 
 After the SDK is merged and released, use `https://github.com/thesysdev/openui.git`
 in Xcode's **File > Add Package Dependencies** and select a release containing
-the Swift SDK. A Swift SDK version tag has not been published yet.
+the Swift SDK. For other distributions, use the repository URL and version
+listed in that distribution's release notes.
 
 For a language-only consumer, select `OpenUILang`. The nested manifests in
 `packages/swift-lang` and `packages/swift-ui` are local development entry points;
