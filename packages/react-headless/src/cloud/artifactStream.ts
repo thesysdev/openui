@@ -19,6 +19,8 @@ export interface ArtifactStreamError {
 export interface ArtifactStreamSnapshot {
   id: string;
   type?: string;
+  /** The dashboard definition that made it, for interpreter requests. */
+  definition?: string;
   title?: string;
   /** The program to render. `null` until the first content arrives. */
   program: string | null;
@@ -246,6 +248,7 @@ class ArtifactStreamStore {
         entry.pending = "";
         this.update(id, {
           type: event.data?.type ?? snapshot.type,
+          definition: event.data?.definition ?? snapshot.definition,
           title: event.data?.title ?? snapshot.title,
           ...(entry.target === "program" ? { program: "" } : {}),
         });

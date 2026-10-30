@@ -4,7 +4,7 @@
  * The response is opaque to developers: a readable sentence for the model plus
  * OpenUI Cloud's artifact header line,
  *
- *   ]]>openui:artifact {"artifact_id":"art_…","type":"live","name":"…","version":"…"}
+ *   ]]>openui:artifact {"artifact_id":"art_…","type":"live","definition":"…","name":"…","version":"…"}
  *
  * Renderers pass it here unchanged; nothing else parses it.
  */
@@ -15,6 +15,8 @@ const ARTIFACT_MARKER = "]]>openui:artifact";
 export interface ArtifactReference {
   id: string;
   type?: string;
+  /** The dashboard definition that made it. Interpreter requests carry it. */
+  definition?: string;
   title?: string;
   /** Changes with every edit; a new one means there's a newer revision. */
   version?: string;
@@ -23,6 +25,7 @@ export interface ArtifactReference {
 interface ArtifactHeader {
   artifact_id?: unknown;
   type?: unknown;
+  definition?: unknown;
   name?: unknown;
   version?: unknown;
 }
@@ -42,6 +45,7 @@ function parseHeader(text: string): ArtifactReference | null {
     return {
       id,
       type: asString(header.type),
+      definition: asString(header.definition),
       title: asString(header.name),
       version: asString(header.version),
     };
