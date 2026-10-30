@@ -224,8 +224,6 @@ interface RendererProps<L extends Library = Library> {
   response: string | null;
   library: L;
   isStreaming?: boolean;
-  /** Show content in written order while streaming. Default false. */
-  streamInOrder?: boolean;
   /** Typed from the library: checking event.type narrows params for custom actions. */
   onAction?: (event: LibraryActionEvent<L>) => void;
   onStateUpdate?: (state: Record<string, unknown>) => void;
@@ -239,16 +237,6 @@ interface RendererProps<L extends Library = Library> {
   onError?: (errors: OpenUIError[]) => void;
 }
 ```
-
-### Stream in order
-
-Statements can arrive in any order, so while a response streams a later child can show up before an earlier one (`root = Stack([intro, chart, summary])` with `summary` written before `chart`). Pass `streamInOrder` to show content in the order it was written: anything after a child that has not arrived yet waits for it, so nothing jumps. A child that never arrives holds what follows it until the stream ends.
-
-```tsx
-<Renderer response={text} library={library} isStreaming={streaming} streamInOrder />
-```
-
-It is off by default, and only changes what is shown while `isStreaming` is true. Other renderers get the same behavior from `createStreamingParser(schema, root, { streamInOrder: true })`.
 
 ## Renderer slots
 
@@ -370,16 +358,7 @@ interface LibraryJSONSchema {
 }
 
 function createParser(schema: LibraryJSONSchema, rootName?: string): Parser;
-function createStreamingParser(
-  schema: LibraryJSONSchema,
-  rootName?: string,
-  options?: StreamParserOptions,
-): StreamParser;
-
-interface StreamParserOptions {
-  /** While streaming, leave out of `root` anything after a child not written yet. */
-  streamInOrder?: boolean;
-}
+function createStreamingParser(schema: LibraryJSONSchema, rootName?: string): StreamParser;
 
 interface Parser {
   parse(input: string): ParseResult;

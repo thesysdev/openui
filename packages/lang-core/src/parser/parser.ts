@@ -14,7 +14,6 @@ import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
   isElementNode,
-  PENDING_SLOT,
   type ElementNode,
   type JSONSchemaDef,
   type LibraryJSONSchema,
@@ -291,51 +290,6 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
-export interface StreamParserOptions {
-  /**
-   * While streaming, show content in the order it was written: anything after a child
-   * not written yet is left out of `root` until that child arrives. Complete parses are unchanged.
-   */
-  streamInOrder?: boolean;
-}
-
-/**
- * Everything after the first pending slot in reading order (props in order, depth first)
- * is held back: later lists are emptied, other values keep theirs. Removes every slot and
- * returns the same object for anything with nothing held or removed inside.
- */
-function trimAfterPending(root: ElementNode): ElementNode {
-  let held = false;
-  const visit = (value: unknown): unknown => {
-    if (value == null || typeof value !== "object" || isASTNode(value)) return value;
-    if (Array.isArray(value)) {
-      if (held) return value.length ? [] : value;
-      let out: unknown[] | undefined;
-      for (let i = 0; i < value.length; i++) {
-        const item = value[i];
-        if (item === PENDING_SLOT) {
-          held = true;
-          return out ?? value.slice(0, i);
-        }
-        const next = visit(item);
-        if (next !== item) out ??= value.slice(0, i);
-        out?.push(next);
-        if (held) return out ?? value.slice(0, i + 1);
-      }
-      return out ?? value;
-    }
-    const obj = isElementNode(value) ? value.props : (value as Record<string, unknown>);
-    let out: Record<string, unknown> | undefined;
-    for (const [key, item] of Object.entries(obj)) {
-      const next = visit(item);
-      if (next !== item) (out ??= { ...obj })[key] = next;
-    }
-    if (!out) return value;
-    return isElementNode(value) ? { ...value, props: out } : out;
-  };
-  return visit(root) as ElementNode;
-}
-
 function buildResult(
   stmtMap: Map<string, Statement>,
   typedStmts: Statement[],
@@ -344,7 +298,6 @@ function buildResult(
   cat: ParamMap | undefined,
   rootName?: string,
   partialRef?: PartialRef,
-  pending?: { streamingId?: string },
 ): ParseResult {
   const entry = pickEntry(stmtMap, rootName);
 
@@ -371,8 +324,6 @@ function buildResult(
     partial: wasIncomplete,
     currentStatementId: entry?.id,
     unreached,
-    pendingSlots: !!pending,
-    streamingStatementId: pending?.streamingId,
   };
 
   let root: ElementNode | null = null;
@@ -387,8 +338,6 @@ function buildResult(
     }
   }
 
-  // State defaults and Query/Mutation args never get slots
-  ctx.pendingSlots = false;
   const { stateDeclarations, queryStatements, mutationStatements } = extractStatements(
     typedStmts,
     ctx,
@@ -413,7 +362,7 @@ function buildResult(
   const orphaned = entry ? [...unreached] : [];
 
   return {
-    root: root && pending ? trimAfterPending(root) : root,
+    root,
     ...(rootExpression ? { rootExpression } : {}),
     meta: {
       incomplete: wasIncomplete,
@@ -572,11 +521,7 @@ export interface StreamParser {
   getResult(complete?: boolean): ParseResult;
 }
 
-export function createStreamParser(
-  cat: ParamMap,
-  rootName?: string,
-  options?: StreamParserOptions,
-): StreamParser {
+export function createStreamParser(cat: ParamMap, rootName?: string): StreamParser {
   let buf = ""; // raw accumulated input (kept for set() diffing)
   // Preprocessed view of `buf` (fences + comments stripped, same as parse()'s
   // preprocess). The completed-statement scan runs over THIS, never the raw
@@ -679,7 +624,6 @@ export function createStreamParser(
     refreshCleaned();
     const pendingStart = scanNewCompleted();
     const pendingText = cleaned.slice(pendingStart).trim();
-    const slots = options?.streamInOrder && !complete;
 
     // No pending text — all statements are complete
     if (!pendingText) {
@@ -691,8 +635,6 @@ export function createStreamParser(
         completedCount,
         cat,
         rootName,
-        undefined,
-        slots ? {} : undefined,
       );
     }
 
@@ -710,8 +652,6 @@ export function createStreamParser(
         completedCount,
         cat,
         rootName,
-        undefined,
-        slots ? {} : undefined,
       );
     }
 
@@ -746,7 +686,6 @@ export function createStreamParser(
       cat,
       rootName,
       tailName ? { name: tailName, stmts: pendingStmts } : undefined,
-      slots ? { streamingId: stmts[stmts.length - 1]!.id } : undefined,
     );
   }
 
@@ -862,10 +801,6 @@ export function createParser(schema: LibraryJSONSchema, rootName?: string): Pars
  * Create a streaming parser from a library JSON Schema document.
  * Pass `library.toJSONSchema()` to get the schema.
  */
-export function createStreamingParser(
-  schema: LibraryJSONSchema,
-  rootName?: string,
-  options?: StreamParserOptions,
-): StreamParser {
-  return createStreamParser(compileSchema(schema), rootName, options);
+export function createStreamingParser(schema: LibraryJSONSchema, rootName?: string): StreamParser {
+  return createStreamParser(compileSchema(schema), rootName);
 }
