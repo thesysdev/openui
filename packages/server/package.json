@@ -91,6 +91,7 @@
   },
   "devDependencies": {
     "@langchain/core": "^1.2.3",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "ai": "^7.0.10",
     "openai": "^7.20.0",
     "tsdown": "^0.21.7",
@@ -110,10 +111,14 @@
     }
   },
   "peerDependencies": {
-    "@langchain/core": "^1.2.3"
+    "@langchain/core": "^1.2.3",
+    "@modelcontextprotocol/sdk": ">=1.0.0"
   },
   "peerDependenciesMeta": {
     "@langchain/core": {
+      "optional": true
+    },
+    "@modelcontextprotocol/sdk": {
       "optional": true
     }
   }

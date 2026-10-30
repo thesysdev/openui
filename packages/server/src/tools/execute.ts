@@ -1,45 +1,64 @@
+import { isRecord, type CloudApi } from "../client/api";
+import { OpenUIApiError } from "../client/types";
 import { abortable } from "../shared/abort";
-import { THESYS_API_BASE_URL } from "../shared/constants";
+import { mcpToolLoader, mergeTools } from "./mcp";
 import {
   ToolExecutionError,
-  type RegisteredTools,
+  type DataTool,
+  type Interpreter,
+  type InterpreterExecuteOptions,
+  type InterpreterOptions,
+  type InterpreterRequest,
   type ScriptToolCall,
   type ScriptToolResult,
-  type ToolExecutionOptions,
-  type ToolExecutionRequest,
-  type ToolExecutorOptions,
+  type ToolDefinition,
+  type ToolHandler,
 } from "./types";
 
 const MAX_ROUNDS = 8;
 const MAX_TOOL_CALLS = 16;
 const DEFAULT_TIMEOUT_MS = 60_000;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-
 function invalidResponse(): never {
   throw new ToolExecutionError("Invalid script execution response", "invalid_response", 502);
 }
 
-/** Register server tools once, then execute direct tools or generated script loops. */
-export function createToolExecutor<Context = undefined>(
-  options: ToolExecutorOptions<Context>,
-): RegisteredTools<Context> {
-  const entries = Object.entries(options.tools);
-  const tools = Object.fromEntries(entries.map(([name, tool]) => [name, tool.execute]));
-  const definitions = entries.map(([name, { description, parameters, output }]) => ({
+/** What generation sees of your tools: everything but `execute`. */
+export function toToolDefinitions(
+  tools: Record<string, Omit<ToolDefinition, "name">>,
+): ToolDefinition[] {
+  return Object.entries(tools).map(([name, { description, parameters, output }]) => ({
     name,
     parameters,
     ...(description !== undefined && { description }),
     ...(output !== undefined && { output }),
   }));
-  const endpoint = `${(options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "")}/v1/app/execute`;
-  const fetchFn = options.fetch ?? globalThis.fetch;
-  const apiKey = options.apiKey;
+}
+
+/** Your data tools and an MCP server's, merged. MCP tools are listed on first use, then reused. */
+export function dataToolLoader<Context>(
+  options: InterpreterOptions<Context>,
+): () => Promise<Record<string, DataTool<Context>>> {
+  if (options?.tools === undefined && options?.mcp === undefined) {
+    throw new ToolExecutionError("Pass `tools`, `mcp`, or both", "invalid_tools");
+  }
+  const loadMcp = options.mcp === undefined ? undefined : mcpToolLoader(options.mcp);
+  return async () => (loadMcp ? mergeTools(options.tools, await loadMcp()) : (options.tools ?? {}));
+}
+
+/** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
+export function createInterpreter<Context = undefined>(
+  api: CloudApi,
+  loadTools: () => Promise<Record<string, DataTool<Context>>>,
+): Interpreter<Context> {
+  const handlers = async () =>
+    Object.fromEntries(
+      Object.entries(await loadTools()).map(([name, tool]) => [name, tool.execute]),
+    );
 
   async function execute(
-    input: ToolExecutionRequest,
-    executionOptions?: ToolExecutionOptions<Context>,
+    input: InterpreterRequest,
+    executionOptions?: InterpreterExecuteOptions<Context>,
   ): Promise<unknown> {
     if (!input || typeof input.name !== "string" || !input.name) {
       throw new ToolExecutionError("A tool name is required", "invalid_input");
@@ -62,6 +81,7 @@ export function createToolExecutor<Context = undefined>(
     );
     const signal = controller.signal;
 
+    let tools: Record<string, ToolHandler<Context>> = {};
     const dispatch = async (name: string, toolArgs: Record<string, unknown>) => {
       signal.throwIfAborted();
       if (!Object.hasOwn(tools, name) || typeof tools[name] !== "function") {
@@ -69,28 +89,24 @@ export function createToolExecutor<Context = undefined>(
       }
       return abortable(
         Promise.resolve().then(() =>
-          tools[name]!(toolArgs, { context: executionOptions?.context as Context, signal }),
+          tools[name]!(executionOptions?.context as Context, toolArgs, { signal }),
         ),
         signal,
       );
     };
 
     try {
+      tools = await abortable(handlers(), signal);
       if (Object.hasOwn(tools, input.name)) return await dispatch(input.name, args);
-      if (typeof input.response !== "string" || !input.response.trim()) {
+      // Generated scripts run from the artifact OpenUI Cloud stores.
+      if (typeof input.id !== "string" || !input.id) {
         throw new ToolExecutionError(
-          `Unknown tool: ${input.name}. Supply a complete OpenUI response for script execution.`,
+          `Unknown tool: ${input.name}. Send the artifact's id to run its scripts.`,
           "tool_not_found",
           404,
         );
       }
-
-      if (!apiKey?.trim()) {
-        throw new ToolExecutionError(
-          "Pass apiKey to createToolExecutor to execute generated scripts",
-          "missing_api_key",
-        );
-      }
+      const source = { artifact_id: input.id };
 
       let state: string | undefined;
       let toolResults: ScriptToolResult[] = [];
@@ -100,7 +116,7 @@ export function createToolExecutor<Context = undefined>(
         const response = await abortable(
           executeRound(
             {
-              response: input.response,
+              ...source,
               name: input.name,
               arguments: args,
               tool_results: toolResults,
@@ -110,7 +126,6 @@ export function createToolExecutor<Context = undefined>(
           ),
           signal,
         );
-        if (!isRecord(response)) invalidResponse();
         if (response["status"] === "done") return response["result"];
         if (response["status"] === "error") {
           const error = response["error"];
@@ -191,38 +206,21 @@ export function createToolExecutor<Context = undefined>(
     }
   }
 
-  async function executeRound(body: unknown, signal: AbortSignal): Promise<unknown> {
-    signal.throwIfAborted();
-    const response = await fetchFn(endpoint, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
-    });
-    let result: unknown;
+  // One script round; API failures surface as tool errors, with the same code and status.
+  async function executeRound(
+    body: unknown,
+    signal: AbortSignal,
+  ): Promise<Record<string, unknown>> {
     try {
-      result = await response.json();
-    } catch {
+      return await api.post("/v1/app/execute", body, signal);
+    } catch (error) {
       signal.throwIfAborted();
-      throw new ToolExecutionError(
-        `Could not read script execution response (HTTP ${response.status})`,
-        "invalid_response",
-        response.status,
-      );
+      if (error instanceof OpenUIApiError) {
+        throw new ToolExecutionError(error.message, error.code, error.status);
+      }
+      throw error;
     }
-    signal.throwIfAborted();
-    if (!response.ok) {
-      const error = isRecord(result) && isRecord(result["error"]) ? result["error"] : undefined;
-      throw new ToolExecutionError(
-        typeof error?.["message"] === "string"
-          ? error["message"]
-          : `Script execution failed: HTTP ${response.status}`,
-        typeof error?.["code"] === "string" ? error["code"] : "http_error",
-        response.status,
-      );
-    }
-    return result;
   }
 
-  return { definitions, execute };
+  return { execute };
 }
