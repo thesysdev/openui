@@ -36,8 +36,6 @@ export interface ArtifactListParams {
   name?: string;
   /** Filter by artifact types (kinds, such as `dashboard` or `slides`). Server-side. */
   type?: string[];
-  /** Filter by how artifacts get their data. An untyped dashboard counts as static. Server-side. */
-  artifactType?: ("live" | "static")[];
   /** `true`: only pinned artifacts; `false`: only unpinned ones. Server-side. */
   pinned?: boolean;
   /** Only artifacts from this thread. Server-side. */
