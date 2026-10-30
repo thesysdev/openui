@@ -266,9 +266,9 @@ struct NativeMediaText: View {
   private var words: some View {
     VStack(alignment: .leading, spacing: 0) {
       NativeMarkdownText(text: context.string("title") ?? "", mode: .inline,
-        style: .init(font: (media != .banner && context.string("layout") != "vertical"
-          ? context.theme.typography.detail : context.theme.typography.body)
-          .weight(media == .banner || context.flag("bold") == true ? .medium : .regular)))
+        style: .init(font: media == .banner ? context.theme.typography.bodyHeavy
+          : (context.string("layout") != "vertical" ? context.theme.typography.detail : context.theme.typography.body)
+            .weight(context.flag("bold") == true ? .medium : .regular)))
 
       if let sub = context.string("subtitle") {
         NativeMarkdownText(text: sub, mode: .inline, style: .init(font: context.theme.typography.detail, color: context.theme.secondary))
@@ -616,7 +616,7 @@ struct NativeCardItem: View {
     var theme = context.theme
     // The official families share tokens, not an identical outline: Context
     // uses radius-xl, compact fact cards radius-2xl, photo cards radius-3xl.
-    theme.cornerRadius = max(0, theme.cornerRadius - (kind == "Context" ? 4 : ["Overview", "Snippet"].contains(kind) ? 2 : 0))
+    theme.cornerRadius = context.theme.cardRadius(for: kind)
     if ["Overview", "Snippet"].contains(kind) { theme.cardPadding = max(0, theme.cardPadding - 2) }
     return theme
   }

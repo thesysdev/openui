@@ -71,13 +71,13 @@ struct NativeMarkdownText: View {
         FontWeight(font.weight)
         FontDigitVariant(style.numeric || font.monospacedDigits ? .monospaced : .normal)
       }
-      .markdownTextStyle(\.link) { ForegroundColor(theme.foreground) }
+      .markdownTextStyle(\.link) { ForegroundColor(theme.link) }
       .markdownTextStyle(\.strong) { FontWeight(theme.typography.heading.weight) }
       .markdownSoftBreakMode(mode == .markdown ? .space : .lineBreak)
       .markdownBlockStyle(\.paragraph) { configuration in
         configuration.label.fixedSize(horizontal: false, vertical: true)
           .frame(maxWidth: .infinity, alignment: frameAlignment)
-          .relativeLineSpacing(.em(theme.typography.lineSpacing))
+          .relativeLineSpacing(.em(font.lineSpacing ?? theme.typography.lineSpacing))
           .markdownMargin(top: 0, bottom: mode == .inline ? 0 : theme.contentSpacing)
       }
       .markdownBlockStyle(\.heading1) { heading($0.label, role: theme.typography.display) }
@@ -131,15 +131,20 @@ struct NativeMarkdownText: View {
       }
       .onDisappear { math.cancel() }
   }
-  private func heading<Content: View>(_ content: Content, role: OpenUIFont) -> some View {
+  @ViewBuilder private func heading<Content: View>(_ content: Content, role: OpenUIFont) -> some View {
     let resolved = theme.typography.resolve(role)
-    return content.markdownTextStyle {
+    let styled = content.markdownTextStyle {
       FontFamily(resolved.family.map(FontProperties.Family.custom) ?? .system(resolved.design))
       FontSize(.em(resolved.size / font.size))
       FontWeight(resolved.weight)
     }
     .fixedSize(horizontal: false, vertical: true)
     .markdownMargin(top: theme.spacing("m"), bottom: theme.spacing("s"))
+    if let lineSpacing = resolved.lineSpacing {
+      styled.relativeLineSpacing(.em(lineSpacing))
+    } else {
+      styled
+    }
   }
 }
 

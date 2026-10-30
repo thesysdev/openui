@@ -63,6 +63,46 @@ automatically rewrites prose. No second schema-filtering framework is needed.
 
 Standard Card uses exactly the official seven parameters (`children`, `variant`, `direction`, `gap`, `align`, `justify`, `wrap`). Compose titles, images and action groups through children. Named slots belong in explicitly authored host components, such as a Notice that declares its own header; the slot helpers do not add fields to Card.
 
+## Theme overrides
+
+`OpenUITheme` exposes the upstream spacing token names (`spaceXs`, `spaceS`,
+`spaceM`, `spaceL`, etc.). The defaults match the pinned reference. `Stack` and
+`Card` continue to accept the same Lang gap enums and default to `m`; the native
+renderer resolves them through the theme. This does not change the exported
+component schema or prompt.
+
+```swift
+var theme = OpenUITheme()
+theme.spaceM = 16
+theme.spaceL = 24
+theme.radius3xl = 20
+theme.typography.body.size = 17
+
+OpenUIRenderer(state: state, registry: installed.registry)
+    .openUITheme(theme)
+```
+
+`cardPadding` and `contentSpacing` follow `spaceM` unless explicitly assigned.
+Existing overrides take precedence. The native corner-radius properties follow
+the corresponding radius tokens unless assigned directly. Control hit targets,
+chart geometry, and platform-owned control metrics are not spacing tokens.
+
+`ImageTextLarge` uses `typography.bodyHeavy`, matching the reference's
+`TextBlockView(highlight-text, sm)` role. Its default size follows `body` and its
+native emphasis is semibold; callers may override the complete role. This fixes
+the former medium-weight banner title without enlarging other text. The existing
+width-derived cover crop and card/footer layout are unchanged.
+
+`OpenUIFont.lineSpacing` optionally overrides the typography-wide additional
+line spacing for one role, in em. Nil retains the existing default. This is
+additional native line spacing, not a CSS line-height multiplier.
+
+`link`, `invertedForeground`, and `invertedBackground` distinguish link and
+inverted text from ordinary foreground and canvas colors. A canvas override no
+longer changes inverted badge text. The renderer remains transparent; the host
+owns its page/bubble background. Default colors, spacing, radii and line spacing
+are preserved apart from the banner-title emphasis correction above.
+
 ## Layout and theme
 
 The collection contains the pinned upstream default library's 82 registrations, including chart data items and parent-consumed records; see [NATIVE-COMPONENTS.md](NATIVE-COMPONENTS.md). On iOS 16/macOS 13, row/column layout uses child measurement, real first-text baselines and distinct space-around/space-evenly distribution. Wrapped rows measure each line independently. The package minimum is iOS 16/macOS 13, so the older stack/grid approximation is not shipped. Use Stack for list/wrapping layouts and Carousel for container-width horizontal pages; these respond to their actual parent proposal, not a device-specific layout template.

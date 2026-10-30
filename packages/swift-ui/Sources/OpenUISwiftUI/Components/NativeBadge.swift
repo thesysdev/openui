@@ -9,8 +9,8 @@ struct NativeBadgeColors {
   init(variant: String?, theme: OpenUITheme) {
     switch variant {
     case "inverted":
-      foreground = theme.canvas
-      background = theme.foreground
+      foreground = theme.invertedForeground
+      background = theme.invertedBackground
     case "info":
       foreground = theme.info
       background = theme.info.opacity(0.12)

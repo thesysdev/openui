@@ -385,7 +385,7 @@ private struct NativeMapPresentation: View {
               .frame(width: 40, height: 40).background(context.theme.controlSurface, in: Circle())
               .shadow(color: .black.opacity(0.08), radius: 5, y: 2)
               .frame(width: 44, height: 44).contentShape(Circle())
-          }.buttonStyle(.plain).disabled(!context.canInteract).padding(12)
+          }.buttonStyle(.plain).disabled(!context.canInteract).padding(context.theme.spacing("m"))
             .accessibilityLabel(Text("Expand map", bundle: NativeControlResources.bundle))
         }
       }
@@ -402,7 +402,7 @@ private struct NativeMapPresentation: View {
       }
   }
   private func toolbar(close: @escaping () -> Void) -> some View {
-    HStack(spacing: 10) {
+    HStack(spacing: context.theme.spacing("sm")) {
       tool("xmark", label: "Close", action: close)
         .modifier(NativeMapToolbarSurface(theme: context.theme))
       Spacer(minLength: 0)

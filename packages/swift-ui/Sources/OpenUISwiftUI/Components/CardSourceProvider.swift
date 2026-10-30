@@ -52,7 +52,7 @@ struct NativeCitationSources: View {
   @Environment(\.openUITheme) private var theme
   @Environment(\.openUIResourceContext) private var resources
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: theme.spacing("ml")) {
       HStack {
         Text("Sources", bundle: NativeControlResources.bundle).openUIFont(theme.typography.heading)
         Spacer()
@@ -60,7 +60,7 @@ struct NativeCitationSources: View {
           .buttonStyle(.plain).accessibilityLabel(Text("Close", bundle: NativeControlResources.bundle))
       }
       ScrollView {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: theme.spacing("ml")) {
           ForEach(Array(indices.filter { $0 > 0 && $0 <= sources.count && NativeCitationSelection.valid(sources[$0 - 1]) }.enumerated()), id: \.offset) { _, index in
             let source = sources[index - 1]
             let target = NativeRichTextEngine.shared.sourceURL(source.url)
@@ -69,13 +69,13 @@ struct NativeCitationSources: View {
               guard let target else { return }
               openURL(target); dismiss()
             } label: {
-              HStack(alignment: .top, spacing: 12) {
+              HStack(alignment: .top, spacing: theme.spacing("m")) {
                 if let host = target?.host {
                   let favicon = "https://www.google.com/s2/favicons?sz=128&domain="
                     + (host.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? host)
                   NativeRemoteImage(src: favicon, alt: source.sourceName, layout: .thumbnail(CGSize(width: 20, height: 20)))
                 } else { Image(systemName: "globe").frame(width: 20, height: 20) }
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: theme.spacing("2xs")) {
                   Text(source.title).openUIFont(theme.typography.heading).foregroundStyle(theme.foreground)
                   Text(source.sourceName).openUIFont(theme.typography.caption).foregroundStyle(theme.secondary)
                   if let target { Text(target.absoluteString).openUIFont(theme.typography.caption).foregroundStyle(theme.secondary).lineLimit(2) }
@@ -85,7 +85,7 @@ struct NativeCitationSources: View {
           }
         }
       }
-    }.padding(16).frame(idealWidth: 420, idealHeight: 300)
+    }.padding(theme.spacing("ml")).frame(idealWidth: 420, idealHeight: 300)
       .accessibilityElement(children: .contain).accessibilityIdentifier("openui.citation.sources")
   }
 }

@@ -21,18 +21,83 @@ public struct OpenUITheme {
     public var info = NativeControlPalette.info
     public var success = NativeControlPalette.success
     public var warning = NativeControlPalette.warning
-    public var controlCornerRadius: CGFloat = 10
-    public var cornerRadius: CGFloat = 16
-    public var overlayCornerRadius: CGFloat = 24
+    // Layout tokens use the upstream ThemeProvider names and defaults.
+    public var space000: CGFloat = 0
+    public var space3xs: CGFloat = 2
+    public var space2xs: CGFloat = 4
+    public var spaceXs: CGFloat = 6
+    public var spaceS: CGFloat = 8
+    public var spaceSM: CGFloat = 10
+    public var spaceM: CGFloat = 12
+    public var spaceML: CGFloat = 16
+    public var spaceL: CGFloat = 18
+    public var spaceXl: CGFloat = 24
+    public var space2xl: CGFloat = 36
+    public var space3xl: CGFloat = 48
+    public var radiusM: CGFloat = 8
+    public var radiusL: CGFloat = 10
+    public var radiusXl: CGFloat = 12
+    public var radius2xl: CGFloat = 14
+    public var radius3xl: CGFloat = 16
+    public var radius5xl: CGFloat = 24
+
+    // Existing native configuration remains source-compatible. An explicit
+    // override wins; otherwise the component follows the shared token.
+    private var controlRadiusOverride: CGFloat?
+    private var cardRadiusOverride: CGFloat?
+    private var overlayRadiusOverride: CGFloat?
+    private var mediaRadiusOverride: CGFloat?
+    private var cardPaddingOverride: CGFloat?
+    private var contentSpacingOverride: CGFloat?
+    public var controlCornerRadius: CGFloat {
+        get { controlRadiusOverride ?? radiusL }
+        set { controlRadiusOverride = newValue }
+    }
+    public var cornerRadius: CGFloat {
+        get { cardRadiusOverride ?? radius3xl }
+        set { cardRadiusOverride = newValue }
+    }
+    public var overlayCornerRadius: CGFloat {
+        get { overlayRadiusOverride ?? radius5xl }
+        set { overlayRadiusOverride = newValue }
+    }
+    public var cardPadding: CGFloat {
+        get { cardPaddingOverride ?? spaceM }
+        set { cardPaddingOverride = newValue }
+    }
+    public var contentSpacing: CGFloat {
+        get { contentSpacingOverride ?? spaceM }
+        set { contentSpacingOverride = newValue }
+    }
+    public var mediaCornerRadius: CGFloat {
+        get { mediaRadiusOverride ?? radiusM }
+        set { mediaRadiusOverride = newValue }
+    }
+    func cardRadius(for kind: String) -> CGFloat {
+        if let override = cardRadiusOverride {
+            return max(0, override - (kind == "Context" ? 4 : ["Overview", "Snippet"].contains(kind) ? 2 : 0))
+        }
+        return kind == "Context" ? radiusXl : ["Overview", "Snippet"].contains(kind) ? radius2xl : radius3xl
+    }
+    // Inverted text is independent of a chart/host canvas override.
+    public var invertedForeground = NativeControlPalette.adaptive(light: 0xF5F5F5, dark: 0x0A0A0A)
+    private var invertedBackgroundOverride: Color?
+    public var invertedBackground: Color {
+        get { invertedBackgroundOverride ?? foreground }
+        set { invertedBackgroundOverride = newValue }
+    }
+    private var linkOverride: Color?
+    public var link: Color {
+        get { linkOverride ?? foreground }
+        set { linkOverride = newValue }
+    }
     #if os(iOS)
     public var minimumControlTargetSize: CGFloat = 44
     #else
     public var minimumControlTargetSize: CGFloat = 24
     #endif
-    public var cardPadding: CGFloat = 12
     public var typography = OpenUITypography()
     public var motion = OpenUIMotion()
-    public var mediaCornerRadius: CGFloat = 8
     public var thumbnailSize: CGFloat = 112
     public var compactThumbnailSize: CGFloat = 80
     public var inlineThumbnailSize: CGFloat = 40
@@ -44,7 +109,6 @@ public struct OpenUITheme {
     public var cardShadowOpacity: Double = 0
     public var cardShadowRadius: CGFloat = 0
     public var cardShadowY: CGFloat = 0
-    public var contentSpacing: CGFloat = 12
     public var metricSurface = NativeControlPalette.adaptive(light: 0x030303, dark: 0xFDFDFD).opacity(0.04)
     private var customDataColors: [Color]?
     /// Explicit host colors retain their existing override behavior.
@@ -65,18 +129,18 @@ public struct OpenUITheme {
 
     public func spacing(_ token: String?) -> CGFloat {
         switch token {
-        case "none": return 0
-        case "3xs": return 2
-        case "2xs": return 4
-        case "xs": return 6
-        case "s": return 8
-        case "sm": return 10
-        case "ml": return 16
-        case "l": return 18
-        case "xl": return 24
-        case "2xl": return 36
-        case "3xl": return 48
-        default: return 12
+        case "none": return space000
+        case "3xs": return space3xs
+        case "2xs": return space2xs
+        case "xs": return spaceXs
+        case "s": return spaceS
+        case "sm": return spaceSM
+        case "ml": return spaceML
+        case "l": return spaceL
+        case "xl": return spaceXl
+        case "2xl": return space2xl
+        case "3xl": return space3xl
+        default: return spaceM
         }
     }
 }

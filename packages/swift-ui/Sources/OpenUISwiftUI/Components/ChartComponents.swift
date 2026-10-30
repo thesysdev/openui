@@ -286,7 +286,7 @@ struct NativeChart: View {
     return 250
   }
   private func legendLabel(index: Int, title: String) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: context.theme.spacing("xs")) {
       RoundedRectangle(cornerRadius: 2, style: .continuous)
         .fill(palette[allData.colorIndex(at: index) % palette.count])
         .frame(width: legendMarkerSize, height: legendMarkerSize).accessibilityHidden(true)
@@ -345,18 +345,18 @@ private struct NativeChartTooltip: View {
       .allowsHitTesting(false)
   }
   private var label: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: theme.spacing("sm")) {
       if !details.title.isEmpty {
-        HStack(spacing: 8) {
+        HStack(spacing: theme.spacing("s")) {
           if let index = details.colorIndex { marker(index) }
           Text(details.title).openUIFont(theme.typography.detail.weight(.semibold))
             .foregroundStyle(theme.foreground).fixedSize(horizontal: false, vertical: true)
         }
         Rectangle().fill(theme.border).frame(height: 1 / displayScale)
       }
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: theme.spacing("s")) {
         ForEach(details.rows) { row in
-          HStack(alignment: .firstTextBaseline, spacing: 8) {
+          HStack(alignment: .firstTextBaseline, spacing: theme.spacing("s")) {
             if let index = row.colorIndex { marker(index) }
             Group {
               if let label = row.label { Text(label) }

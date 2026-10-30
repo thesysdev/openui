@@ -175,6 +175,7 @@ struct NativeEditableTable: View {
 }
 
 private struct NativeTableDateCell: View {
+  @Environment(\.openUITheme) private var theme
   @Binding var value: String
   let label: String
   @State private var showing = false
@@ -197,7 +198,7 @@ private struct NativeTableDateCell: View {
       }
     }.buttonStyle(.plain).accessibilityLabel(label)
       .popover(isPresented: $showing) {
-        VStack(spacing: 16) {
+        VStack(spacing: theme.spacing("ml")) {
           DatePicker(label, selection: $draft, displayedComponents: .date).datePickerStyle(
             .graphical)
           HStack {
@@ -214,7 +215,7 @@ private struct NativeTableDateCell: View {
               Text("Done", bundle: NativeControlResources.bundle)
             }
           }
-        }.padding(16).frame(minWidth: 300)
+        }.padding(theme.spacing("ml")).frame(minWidth: 300)
       }
   }
 }

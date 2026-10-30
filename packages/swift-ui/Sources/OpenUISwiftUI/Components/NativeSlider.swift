@@ -171,15 +171,15 @@ struct NativeSliderField: View {
         Button { picker = .init(index: index) } label: {
           HStack {
             Text(jsNumberString(draft.values[index])).monospacedDigit()
-            Spacer(minLength: 8)
+            Spacer(minLength: context.theme.spacing("s"))
             Image(systemName: "chevron.up.chevron.down").openUIFont(context.theme.typography.caption)
-          }.padding(10).frame(minHeight: 44).background(context.theme.surface, in: RoundedRectangle(cornerRadius: context.theme.controlCornerRadius))
+          }.padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.surface, in: RoundedRectangle(cornerRadius: context.theme.controlCornerRadius))
         }.buttonStyle(.plain).accessibilityIdentifier("openui.slider.choice.\(field.name.displayString).\(index)")
       } else {
         TextField(label, text: Binding(get: { draft.text.indices.contains(index) ? draft.text[index] : "" },
           set: { draft.edit($0, at: index) }))
           .textFieldStyle(.plain).monospacedDigit().nativeSliderKeyboard()
-          .padding(10).frame(minHeight: 44).background(context.theme.surface, in: RoundedRectangle(cornerRadius: context.theme.controlCornerRadius))
+          .padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.surface, in: RoundedRectangle(cornerRadius: context.theme.controlCornerRadius))
           .accessibilityIdentifier("openui.slider.input.\(field.name.displayString).\(index)")
         if let error = configuration.error(for: draft.values, index: index) {
           Text(error).openUIFont(context.theme.typography.caption).foregroundStyle(context.theme.error)

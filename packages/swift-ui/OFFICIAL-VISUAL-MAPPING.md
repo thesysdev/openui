@@ -154,3 +154,19 @@ Client-bubble acceptance is separate from the SDK review shell.
 Record each deviation as: reference source -> native mapping -> reason -> proof.
 Change a shared role first; add a component exception only when its semantic role
 requires one. Preserve earlier dirty work and distinguish this batch's diff.
+
+## Theme convergence
+
+Spacing and radius tokens follow the pinned `ThemeProvider/types.ts` and
+`defaultTheme.ts`; component gap mappings follow `genui-lib/Stack/index.tsx` and
+`genui-lib/Card/index.tsx`. Existing native overrides retain precedence. Literal
+spacing in metrics, chart details, citations, embedded fallbacks and map controls
+now reads those shared tokens with the same default values. Platform/control
+geometry is retained.
+
+`ImageTextLarge.tsx` selects `TextBlockView` with `highlight-text` and `sm`;
+`TextBlock/textBlock.scss` maps this to `body/heavy`. The native banner previously
+used `.medium`; it now uses the configurable `bodyHeavy` role (body size, native
+semibold). This is the intended default visual correction. Image cropping and
+footer composition are outside this change. Font-specific extra line spacing
+is optional; the existing global fallback remains unchanged.

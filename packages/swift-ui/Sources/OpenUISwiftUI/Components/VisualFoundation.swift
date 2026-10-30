@@ -7,10 +7,13 @@ public struct OpenUIFont: Equatable {
     public var weight: Font.Weight
     public var family: String?
     public var design: Font.Design
+    /// Additional line spacing in em; nil inherits the typography default.
+    public var lineSpacing: CGFloat?
     public var monospacedDigits = false
     public init(size: CGFloat, weight: Font.Weight = .regular,
-                family: String? = nil, design: Font.Design = .default) {
+                family: String? = nil, design: Font.Design = .default, lineSpacing: CGFloat? = nil) {
         self.size = size; self.weight = weight; self.family = family; self.design = design
+        self.lineSpacing = lineSpacing
     }
     public func weight(_ value: Font.Weight) -> Self { var copy = self; copy.weight = value; return copy }
     public func monospacedDigit() -> Self { var copy = self; copy.monospacedDigits = true; return copy }
@@ -30,6 +33,12 @@ public struct OpenUITypography: Equatable {
     public var title = OpenUIFont(size: 18, weight: .semibold)
     public var heading = OpenUIFont(size: 16, weight: .semibold)
     public var body = OpenUIFont(size: 16)
+    private var bodyHeavyOverride: OpenUIFont?
+    /// Upstream textBodyDefaultHeavy, used by ImageTextLarge's highlight text.
+    public var bodyHeavy: OpenUIFont {
+        get { bodyHeavyOverride ?? body.weight(.semibold) }
+        set { bodyHeavyOverride = newValue }
+    }
     public var detail = OpenUIFont(size: 14)
     public var label = OpenUIFont(size: 14)
     public var caption = OpenUIFont(size: 12)
@@ -69,7 +78,7 @@ private struct OpenUIFontModifier: ViewModifier {
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
     func body(content: Content) -> some View {
         content.font(theme.typography.resolve(font).nativeFont(scale: scale))
-            .lineSpacing(font.size * theme.typography.lineSpacing * scale)
+            .lineSpacing(font.size * (font.lineSpacing ?? theme.typography.lineSpacing) * scale)
             .environment(\.openUIInheritedFont, font)
     }
 }

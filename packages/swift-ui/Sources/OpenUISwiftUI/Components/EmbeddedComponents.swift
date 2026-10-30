@@ -223,7 +223,7 @@ private struct NativeEmbeddedContent: View {
             }
     }
     private func fallback(retry: Bool) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: context.theme.spacing("s")) {
             if let description = context.string(svg ? "alt" : "title"), !description.isEmpty {
                 Text(description).openUIFont(context.theme.typography.caption)
             } else {

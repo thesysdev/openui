@@ -44,16 +44,16 @@ private struct NativeMetric: View {
         Group {
             if inline {
                 ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: context.theme.spacing("s")) {
                         value.fixedSize(horizontal: true, vertical: true)
                         details
                     }
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
                         value; details
                     }
                 }
             } else {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
                     value; details
                 }
             }
@@ -98,7 +98,7 @@ struct NativeMetricValue: View {
         ViewThatFits(in: .horizontal) {
             label
             ScrollView(.horizontal) { label }
-                .frame(height: font.size * (1.2 + theme.typography.lineSpacing) * scale)
+                .frame(height: font.size * (1.2 + (font.lineSpacing ?? theme.typography.lineSpacing)) * scale)
         }
         .accessibilityElement(children: .ignore).accessibilityLabel(text)
     }
