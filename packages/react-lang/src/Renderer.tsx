@@ -37,6 +37,12 @@ export interface RendererProps<L extends Library = Library> {
   library: L;
   /** Whether the LLM is still streaming (form interactions disabled during streaming). */
   isStreaming?: boolean;
+  /**
+   * While streaming, show content in the order it was written: anything after a child
+   * not written yet waits for it, so nothing jumps.
+   * @default false
+   */
+  smoothStreaming?: boolean;
   /** Callback when a component triggers an action. Typed by the library's custom actions. */
   onAction?: (event: LibraryActionEvent<L>) => void;
   /**
@@ -195,6 +201,7 @@ function RendererRoot<L extends Library = Library>({
   response,
   library,
   isStreaming = false,
+  smoothStreaming = false,
   onAction,
   onStateUpdate,
   initialState,
@@ -242,6 +249,7 @@ function RendererRoot<L extends Library = Library>({
         response,
         library,
         isStreaming,
+        smoothStreaming,
         // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
         onAction: onAction as ((event: ActionEvent) => void) | undefined,
         onStateUpdate,

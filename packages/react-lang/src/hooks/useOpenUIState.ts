@@ -45,6 +45,8 @@ export interface UseOpenUIStateOptions {
   response: string | null;
   library: Library;
   isStreaming: boolean;
+  /** See `RendererProps.smoothStreaming`. */
+  smoothStreaming?: boolean;
   onAction?: (event: ActionEvent) => void;
   onStateUpdate?: (state: Record<string, unknown>) => void;
   initialState?: Record<string, any>;
@@ -80,6 +82,7 @@ export function useOpenUIState(
     response: raw,
     library,
     isStreaming,
+    smoothStreaming = false,
     onAction,
     onStateUpdate,
     initialState,
@@ -107,7 +110,10 @@ export function useOpenUIState(
 
   // ─── Streaming parser (incremental — caches completed statements) ───
   const schema = useMemo(() => library.toJSONSchema(), [library]);
-  const sp = useMemo(() => createStreamingParser(schema, library.root), [schema, library.root]);
+  const sp = useMemo(
+    () => createStreamingParser(schema, library.root, { smoothStreaming }),
+    [schema, library.root, smoothStreaming],
+  );
   // Library functions: the schema's entries plus each `fn`, for the evaluator
   const functions = useMemo(
     () =>
