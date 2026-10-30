@@ -189,15 +189,17 @@ Root `Col`, 55 components in 6 groups, 59 `@functions`, 1 action
 
 ## Parity with the source app
 
-`library.toSpec()` matches open-intelligent-ui's committed `src/generated/spec.json`:
-the same 55 components, with nothing extra or missing.
+`library.toSpec()` has the same 55 components, 59 functions and one action as
+open-intelligent-ui's committed `src/generated/spec.json`, with nothing extra or
+missing. The two specs differ in only two ways:
 
-The two JSON encodings differ in 38 places, all of them the same thing: zod
-serialises a union as `{"type": ["number","string"]}` in 4.6.6 (which generated
-the app's committed spec) and as `anyOf` in 4.4.3 (this workspace's catalog).
-Normalising that encoding makes the two specs identical, with no semantic
-difference. Spec bytes are therefore zod-version dependent and should not be
-compared literally across versions.
+- **Form validation, which this kit adds.** Input, TextArea, Select, Checkbox,
+  RadioGroup and DatePicker take a `rules` prop, Form's description mentions it,
+  and the Inputs group has one more note about it.
+- **How zod writes a union, in 19 places.** It is `{"type": ["number","string"]}`
+  in 4.6.6 (which generated the app's committed spec) and `anyOf` in 4.4.3 (this
+  workspace's catalog). The meaning is the same, but spec bytes depend on the zod
+  version, so don't compare them literally across versions.
 
 ## Note on strictness
 
