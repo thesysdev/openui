@@ -1,8 +1,9 @@
-import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import type { LibrarySpec } from "@openuidev/lang-core";
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { ToolExecutionError } from "../tools/types";
 import { apiError, isRecord, type CloudApi } from "./api";
+import { artifactConfig } from "./config";
 import { createFrontendToken } from "./frontend-token";
 import {
   OpenUIApiError,
@@ -86,14 +87,10 @@ export function defineDashboard<Context>(
     }
   }
 
-  // OpenUI Cloud's config block: your library and prompt options. The same for every call.
-  let system: string;
+  // OpenUI Cloud's config block: your library and prompt options, then each call's tools and title.
+  let config: ReturnType<typeof artifactConfig>;
   try {
-    system = generateSystemPrompt({
-      cloud: true,
-      library: spec,
-      ...(promptOptions && { promptOptions }),
-    });
+    config = artifactConfig(spec, promptOptions);
   } catch (error) {
     invalidLibrary(error);
   }
@@ -106,9 +103,10 @@ export function defineDashboard<Context>(
     userId: string,
     prompt: string,
     thesys: Record<string, unknown>,
+    title: string | undefined,
     signal?: AbortSignal,
   ): Promise<string> {
-    // Data tools ride with the artifact's details: OpenUI Cloud generates scripts from them.
+    // The config block carries what generation needs; metadata carries what OpenUI Cloud keeps.
     const [{ token }, definitions] = await Promise.all([
       createFrontendToken(api, userId, signal),
       toolDefinitions(),
@@ -120,7 +118,7 @@ export function defineDashboard<Context>(
         model,
         stream: true,
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: config(definitions, title) },
           { role: "user", content: prompt },
         ],
         // Chat completions metadata values are strings.
@@ -129,7 +127,6 @@ export function defineDashboard<Context>(
             c1_artifact_type: "live",
             definition: name,
             ...thesys,
-            tools: definitions,
           }),
         },
       }),
@@ -158,14 +155,14 @@ export function defineDashboard<Context>(
         kind: "dashboard",
         ...(description !== undefined && { description }),
       };
-      const id = await start(userId, prompt, thesys, signal);
+      const id = await start(userId, prompt, thesys, title, signal);
       return { id, response: toolResponse(id, name, title) };
     },
 
     // OpenUI Cloud edits the version it stores, and checks this dashboard made it.
     async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      const edited = await start(userId, prompt, { id }, signal);
+      const edited = await start(userId, prompt, { id }, undefined, signal);
       return { id: edited, response: toolResponse(edited, name) };
     },
 
