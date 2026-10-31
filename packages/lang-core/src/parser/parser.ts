@@ -552,8 +552,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   // is kept; pending text is overlaid on a copy when building the current result.
   function refreshCleaned() {
     const next = preprocess(buf);
-    // As in set(): slice + === compares memory
-    if (next.slice(0, completedEnd) !== cleaned.slice(0, completedEnd)) {
+    if (!next.startsWith(cleaned.slice(0, completedEnd))) {
       completedEnd = 0;
       completedStmtMap.clear();
       completedCount = 0;
@@ -704,11 +703,11 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       return currentResult(complete);
     },
     set(fullText, complete) {
-      // slice + === compares memory; startsWith compares char by char
-      if (fullText.length < buf.length || fullText.slice(0, buf.length) !== buf) {
+      if (fullText.length < buf.length || !fullText.startsWith(buf)) {
         reset();
       }
-      buf = fullText;
+      const delta = fullText.slice(buf.length);
+      if (delta) buf += delta;
       return currentResult(complete);
     },
     getResult: currentResult,
