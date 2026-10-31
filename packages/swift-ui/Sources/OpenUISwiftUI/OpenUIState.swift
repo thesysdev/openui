@@ -187,7 +187,17 @@ public final class OpenUIState: ObservableObject {
         observeQueries()
     }
 
-    deinit { unsubscribe?(); queryManager.dispose() }
+    deinit {
+        unsubscribe?(); queryManager.dispose()
+        // In-flight callers can retain the caches beyond this state. Cancel
+        // their work when the owning state ends, on the caches' actor.
+        let mediaCache = self.mediaCache
+        let resourceStore = self.resourceStore
+        Task { @MainActor in
+            mediaCache.removeAll()
+            resourceStore.removeAll()
+        }
+    }
 
     private func observeQueries() {
         let generation = streamGeneration

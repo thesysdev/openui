@@ -2,6 +2,10 @@ import SwiftUI
 import OpenUILang
 
 public enum OpenUIStandardComponents {
+    /// Official examples and rules for the complete, pinned general-purpose library.
+    /// Pass explicitly to prompt(_:); curate them when deriving a component subset.
+    public static var promptOptions: PromptOptions { OpenUIReference.promptOptions }
+
     public static func library(id: String? = nil) throws -> OpenUIComponentLibrary {
         try OpenUIComponentLibrary(components: components, root: "Stack", id: id, componentGroups: OpenUIReference.groups)
     }

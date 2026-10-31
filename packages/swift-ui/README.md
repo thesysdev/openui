@@ -46,6 +46,20 @@ For a language-only consumer, select `OpenUILang`. The nested manifests in
 use either the root package or the nested packages in an application's dependency
 graph. Consumers do not need Node.js to build the checked-in runtime and UI resources.
 
+## Official prompt preset
+
+Use the pinned general-purpose library's examples and rules explicitly:
+
+```swift
+let components = try OpenUIStandardComponents.library()
+let prompt = components.prompt(OpenUIStandardComponents.promptOptions)
+```
+
+`prompt()` without options keeps its existing behavior. The preset is exported
+from upstream `openuiPromptOptions`; it does not include application tools. When
+removing components, curate the preset and group notes to match the selected
+library. This is the general-purpose preset, not `openuiChatPromptOptions`.
+
 ## Optional native map
 
 `OpenUIStandardComponents.library()` retains the 82 pinned upstream registrations.

@@ -3,6 +3,30 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class ResourceStoreTests: XCTestCase {
+  @MainActor func testReleasingStateCancelsItsPendingResources() async throws {
+    let library = try OpenUIStandardComponents.library()
+    var state: OpenUIState? = OpenUIState(schema: library.library.toSchema())
+    weak var releasedState = state
+    let store = try XCTUnwrap(state).resourceStore
+    let media = try XCTUnwrap(state).mediaCache
+    let started = expectation(description: "both requests started")
+    started.expectedFulfillmentCount = 2
+    let cancelled = expectation(description: "both owned requests cancelled")
+    cancelled.expectedFulfillmentCount = 2
+    let loader = SuspendedResourceLoader(started: started, cancelled: cancelled)
+    let scope = store.scoped(.init(loader: loader))
+    let dataRequest = try XCTUnwrap(scope.request(for: "https://resource.example/data"))
+    let imageRequest = try XCTUnwrap(loader.request(for: "https://resource.example/image", relativeTo: nil))
+    let dataTask = Task { try await scope.loader.data(for: dataRequest) }
+    let imageTask = Task { try await media.resource(
+      NativeResourceRequestID(request: imageRequest, loader: ObjectIdentifier(loader), attempt: 0), loader: loader) }
+    defer { store.removeAll(); media.removeAll(); dataTask.cancel(); imageTask.cancel() }
+    await fulfillment(of: [started], timeout: 2)
+    state = nil
+    XCTAssertNil(releasedState, "The test tasks must not retain the rendering state")
+    await fulfillment(of: [cancelled], timeout: 1)
+  }
+
   @MainActor func testPendingDataIsSharedAndExplicitReloadBypassesTheCompletedCache() async throws {
     let loader = ByteLoader()
     let store = NativeResourceStore()
@@ -55,5 +79,22 @@ private final class ByteLoader: OpenUIResourceLoading {
   func data(for request: URLRequest) async throws -> Data {
     record(); try await Task.sleep(nanoseconds: 50_000_000)
     return Data("resource bytes".utf8)
+  }
+}
+
+private final class SuspendedResourceLoader: OpenUIResourceLoading {
+  let started: XCTestExpectation
+  let cancelled: XCTestExpectation
+  init(started: XCTestExpectation, cancelled: XCTestExpectation) {
+    self.started = started; self.cancelled = cancelled
+  }
+  func request(for source: String, relativeTo baseURL: URL?) -> URLRequest? {
+    URL(string: source, relativeTo: baseURL).map { URLRequest(url: $0) }
+  }
+  func data(for request: URLRequest) async throws -> Data {
+    started.fulfill()
+    do { try await Task.sleep(nanoseconds: 60_000_000_000) }
+    catch { cancelled.fulfill(); throw error }
+    return Data()
   }
 }

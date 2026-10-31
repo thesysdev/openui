@@ -16,6 +16,15 @@ enum OpenUIReference {
     }
     return catalog
   }()
+  static let promptOptions: PromptOptions = {
+    guard let options = catalog.field("promptOptions"),
+          let rules = options.field("additionalRules")?.arrayItems,
+          let examples = options.field("examples")?.arrayItems else {
+      preconditionFailure("Missing packaged upstream prompt preset")
+    }
+    return PromptOptions(additionalRules: rules.compactMap(\.stringValue),
+                         examples: examples.compactMap(\.stringValue))
+  }()
   static let definitions: [DefinedComponent] = (catalog.field("components")?.arrayItems ?? [])
     .map { c in
       DefinedComponent(
