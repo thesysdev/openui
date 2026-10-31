@@ -65,6 +65,14 @@ function readAttributes(query = ""): Record<string, string> {
 
 /** Splits a stored message into its content, context, attributes and end flag. */
 export function parseMessage(raw: string, { streaming }: ParseMessageOptions = {}): ParsedMessage {
+  // No marker: all content, except a streaming last line that may still become one
+  if (!raw.includes("]]>")) {
+    const nl = raw.lastIndexOf("\n");
+    const last = raw.slice(nl + 1);
+    const held = streaming && last !== "" && PREFIX.startsWith(last);
+    const content = held ? raw.slice(0, Math.max(nl, 0)).replace(/\r$/, "") : raw;
+    return { content, context: null, attributes: {}, end: false };
+  }
   let text = raw.replace(RETRY, "$1\n");
   const cut = streaming ? RETRY_CUT.exec(text) : null;
   if (cut && `${PREFIX}content`.startsWith(cut[1])) text = text.slice(0, cut.index + 1);
