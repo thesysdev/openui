@@ -44,6 +44,13 @@ a shared, cross-instance session-and-IP rate limiter, Cloud organization budgets
 an approved conversation retention/deletion process are in place. Same-origin validation is an
 additional browser safeguard, not a substitute for those cost controls.
 
+### Demo gateway
+
+Set `DEMO_GATEWAY_ORIGIN` (for example `http://localhost:3200`) to serve every `/demo/*` path from
+the private demo gateway, which adds login and daily limits. `/chat`, `/compare` and
+`/openui-vs-json` then redirect to `/demo/<slug>`. Leave it unset to keep serving the demos from
+this app.
+
 ### Taking the hosted demos offline
 
 Set this variable and redeploy to take the hosted demos offline:
