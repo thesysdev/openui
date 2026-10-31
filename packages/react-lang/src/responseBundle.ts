@@ -20,6 +20,7 @@ interface Scripts {
 
 // Markers inside DSL/JSON strings are ordinary content.
 function markerIndex(text: string): number {
+  if (!text.includes("]]>")) return -1; // plain DSL: skip the character walk
   let quote = "";
   let escaped = false;
   for (let i = 0; i < text.length; i++) {
@@ -70,20 +71,6 @@ function readScripts(header: string, payload: string): Scripts | null {
 /** Reads an OpenUI Cloud response: a stored message (see parseMessage) plus its scripts section. */
 export function parseResponseBundle(response: string | null, streaming: boolean) {
   const text = response ?? "";
-  // Every marker starts with `]]>`: plain DSL skips the scans below
-  if (!text.includes("]]>")) {
-    const { content: program } = parseMessage(text, { streaming });
-    const metadata: ResponseMetadata = {};
-    const error: string | undefined = undefined;
-    return {
-      program,
-      metadata,
-      scripts: new Set<string>(),
-      complete: true,
-      isBundle: false,
-      error,
-    };
-  }
   // Framed once a content line is in. A line still streaming does not count yet.
   const line = CONTENT_LINE.exec(text);
   const framed = !!line && (!streaming || line[1] === "\n");

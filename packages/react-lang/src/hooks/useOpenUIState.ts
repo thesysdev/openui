@@ -452,6 +452,7 @@ export function useOpenUIState(
 
   // ─── Evaluate props ───
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
+
   const evaluatedResult = useMemo<ParseResult | null>(() => {
     if (!result?.root && !result?.rootExpression) return result;
     // Fresh errors array each pass — avoids mutating memoized context

@@ -53,10 +53,10 @@ export function withStatementId(el: ElementNode, id: string): ElementNode {
  * Resolve a Ref node: inline from symbol table, detect cycles, emit RuntimeRef
  * for Query/Mutation declarations. Shared by materializeValue and materializeExpr.
  *
- * Results are memoized per pass so each statement materializes once (shared refs
- * are otherwise exponential). Skipped when the subtree hit an unresolved or cyclic
- * ref (context-dependent). Use-site validation copies on write, so a shared result is
- * never pruned in place. Errors inside a memoized statement are reported once.
+ * Memoized per pass: a statement used many times materializes once (shared refs are otherwise
+ * exponential) and reports its errors once. A result that met an unresolved or cyclic ref
+ * depends on the path, so it is not memoized. Validation copies on write, so a shared result
+ * is never pruned in place.
  */
 function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): unknown | ASTNode {
   if (ctx.visited.has(name) || !ctx.syms.has(name)) {

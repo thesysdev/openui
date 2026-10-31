@@ -7,7 +7,7 @@ import type {
   ParseResult,
   ToolProvider,
 } from "@openuidev/lang-core";
-import { ToolNotFoundError, extractToolResult } from "@openuidev/lang-core";
+import { ToolNotFoundError, extractToolResult, isElementNode } from "@openuidev/lang-core";
 import React, {
   Component,
   Fragment,
@@ -164,19 +164,6 @@ function renderDeep(value: unknown): React.ReactNode {
   return null;
 }
 
-// Statement element pairs found to render the same. Elements are immutable, so a pair stays
-// the same: a child statement the parent's compare already walked compares in O(1) when its
-// own RenderNode checks it in the same render.
-const sameElements = new WeakMap<object, WeakSet<object>>();
-
-/** An element from the parser or evaluator, as opposed to plain data with `type: "element"`. */
-function isElementNode(v: unknown): v is ElementNode {
-  const el = v as ElementNode;
-  return (
-    el.type === "element" && typeof el.typeName === "string" && typeof el.partial === "boolean"
-  );
-}
-
 /**
  * True when two values render the same: equal plain data, with elements compared on what
  * RenderNodeInner reads (typeName, statementId, props). `partial` is skipped: the parser sets
@@ -191,28 +178,15 @@ function rendersSame(a: unknown, b: unknown): boolean {
     return true;
   }
   if (Array.isArray(b)) return false;
-  const ea = a as ElementNode;
-  const eb = b as ElementNode;
   // Only real elements: plain data may have `type: "element"` too
-  if (isElementNode(ea) || isElementNode(eb)) {
-    if (sameElements.get(ea)?.has(eb)) return true;
-    const same =
-      isElementNode(ea) &&
-      isElementNode(eb) &&
-      ea.typeName === eb.typeName &&
-      ea.statementId === eb.statementId &&
-      rendersSame(ea.props, eb.props);
-    // Only statements: elements without a statement (an @Each row) are rebuilt every time
-    if (same && ea.statementId !== undefined) {
-      for (const [x, y] of [
-        [ea, eb],
-        [eb, ea],
-      ]) {
-        const seen = sameElements.get(x) ?? new WeakSet<object>();
-        sameElements.set(x, seen.add(y));
-      }
-    }
-    return same;
+  if (isElementNode(a) || isElementNode(b)) {
+    return (
+      isElementNode(a) &&
+      isElementNode(b) &&
+      a.typeName === b.typeName &&
+      a.statementId === b.statementId &&
+      rendersSame(a.props, b.props)
+    );
   }
   // Class instances (dates, maps, values from library functions) compare by identity
   const proto = Object.getPrototypeOf(a);
