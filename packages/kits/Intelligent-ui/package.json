@@ -79,6 +79,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thesysdev/openui.git",
-    "directory": "packages/kits/intelligent"
+    "directory": "packages/kits/Intelligent-ui"
   }
 }
