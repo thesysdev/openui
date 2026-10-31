@@ -26,8 +26,8 @@ export function ContactForm() {
 }
 ```
 
-Every component, supporting part and type comes from the package root. The one subpath,
-`@openuidev/react-components/styles`, is for server rendering.
+Every component, supporting part and type comes from the package root; there are no subpath
+exports.
 
 ## Styling
 
@@ -41,9 +41,8 @@ import { configureStyles } from "@openuidev/react-components";
 configureStyles({ layer: "openui" });
 ```
 
-For server rendering, render `<ComponentStyles />` from `@openuidev/react-components/styles`
-in the document head. Under a CSP nonce, set `window.__nonce__` before the component library
-loads.
+Styles are written in the browser; server-rendered HTML does not include them yet. Under a CSP
+nonce, set `window.__nonce__` before the component library loads.
 
 ## Site map
 
@@ -51,8 +50,6 @@ loads.
 packages/react-components/
 └── src/
     ├── index.ts               # the public entry: every export
-    ├── styles.ts              # the /styles entry for server rendering (generated)
-    ├── ComponentStyles.tsx    # renders the full sheet for server HTML
     ├── components/            # one folder per component
     │   ├── Charts/            # area, bar, line, pie, radar and other charts
     │   ├── ThemeProvider/     # themes and token variables

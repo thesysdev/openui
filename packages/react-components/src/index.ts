@@ -87,4 +87,3 @@ export * from "./components/TooltipWrapper";
 export * from "./components/VisualCardBlock";
 export * from "./context/LayoutContext";
 export * from "./context/PrintContext";
-export { getComponentStyles } from "./utils/componentStyles";
