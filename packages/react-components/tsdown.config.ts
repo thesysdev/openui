@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  entry: ["src/index.ts", "src/styles.ts"],
   unbundle: true,
   root: "src",
   format: ["esm", "cjs"],

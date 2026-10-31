@@ -17,6 +17,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./styles": {
+      "import": {
+        "types": "./dist/styles.d.mts",
+        "default": "./dist/styles.mjs"
+      },
+      "require": {
+        "types": "./dist/styles.d.cts",
+        "default": "./dist/styles.cjs"
+      }
     }
   },
   "sideEffects": [
