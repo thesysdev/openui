@@ -1,0 +1,817 @@
+{
+  "upstream": "9823ec05d4b29bc78d101676dc16b44fe17f1830",
+  "cases": [
+    {
+      "group": "identity",
+      "source": "root=SlotRoot(AllowedLeaf(\"ok\"))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "identity",
+      "source": "root=SlotRoot(ForbiddenLeaf(\"bad\"))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "branches",
+      "source": "$show=true\nroot=SlotRoot($show ? AllowedLeaf(\"ok\") : ForbiddenLeaf(\"bad\"))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "branches",
+      "source": "$show=false\nroot=SlotRoot($show ? AllowedLeaf(\"a\") : AllowedLeaf(\"b\"))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "templates",
+      "source": "$show=true\nroot=SlotRoot($show ? AllowedLeaf(\"ok\") : AllowedLeaf(42))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "templates",
+      "source": "$items=[\"a\"]\nroot=ListRoot([@Each($items,\"item\",ForbiddenLeaf(item))])",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "templates",
+      "source": "$items=[\"a\"]\nroot=ListRoot([@Each($items,\"item\",AllowedLeaf(item))])",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "data",
+      "source": "$show=true\nroot=ListRoot($show ? [AllowedLeaf(\"ok\")] : [ForbiddenLeaf(\"bad\")])",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "data",
+      "source": "$show=true\nroot=SlotRoot(AllowedLeaf($show ? \"ok\" : {k:\"StateRef\",n:\"$fake\"}))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "unions",
+      "source": "root=SlotRoot(ForbiddenLeaf(\"bad\"))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "oneOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/AllowedLeaf"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "unions",
+      "source": "root=ListRoot([AllowedLeaf(\"ok\"),ForbiddenLeaf(\"bad\")])",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "runtime",
+      "source": "$count=1\nroot=SlotRoot(AllowedLeaf($count+1))",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": [
+              "child"
+            ]
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    },
+    {
+      "group": "runtime",
+      "source": "root=SlotRoot(null)",
+      "schema": {
+        "$defs": {
+          "SlotRoot": {
+            "type": "object",
+            "properties": {
+              "child": {
+                "$ref": "#/$defs/AllowedLeaf"
+              }
+            },
+            "required": []
+          },
+          "ListRoot": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AllowedLeaf"
+                }
+              }
+            },
+            "required": [
+              "children"
+            ]
+          },
+          "AllowedLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "ForbiddenLeaf": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          }
+        },
+        "properties": {
+          "SlotRoot": {},
+          "ListRoot": {},
+          "AllowedLeaf": {},
+          "ForbiddenLeaf": {}
+        }
+      },
+      "errors": []
+    }
+  ]
+}

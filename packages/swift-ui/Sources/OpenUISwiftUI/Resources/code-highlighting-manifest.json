@@ -1,0 +1,24 @@
+{
+  "upstream": "https://github.com/thesysdev/openui/blob/main/packages/react-ui/src/components/CodeBlock/CodeBlock.tsx",
+  "renderer": "react-syntax-highlighter@16.1.1 (Prism / refractor)",
+  "refractor": "5.0.0",
+  "sha256": "626967082830b91e8393632be7fad180fb1e5f9f7d4db619736efb3f7f9a10d6",
+  "bytes": 656812,
+  "dependencies": [
+    "character-entities",
+    "character-entities-legacy",
+    "character-reference-invalid",
+    "comma-separated-tokens",
+    "decode-named-character-reference",
+    "hast-util-parse-selector",
+    "hastscript",
+    "is-alphabetical",
+    "is-alphanumerical",
+    "is-decimal",
+    "is-hexadecimal",
+    "parse-entities",
+    "property-information",
+    "refractor",
+    "space-separated-tokens"
+  ]
+}

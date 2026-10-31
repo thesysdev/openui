@@ -1,0 +1,59 @@
+"Select" = "Select";
+"Start date" = "Start date";
+"End date" = "End date";
+"Clear" = "Clear";
+"Value unavailable" = "Value unavailable";
+"Sections" = "Sections";
+"Select date" = "Select date";
+"Cancel" = "Cancel";
+"Done" = "Done";
+"In progress" = "In progress";
+"On" = "On";
+"Off" = "Off";
+"Selected" = "Selected";
+"Not selected" = "Not selected";
+
+"Close" = "Close";
+
+"Changed cells" = "Changed cells";
+
+"Reset" = "Reset";
+
+"Save Changes" = "Save Changes";
+"Map" = "Map";
+"Expand map" = "Expand map";
+"Open place" = "Open place";
+"Swipe to change place" = "Swipe left or right to change place";
+"Loading image" = "Loading image";
+"Image unavailable" = "Image unavailable";
+"Retry" = "Retry";
+"Open original image" = "Open original image";
+"%lld images unavailable" = "%lld images unavailable";
+"Image descriptions" = "Image descriptions";
+"All photos" = "All photos";
+"Show all photos" = "Show all photos";
+"Close gallery" = "Close gallery";
+"View image" = "View image";
+
+"Previous page" = "Previous page";
+"Next page" = "Next page";
+"Copy code" = "Copy code";
+"Copied to clipboard" = "Copied to clipboard";
+"Loading data" = "Loading data";
+"Hidden" = "Hidden";
+"Visible" = "Visible";
+"Sources" = "Sources";
+"Value" = "Value";
+
+"Previous place" = "Previous place";
+
+"Next place" = "Next place";
+
+"Show all places" = "Show all places";
+
+"Places" = "Places";
+
+// Embedded SVG and WebView presentation.
+"Illustration unavailable" = "This illustration could not be displayed.";
+"Content unavailable" = "This content could not be displayed.";
+"Reload" = "Reload";
