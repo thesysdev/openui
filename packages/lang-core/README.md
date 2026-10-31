@@ -44,8 +44,20 @@ content = TextContent("World")
 `);
 
 console.log(result.root); // ElementNode tree
-console.log(result.meta); // { incomplete, unresolved, orphaned, statementCount, errors }
+console.log(result.meta); // { incomplete, unresolved, orphaned, statementCount, errors, discarded }
 ```
+
+`result.meta.discarded` lists source the parser skipped, including lines without an
+assignment, empty assignments, and tokens left after an expression. A viewer can
+check this list before accepting a complete program. Diagnostic order is
+unspecified. One-shot parsing checks all the supplied text. The streaming parser
+checks its pending statement only when it is complete. For example, a final line
+containing only `partial` is reported immediately by one-shot parsing, but the
+streaming parser waits until that line is complete.
+
+Callers that construct `ParseResult` values themselves must include
+`meta.discarded: []` when no source was discarded. Parser-returned results always
+include the field.
 
 ### Streaming parser
 
