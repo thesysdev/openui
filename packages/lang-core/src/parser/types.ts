@@ -276,6 +276,20 @@ export interface MutationStatementInfo {
 }
 
 /**
+ * One piece of source the parser skipped.
+ *
+ * - `invalid-statement`: a line that is not `identifier = expression`, such as
+ *   a bare `Comp(...)` call. It is skipped whole.
+ * - `trailing-tokens`: tokens left after a statement's expression on the same
+ *   line, such as `a = Comp(1) Other(2)`. The statement keeps `Comp(1)`.
+ */
+export interface DiscardedSource {
+  kind: "invalid-statement" | "trailing-tokens";
+  /** The statement whose expression left tokens over (`trailing-tokens` only). */
+  statementId?: string;
+}
+
+/**
  * The output of a single `parser.parse(text)` call.
  *
  * During streaming, each chunk produces a new ParseResult as the
@@ -301,6 +315,16 @@ export interface ParseResult {
      * redacted (dropped as null) and listed here.
      */
     errors: ValidationError[];
+    /**
+     * Source the parser skipped while reading statements. Diagnostic order is
+     * unspecified. One-shot parsing checks all the supplied text. The streaming
+     * parser checks its pending statement only when it is complete. For example,
+     * a final line containing only `partial` is reported immediately by one-shot
+     * parsing, but deferred by the streaming parser until that line is complete.
+     * A non-empty list on a complete program means part of the program was
+     * dropped without rendering.
+     */
+    discarded: DiscardedSource[];
   };
   /** $variable declarations — maps "$varName" to its materialized default value. */
   stateDeclarations: Record<string, unknown>;

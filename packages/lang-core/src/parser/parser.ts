@@ -13,6 +13,7 @@ import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
   isElementNode,
+  type DiscardedSource,
   type ElementNode,
   type JSONSchemaDef,
   type LibraryJSONSchema,
@@ -30,7 +31,7 @@ import { getSchemaDefaultValue, pushValidationIssue } from "./validation";
 // Result building
 // ─────────────────────────────────────────────────────────────────────────────
 
-function emptyResult(incomplete = true): ParseResult {
+function emptyResult(incomplete = true, discarded: DiscardedSource[] = []): ParseResult {
   return {
     root: null,
     meta: {
@@ -39,6 +40,7 @@ function emptyResult(incomplete = true): ParseResult {
       orphaned: [],
       statementCount: 0,
       errors: [],
+      discarded,
     },
     stateDeclarations: {},
     queryStatements: [],
@@ -212,6 +214,7 @@ function buildResult(
   typedStmts: Statement[],
   wasIncomplete: boolean,
   stmtCount: number,
+  discarded: DiscardedSource[],
   cat: ParamMap | undefined,
   rootName?: string,
   partialRef?: PartialRef,
@@ -287,6 +290,7 @@ function buildResult(
       orphaned,
       statementCount: stmtCount,
       errors: errors,
+      discarded,
     },
     stateDeclarations,
     queryStatements,
@@ -460,19 +464,22 @@ export function parse(input: string, cat: ParamMap, rootName?: string): ParseRes
   if (!trimmed) return emptyResult();
 
   const { text, wasIncomplete } = autoClose(trimmed);
-  const stmts = split(tokenize(text));
-  if (!stmts.length) return emptyResult(wasIncomplete);
+  const discarded: DiscardedSource[] = [];
+  const stmts = split(tokenize(text), (d) => discarded.push(d));
+  if (!stmts.length) return emptyResult(wasIncomplete, discarded);
 
   const stmtMap = new Map<string, Statement>();
   for (const s of stmts) {
-    const expr = parseExpression(s.tokens);
+    const expr = parseExpression(s.tokens, () =>
+      discarded.push({ kind: "trailing-tokens", statementId: s.id }),
+    );
     const stmt = classifyStatement(s, expr);
     stmtMap.set(s.id, stmt);
   }
   // Derive from map to deduplicate — Map.set overwrites duplicates
   const typedStmts = [...stmtMap.values()];
 
-  return buildResult(stmtMap, typedStmts, wasIncomplete, stmtMap.size, cat, rootName);
+  return buildResult(stmtMap, typedStmts, wasIncomplete, stmtMap.size, discarded, cat, rootName);
 }
 
 export interface StreamParser {
@@ -496,6 +503,9 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   let cleaned = "";
   let completedEnd = 0; // watermark: how far into `cleaned` is already completed
   const completedStmtMap = new Map<string, Statement>();
+  // Source skipped in completed statements; the pending statement is not
+  // included until the stream is marked complete.
+  let completedDiscarded: DiscardedSource[] = [];
 
   let completedCount = 0;
 
@@ -503,8 +513,10 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     // `text` is sliced from `cleaned`, so it's already fence/comment-free.
     const t = text.trim();
     if (!t) return;
-    for (const s of split(tokenize(t))) {
-      const expr = parseExpression(s.tokens);
+    for (const s of split(tokenize(t), (d) => completedDiscarded.push(d))) {
+      const expr = parseExpression(s.tokens, () =>
+        completedDiscarded.push({ kind: "trailing-tokens", statementId: s.id }),
+      );
       const stmt = classifyStatement(s, expr);
       completedStmtMap.set(s.id, stmt);
       completedCount++;
@@ -521,6 +533,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     if (!next.startsWith(cleaned.slice(0, completedEnd))) {
       completedEnd = 0;
       completedStmtMap.clear();
+      completedDiscarded = [];
       completedCount = 0;
     }
     cleaned = next;
@@ -593,12 +606,13 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
 
     // No pending text — all statements are complete
     if (!pendingText) {
-      if (completedCount === 0) return emptyResult();
+      if (completedCount === 0) return emptyResult(true, [...completedDiscarded]);
       return buildResult(
         completedStmtMap,
         [...completedStmtMap.values()],
         false,
         completedCount,
+        [...completedDiscarded],
         cat,
         rootName,
       );
@@ -607,15 +621,20 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     // `cleaned` is already preprocessed (fences + comments stripped); just
     // autoclose the incomplete trailing statement so it's syntactically valid.
     const { text: closed, wasIncomplete } = autoClose(pendingText);
-    const stmts = split(tokenize(closed));
+    // The pending statement may still be growing, so its skipped source is
+    // reported only once the caller marks the stream complete.
+    const discarded = [...completedDiscarded];
+    const reportPending = complete ? (d: DiscardedSource) => discarded.push(d) : undefined;
+    const stmts = split(tokenize(closed), reportPending);
 
     if (!stmts.length) {
-      if (completedCount === 0) return emptyResult(wasIncomplete);
+      if (completedCount === 0) return emptyResult(wasIncomplete, discarded);
       return buildResult(
         completedStmtMap,
         [...completedStmtMap.values()],
         wasIncomplete,
         completedCount,
+        discarded,
         cat,
         rootName,
       );
@@ -627,7 +646,10 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     const pendingStmts = new Set<Statement>();
     for (const s of stmts) {
       if (completedStmtMap.has(s.id) && wasIncomplete) continue;
-      const expr = parseExpression(s.tokens);
+      const expr = parseExpression(
+        s.tokens,
+        reportPending && (() => reportPending({ kind: "trailing-tokens", statementId: s.id })),
+      );
       const stmt = classifyStatement(s, expr);
       allStmtMap.set(s.id, stmt);
       pendingStmts.add(stmt);
@@ -649,6 +671,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       allTypedStmts,
       wasIncomplete,
       completedCount + stmts.length,
+      discarded,
       cat,
       rootName,
       tailName ? { name: tailName, stmts: pendingStmts } : undefined,
@@ -660,6 +683,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     cleaned = "";
     completedEnd = 0;
     completedStmtMap.clear();
+    completedDiscarded = [];
     completedCount = 0;
   }
 
