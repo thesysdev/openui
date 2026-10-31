@@ -64,11 +64,6 @@ export interface OpenUIState {
   /** Failed queries whose fallback values must not be presented as current data. */
   queryErrors: OpenUIError[];
   retryQueries: () => void;
-  /**
-   * Changes when the store, query results, context or library change: anything a component
-   * can read besides its props. Memoized nodes re-render when it changes.
-   */
-  renderRevision: unknown;
 }
 
 /**
@@ -457,12 +452,6 @@ export function useOpenUIState(
 
   // ─── Evaluate props ───
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
-  // A new token whenever anything a component can read besides its props changes
-  const renderRevision = useMemo(
-    () => ({}),
-    [evaluationContext, library, store, storeSnapshot, querySnapshot],
-  );
-
   const evaluatedResult = useMemo<ParseResult | null>(() => {
     if (!result?.root && !result?.rootExpression) return result;
     // Fresh errors array each pass — avoids mutating memoized context
@@ -509,8 +498,9 @@ export function useOpenUIState(
       store,
       evaluationContext,
       reportError,
-      // A store write gives a new value, so memoized components that read the store re-render
+      // A store write or new query results give a new value, so memoized components re-render
       storeSnapshot,
+      querySnapshot,
     ],
   );
 
@@ -546,6 +536,5 @@ export function useOpenUIState(
     isQueryLoading,
     queryErrors,
     retryQueries,
-    renderRevision,
   };
 }

@@ -164,12 +164,18 @@ function renderDeep(value: unknown): React.ReactNode {
   return null;
 }
 
-/** See OpenUIState.renderRevision: every RenderNode re-renders when it changes. */
-const RenderRevisionContext = createContext<unknown>(null);
-
 // Statement element pairs found to render the same. Elements are immutable, so a pair stays
-// the same: when the parser's partial flag flips, unchanged statements compare in O(1).
+// the same: a child statement the parent's compare already walked compares in O(1) when its
+// own RenderNode checks it in the same render.
 const sameElements = new WeakMap<object, WeakSet<object>>();
+
+/** An element from the parser or evaluator, as opposed to plain data with `type: "element"`. */
+function isElementNode(v: unknown): v is ElementNode {
+  const el = v as ElementNode;
+  return (
+    el.type === "element" && typeof el.typeName === "string" && typeof el.partial === "boolean"
+  );
+}
 
 /**
  * True when two values render the same: equal plain data, with elements compared on what
@@ -187,15 +193,16 @@ function rendersSame(a: unknown, b: unknown): boolean {
   if (Array.isArray(b)) return false;
   const ea = a as ElementNode;
   const eb = b as ElementNode;
-  // Elements as renderDeep tells them apart
-  if (ea.type === "element" || eb.type === "element") {
+  // Only real elements: plain data may have `type: "element"` too
+  if (isElementNode(ea) || isElementNode(eb)) {
     if (sameElements.get(ea)?.has(eb)) return true;
     const same =
-      ea.type === eb.type &&
+      isElementNode(ea) &&
+      isElementNode(eb) &&
       ea.typeName === eb.typeName &&
       ea.statementId === eb.statementId &&
       rendersSame(ea.props, eb.props);
-    // Only statements: elements built while evaluating (an @Each row) are new every time
+    // Only statements: elements without a statement (an @Each row) are rebuilt every time
     if (same && ea.statementId !== undefined) {
       for (const [x, y] of [
         [ea, eb],
@@ -230,7 +237,6 @@ function rendersSame(a: unknown, b: unknown): boolean {
  */
 const RenderNode = React.memo(
   function RenderNode({ node }: { node: ElementNode }) {
-    useContext(RenderRevisionContext);
     const { library, reportError } = useOpenUI();
     const Comp = library.components[node.typeName]?.component;
 
@@ -301,29 +307,22 @@ function RendererRoot<L extends Library = Library>({
   });
   const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
 
-  const {
-    result,
-    parseResult,
-    contextValue,
-    isQueryLoading,
-    queryErrors,
-    retryQueries,
-    renderRevision,
-  } = useOpenUIState(
-    {
-      response,
-      library,
-      isStreaming,
-      // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
-      onAction: onAction as ((event: ActionEvent) => void) | undefined,
-      onStateUpdate,
-      initialState,
-      toolProvider: resolvedToolProvider,
-      onError,
-      publishObservability,
-    },
-    renderDeep,
-  );
+  const { result, parseResult, contextValue, isQueryLoading, queryErrors, retryQueries } =
+    useOpenUIState(
+      {
+        response,
+        library,
+        isStreaming,
+        // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
+        onAction: onAction as ((event: ActionEvent) => void) | undefined,
+        onStateUpdate,
+        initialState,
+        toolProvider: resolvedToolProvider,
+        onError,
+        publishObservability,
+      },
+      renderDeep,
+    );
 
   // Fire onParseResult with the RAW parse result (not evaluated),
   // so hosts only see changes when the parser output actually changes.
@@ -345,9 +344,7 @@ function RendererRoot<L extends Library = Library>({
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <RenderRevisionContext.Provider value={renderRevision}>
-        <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
-      </RenderRevisionContext.Provider>
+      <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
     </OpenUIContext.Provider>
   );
 }
