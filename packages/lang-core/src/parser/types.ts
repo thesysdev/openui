@@ -112,6 +112,7 @@ export type ValidationErrorCode =
   | "excess-args"
   | "type-mismatch"
   | "unknown-function"
+  | "query-cycle"
   | "no-root";
 
 /**
@@ -259,6 +260,8 @@ export interface QueryStatementInfo {
   refreshAST: ASTNode | null;
   /** Pre-computed $variable deps from argsAST (extracted at parse time). */
   deps?: string[];
+  /** Queries whose results this query's tool name or args read. It runs only once each has a result. */
+  waitFor?: string[];
   /** False while the Query() call is still being streamed. */
   complete: boolean;
 }

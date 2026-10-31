@@ -170,7 +170,7 @@ export interface CallNode {
 export type Statement =
   | { kind: "value"; id: string; expr: ASTNode }
   | { kind: "state"; id: string; init: ASTNode }
-  | { kind: "query"; id: string; call: CallNode; expr: ASTNode; deps?: string[] }
+  | { kind: "query"; id: string; call: CallNode; expr: ASTNode }
   | { kind: "mutation"; id: string; call: CallNode; expr: ASTNode };
 
 // {n: [1]} -> {k:"Obj", entries: [["n", {k:"Arr", els:[Num 1]}]]}

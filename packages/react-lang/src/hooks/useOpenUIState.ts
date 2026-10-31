@@ -206,43 +206,29 @@ export function useOpenUIState(
   );
 
   // ─── Evaluate and submit queries ───
+  // A query calling a Cloud script refetches when the settled scripts change.
+  const scriptDeps = useCallback(
+    (toolName: string) =>
+      scriptNames.has(toolName) ? { __openuiScriptRevision: scriptRevision } : undefined,
+    [scriptRevision, scriptNames],
+  );
+
   useEffect(() => {
     // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
     if (blocked) return;
-
-    const queryStmts = result?.queryStatements ?? [];
-    const evaluatedNodes = queryStmts.map((qn) => {
-      const relevantDeps: Record<string, unknown> = {};
-      const toolName = qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "";
-      if (qn.deps) {
-        for (const ref of qn.deps) {
-          relevantDeps[ref] = storeSnapshot[ref];
-        }
-      }
-      if (scriptNames.has(toolName)) relevantDeps.__openuiScriptRevision = scriptRevision;
-      return {
-        statementId: qn.statementId,
-        toolName,
-        args: qn.argsAST ? evaluate(qn.argsAST, evaluationContext) : null,
-        defaults: qn.defaultsAST ? evaluate(qn.defaultsAST, evaluationContext) : null,
-        refreshInterval: qn.refreshAST
-          ? (evaluate(qn.refreshAST, evaluationContext) as number)
-          : undefined,
-        deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
-        complete: qn.complete,
-      };
+    // Always call: an empty list clears removed queries and their errors. The context reads the
+    // store and query results live: the manager evaluates a query again after a fetch it waits on.
+    queryManager.evaluateStatements(result?.queryStatements ?? [], evaluationContext, {
+      extraDeps: scriptDeps,
     });
-
-    // Always call — empty array clears removed queries and their errors
-    queryManager.evaluateQueries(evaluatedNodes);
+    // storeSnapshot: a state value the queries read changed.
   }, [
     blocked,
     result?.queryStatements,
-    evaluationContext,
     queryManager,
+    evaluationContext,
+    scriptDeps,
     storeSnapshot,
-    scriptRevision,
-    scriptNames,
   ]);
 
   // ─── Register mutations ───

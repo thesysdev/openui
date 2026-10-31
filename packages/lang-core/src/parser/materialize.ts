@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { ASTNode } from "./ast";
-import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST, walkAST } from "./ast";
+import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
 import {
@@ -53,18 +53,29 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     return { k: "RuntimeRef", n: name, refType };
   }
   ctx.visited.add(name);
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = name;
   try {
-    const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
-    // Tag ElementNode with its source statement name
-    if (mode === "value" && isElementNode(result)) {
-      result.statementId = name;
-    }
-    return result;
+    return withStatement(ctx, name, () => {
+      const result =
+        mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+      // Tag ElementNode with its source statement name
+      if (mode === "value" && isElementNode(result)) {
+        result.statementId = name;
+      }
+      return result;
+    });
   } finally {
-    ctx.currentStatementId = prevStatementId;
     ctx.visited.delete(name);
+  }
+}
+
+/** Run fn with ctx.currentStatementId set to id, so the issues it reports name that statement. */
+export function withStatement<R>(ctx: MaterializeCtx, id: string, fn: () => R): R {
+  const prev = ctx.currentStatementId;
+  ctx.currentStatementId = id;
+  try {
+    return fn();
+  } finally {
+    ctx.currentStatementId = prev;
   }
 }
 
@@ -141,25 +152,6 @@ function materializeCall(
   return def.kind === "action"
     ? { k: "Comp", name: "Action", args: [{ k: "Arr", els: [] }] }
     : { k: "Null" };
-}
-
-// Query("s", {n: @Count(rows)}): names @Count's args in place.
-// Literal library args are checked like props; an invalid call keeps raw names and is null at runtime.
-export function nameRawCallArgs(args: ASTNode[], ctx: MaterializeCtx, statementId: string): void {
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = statementId;
-  const seen = new Set<ASTNode>(); // walkAST visits nested calls through args and mappedProps
-  for (const arg of args) {
-    walkAST(arg, (node) => {
-      if (node.k !== "Comp" || seen.has(node)) return;
-      seen.add(node);
-      const def = getCallDefs(ctx.cat).get(node.name);
-      if (!def || def.lazy) return;
-      const checked = def.builtin ? null : mapCallArgs(node.name, node.args, def, ctx);
-      node.mappedProps = checked ?? nameArgs(node.args, def.params);
-    });
-  }
-  ctx.currentStatementId = prevStatementId;
 }
 
 /**

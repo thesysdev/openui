@@ -1,3 +1,4 @@
+import { evaluate } from "../runtime/evaluator";
 import {
   captureParserParseException,
   captureParserParseResult,
@@ -8,7 +9,7 @@ import { isASTNode, walkAST } from "./ast";
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeValue, nameRawCallArgs } from "./materialize";
+import { materializeExpr, materializeValue, withStatement } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -59,6 +60,70 @@ export function collectQueryDeps(node: unknown): string[] {
   return [...refs];
 }
 
+/** Names of the queries whose results the given expressions read (RuntimeRef to a Query). */
+function collectQueryReads(nodes: (ASTNode | undefined)[]): string[] {
+  const reads = new Set<string>();
+  for (const node of nodes) {
+    if (!node) continue;
+    walkAST(node, (current) => {
+      if (current.k === "RuntimeRef" && current.refType === "query") reads.add(current.n);
+    });
+  }
+  return [...reads];
+}
+
+/**
+ * Queries that read each other's results, directly or around a loop, can never run first.
+ * Returns each loop found (a query that reads itself is one), members in statement order.
+ */
+function findQueryCycles(queries: QueryStatementInfo[]): string[][] {
+  const order = new Map(queries.map((q, i) => [q.statementId, i]));
+  const reads = new Map(queries.map((q) => [q.statementId, q.waitFor ?? []]));
+  const done = new Set<string>();
+  const path: string[] = [];
+  const cycles: string[][] = [];
+  const visit = (id: string) => {
+    path.push(id);
+    for (const dep of reads.get(id)!) {
+      const at = path.indexOf(dep);
+      if (at >= 0) cycles.push(path.slice(at).sort((a, b) => order.get(a)! - order.get(b)!));
+      else if (reads.has(dep) && !done.has(dep)) visit(dep);
+    }
+    path.pop();
+    done.add(id);
+  };
+  for (const q of queries) if (!done.has(q.statementId)) visit(q.statementId);
+  return cycles;
+}
+
+/**
+ * A state default is evaluated once, with the defaults declared above it; query results read as
+ * null. Library functions and actions only exist in the client, so a default calling one is null.
+ */
+function stateDefault(value: unknown, declared: Record<string, unknown>): unknown {
+  if (isASTNode(value)) {
+    return onlyBuiltinFunctions(value)
+      ? evaluate(value, { getState: (name) => declared[name] ?? null, resolveRef: () => null })
+      : null;
+  }
+  if (Array.isArray(value)) return value.map((item) => stateDefault(item, declared));
+  if (value && typeof value === "object" && !isElementNode(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, stateDefault(v, declared)]),
+    );
+  }
+  return value;
+}
+
+/** True when every call in the expression is a built-in function such as @Count or @Round. */
+function onlyBuiltinFunctions(node: ASTNode): boolean {
+  let ok = true;
+  walkAST(node, (current) => {
+    if (current.k === "Comp" && BUILTIN_CALLS.get(current.name)?.kind !== "function") ok = false;
+  });
+  return ok;
+}
+
 /**
  * Classify a raw statement + parsed expression into a typed Statement.
  * Determined at parse time from token type + expression shape.
@@ -66,13 +131,11 @@ export function collectQueryDeps(node: unknown): string[] {
 function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
   // Query(...) → query declaration — check BEFORE $var to handle `$foo = Query(...)` correctly
   if (expr.k === "Comp" && expr.name === RESERVED_CALLS.Query) {
-    const deps = collectQueryDeps(expr.args[1]);
     return {
       kind: "query",
       id: raw.id,
       call: { callee: RESERVED_CALLS.Query, args: expr.args },
       expr,
-      deps: deps.length > 0 ? deps : undefined,
     };
   }
   // Mutation(...) → mutation declaration
@@ -118,29 +181,49 @@ function extractStatements(
   for (const stmt of stmts) {
     switch (stmt.kind) {
       case "state":
-        stateDeclarations[stmt.id] = materializeValue(stmt.init, ctx);
+        stateDeclarations[stmt.id] = stateDefault(
+          materializeValue(stmt.init, ctx),
+          stateDeclarations,
+        );
         break;
-      case "query":
-        nameRawCallArgs(stmt.call.args, ctx, stmt.id);
+      case "query": {
+        const args = withStatement(ctx, stmt.id, () =>
+          stmt.call.args.map((arg) => materializeExpr(arg, ctx)),
+        );
+        // Aliases can hide state reads that the raw statement did not expose.
+        const deps = collectQueryDeps(args[1]);
+        const waitFor = collectQueryReads([args[0], args[1]]);
         queryStatements.push({
           statementId: stmt.id,
-          toolAST: stmt.call.args[0] ?? null,
-          argsAST: stmt.call.args[1] ?? null,
-          defaultsAST: stmt.call.args[2] ?? null,
-          refreshAST: stmt.call.args[3] ?? null,
-          deps: stmt.deps,
+          toolAST: args[0] ?? null,
+          argsAST: args[1] ?? null,
+          defaultsAST: args[2] ?? null,
+          refreshAST: args[3] ?? null,
+          deps: deps.length > 0 ? deps : undefined,
+          waitFor: waitFor.length > 0 ? waitFor : undefined,
           complete: true,
         });
         break;
-      case "mutation":
-        nameRawCallArgs(stmt.call.args, ctx, stmt.id);
+      }
+      case "mutation": {
+        const args = withStatement(ctx, stmt.id, () =>
+          stmt.call.args.map((arg) => materializeExpr(arg, ctx)),
+        );
         mutationStatements.push({
           statementId: stmt.id,
-          toolAST: stmt.call.args[0] ?? null,
-          argsAST: stmt.call.args[1] ?? null,
+          toolAST: args[0] ?? null,
+          argsAST: args[1] ?? null,
         });
         break;
+      }
     }
+  }
+
+  // A query waits for the queries it reads; a group that reads each other can never start.
+  for (const cycle of findQueryCycles(queryStatements)) {
+    withStatement(ctx, cycle[0]!, () =>
+      pushValidationIssue(ctx, "Query", "", { code: "query-cycle", cycle }),
+    );
   }
 
   // Auto-declare: any $var referenced in code but not explicitly declared → null default.
@@ -298,115 +381,66 @@ function buildResult(
 // Public API
 // ─────────────────────────────────────────────────────────────────────────────
 
-function skipString(input: string, start: number): number {
-  if (input[start] !== '"') return start;
-  let i = start + 1;
-  while (i < input.length) {
-    const c = input[i];
-    if (c === "\\") {
-      i += 2; // skip escape character and the escaped character
-    } else if (c === '"') {
-      return i + 1; // return index after the closing quote
-    } else {
-      i++;
-    }
-  }
-  return i; // return length if string was unclosed
+/** Text that starts an OpenUI Lang statement (`name =` or `$name =`). */
+const STATEMENT_START = /^\s*\$?[A-Za-z_]\w*\s*=(?!=)/;
+/** A line that starts with ```, then an optional tag and the rest of the line. */
+const FENCE_LINE = /^[ \t]*```[ \t]*([\w.+-]*)[ \t]*(.*?)[ \t]*\r?$/;
+
+/** Code on a fence opener's line (```openui root = ... or ```root = ...), or null. */
+function openerCode(tag: string, rest: string): string | null {
+  if (STATEMENT_START.test(rest)) return rest;
+  if (tag && /^=(?!=)/.test(rest)) return tag + " " + rest;
+  return null;
 }
 
-/** Extract code from markdown fences, or return as-is if no fences found.
- *  String-context-aware: skips ``` inside double-quoted strings. */
+/** Whether a "..." string is open after this line (escapes honored). */
+function quoteOpenAfter(line: string, open: boolean): boolean {
+  for (let i = 0; i < line.length; i++) {
+    if (open && line[i] === "\\") i++;
+    else if (line[i] === '"') open = !open;
+  }
+  return open;
+}
+
+/** Whether a block's first code line (after blank and comment lines) starts a statement. */
+function startsProgram(block: string): boolean {
+  return STATEMENT_START.test(block.replace(/^(\s*(\/\/|#)[^\n]*\n)+/, ""));
+}
+
+/** Extract the program from markdown code fences, or return the input when no fence holds one. */
 export function stripFences(input: string): string {
   const blocks: string[] = [];
-  let i = 0;
-
-  while (i < input.length) {
-    // Scan for opening ``` while tracking string context
-    let fenceStart = -1;
-    while (i < input.length) {
-      const nextI = skipString(input, i);
-      if (nextI > i) {
-        i = nextI;
-        continue;
-      }
-
-      const c = input[i];
-      if (
-        c === "`" &&
-        i + 1 < input.length &&
-        input[i + 1] === "`" &&
-        i + 2 < input.length &&
-        input[i + 2] === "`"
-      ) {
-        fenceStart = i;
-        break;
-      }
-      i++;
+  const outside: string[] = [];
+  let body: string[] | null = null;
+  let script = false;
+  let inString = false;
+  for (const line of input.split("\n")) {
+    const fence = inString ? null : FENCE_LINE.exec(line);
+    if (!fence) {
+      if (script) continue;
+      (body ?? outside).push(line);
+      // Only statement lines open strings, so a prose quote like `5"` is harmless.
+      if (inString || STATEMENT_START.test(line)) inString = quoteOpenAfter(line, inString);
+      continue;
     }
-
-    if (fenceStart === -1) break;
-
-    // Skip language tag until newline
-    let j = fenceStart + 3;
-    while (j < input.length && input[j] !== "\n") j++;
-    if (j >= input.length) {
-      // No newline after opening fence (streaming) — take everything after fence marker + lang tag
-      blocks.push(input.slice(fenceStart + 3).replace(/^[^\n]*\n?/, ""));
-      i = input.length;
-      break;
+    const [, tag = "", rest = ""] = fence;
+    if (body !== null) {
+      // Any fence line closes an open fence; what follows it on that line is ignored.
+      if (!script) blocks.push(body.join("\n"));
+      body = null;
+      script = false;
+      continue;
     }
-    j++; // skip the newline
-
-    // Scan for closing ``` while tracking string context
-    let closePos = -1;
-    let k = j;
-    while (k < input.length) {
-      const nextK = skipString(input, k);
-      if (nextK > k) {
-        k = nextK;
-        continue;
-      }
-      const c = input[k];
-      if (
-        c === "`" &&
-        k + 1 < input.length &&
-        input[k + 1] === "`" &&
-        k + 2 < input.length &&
-        input[k + 2] === "`"
-      ) {
-        closePos = k;
-        break;
-      }
-      k++;
-    }
-
-    if (closePos !== -1) {
-      blocks.push(input.slice(j, closePos));
-      i = closePos + 3;
-    } else {
-      // No closing fence found (streaming) — take everything after opening fence
-      blocks.push(input.slice(j));
-      i = input.length;
-    }
+    if (rest.includes("```")) continue; // a ``` pair on one line is inline code in prose
+    const code = openerCode(tag, rest);
+    script = tag.toLowerCase() === "openui-js";
+    body = code === null ? [] : [code];
   }
-
-  if (blocks.length > 0) return blocks.join("\n");
-
-  // Fallback: if input starts with ``` but wasn't matched (e.g. no newline after fence)
-  if (input.startsWith("```")) {
-    let j = 3;
-    while (j < input.length && input[j] !== "\n") j++;
-    const start = j < input.length ? j + 1 : 3;
-    // Try to strip trailing ```
-    const body = input.slice(start);
-    const trailingFence = body.lastIndexOf("```");
-    if (trailingFence !== -1) {
-      return body.slice(0, trailingFence);
-    }
-    return body;
-  }
-
-  return input;
+  if (body !== null && !script) blocks.push(body.join("\n")); // unterminated (streaming)
+  if (blocks.some(startsProgram)) return blocks.join("\n");
+  // No fence starts a program: use an unfenced program (a stray closing ```, or ```js helpers).
+  const unfenced = outside.some((l) => STATEMENT_START.test(l));
+  return unfenced || blocks.every((b) => b.trim() === "") ? outside.join("\n") : blocks.join("\n");
 }
 
 /** Strip // and # line comments outside of strings (handles both " and ' delimiters). */
