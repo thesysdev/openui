@@ -1,6 +1,6 @@
 # The OpenUI Language
 
-**1.0**
+**1.1** (draft)
 
 The exact rules of OpenUI Lang. For a guided tour, read [overview.md](./overview.md). [prompt.md](./prompt.md) covers the LibrarySpec, the prompt, and stored responses. MUST, MUST NOT, SHOULD, and MAY are used as in RFC 2119.
 
@@ -18,7 +18,7 @@ The grammar uses EBNF: `=` defines, `|` separates alternatives, `[ ]` is optiona
 
 The client accepts text with or without the host's `]]>openui:` marker lines ([prompt.md](./prompt.md), section 7) and renders only the content. It then prepares the text in this order:
 
-1. **Fence extraction.** A fence opens only with three backticks at the start of a line, with or without a language tag. If the text has fences, the client joins the contents of every fence with newlines. Text outside fences is prose and is ignored. Quotes in prose outside fences do not shield anything. Inside a fence, backtick runs inside double-quoted strings do not close it. Single-quoted strings do not shield them. Comments are stripped after extraction, so backtick runs inside comments do count. An unterminated fence runs to the end of the text.
+1. **Fence extraction.** A fence line starts with three backticks, optionally followed by a language tag. A fence opens on such a line and closes on the next one. Three backticks closed again on the same line are inline code and are ignored. Code may follow the tag on the opening line (```` ```openui root = Stack([ ````). A fence tagged `openui-js` holds a script, not the program, and is skipped. If a fence's first code line, after comment lines, starts a statement, the client joins the contents of every fence with newlines and ignores the text outside them. Otherwise, if the text outside the fences holds a statement, that text is the program and the fence lines are dropped, as with a lone closing fence after the program or `js` helper blocks after it. A fence line inside a double-quoted string on a statement line is part of the string. Quotes in prose do not shield anything, and single-quoted strings do not shield fences. Comments are stripped after extraction. An unterminated fence runs to the end of the text.
 2. **Comment stripping.** `//` and `#` start a comment that runs to the end of the line. Comment markers inside strings, even multi-line ones, are not comments.
 3. **Trimming.** Leading and trailing whitespace is removed.
 
@@ -278,11 +278,13 @@ Fixtures: `evaluation/*-member-*`
 | `@Min`, `@Max` | `(array) → number` | Minimum or maximum with `toNumber`. 0 for empty arrays and non-arrays. |
 | `@Filter` | `(array, field, op, value) → array` | Keeps elements whose `field` satisfies `op value`. Ops: `==`, `!=` (loose), `>`, `<`, `>=`, `<=` (numeric), `contains` (case-sensitive substring of the field as a string). An empty `field` tests the elements themselves. A missing op means `==`. An unknown op matches nothing. `[]` for non-arrays. |
 | `@Sort` | `(array, field, direction?) → array` | Stable sort on `field`. An empty `field` sorts the elements themselves. When both values are numbers or strings that parse as numbers, they compare as numbers. Otherwise their string forms (null is `""`) compare with the runtime's locale collation (ECMAScript `localeCompare` with no arguments), so `a` sorts before `B`. Descending only when the third argument is `"desc"`. A non-array is returned unchanged. |
-| `@Round` | `(number, decimals?) → number` | Rounds to `decimals` places, default 0, with JavaScript `Math.round` (a half rounds up). |
-| `@Abs`, `@Floor`, `@Ceil` | `(number) → number` | With `toNumber`. |
+| `@Round` | `(number \| number[], decimals?) → number \| number[]` | Rounds to `decimals` places, default 0, with JavaScript `Math.round` (a half rounds up). |
+| `@Abs`, `@Floor`, `@Ceil` | `(number \| number[]) → number \| number[]` | With `toNumber`. |
 | `@Each` | `(array, varName, template) → array` | Section 3.5. |
 
 Field arguments accept dot paths (`"customer.name"`).
+
+`@Round`, `@Abs`, `@Floor`, and `@Ceil` given a list apply to each element, nested lists included, and return a list of the same shape. Elements go through `toNumber`, so null gives 0. This is how a column plucked from rows (`@Round(rows.amount, 2)`) is formatted in one call.
 
 Fixtures: `evaluation/*-builtin-*`, including `evaluation/*-builtin-sort-*`
 
@@ -346,6 +348,7 @@ openCount = @Count(tickets.rows)
 The state store is a flat map from `$name` to value, scoped to one rendered program.
 
 - A state declaration gives the default. An undeclared `$name` is declared automatically with the default null.
+- An expression default (`$total = 1 + 2`, `$tax = $price * 0.18`), including one inside a list or object default, is evaluated once, when the program is parsed, with the built-in functions. It reads the defaults of states declared before it. A state declared after it, a query result, and a reference read as null. It does not update afterwards: a value that should follow other values is a plain statement (`tax = $price * 0.18`). A default that calls a library function, an action, or a component is null, since those run only in the client.
 - Defaults apply only when the variable has no value yet. Parsing again, while streaming or after an edit, MUST NOT overwrite a value the user produced.
 - Persisted state from the host is applied over the defaults at initialization.
 - Parsing again never deletes a key.
@@ -393,7 +396,9 @@ Fixtures: `state/*-validation-*`
 
 `name = Query(tool, args, defaults, refreshSeconds?)`: the tool name, the argument object, the result shown until data arrives, and an optional refresh interval in seconds.
 
-- A query runs when streaming ends, and again when a `$variable` written literally in its `args` changes. State reached through a referenced statement does not trigger a fetch.
+- A query runs when streaming ends, and again when a `$variable` its `args` read changes, whether written literally or reached through a referenced statement.
+- A query whose tool name or `args` read another query's result, directly or through a referenced statement, waits until that query has a result, then runs. It runs again whenever that result changes. Queries that read no other query run without waiting for each other. A query whose fetch failed keeps the queries that read it waiting until it is retried.
+- Queries that read each other's results, including a query that reads its own, can never run first. The client reports `query-cycle` and does not run them.
 - While a fetch for changed arguments is in flight, the previous result stays visible. A result for stale arguments is discarded.
 - References resolve to the latest result, or to the defaults before the first one. The reserved keys `__openui_loading`, `__openui_refetching`, and `__openui_errors` expose fetch state to the host. Expressions cannot read them.
 - A refresh interval runs the query again on a timer.
@@ -488,6 +493,7 @@ A **fatal** error means nothing renders. Any other error leaves the rest of the 
 | `excess-args` | parser | More arguments than props | Extra arguments dropped, component renders |
 | `inline-reserved` | parser | `Query` or `Mutation` in a value position | Expression evaluates to nothing |
 | `unknown-function` | parser | `@Name` is not a built-in, an action, or a custom function | The call evaluates to null. The statement is kept |
+| `query-cycle` | parser | Queries read each other's results (section 6.1) | The queries in the cycle do not run and keep their defaults |
 | `no-root` | parser, runtime | No usable entry (section 2.2), stream complete. `runtime` when a `root` expression such as a ternary gives no component | Non-fatal when the fallback entry renders. Fatal otherwise |
 | `parse-failed` | parser | The response has text but yields no statements | Fatal |
 | `parse-exception` | parser | The parser itself failed | Fatal. The client MUST catch it |
