@@ -512,7 +512,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   }
 
   function isLoading(statementId: string): boolean {
-    return queries.get(statementId)?.loading ?? false;
+    return isPending(statementId);
   }
 
   function isAnyLoading(): boolean {
