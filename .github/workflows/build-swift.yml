@@ -1,0 +1,80 @@
+name: Build Swift
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/swift-lang/**"
+      - "packages/lang-core/src/**"
+      - "packages/react-ui/src/genui-lib/**"
+      - "packages/react-ui/src/utils/sentinelParser.ts"
+      - "packages/react-ui/src/components/Charts/utils/styleUtils.ts"
+      - "packages/react-ui/src/components/Charts/shared/core/PortalTooltip/utils/**"
+      - ".github/workflows/build-swift.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/swift-lang/**"
+      - "packages/lang-core/src/**"
+      - "packages/react-ui/src/genui-lib/**"
+      - "packages/react-ui/src/utils/sentinelParser.ts"
+      - "packages/react-ui/src/components/Charts/utils/styleUtils.ts"
+      - "packages/react-ui/src/components/Charts/shared/core/PortalTooltip/utils/**"
+      - ".github/workflows/build-swift.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  swift:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: packages/swift-lang
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
+
+      - name: Lint
+        run: swift format lint --strict -r Sources Tests Package.swift
+
+      - name: Build for iOS
+        run: xcodebuild build -scheme OpenUI-Package -destination "generic/platform=iOS Simulator" -quiet
+
+  # The Swift port is checked against fixtures generated from lang-core and the
+  # chat library. Fail when they no longer match what the TypeScript produces.
+  fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: v24.21.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build lang-core and react-ui
+        run: pnpm --filter "@openuidev/react-ui..." --workspace-concurrency=1 run build
+
+      - name: Regenerate fixtures
+        run: node packages/swift-lang/Scripts/generate-fixtures.mjs
+        env:
+          OPENUI_TELEMETRY_DISABLED: "1"
+
+      # Status rather than diff, so a newly generated fixture file counts too.
+      - name: Check fixtures are up to date
+        run: |
+          fixtures="packages/swift-lang/Tests/OpenUILangTests/Fixtures packages/swift-lang/Tests/OpenUISwiftUITests/Fixtures"
+          if [ -n "$(git status --porcelain -- $fixtures)" ]; then
+            git status --short -- $fixtures
+            git diff -- $fixtures | head -100
+            exit 1
+          fi
