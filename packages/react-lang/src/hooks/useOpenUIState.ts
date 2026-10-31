@@ -9,7 +9,6 @@ import {
   type ActionEvent,
   type ActionPlan,
   type EvalContext,
-  type EvalMemo,
   type EvaluationContext,
   type OpenUIError,
   type ParseResult,
@@ -67,7 +66,7 @@ export interface OpenUIState {
   retryQueries: () => void;
   /**
    * Changes when the store, query results, context or library change: anything a component
-   * can read besides its props. Unchanged elements keep their identity until it changes.
+   * can read besides its props. Memoized nodes re-render when it changes.
    */
   renderRevision: unknown;
 }
@@ -458,10 +457,9 @@ export function useOpenUIState(
 
   // ─── Evaluate props ───
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
-  // Evaluations are reused while nothing they read can change, so an element unchanged
-  // by a chunk keeps its identity and its RenderNode skips rendering.
-  const evalMemo = useMemo<EvalMemo>(
-    () => new WeakMap(),
+  // A new token whenever anything a component can read besides its props changes
+  const renderRevision = useMemo(
+    () => ({}),
     [evaluationContext, library, store, storeSnapshot, querySnapshot],
   );
 
@@ -469,7 +467,7 @@ export function useOpenUIState(
     if (!result?.root && !result?.rootExpression) return result;
     // Fresh errors array each pass — avoids mutating memoized context
     const errors: OpenUIError[] = [];
-    const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors, memo: evalMemo };
+    const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors };
     try {
       const evaluatedRoot = evaluateRoot(result, evalCtx);
       runtimeErrorsRef.current = errors;
@@ -485,7 +483,7 @@ export function useOpenUIState(
       runtimeErrorsRef.current = errors;
       return result;
     }
-  }, [result, evaluationContext, library, store, evalMemo]);
+  }, [result, evaluationContext, library, store, storeSnapshot, querySnapshot]);
 
   const contextValue = useMemo<OpenUIContextValue>(
     () => ({
@@ -548,6 +546,6 @@ export function useOpenUIState(
     isQueryLoading,
     queryErrors,
     retryQueries,
-    renderRevision: evalMemo,
+    renderRevision,
   };
 }

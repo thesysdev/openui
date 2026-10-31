@@ -224,9 +224,9 @@ function rendersSame(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Renders a single ElementNode. Memoized: an element a chunk leaves unchanged keeps its
- * identity (lang-core reuses unchanged statements and their evaluations), so it skips
- * rendering; a store, query or context change re-renders every node.
+ * Renders a single ElementNode. Memoized: an element a chunk leaves unchanged renders the
+ * same (rendersSame), so it skips rendering; a store, query or context change re-renders
+ * every node.
  */
 const RenderNode = React.memo(
   function RenderNode({ node }: { node: ElementNode }) {

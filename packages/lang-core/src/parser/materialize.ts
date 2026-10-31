@@ -11,7 +11,6 @@ import {
   type ElementNode,
   type MaterializeCtx,
   type ParamDef,
-  type ValidationError,
 } from "./types";
 import {
   buildParamsSignature,
@@ -50,64 +49,6 @@ export function withStatementId(el: ElementNode, id: string): ElementNode {
   return { ...el, statementId: id };
 }
 
-/** A ref a kept statement read: another kept statement, or a Query/Mutation by its AST. */
-type Read = CachedStatement | { name: string; ast: ASTNode };
-
-interface CachedStatement {
-  key: string;
-  name: string;
-  mode: "value" | "expr";
-  ast: ASTNode;
-  value: unknown;
-  reads: Read[];
-  /** Errors the statement reported itself, replayed when it is reused. */
-  errors: ValidationError[];
-}
-
-export type StatementCache = Map<string, CachedStatement>;
-
-/**
- * Keeps statement values across stream parser passes, so an unchanged statement gives the
- * same object on every chunk. A kept value is reused while its statement's AST object is the
- * same (the stream parser keeps completed statements), it is not being written, and every ref
- * it read is reused too. Not kept: a statement being written, one that hit an unresolved or
- * cyclic ref, and one that read a statement not kept.
- */
-export interface StatementReuse {
-  /** Kept across passes, keyed by `${partial}:${mode}:${name}`. */
-  entries: StatementCache;
-  /** Statements still being written. */
-  streaming: ReadonlySet<string>;
-  /** Per pass: whether a kept statement can be reused (true for the ones kept this pass). */
-  fresh: Map<CachedStatement, boolean>;
-  /** Per pass: the refs read by the statement being materialized; ok is false if one is not kept. */
-  frame?: { reads: Read[]; ok: boolean };
-}
-
-export function createStatementReuse(
-  entries: StatementCache,
-  streaming: ReadonlySet<string>,
-): StatementReuse {
-  return { entries, streaming, fresh: new Map() };
-}
-
-function isFresh(e: CachedStatement, ctx: MaterializeCtx, reuse: StatementReuse): boolean {
-  let ok = reuse.fresh.get(e);
-  if (ok === undefined) {
-    ok =
-      reuse.entries.get(e.key) === e &&
-      ctx.syms.get(e.name) === e.ast &&
-      !reuse.streaming.has(e.name) &&
-      e.reads.every((r) =>
-        "key" in r
-          ? isFresh(r, ctx, reuse)
-          : ctx.syms.get(r.name) === r.ast && !reuse.streaming.has(r.name),
-      );
-    reuse.fresh.set(e, ok);
-  }
-  return ok;
-}
-
 /**
  * Resolve a Ref node: inline from symbol table, detect cycles, emit RuntimeRef
  * for Query/Mutation declarations. Shared by materializeValue and materializeExpr.
@@ -116,7 +57,6 @@ function isFresh(e: CachedStatement, ctx: MaterializeCtx, reuse: StatementReuse)
  * are otherwise exponential). Skipped when the subtree hit an unresolved or cyclic
  * ref (context-dependent). Use-site validation copies on write, so a shared result is
  * never pruned in place. Errors inside a memoized statement are reported once.
- * With `ctx.reuse`, results are also kept across passes (see StatementReuse).
  */
 function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): unknown | ASTNode {
   if (ctx.visited.has(name) || !ctx.syms.has(name)) {
@@ -125,78 +65,27 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
   }
   const target = ctx.syms.get(name)!;
   ctx.unreached?.delete(name);
-  const reuse = ctx.reuse;
-  const frame = reuse?.frame;
-  if (frame && reuse!.streaming.has(name)) frame.ok = false;
   // Query/Mutation declarations → RuntimeRef (resolved at runtime by evaluator)
   if (target.k === "Comp" && isReservedCall(target.name)) {
     const refType =
       target.name === RESERVED_CALLS.Mutation ? ("mutation" as const) : ("query" as const);
-    frame?.reads.push({ name, ast: target });
     return { k: "RuntimeRef", n: name, refType };
   }
   const key = `${mode}:${name}`;
-  const cacheKey = (ctx.partial ? "1:" : "0:") + key;
   const memo = (ctx.memo ??= new Map());
-  let result: unknown;
-  if (memo.has(key)) result = memo.get(key);
-  else {
-    ctx.visited.add(name);
-    try {
-      result = withStatement(ctx, name, () => {
-        const kept = reuse?.entries.get(cacheKey);
-        if (kept && isFresh(kept, ctx, reuse!)) {
-          // Reach and report what it read, as materializing it would
-          reuse!.frame = undefined;
-          try {
-            for (const r of kept.reads) resolveRef(r.name, ctx, "mode" in r ? r.mode : mode);
-          } finally {
-            reuse!.frame = frame;
-          }
-          for (const e of kept.errors) ctx.errors.push({ ...e });
-          memo.set(key, kept.value);
-          return kept.value;
-        }
-        const unresBefore = ctx.unres.length;
-        const errorsBefore = ctx.errors.length;
-        const own = reuse && { reads: [] as Read[], ok: !reuse.streaming.has(name) };
-        if (reuse) reuse.frame = own;
-        let value: unknown;
-        try {
-          value = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
-        } finally {
-          if (reuse) reuse.frame = frame;
-        }
-        if (mode === "value" && isElementNode(value)) value = withStatementId(value, name);
-        if (ctx.unres.length === unresBefore) {
-          memo.set(key, value);
-          if (own?.ok) {
-            const errors = ctx.errors.slice(errorsBefore).filter((e) => e.statementId === name);
-            const entry = {
-              key: cacheKey,
-              name,
-              mode,
-              ast: target,
-              value,
-              reads: own.reads,
-              errors,
-            };
-            reuse!.entries.set(cacheKey, entry);
-            reuse!.fresh.set(entry, true);
-          }
-        }
-        return value;
-      });
-    } finally {
-      ctx.visited.delete(name);
-    }
+  if (memo.has(key)) return memo.get(key);
+  ctx.visited.add(name);
+  try {
+    return withStatement(ctx, name, () => {
+      const unresBefore = ctx.unres.length;
+      let value = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+      if (mode === "value" && isElementNode(value)) value = withStatementId(value, name);
+      if (ctx.unres.length === unresBefore) memo.set(key, value);
+      return value;
+    });
+  } finally {
+    ctx.visited.delete(name);
   }
-  if (frame) {
-    const dep = reuse!.entries.get(cacheKey);
-    if (dep && reuse!.fresh.get(dep)) frame.reads.push(dep);
-    else frame.ok = false;
-  }
-  return result;
 }
 
 /** Run fn with ctx.currentStatementId set to id, so the issues it reports name that statement. */

@@ -9,15 +9,7 @@ import { isASTNode, walkAST } from "./ast";
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import {
-  createStatementReuse,
-  materializeExpr,
-  materializeValue,
-  withStatement,
-  withStatementId,
-  type StatementCache,
-  type StatementReuse,
-} from "./materialize";
+import { materializeExpr, materializeValue, withStatement, withStatementId } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -306,7 +298,6 @@ function buildResult(
   cat: ParamMap | undefined,
   rootName?: string,
   partialRef?: PartialRef,
-  reuse?: StatementReuse,
 ): ParseResult {
   const entry = pickEntry(stmtMap, rootName);
 
@@ -333,7 +324,6 @@ function buildResult(
     partial: wasIncomplete,
     currentStatementId: entry?.id,
     unreached,
-    reuse,
   };
 
   let root: ElementNode | null = null;
@@ -543,10 +533,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
 
   let completedCount = 0;
 
-  // Statement values kept across passes (see StatementReuse); valid while their ASTs are.
-  const reused: StatementCache = new Map();
-  const NONE: ReadonlySet<string> = new Set();
-
   function addStmt(text: string) {
     // `text` is sliced from `cleaned`, so it's already fence/comment-free.
     const t = text.trim();
@@ -571,7 +557,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       completedEnd = 0;
       completedStmtMap.clear();
       completedCount = 0;
-      reused.clear();
     }
     cleaned = next;
   }
@@ -651,8 +636,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
-        undefined,
-        createStatementReuse(reused, NONE),
       );
     }
 
@@ -670,8 +653,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
-        undefined,
-        createStatementReuse(reused, NONE),
       );
     }
 
@@ -706,8 +687,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       cat,
       rootName,
       tailName ? { name: tailName, stmts: pendingStmts } : undefined,
-      // Pending statements, also those not replacing a completed one yet, are still being written
-      createStatementReuse(reused, new Set(stmts.map((s) => s.id))),
     );
   }
 
@@ -717,7 +696,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     completedEnd = 0;
     completedStmtMap.clear();
     completedCount = 0;
-    reused.clear();
   }
 
   return {
