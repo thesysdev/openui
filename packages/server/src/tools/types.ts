@@ -33,11 +33,11 @@ export interface InterpreterRequest {
   id?: string;
 }
 
-export type InterpreterExecuteOptions<Context = undefined> = {
+export interface InterpreterExecuteOptions {
   signal?: AbortSignal;
   /** Total execution budget, including your tools. Default: 60 seconds. */
   timeoutMs?: number;
-} & (undefined extends Context ? { context?: Context } : { context: Context });
+}
 
 /** A dashboard's data tools: yours, an MCP server's, or both. */
 export type InterpreterOptions<Context = undefined> =
@@ -45,11 +45,12 @@ export type InterpreterOptions<Context = undefined> =
   | { tools?: Record<string, DataTool<Context>>; mcp: McpOption<Context> };
 
 export interface Interpreter<Context = undefined> {
+  /** `context` reaches your tools as is, such as the signed-in user. */
   execute(
     request: InterpreterRequest,
-    ...options: undefined extends Context
-      ? [options?: InterpreterExecuteOptions<Context>]
-      : [options: InterpreterExecuteOptions<Context>]
+    ...rest: undefined extends Context
+      ? [context?: Context, options?: InterpreterExecuteOptions]
+      : [context: Context, options?: InterpreterExecuteOptions]
   ): Promise<unknown>;
 }
 

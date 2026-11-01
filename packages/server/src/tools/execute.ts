@@ -58,7 +58,8 @@ export function createInterpreter<Context = undefined>(
 
   async function execute(
     input: InterpreterRequest,
-    executionOptions?: InterpreterExecuteOptions<Context>,
+    context?: Context,
+    executionOptions?: InterpreterExecuteOptions,
   ): Promise<unknown> {
     if (!input || typeof input.name !== "string" || !input.name) {
       throw new ToolExecutionError("A tool name is required", "invalid_input");
@@ -88,9 +89,7 @@ export function createInterpreter<Context = undefined>(
         throw new ToolExecutionError(`Unknown customer tool: ${name}`, "tool_not_found", 404);
       }
       return abortable(
-        Promise.resolve().then(() =>
-          tools[name]!(executionOptions?.context as Context, toolArgs, { signal }),
-        ),
+        Promise.resolve().then(() => tools[name]!(context as Context, toolArgs, { signal })),
         signal,
       );
     };
