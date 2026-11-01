@@ -14,6 +14,7 @@ import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
   isElementNode,
+  PENDING_SLOT,
   type ElementNode,
   type JSONSchemaDef,
   type LibraryJSONSchema,
@@ -290,6 +291,68 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
+export interface StreamParserOptions {
+  /**
+   * While streaming, show content in the order it was written: anything after a child
+   * not written yet is left out of `root` until that child arrives. Complete parses are unchanged.
+   */
+  streamInOrder?: boolean;
+}
+
+/**
+ * Holds back everything after a child not written yet: the rest of its list, and the rest of
+ * every list up the tree. Sibling props keep their content: a list renders in order, but props
+ * render in an order the component chooses. For the same reason an element with children in
+ * more than one prop (a form's fields and buttons) is left out whole until all of them are
+ * written. Removes every slot and returns the same object for anything with nothing held or
+ * removed inside.
+ */
+function trimAfterPending(root: ElementNode): ElementNode | null {
+  let held = false;
+  const visit = (value: unknown): unknown => {
+    if (value == null || typeof value !== "object" || isASTNode(value)) return value;
+    if (Array.isArray(value)) {
+      let out: unknown[] | undefined;
+      for (let i = 0; i < value.length; i++) {
+        const item = value[i];
+        if (item === PENDING_SLOT) {
+          held = true;
+          return out ?? value.slice(0, i);
+        }
+        const next = visit(item);
+        if (next !== item) {
+          out ??= value.slice(0, i);
+          if (next !== null) out.push(next);
+        } else out?.push(item);
+        if (held) return out ?? value.slice(0, i + 1);
+      }
+      return out ?? value;
+    }
+    const element = isElementNode(value);
+    const obj = isElementNode(value) ? value.props : (value as Record<string, unknown>);
+    let out: Record<string, unknown> | undefined;
+    let heldInside = false;
+    let childProps = 0;
+    for (const [key, item] of Object.entries(obj)) {
+      if (element && hasElementChild(item)) childProps++;
+      held = false;
+      const next = visit(item);
+      heldInside ||= held;
+      if (next !== item) (out ??= { ...obj })[key] = next;
+    }
+    held = heldInside;
+    if (element && held && childProps > 1) return null;
+    if (!out) return value;
+    return element ? { ...value, props: out } : out;
+  };
+  return visit(root) as ElementNode | null;
+}
+
+function hasElementChild(value: unknown): boolean {
+  if (isElementNode(value)) return true;
+  return Array.isArray(value) && value.some((item) => item === PENDING_SLOT || isElementNode(item));
+}
+
 function buildResult(
   stmtMap: Map<string, Statement>,
   typedStmts: Statement[],
@@ -298,6 +361,7 @@ function buildResult(
   cat: ParamMap | undefined,
   rootName?: string,
   partialRef?: PartialRef,
+  pending?: { streamingId?: string },
 ): ParseResult {
   const entry = pickEntry(stmtMap, rootName);
 
@@ -324,6 +388,8 @@ function buildResult(
     partial: wasIncomplete,
     currentStatementId: entry?.id,
     unreached,
+    pendingSlots: !!pending,
+    streamingStatementId: pending?.streamingId,
   };
 
   let root: ElementNode | null = null;
@@ -338,6 +404,8 @@ function buildResult(
     }
   }
 
+  // State defaults and Query/Mutation args never get slots
+  ctx.pendingSlots = false;
   const { stateDeclarations, queryStatements, mutationStatements } = extractStatements(
     typedStmts,
     ctx,
@@ -362,7 +430,7 @@ function buildResult(
   const orphaned = entry ? [...unreached] : [];
 
   return {
-    root,
+    root: root && pending ? trimAfterPending(root) : root,
     ...(rootExpression ? { rootExpression } : {}),
     meta: {
       incomplete: wasIncomplete,
@@ -521,7 +589,11 @@ export interface StreamParser {
   getResult(complete?: boolean): ParseResult;
 }
 
-export function createStreamParser(cat: ParamMap, rootName?: string): StreamParser {
+export function createStreamParser(
+  cat: ParamMap,
+  rootName?: string,
+  options?: StreamParserOptions,
+): StreamParser {
   let buf = ""; // raw accumulated input (kept for set() diffing)
   // Preprocessed view of `buf` (fences + comments stripped, same as parse()'s
   // preprocess). The completed-statement scan runs over THIS, never the raw
@@ -624,6 +696,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     refreshCleaned();
     const pendingStart = scanNewCompleted();
     const pendingText = cleaned.slice(pendingStart).trim();
+    const slots = options?.streamInOrder && !complete;
 
     // No pending text — all statements are complete
     if (!pendingText) {
@@ -635,6 +708,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
+        undefined,
+        slots ? {} : undefined,
       );
     }
 
@@ -652,6 +727,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
+        undefined,
+        slots ? {} : undefined,
       );
     }
 
@@ -686,6 +763,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       cat,
       rootName,
       tailName ? { name: tailName, stmts: pendingStmts } : undefined,
+      slots ? { streamingId: stmts[stmts.length - 1]!.id } : undefined,
     );
   }
 
@@ -801,6 +879,10 @@ export function createParser(schema: LibraryJSONSchema, rootName?: string): Pars
  * Create a streaming parser from a library JSON Schema document.
  * Pass `library.toJSONSchema()` to get the schema.
  */
-export function createStreamingParser(schema: LibraryJSONSchema, rootName?: string): StreamParser {
-  return createStreamParser(compileSchema(schema), rootName);
+export function createStreamingParser(
+  schema: LibraryJSONSchema,
+  rootName?: string,
+  options?: StreamParserOptions,
+): StreamParser {
+  return createStreamParser(compileSchema(schema), rootName, options);
 }

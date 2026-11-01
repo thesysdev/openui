@@ -29,7 +29,7 @@ export type { BuildMessageInput, ParseMessageOptions, ParsedMessage } from "./me
 
 // ── Parser ──
 export { createParser, createStreamingParser, parse } from "./parser";
-export type { Parser, StreamParser } from "./parser";
+export type { Parser, StreamParser, StreamParserOptions } from "./parser";
 export { walkAST } from "./parser/ast";
 export type { ASTNode } from "./parser/ast";
 export { ACTION_STEPS, action, steps } from "./parser/builtins";
