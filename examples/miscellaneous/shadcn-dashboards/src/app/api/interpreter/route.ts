@@ -1,5 +1,5 @@
 import { OpenUIApiError, ToolExecutionError } from "@openuidev/server";
-import { dashboards } from "../../../lib/openui";
+import { dashboards, userId } from "../../../lib/openui";
 
 export const runtime = "nodejs";
 
@@ -8,9 +8,12 @@ export const runtime = "nodejs";
 // The data stays on this server; only the dashboard's results reach the browser.
 export async function POST(request: Request) {
   try {
-    const result = await dashboards.interpreter.execute(await request.json(), undefined, {
-      signal: request.signal,
-    });
+    // The signed-in user: your tools get it, and generated scripts run only for the dashboard's owner.
+    const result = await dashboards.interpreter.execute(
+      await request.json(),
+      { userId: userId() },
+      { signal: request.signal },
+    );
     return Response.json({ result });
   } catch (error) {
     const known = error instanceof ToolExecutionError || error instanceof OpenUIApiError;
