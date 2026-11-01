@@ -27,6 +27,9 @@ export interface McpConfig<Context = undefined> {
 /** An MCP server's tools as data tools: its client, or a config with it. */
 export type McpOption<Context = undefined> = McpToolClient | McpConfig<Context>;
 
+/** One MCP server, or several: their tools are offered together. */
+export type McpServers<Context = undefined> = McpOption<Context> | readonly McpOption<Context>[];
+
 const textOf = (content: unknown): string | undefined => {
   if (!Array.isArray(content)) return undefined;
   const texts = content.flatMap((part: { type?: unknown; text?: unknown }) =>
@@ -55,11 +58,15 @@ function invalidTools(message: string): never {
 /** Generation needs tool names like `get_sales`; MCP names often have `-` or `.`. */
 const toolKey = (name: string) => name.replace(/[^A-Za-z0-9_]/g, "_").replace(/^(?=\d)/, "_");
 
-/** Your tools plus the MCP server's, refusing two with one name. */
+/** `mcp` as a list: none, one server, or several. */
+export const mcpServers = <Context>(mcp: McpServers<Context> | undefined): McpOption<Context>[] =>
+  mcp === undefined ? [] : Array.isArray(mcp) ? [...mcp] : [mcp as McpOption<Context>];
+
+/** Your tools plus an MCP server's, refusing two with one name. */
 export function mergeTools<T>(own: Record<string, T> | undefined, mcp: Record<string, T>) {
   for (const name of Object.keys(mcp)) {
     if (own && Object.hasOwn(own, name)) {
-      invalidTools(`Two data tools are named ${name}: rename yours or leave the MCP one out`);
+      invalidTools(`Two data tools are named ${name}: rename yours or leave an MCP one out`);
     }
   }
   return { ...own, ...mcp };

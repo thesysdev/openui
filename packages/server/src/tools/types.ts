@@ -1,4 +1,4 @@
-import type { McpOption } from "./mcp";
+import type { McpServers } from "./mcp";
 
 /** Provider-neutral metadata passed to generation, without server handlers. */
 export interface ToolDefinition {
@@ -41,8 +41,8 @@ export interface InterpreterExecuteOptions {
 
 /** A dashboard's data tools: yours, an MCP server's, or both. */
 export type InterpreterOptions<Context = undefined> =
-  | { tools: Record<string, DataTool<Context>>; mcp?: McpOption<Context> }
-  | { tools?: Record<string, DataTool<Context>>; mcp: McpOption<Context> };
+  | { tools: Record<string, DataTool<Context>>; mcp?: McpServers<Context> }
+  | { tools?: Record<string, DataTool<Context>>; mcp: McpServers<Context> };
 
 export interface Interpreter<Context = undefined> {
   /** `context` reaches your tools as is, such as the signed-in user. */

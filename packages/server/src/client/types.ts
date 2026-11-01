@@ -1,5 +1,5 @@
 import type { CloudPromptOptions, LibrarySpec } from "@openuidev/lang-core";
-import type { McpOption } from "../tools/mcp";
+import type { McpServers } from "../tools/mcp";
 import type { DataTool, Interpreter } from "../tools/types";
 
 export interface OpenUIClientOptions {
@@ -21,8 +21,8 @@ export type ArtifactPromptOptions = CloudPromptOptions;
 
 /** Your data tools, an MCP server's, or both. The dashboard's interpreter runs them. */
 type DashboardDataTools<Context> =
-  | { tools: Record<string, DataTool<Context>>; mcp?: McpOption<Context> }
-  | { tools?: Record<string, DataTool<Context>>; mcp: McpOption<Context> };
+  | { tools: Record<string, DataTool<Context>>; mcp?: McpServers<Context> }
+  | { tools?: Record<string, DataTool<Context>>; mcp: McpServers<Context> };
 
 export type DashboardOptions<Context = undefined> = {
   library: ArtifactLibrary;

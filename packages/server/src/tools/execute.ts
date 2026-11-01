@@ -1,7 +1,7 @@
 import { isRecord, type CloudApi } from "../client/api";
 import { OpenUIApiError } from "../client/types";
 import { abortable } from "../shared/abort";
-import { mcpToolLoader, mergeTools } from "./mcp";
+import { mcpServers, mcpToolLoader, mergeTools } from "./mcp";
 import {
   ToolExecutionError,
   type DataTool,
@@ -35,15 +35,20 @@ export function toToolDefinitions(
   }));
 }
 
-/** Your data tools and an MCP server's, merged. MCP tools are listed on first use, then reused. */
+/** Your data tools and your MCP servers', merged. MCP tools are listed on first use, then reused. */
 export function dataToolLoader<Context>(
   options: InterpreterOptions<Context>,
 ): () => Promise<Record<string, DataTool<Context>>> {
-  if (options?.tools === undefined && options?.mcp === undefined) {
+  const servers = mcpServers(options?.mcp);
+  if (options?.tools === undefined && servers.length === 0) {
     throw new ToolExecutionError("Pass `tools`, `mcp`, or both", "invalid_tools");
   }
-  const loadMcp = options.mcp === undefined ? undefined : mcpToolLoader(options.mcp);
-  return async () => (loadMcp ? mergeTools(options.tools, await loadMcp()) : (options.tools ?? {}));
+  const loaders = servers.map((server) => mcpToolLoader(server));
+  return async () =>
+    (await Promise.all(loaders.map((load) => load()))).reduce<Record<string, DataTool<Context>>>(
+      (tools, mcp) => mergeTools(tools, mcp),
+      options.tools ?? {},
+    );
 }
 
 /** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */

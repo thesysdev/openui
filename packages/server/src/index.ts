@@ -13,7 +13,7 @@ export type {
   OpenUIClientOptions,
   RequestOptions,
 } from "./client/types";
-export type { McpConfig, McpOption, McpToolClient } from "./tools/mcp";
+export type { McpConfig, McpOption, McpServers, McpToolClient } from "./tools/mcp";
 export { ToolExecutionError } from "./tools/types";
 export type {
   DataTool,

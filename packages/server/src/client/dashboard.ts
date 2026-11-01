@@ -1,5 +1,6 @@
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
+import { mcpServers } from "../tools/mcp";
 import { ToolExecutionError } from "../tools/types";
 import { apiError, isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
@@ -54,7 +55,7 @@ export function defineDashboard<Context>(
   if (!isRecord(library) || !isRecord(library.components)) {
     invalidInput("library is required as a library spec, such as `library.toSpec()`");
   }
-  if (!isRecord(tools) && mcp === undefined) {
+  if (!isRecord(tools) && mcpServers(mcp).length === 0) {
     invalidInput("Dashboards need data tools: pass `tools`, `mcp`, or both");
   }
 
