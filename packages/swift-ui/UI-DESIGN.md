@@ -29,6 +29,9 @@ Hosts may replace theme values without redefining components or rewriting progra
 
 Use the shared semantic text roles instead of local font constants. Titles, body
 text and supporting details retain a clear hierarchy across standard components.
+Object-card families use the theme's normal `foreground` surface whether or not
+an action is present. Explicit gray variants retain `sunk`; background-photo cards
+own their image and overlay. Basic `Card` containers keep their clear/sunken variants.
 Semantic surface and text colors support light and dark appearances. Chart colors
 come from a shared data palette rather than a single host accent. A compact
 chart omits left-axis ticks when its measured gutter cannot fit complete labels;

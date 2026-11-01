@@ -630,8 +630,10 @@ struct NativeCardItem: View {
     .clipShape(RoundedRectangle(cornerRadius: itemTheme.radius3xl, style: .continuous))
     .modifier(NativeCardSurface(
       theme: itemTheme,
-      fill: context.string("bgColor") == "gray" ? context.theme.sunk
-        : isAction ? context.theme.foreground : context.theme.sunkLight,
+      // Object surfaces do not change when an action is added or removed.
+      // Artwork owns its background; an explicit gray variant remains recessed.
+      fill: artworkSource != nil ? .clear
+        : context.string("bgColor") == "gray" ? context.theme.sunk : context.theme.foreground,
       bordered: artworkSource == nil && kind != "Context"))
     .environment(\.openUIActionDensity, .compact)
     .environment(\.colorScheme, artworkSource == nil ? colorScheme : .dark)
