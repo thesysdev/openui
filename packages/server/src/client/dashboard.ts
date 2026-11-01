@@ -12,9 +12,6 @@ import {
   type DashboardOptions,
 } from "./types";
 
-/** How a dashboard's name may look: it rides with every artifact it makes. */
-export const DASHBOARD_NAME = /^[A-Za-z0-9_-]{1,64}$/;
-
 function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
 }
@@ -30,12 +27,11 @@ function invalidLibrary(error: unknown): never {
  * What a tool returns to the model: a sentence, then the artifact's header line
  * for the renderer. A new `version` tells renderers there's a newer revision.
  */
-function toolResponse(id: string, definition: string, title?: string): string {
+function toolResponse(id: string, title?: string): string {
   const version = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
   const header = {
     artifact_id: id,
     type: "live",
-    definition,
     ...(title && { name: title }),
     version,
   };
@@ -52,10 +48,7 @@ export function defineDashboard<Context>(
   options: DashboardOptions<Context>,
 ): Dashboard<Context> {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { name, library, model, promptOptions, tools, mcp } = options;
-  if (typeof name !== "string" || !DASHBOARD_NAME.test(name)) {
-    invalidInput('name is required: 1 to 64 letters, digits, "_" or "-", such as "sales"');
-  }
+  const { library, model, promptOptions, tools, mcp } = options;
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
@@ -105,7 +98,7 @@ export function defineDashboard<Context>(
     call: { title?: string; artifactId?: string },
     signal?: AbortSignal,
   ): Promise<string> {
-    // Everything rides in the config block: tools and title for generation, which dashboard and artifact for OpenUI Cloud.
+    // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
     const [{ token }, definitions] = await Promise.all([
       createFrontendToken(api, userId, signal),
       toolDefinitions(),
@@ -117,7 +110,7 @@ export function defineDashboard<Context>(
         model,
         stream: true,
         messages: [
-          { role: "system", content: config({ tools: definitions, definition: name, ...call }) },
+          { role: "system", content: config({ tools: definitions, ...call }) },
           { role: "user", content: prompt },
         ],
       }),
@@ -138,18 +131,16 @@ export function defineDashboard<Context>(
   }
 
   return {
-    name,
-
     async create({ userId, title, prompt }, { signal } = {}): Promise<ArtifactResult> {
       const id = await start(userId, prompt, { title }, signal);
-      return { id, response: toolResponse(id, name, title) };
+      return { id, response: toolResponse(id, title) };
     },
 
-    // OpenUI Cloud edits the version it stores, and checks this dashboard made it.
+    // OpenUI Cloud edits the version it stores.
     async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
       const edited = await start(userId, prompt, { artifactId: id }, signal);
-      return { id: edited, response: toolResponse(edited, name) };
+      return { id: edited, response: toolResponse(edited) };
     },
 
     interpreter: createInterpreter<Context>(api, loadTools),

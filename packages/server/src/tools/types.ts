@@ -31,8 +31,6 @@ export interface InterpreterRequest {
   arguments?: Record<string, unknown>;
   /** The artifact the call is for. Generated scripts run from its stored content. */
   id?: string;
-  /** The dashboard that made the artifact. `openui.interpreter` runs that dashboard's tools. */
-  definition?: string;
 }
 
 export type InterpreterExecuteOptions<Context = undefined> = {

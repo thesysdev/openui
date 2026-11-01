@@ -24,12 +24,6 @@ type DashboardDataTools<Context> =
   | { tools?: Record<string, DataTool<Context>>; mcp: McpOption<Context> };
 
 export type DashboardOptions<Context = undefined> = {
-  /**
-   * Your name for this dashboard, such as "sales": 1 to 64 letters, digits,
-   * `_` or `-`, and different for every dashboard you define. Its artifacts
-   * remember it, so `openui.interpreter` runs their data tools with this one.
-   */
-  name: string;
   library: ArtifactLibrary;
   /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
@@ -66,7 +60,6 @@ export interface ArtifactResult {
 
 /** Creates and edits live dashboards. Each call returns as soon as the artifact has an id. */
 export interface Dashboard<Context = undefined> {
-  readonly name: string;
   create(params: CreateDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;
   /** Edits in place. Renderers keep the current version until the edit is ready. */
   edit(params: EditDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;
