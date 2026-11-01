@@ -5,6 +5,7 @@ import { mcpServers, mcpToolLoader, mergeTools } from "./mcp";
 import {
   ToolExecutionError,
   type DataTool,
+  type ExecutionContext,
   type Interpreter,
   type InterpreterExecuteOptions,
   type InterpreterOptions,
@@ -36,7 +37,7 @@ export function toToolDefinitions(
 }
 
 /** Your data tools and your MCP servers', merged. MCP tools are listed on first use, then reused. */
-export function dataToolLoader<Context>(
+export function dataToolLoader<Context extends ExecutionContext>(
   options: InterpreterOptions<Context>,
 ): () => Promise<Record<string, DataTool<Context>>> {
   const servers = mcpServers(options?.mcp);
@@ -52,7 +53,7 @@ export function dataToolLoader<Context>(
 }
 
 /** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
-export function createInterpreter<Context = undefined>(
+export function createInterpreter<Context extends ExecutionContext = ExecutionContext>(
   api: CloudApi,
   loadTools: () => Promise<Record<string, DataTool<Context>>>,
 ): Interpreter<Context> {
@@ -63,7 +64,7 @@ export function createInterpreter<Context = undefined>(
 
   async function execute(
     input: InterpreterRequest,
-    context?: Context,
+    context: Context,
     executionOptions?: InterpreterExecuteOptions,
   ): Promise<unknown> {
     if (!input || typeof input.name !== "string" || !input.name) {
@@ -110,7 +111,16 @@ export function createInterpreter<Context = undefined>(
           404,
         );
       }
-      const source = { artifact_id: input.id };
+      // Only the artifact's owner can run its scripts.
+      const userId = context?.userId;
+      if (typeof userId !== "string" || !userId) {
+        throw new ToolExecutionError(
+          `${input.name} is a generated script: pass the signed-in user as context.userId to run it`,
+          "invalid_input",
+          400,
+        );
+      }
+      const source = { artifact_id: input.id, user_id: userId };
 
       let state: string | undefined;
       let toolResults: ScriptToolResult[] = [];

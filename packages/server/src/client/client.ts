@@ -1,3 +1,4 @@
+import type { ExecutionContext } from "../tools/types";
 import { createCloudApi, type CloudApi } from "./api";
 import { defineDashboard } from "./dashboard";
 import { createFrontendToken } from "./frontend-token";
@@ -22,7 +23,9 @@ export class OpenUIClient {
   }
 
   /** Defines live dashboards from your library and data tools; its `interpreter` runs them. */
-  defineDashboard<Context = undefined>(options: DashboardOptions<Context>): Dashboard<Context> {
+  defineDashboard<Context extends ExecutionContext = ExecutionContext>(
+    options: DashboardOptions<Context>,
+  ): Dashboard<Context> {
     return defineDashboard(this.api, options);
   }
 

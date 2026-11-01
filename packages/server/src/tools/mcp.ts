@@ -1,6 +1,6 @@
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { ToolExecutionError, type DataTool } from "./types";
+import { ToolExecutionError, type DataTool, type ExecutionContext } from "./types";
 
 /** An MCP client, such as `Client` from `@modelcontextprotocol/sdk`. */
 export type McpToolClient = Pick<Client, "listTools" | "callTool">;
@@ -8,7 +8,7 @@ export type McpToolClient = Pick<Client, "listTools" | "callTool">;
 type McpCallToolResult = Awaited<ReturnType<McpToolClient["callTool"]>>;
 
 /** Which tools an MCP server offers your artifacts, and how calls reach it. */
-export interface McpConfig<Context = undefined> {
+export interface McpConfig<Context extends ExecutionContext = ExecutionContext> {
   client: McpToolClient;
   /**
    * Which tools to offer, by MCP name or with a filter. Default: the tools the
@@ -25,10 +25,12 @@ export interface McpConfig<Context = undefined> {
 }
 
 /** An MCP server's tools as data tools: its client, or a config with it. */
-export type McpOption<Context = undefined> = McpToolClient | McpConfig<Context>;
+export type McpOption<Context extends ExecutionContext = ExecutionContext> =
+  McpToolClient | McpConfig<Context>;
 
 /** One MCP server, or several: their tools are offered together. */
-export type McpServers<Context = undefined> = McpOption<Context> | readonly McpOption<Context>[];
+export type McpServers<Context extends ExecutionContext = ExecutionContext> =
+  McpOption<Context> | readonly McpOption<Context>[];
 
 const textOf = (content: unknown): string | undefined => {
   if (!Array.isArray(content)) return undefined;
@@ -59,7 +61,9 @@ function invalidTools(message: string): never {
 const toolKey = (name: string) => name.replace(/[^A-Za-z0-9_]/g, "_").replace(/^(?=\d)/, "_");
 
 /** `mcp` as a list: none, one server, or several. */
-export const mcpServers = <Context>(mcp: McpServers<Context> | undefined): McpOption<Context>[] =>
+export const mcpServers = <Context extends ExecutionContext>(
+  mcp: McpServers<Context> | undefined,
+): McpOption<Context>[] =>
   mcp === undefined ? [] : Array.isArray(mcp) ? [...mcp] : [mcp as McpOption<Context>];
 
 /** Your tools plus an MCP server's, refusing two with one name. */
@@ -77,7 +81,7 @@ export function mergeTools<T>(own: Record<string, T> | undefined, mcp: Record<st
  * MCP tool becomes a data tool, and its calls go through `connect(context)`.
  * A failed listing is retried on the next call.
  */
-export function mcpToolLoader<Context>(
+export function mcpToolLoader<Context extends ExecutionContext>(
   option: McpOption<Context>,
 ): () => Promise<Record<string, DataTool<Context>>> {
   const isClient = typeof (option as McpToolClient).listTools === "function";

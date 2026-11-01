@@ -1,6 +1,6 @@
 import type { CloudPromptOptions, LibrarySpec } from "@openuidev/lang-core";
 import type { McpServers } from "../tools/mcp";
-import type { DataTool, Interpreter } from "../tools/types";
+import type { DataTool, ExecutionContext, Interpreter } from "../tools/types";
 
 export interface OpenUIClientOptions {
   /** Defaults to the `THESYS_API_KEY` environment variable. */
@@ -20,11 +20,11 @@ export type ArtifactLibrary = LibrarySpec;
 export type ArtifactPromptOptions = CloudPromptOptions;
 
 /** Your data tools, an MCP server's, or both. The dashboard's interpreter runs them. */
-type DashboardDataTools<Context> =
+type DashboardDataTools<Context extends ExecutionContext> =
   | { tools: Record<string, DataTool<Context>>; mcp?: McpServers<Context> }
   | { tools?: Record<string, DataTool<Context>>; mcp: McpServers<Context> };
 
-export type DashboardOptions<Context = undefined> = {
+export type DashboardOptions<Context extends ExecutionContext = ExecutionContext> = {
   library: ArtifactLibrary;
   /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
@@ -60,7 +60,7 @@ export interface ArtifactResult {
 }
 
 /** Creates and edits live dashboards. Each call returns as soon as the artifact has an id. */
-export interface Dashboard<Context = undefined> {
+export interface Dashboard<Context extends ExecutionContext = ExecutionContext> {
   create(params: CreateDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;
   /** Edits in place. Renderers keep the current version until the edit is ready. */
   edit(params: EditDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;

@@ -1,7 +1,7 @@
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
-import { ToolExecutionError } from "../tools/types";
+import { ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { apiError, isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
 import { createFrontendToken } from "./frontend-token";
@@ -43,7 +43,7 @@ function toolResponse(id: string, title?: string): string {
 }
 
 /** The dashboard behind `openui.defineDashboard`. */
-export function defineDashboard<Context>(
+export function defineDashboard<Context extends ExecutionContext>(
   api: CloudApi,
   options: DashboardOptions<Context>,
 ): Dashboard<Context> {

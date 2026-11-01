@@ -17,6 +17,7 @@ export type { McpConfig, McpOption, McpServers, McpToolClient } from "./tools/mc
 export { ToolExecutionError } from "./tools/types";
 export type {
   DataTool,
+  ExecutionContext,
   Interpreter,
   InterpreterExecuteOptions,
   InterpreterRequest,

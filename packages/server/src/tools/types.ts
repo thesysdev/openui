@@ -13,14 +13,25 @@ export interface ToolDefinition {
  * Runs a data tool on your server. `context` is whatever you pass to
  * `interpreter.execute`, untouched, such as the signed-in user.
  */
-export type ToolHandler<Context = undefined> = (
+/**
+ * Who a call is for: the signed-in user, from your session. Add anything else
+ * your tools need; they get the whole object.
+ */
+export interface ExecutionContext {
+  userId: string;
+}
+
+export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (
   context: Context,
   args: Record<string, unknown>,
   options: { signal: AbortSignal },
 ) => unknown | Promise<unknown>;
 
 /** A data tool: what generation sees, plus the handler that runs it. */
-export type DataTool<Context = undefined> = Omit<ToolDefinition, "name"> & {
+export type DataTool<Context extends ExecutionContext = ExecutionContext> = Omit<
+  ToolDefinition,
+  "name"
+> & {
   execute: ToolHandler<Context>;
 };
 
@@ -40,17 +51,19 @@ export interface InterpreterExecuteOptions {
 }
 
 /** A dashboard's data tools: yours, an MCP server's, or both. */
-export type InterpreterOptions<Context = undefined> =
+export type InterpreterOptions<Context extends ExecutionContext = ExecutionContext> =
   | { tools: Record<string, DataTool<Context>>; mcp?: McpServers<Context> }
   | { tools?: Record<string, DataTool<Context>>; mcp: McpServers<Context> };
 
-export interface Interpreter<Context = undefined> {
-  /** `context` reaches your tools as is, such as the signed-in user. */
+export interface Interpreter<Context extends ExecutionContext = ExecutionContext> {
+  /**
+   * `context` reaches your tools as is. Generated scripts run only for the
+   * user who owns the artifact, `context.userId`.
+   */
   execute(
     request: InterpreterRequest,
-    ...rest: undefined extends Context
-      ? [context?: Context, options?: InterpreterExecuteOptions]
-      : [context: Context, options?: InterpreterExecuteOptions]
+    context: Context,
+    options?: InterpreterExecuteOptions,
   ): Promise<unknown>;
 }
 
