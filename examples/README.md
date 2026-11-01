@@ -71,13 +71,14 @@ through `openui create --example <name>`.
 
 ### Miscellaneous
 
-| Example                                        | Demonstrates                                                         |
-| ---------------------------------------------- | -------------------------------------------------------------------- |
-| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair     |
-| [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
-| [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
-| [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |
-| [Supabase](./miscellaneous/supabase)           | Persisted OpenUI conversations and threads with Supabase             |
+| Example                                                         | Demonstrates                                                                                        |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [Autofix](./miscellaneous/autofix)                              | Direct OpenAI generation with `@openuidev/server` Autofix repair                                    |
+| [Handsontable](./miscellaneous/handsontable)                    | Generated spreadsheet interfaces backed by Handsontable                                             |
+| [HTML artifact](./miscellaneous/html-artifact)                  | Sandboxed HTML artifacts as an OpenUI capability                                                    |
+| [OpenUI x ShadCN Dashboards](./miscellaneous/shadcn-dashboards) | Live dashboards built from shadcn/ui in OpenUI Cloud, with data from npm, GitHub, and an MCP server |
+| [React Email](./miscellaneous/react-email)                      | Generating and previewing emails with the OpenUI React Email library                                |
+| [Supabase](./miscellaneous/supabase)                            | Persisted OpenUI conversations and threads with Supabase                                            |
 
 ## Run and verify
 
