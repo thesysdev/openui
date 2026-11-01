@@ -11,10 +11,10 @@ export const RequiredMark = () => (
 );
 
 /** A field's validation error, under the field. */
-export function FieldError({ error }: { error?: string }) {
+export function FieldError({ error, id }: { error?: string; id?: string }) {
   if (!error) return null;
   return (
-    <span className={clsx(styles.error, names.error)} role="alert">
+    <span id={id} className={clsx(styles.error, names.error)} role="alert">
       <CircleAlert size={14} aria-hidden className={clsx(styles.errorIcon, names.errorIcon)} />
       {error}
     </span>

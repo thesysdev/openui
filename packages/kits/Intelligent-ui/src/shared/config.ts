@@ -11,11 +11,14 @@
  */
 
 export type IntelligentKitEndpoints = {
-  /** Lead photo and coordinates of the Wikipedia article with exactly this title. */
+  /** Lead photo of the Wikipedia article with exactly this title. Answers { photos: [url, ...] }. */
   wiki: (title: string) => string;
-  /** Photo search across Wikipedia and Wikimedia Commons. */
+  /** Photo search across Wikipedia and Wikimedia Commons. Answers { images: [url, ...] }. */
   imageSearch: (query: string) => string;
-  /** Street geometry through stops written as "lat,lng;lat,lng". */
+  /**
+   * Street geometry through stops written as "lng,lat;lng,lat", longitude first.
+   * Answers { points: [[lat, lng], ...] }, latitude first.
+   */
   streetRoute: (coords: string) => string;
 };
 

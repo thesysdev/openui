@@ -1,3 +1,11 @@
+import { glob } from "goober";
+
+/**
+ * Global rules rather than a stylesheet: their selectors reach elements the kit does not class, and
+ * a stylesheet import would stop this package loading in plain Node, where a server reads the
+ * library's spec. Goober also collects these with the rest of the kit's styles for SSR.
+ */
+glob`
 /* Design tokens for the component library. Neutrals (font, text, surfaces,
    borders) follow the OpenUI theme tokens, so components match the Agent
    Interface in light and dark; the dark block only retunes status, chart and
@@ -166,3 +174,4 @@
 /* Weights are set with font-weight (Inter 440 / 560 / 640), so drop the
    "wght" variation the page body sets for react-ui text. */
 [class*="openui-intelligent-"] { font-variation-settings: normal; }
+`;

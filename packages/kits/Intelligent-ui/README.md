@@ -25,9 +25,10 @@ dashboard kits, it draws with react-components where that has the component
 import { library, promptOptions } from "@openuidev/intelligent-kit/lib";
 ```
 
-The components bring their own styles, so there is nothing else to import. A
-bundler is required: the kit imports `theme.css` and the sheets of maplibre-gl and
-KaTeX.
+The components bring their own styles, so there is nothing else to import. Rendering
+needs a bundler, because `Map` and `Math` load the sheets of maplibre-gl and KaTeX on
+first use. Importing doesn't, so a server or a script can read `library.toSpec()` in
+plain Node.
 
 ```tsx
 <Renderer response={program} library={library} />
@@ -53,7 +54,7 @@ src/
                                     kit's own components
   components/<Name>/                the kit's own React components, no openui-lang:
     <Name>.tsx  <name>.styles.ts  index.ts
-  shared/                           what both halves need: theme.css (the tokens),
+  shared/                           what both halves need: theme.ts (the tokens),
                                     tokens.ts, flow.styles.ts (the spacing system),
                                     style.ts (prop values to CSS), scheme.ts, config.ts
   lib/
@@ -83,12 +84,12 @@ that package's flat-styles release ([#124](https://github.com/ankit-thesys/openu
   `openui-intelligent-`, so a plain class in your stylesheet can target and override them.
 - Variants set private `--_openui-intelligent-*` variables that the parts read. States are
   attributes such as `aria-pressed`, `aria-checked`, `data-state` and `data-selected`.
-- Every token has a fallback, so components still render without `theme.css` or a provider.
+- Every token has a fallback, so components still render without a provider.
 - Where the kit changes a react-components element, it uses the kit class plus that
   element's stable class, such as `&.openui-button`: react-components registers its rules
   at first render, so one class would tie and lose.
-- `theme.css` is the one plain stylesheet: its selectors reach elements the kit does not
-  class, such as a `data-theme` on your own element.
+- `shared/theme.ts` is the one set of global rules, through goober's `glob`: its selectors
+  reach elements the kit does not class, such as a `data-theme` on your own element.
 
 A few rules are not flat, because the kit does not render the elements they reach: the
 spacing system and card-sized type (the model's children), a Row's or Grid's children, a
@@ -119,7 +120,14 @@ configureIntelligentKit({
 });
 ```
 
-Any subset may be replaced. Call it once, before rendering.
+Any subset may be replaced. Call it once, before rendering. Each route is a GET that
+answers JSON:
+
+| Endpoint      | Receives                                       | Answers                        |
+| ------------- | ---------------------------------------------- | ------------------------------ |
+| `wiki`        | an article title                               | `{ photos: [url, ...] }`       |
+| `imageSearch` | a search query                                 | `{ images: [url, ...] }`       |
+| `streetRoute` | stops as `lng,lat;lng,lat`, **longitude first** | `{ points: [[lat, lng], ...] }`, **latitude first** |
 
 ## Theming
 
@@ -138,7 +146,7 @@ Light is the default. Switch to dark with either attribute:
 OpenUI theme, either one also sets the `--openui-*` neutrals, at zero weight, so
 react-components' controls go dark too and any theme of yours still wins.
 
-Colours are CSS custom properties in `theme.css` (`--openui-intelligent-*`). Only the base
+Colours are CSS custom properties in `shared/theme.ts` (`--openui-intelligent-*`). Only the base
 neutrals and the status, chart and map colours are set directly; borders,
 surfaces, hover, focus and range tracks are derived from
 `--openui-intelligent-ink` and `--openui-intelligent-canvas` with `color-mix`, so re-pointing those two

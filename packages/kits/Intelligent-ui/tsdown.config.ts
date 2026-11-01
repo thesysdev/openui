@@ -10,9 +10,7 @@ export default defineConfig({
   target: "es2022",
   outDir: "dist",
   clean: true,
-  // The styles are goober; only the tokens are a stylesheet, because their
-  // selectors reach elements the kit does not class. It ships as a file, and
-  // maplibre-gl's and katex's sheets stay imports of those packages.
+  // The styles are goober. maplibre-gl's and katex's sheets stay imports of those
+  // packages, loaded on first use.
   external: [/\.css$/],
-  copy: [{ from: "src/shared/theme.css", to: "dist/shared" }],
 });

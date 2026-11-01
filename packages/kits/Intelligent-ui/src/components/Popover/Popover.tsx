@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "@openuidev/react-components";
 import clsx from "clsx";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -33,6 +34,8 @@ export function Popover({ trigger, children }: PopoverProps) {
   const id = useId();
   const triggerId = `${id}-trigger`;
   const panelId = `${id}-panel`;
+  // The panel is portaled out of any nested ThemeProvider, so it carries that provider's theme with it.
+  const { portalThemeClassName } = useTheme();
 
   // An icon-only trigger has no text to name it (or the panel it labels).
   const [unnamed, setUnnamed] = useState(false);
@@ -68,7 +71,11 @@ export function Popover({ trigger, children }: PopoverProps) {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") close(true);
     };
-    const onScroll = () => close(!!panel.current?.contains(document.activeElement));
+    const onScroll = (event: Event) => {
+      // Capturing sees every scroll on the page, including a table or carousel inside the panel.
+      if (event.target instanceof Node && panel.current?.contains(event.target)) return;
+      close(!!panel.current?.contains(document.activeElement));
+    };
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);
     window.addEventListener("scroll", onScroll, true);
@@ -102,7 +109,7 @@ export function Popover({ trigger, children }: PopoverProps) {
             role="dialog"
             aria-labelledby={triggerId}
             tabIndex={-1}
-            className={clsx(styles.panel, names.panel)}
+            className={clsx(styles.panel, names.panel, portalThemeClassName)}
             // Measured first (hidden), then placed: see the layout effect above.
             style={at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: "hidden" }}
             data-theme={button.current?.closest("[data-theme]")?.getAttribute("data-theme") ?? undefined}

@@ -1,6 +1,5 @@
 "use client";
 
-import "maplibre-gl/dist/maplibre-gl.css";
 import clsx from "clsx";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
@@ -53,6 +52,7 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
   const userMoved = useRef(false);
   const expandedNow = useRef(false);
   const select = useRef<(label: string) => void>(() => {});
+  const fellBack = useRef(false);
   const [lib, setLib] = useState<MapLibre | null>(null);
   const [ready, setReady] = useState(false);
   const [framedKey, setFramedKey] = useState("");
@@ -69,9 +69,12 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
   const placeSignature = JSON.stringify(places.map((p) => [p.key, p.lat, p.lng, p.icon, p.category, p.order]));
   const routingKey = visible.map((p) => `${p.lng},${p.lat}`).join(";");
   const streetPoints = useStreetRoute(routingKey, !!route);
-  const routeKind: RouteKind = !route ? "none" : streetPoints?.length ? "street" : streetPoints === null ? "overview" : "loading";
+  // One place has no route to wait for, so it never reports loading.
+  const routeKind: RouteKind = !route || !routingKey.includes(";") ? "none" : streetPoints?.length ? "street" : streetPoints === null ? "overview" : "loading";
   select.current = (label) => onSelect?.(label);
   useDialog(container, expanded, () => setExpanded(false));
+  // The theme the basemap was last given: the map may be created after the theme is first read.
+  const styledDark = useRef(dark);
 
   useEffect(() => {
     let active = true;
@@ -81,6 +84,7 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
 
   useEffect(() => {
     if (!lib || !surface.current) return;
+    styledDark.current = dark;
     // Zoom levels are one lower than Leaflet's: MapLibre uses 512px tiles.
     const instance = new lib.Map({
       container: surface.current, style: vectorStyle(dark), center: [0, 20], zoom: 1, minZoom: 0,
@@ -91,7 +95,6 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     instance.touchZoomRotate.disableRotation();
     instance.addControl(new lib.AttributionControl({ compact: false }), "bottom-left");
     instance.addControl(new lib.NavigationControl({ showCompass: false }), "bottom-right");
-    let fellBack = false;
     // Re-adds the route line whenever a style (vector, dark or fallback) finishes loading.
     instance.on("style.load", () => {
       const ink = getComputedStyle(container.current ?? document.body).getPropertyValue("--openui-intelligent-ink").trim();
@@ -101,13 +104,13 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     });
     // Fall back to raster tiles if the vector style or its tile source fails.
     instance.on("error", (event) => {
-      if (fellBack) { setMapError(true); return; }
+      if (fellBack.current) { setMapError(true); return; }
       const source = (event as { sourceId?: string }).sourceId;
       if (source && source !== "places") return;
-      fellBack = true;
+      fellBack.current = true;
       instance.setStyle(rasterStyle(getComputedStyle(surface.current ?? document.body).colorScheme === "dark"));
     });
-    instance.on("sourcedata", (event) => { if (fellBack && event.isSourceLoaded) setMapError(false); });
+    instance.on("sourcedata", (event) => { if (fellBack.current && event.isSourceLoaded) setMapError(false); });
     instance.on("dragstart", () => { userMoved.current = true; });
     map.current = instance;
     const markerEntries = markers.current;
@@ -116,17 +119,16 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     observer.observe(surface.current);
     return () => {
       observer.disconnect(); markerEntries.forEach((entry) => entry.marker.remove()); markerEntries.clear();
-      instance.remove(); map.current = null; fitSignature.current = ""; lineDrawn.current = false; anchored.current = false; setReady(false);
+      instance.remove(); map.current = null; fitSignature.current = ""; lineDrawn.current = false; anchored.current = false; fellBack.current = false; setReady(false);
     };
     // The theme is applied by the effect below without rebuilding the map.
   }, [lib]);
 
-  // Theme changes swap the basemap style in place; markers are DOM and stay.
-  const styledDark = useRef(dark);
+  // Theme changes swap the basemap style in place, staying on raster tiles after a fallback; markers are DOM and stay.
   useEffect(() => {
     if (!map.current || styledDark.current === dark) return;
     styledDark.current = dark;
-    map.current.setStyle(vectorStyle(dark), { diff: false });
+    map.current.setStyle(fellBack.current ? rasterStyle(dark) : vectorStyle(dark), { diff: false });
   }, [dark]);
 
   useEffect(() => { expandedNow.current = expanded; }, [expanded]);

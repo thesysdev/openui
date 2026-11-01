@@ -2,9 +2,12 @@ import type { StyleSpecification } from "maplibre-gl";
 
 export type MapLibre = typeof import("maplibre-gl");
 
-/** Loads MapLibre on first use; Next emits its worker as a versioned same-origin asset. */
+/**
+ * Loads MapLibre and its stylesheet on first use; Next emits its worker as a versioned same-origin
+ * asset. The stylesheet isn't imported at the top because plain Node can't load one.
+ */
 export async function loadMapLibre(): Promise<MapLibre> {
-  const lib = await import("maplibre-gl");
+  const [lib] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
   // A bundler rewrites `new URL(..., import.meta.url)` into a real same-origin
   // asset URL, which is the case this is written for. It is not always that:
   // in the CJS build import.meta.url becomes pathToFileURL(__filename), so this

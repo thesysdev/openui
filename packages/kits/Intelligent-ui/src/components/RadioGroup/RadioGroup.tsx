@@ -38,11 +38,18 @@ export interface RadioGroupProps {
 export function RadioGroup({ options, value, onChange, variant: variantProp, label, required, error }: RadioGroupProps) {
   const name = useId();
   const variant = variantProp ?? "list";
+  const errorId = `${name}-error`;
+  // Every rendering is one radiogroup, so a screen reader hears the same state from all three.
+  const state = {
+    "aria-required": required || undefined,
+    "aria-invalid": error ? true : undefined,
+    "aria-describedby": error ? errorId : undefined,
+  };
   let body;
   if (variant === "pills") {
     // The kit's pills, unchanged.
     body = (
-      <div className={clsx(styles.track, names.track)}>
+      <div role="radiogroup" className={clsx(styles.track, names.track)} {...state}>
         {options.map((o, i) => (
           <label key={`${o.value}-${i}`} className={clsx(styles.option, names.option)} data-selected={o.value === value || undefined}>
             <input type="radio" className={clsx(styles.input, names.input)} name={name} checked={o.value === value} onChange={() => onChange(o.value)} />
@@ -61,11 +68,12 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
         selected={value ? [value] : []}
         type="single"
         onToggle={onChange}
+        {...state}
       />
     );
   } else {
     body = (
-      <RCRadioGroup value={value} onValueChange={onChange} aria-required={required || undefined} aria-invalid={error ? true : undefined}>
+      <RCRadioGroup value={value} onValueChange={onChange} {...state}>
         {options.map((o, i) => (
           <RadioItem key={`${o.value}-${i}`} value={o.value} label={o.label} description={o.description} />
         ))}
@@ -81,7 +89,7 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
         </legend>
       ) : null}
       {body}
-      <FieldError error={error} />
+      <FieldError error={error} id={errorId} />
     </fieldset>
   );
 }

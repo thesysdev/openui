@@ -37,7 +37,7 @@
     }
   },
   "sideEffects": [
-    "**/*.css"
+    "**/shared/theme.*"
   ],
   "files": [
     "dist",
