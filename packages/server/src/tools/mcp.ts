@@ -57,6 +57,19 @@ function invalidTools(message: string): never {
   throw new ToolExecutionError(message, "invalid_tools");
 }
 
+/**
+ * A dashboard filter nobody has picked yet arrives as `""` or `null`. MCP
+ * servers validate strictly, so leave those out of optional arguments, as if
+ * they weren't passed. A required one still goes as is, for the server to judge.
+ */
+function setArguments(args: Record<string, unknown>, required: Set<string>) {
+  return Object.fromEntries(
+    Object.entries(args).filter(
+      ([key, value]) => required.has(key) || (value !== "" && value !== null),
+    ),
+  );
+}
+
 /** Generation needs tool names like `get_sales`; MCP names often have `-` or `.`. */
 const toolKey = (name: string) => name.replace(/[^A-Za-z0-9_]/g, "_").replace(/^(?=\d)/, "_");
 
@@ -127,6 +140,7 @@ export function mcpToolLoader<Context extends ExecutionContext>(
 
     const tools: Record<string, DataTool<Context>> = {};
     for (const tool of included) {
+      const required = new Set(tool.inputSchema.required ?? []);
       const key = toolKey(tool.name);
       if (Object.hasOwn(tools, key)) invalidTools(`Two MCP tools map to the name ${key}`);
       tools[key] = {
@@ -135,9 +149,11 @@ export function mcpToolLoader<Context extends ExecutionContext>(
         ...(outputs && Object.hasOwn(outputs, tool.name) && { output: outputs[tool.name] }),
         execute: async (context, args, { signal }) => {
           const mcp = connect ? await connect(context) : client;
-          const result = await mcp.callTool({ name: tool.name, arguments: args }, undefined, {
-            signal,
-          });
+          const result = await mcp.callTool(
+            { name: tool.name, arguments: setArguments(args, required) },
+            undefined,
+            { signal },
+          );
           // MCP reports a failed call in its result; throw so it surfaces as a tool error.
           if (result.isError) {
             throw new ToolExecutionError(
