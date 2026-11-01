@@ -55,6 +55,6 @@ public struct OpenUIRenderer: View {
             }
         }
         .environmentObject(state)
-        .openUIFont(theme.typography.body).foregroundStyle(theme.foreground).tint(theme.accent)
+        .openUIFont(theme.textBodyDefault).foregroundStyle(theme.textNeutralPrimary).tint(theme.interactiveAccentDefault)
     }
 }

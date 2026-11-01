@@ -6,27 +6,27 @@ struct NativeBadgeColors {
   let foreground: Color
   let background: Color
 
-  init(variant: String?, theme: OpenUITheme) {
+  init(variant: String?, theme: OpenUIThemeValues) {
     switch variant {
     case "inverted":
-      foreground = theme.invertedForeground
+      foreground = theme.textAccentPrimary ?? NativeControlPalette.adaptive(light: 0xF5F5F5, dark: 0x0A0A0A)
       background = theme.invertedBackground
     case "info":
-      foreground = theme.info
-      background = theme.info.opacity(0.12)
+      foreground = theme.textInfoPrimary
+      background = theme.infoBackground
     case "success":
-      foreground = theme.success
-      background = theme.success.opacity(0.12)
+      foreground = theme.textSuccessPrimary
+      background = theme.successBackground
     case "warning":
-      foreground = theme.warning
-      background = theme.warning.opacity(0.12)
+      foreground = theme.textAlertPrimary
+      background = theme.alertBackground
     case "danger":
-      foreground = theme.error
-      background = theme.error.opacity(0.12)
+      foreground = theme.textDangerPrimary
+      background = theme.dangerBackground
     default:
       // Upstream IconText normalizes filled/soft to neutral.
-      foreground = theme.foreground
-      background = theme.surface
+      foreground = theme.textNeutralPrimary
+      background = theme.sunk
     }
   }
 }
@@ -35,11 +35,11 @@ struct NativeTagPill<Icon: View>: View {
   let text: String
   let size: String?
   let variant: String?
-  let theme: OpenUITheme
+  let theme: OpenUIThemeValues
   @ViewBuilder var icon: Icon
   @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
 
-  private var font: OpenUIFont { theme.typography.label }
+  private var font: OpenUIFont { theme.textLabelSm }
   private var horizontalInset: CGFloat { theme.spacing(size == "sm" ? "xs" : size == "lg" ? "m" : "s") }
   private var verticalInset: CGFloat { theme.spacing(size == "sm" ? "2xs" : size == "lg" ? "s" : "xs") }
   private var colors: NativeBadgeColors { NativeBadgeColors(variant: variant, theme: theme) }
@@ -49,7 +49,7 @@ struct NativeTagPill<Icon: View>: View {
       icon.environment(\.openUIIconSize, font.size)
       Text(text).fixedSize(horizontal: false, vertical: true)
     }
-    .openUIFont(font.weight(theme.typography.label.weight))
+    .openUIFont(font.weight(theme.textLabelSm.weight))
     .padding(.horizontal, horizontalInset * scale)
     .padding(.vertical, verticalInset * scale)
     .foregroundStyle(colors.foreground)

@@ -83,15 +83,15 @@ struct NativeTabsView: View {
                         Button { nativeSelection.wrappedValue = panel.id } label: {
                             NativeBoundedLabelLayout(maximumWidth: width > 0 ? min(width, 232) : 232) {
                               Text(panel.label)
-                                .openUIFont(context.theme.typography.actionRegular.weight(active?.id == panel.id ? .medium : .regular))
-                                .foregroundStyle(active?.id == panel.id ? context.theme.foreground : context.theme.secondary)
+                                .openUIFont(context.theme.textLabelDefaultHeavy.weight(active?.id == panel.id ? .medium : .regular))
+                                .foregroundStyle(active?.id == panel.id ? context.theme.textNeutralPrimary : context.theme.textNeutralSecondary)
                                 .lineLimit(textSize.isAccessibilitySize ? nil : 1)
                                 .truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
                             }
                                 .padding(.vertical, context.theme.spacing("s"))
                                 .openUIControlTarget()
                                 .overlay(alignment: .bottom) {
-                                    Rectangle().fill(active?.id == panel.id ? context.theme.foreground : .clear)
+                                    Rectangle().fill(active?.id == panel.id ? context.theme.textNeutralPrimary : .clear)
                                         .frame(height: 1.5).allowsHitTesting(false)
                                 }
                         }
@@ -101,7 +101,7 @@ struct NativeTabsView: View {
                         .id(panel.id)
                     }
                 }.overlay(alignment: .bottom) {
-                    Rectangle().fill(context.theme.border).frame(height: context.theme.cardBorderWidth)
+                    Rectangle().fill(context.theme.borderDefault).frame(height: context.presentation.borderWidth)
                         .allowsHitTesting(false)
                 }
             }

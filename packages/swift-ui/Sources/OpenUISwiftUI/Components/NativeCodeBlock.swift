@@ -62,7 +62,7 @@ struct NativeCodeBlock: View {
 struct NativeCodeBlockContent: View {
   let code: OpenUIString
   let language: OpenUIString
-  let theme: OpenUITheme
+  let theme: OpenUIThemeValues
   @State private var tokens: [NativeCodeToken] = []
   @State private var highlighted: Source?
   @State private var copied = false
@@ -75,11 +75,11 @@ struct NativeCodeBlockContent: View {
   var body: some View {
     VStack(alignment: .leading, spacing: theme.spacing("2xs")) {
       HStack(spacing: theme.spacing("m")) {
-        Text(source.language.displayString).openUIFont(theme.typography.caption).foregroundStyle(theme.secondary)
+        Text(source.language.displayString).openUIFont(theme.textBodyXs).foregroundStyle(theme.textNeutralSecondary)
         Spacer(minLength: 0)
         Button(action: copy) {
           Image(systemName: copied ? "checkmark" : "doc.on.doc")
-            .openUIFont(theme.typography.detail)
+            .openUIFont(theme.textBodySm)
             .frame(width: 44, height: 44).contentShape(Rectangle())
         }.buttonStyle(.plain)
           .accessibilityLabel(Text(copied ? "Copied to clipboard" : "Copy code", bundle: NativeControlResources.bundle))
@@ -87,14 +87,14 @@ struct NativeCodeBlockContent: View {
           .accessibilityIdentifier("openui.code.copy")
       }
       ScrollView(.horizontal) {
-        codeText.openUIFont(theme.typography.code).textSelection(.enabled)
+        codeText.openUIFont(theme.textCodeDefault).textSelection(.enabled)
           .fixedSize(horizontal: true, vertical: false)
           .accessibilityIdentifier("openui.code.content")
       }
     }
-    .padding(.horizontal, theme.cardPadding).padding(.bottom, theme.cardPadding)
+    .padding(.horizontal, theme.spaceM).padding(.bottom, theme.spaceM)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(theme.surface, in: RoundedRectangle(cornerRadius: theme.controlCornerRadius))
+    .background(theme.sunk, in: RoundedRectangle(cornerRadius: theme.radiusL))
     .accessibilityElement(children: .contain).accessibilityIdentifier("openui.code-block")
     .task(id: source) {
       let request = source
@@ -116,7 +116,7 @@ struct NativeCodeBlockContent: View {
   }
 
   private var codeText: Text {
-    guard highlighted == source else { return Text(verbatim: source.code.displayString).foregroundColor(theme.foreground) }
+    guard highlighted == source else { return Text(verbatim: source.code.displayString).foregroundColor(theme.textNeutralPrimary) }
     return tokens.reduce(Text("")) { result, token in
       var text = Text(verbatim: token.text).foregroundColor(color(for: token.types))
       if token.types.contains("bold") || token.types.contains("important") { text = text.bold() }
@@ -133,11 +133,11 @@ struct NativeCodeBlockContent: View {
       case "string", "char", "attr-value", "inserted": return NativeControlPalette.adaptive(light: 0xA14C35, dark: 0xDCA189)
       case "number", "boolean", "constant": return NativeControlPalette.adaptive(light: 0x25735C, dark: 0xA6C5A4)
       case "function", "class-name", "builtin": return NativeControlPalette.adaptive(light: 0x815A22, dark: 0xD5C28C)
-      case "operator", "punctuation": return theme.secondary
+      case "operator", "punctuation": return theme.textNeutralSecondary
       default: continue
       }
     }
-    return theme.foreground
+    return theme.textNeutralPrimary
   }
 
   private func copy() {

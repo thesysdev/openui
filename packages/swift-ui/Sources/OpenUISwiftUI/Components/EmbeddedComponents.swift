@@ -196,10 +196,10 @@ struct NativeEmbeddedContent: View {
     private func fallback(retry: Bool) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: context.theme.spacing("s")) {
             if let description = context.string(svg ? "alt" : "title"), !description.isEmpty {
-                Text(description).openUIFont(context.theme.typography.caption)
+                Text(description).openUIFont(context.theme.textBodyXs)
             } else {
                 Text(svg ? "Illustration unavailable" : "Content unavailable", bundle: NativeControlResources.bundle)
-                    .openUIFont(context.theme.typography.caption)
+                    .openUIFont(context.theme.textBodyXs)
             }
             Spacer(minLength: 0)
             if retry {
@@ -207,10 +207,10 @@ struct NativeEmbeddedContent: View {
                     guard context.canActivate else { return }
                     failed = false; attempt += 1
                 } label: {
-                    Text("Reload", bundle: NativeControlResources.bundle).openUIFont(context.theme.typography.actionCompact).openUIControlTarget()
+                    Text("Reload", bundle: NativeControlResources.bundle).openUIFont(context.theme.textLabelSmHeavy).openUIControlTarget()
                 }.buttonStyle(.plain).disabled(!context.canInteract)
             }
-        }.foregroundStyle(context.theme.secondary)
+        }.foregroundStyle(context.theme.textNeutralSecondary)
           .accessibilityIdentifier(svg ? "openui.svg.fallback" : "openui.web.fallback")
     }
 }

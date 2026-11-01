@@ -25,12 +25,12 @@ struct OpenUINativeFormControl: View {
     var body: some View {
         VStack(alignment: .leading, spacing: context.theme.spacing("s")) {
             Text(context.string("label") ?? "")
-                .openUIFont(context.theme.typography.body)
-                .foregroundStyle(context.theme.foreground)
+                .openUIFont(context.theme.textBodyDefault)
+                .foregroundStyle(context.theme.textNeutralPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             context.slot("input")
             if let hint = context.string("hint"), !hint.isEmpty {
-                Text(hint).openUIFont(context.theme.typography.detail).foregroundStyle(context.theme.secondary)
+                Text(hint).openUIFont(context.theme.textBodySm).foregroundStyle(context.theme.textNeutralSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

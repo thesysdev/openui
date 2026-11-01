@@ -20,7 +20,7 @@ final class CardTextClippingTests: XCTestCase {
         .padding(.horizontal, horizontalInset)
         .frame(width: 320, alignment: .leading)
       let view = Group {
-        if oldMask { content.clipShape(RoundedRectangle(cornerRadius: OpenUITheme().cornerRadius, style: .continuous)) }
+        if oldMask { content.clipShape(RoundedRectangle(cornerRadius: OpenUIThemeValues().radius3xl, style: .continuous)) }
         else { content }
       }
       .padding(8).background(Color.white)
@@ -51,7 +51,7 @@ final class CardTextClippingTests: XCTestCase {
       XCTAssertEqual(card.0, reference.0)
       XCTAssertEqual(card.1, reference.1)
       XCTAssertEqual(card.2, reference.2, "Default Card must retain all visible glyph strokes: \(title)")
-      let insetReference = try bitmap("root=Stack([\(header)])", horizontalInset: OpenUITheme().spacing("l"))
+      let insetReference = try bitmap("root=Stack([\(header)])", horizontalInset: OpenUIThemeValues().spacing("l"))
       let clear = try bitmap("root=Card([\(header)],\"clear\")")
       XCTAssertEqual(clear.0, insetReference.0)
       XCTAssertEqual(clear.1, insetReference.1)

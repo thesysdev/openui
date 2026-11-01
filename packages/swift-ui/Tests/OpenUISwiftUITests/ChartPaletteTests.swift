@@ -55,11 +55,14 @@ final class ChartPaletteTests: XCTestCase {
   }
 
   func testExplicitHostOverridesAndEmptyFallbackRemainSupported() {
-    var theme = OpenUITheme()
+    var theme = OpenUIThemeValues()
     XCTAssertEqual(theme.chartColors(forSeriesCount: 12).count, 12)
-    theme.dataColors = [.red, .blue]
+    theme.defaultChartPalette = [.red, .blue]
     XCTAssertEqual(theme.chartColors(forSeriesCount: 12), [.red, .blue])
-    theme.dataColors = []
-    XCTAssertEqual(theme.chartColors(forSeriesCount: 12), [theme.accent])
+    theme.barChartPalette = [.green]
+    XCTAssertEqual(theme.chartColors(forSeriesCount: 12, chartType: "BarChart"), [.green])
+    XCTAssertEqual(theme.chartColors(forSeriesCount: 12, chartType: "LineChart"), [.red, .blue])
+    theme.defaultChartPalette = []
+    XCTAssertEqual(theme.chartColors(forSeriesCount: 12), [theme.interactiveAccentDefault])
   }
 }

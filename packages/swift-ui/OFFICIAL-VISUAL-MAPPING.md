@@ -29,26 +29,26 @@ mapping, not a claim that a CSS pixel equals a physical display pixel.
 
 | Role | Reference | Native default | Owner |
 | --- | --- | --- | --- |
-| Body / supporting / caption | 16 / 14 / 12 | 16 / 14 / 12 pt | OpenUITypography |
+| Body / supporting / caption | 16 / 14 / 12 | 16 / 14 / 12 pt | OpenUIThemeValues text roles |
 | Card header / inline header | heading-small 18 / body-heavy 16 | 18 / 16 pt | NativeHeading |
 | Body large and large-heavy | both 18, weight differs | both 18, weight differs | NativeRichTextStyle |
-| Text xs / sm / md / lg | 14 / 16 / 16 / 18 | 14 / 16 / 16 / 18 pt | OpenUITypography.inline |
+| Text xs / sm / md / lg | 14 / 16 / 16 / 18 | 14 / 16 / 16 / 18 pt | OpenUIThemeValues.inlineFont |
 | Text subtext xs,sm / md,lg | 14 / 16 | 14 / 16 pt | NativeInlineText |
 | Tag text | label-small 14 at all densities | 14 pt, padding changes | NativeTagPill |
 | Action small / regular | label-small 14 / default 16 | 14 / 16 pt | NativeActionButtonStyle |
 | MetricIndicator value | number-heavy 16 | 16 pt, tabular digits | NativeMetric |
 | Code | code-default 14 | 14 pt, native monospace | NativeCodeBlockContent |
-| Gap xs / s / m / l / xl / 2xl | 6 / 8 / 12 / 18 / 24 / 36 | same logical values | OpenUITheme.spacing |
+| Gap xs / s / m / l / xl / 2xl | 6 / 8 / 12 / 18 / 24 / 36 | same logical values | OpenUIThemeValues.spacing |
 | Neutral ink | neutral-1000 light / neutral-50 dark | #030303 / #FAFAFA | OpenUITheme |
 | Secondary ink | primary at 60% | same opacity | OpenUITheme |
 | Recessed / subtle surface | overlay at 4% / 2% | same opacity | OpenUITheme |
 | Default / interactive border | overlay at 6% / 12% | same opacity | OpenUITheme |
-| Accent | official brand is configurable; default blue-600 | native neutral brand / host override | OpenUITheme.accent |
-| Surface border | 1 | 1 pt | OpenUITheme.cardBorderWidth |
+| Accent | official brand and control-state colors are configurable | native neutral brand / host override | OpenUITheme.interactiveAccentDefault |
+| Surface border | 1 | 1 pt | OpenUIPresentation.borderWidth |
 | Composite padding / radius | 12 / 16 | 12 / 16 pt | NativeCardItem |
 | Overview, Snippet padding / radius | 10 / 14 | 10 / 14 pt | NativeCardItem |
 | Context padding / radius | 12 / 12 | 12 / 12 pt | NativeCardItem |
-| Media corner | radius-m 8 | 8 pt | OpenUITheme.mediaCornerRadius |
+| Media corner | radius-m 8 | 8 pt | OpenUITheme.radiusM |
 
 Neutral and semantic swatches are converted from the pinned OKLCH source to
 8-bit sRGB. Semantic tint backgrounds follow the host's semantic color at a

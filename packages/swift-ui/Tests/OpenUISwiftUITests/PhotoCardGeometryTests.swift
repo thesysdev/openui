@@ -31,13 +31,13 @@ final class PhotoCardGeometryTests: XCTestCase {
     }
   }
 
-  @MainActor func testDefaultMediaUsesTheExistingThemeCoverRatioInEveryResourceState() {
+  @MainActor func testNativePresentationCoverRatioAppliesInEveryResourceState() {
     _ = NSApplication.shared
-    var theme = OpenUITheme(); theme.coverAspectRatio = 2
+    var presentation = OpenUIPresentation(); presentation.coverAspectRatio = 2
     for mode in 0..<3 {
       let view = NativeRemoteImage(src: mode == 0 ? nil : "photo.jpg",
         cachedImage: mode == 2 ? Image(systemName: "photo") : nil)
-        .openUITheme(theme).frame(width: 300)
+        .openUIPresentation(presentation).frame(width: 300)
       XCTAssertEqual(NSHostingView(rootView: view).fittingSize.height, 150, accuracy: 1,
         "The default, failure and retained-image paths use the same existing theme ratio")
     }

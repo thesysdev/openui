@@ -25,6 +25,8 @@ extension EnvironmentValues {
 /// Page height is intrinsic, including updates inside a mounted page; it is not
 /// fed back asynchronously through a horizontal ScrollView's fixed frame.
 struct NativePager<ID: Hashable, Content: View>: View {
+    @Environment(\.openUIPresentation) private var nativePresentation
+
   let ids: [ID]
   @Binding var selection: ID
   let enabled: Bool
@@ -51,11 +53,11 @@ struct NativePager<ID: Hashable, Content: View>: View {
   @Environment(\.openUITheme) private var theme
   private var index: Int { ids.firstIndex(of: selection) ?? 0 }
   private var isCarousel: Bool { maximumPageWidth != nil }
-  private var fallbackWidth: CGFloat { maximumPageWidth ?? theme.minimumCardWidth }
+  private var fallbackWidth: CGFloat { maximumPageWidth ?? nativePresentation.minimumCardWidth }
   private var geometry: NativePagerGeometry {
     NativePagerGeometry(
       width: max(1, width), count: ids.count, selected: index,
-      maximumPageWidth: maximumPageWidth, minimumPageWidth: theme.minimumCardWidth,
+      maximumPageWidth: maximumPageWidth, minimumPageWidth: nativePresentation.minimumCardWidth,
       peek: trailingPeek, spacing: pageSpacing)
   }
 
@@ -82,8 +84,8 @@ struct NativePager<ID: Hashable, Content: View>: View {
       reduceMotion
         ? nil
         : .interactiveSpring(
-          response: theme.motion.pagingResponse,
-          dampingFraction: theme.motion.pagingDamping), value: selection
+          response: nativePresentation.motion.pagingResponse,
+          dampingFraction: nativePresentation.motion.pagingDamping), value: selection
     )
     .onChange(of: ids) { available in
       if !available.contains(selection), let first = available.first { selection = first }
@@ -109,7 +111,7 @@ struct NativePager<ID: Hashable, Content: View>: View {
   private var strip: some View {
     NativePagerLayout(
       selected: index, maximumPageWidth: maximumPageWidth,
-      minimumPageWidth: theme.minimumCardWidth, peek: trailingPeek, spacing: pageSpacing,
+      minimumPageWidth: nativePresentation.minimumCardWidth, peek: trailingPeek, spacing: pageSpacing,
       fallbackWidth: fallbackWidth, translation: translation, rightToLeft: direction == .rightToLeft,
       grid: grid
     ) {

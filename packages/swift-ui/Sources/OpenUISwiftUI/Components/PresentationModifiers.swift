@@ -9,19 +9,20 @@ extension EnvironmentValues {
 }
 private struct OpenUIFontModifier: ViewModifier {
     let font: OpenUIFont
-    @Environment(\.openUITheme) private var theme
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
     func body(content: Content) -> some View {
-        content.font(theme.typography.resolve(font).nativeFont(scale: scale))
-            .lineSpacing(font.size * (font.lineSpacing ?? theme.typography.lineSpacing) * scale)
+        content.font(font.nativeFont(scale: scale))
+            .lineSpacing(font.additionalLineSpacing(scale: scale))
+            .tracking(font.letterSpacing * font.size * scale)
             .environment(\.openUIInheritedFont, font)
     }
 }
 private struct OpenUIControlTarget: ViewModifier {
+    @Environment(\.openUIPresentation) private var nativePresentation
+
     let alignment: Alignment
-    @Environment(\.openUITheme) private var theme
     func body(content: Content) -> some View {
-        content.frame(minWidth: theme.minimumControlTargetSize, minHeight: theme.minimumControlTargetSize,
+        content.frame(minWidth: nativePresentation.minimumControlTargetSize, minHeight: nativePresentation.minimumControlTargetSize,
                       alignment: alignment).contentShape(Rectangle())
     }
 }
@@ -35,21 +36,23 @@ extension View {
 /// A surface draws its own shape but never changes content layout or semantics.
 /// Plain/sunken surfaces opt out of both border and elevation.
 struct NativeCardSurface: ViewModifier {
-    let theme: OpenUITheme
+    @Environment(\.openUIPresentation) private var nativePresentation
+
+    let theme: OpenUIThemeValues
     var fill: Color? = nil
     var bordered = true
 
     func body(content: Content) -> some View {
         content
             .background {
-                RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
-                    .fill(fill ?? theme.controlSurface)
-                    .shadow(color: .black.opacity(bordered ? theme.cardShadowOpacity : 0),
-                            radius: theme.cardShadowRadius, y: theme.cardShadowY)
+                RoundedRectangle(cornerRadius: theme.radius3xl, style: .continuous)
+                    .fill(fill ?? theme.foreground)
+                    .shadow(color: .black.opacity(bordered ? theme.shadowM.opacity : 0),
+                            radius: theme.shadowM.radius, x: theme.shadowM.x, y: theme.shadowM.y)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
-                    .strokeBorder(bordered ? theme.border : .clear, lineWidth: theme.cardBorderWidth)
+                RoundedRectangle(cornerRadius: theme.radius3xl, style: .continuous)
+                    .strokeBorder(bordered ? theme.borderDefault : .clear, lineWidth: nativePresentation.borderWidth)
                     .allowsHitTesting(false)
             }
     }
@@ -58,20 +61,22 @@ struct NativeCardSurface: ViewModifier {
 /// Floating previews share one surface treatment; a compact tooltip keeps the
 /// content-card radius while a place preview uses the larger overlay radius.
 struct NativeOverlaySurface: ViewModifier {
-    let theme: OpenUITheme
+    @Environment(\.openUIPresentation) private var nativePresentation
+
+    let theme: OpenUIThemeValues
     var material = false
     var compact = false
     var materialStyle: Material = .thin
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: compact ? theme.cornerRadius : theme.overlayCornerRadius, style: .continuous)
+        RoundedRectangle(cornerRadius: compact ? theme.radius3xl : theme.radius5xl, style: .continuous)
     }
     func body(content: Content) -> some View {
         content.background {
             if material && !reduceTransparency { shape.fill(materialStyle) }
-            else { shape.fill(theme.controlSurface) }
+            else { shape.fill(theme.popoverBackground) }
         }
-        .overlay(shape.strokeBorder(theme.border.opacity(0.45), lineWidth: theme.cardBorderWidth))
-        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+        .overlay(shape.strokeBorder(theme.borderDefault.opacity(0.45), lineWidth: nativePresentation.borderWidth))
+        .shadow(color: .black.opacity(theme.shadowL.opacity), radius: theme.shadowL.radius, x: theme.shadowL.x, y: theme.shadowL.y)
     }
 }

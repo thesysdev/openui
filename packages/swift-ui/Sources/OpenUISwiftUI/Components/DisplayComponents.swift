@@ -7,9 +7,9 @@ struct NativeSeparator: View {
     @ViewBuilder var body: some View {
         Group {
             if context.string("orientation") == "vertical" {
-                Rectangle().fill(context.theme.border).frame(width: 1).frame(minHeight: 18)
+                Rectangle().fill(context.theme.borderDefault).frame(width: 1).frame(minHeight: 18)
             } else {
-                Rectangle().fill(context.theme.border).frame(height: context.theme.cardBorderWidth)
+                Rectangle().fill(context.theme.borderDefault).frame(height: context.presentation.borderWidth)
             }
         }.accessibilityHidden(context.flag("decorative") ?? true)
     }
@@ -39,12 +39,12 @@ struct NativeMetric: View {
     }
     private var value: some View {
         NativeMetricValue(text: context.string("value") ?? "",
-            font: inline ? context.theme.typography.inlineMetric : context.theme.typography.metric,
+            font: inline ? context.theme.textNumbersDefaultHeavy : context.theme.textNumbersDefaultHeavy,
             theme: context.theme)
     }
     @ViewBuilder private var details: some View {
         if let previous = context.string("previousValue") {
-            Text(previous).strikethrough().openUIFont(context.theme.typography.caption).foregroundStyle(context.theme.secondary)
+            Text(previous).strikethrough().openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textNeutralSecondary)
         }
         if case .object(let trend) = context.value("trend"), case .number(let number) = trend["value"],
             number.isFinite,
@@ -54,10 +54,10 @@ struct NativeMetric: View {
                 number.formatted(.number.precision(.fractionLength(0...2))) + "%",
                 systemImage: direction == "down" ? "arrow.down" : "arrow.up"
             )
-            .openUIFont(context.theme.typography.caption).foregroundStyle(context.theme.secondary)
+            .openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textNeutralSecondary)
         }
         if let subtext = context.string("subtext") {
-            Text(subtext).openUIFont(context.theme.typography.detail).foregroundStyle(context.theme.secondary)
+            Text(subtext).openUIFont(context.theme.textBodySm).foregroundStyle(context.theme.textNeutralSecondary)
         }
     }
 }
@@ -67,7 +67,7 @@ struct NativeMetric: View {
 struct NativeMetricValue: View {
     let text: String
     let font: OpenUIFont
-    let theme: OpenUITheme
+    let theme: OpenUIThemeValues
     @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
     private var label: some View { Text(text).openUIFont(font).monospacedDigit().fixedSize() }
     var body: some View {
@@ -76,7 +76,7 @@ struct NativeMetricValue: View {
         ViewThatFits(in: .horizontal) {
             label
             ScrollView(.horizontal) { label }
-                .frame(height: font.size * (1.2 + (font.lineSpacing ?? theme.typography.lineSpacing)) * scale)
+                .frame(height: (font.size * 1.2 + font.additionalLineSpacing()) * scale)
         }
         .accessibilityElement(children: .ignore).accessibilityLabel(text)
     }
@@ -123,13 +123,13 @@ struct NativeAccordion: View {
                         context.render(PropValue.value(item, "content") ?? .null)
                             .padding(.top, context.theme.spacing("m"))
                     } label: {
-                        Text(PropValue.string(item, "trigger") ?? "").openUIFont(context.theme.typography.body)
+                        Text(PropValue.string(item, "trigger") ?? "").openUIFont(context.theme.textBodyDefault)
                             .multilineTextAlignment(.leading)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.vertical, context.theme.spacing("l"))
                     if child.id != items.last?.id {
-                        Rectangle().fill(context.theme.border).frame(height: context.theme.cardBorderWidth)
+                        Rectangle().fill(context.theme.borderDefault).frame(height: context.presentation.borderWidth)
                             .accessibilityHidden(true)
                     }
                 }
@@ -209,22 +209,22 @@ struct NativeDataTable: View {
         NativeDataTableLayout(
             columns: columns.count, width: max(minimumWidth, availableWidth),
             minimum: minimumWidth, gap: columnGap,
-            columnMinimums: columns.map { $0.numeric ? minimumWidth : context.theme.minimumTextColumnWidth * textScale }
+            columnMinimums: columns.map { $0.numeric ? minimumWidth : context.presentation.minimumTextColumnWidth * textScale }
         ) {
             ForEach(columns) { column in
-                Text(column.title).openUIFont(context.theme.typography.body.weight(.semibold))
-                    .foregroundStyle(context.theme.foreground)
+                Text(column.title).openUIFont(context.theme.textBodyDefault.weight(.semibold))
+                    .foregroundStyle(context.theme.textNeutralPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .padding(.vertical, context.theme.spacing("sm"))
                     .multilineTextAlignment(column.numeric ? .trailing : .leading)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: column.numeric ? .topTrailing : .topLeading)
             }
-            context.theme.border.frame(height: context.theme.cardBorderWidth).layoutValue(key: NativeTableBoundaryKey.self, value: true)
+            context.theme.borderDefault.frame(height: context.presentation.borderWidth).layoutValue(key: NativeTableBoundaryKey.self, value: true)
                 .accessibilityHidden(true)
             ForEach(visibleRows, id: \.self) { row in
                 ForEach(columns) { column in
                     cell(column.data.indices.contains(row) ? column.data[row] : .null)
-                        .openUIFont(column.numeric ? context.theme.typography.body.monospacedDigit() : context.theme.typography.body)
+                        .openUIFont(column.numeric ? context.theme.textBodyDefault.monospacedDigit() : context.theme.textBodyDefault)
                         .multilineTextAlignment(column.numeric ? .trailing : .leading)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.vertical, context.theme.spacing("m"))
@@ -233,7 +233,7 @@ struct NativeDataTable: View {
                         .accessibilityIdentifier("openui.table.cell.\(row).\(column.id)")
                 }
                 if row < visibleRows.upperBound - 1 {
-                    context.theme.border.frame(height: context.theme.cardBorderWidth).layoutValue(key: NativeTableBoundaryKey.self, value: true)
+                    context.theme.borderDefault.frame(height: context.presentation.borderWidth).layoutValue(key: NativeTableBoundaryKey.self, value: true)
                         .accessibilityHidden(true)
                 }
             }

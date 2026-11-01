@@ -122,7 +122,7 @@ struct NativeSliderField: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: context.theme.spacing("s")) {
-      if fieldLabel == nil { Text(label).openUIFont(context.theme.typography.detail) }
+      if fieldLabel == nil { Text(label).openUIFont(context.theme.textBodySm) }
       if configuration.valid {
         if context.canInteract {
           HStack(alignment: .top, spacing: context.theme.spacing("m")) {
@@ -136,7 +136,7 @@ struct NativeSliderField: View {
           showsDots: configuration.discrete && context.canInteract, label: label,
           select: { value, index in draft.select(value, at: index) })
       } else {
-        Text("Value unavailable", bundle: NativeControlResources.bundle).foregroundStyle(context.theme.secondary)
+        Text("Value unavailable", bundle: NativeControlResources.bundle).foregroundStyle(context.theme.textNeutralSecondary)
       }
     }
     .modifier(NativeFieldSurface(theme: context.theme))
@@ -172,17 +172,17 @@ struct NativeSliderField: View {
           HStack {
             Text(jsNumberString(draft.values[index])).monospacedDigit()
             Spacer(minLength: context.theme.spacing("s"))
-            Image(systemName: "chevron.up.chevron.down").openUIFont(context.theme.typography.caption)
-          }.padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.surface, in: RoundedRectangle(cornerRadius: context.theme.controlCornerRadius))
+            Image(systemName: "chevron.up.chevron.down").openUIFont(context.theme.textBodyXs)
+          }.padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.sunk, in: RoundedRectangle(cornerRadius: context.theme.radiusL))
         }.buttonStyle(.plain).accessibilityIdentifier("openui.slider.choice.\(field.name.displayString).\(index)")
       } else {
         TextField(label, text: Binding(get: { draft.text.indices.contains(index) ? draft.text[index] : "" },
           set: { draft.edit($0, at: index) }))
           .textFieldStyle(.plain).monospacedDigit().nativeSliderKeyboard()
-          .padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.surface, in: RoundedRectangle(cornerRadius: context.theme.controlCornerRadius))
+          .padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.sunk, in: RoundedRectangle(cornerRadius: context.theme.radiusL))
           .accessibilityIdentifier("openui.slider.input.\(field.name.displayString).\(index)")
         if let error = configuration.error(for: draft.values, index: index) {
-          Text(error).openUIFont(context.theme.typography.caption).foregroundStyle(context.theme.error)
+          Text(error).openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textDangerPrimary)
             .accessibilityIdentifier("openui.slider.validation.\(field.name.displayString).\(index)")
         }
       }
@@ -267,10 +267,10 @@ private struct NativeSliderTrack: View {
     GeometryReader { geometry in
       let width = max(1, geometry.size.width - 28)
       ZStack(alignment: .leading) {
-        Capsule().fill(theme.border).frame(height: 5).padding(.horizontal, 14)
+        Capsule().fill(theme.borderDefault).frame(height: 5).padding(.horizontal, 14)
         let low = values.count > 1 ? values.min() ?? configuration.minimum : configuration.minimum
         let high = values.max() ?? configuration.minimum
-        Capsule().fill(theme.accent).frame(width: max(0, width * (fraction(high) - fraction(low))), height: 5)
+        Capsule().fill(theme.interactiveAccentDefault).frame(width: max(0, width * (fraction(high) - fraction(low))), height: 5)
           .offset(x: 14 + width * fraction(low))
         if showsDots {
           Canvas { canvas, size in
@@ -280,13 +280,13 @@ private struct NativeSliderTrack: View {
             var index = 0.0
             while index <= count {
               let x = 14 + available * fraction(configuration.value(at: index))
-              canvas.fill(Path(ellipseIn: CGRect(x: x - 2, y: size.height / 2 - 2, width: 4, height: 4)), with: .color(theme.secondary))
+              canvas.fill(Path(ellipseIn: CGRect(x: x - 2, y: size.height / 2 - 2, width: 4, height: 4)), with: .color(theme.textNeutralSecondary))
               index += stride
             }
           }.allowsHitTesting(false)
         }
         ForEach(values.indices, id: \.self) { index in
-          Circle().fill(theme.controlSurface).overlay(Circle().strokeBorder(theme.accent, lineWidth: 2))
+          Circle().fill(theme.foreground).overlay(Circle().strokeBorder(theme.interactiveAccentDefault, lineWidth: 2))
             .frame(width: 28, height: 28).shadow(color: .black.opacity(0.08), radius: 2, y: 1)
             .frame(width: 44, height: 44).offset(x: width * fraction(values[index]) - 8)
             .accessibilityRepresentation {

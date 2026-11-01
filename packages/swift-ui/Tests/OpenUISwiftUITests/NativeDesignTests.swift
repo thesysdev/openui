@@ -6,33 +6,33 @@ import XCTest
 
 final class NativeDesignTests: XCTestCase {
     func testCustomTypographyReachesEveryTextSizeWithoutSeparateNumericConstants() {
-        var theme = OpenUITheme()
-        theme.typography.body.size = 21
-        theme.typography.detail.size = 18
-        theme.typography.title.size = 30
-        theme.typography.title.weight = .light
-        theme.typography.bodyLarge.size = 26
-        theme.typography.bodyLargeHeavy.weight = .bold
-        theme.typography.display.size = 32
-        theme.typography.display.weight = .bold
-        theme.typography.family = "Example typeface"
+        var theme = OpenUIThemeValues()
+        theme.textBodyDefault.size = 21
+        theme.textBodySm.size = 18
+        theme.textHeadingSm.size = 30
+        theme.textHeadingSm.weight = .light
+        theme.textBodyLg.size = 26
+        theme.textBodyLgHeavy = OpenUIFont(size: 26, weight: .bold)
+        theme.textHeadingMd.size = 32
+        theme.textHeadingMd.weight = .bold
+        theme.textBodySm.family = "Example typeface"
         XCTAssertEqual(NativeRichTextStyle.textContent("default", theme: theme).font?.size, 21)
         XCTAssertEqual(NativeRichTextStyle.textContent("small", theme: theme).font?.size, 18)
         XCTAssertEqual(NativeRichTextStyle.textContent("large-heavy", theme: theme).font?.size, 26)
         XCTAssertEqual(NativeRichTextStyle.textContent("large-heavy", theme: theme).font?.weight, .bold)
-        XCTAssertEqual(theme.typography.inline("md").size, 21)
-        XCTAssertEqual(theme.typography.inline("sm").size, 21,
+        XCTAssertEqual(theme.inlineFont("md").size, 21)
+        XCTAssertEqual(theme.inlineFont("sm").size, 21,
             "Upstream Text sm is body-default; xs is body-small")
-        XCTAssertEqual(theme.typography.inline("xs").size, 18)
-        XCTAssertEqual(theme.typography.resolve(theme.typography.detail).family, "Example typeface")
+        XCTAssertEqual(theme.inlineFont("xs").size, 18)
+        XCTAssertEqual(theme.textBodySm.family, "Example typeface")
         let override = OpenUIFont(size: 18, family: "Object typeface")
-        XCTAssertEqual(theme.typography.resolve(override).family, "Object typeface")
-        XCTAssertNil(theme.typography.resolve(theme.typography.code).family,
+        XCTAssertEqual(override.family, "Object typeface")
+        XCTAssertNil(theme.textCodeDefault.family,
             "A prose font override must not remove the code role's fixed-width face")
     }
 
     func testOfficialBodyEmphasisVariantsKeepTheirReadingScale() throws {
-        let theme = OpenUITheme()
+        let theme = OpenUIThemeValues()
         for (plain, emphasized) in [("small", "small-heavy"), ("large", "large-heavy")] {
             let a = NativeRichTextStyle.textContent(plain, theme: theme).font
             let b = NativeRichTextStyle.textContent(emphasized, theme: theme).font
@@ -41,15 +41,15 @@ final class NativeDesignTests: XCTestCase {
             XCTAssertEqual(a?.design, b?.design)
         }
         XCTAssertLessThan(try XCTUnwrap(NativeRichTextStyle.textContent("large-heavy", theme: theme).font).size,
-                          theme.typography.display.size)
+                          theme.textHeadingMd.size)
     }
 
     func testBodySizeVariantsDoNotChangeInformationPriorityColor() {
-        var theme = OpenUITheme()
-        theme.foreground = .red
-        theme.secondary = .blue
+        var theme = OpenUIThemeValues()
+        theme.textNeutralPrimary = .red
+        theme.textNeutralSecondary = .blue
         for variant in ["small", "small-heavy", "default", "large", "large-heavy"] {
-            XCTAssertEqual(NativeRichTextStyle.textContent(variant, theme: theme).color, theme.foreground,
+            XCTAssertEqual(NativeRichTextStyle.textContent(variant, theme: theme).color, theme.textNeutralPrimary,
                            "Size alone does not make a recommendation or explanation secondary")
         }
     }

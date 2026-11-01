@@ -95,6 +95,8 @@ extension EnvironmentValues {
 /// Shared native resource presentation. Resource states preserve the declared
 /// media layout; network failures remain separate from language diagnostics.
 struct NativeRemoteImage: View {
+    @Environment(\.openUIPresentation) private var nativePresentation
+
   let src: String?
   var alt = ""
   var layout: NativeMediaLayout = .cover
@@ -196,20 +198,20 @@ struct NativeRemoteImage: View {
         NativeMediaSkeleton()
       } else {
         ZStack {
-          theme.surface
+          theme.sunk
           if showsFailureSymbol {
             GeometryReader { geometry in
               VStack(spacing: theme.spacing("xs")) {
-                Image(systemName: "exclamationmark.triangle").openUIFont(theme.typography.body)
+                Image(systemName: "exclamationmark.triangle").openUIFont(theme.textBodyDefault)
                 if geometry.size.width >= 160 && geometry.size.height >= 96 {
                   Text("Image unavailable", bundle: NativeControlResources.bundle)
-                    .openUIFont(theme.typography.caption)
+                    .openUIFont(theme.textBodyXs)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, theme.spacing("s"))
                 }
               }
-              .foregroundStyle(theme.secondary)
+              .foregroundStyle(theme.textNeutralSecondary)
               .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
           }
@@ -232,7 +234,7 @@ struct NativeRemoteImage: View {
     let surface = Color.clear.overlay { content().accessibilityHidden(true) }.clipped().contentShape(Rectangle())
     switch layout {
     case .cover:
-      surface.aspectRatio(theme.coverAspectRatio, contentMode: .fit).fixedSize(horizontal: false, vertical: true)
+      surface.aspectRatio(nativePresentation.coverAspectRatio, contentMode: .fit).fixedSize(horizontal: false, vertical: true)
     case .aspect(let ratio):
       surface.aspectRatio(ratio, contentMode: .fit).fixedSize(horizontal: false, vertical: true)
     case .thumbnail(let size): surface.frame(width: size.width, height: size.height)
@@ -327,10 +329,10 @@ struct NativeImageGallery: View {
   private var visible: [NativeGalleryImage] { Array(images.prefix(previewLimit)) }
   private var failed: [NativeGalleryImage] { images.filter { phases[$0.key] == .unavailable } }
   var body: some View {
-    VStack(alignment: .leading, spacing: context.theme.contentSpacing) {
+    VStack(alignment: .leading, spacing: context.theme.spaceM) {
       if !visible.isEmpty {
-        NativeGalleryGridLayout(minimumWidth: context.theme.thumbnailSize,
-          gap: context.theme.contentSpacing, maximumColumns: typeSize.isAccessibilitySize ? 1 : nil) {
+        NativeGalleryGridLayout(minimumWidth: context.presentation.thumbnailSize,
+          gap: context.theme.spaceM, maximumColumns: typeSize.isAccessibilitySize ? 1 : nil) {
           ForEach(visible) { image in
             VStack(alignment: .leading, spacing: context.theme.spacing("xs")) {
               Button {
@@ -343,8 +345,8 @@ struct NativeImageGallery: View {
                   onStatus: { record($0, image: $1, for: image.key) }
                 )
                 .environment(\.openUIMediaSourceReady, image.sourceReady)
-                .background(context.theme.surface)
-                .clipShape(RoundedRectangle(cornerRadius: context.theme.mediaCornerRadius, style: .continuous))
+                .background(context.theme.sunk)
+                .clipShape(RoundedRectangle(cornerRadius: context.theme.radiusM, style: .continuous))
               }
               .buttonStyle(.plain).disabled(!context.canInteract || pictures[image.key] == nil)
               .accessibilityLabel(image.alt.isEmpty ? Text("View image", bundle: NativeControlResources.bundle) : Text(image.alt))
@@ -354,7 +356,7 @@ struct NativeImageGallery: View {
                   : pictures[image.key] == nil ? Text("Loading image", bundle: NativeControlResources.bundle) : Text("")
               )
               .accessibilityIdentifier("openui.gallery.image.\(image.index)")
-              if let details = image.details { Text(details).openUIFont(context.theme.typography.caption).foregroundStyle(context.theme.secondary) }
+              if let details = image.details { Text(details).openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textNeutralSecondary) }
             }
           }
         }
@@ -370,7 +372,7 @@ struct NativeImageGallery: View {
               preview = true
             } label: {
               Text("Show all photos", bundle: NativeControlResources.bundle)
-                .openUIFont(context.theme.typography.actionCompact).openUIControlTarget(alignment: .leading)
+                .openUIFont(context.theme.textLabelSmHeavy).openUIControlTarget(alignment: .leading)
             }
             .disabled(!context.canInteract).accessibilityIdentifier("openui.gallery.showAll")
           }
@@ -381,7 +383,7 @@ struct NativeImageGallery: View {
               for image in failed { retries[image.id, default: 0] += 1 }
             } label: {
               Text("Retry", bundle: NativeControlResources.bundle)
-                .openUIFont(context.theme.typography.actionCompact).openUIControlTarget()
+                .openUIFont(context.theme.textLabelSmHeavy).openUIControlTarget()
             }
               .accessibilityIdentifier("openui.gallery.retry")
               .disabled(!context.canInteract)
@@ -408,6 +410,8 @@ struct NativeImageGallery: View {
 }
 
 private struct NativeGalleryPreview: View {
+    @Environment(\.openUIPresentation) private var nativePresentation
+
   let images: [NativeGalleryImage]
   @Binding var selected: NativeGalleryResourceID?
   let pictures: [NativeGalleryResourceID: Image]
@@ -421,12 +425,12 @@ private struct NativeGalleryPreview: View {
   var body: some View {
     VStack(alignment: .leading, spacing: theme.spacing("m")) {
       HStack {
-        Text("All photos", bundle: NativeControlResources.bundle).openUIFont(theme.typography.heading)
+        Text("All photos", bundle: NativeControlResources.bundle).openUIFont(theme.textHeadingXs)
         Spacer()
-        if let image { Text("\(image.index + 1) / \(images.count)").openUIFont(theme.typography.detail).foregroundStyle(theme.secondary) }
+        if let image { Text("\(image.index + 1) / \(images.count)").openUIFont(theme.textBodySm).foregroundStyle(theme.textNeutralSecondary) }
         if let image, let destination = resources.request(for: image.src)?.url {
           Button { openURL(destination) } label: {
-            Image(systemName: "arrow.up.right.square").openUIFont(theme.typography.actionRegular).openUIControlTarget()
+            Image(systemName: "arrow.up.right.square").openUIFont(theme.textLabelDefaultHeavy).openUIControlTarget()
           }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("Open original image", bundle: NativeControlResources.bundle))
@@ -442,19 +446,19 @@ private struct NativeGalleryPreview: View {
           NativeRemoteImage(src: image.src, alt: image.alt, layout: .fit,
             cachedImage: pictures[image.key], attempt: image.requestID.attempt, onStatus: { record($0, $1, image.key) })
         }.accessibilityIdentifier("openui.gallery.preview.image")
-        if !image.alt.isEmpty { Text(image.alt).openUIFont(theme.typography.detail) }
-        if let details = image.details { Text(details).openUIFont(theme.typography.caption).foregroundStyle(theme.secondary) }
+        if !image.alt.isEmpty { Text(image.alt).openUIFont(theme.textBodySm) }
+        if let details = image.details { Text(details).openUIFont(theme.textBodyXs).foregroundStyle(theme.textNeutralSecondary) }
       }
       ScrollView(.horizontal) {
-        HStack(spacing: theme.contentSpacing) {
+        HStack(spacing: theme.spaceM) {
           ForEach(images) { image in
             Button { selected = image.key } label: {
               NativeRemoteImage(src: image.src, alt: image.alt,
-                layout: .thumbnail(CGSize(width: theme.compactThumbnailSize,
-                  height: theme.compactThumbnailSize / theme.coverAspectRatio)),
+                layout: .thumbnail(CGSize(width: nativePresentation.compactThumbnailSize,
+                  height: nativePresentation.compactThumbnailSize / nativePresentation.coverAspectRatio)),
                 cachedImage: pictures[image.key], attempt: image.requestID.attempt, onStatus: { record($0, $1, image.key) })
-                .clipShape(RoundedRectangle(cornerRadius: theme.mediaCornerRadius, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: theme.mediaCornerRadius, style: .continuous).strokeBorder(selected == image.key ? theme.accent : .clear, lineWidth: 2))
+                .clipShape(RoundedRectangle(cornerRadius: theme.radiusM, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: theme.radiusM, style: .continuous).strokeBorder(selected == image.key ? theme.interactiveAccentDefault : .clear, lineWidth: 2))
             }.buttonStyle(.plain).disabled(phases[image.key] == .unavailable)
               .accessibilityLabel(image.alt.isEmpty ? Text("View image", bundle: NativeControlResources.bundle) : Text(image.alt))
               .accessibilityIdentifier("openui.gallery.thumbnail.\(image.index)")

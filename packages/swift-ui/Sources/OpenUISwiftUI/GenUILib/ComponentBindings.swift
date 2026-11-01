@@ -71,7 +71,7 @@ enum OpenUIDisplayComponents {
     static var components: [OpenUIComponent] {
         return [
             OpenUIReference.component("Label") {
-                Text($0.string("text") ?? "").openUIFont($0.theme.typography.body)
+                Text($0.string("text") ?? "").openUIFont($0.theme.textBodyDefault)
             },
             OpenUIReference.component("Separator") { context in NativeSeparator(context: context) },
             OpenUIReference.component("CodeBlock") { NativeCodeBlock(context: $0) },

@@ -70,16 +70,16 @@ struct NativeEditableTable: View {
         VStack(spacing: 0) {
           HStack(spacing: 0) {
             ForEach(Array(columns.enumerated()), id: \.offset) { index, column in
-              Text(NativeValue.string(column, "header") ?? "").openUIFont(context.theme.typography.detail.weight(.semibold))
-                .frame(width: width(index), alignment: .leading).padding(context.theme.cardPadding)
+              Text(NativeValue.string(column, "header") ?? "").openUIFont(context.theme.textBodySm.weight(.semibold))
+                .frame(width: width(index), alignment: .leading).padding(context.theme.spaceM)
             }
-          }.background(context.theme.surface)
+          }.background(context.theme.sunk)
           ForEach(Array(draft.rows.enumerated()), id: \.offset) { row, item in
             Divider()
             HStack(alignment: .center, spacing: 0) {
               ForEach(Array(columns.enumerated()), id: \.offset) { column, definition in
                 cell(definition, row: row, column: column)
-                  .frame(width: width(column), alignment: .leading).padding(context.theme.cardPadding)
+                  .frame(width: width(column), alignment: .leading).padding(context.theme.spaceM)
                   .accessibilityIdentifier(
                     "openui.table.\(name.displayString).\(item.id.displayString).\(column)")
               }
@@ -88,17 +88,17 @@ struct NativeEditableTable: View {
         }
       }.disabled(!context.canInteract || saving)
         .background(
-          context.theme.controlSurface,
-          in: RoundedRectangle(cornerRadius: context.theme.controlCornerRadius)
+          context.theme.foreground,
+          in: RoundedRectangle(cornerRadius: context.theme.radiusL)
         )
         .overlay(
-          RoundedRectangle(cornerRadius: context.theme.controlCornerRadius).strokeBorder(
-            context.theme.border, lineWidth: context.theme.cardBorderWidth))
+          RoundedRectangle(cornerRadius: context.theme.radiusL).strokeBorder(
+            context.theme.borderDefault, lineWidth: context.presentation.borderWidth))
       if changed > 0 {
         HStack(spacing: context.theme.spacing("m")) {
           Text("\(changed)").monospacedDigit()
           Text("Changed cells", bundle: NativeControlResources.bundle).foregroundStyle(
-            context.theme.secondary)
+            context.theme.textNeutralSecondary)
           Spacer(minLength: 8)
           Button {
             draft.reset()
@@ -110,7 +110,7 @@ struct NativeEditableTable: View {
           Button(action: save) { Text("Save Changes", bundle: NativeControlResources.bundle) }
             .buttonStyle(
               NativeActionButtonStyle(theme: context.theme, variant: "primary", size: "small"))
-        }.openUIFont(context.theme.typography.detail).disabled(!context.canInteract || saving)
+        }.openUIFont(context.theme.textBodySm).disabled(!context.canInteract || saving)
       }
     }
     .onAppear { draft.load(source) }

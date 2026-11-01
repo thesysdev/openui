@@ -42,7 +42,7 @@
             state.push(" beside the image\")],\"row\",\"m\",\"stretch\",\"start\",false)")
             state.complete()
             XCTAssertTrue(state.errors.isEmpty)
-            let photoHeight = OpenUITheme().thumbnailSize / OpenUITheme().coverAspectRatio
+            let photoHeight = OpenUIPresentation().thumbnailSize / OpenUIPresentation().coverAspectRatio
             XCTAssertEqual(try height(), photoHeight, accuracy: 1,
                 "Resolving a local row must retain the shared photo aspect rather than switching to a 4:5 height")
             state.reset()
@@ -54,7 +54,7 @@
         @MainActor func testNativeAndRichTextBothRespondToTheSameThemeFont() throws {
             _ = NSApplication.shared
             let library = try OpenUIStandardComponents.library()
-            func height(_ source: String, theme: OpenUITheme) throws -> CGFloat {
+            func height(_ source: String, theme: OpenUIThemeValues) throws -> CGFloat {
                 let state = OpenUIState(schema: library.library.toSchema())
                 state.setSource(source)
                 XCTAssertTrue(state.errors.isEmpty)
@@ -63,10 +63,11 @@
                 renderer.proposedSize = ProposedViewSize(width: 320, height: nil)
                 return try XCTUnwrap(renderer.nsImage).size.height
             }
-            let ordinary = OpenUITheme()
+            let ordinary = OpenUIThemeValues()
             var enlarged = ordinary
-            enlarged.typography.body.size = 25
-            enlarged.typography.detail.size = 23
+            enlarged.textBodyDefault.size = 25
+            enlarged.textBodyDefaultHeavy.size = 25
+            enlarged.textBodySm.size = 23
             for source in ["root=TextContent(\"One line\",\"default\")",
                            "root=BoldText(\"text\",\"One line\",null,\"text\",\"md\")",
                            "root=ListBlock([ListItem(\"One line\",\"Supporting line\")],\"number\")"] {
@@ -121,7 +122,7 @@
                     "A height proposal is a constraint, not a request to fill it")
                 // The pinned reference's default/clear Card has no vertical
                 // inset. Sunk has space-l on both sides of the complete copy.
-                let inset = variant == "sunk" ? 2 * OpenUITheme().spacing("l") : 0
+                let inset = variant == "sunk" ? 2 * OpenUIThemeValues().spacing("l") : 0
                 XCTAssertEqual(natural, textHeight + inset, accuracy: 1,
                     "Card variants must preserve their reference padding relationship")
             }

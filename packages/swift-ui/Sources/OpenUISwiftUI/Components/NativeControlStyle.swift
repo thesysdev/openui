@@ -40,7 +40,9 @@ extension EnvironmentValues {
 /// Standalone controls own a quiet surface. Form rows share their parent's
 /// surface, so native controls never acquire a second box inside the group.
 struct NativeFieldSurface: ViewModifier {
-    let theme: OpenUITheme
+    @Environment(\.openUIPresentation) private var nativePresentation
+
+    let theme: OpenUIThemeValues
     var focused = false
     var textEditor = false
     var size: String? = nil
@@ -81,27 +83,29 @@ struct NativeFieldSurface: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        content.openUIFont(theme.typography.field(size)).foregroundStyle(theme.foreground)
-            .padding(.horizontal, standalone ? (textEditor ? 11 : theme.cardPadding) : 0)
+        content.openUIFont(theme.fieldFont(size)).foregroundStyle(theme.textNeutralPrimary)
+            .padding(.horizontal, standalone ? (textEditor ? 11 : theme.spaceM) : 0)
             .padding(.vertical, standalone ? verticalInset : 0)
-            .frame(minHeight: max(theme.minimumControlTargetSize, standalone ? height * sizeScale : presentation == .inline ? inlineHeight : 0))
+            .frame(minHeight: max(nativePresentation.minimumControlTargetSize, standalone ? height * sizeScale : presentation == .inline ? inlineHeight : 0))
             .background(
-                standalone ? (enabled ? theme.subtleSurface : theme.surface) : .clear,
-                in: RoundedRectangle(cornerRadius: theme.controlCornerRadius, style: .continuous)
+                standalone ? (enabled ? theme.sunkLight : theme.sunk) : .clear,
+                in: RoundedRectangle(cornerRadius: theme.radiusL, style: .continuous)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: theme.controlCornerRadius, style: .continuous)
+                RoundedRectangle(cornerRadius: theme.radiusL, style: .continuous)
                     .strokeBorder(
-                        standalone ? (error != nil ? theme.error
-                            : (focused || keyboardFocused) ? theme.foreground.opacity(0.3) : theme.interactiveBorder) : .clear,
-                        lineWidth: theme.cardBorderWidth)
+                        standalone ? (error != nil ? theme.textDangerPrimary
+                            : (focused || keyboardFocused) ? theme.textNeutralPrimary.opacity(0.3) : theme.borderInteractive) : .clear,
+                        lineWidth: nativePresentation.borderWidth)
             )
             .opacity(enabled ? 1 : 0.45)
     }
 }
 
 struct NativeActionButtonStyle: ButtonStyle {
-    let theme: OpenUITheme
+    @Environment(\.openUIPresentation) private var nativePresentation
+
+    let theme: OpenUIThemeValues
     var variant = "primary"
     var size: String? = nil
     var destructive = false
@@ -113,34 +117,47 @@ struct NativeActionButtonStyle: ButtonStyle {
     @Environment(\.isFocused) private var focused
     @Environment(\.openUIActionDensity) private var density
     @Environment(\.openUIFormActions) private var formActions
+    @State private var hovered = false
     @ScaledMetric(relativeTo: .body) private var unit: CGFloat = 1
 
-    private var accent: Color { destructive ? theme.error : theme.accent }
+    private var accent: Color { destructive ? theme.interactiveDestructiveAccentDefault : theme.interactiveAccentDefault }
     private var foreground: Color {
-        if !enabled && variant != "primary" { return theme.foreground.opacity(0.2) }
+        if !enabled && variant != "primary" {
+            return destructive ? theme.textDangerTertiary : theme.textNeutralTertiary
+        }
         if variant == "primary" {
-            return (!destructive ? theme.accentForeground : nil)
+            return (destructive ? theme.textDangerInvertedPrimary : theme.textAccentPrimary)
                 ?? NativeControlPalette.foreground(on: accent, scheme: scheme)
         }
-        return destructive ? theme.error : theme.foreground
+        return destructive ? theme.textDangerPrimary : theme.textNeutralPrimary
     }
     private func background(pressed: Bool) -> Color {
-        if variant == "primary" { return accent.opacity(enabled ? 1 : 0.4) }
-        if enabled && pressed { return destructive ? theme.error.opacity(0.08) : theme.surface }
-        return destructive && variant == "secondary" ? theme.error.opacity(0.02) : .clear
+        if variant == "primary" {
+            if !enabled { return destructive ? theme.interactiveDestructiveAccentDisabled : theme.interactiveAccentDisabled }
+            if pressed { return destructive ? theme.interactiveDestructiveAccentPressed : theme.interactiveAccentPressed }
+            if hovered { return destructive ? theme.interactiveDestructiveAccentHover : theme.interactiveAccentHover }
+            return accent
+        }
+        if destructive {
+            if !enabled { return variant == "secondary" ? theme.interactiveDestructiveDisabled : .clear }
+            if pressed { return theme.interactiveDestructivePressed }
+            if hovered { return theme.interactiveDestructiveHover }
+            return variant == "secondary" ? theme.interactiveDestructiveDefault : .clear
+        }
+        return enabled && (pressed || hovered) ? theme.highlight : .clear
     }
     private var border: Color {
-        if variant == "primary" { return accent.opacity(0.08) }
-        if variant == "secondary" { return destructive ? theme.error.opacity(0.08) : theme.interactiveBorder }
+        if variant == "primary" { return theme.borderAccent }
+        if variant == "secondary" { return destructive ? theme.borderDanger : theme.borderInteractive }
         return .clear
     }
     private var resolvedSize: String { size ?? (formActions || density == .regular ? "medium" : "small") }
     private var font: OpenUIFont {
         switch resolvedSize {
-        case "extra-small": return theme.typography.actionCompact
-        case "small": return theme.typography.actionCompact
-        case "large": return theme.typography.actionRegular
-        default: return theme.typography.actionRegular
+        case "extra-small": return theme.textLabelSmHeavy
+        case "small": return theme.textLabelSmHeavy
+        case "large": return theme.textLabelDefaultHeavy
+        default: return theme.textLabelDefaultHeavy
         }
     }
     private var horizontalInset: CGFloat {
@@ -162,7 +179,7 @@ struct NativeActionButtonStyle: ButtonStyle {
         }
     }
     private var radius: CGFloat {
-        circular ? max(theme.controlCornerRadius, minimumHeight) : theme.controlCornerRadius
+        circular ? max(theme.radiusL, minimumHeight) : theme.radiusL
     }
     private var minimumHeight: CGFloat {
         #if os(iOS)
@@ -171,7 +188,7 @@ struct NativeActionButtonStyle: ButtonStyle {
             return (resolvedSize == "large" ? 36 : resolvedSize == "extra-small" ? 24 : resolvedSize == "small" ? 28 : 32) * unit
         #endif
     }
-    private var minimumControlTargetSize: CGFloat { theme.minimumControlTargetSize }
+    private var minimumControlTargetSize: CGFloat { nativePresentation.minimumControlTargetSize }
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .openUIFont(font)
@@ -183,16 +200,17 @@ struct NativeActionButtonStyle: ButtonStyle {
                 background(pressed: configuration.isPressed), in: RoundedRectangle(cornerRadius: radius, style: .continuous)
             )
             .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .strokeBorder(border, lineWidth: theme.cardBorderWidth).allowsHitTesting(false))
-            .opacity(configuration.isPressed && enabled ? theme.motion.pressedOpacity : 1)
-            .scaleEffect(configuration.isPressed && enabled && !reduceMotion ? theme.motion.pressedScale : 1)
+                .strokeBorder(border, lineWidth: nativePresentation.borderWidth).allowsHitTesting(false))
+            .opacity(configuration.isPressed && enabled ? nativePresentation.motion.pressedOpacity : 1)
+            .scaleEffect(configuration.isPressed && enabled && !reduceMotion ? nativePresentation.motion.pressedScale : 1)
             .overlay(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(theme.accent, lineWidth: 2).padding(-3).opacity(focused && enabled ? 1 : 0)
+                    .strokeBorder(theme.interactiveAccentDefault, lineWidth: 2).padding(-3).opacity(focused && enabled ? 1 : 0)
             )
             // Keep a native touch target without inflating the visible capsule.
             .frame(minWidth: minimumControlTargetSize, minHeight: minimumControlTargetSize)
             .contentShape(Rectangle())
-            .animation(reduceMotion ? nil : .easeOut(duration: theme.motion.pressDuration), value: configuration.isPressed)
+            .onHover { hovered = $0 }
+            .animation(reduceMotion ? nil : .easeOut(duration: nativePresentation.motion.pressDuration), value: configuration.isPressed)
     }
 }

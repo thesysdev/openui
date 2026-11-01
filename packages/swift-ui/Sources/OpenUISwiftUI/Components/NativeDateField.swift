@@ -97,7 +97,7 @@ struct NativeDateField: View {
     }
     private func dateControl(_ title: String, part: NativeDatePart) -> some View {
         VStack(alignment: .leading, spacing: context.theme.spacing("xs")) {
-            if range { Text(title).openUIFont(context.theme.typography.detail).foregroundStyle(context.theme.secondary) }
+            if range { Text(title).openUIFont(context.theme.textBodySm).foregroundStyle(context.theme.textNeutralSecondary) }
             Button {
                 request = NativeDateRequest(
                     part: part, label: title, date: date(part) ?? Date(), context: context)
@@ -109,10 +109,10 @@ struct NativeDateField: View {
                             date.formatted(
                                 Date.FormatStyle(date: .abbreviated, time: .omitted).locale(locale)))
                     } else {
-                        Text("Select date", bundle: NativeControlResources.bundle).foregroundStyle(context.theme.secondary)
+                        Text("Select date", bundle: NativeControlResources.bundle).foregroundStyle(context.theme.textNeutralSecondary)
                     }
                     if fieldPresentation != .inline { Spacer(minLength: 8) }
-                    Image(systemName: "calendar").openUIFont(context.theme.typography.detail).foregroundStyle(context.theme.secondary)
+                    Image(systemName: "calendar").openUIFont(context.theme.textBodySm).foregroundStyle(context.theme.textNeutralSecondary)
                 }.frame(maxWidth: .infinity, minHeight: minimumHeight, alignment: .leading).modifier(
                     NativeFieldSurface(theme: context.theme))
             }.buttonStyle(.plain).disabled(!context.canInteract).accessibilityLabel(title)
@@ -155,13 +155,13 @@ private struct NativeCalendarPresentation: ViewModifier {
 
 struct NativeCalendarEditor: View {
     let request: NativeDateRequest
-    let theme: OpenUITheme
+    let theme: OpenUIThemeValues
     let cancel: () -> Void
     let clear: (() -> Void)?
     let commit: (Date) -> Void
     @State private var selection: Date
     init(
-        request: NativeDateRequest, theme: OpenUITheme, cancel: @escaping () -> Void,
+        request: NativeDateRequest, theme: OpenUIThemeValues, cancel: @escaping () -> Void,
         clear: (() -> Void)? = nil, commit: @escaping (Date) -> Void
     ) {
         self.request = request
@@ -178,7 +178,7 @@ struct NativeCalendarEditor: View {
                     .buttonStyle(NativeActionButtonStyle(theme: theme, variant: "tertiary", size: "small"))
                     .keyboardShortcut(.cancelAction).accessibilityIdentifier("openui.date.cancel")
                 Spacer(minLength: 0)
-                Text(request.label).openUIFont(theme.typography.heading).foregroundStyle(theme.foreground).multilineTextAlignment(
+                Text(request.label).openUIFont(theme.textHeadingXs).foregroundStyle(theme.textNeutralPrimary).multilineTextAlignment(
                     .center)
                 Spacer(minLength: 0)
                 Button {
@@ -192,7 +192,7 @@ struct NativeCalendarEditor: View {
             Divider()
             ScrollView {
                 DatePicker(request.label, selection: $selection, displayedComponents: .date)
-                    .datePickerStyle(.graphical).labelsHidden().tint(theme.accent).padding(16)
+                    .datePickerStyle(.graphical).labelsHidden().tint(theme.interactiveAccentDefault).padding(16)
                 if let clear {
                     Button(action: clear) { Text("Clear", bundle: NativeControlResources.bundle) }
                         .buttonStyle(
@@ -202,6 +202,6 @@ struct NativeCalendarEditor: View {
                         .padding(.bottom, 12)
                 }
             }
-        }.openUIFont(theme.typography.body).foregroundStyle(theme.foreground).background(theme.controlSurface)
+        }.openUIFont(theme.textBodyDefault).foregroundStyle(theme.textNeutralPrimary).background(theme.foreground)
     }
 }

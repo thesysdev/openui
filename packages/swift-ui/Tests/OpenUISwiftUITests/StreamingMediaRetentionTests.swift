@@ -202,7 +202,7 @@ final class StreamingMediaRetentionTests: XCTestCase {
     }
     settle { log.statuses["A"]?.contains(.loaded) == true }
     XCTAssertGreaterThan(hosting.bounds.width, 1000, "The test must mount a real viewport before checking lazy cards")
-    RunLoop.main.run(until: Date().addingTimeInterval(OpenUITheme().motion.mediaRevealDuration + 0.05))
+    RunLoop.main.run(until: Date().addingTimeInterval(OpenUIPresentation().motion.mediaRevealDuration + 0.05))
     let firstLoaded = try XCTUnwrap(log.statuses["A"]?.firstIndex(of: .loaded))
     state.push(",CompositeCardItem(\"b\",ImageText(\"https://images.example/b.png\",\"B\",\"Second\"),[TextContent(\"B body\")])")
     settle { log.statuses["B"]?.contains(.loaded) == true }

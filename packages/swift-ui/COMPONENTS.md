@@ -65,68 +65,76 @@ Standard Card uses exactly the official seven parameters (`children`, `variant`,
 
 ## Theme overrides
 
-For the source layout and ownership boundaries, see [Architecture](ARCHITECTURE.md).
-
-`OpenUITheme` exposes the upstream spacing token names (`spaceXs`, `spaceS`,
-`spaceM`, `spaceL`, etc.). The defaults match the pinned reference. `Stack` and
-`Card` continue to accept the same Lang gap enums and default to `m`; the native
-renderer resolves them through the theme. This does not change the exported
-component schema or prompt.
+`OpenUITheme` is a partial override set using the pinned React Theme names.
+`OpenUIThemeValues` is the complete value read by `context.theme` and
+`EnvironmentValues.openUITheme`. A missing override uses the SDK default.
 
 ```swift
-var theme = OpenUITheme()
-theme.spaceM = 16
-theme.spaceL = 24
-theme.radius3xl = 20
-theme.typography.body.size = 17
+var light = OpenUITheme()
+light.interactiveAccentDefault = .blue
+light.interactiveAccentPressed = .blue
+light.interactiveAccentDisabled = .blue.opacity(0.4)
+light.textAccentPrimary = .white
+light.spaceM = 16
+light.textBodyDefault = OpenUIFont(size: 17)
 
 OpenUIRenderer(state: state, registry: installed.registry)
-    .openUITheme(theme)
+    .openUITheme(mode: .system, lightTheme: light)
 ```
 
-For a local override that inherits the current theme, use the update overload:
+Pass `darkTheme:` for independent dark overrides. When omitted, the light
+**overrides** are applied to the dark defaults. `.system` follows the nearest
+SwiftUI color scheme; `.light` and `.dark` affect this subtree only. An inner
+`.openUITheme(...)` starts from SDK defaults plus its own overrides, matching
+the pinned React ThemeProvider. Ordinary children inherit the active resolved
+theme. The closure overload also creates a fresh override set.
+
+Typography roles are independent complete `OpenUIFont` values. For example,
+`textBodyDefaultHeavy` does not change when `textBodyDefault` is overridden.
+`ImageTextLarge` and default-size `BoldText` use `textBodyDefaultHeavy`;
+headings use `textHeadingXs`, `textHeadingSm` and `textHeadingMd`.
+Each role controls its own font family, size, weight and tracking.
+`lineHeight` requests a baseline height as a font-size multiplier, clamped to
+native glyph metrics. `lineSpacing` retains the native additional-spacing
+setting in em (0.20 when omitted); an explicit `lineHeight` takes precedence.
+These native font values replace CSS font strings, not the Lang contract.
+
+Spacing uses the official `space*` tokens. `gap="none"` is always zero.
+Card families consume their own tokens directly: normal card padding uses
+`spaceM`, compact fact-card padding uses `spaceSM`, and the corresponding
+radii are `radius3xl`, `radius2xl` or `radiusXl`. There are no competing
+`cardPadding`, `contentSpacing` or `cornerRadius` overrides.
+
+Native-only metrics and motion are supplied separately:
 
 ```swift
-someContent.openUITheme { theme in
-    theme.spaceM = 16
-    theme.typography.bodyHeavy.weight = .bold
-}
+var presentation = OpenUIPresentation()
+presentation.coverAspectRatio = 3.0 / 2.0
+renderer.openUIPresentation(presentation)
 ```
 
-`openUITheme(themeValue)` still replaces the complete theme in that subtree.
-The closure changes only the inherited fields it assigns. `gap="none"` always
-means zero; other official gap names resolve through the current spacing tokens.
+This includes touch targets, thumbnails, carousel widths, chart axes and
+native motion. Changing a theme does not reset this environment value.
+The renderer stays transparent; the app owns its page and message background.
 
-`cardPadding` and `contentSpacing` follow `spaceM` unless explicitly assigned.
-Existing overrides take precedence. The native corner-radius properties follow
-the corresponding radius tokens unless assigned directly. Control hit targets,
-chart geometry, and platform-owned control metrics are not spacing tokens.
+### Migrating from 0.1.1-rc.1
 
-`ImageTextLarge` and default-size `BoldText` use `typography.bodyHeavy`, matching the reference's
-`TextBlockView(highlight-text, sm)` role. Its default size follows `body` and its
-native emphasis is semibold; callers may override the complete role. This fixes
-the former medium-weight banner title without enlarging other text. The existing
-width-derived cover crop and card/footer layout are unchanged. Body sizes use
-`detail`, `body`, and `bodyLarge`, with separate `detailHeavy`, `bodyHeavy`, and
-`bodyLargeHeavy` emphasis roles. Applications that previously used `title` or
-`heading.weight` to style body variants should now configure the body role;
-heading overrides only affect headings.
-
-`OpenUIFont.lineSpacing` optionally overrides the typography-wide additional
-line spacing for one role, in em. Nil retains the existing default. This is
-additional native line spacing, not a CSS line-height multiplier.
-
-`link`, `invertedForeground`, and `invertedBackground` distinguish link and
-inverted text from ordinary foreground and canvas colors. A canvas override no
-longer changes inverted badge text. The renderer remains transparent; the host
-owns its page/bubble background. Default colors, spacing, radii and line spacing
-are preserved apart from the banner-title emphasis correction above.
+This RC changes the theme API. In particular, `foreground` now means a surface
+color, as in React; use `textNeutralPrimary` for the old text-color setting.
+`secondary` becomes `textNeutralSecondary`, `canvas` becomes `background`,
+`accent` becomes `interactiveAccentDefault`, and `dataColors` becomes
+`defaultChartPalette`. Configure pressed/disabled colors separately.
+Replace `typography.body` / `bodyHeavy` / `detail` / `title` with
+`textBodyDefault` / `textBodyDefaultHeavy` / `textBodySm` / `textHeadingSm`.
+Move cover, size and motion options to `OpenUIPresentation`.
+Custom component builders now read `OpenUIThemeValues` and
+`context.presentation`. Published older tags retain their old API.
 
 ## Layout and theme
 
 The collection contains the pinned upstream default library's 82 registrations, including chart data items and parent-consumed records; see [NATIVE-COMPONENTS.md](NATIVE-COMPONENTS.md). On iOS 16/macOS 13, row/column layout uses child measurement, real first-text baselines and distinct space-around/space-evenly distribution. Wrapped rows measure each line independently. The package minimum is iOS 16/macOS 13, so the older stack/grid approximation is not shipped. Use Stack for list/wrapping layouts and Carousel for container-width horizontal pages; these respond to their actual parent proposal, not a device-specific layout template.
 
-Use `.openUITheme(theme)` to map semantic surfaces, foregrounds, spacing, and minimum card width to the product design system. Text uses Dynamic Type semantic fonts. There are no screen-global measurements. Override any standard component with `extending(overriding: ...)` when a product needs its own loader or view.
+Use `.openUITheme(theme)` for appearance and `.openUIPresentation(options)` for native media and layout metrics. Text uses Dynamic Type semantic fonts. There are no screen-global measurements. Override any standard component with `extending(overriding: ...)` when a product needs its own loader or view.
 
 ## State, resources and actions
 

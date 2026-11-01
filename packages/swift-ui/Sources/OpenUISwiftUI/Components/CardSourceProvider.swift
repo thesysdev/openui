@@ -54,7 +54,7 @@ struct NativeCitationSources: View {
   var body: some View {
     VStack(alignment: .leading, spacing: theme.spacing("ml")) {
       HStack {
-        Text("Sources", bundle: NativeControlResources.bundle).openUIFont(theme.typography.heading)
+        Text("Sources", bundle: NativeControlResources.bundle).openUIFont(theme.textHeadingXs)
         Spacer()
         Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
           .buttonStyle(.plain).accessibilityLabel(Text("Close", bundle: NativeControlResources.bundle))
@@ -76,9 +76,9 @@ struct NativeCitationSources: View {
                   NativeRemoteImage(src: favicon, alt: source.sourceName, layout: .thumbnail(CGSize(width: 20, height: 20)))
                 } else { Image(systemName: "globe").frame(width: 20, height: 20) }
                 VStack(alignment: .leading, spacing: theme.spacing("2xs")) {
-                  Text(source.title).openUIFont(theme.typography.heading).foregroundStyle(theme.foreground)
-                  Text(source.sourceName).openUIFont(theme.typography.caption).foregroundStyle(theme.secondary)
-                  if let target { Text(target.absoluteString).openUIFont(theme.typography.caption).foregroundStyle(theme.secondary).lineLimit(2) }
+                  Text(source.title).openUIFont(theme.textHeadingXs).foregroundStyle(theme.textNeutralPrimary)
+                  Text(source.sourceName).openUIFont(theme.textBodyXs).foregroundStyle(theme.textNeutralSecondary)
+                  if let target { Text(target.absoluteString).openUIFont(theme.textBodyXs).foregroundStyle(theme.textNeutralSecondary).lineLimit(2) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
               }.contentShape(Rectangle())
             }.buttonStyle(.plain).accessibilityIdentifier("openui.citation.source.\(index)")

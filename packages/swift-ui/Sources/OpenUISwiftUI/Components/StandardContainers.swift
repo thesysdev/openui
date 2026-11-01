@@ -2,7 +2,7 @@ import SwiftUI
 import OpenUILang
 
 struct OpenUICardSurface: ViewModifier {
-    let theme: OpenUITheme
+    let theme: OpenUIThemeValues
     let variant: String?
     func body(content: Content) -> some View {
         content.environment(\.openUIActionDensity, .compact)
@@ -15,9 +15,10 @@ struct OpenUICardSurface: ViewModifier {
             // not mask glyphs at the edge of its unpadded content.
             .modifier(NativeCardSurface(
                 theme: theme,
-                fill: variant == "sunk" ? theme.surface : .clear,
+                fill: variant == "sunk" ? theme.sunk : .clear,
                 bordered: variant == "sunk"))
-            .shadow(color: .black.opacity(variant == "sunk" ? 0.05 : 0), radius: 2, y: 1)
+            .shadow(color: .black.opacity(variant == "sunk" ? theme.shadowS.opacity : 0),
+                    radius: theme.shadowS.radius, x: theme.shadowS.x, y: theme.shadowS.y)
     }
 }
 
@@ -68,11 +69,11 @@ struct NativeContentImage: View {
             // Suggest a media width when a row measures its children. Grid card
             // widths are unrelated; the parent still controls the final width.
             // Standard Image follows the pinned reference's 3:2 photo default.
-            .frame(idealWidth: context.theme.thumbnailSize)
+            .frame(idealWidth: context.presentation.thumbnailSize)
             // A positional direction can arrive after the children. Reserve a
             // compact 3:2 proposal until that local container is known; settled
             // covers and unrelated media never inherit this provisional bound.
-            .frame(maxWidth: directionKnown ? nil : context.theme.thumbnailSize, alignment: .leading)
-            .clipShape(RoundedRectangle(cornerRadius: context.theme.mediaCornerRadius, style: .continuous))
+            .frame(maxWidth: directionKnown ? nil : context.presentation.thumbnailSize, alignment: .leading)
+            .clipShape(RoundedRectangle(cornerRadius: context.theme.radiusM, style: .continuous))
     }
 }

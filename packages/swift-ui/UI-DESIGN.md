@@ -5,7 +5,8 @@ Visual defaults map to the pinned react-ui reference (f08a6605); native interact
 font metrics and resource geometry use the documented platform adaptations.
 See [the official-to-native mapping](OFFICIAL-VISUAL-MAPPING.md) for the source,
 exceptions and acceptance status. This is not a claim of pixel-identical CSS.
-`OpenUITheme` supplies shared typography, colors, spacing, surfaces and motion.
+`OpenUITheme` overrides shared typography, colors, spacing and surfaces;
+`OpenUIPresentation` supplies native media metrics, hit targets and motion.
 Hosts may replace theme values without redefining components or rewriting programs.
 
 ## Composition
@@ -52,7 +53,7 @@ its normal image inset; short names do not reserve an invisible second line.
 Grid peers align within measured rows, while carousel items retain their own
 natural content extent. Explicit text-size variants remain intact.
 
-Photo covers and gallery preview tiles use the existing `coverAspectRatio`
+Photo covers and gallery preview tiles use the native `OpenUIPresentation.coverAspectRatio`
 (3:2 by default), calculated from their available width before the resource loads.
 The standard `Image` component also follows the pinned reference's 3:2/fill
 default. Loading, loaded and unavailable states occupy that same frame. Photos fill the

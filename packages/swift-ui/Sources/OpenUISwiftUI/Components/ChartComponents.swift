@@ -138,7 +138,7 @@ struct NativeChart: View {
   }
   private var data: NativeChartData { allData.excluding(visibility.hidden, for: name) }
   private var palette: [Color] {
-    context.theme.chartColors(forSeriesCount: legend.count)
+    context.theme.chartColors(forSeriesCount: legend.count, chartType: name)
   }
   private var legend: [String] { allData.legendNames(for: name) }
   private var showsLegend: Bool {
@@ -148,9 +148,9 @@ struct NativeChart: View {
     NativeChartDrawing(
       data: data, name: name, variant: context.string("variant"),
       semi: context.string("appearance") == "semiCircular", palette: palette,
-      secondary: context.theme.secondary, border: context.theme.border,
-      gridColor: context.theme.chartGrid, axisColor: context.theme.chartAxis,
-      canvasColor: context.theme.canvas, labelFont: context.theme.typography.resolve(context.theme.typography.caption).nativeFont(scale: axisScale),
+      secondary: context.theme.textNeutralSecondary, border: context.theme.borderDefault,
+      gridColor: context.presentation.chartGrid, axisColor: context.presentation.chartAxis,
+      canvasColor: context.theme.background, labelFont: context.theme.textBodyXs.nativeFont(scale: axisScale),
       inspected: inspected, axisScale: axisScale, axisMeasurements: axisMeasurements,
       hasYAxisTitle: context.string("yLabel")?.isEmpty == false)
   }
@@ -158,7 +158,7 @@ struct NativeChart: View {
     let labels = drawing.axisLabels
     return HStack(spacing: 0) {
       ForEach(Array((labels.left + labels.bottom).enumerated()), id: \.offset) { index, label in
-        Text(label).openUIFont(context.theme.typography.caption).monospacedDigit()
+        Text(label).openUIFont(context.theme.textBodyXs).monospacedDigit()
           .lineLimit(1).fixedSize()
           .background(GeometryReader { geometry in
             Color.clear.preference(key: NativeChartAxisMeasurementKey.self, value: [measurementScope:
@@ -190,7 +190,7 @@ struct NativeChart: View {
   }
 
   private var chartBody: some View {
-    VStack(alignment: .leading, spacing: context.theme.contentSpacing) {
+    VStack(alignment: .leading, spacing: context.theme.spaceM) {
       GeometryReader { geometry in
         Canvas { canvas, size in
           drawing.draw(
@@ -238,7 +238,7 @@ struct NativeChart: View {
               Text(label).fixedSize(horizontal: false, vertical: true)
             }
           }
-        }.openUIFont(context.theme.typography.caption).foregroundStyle(context.theme.chartAxis)
+        }.openUIFont(context.theme.textBodyXs).foregroundStyle(context.presentation.chartAxis)
       }
       if showsLegend {
         // Legend items already own vertical padding and their full control target.
@@ -278,14 +278,14 @@ struct NativeChart: View {
       RoundedRectangle(cornerRadius: 2, style: .continuous)
         .fill(palette[allData.colorIndex(at: index) % palette.count])
         .frame(width: legendMarkerSize, height: legendMarkerSize).accessibilityHidden(true)
-      Text(title).openUIFont(context.theme.typography.label).foregroundStyle(context.theme.secondary)
+      Text(title).openUIFont(context.theme.textLabelSm).foregroundStyle(context.theme.textNeutralSecondary)
         .fixedSize(horizontal: false, vertical: true)
       if ["PieChart", "RadialChart"].contains(name), allData.slices.indices.contains(index) {
         Text(NativeChartNumber.tooltip(allData.slices[index], locale: locale))
-          .openUIFont(context.theme.typography.label.weight(.semibold)).monospacedDigit().layoutPriority(1)
+          .openUIFont(context.theme.textLabelSm.weight(.semibold)).monospacedDigit().layoutPriority(1)
       } else if name == "SingleStackedBarChart", allData.slices.indices.contains(index) {
         Text(NativeChartNumber.percentage(allData.slices[index], total: allData.slices.reduce(0, +)))
-          .openUIFont(context.theme.typography.label).monospacedDigit()
+          .openUIFont(context.theme.textLabelSm).monospacedDigit()
       }
     }.padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
   }
@@ -301,14 +301,16 @@ enum NativeChartHeight {
 /// Category text uses native text layout rather than Canvas's inherited
 /// one-line environment. The plot and inspection share the same geometry.
 struct NativeChartCategoryAxis: View {
+    @Environment(\.openUIPresentation) private var nativePresentation
+
   let labels: [String]
   let layout: NativeChartLayout
-  let theme: OpenUITheme
+  let theme: OpenUIThemeValues
   var body: some View {
     ZStack(alignment: .topLeading) {
       ForEach(layout.categoryLabels(count: labels.count), id: \.index) { label in
-        Text(labels[label.index]).openUIFont(theme.typography.caption).monospacedDigit()
-          .foregroundStyle(theme.chartAxis).lineLimit(layout.categoryLabelLines).truncationMode(.tail)
+        Text(labels[label.index]).openUIFont(theme.textBodyXs).monospacedDigit()
+          .foregroundStyle(nativePresentation.chartAxis).lineLimit(layout.categoryLabelLines).truncationMode(.tail)
           .multilineTextAlignment(label.anchor.x == 0 ? .leading : label.anchor.x == 1 ? .trailing : .center)
           .frame(width: label.width, alignment: Alignment(horizontal:
             label.anchor.x == 0 ? .leading : label.anchor.x == 1 ? .trailing : .center, vertical: .top))
@@ -325,7 +327,7 @@ private struct NativeChartTooltip: View {
   let palette: [Color]
   let anchor: CGPoint
   let bounds: CGSize
-  let theme: OpenUITheme
+  let theme: OpenUIThemeValues
   @Environment(\.displayScale) private var displayScale
   @ScaledMetric(relativeTo: .body) private var markerSize: CGFloat = 9
   var body: some View {
@@ -337,10 +339,10 @@ private struct NativeChartTooltip: View {
       if !details.title.isEmpty {
         HStack(spacing: theme.spacing("s")) {
           if let index = details.colorIndex { marker(index) }
-          Text(details.title).openUIFont(theme.typography.detail.weight(.semibold))
-            .foregroundStyle(theme.foreground).fixedSize(horizontal: false, vertical: true)
+          Text(details.title).openUIFont(theme.textBodySm.weight(.semibold))
+            .foregroundStyle(theme.textNeutralPrimary).fixedSize(horizontal: false, vertical: true)
         }
-        Rectangle().fill(theme.border).frame(height: 1 / displayScale)
+        Rectangle().fill(theme.borderDefault).frame(height: 1 / displayScale)
       }
       VStack(alignment: .leading, spacing: theme.spacing("s")) {
         ForEach(details.rows) { row in
@@ -349,23 +351,23 @@ private struct NativeChartTooltip: View {
             Group {
               if let label = row.label { Text(label) }
               else { Text("Value", bundle: NativeControlResources.bundle) }
-            }.foregroundStyle(theme.secondary)
+            }.foregroundStyle(theme.textNeutralSecondary)
               .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 8)
-            Text(row.value).monospacedDigit().foregroundStyle(theme.foreground)
+            Text(row.value).monospacedDigit().foregroundStyle(theme.textNeutralPrimary)
               .multilineTextAlignment(.trailing).layoutPriority(1)
           }.accessibilityElement(children: .combine)
         }
-      }.openUIFont(theme.typography.detail)
+      }.openUIFont(theme.textBodySm)
     }
-      .padding(theme.contentSpacing)
+      .padding(theme.spaceM)
       .modifier(NativeOverlaySurface(theme: theme, compact: true))
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("openui-chart-inspection")
   }
   private func marker(_ index: Int) -> some View {
     RoundedRectangle(cornerRadius: 2)
-      .fill(palette.isEmpty ? theme.accent : palette[max(0, index) % palette.count])
+      .fill(palette.isEmpty ? theme.interactiveAccentDefault : palette[max(0, index) % palette.count])
       .frame(width: markerSize, height: markerSize)
       .accessibilityHidden(true)
   }
@@ -505,7 +507,7 @@ struct NativeChartDrawing {
   var gridColor: Color? = nil
   var axisColor: Color? = nil
   var canvasColor: Color = .white
-  var labelFont: Font = OpenUITypography().caption.nativeFont()
+  var labelFont: Font = OpenUIThemeValues().textBodyXs.nativeFont()
   var inspected: Int? = nil
   var axisScale: CGFloat = 1
   var axisMeasurements = NativeChartAxisMeasurements()

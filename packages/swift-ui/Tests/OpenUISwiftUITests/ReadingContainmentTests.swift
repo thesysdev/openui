@@ -47,7 +47,7 @@ final class ReadingContainmentTests: XCTestCase {
         state.setSource("root=IconButton(\"Info\",Icon(\"info\"),@OpenUrl(\"https://example.invalid/info\"),\"secondary\",\"\(size)\",\"\(shape)\")")
         XCTAssertTrue(state.errors.isEmpty, "\(state.errors)")
         let measured = NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry).fixedSize()).fittingSize
-        XCTAssertGreaterThanOrEqual(measured.height, OpenUITheme().minimumControlTargetSize)
+        XCTAssertGreaterThanOrEqual(measured.height, OpenUIPresentation().minimumControlTargetSize)
         XCTAssertEqual(measured.width, measured.height, accuracy: 1,
           "An icon-only \(shape) control must not inherit a text button's wide horizontal inset")
       }
@@ -122,9 +122,9 @@ final class ReadingContainmentTests: XCTestCase {
 
   @MainActor func testLongMetricUsesOneReadingLineWithoutChangingItsValue() {
     _ = NSApplication.shared
-    let theme = OpenUITheme()
+    let theme = OpenUIThemeValues()
     func height(_ text: String) -> CGFloat {
-      NSHostingView(rootView: NativeMetricValue(text: text, font: theme.typography.metric, theme: theme)
+      NSHostingView(rootView: NativeMetricValue(text: text, font: theme.textNumbersDefaultHeavy, theme: theme)
         .openUITheme(theme).frame(width: 120)).fittingSize.height
     }
     let short = height("¥528"), long = height("¥123,456,789,012.00")

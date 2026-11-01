@@ -41,7 +41,8 @@ extension View {
 /// Created by the registered component host; all operations use the same runtime.
 public struct OpenUIComponentContext {
     public let element: EvaluatedElement
-    public let theme: OpenUITheme
+    public let theme: OpenUIThemeValues
+    public let presentation: OpenUIPresentation
     public let resources: [String: Value]
     public let formName: String?
     public let exactFormName: OpenUIString?
@@ -59,9 +60,9 @@ public struct OpenUIComponentContext {
     private let sourceRevision: Int
 
     @MainActor public init(element: EvaluatedElement, registry: ComponentRegistry, state: OpenUIState,
-                theme: OpenUITheme = OpenUITheme(), resources: [String: Value] = [:], formName: String? = nil, exactFormName: OpenUIString? = nil) {
+                theme: OpenUIThemeValues = OpenUIThemeValues(), presentation: OpenUIPresentation = OpenUIPresentation(), resources: [String: Value] = [:], formName: String? = nil, exactFormName: OpenUIString? = nil) {
         self.element = element; self.registry = registry; self.state = state
-        self.theme = theme; self.resources = resources; self.formName = exactFormName?.displayString ?? formName
+        self.theme = theme; self.presentation = presentation; self.resources = resources; self.formName = exactFormName?.displayString ?? formName
         self.exactFormName = exactFormName ?? formName.map { OpenUIString($0) }
         self.sourceRevision = state.sourceRevision
         self.isStreaming = !state.isComplete
@@ -159,6 +160,7 @@ struct OpenUIComponentHost<Content: View>: View {
     let content: (OpenUIComponentContext) -> Content
     @EnvironmentObject private var state: OpenUIState
     @Environment(\.openUITheme) private var theme
+    @Environment(\.openUIPresentation) private var presentation
     @Environment(\.openUIResources) private var resources
     @Environment(\.openUIFormName) private var formName
     @Environment(\.openUIExactFormName) private var exactFormName
@@ -170,7 +172,7 @@ struct OpenUIComponentHost<Content: View>: View {
     var body: some View {
         let element = self.element.isSourceComplete ? self.element : state.liveElement(matching: self.element)
         var context = OpenUIComponentContext(element: element, registry: registry, state: state,
-            theme: theme, resources: resources, formName: formName, exactFormName: exactFormName)
+            theme: theme, presentation: presentation, resources: resources, formName: formName, exactFormName: exactFormName)
         context.stretchesVertically = stretchesVertically
         context.interactionScopeReady = interactionScopeReady
         context.activationIntent = activationIntent

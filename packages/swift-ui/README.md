@@ -60,6 +60,26 @@ from upstream `openuiPromptOptions`; it does not include application tools. When
 removing components, curate the preset and group notes to match the selected
 library. This is the general-purpose preset, not `openuiChatPromptOptions`.
 
+## Appearance
+
+The default theme requires no setup. Override the supported React-named tokens
+without changing the generated content:
+
+```swift
+var light = OpenUITheme()
+light.spaceM = 16
+light.textBodyDefault = OpenUIFont(size: 17)
+
+OpenUIRenderer(state: state, registry: components.registry)
+    .openUITheme(mode: .system, lightTheme: light)
+```
+
+Use `darkTheme:` for independent dark overrides. Each nested theme scope starts
+from SDK defaults; omitted fields do not inherit parent overrides. Custom
+components read resolved values from `context.theme`. Media sizes, cover ratio
+and motion belong to `OpenUIPresentation`, applied with `.openUIPresentation(...)`.
+See [theme overrides and the RC migration](COMPONENTS.md#theme-overrides).
+
 ## Optional native map
 
 `OpenUIStandardComponents.library()` retains the 82 pinned upstream registrations.

@@ -217,6 +217,8 @@ enum NativeMediaRowPlacement {
 /// Ordinary media rows participate directly in their parent's Layout pass.
 /// Only real horizontal overflow uses a scroll viewport and measured height.
 struct NativeMediaRow<Media: View, Copy: View>: View {
+    @Environment(\.openUIPresentation) private var nativePresentation
+
     var axis: NativeMediaRowAxis
     var gap: CGFloat
     var centered = false
@@ -237,7 +239,7 @@ struct NativeMediaRow<Media: View, Copy: View>: View {
                 row
             }
         }
-        .frame(idealWidth: theme.minimumCompactCardWidth, maxWidth: .infinity, alignment: .leading)
+        .frame(idealWidth: nativePresentation.minimumCompactCardWidth, maxWidth: .infinity, alignment: .leading)
         .background(GeometryReader { geometry in
             Color.clear.preference(key: NativeMediaRowWidths.self, value: [scope: geometry.size.width])
         })

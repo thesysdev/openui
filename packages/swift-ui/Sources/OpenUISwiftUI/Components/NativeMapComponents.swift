@@ -182,7 +182,7 @@ struct NativeMapBlock: View {
         contentBottomPadding: max(22, geometry.safeAreaInsets.bottom + 12))
         .offset(y: -geometry.safeAreaInsets.top)
     }
-    .background(context.theme.controlSurface)
+    .background(context.theme.foreground)
     .accessibilityElement(children: .contain).accessibilityIdentifier("openui.map.expanded")
   }
 }
@@ -235,9 +235,9 @@ private struct NativeMapPresentation: View {
     }
   }
   private var hasContent: Bool { selection.map(contentIDs.contains) == true }
-  private var contentPadding: CGFloat { context.theme.cardPadding }
+  private var contentPadding: CGFloat { context.theme.spaceM }
   private var bottomPadding: CGFloat { contentBottomPadding }
-  private var mapRadius: CGFloat { close == nil ? context.theme.cornerRadius : 0 }
+  private var mapRadius: CGFloat { close == nil ? context.theme.radius3xl : 0 }
   private var height: CGFloat {
     imposedHeight ?? max(hasContent ? 240 : 160,
       NativeMapViewport.height(width: width, size: context.string("size")))
@@ -252,14 +252,14 @@ private struct NativeMapPresentation: View {
   }
   var body: some View {
     NativeMapCanvas(data: data, selection: $selection, canInteract: context.canInteract,
-      accent: context.theme.accent, bottomInset: inset,
+      accent: context.theme.interactiveAccentDefault, bottomInset: inset,
       trailingInset: expand == nil ? 28 : 86,
       topInset: close == nil ? 56 : toolbarTopPadding + 44 + 52,
       resetCamera: cameraReset)
       .frame(height: height)
       .clipShape(RoundedRectangle(cornerRadius: mapRadius, style: .continuous))
       .overlay(RoundedRectangle(cornerRadius: mapRadius, style: .continuous)
-        .strokeBorder(context.theme.border.opacity(0.6), lineWidth: 0.5))
+        .strokeBorder(context.theme.borderDefault.opacity(0.6), lineWidth: 0.5))
       .overlay(alignment: .bottom) {
         // A bottom overlay proposes the entire map height. Ask the pager for
         // its intrinsic capped height so short cards do not sit above an empty
@@ -270,8 +270,8 @@ private struct NativeMapPresentation: View {
       .overlay(alignment: .topTrailing) {
         if let expand {
           Button(action: expand) {
-            Image(systemName: "arrow.up.left.and.arrow.down.right").openUIFont(context.theme.typography.actionRegular)
-              .frame(width: 40, height: 40).background(context.theme.controlSurface, in: Circle())
+            Image(systemName: "arrow.up.left.and.arrow.down.right").openUIFont(context.theme.textLabelDefaultHeavy)
+              .frame(width: 40, height: 40).background(context.theme.foreground, in: Circle())
               .shadow(color: .black.opacity(0.08), radius: 5, y: 2)
               .frame(width: 44, height: 44).contentShape(Circle())
           }.buttonStyle(.plain).disabled(!context.canInteract).padding(context.theme.spacing("m"))
@@ -319,7 +319,7 @@ private struct NativeMapPresentation: View {
         }
       }.modifier(NativeMapToolbarSurface(theme: context.theme)).disabled(!context.canInteract)
     }
-    .openUIFont(context.theme.typography.body.weight(.semibold)).foregroundStyle(context.theme.foreground)
+    .openUIFont(context.theme.textBodyDefault.weight(.semibold)).foregroundStyle(context.theme.textNeutralPrimary)
     .buttonStyle(.plain)
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier("openui.map.toolbar")
@@ -339,7 +339,7 @@ private struct NativeMapPresentation: View {
       NativePager(ids: contentIDs, selection: Binding(get: { selection ?? selected }, set: { selection = $0 }),
         enabled: context.canInteract, identifier: "openui.map", showsControls: false,
         maximumHeight: maximumCardHeight,
-        maximumPageWidth: contentIDs.count > 1 ? context.theme.maximumCarouselCardWidth : nil,
+        maximumPageWidth: contentIDs.count > 1 ? context.presentation.maximumCarouselCardWidth : nil,
         trailingPeek: 24, pageSpacing: 10, decorationOutset: 12) { id in
           if usesDefaultCard(id), let point = data.points.first(where: { $0.id == id }) {
             NativeMapPlaceCard(point: point, theme: context.theme, canInteract: context.canInteract,
@@ -360,10 +360,10 @@ private struct NativeMapPresentation: View {
 }
 
 private struct NativeMapToolbarSurface: ViewModifier {
-  let theme: OpenUITheme
+  let theme: OpenUIThemeValues
   func body(content: Content) -> some View {
     content.background(.regularMaterial, in: Capsule())
-      .overlay(Capsule().strokeBorder(theme.border.opacity(0.45), lineWidth: 0.5))
+      .overlay(Capsule().strokeBorder(theme.borderDefault.opacity(0.45), lineWidth: 0.5))
       .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
   }
 }
@@ -372,7 +372,7 @@ private struct NativeMapToolbarSurface: ViewModifier {
 /// Missing optional facts consume no space. Resource loading stays in the shared pipeline.
 private struct NativeMapPlaceCard: View {
   let point: NativeMapPoint
-  let theme: OpenUITheme
+  let theme: OpenUIThemeValues
   let canInteract: Bool
   var compact = false
   @Environment(\.openUIResourceContext) private var resources
@@ -382,7 +382,7 @@ private struct NativeMapPlaceCard: View {
   private var destination: URL? { resources.request(for: point.url)?.url }
   // Make room for the enlarged name; changing the proposal keeps one image.
   private var photoSize: CGFloat { typeSize.isAccessibilitySize ? 32 : compact ? 44 : 64 }
-  private var padding: CGFloat { compact ? theme.spacing("s") : theme.cardPadding }
+  private var padding: CGFloat { compact ? theme.spacing("s") : theme.spaceM }
 
   var body: some View {
     Group {
@@ -398,35 +398,35 @@ private struct NativeMapPlaceCard: View {
     .accessibilityIdentifier("openui.map.place." + point.id.displayString)
   }
   private var label: some View {
-    HStack(alignment: .center, spacing: theme.contentSpacing) {
+    HStack(alignment: .center, spacing: theme.spaceM) {
       if let source = point.imageSrc, !source.isEmpty {
         NativeRemoteImage(src: source, alt: point.title, layout: .thumbnail(CGSize(width: photoSize, height: photoSize)))
-          .clipShape(RoundedRectangle(cornerRadius: theme.mediaCornerRadius, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: theme.radiusM, style: .continuous))
       } else {
         Image(systemName: point.icon ?? "location.fill")
-          .openUIFont(theme.typography.title.weight(.medium)).foregroundStyle(theme.accent)
+          .openUIFont(theme.textHeadingSm.weight(.medium)).foregroundStyle(theme.interactiveAccentDefault)
           .frame(width: min(40, photoSize), height: min(40, photoSize))
-          .background(theme.surface, in: RoundedRectangle(cornerRadius: theme.mediaCornerRadius))
+          .background(theme.sunk, in: RoundedRectangle(cornerRadius: theme.radiusM))
           .accessibilityHidden(true)
       }
       VStack(alignment: .leading, spacing: theme.spacing("xs")) {
-        Text(point.title).openUIFont((compact ? theme.typography.detail : theme.typography.body).weight(.semibold))
+        Text(point.title).openUIFont((compact ? theme.textBodySm : theme.textBodyDefault).weight(.semibold))
           .lineLimit(compact ? 1 : 2)
-          .foregroundStyle(theme.foreground)
+          .foregroundStyle(theme.textNeutralPrimary)
         if let subtitle = point.subtitle, !subtitle.isEmpty {
-          Text(subtitle).openUIFont(compact ? theme.typography.caption : theme.typography.detail)
-            .lineLimit(compact ? 1 : 2).foregroundStyle(theme.secondary)
+          Text(subtitle).openUIFont(compact ? theme.textBodyXs : theme.textBodySm)
+            .lineLimit(compact ? 1 : 2).foregroundStyle(theme.textNeutralSecondary)
         }
       }.frame(maxWidth: .infinity, alignment: .leading)
       if destination != nil {
-        Image(systemName: "arrow.up.right").openUIFont(theme.typography.caption.weight(.semibold))
-          .foregroundStyle(theme.secondary).accessibilityHidden(true)
+        Image(systemName: "arrow.up.right").openUIFont(theme.textBodyXs.weight(.semibold))
+          .foregroundStyle(theme.textNeutralSecondary).accessibilityHidden(true)
       }
     }
     .frame(minHeight: photoSize, alignment: .center)
     .padding(padding).frame(maxWidth: .infinity, alignment: .leading)
     .modifier(NativeOverlaySurface(theme: theme, material: true, materialStyle: .ultraThin))
-    .contentShape(RoundedRectangle(cornerRadius: theme.overlayCornerRadius, style: .continuous))
+    .contentShape(RoundedRectangle(cornerRadius: theme.radius5xl, style: .continuous))
   }
 }
 

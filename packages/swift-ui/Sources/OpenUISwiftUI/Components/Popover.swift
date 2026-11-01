@@ -14,8 +14,8 @@ struct NativeContextPopover: View {
             .popover(isPresented: $presented) {
                 VStack(alignment: .leading, spacing: 0) { adaptedContent }
                     .accessibilityElement(children: .contain).accessibilityIdentifier("openui.popover.content")
-                    .padding(context.theme.cardPadding)
-                    .frame(idealWidth: context.theme.minimumCardWidth)
+                    .padding(context.theme.spaceM)
+                    .frame(idealWidth: context.presentation.minimumCardWidth)
             }
     }
     @ViewBuilder private var adaptedContent: some View {

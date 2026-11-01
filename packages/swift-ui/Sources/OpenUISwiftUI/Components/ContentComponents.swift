@@ -8,11 +8,11 @@ struct NativeHeading: View {
   var body: some View {
     VStack(alignment: .leading, spacing: context.theme.spacing(compact ? "3xs" : "xs")) {
       if let title = context.string(compact ? "heading" : "title") {
-        Text(title).openUIFont(compact ? context.theme.typography.heading : context.theme.typography.title).accessibilityAddTraits(
+        Text(title).openUIFont(compact ? context.theme.textHeadingXs : context.theme.textHeadingSm).accessibilityAddTraits(
           .isHeader)
       }
       if let detail = context.string(compact ? "description" : "subtitle") {
-        Text(detail).openUIFont(context.theme.typography.body).foregroundStyle(context.theme.secondary)
+        Text(detail).openUIFont(context.theme.textBodyDefault).foregroundStyle(context.theme.textNeutralSecondary)
       }
     }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
   }
@@ -24,29 +24,29 @@ struct NativeMarkdown: View {
     NativeMarkdownText(text: context.string("textMarkdown") ?? "")
       .padding(
         context.string("variant") == "clear" || context.string("variant") == nil
-          ? 0 : context.theme.cardPadding
+          ? 0 : context.theme.spaceM
       )
       .background(
         context.string("variant") == "card"
-          ? context.theme.controlSurface
-          : context.string("variant") == "sunk" ? context.theme.surface : .clear,
-        in: RoundedRectangle(cornerRadius: max(0, context.theme.controlCornerRadius - 2)))
+          ? context.theme.foreground
+          : context.string("variant") == "sunk" ? context.theme.sunk : .clear,
+        in: RoundedRectangle(cornerRadius: max(0, context.theme.radiusL - 2)))
       .overlay {
-        RoundedRectangle(cornerRadius: max(0, context.theme.controlCornerRadius - 2))
+        RoundedRectangle(cornerRadius: max(0, context.theme.radiusL - 2))
           .strokeBorder(context.string("variant") == "card" || context.string("variant") == "sunk"
-            ? context.theme.border : .clear, lineWidth: context.theme.cardBorderWidth)
+            ? context.theme.borderDefault : .clear, lineWidth: context.presentation.borderWidth)
           .allowsHitTesting(false)
       }
   }
 }
 
-private func semanticColor(_ variant: String?, theme: OpenUITheme) -> Color {
+private func semanticColor(_ variant: String?, theme: OpenUIThemeValues) -> Color {
   switch variant {
-  case "danger", "error": return theme.error
-  case "success": return theme.success
-  case "warning": return theme.warning
-  case "info": return theme.info
-  default: return theme.secondary
+  case "danger", "error": return theme.textDangerPrimary
+  case "success": return theme.textSuccessPrimary
+  case "warning": return theme.textAlertPrimary
+  case "info": return theme.textInfoPrimary
+  default: return theme.textNeutralSecondary
   }
 }
 
@@ -67,16 +67,16 @@ struct NativeCallout: View {
           )
           .foregroundStyle(semanticColor(context.string("variant"), theme: context.theme))
           VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
-            if let title = context.string("title") { Text(title).openUIFont(context.theme.typography.heading) }
+            if let title = context.string("title") { Text(title).openUIFont(context.theme.textHeadingXs) }
             if let detail = context.string("description") {
-              NativeMarkdownText(text: detail, style: .init(font: context.theme.typography.detail, color: context.theme.secondary))
+              NativeMarkdownText(text: detail, style: .init(font: context.theme.textBodySm, color: context.theme.textNeutralSecondary))
             }
           }
           Spacer(minLength: 0)
-        }.padding(context.theme.cardPadding)
+        }.padding(context.theme.spaceM)
           .background(
             semanticColor(context.string("variant"), theme: context.theme).opacity(0.08),
-            in: RoundedRectangle(cornerRadius: context.theme.cornerRadius))
+            in: RoundedRectangle(cornerRadius: context.theme.radius3xl))
       }
     }.task(id: "\(state.sourceRevision):\(visible):\(context.canInteract)") {
       guard visible, context.canInteract, binding != nil else { return }
@@ -91,8 +91,8 @@ struct NativeImageBlock: View {
   let context: OpenUIComponentContext
   var body: some View {
     NativeRemoteImage(src: context.string("src"), alt: context.string("alt") ?? "",
-      layout: .aspect(context.theme.coverAspectRatio))
-      .clipShape(RoundedRectangle(cornerRadius: context.theme.mediaCornerRadius, style: .continuous))
+      layout: .aspect(context.presentation.coverAspectRatio))
+      .clipShape(RoundedRectangle(cornerRadius: context.theme.radiusM, style: .continuous))
   }
 }
 
@@ -138,7 +138,7 @@ struct NativeInlineText: View {
   let bold: Bool
   private var style: NativeRichTextStyle {
     let size = context.string("size") ?? "sm"
-    let font = context.theme.typography.inline(size, emphasized: bold)
+    let font = context.theme.inlineFont(size, emphasized: bold)
     return .init(font: font,
       numeric: context.string("variant") == "number")
   }
@@ -147,16 +147,16 @@ struct NativeInlineText: View {
       NativeMarkdownText(text: context.string("value") ?? "", mode: .inline, style: style)
       if let sub = context.string("subtext") {
         NativeMarkdownText(text: sub, mode: .inline, style: .init(
-          font: ["md", "lg"].contains(context.string("size") ?? "sm") ? context.theme.typography.body : context.theme.typography.detail,
+          font: ["md", "lg"].contains(context.string("size") ?? "sm") ? context.theme.textBodyDefault : context.theme.textBodySm,
           numeric: context.string("subtextVariant") == "number", color: subtextColor(sub)))
       }
     }.fixedSize(horizontal: false, vertical: true)
   }
   private func subtextColor(_ value: String) -> Color {
-    guard context.string("subtextVariant") == "metric" else { return context.theme.secondary }
+    guard context.string("subtextVariant") == "metric" else { return context.theme.textNeutralSecondary }
     if value.hasPrefix("+") { return semanticColor("success", theme: context.theme) }
     if value.hasPrefix("-") { return semanticColor("danger", theme: context.theme) }
-    return context.theme.secondary
+    return context.theme.textNeutralSecondary
   }
 }
 private struct NativeCardHeaderInsetKey: EnvironmentKey { static let defaultValue: CGFloat = 0 }
@@ -176,18 +176,18 @@ struct NativeMediaText: View {
   var body: some View {
     Group {
       if media == .banner {
-        VStack(alignment: .leading, spacing: context.theme.contentSpacing) {
+        VStack(alignment: .leading, spacing: context.theme.spaceM) {
           NativeRemoteImage(
             src: context.string("src"), alt: context.string("alt") ?? context.string("title") ?? "",
-            layout: .aspect(context.theme.coverAspectRatio))
-            .clipShape(RoundedRectangle(cornerRadius: cardHeaderInset > 0 ? 0 : context.theme.mediaCornerRadius, style: .continuous))
+            layout: .aspect(context.presentation.coverAspectRatio))
+            .clipShape(RoundedRectangle(cornerRadius: cardHeaderInset > 0 ? 0 : context.theme.radiusM, style: .continuous))
             .padding(.horizontal, -cardHeaderInset)
             .padding(.top, -cardHeaderInset)
           words
         }.frame(maxWidth: .infinity, alignment: .leading)
       } else {
         NativeMediaRow(axis: context.string("layout") == "vertical" ? .vertical : .horizontal,
-          gap: media == .icon ? context.theme.contentSpacing * iconScale : context.theme.contentSpacing,
+          gap: media == .icon ? context.theme.spaceM * iconScale : context.theme.spaceM,
           centered: true,
           media: { leadingMedia }, copy: {
             words.frame(maxWidth: .infinity, alignment: context.string("layout") == "vertical" ? .center : .leading)
@@ -203,13 +203,13 @@ struct NativeMediaText: View {
       context.slot("icon").environment(\.openUIIconSize, glyphSize)
         .foregroundStyle(colors.foreground)
         .frame(width: (glyphSize + 20) * iconScale, height: (glyphSize + 20) * iconScale)
-        .background(colors.background, in: RoundedRectangle(cornerRadius: context.theme.mediaCornerRadius))
+        .background(colors.background, in: RoundedRectangle(cornerRadius: context.theme.radiusM))
         .accessibilityIdentifier("openui.icon-text.badge")
     } else {
       NativeRemoteImage(
         src: context.string("src"), alt: context.string("alt") ?? context.string("title") ?? "",
         layout: .thumbnail(CGSize(width: imageSize, height: imageSize)))
-        .clipShape(RoundedRectangle(cornerRadius: context.theme.mediaCornerRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: context.theme.radiusM, style: .continuous))
     }
   }
   private var glyphSize: CGFloat { NativeIconTextMetrics.glyph(context.string("iconSize")) }
@@ -217,17 +217,17 @@ struct NativeMediaText: View {
     // The reference CSS has a default thumbnail in either orientation;
     // an explicit imageSize overrides it without native-only bounds.
     if let size = context.number("imageSize"), size.isFinite, size > 0 { return CGFloat(size) }
-    return context.theme.inlineThumbnailSize
+    return context.presentation.inlineThumbnailSize
   }
   private var words: some View {
     VStack(alignment: .leading, spacing: 0) {
       NativeMarkdownText(text: context.string("title") ?? "", mode: .inline,
-        style: .init(font: media == .banner ? context.theme.typography.bodyHeavy
-          : (context.string("layout") != "vertical" ? context.theme.typography.detail : context.theme.typography.body)
+        style: .init(font: media == .banner ? context.theme.textBodyDefaultHeavy
+          : (context.string("layout") != "vertical" ? context.theme.textBodySm : context.theme.textBodyDefault)
             .weight(context.flag("bold") == true ? .medium : .regular)))
 
       if let sub = context.string("subtitle") {
-        NativeMarkdownText(text: sub, mode: .inline, style: .init(font: context.theme.typography.detail, color: context.theme.secondary))
+        NativeMarkdownText(text: sub, mode: .inline, style: .init(font: context.theme.textBodySm, color: context.theme.textNeutralSecondary))
       }
     }.fixedSize(horizontal: false, vertical: true)
   }
@@ -250,7 +250,7 @@ struct NativeIconButton: View {
     )
     .clipShape(
       RoundedRectangle(
-        cornerRadius: context.string("shape") == "circle" ? 100 : context.theme.controlCornerRadius)
+        cornerRadius: context.string("shape") == "circle" ? 100 : context.theme.radiusL)
     )
     .accessibilityLabel(context.string("name") ?? "")
   }
@@ -304,15 +304,15 @@ struct NativeEntityList: View {
   private func row(_ value: Value, kind: RowKind) -> some View {
     let small = context.string("size") == "small"
     let numeric = NativeValue.string(value, "rightVariant") == "number"
-    let font = small ? context.theme.typography.detail : context.theme.typography.body
-    let color = kind == .header ? context.theme.secondary : context.theme.foreground
+    let font = small ? context.theme.textBodySm : context.theme.textBodyDefault
+    let color = kind == .header ? context.theme.textNeutralSecondary : context.theme.textNeutralPrimary
     return NativeLabelValueLayout(
-      gap: context.theme.spacing("m"), minimumLabelWidth: context.theme.minimumTextColumnWidth
+      gap: context.theme.spacing("m"), minimumLabelWidth: context.presentation.minimumTextColumnWidth
     ) {
       NativeMarkdownText(text: NativeValue.string(value, "left") ?? "", mode: .inline,
         style: .init(font: font, color: color))
       NativeMarkdownText(text: NativeValue.string(value, "right") ?? "", mode: .inline,
-        style: .init(font: (kind == .footer ? context.theme.typography.title : font).weight(.semibold), numeric: numeric, color: color))
+        style: .init(font: (kind == .footer ? context.theme.textHeadingSm : font).weight(.semibold), numeric: numeric, color: color))
       .multilineTextAlignment(.trailing)
     }
     .padding(.vertical, context.theme.spacing("m")).textSelection(.enabled)
@@ -344,22 +344,22 @@ struct NativeListBlock: View {
   private var compact: Bool { context.string("size") == "small" }
   private var mediaLayout: NativeListMediaLayout {
     NativeListMediaLayout(width: containerWidth,
-      preferredImageWidth: compact ? context.theme.compactThumbnailSize : context.theme.thumbnailSize,
-      minimumImageWidth: context.theme.inlineThumbnailSize,
-      textWidth: context.theme.minimumTextColumnWidth * textScale,
-      gap: context.theme.contentSpacing)
+      preferredImageWidth: compact ? context.presentation.compactThumbnailSize : context.presentation.thumbnailSize,
+      minimumImageWidth: context.presentation.inlineThumbnailSize,
+      textWidth: context.presentation.minimumTextColumnWidth * textScale,
+      gap: context.theme.spaceM)
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       ForEach(Array(context.children("items").enumerated()), id: \.element.id) { index, item in
         if index > 0 {
-          Rectangle().fill(context.theme.border).frame(height: 1 / displayScale)
+          Rectangle().fill(context.theme.borderDefault).frame(height: 1 / displayScale)
             .padding(.vertical, context.theme.spacing(compact ? "s" : "m"))
         }
-        HStack(alignment: .top, spacing: context.theme.contentSpacing) {
+        HStack(alignment: .top, spacing: context.theme.spaceM) {
           if !imageList {
-            Text("\(index + 1)").openUIFont(context.theme.typography.detail.monospacedDigit()).foregroundStyle(
-              context.theme.secondary
+            Text("\(index + 1)").openUIFont(context.theme.textBodySm.monospacedDigit()).foregroundStyle(
+              context.theme.textNeutralSecondary
             ).frame(minWidth: 22)
           }
           context.render(item.value)
@@ -388,7 +388,7 @@ private struct NativeListContainerWidths: PreferenceKey {
 struct NativeListItem: View {
   let context: OpenUIComponentContext
   @Environment(\.openUIListPresentation) private var presentation
-  private var imageWidth: CGFloat { presentation.imageWidth ?? context.theme.inlineThumbnailSize }
+  private var imageWidth: CGFloat { presentation.imageWidth ?? context.presentation.inlineThumbnailSize }
   private var hasImage: Bool {
     imageWidth > 0 && context.value("image") != nil && context.value("image") != .null
   }
@@ -409,7 +409,7 @@ struct NativeListItem: View {
   @ViewBuilder private var content: some View {
     Group {
       if hasImage {
-        NativeMediaRow(axis: presentation.axis, gap: context.theme.contentSpacing,
+        NativeMediaRow(axis: presentation.axis, gap: context.theme.spaceM,
           media: { photo }, copy: { words })
       } else { words }
     }.fixedSize(horizontal: false, vertical: true).contentShape(Rectangle())
@@ -421,25 +421,25 @@ struct NativeListItem: View {
         layout: .thumbnail(CGSize(width: imageWidth, height: imageWidth))
       )
       .frame(width: imageWidth, height: imageWidth)
-      .clipShape(RoundedRectangle(cornerRadius: context.theme.mediaCornerRadius, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: context.theme.radiusM, style: .continuous))
     }
   }
   private var words: some View {
-    HStack(alignment: .center, spacing: context.theme.contentSpacing) {
+    HStack(alignment: .center, spacing: context.theme.spaceM) {
       VStack(alignment: .leading, spacing: context.theme.spacing("xs")) {
         Text(context.string("title") ?? "").openUIFont(presentation.compact
-          ? context.theme.typography.detail : context.theme.typography.body)
+          ? context.theme.textBodySm : context.theme.textBodyDefault)
         if let detail = context.string("subtitle") {
-          Text(detail).openUIFont(presentation.compact ? context.theme.typography.detail : context.theme.typography.body).foregroundStyle(context.theme.secondary)
+          Text(detail).openUIFont(presentation.compact ? context.theme.textBodySm : context.theme.textBodyDefault).foregroundStyle(context.theme.textNeutralSecondary)
         }
         if hasAction, let label = context.string("actionLabel"), !label.isEmpty {
-          Text(label).openUIFont(context.theme.typography.actionCompact)
-            .foregroundStyle(context.theme.secondary).padding(.top, 2).accessibilityHidden(true)
+          Text(label).openUIFont(context.theme.textLabelSmHeavy)
+            .foregroundStyle(context.theme.textNeutralSecondary).padding(.top, 2).accessibilityHidden(true)
         }
       }.frame(maxWidth: .infinity, alignment: .leading)
       if hasAction {
-        Image(systemName: "chevron.right").openUIFont(context.theme.typography.caption.weight(.semibold))
-          .foregroundStyle(context.theme.secondary).accessibilityHidden(true)
+        Image(systemName: "chevron.right").openUIFont(context.theme.textBodyXs.weight(.semibold))
+          .foregroundStyle(context.theme.textNeutralSecondary).accessibilityHidden(true)
       }
     }.fixedSize(horizontal: false, vertical: true)
   }
@@ -455,15 +455,15 @@ struct NativeSteps: View {
         HStack(alignment: .top, spacing: context.theme.spacing("m")) {
           NativeStepMarker(number: index + 1, theme: context.theme, diameter: markerDiameter)
           VStack(alignment: .leading, spacing: context.theme.spacing("xs")) {
-            Text(NativeValue.string(item.value, "title") ?? "").openUIFont(context.theme.typography.heading)
+            Text(NativeValue.string(item.value, "title") ?? "").openUIFont(context.theme.textHeadingXs)
             NativeMarkdownText(text: NativeValue.string(item.value, "details") ?? "",
-              style: .init(font: context.theme.typography.detail, color: context.theme.secondary))
+              style: .init(font: context.theme.textBodySm, color: context.theme.textNeutralSecondary))
           }
         }
         .padding(.bottom, index < items.count - 1 ? context.theme.spacing("m") : 0)
         .background(alignment: .topLeading) {
           if index < items.count - 1 {
-            Rectangle().fill(context.theme.border)
+            Rectangle().fill(context.theme.borderDefault)
               .frame(width: 1 / displayScale)
               .padding(.top, markerDiameter + context.theme.spacing("xs")).offset(x: markerDiameter / 2)
               .accessibilityHidden(true)
@@ -476,12 +476,12 @@ struct NativeSteps: View {
 /// The badge follows its text's measured size, including custom fonts and Dynamic Type.
 struct NativeStepMarker: View {
   let number: Int
-  let theme: OpenUITheme
+  let theme: OpenUIThemeValues
   let diameter: CGFloat
   var body: some View {
-    Text("\(number)").openUIFont(theme.typography.detail.weight(.semibold))
+    Text("\(number)").openUIFont(theme.textBodySm.weight(.semibold))
       .fixedSize().frame(minWidth: diameter, minHeight: diameter)
-      .background(theme.surface, in: Circle())
+      .background(theme.sunk, in: Circle())
       .accessibilityIdentifier("openui.steps.marker")
   }
 }
@@ -525,18 +525,18 @@ struct NativeModal: View {
       .sheet(isPresented: presented) {
         VStack(alignment: .leading, spacing: context.theme.spacing("ml")) {
           HStack {
-            Text(context.string("title") ?? "").openUIFont(context.theme.typography.heading).accessibilityAddTraits(.isHeader)
+            Text(context.string("title") ?? "").openUIFont(context.theme.textHeadingXs).accessibilityAddTraits(.isHeader)
             Spacer()
             Button {
               presented.wrappedValue = false
             } label: {
-              Image(systemName: "xmark").openUIFont(context.theme.typography.actionRegular).openUIControlTarget()
+              Image(systemName: "xmark").openUIFont(context.theme.textLabelDefaultHeavy).openUIControlTarget()
             }
             .buttonStyle(.plain).keyboardShortcut(.cancelAction)
             .accessibilityLabel(Text("Close", bundle: NativeControlResources.bundle))
           }
           ScrollView { context.slot().frame(maxWidth: .infinity, alignment: .leading) }
-        }.padding(context.theme.cardPadding).frame(
+        }.padding(context.theme.spaceM).frame(
           idealWidth: context.string("size") == "lg"
             ? 720 : context.string("size") == "sm" ? 360 : 520, idealHeight: 420
         )
@@ -568,12 +568,12 @@ extension EnvironmentValues {
 struct NativeCardItem: View {
   let context: OpenUIComponentContext
   let kind: String
-  private var itemTheme: OpenUITheme {
+  private var itemTheme: OpenUIThemeValues {
     var theme = context.theme
     // The official families share tokens, not an identical outline: Context
     // uses radius-xl, compact fact cards radius-2xl, photo cards radius-3xl.
-    theme.cornerRadius = context.theme.cardRadius(for: kind)
-    if ["Overview", "Snippet"].contains(kind) { theme.cardPadding = max(0, theme.cardPadding - 2) }
+    theme.radius3xl = context.theme.cardRadius(for: kind)
+    if ["Overview", "Snippet"].contains(kind) { theme.spaceM = theme.spaceSM }
     return theme
   }
   @Environment(\.openUICardIsAction) private var isAction
@@ -583,37 +583,36 @@ struct NativeCardItem: View {
   private var groupAction: NativeCardGroupAction? { pendingGroupAction }
   private var bannerHeaderInset: CGFloat {
     guard case .element(let header) = context.value("header"), header.typeName == "ImageTextLarge" else { return 0 }
-    return context.theme.cardPadding
+    return context.theme.spaceM
   }
   private var artworkSource: String? {
     guard ["Visual", "Context"].contains(kind), let source = context.string("bgImageSrc"),
       !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
     return source
   }
-  private var contentTheme: OpenUITheme {
+  private var contentTheme: OpenUIThemeValues {
     var theme = context.theme
     if artworkSource != nil {
-      theme.foreground = .white
-      theme.secondary = .white.opacity(0.86)
-      theme.surface = .black.opacity(0.55)
-      theme.controlSurface = .black.opacity(0.75)
-      theme.metricSurface = .black.opacity(0.55)
-      theme.border = .white.opacity(0.2)
-      theme.canvas = .black
+      theme.textNeutralPrimary = .white
+      theme.textNeutralSecondary = .white.opacity(0.86)
+      theme.sunk = .black.opacity(0.55)
+      theme.foreground = .black.opacity(0.75)
+      theme.borderDefault = .white.opacity(0.2)
+      theme.background = .black
     }
     return theme
   }
   @ViewBuilder private var actionIndicator: some View {
     if isAction {
-      Image(systemName: "chevron.right").openUIFont(context.theme.typography.actionCompact)
-        .foregroundStyle(contentTheme.secondary).accessibilityHidden(true)
+      Image(systemName: "chevron.right").openUIFont(context.theme.textLabelSmHeavy)
+        .foregroundStyle(contentTheme.textNeutralSecondary).accessibilityHidden(true)
     }
   }
   var body: some View {
     Group {
       if let source = artworkSource {
-        NativeArtworkCardLayout(aspectRatio: context.theme.coverAspectRatio,
-          fallbackWidth: context.theme.minimumCardWidth, accessibility: typeSize.isAccessibilitySize) {
+        NativeArtworkCardLayout(aspectRatio: context.presentation.coverAspectRatio,
+          fallbackWidth: context.presentation.minimumCardWidth, accessibility: typeSize.isAccessibilitySize) {
           ZStack {
             Color.black
             NativeRemoteImage(src: source, alt: context.string("bgImageAlt") ?? "", layout: .cover,
@@ -627,12 +626,12 @@ struct NativeCardItem: View {
       }
     }
     .environment(\.openUITheme, contentTheme)
-    .foregroundStyle(contentTheme.foreground)
-    .clipShape(RoundedRectangle(cornerRadius: itemTheme.cornerRadius, style: .continuous))
+    .foregroundStyle(contentTheme.textNeutralPrimary)
+    .clipShape(RoundedRectangle(cornerRadius: itemTheme.radius3xl, style: .continuous))
     .modifier(NativeCardSurface(
       theme: itemTheme,
-      fill: context.string("bgColor") == "gray" ? context.theme.surface
-        : isAction ? context.theme.controlSurface : context.theme.subtleSurface,
+      fill: context.string("bgColor") == "gray" ? context.theme.sunk
+        : isAction ? context.theme.foreground : context.theme.sunkLight,
       bordered: artworkSource == nil && kind != "Context"))
     .environment(\.openUIActionDensity, .compact)
     .environment(\.colorScheme, artworkSource == nil ? colorScheme : .dark)
@@ -641,12 +640,12 @@ struct NativeCardItem: View {
     .layoutValue(key: OpenUIFlexGrowKey.self, value: true)
   }
   private var copy: some View {
-    VStack(alignment: .leading, spacing: context.theme.contentSpacing) {
+    VStack(alignment: .leading, spacing: context.theme.spaceM) {
       switch kind {
       case "Snippet":
         HStack(alignment: .center, spacing: context.theme.spacing("s")) {
           NativeLabelValueLayout(
-            gap: context.theme.contentSpacing, minimumLabelWidth: context.theme.minimumCompactCardWidth,
+            gap: context.theme.spaceM, minimumLabelWidth: context.presentation.minimumCompactCardWidth,
             centerVertically: true
           ) {
             context.slot("lhs")
@@ -664,15 +663,15 @@ struct NativeCardItem: View {
         }
         context.slot("bottom").multilineTextAlignment(.center).frame(maxWidth: .infinity, alignment: .center)
       case "Context":
-        context.slot("title").openUIFont(context.theme.typography.caption)
-          .foregroundStyle(contentTheme.secondary)
-        if artworkSource != nil { Spacer(minLength: context.theme.contentSpacing) }
+        context.slot("title").openUIFont(context.theme.textBodyXs)
+          .foregroundStyle(contentTheme.textNeutralSecondary)
+        if artworkSource != nil { Spacer(minLength: context.theme.spaceM) }
         if let body = context.string("body") {
-          NativeMarkdownText(text: body, mode: .inline, style: .init(font: context.theme.typography.detail.weight(.semibold)))
+          NativeMarkdownText(text: body, mode: .inline, style: .init(font: context.theme.textBodySm.weight(.semibold)))
         }
       case "Visual":
         context.slot("tag")
-        if artworkSource != nil { Spacer(minLength: context.theme.contentSpacing) }
+        if artworkSource != nil { Spacer(minLength: context.theme.spaceM) }
         HStack(alignment: .center, spacing: context.theme.spacing("s")) {
           context.slot("body")
           if isAction {
@@ -691,7 +690,7 @@ struct NativeCardItem: View {
       groupEntry
     }
       .environment(\.openUICardGroupAction, nil)
-      .padding(itemTheme.cardPadding)
+      .padding(itemTheme.spaceM)
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
   }
   @ViewBuilder private var groupEntry: some View {
@@ -703,8 +702,8 @@ struct NativeCardItem: View {
           Spacer(minLength: 0)
           Image(systemName: "chevron.right").accessibilityHidden(true)
         }
-        .openUIFont(context.theme.typography.actionCompact)
-        .foregroundStyle(contentTheme.foreground)
+        .openUIFont(context.theme.textLabelSmHeavy)
+        .foregroundStyle(contentTheme.textNeutralPrimary)
         .frame(maxWidth: .infinity, alignment: .leading)
       }
       .disabled(!context.canDispatch(groupAction.action))
@@ -720,7 +719,7 @@ struct NativeCompositeFooter: View {
     // An object footer balances amount and action when their complete widths
     // fit. It becomes a column before compressing either reading value. The
     // same mounted action survives that placement change.
-    NativeLabelValueLayout(gap: context.theme.contentSpacing,
+    NativeLabelValueLayout(gap: context.theme.spaceM,
       minimumLabelWidth: .greatestFiniteMagnitude, centerVertically: true,
       collapsesEmptySlots: true) {
       context.render(NativeValue.prop(footer, "price") ?? .null)
@@ -741,7 +740,7 @@ struct NativeCardBlock: View {
   }
   private var minimumWidth: CGFloat {
     kind == "Overview"
-      ? context.theme.minimumCompactCardWidth : context.theme.minimumCardWidth
+      ? context.presentation.minimumCompactCardWidth : context.presentation.minimumCardWidth
   }
   private var gap: CGFloat {
     CGFloat(
@@ -766,8 +765,8 @@ struct NativeCardBlock: View {
       } else {
         NativePager(ids: children.map(\.id), selection: selection, enabled: true,
           identifier: "openui.card-block.\(kind.lowercased())", showsControls: false,
-          maximumPageWidth: context.theme.maximumCarouselCardWidth,
-          trailingPeek: context.theme.carouselPeek, pageSpacing: gap, grid: grid, supportsAdjustment: false) { id in
+          maximumPageWidth: context.presentation.maximumCarouselCardWidth,
+          trailingPeek: context.presentation.carouselPeek, pageSpacing: gap, grid: grid, supportsAdjustment: false) { id in
           if let index = children.firstIndex(where: { $0.id == id }) {
             item(children[index], index: index)
           }

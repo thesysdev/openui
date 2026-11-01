@@ -40,48 +40,47 @@ additional SwiftPM packages or targets.
 
 ## Theme application
 
-There are two explicit ways to apply a theme:
+`OpenUITheme` contains optional overrides. `OpenUIThemeValues` contains the
+resolved values read by components. The view modifier resolves the selected
+mode's defaults with the caller's overrides and injects the result through
+SwiftUI Environment. No document inspection or global theme store is involved.
 
 ```swift
-// A complete value replaces the theme within this subtree.
-renderer.openUITheme(appTheme)
-
-// An update starts with the inherited theme and changes only these fields.
-renderer.openUITheme { theme in
-    theme.spaceM = 16
-    theme.typography.body.size = 17
-}
+var light = OpenUITheme()
+light.spaceM = 16
+light.textBodyDefault = OpenUIFont(size: 17)
+renderer.openUITheme(mode: .system, lightTheme: light, darkTheme: dark)
 ```
 
-The update overload uses SwiftUI's `transformEnvironment`; it does not keep a
-second theme store or merge theme values in individual components. Parent and
-sibling scopes remain unchanged. The complete-value overload keeps its existing
-replacement semantics.
+A missing dark override set reuses the light overrides. A newly declared nested
+scope starts from SDK defaults, matching the pinned React ThemeProvider; it does
+not merge the parent's overrides. Unmodified descendants inherit their nearest
+scope. Typography roles are complete independent values, not getter/setter
+snapshots of other roles. The default native fonts and reading scale are retained.
 
-Appearance tokens include colors, typography, spacing, radii and effects.
-Native media metrics, control hit areas and motion settings remain accessible
-through the existing theme entry point, but are documented as native presentation
-settings. They do not alter the OpenUI Lang component definitions.
+`OpenUIPresentation` is a separate environment value for native-only media
+metrics, hit targets, chart axes and motion. Theme replacement does not change
+it. Both values are available to native and application-defined components.
 
 ## Component style selection
 
-Component parameters select existing styles: for example `gap="m"` reads the
-current `spaceM`. Fixed semantic values remain fixed: `gap="none"` is zero even
-if `space000` is overridden. No positional parameters are added or reordered.
+The OpenUI Lang definitions and positional parameters are unchanged. Size and
+gap variants select existing token roles; for example `gap="m"` reads `spaceM`,
+and `gap="none"` is always zero. Schema and prompt generation do not depend on
+theme overrides.
 
-Body text styles are independent of heading styles:
-
-| Component presentation | Typography role |
+| Component presentation | Theme role |
 | --- | --- |
-| TextContent default / small / large | body / detail / bodyLarge |
-| TextContent small-heavy / large-heavy | detailHeavy / bodyLargeHeavy |
-| Text sm or md / xs / lg | body / detail / bodyLarge |
-| BoldText sm or md / xs / lg | bodyHeavy / detailHeavy / bodyLargeHeavy |
-| ImageTextLarge title | bodyHeavy |
-| Markdown strong text | bodyHeavy weight, keeping its surrounding text size |
-| Markdown headings | display / title / heading |
+| TextContent default / small / large | textBodyDefault / textBodySm / textBodyLg |
+| TextContent small-heavy / large-heavy | textBodySmHeavy / textBodyLgHeavy |
+| Text sm or md / xs / lg | textBodyDefault / textBodySm / textBodyLg |
+| BoldText sm or md / xs / lg | textBodyDefaultHeavy / textBodySmHeavy / textBodyLgHeavy |
+| ImageTextLarge title | textBodyDefaultHeavy |
+| Markdown strong text | textBodyDefaultHeavy weight, keeping surrounding size |
+| Markdown headings | textHeadingMd / textHeadingSm / textHeadingXs |
 
-The corresponding reference styles are the body-default/small/large and heavy
-text styles, and the separate heading styles. Customizing a heading does not
-restyle body emphasis. Default sizes and weights stay the same as the preceding
-theme-convergence implementation.
+The supported token names and meanings follow React's Theme. Swift uses `Color`,
+point values and `OpenUIFont`, rather than a CSS parser. System fonts, contrast
+fallback, width-derived cover cropping, native chart colors and platform motion
+remain deliberate native presentation choices. React-only chat-shell tokens and
+unused CSS capabilities are not advertised as implemented native controls.

@@ -1,25 +1,47 @@
 import SwiftUI
 
-private struct OpenUIThemeKey: EnvironmentKey {
-    static let defaultValue = OpenUITheme()
-}
+/// System follows the nearest SwiftUI color scheme, including a containing theme scope.
+public enum OpenUIThemeMode: Equatable { case system, light, dark }
 
 extension EnvironmentValues {
-    public var openUITheme: OpenUITheme {
-        get { self[OpenUIThemeKey.self] }
-        set { self[OpenUIThemeKey.self] = newValue }
+    @Entry public var openUITheme = OpenUIThemeValues.defaults
+    @Entry public var openUIPresentation = OpenUIPresentation.defaults
+}
+
+private struct OpenUIThemeScope: ViewModifier {
+    let mode: OpenUIThemeMode
+    let light: OpenUITheme
+    let dark: OpenUITheme?
+    @Environment(\.colorScheme) private var inheritedScheme
+    func body(content: Content) -> some View {
+        let scheme: ColorScheme = mode == .light ? .light : mode == .dark ? .dark : inheritedScheme
+        let values = (scheme == .dark ? dark ?? light : light).resolved()
+        content.environment(\.openUITheme, values).environment(\.colorScheme, scheme)
     }
 }
 
 extension View {
-    /// Replace the theme for this subtree with a complete theme value.
-    public func openUITheme(_ value: OpenUITheme) -> some View {
-        environment(\.openUITheme, value)
+    /// Each scope starts from SDK defaults, as in the pinned React ThemeProvider.
+    /// When darkTheme is absent the light overrides are reused in dark mode.
+    public func openUITheme(mode: OpenUIThemeMode = .system,
+                            lightTheme: OpenUITheme = OpenUITheme(),
+                            darkTheme: OpenUITheme? = nil) -> some View {
+        modifier(OpenUIThemeScope(mode: mode, light: lightTheme, dark: darkTheme))
     }
-
-    /// Modify the inherited theme for this subtree. Unchanged fields and
-    /// sibling subtrees retain their parent theme; no global state is used.
-    public func openUITheme(_ update: @escaping (inout OpenUITheme) -> Void) -> some View {
-        transformEnvironment(\.openUITheme, transform: update)
+    public func openUITheme(_ overrides: OpenUITheme) -> some View {
+        openUITheme(lightTheme: overrides)
+    }
+    /// Build a fresh override set. An inner scope does not merge parent overrides.
+    public func openUITheme(_ configure: (inout OpenUITheme) -> Void) -> some View {
+        var overrides = OpenUITheme()
+        configure(&overrides)
+        return openUITheme(overrides)
+    }
+    public func openUIPresentation(_ value: OpenUIPresentation) -> some View {
+        environment(\.openUIPresentation, value)
+    }
+    // Resolved scopes are used internally for artwork contrast and rendering tests.
+    func openUITheme(_ values: OpenUIThemeValues) -> some View {
+        environment(\.openUITheme, values)
     }
 }
