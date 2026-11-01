@@ -55,7 +55,7 @@ export type ArtifactStreamEvent =
   | {
       type: "reference";
       eventId?: string;
-      data: { id: string; type?: string; definition?: string; title?: string };
+      data: { id: string; type?: string; title?: string };
     }
   | { type: "delta"; eventId?: string; data: { text: string } }
   | { type: "end"; eventId?: string }
