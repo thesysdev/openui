@@ -6,26 +6,41 @@ const SHEET_ID = "openui-styles";
 // A layer name, or a dotted path of them such as `app.openui`, as `@layer` accepts.
 const LAYER_NAME = /^-?[a-zA-Z_][\w-]*(\.-?[a-zA-Z_][\w-]*)*$/;
 
-// Every rule Goober has registered, unlayered.
-let rules = "";
-// How much of `rules` is already on the page.
-let written = 0;
-let emitted = false;
-// The layer of the rules last written to the page.
-let emittedLayer: string | undefined;
-let scheduled = false;
-let layer: string | undefined;
+type Store = {
+  // Every rule Goober has registered, unlayered.
+  rules: string;
+  // How much of `rules` is already on the page.
+  written: number;
+  emitted: boolean;
+  // The layer of the rules last written to the page.
+  emittedLayer: string | undefined;
+  scheduled: boolean;
+  layer: string | undefined;
+};
+
+// One store per page, shared by every copy of this module (an ESM and a CJS build, or two
+// versions). Each copy's Goober then finds rules another copy registered and skips them.
+const STORE = Symbol.for("@openuidev/react-components/styles");
+const store: Store = ((globalThis as { [STORE]?: Store })[STORE] ??= {
+  rules: "",
+  written: 0,
+  emitted: false,
+  emittedLayer: undefined,
+  scheduled: false,
+  layer: undefined,
+});
 
 // Goober 2.1.19 also tells the browser from the server by `window`.
 const inBrowser = () => typeof window === "object";
 
 // Blocks with the same layer name join into one layer, so each write is wrapped on its own.
-const wrap = (text: string, name = layer) => (name && text ? `@layer ${name}{${text}}` : text);
+const wrap = (text: string, name = store.layer) =>
+  name && text ? `@layer ${name}{${text}}` : text;
 
 function write() {
-  scheduled = false;
-  const fresh = rules.slice(written);
-  written = rules.length;
+  store.scheduled = false;
+  const fresh = store.rules.slice(store.written);
+  store.written = store.rules.length;
   if (!fresh) return;
   let tag = document.getElementById(SHEET_ID);
   if (!tag) {
@@ -39,18 +54,18 @@ function write() {
   const nonce = (window as Window & { __nonce__?: string }).__nonce__;
   if (nonce && tag.nonce !== nonce) tag.nonce = nonce;
   tag.append(wrap(fresh));
-  emitted = true;
-  emittedLayer = layer;
+  store.emitted = true;
+  store.emittedLayer = store.layer;
 }
 
 const sink = {
   get data() {
-    return rules;
+    return store.rules;
   },
   set data(next: string) {
-    rules = next;
-    if (inBrowser() && !scheduled) {
-      scheduled = true;
+    store.rules = next;
+    if (inBrowser() && !store.scheduled) {
+      store.scheduled = true;
       queueMicrotask(write);
     }
   },
@@ -100,11 +115,16 @@ export function configureStyles(options: ConfigureStylesOptions): void {
     }
     return;
   }
-  if (emitted && options.layer !== layer && options.layer !== emittedLayer && development()) {
+  if (
+    store.emitted &&
+    options.layer !== store.layer &&
+    options.layer !== store.emittedLayer &&
+    development()
+  ) {
     console.warn(
       "[OpenUI] configureStyles was called after component rules were written. " +
         "Existing page rules cannot be re-layered. Configure once in the app entry, before rendering.",
     );
   }
-  layer = options.layer;
+  store.layer = options.layer;
 }
