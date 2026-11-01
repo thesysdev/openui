@@ -1,4 +1,3 @@
-import type { LibrarySpec } from "@openuidev/lang-core";
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { ToolExecutionError } from "../tools/types";
@@ -52,19 +51,13 @@ export function defineDashboard<Context>(
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
-  if (typeof library?.toSpec !== "function") {
-    invalidInput("library is required, such as one from createLibrary");
+  if (!isRecord(library) || !isRecord(library.components)) {
+    invalidInput("library is required as a library spec, such as `library.toSpec()`");
   }
   if (!isRecord(tools) && mcp === undefined) {
     invalidInput("Dashboards need data tools: pass `tools`, `mcp`, or both");
   }
 
-  let spec: LibrarySpec;
-  try {
-    spec = library.toSpec();
-  } catch (error) {
-    invalidLibrary(error);
-  }
   // One list of tools for generation and the interpreter; MCP tools are listed once.
   const loadTools = dataToolLoader<Context>({ tools, mcp } as DashboardOptions<Context>);
 
@@ -83,7 +76,7 @@ export function defineDashboard<Context>(
   // OpenUI Cloud's config block: your library and prompt options, then each call's tools and title.
   let config: ReturnType<typeof artifactConfig>;
   try {
-    config = artifactConfig(spec, promptOptions);
+    config = artifactConfig(library, promptOptions);
   } catch (error) {
     invalidLibrary(error);
   }

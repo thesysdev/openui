@@ -10,10 +10,11 @@ export interface OpenUIClientOptions {
   fetch?: typeof globalThis.fetch;
 }
 
-/** The components an artifact can use, such as a library from `createLibrary`. */
-export interface ArtifactLibrary {
-  toSpec(): LibrarySpec;
-}
+/**
+ * The components an artifact can use, as a library spec: `library.toSpec()`, or
+ * the JSON from `openui generate --spec`.
+ */
+export type ArtifactLibrary = LibrarySpec;
 
 /** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */
 export type ArtifactPromptOptions = CloudPromptOptions;
