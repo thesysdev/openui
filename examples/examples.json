@@ -191,6 +191,15 @@
       }
     },
     {
+      "title": "OpenUI x ShadCN Dashboards",
+      "description": "Live dashboards a chat agent builds from shadcn/ui components in OpenUI Cloud, with data from npm, GitHub, and an OSV.dev MCP server.",
+      "path": "miscellaneous/shadcn-dashboards",
+      "env": {
+        "file": ".env.local",
+        "key": "THESYS_API_KEY"
+      }
+    },
+    {
       "title": "React Email",
       "description": "Generating and previewing emails with the OpenUI React Email library.",
       "path": "miscellaneous/react-email",
