@@ -13,6 +13,8 @@ export interface CloudRequest {
 
 /** Authenticated requests to OpenUI Cloud with the API key. */
 export interface CloudApi {
+  /** The client's app, if it has one. */
+  readonly appId?: string;
   /** Sends a request with the API key and resolves with the response as is. */
   request(path: string, init?: CloudRequest): Promise<Response>;
   /** POSTs JSON and resolves with the JSON object OpenUI Cloud returns. */
@@ -66,6 +68,7 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
   }
 
   return {
+    ...(options.appId !== undefined && { appId: options.appId }),
     request,
 
     async post(path, body, signal) {

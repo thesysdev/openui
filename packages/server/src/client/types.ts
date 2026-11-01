@@ -7,6 +7,11 @@ export interface OpenUIClientOptions {
   apiKey?: string;
   /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
   baseUrl?: string;
+  /**
+   * Your app, when one API key serves several: users' frontend tokens and
+   * artifacts belong to it, and generated scripts run only from it.
+   */
+  appId?: string;
   fetch?: typeof globalThis.fetch;
 }
 

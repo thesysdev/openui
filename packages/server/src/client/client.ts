@@ -2,13 +2,14 @@ import type { ExecutionContext } from "../tools/types";
 import { createCloudApi, type CloudApi } from "./api";
 import { defineDashboard } from "./dashboard";
 import { createFrontendToken } from "./frontend-token";
-import type {
-  CreateFrontendTokenParams,
-  Dashboard,
-  DashboardOptions,
-  FrontendToken,
-  OpenUIClientOptions,
-  RequestOptions,
+import {
+  OpenUIApiError,
+  type CreateFrontendTokenParams,
+  type Dashboard,
+  type DashboardOptions,
+  type FrontendToken,
+  type OpenUIClientOptions,
+  type RequestOptions,
 } from "./types";
 
 /**
@@ -19,6 +20,12 @@ export class OpenUIClient {
   private readonly api: CloudApi;
 
   constructor(options: OpenUIClientOptions = {}) {
+    if (
+      options.appId !== undefined &&
+      (typeof options.appId !== "string" || !options.appId.trim())
+    ) {
+      throw new OpenUIApiError("appId must be a non-empty string", "invalid_input");
+    }
     this.api = createCloudApi(options);
   }
 

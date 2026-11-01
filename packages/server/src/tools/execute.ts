@@ -120,11 +120,10 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
           400,
         );
       }
-      const appId = context?.appId;
       const source = {
         artifact_id: input.id,
         user_id: userId,
-        ...(typeof appId === "string" && appId && { app_id: appId }),
+        ...(api.appId !== undefined && { app_id: api.appId }),
       };
 
       let state: string | undefined;

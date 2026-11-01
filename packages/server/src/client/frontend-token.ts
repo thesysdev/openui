@@ -1,7 +1,7 @@
 import type { CloudApi } from "./api";
 import { OpenUIApiError, type FrontendToken } from "./types";
 
-/** Mints a frontend token for `userId` with your API key. */
+/** Mints a frontend token for `userId`, in the client's app if it has one, with your API key. */
 export async function createFrontendToken(
   api: CloudApi,
   userId: unknown,
@@ -13,7 +13,11 @@ export async function createFrontendToken(
       "invalid_input",
     );
   }
-  const { token, expires_at } = await api.post("/v1/frontend-tokens", { user_id: userId }, signal);
+  const { token, expires_at } = await api.post(
+    "/v1/frontend-tokens",
+    { user_id: userId, ...(api.appId !== undefined && { app_id: api.appId }) },
+    signal,
+  );
   if (typeof token !== "string" || !token || typeof expires_at !== "number") {
     throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
   }

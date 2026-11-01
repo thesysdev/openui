@@ -19,8 +19,6 @@ export interface ToolDefinition {
  */
 export interface ExecutionContext {
   userId: string;
-  /** The user's app, when their artifacts were made in one: scripts run only from it. */
-  appId?: string;
 }
 
 export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (
