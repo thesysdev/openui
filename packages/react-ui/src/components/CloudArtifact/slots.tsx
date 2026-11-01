@@ -18,7 +18,8 @@ import {
  * Slots, following AgentInterface's three modes:
  *   • omit a slot     → the default renders
  *   • pass props      → the default renders with your values
- *   • pass children   → your children replace the default entirely
+ *   • pass children   → your children replace the default's look; a loader
+ *                       or error still shows only while loading or failed
  *
  * Regions (`Preview`, `Chrome`) go at the renderer's top level. Parts only
  * render inside their region: preview parts in `Preview`, chrome parts in
@@ -109,9 +110,8 @@ export interface LoaderProps {
 export function PreviewLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("preview");
   const state = useArtifactRenderer();
-  if (!inside) return null;
+  if (!inside || !state.isLoading) return null;
   if (children !== undefined) return <>{children}</>;
-  if (!state.isLoading) return null;
   return (
     <span className="openui-artifact-loader" role="status">
       <Spinner />
@@ -163,9 +163,8 @@ export function ChromeTitle({ className, children }: PartProps) {
 export function ChromeLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  if (!inside) return null;
+  if (!inside || !state.isLoading) return null;
   if (children !== undefined) return <>{children}</>;
-  if (!state.isLoading) return null;
   return (
     <span className="openui-artifact-loader" role="status">
       <Spinner />
@@ -220,7 +219,7 @@ export function Content({ className, children }: PartProps) {
   return (
     <RegionProvider region="content">
       <div className={clsx("openui-artifact-content", className)}>
-        {config.render()}
+        {/* Above the artifact, so an error reads first. */}
         {children === undefined ? (
           <>
             <Loading />
@@ -229,6 +228,7 @@ export function Content({ className, children }: PartProps) {
         ) : (
           children
         )}
+        {config.render()}
       </div>
     </RegionProvider>
   );
@@ -238,9 +238,8 @@ export function Loading({ label, children }: LoaderProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
   const config = useContext(ContentConfigContext);
-  if (!inside) return null;
+  if (!inside || !state.isLoading || state.error) return null;
   if (children !== undefined) return <>{children}</>;
-  if (!state.isLoading || state.error) return null;
   return (
     <div
       className={clsx(
@@ -263,9 +262,8 @@ export interface ErrorProps {
 function ErrorSlot({ message, children }: ErrorProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
-  if (!inside) return null;
+  if (!inside || !state.error) return null;
   if (children !== undefined) return <>{children}</>;
-  if (!state.error) return null;
   return (
     <div className="openui-artifact-error" role="alert">
       <span>{message ?? state.error.message}</span>
