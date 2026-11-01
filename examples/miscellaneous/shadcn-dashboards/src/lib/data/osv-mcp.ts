@@ -70,8 +70,8 @@ const json = (value: Record<string, unknown>) => ({
   structuredContent: value,
 });
 
-// Dashboards pass whatever their filters hold, "" and null included: accept them.
-const optionalText = z.union([z.string(), z.null()]).optional();
+// An unset filter ("" or null) never arrives: the SDK leaves it out of MCP calls.
+const optionalText = z.string().optional();
 
 function osvServer() {
   const server = new McpServer({ name: "osv", version: "1.0.0" });
