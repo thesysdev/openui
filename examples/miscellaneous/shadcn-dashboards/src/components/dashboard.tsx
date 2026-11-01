@@ -23,7 +23,6 @@ const {
   Preview,
   Chrome,
   ChromeTitle,
-  ChromeLoader,
   ChromeActions,
   CloseButton,
   Content,
@@ -81,10 +80,8 @@ export function Dashboard({
             </span>
             {/* Props: the default title, styled. */}
             <ChromeTitle className="min-w-0 flex-1 truncate text-sm font-semibold" />
-            {/* Children: our status badge instead of the default loader. */}
-            <ChromeLoader>
-              <StatusBadge />
-            </ChromeLoader>
+            {/* Always shown, so it sits in the bar rather than in ChromeLoader (shown only while loading). */}
+            <StatusBadge />
             <ChromeActions>
               <EditButton onEdit={onEdit} />
               <CloseButton>
@@ -226,10 +223,9 @@ function PanelCloseButton() {
   );
 }
 
-/** A pill over the dashboard while it's generated or its data loads. */
+/** A pill over the dashboard while it's generated or its data loads. The slot shows it only then. */
 function DashboardLoading() {
-  const { isStreaming, isLoading, error } = useArtifactRenderer();
-  if (!isLoading || error) return null;
+  const { isStreaming } = useArtifactRenderer();
   return (
     <div
       className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center"
@@ -243,22 +239,22 @@ function DashboardLoading() {
   );
 }
 
+/** Above the dashboard when it fails. The slot shows it only then. */
 function DashboardError() {
   const { error, retry } = useArtifactRenderer();
-  if (!error) return null;
   return (
     <div
       role="alert"
-      className="mt-4 flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm"
+      className="mb-4 flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm"
     >
       <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
       <div className="min-w-0 flex-1">
         <p className="font-medium">
-          {error.source === "query"
+          {error?.source === "query"
             ? "Some of this dashboard's data didn't load."
             : "This dashboard couldn't be shown."}
         </p>
-        <p className="mt-1 break-words text-muted-foreground">{error.message}</p>
+        <p className="mt-1 break-words text-muted-foreground">{error?.message}</p>
       </div>
       {retry && (
         <Button variant="outline" size="sm" onClick={retry}>
