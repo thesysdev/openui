@@ -10,6 +10,7 @@ export const scatterChartPropsSchema = z.object({
   datasets: z.array(ScatterSeriesComponent.ref).default([]),
   xLabel: z.string().optional(),
   yLabel: z.string().optional(),
+  legend: z.boolean().optional(),
 });
 
 export type ScatterChartProps = z.infer<typeof scatterChartPropsSchema>;
@@ -52,6 +53,7 @@ function ScatterChartRenderer({ props }: ComponentRenderProps<ScatterChartProps>
       customPalette={DASHBOARD_CHART_PALETTE}
       xAxisLabel={props.xLabel}
       yAxisLabel={props.yLabel}
+      legend={props.legend}
       isAnimationActive={false}
       height={totalHeight}
     />
@@ -61,6 +63,7 @@ function ScatterChartRenderer({ props }: ComponentRenderProps<ScatterChartProps>
 export const ScatterChartComponent = defineComponent({
   name: "ScatterChart",
   props: scatterChartPropsSchema,
-  description: "X/Y scatter plot; use for correlations, distributions, and clustering.",
+  description:
+    "X/Y scatter plot; use for correlations, distributions, and clustering. legend false hides the legend and, with it, the axis labels.",
   component: ScatterChartRenderer,
 });

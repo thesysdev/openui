@@ -3,13 +3,16 @@
 import { DatePicker } from "@openuidev/react-components";
 import {
   defineComponent,
+  parseStructuredRules,
   useFormName,
+  useFormValidation,
   useIsStreaming,
   useSetFieldValue,
   useStateField,
   type ComponentRenderProps,
 } from "@openuidev/react-lang";
 import React from "react";
+import { DateField } from "../../components/DateField";
 import { datePickerPropsSchema, type DatePickerProps } from "./schema";
 function parseDate(str: string | undefined): Date | undefined {
   if (!str) return undefined;
@@ -43,6 +46,23 @@ function DatePickerRenderer({ props }: ComponentRenderProps<DatePickerProps>) {
   const [isOpen, setIsOpen] = React.useState(false);
   const lastSyncedRef = React.useRef<string>("");
   const pendingValueRef = React.useRef<string>("");
+  const formValidation = useFormValidation();
+  const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
+  const hasRules = rules.length > 0;
+
+  // Register the rules with the enclosing form, as react-ui's DatePicker does.
+  React.useEffect(() => {
+    if (!isStreaming && hasRules && formValidation) {
+      formValidation.registerField(fieldName, rules, () => field.value);
+      return () => formValidation.unregisterField(fieldName);
+    }
+    return undefined;
+  }, [fieldName, field.value, formValidation, hasRules, isStreaming, rules]);
+
+  const setValue = (val: string) => {
+    field.setValue(val);
+    if (hasRules) formValidation?.validateField(fieldName, val, rules);
+  };
 
   const syncBinding = React.useCallback(
     (value: string) => {
@@ -61,46 +81,51 @@ function DatePickerRenderer({ props }: ComponentRenderProps<DatePickerProps>) {
       to: parseDate(parts[1]),
     };
     return (
-      <DatePicker
-        mode="range"
-        selectedRangeDates={rangeValue}
-        setSelectedRangeDates={(range) => {
-          const from = formatDate(range?.from);
-          const to = formatDate(range?.to);
-          const val = [from, to].filter(Boolean).join(",");
-          field.setValue(val);
-          pendingValueRef.current = val;
-        }}
-        isOpen={isOpen && !isStreaming}
-        setIsOpen={(open) => {
-          setIsOpen(open);
-          if (!open && pendingValueRef.current) {
-            syncBinding(pendingValueRef.current);
-          }
-        }}
-      />
+      <DateField label={props.label}>
+        <DatePicker
+          mode="range"
+          selectedRangeDates={rangeValue}
+          setSelectedRangeDates={(range) => {
+            const from = formatDate(range?.from);
+            const to = formatDate(range?.to);
+            const val = [from, to].filter(Boolean).join(",");
+            setValue(val);
+            pendingValueRef.current = val;
+          }}
+          isOpen={isOpen && !isStreaming}
+          setIsOpen={(open) => {
+            setIsOpen(open);
+            if (!open && pendingValueRef.current) {
+              syncBinding(pendingValueRef.current);
+            }
+          }}
+        />
+      </DateField>
     );
   }
 
   return (
-    <DatePicker
-      mode="single"
-      selectedSingleDate={parseDate(storedValue) ?? parseDate(defaultDate)}
-      setSelectedSingleDate={(date) => {
-        const val = formatDate(date) ?? "";
-        field.setValue(val);
-        syncBinding(val);
-        setIsOpen(false);
-      }}
-      isOpen={isOpen && !isStreaming}
-      setIsOpen={setIsOpen}
-    />
+    <DateField label={props.label}>
+      <DatePicker
+        mode="single"
+        selectedSingleDate={parseDate(storedValue) ?? parseDate(defaultDate)}
+        setSelectedSingleDate={(date) => {
+          const val = formatDate(date) ?? "";
+          setValue(val);
+          syncBinding(val);
+          setIsOpen(false);
+        }}
+        isOpen={isOpen && !isStreaming}
+        setIsOpen={setIsOpen}
+      />
+    </DateField>
   );
 }
 
 export const DatePickerComponent = defineComponent({
   name: "DatePicker",
   props: datePickerPropsSchema,
-  description: "",
+  description:
+    "Date filter. rules {required: true} is checked when the picker sits in a form. label shows above the picker.",
   component: DatePickerRenderer,
 });

@@ -16,6 +16,7 @@ export const lineChartPropsSchema = z.object({
   variant: z.enum(["linear", "natural", "step"]).optional(),
   xLabel: z.string().optional(),
   yLabel: z.string().optional(),
+  legend: z.boolean().optional(),
 });
 
 export type LineChartProps = z.infer<typeof lineChartPropsSchema>;
@@ -32,6 +33,7 @@ function LineChartRenderer({ props }: ComponentRenderProps<LineChartProps>) {
       variant={props.variant}
       xAxisLabel={props.xLabel}
       yAxisLabel={props.yLabel}
+      legend={props.legend}
       isAnimationActive={false}
       condensed
       height={getCondensedCartesianChartHeight(DASHBOARD_CHART_HEIGHT)}
@@ -42,6 +44,7 @@ function LineChartRenderer({ props }: ComponentRenderProps<LineChartProps>) {
 export const LineChartComponent = defineComponent({
   name: "LineChart",
   props: lineChartPropsSchema,
-  description: "Lines over categories; use for trends and continuous data over time.",
+  description:
+    "Lines over categories; use for trends and continuous data over time. legend false hides the legend and, with it, the axis labels.",
   component: LineChartRenderer,
 });

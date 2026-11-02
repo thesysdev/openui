@@ -26,18 +26,19 @@ exports[`openuiDashboardLibrary > keeps the generated prompt stable 1`] = `
 ## Component Signatures
 
 Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.
+Props typed \`ActionExpression\` accept one @step, or Action([@steps...]) for several. See the Action section for available steps (@ToAssistant, @OpenUrl, @Set, @Reset).
 Props marked \`$binding<type>\` accept a \`$variable\` reference for two-way binding.
 
 ### Dashboard Layout
 Dashboard(children: (DashboardHeader | Section)[]) — Root component for dashboard apps. Use as Dashboard([DashboardHeader(...), Section(...), ...]).
 DashboardHeader(title: string, subtitle?: string, controls?: (IconButton)[])
-Section(rows: CardRow[], filterBar?: FilterBar) — Major topical dashboard grouping with rows and an optional FilterBar. Use one Section for most dashboard content; add more Sections only for altogether different domains or topics.
+Section(rows: CardRow[], filterBar?: FilterBar, title?: string) — Major topical dashboard grouping with rows and an optional FilterBar. Use one Section for most dashboard content; add more Sections only for altogether different domains or topics. title names the Section; give one when a dashboard has several Sections.
 FilterBar(children?: (FilterSelect | FilterMultiSelect | DatePicker | IconButton)[], rightChildren?: (FilterSelect | FilterMultiSelect | DatePicker | IconButton)[], compact?: boolean)
 FilterSelect(name: string, label: string, options?: {value: string, label?: string}[], defaultValue?: $binding<string>, placeholder?: string)
 FilterMultiSelect(name: string, label: string, options?: {value: string, label?: string}[], defaultValues?: $binding<string[]>, placeholder?: string)
-DatePicker(name: string, mode?: "single" | "range", rules?: {required?: boolean}, defaultDate?: $binding<string>)
+DatePicker(name: string, mode?: "single" | "range", rules?: {required?: boolean}, defaultDate?: $binding<string>, label?: string) — Date filter. rules {required: true} is checked when the picker sits in a form. label shows above the picker.
 CardRow(children?: (SmallCard | MediumCard | LargeCard)[], align?: "start" | "stretch")
-IconButton(label: string, icon: string, category?: string, action?: any, variant?: "primary" | "secondary" | "tertiary", type?: "normal" | "destructive", size?: "3-extra-small" | "2-extra-small" | "extra-small" | "small" | "medium" | "large", shape?: "square" | "circle")
+IconButton(label: string, icon: string, category?: string, action?: ActionExpression, variant?: "primary" | "secondary" | "tertiary", type?: "normal" | "destructive", size?: "3-extra-small" | "2-extra-small" | "extra-small" | "small" | "medium" | "large", shape?: "square" | "circle")
 Use Dashboard as the dashboard root with DashboardHeader plus Section children.
 Use DashboardHeader for the page-level dashboard header.
 Use one Section for most dashboard content. Create multiple Sections only for altogether different topics or domains, such as Sales vs Expenses. Do not create a new Section for every row or card.
@@ -51,18 +52,18 @@ SmallCard(top: any, bottom?: any, trend?: any) — Compact dashboard card with t
 MediumCard(children?: (DashboardCardHeader | BarChart | LineChart | AreaChart | RadarChart | HorizontalBarChart | PieChart | RadialChart | ScatterChart | Table | MetricIndicator | TextContent | MarkDownRenderer | Callout | ImageBlock | TagBlock | Button | ButtonGroup | Select | List | EntityList)[], collapsed?: boolean)
 LargeCard(children?: (DashboardCardHeader | BarChart | LineChart | AreaChart | HorizontalBarChart | ScatterChart | Table | MetricIndicator | TextContent | MarkDownRenderer | Callout | ImageBlock | TagBlock | Button | ButtonGroup | Select | List | EntityList)[], collapsed?: boolean)
 DashboardCardHeader(title: string, subtitle?: string, titleType?: "text" | "number", controls?: (IconButton)[]) — Card header for MediumCard and LargeCard. If the card has a clear leading KPI or score, prefer making that value the title with titleType "number" and use the subtitle for the label; use titleType "text" for descriptive titles.
-List(items?: ListItem[], variant?: "icon" | "number", heading?: string, description?: string)
-ListItem(title: string, subtitle?: string, icon?: Icon)
+List(items?: ListItem[], variant?: "icon" | "number", heading?: string, description?: string) — Numbered or icon list. variant "number" (default) numbers the rows; use variant "icon" when the ListItems carry icons, otherwise their icons are not shown.
+ListItem(title: string, subtitle?: string, icon?: Icon) — One List row. icon shows only when the List variant is "icon"; in the default "number" variant rows are numbered and icon is ignored.
 EntityList(rows?: {left: string, right: string, rightVariant?: "text" | "number"}[], size?: "small" | "default", header?: {left: string, right: string, rightVariant?: "text" | "number"}, footer?: {left: string, right: string, rightVariant?: "text" | "number"}) — Two-column key/value rows. header and footer show only with size "default"; size "small" takes rows alone.
 Callout(variant?: "neutral" | "danger" | "info" | "warning" | "success", title?: string, description?: string)
-Button(label: string, action?: any, variant?: "primary" | "secondary" | "tertiary", type?: "normal" | "destructive", size?: "extra-small" | "small" | "medium" | "large")
+Button(label: string, action?: ActionExpression, variant?: "primary" | "secondary" | "tertiary", type?: "normal" | "destructive", size?: "extra-small" | "small" | "medium" | "large")
 ButtonGroup(buttons: Button[], direction?: "row" | "column")
 Select(name: string, items: SelectItem[], placeholder?: string, defaultValue?: string)
 SelectItem(value: string, label: string)
 ImageBlock(src?: string, alt?: string) — Full-width hero/banner image with rounded corners. Use inside Card for featured images, cover photos, or visual sections.
 Tag(text: string, variant?: "neutral" | "info" | "success" | "warning" | "danger", icon?: Icon)
 TagBlock(children?: Tag[])
-TextContent(text: string, size?: "small" | "default" | "large" | "small-heavy" | "large-heavy")
+TextContent(text: string, size?: "small" | "default" | "large" | "small-heavy" | "large-heavy") — Markdown text. size sets the body size: "small", "default", "large", "small-heavy" or "large-heavy".
 MarkDownRenderer(textMarkdown: string)
 SmallCard is compact. MediumCard supports DashboardCardHeader, text, callouts, ImageBlock, charts, tables, lists, actions, tags, and metrics. LargeCard supports the same content as MediumCard except PieChart, donut charts, RadialChart, and RadarChart.
 Use Callout inside MediumCard or LargeCard for info, success, warning, or danger alerts.
@@ -91,14 +92,14 @@ Use MetricIndicator for concise value plus trend callouts inside small, medium, 
 Use OverviewCardBlock for KPI metric grids with OverviewCardItem children.
 
 ### Charts
-LineChart(labels: string[], series?: Series[], variant?: "linear" | "natural" | "step", xLabel?: string, yLabel?: string) — Lines over categories; use for trends and continuous data over time.
-BarChart(labels: string[], series?: Series[], variant?: "grouped" | "stacked", xLabel?: string, yLabel?: string) — Vertical bars; use for comparing values across categories with one or more series.
-AreaChart(labels: string[], series?: Series[], variant?: "linear" | "natural" | "step", xLabel?: string, yLabel?: string) — Filled area under lines; use for cumulative totals or volume trends over time.
-HorizontalBarChart(labels: string[], series?: Series[], variant?: "grouped" | "stacked", xLabel?: string, yLabel?: string) — Horizontal bars; use only when category labels are too long for a vertical BarChart or the user explicitly asks for horizontal bars.
-RadarChart(labels: string[], series?: Series[]) — Spider/web chart; use for comparing multiple variables across one or more entities.
-ScatterChart(datasets?: ScatterSeries[], xLabel?: string, yLabel?: string) — X/Y scatter plot; use for correlations, distributions, and clustering.
-RadialChart(labels: string[], values: number[]) — Radial bars; use plucked arrays: RadialChart(data.categories, data.values).
-PieChart(labels: string[], values: number[], variant?: "pie" | "donut", legendVariant?: "default" | "stacked", height?: number | string, appearance?: "circular" | "semiCircular") — Pie or donut slices; supports circular or semiCircular appearance. Use plucked arrays: PieChart(data.categories, data.values).
+LineChart(labels: string[], series?: Series[], variant?: "linear" | "natural" | "step", xLabel?: string, yLabel?: string, legend?: boolean) — Lines over categories; use for trends and continuous data over time. legend false hides the legend and, with it, the axis labels.
+BarChart(labels: string[], series?: Series[], variant?: "grouped" | "stacked", xLabel?: string, yLabel?: string, legend?: boolean) — Vertical bars; use for comparing values across categories with one or more series. legend false hides the legend and, with it, the axis labels.
+AreaChart(labels: string[], series?: Series[], variant?: "linear" | "natural" | "step", xLabel?: string, yLabel?: string, stacked?: boolean, legend?: boolean) — Filled area under lines; use for cumulative totals or volume trends over time. stacked (default true) stacks the series; false overlaps them. legend false hides the legend and, with it, the axis labels.
+HorizontalBarChart(labels: string[], series?: Series[], variant?: "grouped" | "stacked", xLabel?: string, yLabel?: string, legend?: boolean) — Horizontal bars; use only when category labels are too long for a vertical BarChart or the user explicitly asks for horizontal bars. legend false hides the legend and, with it, the axis labels.
+RadarChart(labels: string[], series?: Series[], variant?: "line" | "area", legend?: boolean) — Spider/web chart; use for comparing multiple variables across one or more entities. variant "line" (default) draws outlines; "area" fills them. legend false hides the legend.
+ScatterChart(datasets?: ScatterSeries[], xLabel?: string, yLabel?: string, legend?: boolean) — X/Y scatter plot; use for correlations, distributions, and clustering. legend false hides the legend and, with it, the axis labels.
+RadialChart(labels: string[], values: number[], variant?: "circular" | "semiCircular", format?: "percentage" | "number", legend?: boolean) — Radial bars; use plucked arrays: RadialChart(data.categories, data.values). variant "circular" (default) or "semiCircular"; format shows tooltip values as "number" (default) or "percentage"; legend false hides the legend.
+PieChart(labels: string[], values: number[], variant?: "pie" | "donut", legendVariant?: "default" | "stacked", height?: number | string, appearance?: "circular" | "semiCircular", format?: "percentage" | "number", legend?: boolean) — Pie or donut slices; supports circular or semiCircular appearance. Use plucked arrays: PieChart(data.categories, data.values). format shows values as "number" (default) or "percentage" in the tooltip, and in the legend inside a MediumCard; legend false hides the legend.
 Series(category: string, values: number[]) — One data series
 ScatterSeries(name: string, points: Point[]) — Named dataset
 Point(x: number, y: number, z?: number) — Data point
@@ -149,6 +150,24 @@ Array pluck: \`data.rows.field\` extracts a field from every row → use with @S
 IMPORTANT @Each rule: The loop variable (e.g. "item") is ONLY available inside the @Each template expression. Always inline the template — do NOT extract it to a separate statement.
 CORRECT: \`list = @Each(rows, "t", Comp(t.name))\`
 WRONG: \`item = Comp(t.name)\` then \`list = @Each(rows, "t", item)\`, because t is undefined in item.
+
+## Action — Button Behavior
+
+An action wires a button click to operations. Pass one @-prefixed step bare, e.g. Button("Ask", @ToAssistant("Tell me more")). Put several steps in Action([...]), e.g. Button("Read", Action([@OpenUrl("https://example.com"), @ToAssistant("Summarize this page")])). Steps execute in order.
+Buttons without an action automatically send their label to the assistant (equivalent to @ToAssistant(label)).
+
+Available steps:
+- @ToAssistant(message: string, context?: any) — Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this"). The optional context is any value (object, array, string, number) passed to the assistant as hidden data, e.g. @ToAssistant("Show details", {orderId: 42})
+- @OpenUrl(url: string) — Navigate to a URL
+- @Set(variable: $variable, value: any) — Set a $variable to a specific value
+- @Reset(variable: $variable) — Reset $variables to their declared defaults; pass several to reset each (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")
+
+Example — simple nav:
+\`\`\`
+viewBtn = Button("View", @OpenUrl("https://example.com"))
+\`\`\`
+
+- An action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", Action([...])) both work
 
 ## Hoisting & Streaming (CRITICAL)
 

@@ -5,6 +5,7 @@ import {
   TextBlockView,
 } from "@openuidev/react-components";
 import clsx from "clsx";
+import { trendMagnitude } from "../../shared/trend";
 import { names, styles } from "./overviewCardBlock.styles";
 
 export interface OverviewCardItem {
@@ -55,7 +56,14 @@ export function OverviewCardBlock({ items, layout, responsive, gap }: OverviewCa
         top: cardTop(item),
         bottom:
           item.value || item.valueSubtext || item.trend
-            ? { value: item.value ?? "", subtext: item.valueSubtext, trend: item.trend }
+            ? {
+                value: item.value ?? "",
+                subtext: item.valueSubtext,
+                trend: item.trend && {
+                  ...item.trend,
+                  value: trendMagnitude(item.trend.value, item.trend.direction),
+                },
+              }
             : undefined,
       }))}
     />

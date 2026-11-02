@@ -16,6 +16,7 @@ export const barChartPropsSchema = z.object({
   variant: z.enum(["grouped", "stacked"]).optional(),
   xLabel: z.string().optional(),
   yLabel: z.string().optional(),
+  legend: z.boolean().optional(),
 });
 
 export type BarChartProps = z.infer<typeof barChartPropsSchema>;
@@ -32,6 +33,7 @@ function BarChartRenderer({ props }: ComponentRenderProps<BarChartProps>) {
       variant={props.variant}
       xAxisLabel={props.xLabel}
       yAxisLabel={props.yLabel}
+      legend={props.legend}
       isAnimationActive={false}
       condensed
       height={getCondensedCartesianChartHeight(DASHBOARD_CHART_HEIGHT)}
@@ -42,6 +44,7 @@ function BarChartRenderer({ props }: ComponentRenderProps<BarChartProps>) {
 export const BarChartComponent = defineComponent({
   name: "BarChart",
   props: barChartPropsSchema,
-  description: "Vertical bars; use for comparing values across categories with one or more series.",
+  description:
+    "Vertical bars; use for comparing values across categories with one or more series. legend false hides the legend and, with it, the axis labels.",
   component: BarChartRenderer,
 });

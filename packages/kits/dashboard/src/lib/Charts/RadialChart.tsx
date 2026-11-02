@@ -8,6 +8,9 @@ import { buildSliceData, DASHBOARD_CHART_HEIGHT } from "./helpers";
 export const radialChartPropsSchema = z.object({
   labels: z.array(z.string()),
   values: z.array(z.number()),
+  variant: z.enum(["circular", "semiCircular"]).optional(),
+  format: z.enum(["percentage", "number"]).optional(),
+  legend: z.boolean().optional(),
 });
 
 export type RadialChartProps = z.infer<typeof radialChartPropsSchema>;
@@ -22,6 +25,9 @@ function RadialChartRenderer({ props }: ComponentRenderProps<RadialChartProps>) 
       categoryKey="category"
       dataKey="value"
       customPalette={DASHBOARD_CHART_PALETTE}
+      variant={props.variant}
+      format={props.format}
+      legend={props.legend}
       isAnimationActive={false}
       height="fit-content"
       maxChartSize={DASHBOARD_CHART_HEIGHT}
@@ -32,6 +38,7 @@ function RadialChartRenderer({ props }: ComponentRenderProps<RadialChartProps>) 
 export const RadialChartComponent = defineComponent({
   name: "RadialChart",
   props: radialChartPropsSchema,
-  description: "Radial bars; use plucked arrays: RadialChart(data.categories, data.values).",
+  description:
+    'Radial bars; use plucked arrays: RadialChart(data.categories, data.values). variant "circular" (default) or "semiCircular"; format shows tooltip values as "number" (default) or "percentage"; legend false hides the legend.',
   component: RadialChartRenderer,
 });

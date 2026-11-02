@@ -4,6 +4,7 @@ import { FilterBarComponent } from "../FilterBar";
 export const sectionPropsSchema = z.object({
   rows: z.array(CardRowComponent.ref).min(1),
   filterBar: z.optional(FilterBarComponent.ref),
+  title: z.string().optional(),
 });
 
 export type SectionProps = z.infer<typeof sectionPropsSchema>;

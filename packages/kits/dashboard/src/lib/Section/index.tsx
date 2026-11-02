@@ -8,7 +8,7 @@ function SectionRenderer({ props, renderNode }: ComponentRenderProps<SectionProp
   const filterBar = props["filterBar"];
 
   return (
-    <Section filterBar={filterBar ? renderNode(filterBar) : undefined}>
+    <Section title={props.title} filterBar={filterBar ? renderNode(filterBar) : undefined}>
       {renderNode(props.rows)}
     </Section>
   );
@@ -18,6 +18,6 @@ export const SectionComponent = defineComponent({
   name: "Section",
   props: sectionPropsSchema,
   description:
-    "Major topical dashboard grouping with rows and an optional FilterBar. Use one Section for most dashboard content; add more Sections only for altogether different domains or topics.",
+    "Major topical dashboard grouping with rows and an optional FilterBar. Use one Section for most dashboard content; add more Sections only for altogether different domains or topics. title names the Section; give one when a dashboard has several Sections.",
   component: SectionRenderer,
 });
