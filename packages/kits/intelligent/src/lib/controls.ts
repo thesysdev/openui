@@ -83,10 +83,14 @@ export function useFieldRules(name: string, rules: unknown, value: unknown) {
   };
 }
 
-/** The state key of a control: its label, its statement name, or a generated id. */
+/**
+ * The state key of a control: its statement name, else its label, else a generated id. A
+ * statement name is unique in a program; a label is not, so two inline fields labelled "Name" in
+ * one Form still share a key. Only a field that is a statement's own value has a statement name.
+ */
 export function useFieldName(label: unknown, statementId?: string) {
   const id = useId();
-  return (typeof label === "string" && label) || statementId || id;
+  return statementId || (typeof label === "string" && label) || id;
 }
 
 /** Option lists, shared by Select, SegmentedControl and RadioGroup. */
