@@ -4,6 +4,8 @@ import { abortable } from "../shared/abort";
 import { mcpServers, mcpToolLoader, mergeTools } from "./mcp";
 import {
   ToolExecutionError,
+  USER_ID_REQUIRED,
+  userIdOf,
   type DataTool,
   type ExecutionContext,
   type Interpreter,
@@ -67,6 +69,8 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
     context: Context,
     executionOptions?: InterpreterExecuteOptions,
   ): Promise<unknown> {
+    const userId = userIdOf(context);
+    if (!userId) throw new ToolExecutionError(USER_ID_REQUIRED, "invalid_input", 400);
     if (!input || typeof input.name !== "string" || !input.name) {
       throw new ToolExecutionError("A tool name is required", "invalid_input");
     }
@@ -112,14 +116,6 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
         );
       }
       // Only the artifact's owner can run its scripts.
-      const userId = context?.userId;
-      if (typeof userId !== "string" || !userId) {
-        throw new ToolExecutionError(
-          `${input.name} is a generated script: pass the signed-in user as context.userId to run it`,
-          "invalid_input",
-          400,
-        );
-      }
       const source = {
         artifact_id: input.id,
         user_id: userId,

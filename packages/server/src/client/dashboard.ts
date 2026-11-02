@@ -1,7 +1,12 @@
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
-import { ToolExecutionError, type ExecutionContext } from "../tools/types";
+import {
+  ToolExecutionError,
+  USER_ID_REQUIRED,
+  userIdOf,
+  type ExecutionContext,
+} from "../tools/types";
 import { apiError, isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
 import { createFrontendToken } from "./frontend-token";
@@ -87,11 +92,13 @@ export function defineDashboard<Context extends ExecutionContext>(
    * generating in the background. Resolves with the artifact's id as soon as it has one.
    */
   async function start(
-    userId: string | undefined,
+    context: Context,
     prompt: string,
     call: { title?: string; artifactId?: string },
     signal?: AbortSignal,
   ): Promise<string> {
+    // The dashboard belongs to the user the context names.
+    const userId = userIdOf(context) ?? invalidInput(USER_ID_REQUIRED);
     // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
     const [{ token }, definitions] = await Promise.all([
       createFrontendToken(api, userId, signal),
@@ -126,14 +133,14 @@ export function defineDashboard<Context extends ExecutionContext>(
 
   return {
     async create({ title, prompt }, context, { signal } = {}): Promise<ArtifactResult> {
-      const id = await start(context?.userId, prompt, { title }, signal);
+      const id = await start(context, prompt, { title }, signal);
       return { id, response: toolResponse(id, title) };
     },
 
     // OpenUI Cloud edits the version it stores.
     async edit({ id, prompt }, context, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      const edited = await start(context?.userId, prompt, { artifactId: id }, signal);
+      const edited = await start(context, prompt, { artifactId: id }, signal);
       return { id: edited, response: toolResponse(edited) };
     },
 

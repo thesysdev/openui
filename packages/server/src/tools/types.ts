@@ -21,6 +21,14 @@ export interface ExecutionContext {
   userId: string;
 }
 
+export const USER_ID_REQUIRED = "context.userId is required: the signed-in user, from your session";
+
+/** `context.userId` when it's set. The types require it; this catches callers they don't check. */
+export function userIdOf(context: unknown): string | undefined {
+  const userId = (context as { userId?: unknown } | undefined)?.userId;
+  return typeof userId === "string" && userId.trim() ? userId : undefined;
+}
+
 export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (
   args: Record<string, unknown>,
   context: Context,
