@@ -1,8 +1,9 @@
 "use client";
 
-// Artifacts from OpenUI Cloud: the live and static renderers, their slots and state.
+// Artifacts from OpenUI Cloud: the live and static renderers, their slots and state, and the artifact list.
 export { OpenUICloudProvider } from "@openuidev/react-headless";
 export type {
+  ArtifactSummary,
   FrontendTokenSource,
   Interpreter,
   InterpreterConfig,
@@ -11,18 +12,15 @@ export type {
   OpenUICloudProviderProps,
 } from "@openuidev/react-headless";
 
-export {
-  LiveArtifactRenderer,
-  StaticArtifactRenderer,
-} from "../components/CloudArtifact/ArtifactRenderer";
+export { LiveArtifactRenderer, StaticArtifactRenderer } from "./CloudArtifact/ArtifactRenderer";
 export type {
   LiveArtifactRendererProps,
   StaticArtifactRendererProps,
-} from "../components/CloudArtifact/ArtifactRenderer";
-export type { ArtifactRendererBaseProps } from "../components/CloudArtifact/ArtifactRendererRoot";
-export { useArtifactRenderer } from "../components/CloudArtifact/contexts";
-export type { ArtifactRendererState } from "../components/CloudArtifact/contexts";
-export type { ArtifactError, ArtifactErrorCode } from "../components/CloudArtifact/errors";
+} from "./CloudArtifact/ArtifactRenderer";
+export type { ArtifactRendererBaseProps } from "./CloudArtifact/ArtifactRendererRoot";
+export { useArtifactRenderer } from "./CloudArtifact/contexts";
+export type { ArtifactRendererState } from "./CloudArtifact/contexts";
+export type { ArtifactError, ArtifactErrorCode } from "./CloudArtifact/errors";
 export type {
   ChromeProps,
   CloseButtonProps,
@@ -30,4 +28,10 @@ export type {
   LoaderProps,
   PartProps,
   PreviewProps,
-} from "../components/CloudArtifact/slots";
+} from "./CloudArtifact/slots";
+export { useArtifactList } from "./CloudArtifact/useArtifactList";
+export type {
+  ArtifactListFilter,
+  ArtifactListState,
+  UseArtifactListOptions,
+} from "./CloudArtifact/useArtifactList";
