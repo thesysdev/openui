@@ -27,6 +27,7 @@ export * from "./components/Grid";
 export * from "./components/HtmlView";
 export * from "./components/Icon";
 export * from "./components/IconButton";
+export * from "./components/IntelligentThemeProvider";
 export * from "./components/Link";
 export * from "./components/List";
 export * from "./components/Map";

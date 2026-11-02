@@ -57,6 +57,7 @@ src/
   components/<Name>/                the kit's own React components, no openui-lang:
     <Name>.tsx  <name>.styles.ts  index.ts
     Map/parts/  Map/hooks/          the map's pieces and hooks, beside MapView.tsx
+    IntelligentThemeProvider/       the kit's ThemeProvider and its default themes
   shared/                           what both halves need:
     tokens.ts                       the tokens, read from ThemeProvider
     props.ts                        the model's prop values as CSS
@@ -165,6 +166,23 @@ the rest of the page:
 | success, warning, danger, purple, pink | `textSuccessPrimary`, `textAlertPrimary`, `textDangerPrimary`, `textPurplePrimary`, `textPinkPrimary` |
 | their soft tints (badges, callouts) | `successBackground`, `alertBackground`, `dangerBackground`, `purpleBackground`, `pinkBackground` |
 | shadows | `shadowL`, `shadowS` |
+
+### IntelligentThemeProvider
+
+Like the dashboard kit's `DashboardThemeProvider`, the kit has its own provider: a
+react-components `ThemeProvider` that follows the outer one's mode and adds the kit's default
+theme, the source app's status colours (`defaultIntelligentLightTheme`,
+`defaultIntelligentDarkTheme`). The library's root `Col` wraps itself in it, so there is nothing
+to add. Use it yourself to set a mode or to change the kit's theme:
+
+```tsx
+<IntelligentThemeProvider mode="dark" darkTheme={{ textDangerPrimary: "#ff5c5c" }}>
+  <Renderer response={program} library={library} />
+</IntelligentThemeProvider>
+```
+
+A token your own ThemeProvider sets stays yours; only tokens left at react-components' default take
+the kit's. Each provider writes to its own scope, so light and dark outputs can share a page.
 
 Borders, surfaces, hover, focus and range tracks are mixed from ink and canvas where they are
 used, so they follow too. Chart and confetti colours are a fixed six-colour palette that reads
