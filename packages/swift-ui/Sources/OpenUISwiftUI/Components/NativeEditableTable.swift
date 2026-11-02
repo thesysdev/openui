@@ -70,7 +70,7 @@ struct NativeEditableTable: View {
         VStack(spacing: 0) {
           HStack(spacing: 0) {
             ForEach(Array(columns.enumerated()), id: \.offset) { index, column in
-              Text(NativeValue.string(column, "header") ?? "").openUIFont(context.theme.textBodySm.weight(.semibold))
+              Text(NativeValue.string(column, "header") ?? "").openUIFont(context.theme.textBodySmHeavy)
                 .frame(width: width(index), alignment: .leading).padding(context.theme.spaceM)
             }
           }.background(context.theme.sunk)

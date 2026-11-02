@@ -66,7 +66,7 @@ struct NativeMarkdownText: View {
       .markdownBlockStyle(\.heading2) { heading($0.label, role: theme.textHeadingSm) }
       .markdownBlockStyle(\.heading3) { heading($0.label, role: theme.textHeadingXs) }
       .markdownBlockStyle(\.heading4) { heading($0.label, role: theme.textHeadingXs) }
-      .markdownBlockStyle(\.heading5) { heading($0.label, role: theme.textBodySm.weight(.semibold)) }
+      .markdownBlockStyle(\.heading5) { heading($0.label, role: theme.textBodySmHeavy) }
       .markdownBlockStyle(\.heading6) { heading($0.label, role: theme.textBodyXs.weight(.semibold)) }
       .markdownBlockStyle(\.codeBlock) { configuration in
         NativeCodeBlockContent(code: OpenUIString(configuration.content.trimmingCharacters(in: .whitespacesAndNewlines)),

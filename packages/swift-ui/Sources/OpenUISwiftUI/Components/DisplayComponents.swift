@@ -212,7 +212,7 @@ struct NativeDataTable: View {
             columnMinimums: columns.map { $0.numeric ? minimumWidth : context.presentation.minimumTextColumnWidth * textScale }
         ) {
             ForEach(columns) { column in
-                Text(column.title).openUIFont(context.theme.textBodyDefault.weight(.semibold))
+                Text(column.title).openUIFont(context.theme.textBodyDefaultHeavy)
                     .foregroundStyle(context.theme.textNeutralPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .padding(.vertical, context.theme.spacing("sm"))

@@ -80,6 +80,22 @@ final class ThemeOverrideTests: XCTestCase {
     XCTAssertEqual(theme.textBodyDefaultHeavy.lineSpacing, 0.3)
   }
 
+  @MainActor func testImageTextEmphasisUsesTheCompleteConfiguredFont() throws {
+    _ = NSApplication.shared
+    let library = try OpenUIStandardComponents.library()
+    func height(bold: Bool, theme: OpenUIThemeValues) -> CGFloat {
+      let state = OpenUIState(schema: library.library.toSchema())
+      state.setSource("root=ImageText(\"\",\"\",\"Product name\",\"Description\",\(bold))")
+      return NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
+        .openUITheme(theme).frame(width: 320)).fittingSize.height
+    }
+    let base = OpenUIThemeValues()
+    var custom = base
+    custom.textBodySmHeavy = OpenUIFont(size: 34, weight: .light, lineSpacing: 0.4)
+    XCTAssertGreaterThan(height(bold: true, theme: custom), height(bold: true, theme: base) + 10)
+    XCTAssertEqual(height(bold: false, theme: custom), height(bold: false, theme: base), accuracy: 0.5)
+  }
+
   @MainActor func testBannerTitleUsesHeavyBodyWithoutChangingSubtitleRole() throws {
     _ = NSApplication.shared
     let library = try OpenUIStandardComponents.library()

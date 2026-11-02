@@ -223,8 +223,8 @@ struct NativeMediaText: View {
     VStack(alignment: .leading, spacing: 0) {
       NativeMarkdownText(text: context.string("title") ?? "", mode: .inline,
         style: .init(font: media == .banner ? context.theme.textBodyDefaultHeavy
-          : (context.string("layout") != "vertical" ? context.theme.textBodySm : context.theme.textBodyDefault)
-            .weight(context.flag("bold") == true ? .medium : .regular)))
+          : context.theme.inlineFont(context.string("layout") == "vertical" ? "sm" : "xs",
+                                     emphasized: context.flag("bold") == true)))
 
       if let sub = context.string("subtitle") {
         NativeMarkdownText(text: sub, mode: .inline, style: .init(font: context.theme.textBodySm, color: context.theme.textNeutralSecondary))
@@ -312,7 +312,7 @@ struct NativeEntityList: View {
       NativeMarkdownText(text: NativeValue.string(value, "left") ?? "", mode: .inline,
         style: .init(font: font, color: color))
       NativeMarkdownText(text: NativeValue.string(value, "right") ?? "", mode: .inline,
-        style: .init(font: (kind == .footer ? context.theme.textHeadingSm : font).weight(.semibold), numeric: numeric, color: color))
+        style: .init(font: (kind == .footer ? context.theme.textHeadingSm : context.theme.inlineFont(small ? "xs" : "sm", emphasized: true)), numeric: numeric, color: color))
       .multilineTextAlignment(.trailing)
     }
     .padding(.vertical, context.theme.spacing("m")).textSelection(.enabled)
@@ -479,7 +479,7 @@ struct NativeStepMarker: View {
   let theme: OpenUIThemeValues
   let diameter: CGFloat
   var body: some View {
-    Text("\(number)").openUIFont(theme.textBodySm.weight(.semibold))
+    Text("\(number)").openUIFont(theme.textBodySmHeavy)
       .fixedSize().frame(minWidth: diameter, minHeight: diameter)
       .background(theme.sunk, in: Circle())
       .accessibilityIdentifier("openui.steps.marker")
@@ -669,7 +669,7 @@ struct NativeCardItem: View {
           .foregroundStyle(contentTheme.textNeutralSecondary)
         if artworkSource != nil { Spacer(minLength: context.theme.spaceM) }
         if let body = context.string("body") {
-          NativeMarkdownText(text: body, mode: .inline, style: .init(font: context.theme.textBodySm.weight(.semibold)))
+          NativeMarkdownText(text: body, mode: .inline, style: .init(font: context.theme.textBodySmHeavy))
         }
       case "Visual":
         context.slot("tag")

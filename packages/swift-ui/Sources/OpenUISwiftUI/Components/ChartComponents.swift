@@ -339,7 +339,7 @@ private struct NativeChartTooltip: View {
       if !details.title.isEmpty {
         HStack(spacing: theme.spacing("s")) {
           if let index = details.colorIndex { marker(index) }
-          Text(details.title).openUIFont(theme.textBodySm.weight(.semibold))
+          Text(details.title).openUIFont(theme.textBodySmHeavy)
             .foregroundStyle(theme.textNeutralPrimary).fixedSize(horizontal: false, vertical: true)
         }
         Rectangle().fill(theme.borderDefault).frame(height: 1 / displayScale)

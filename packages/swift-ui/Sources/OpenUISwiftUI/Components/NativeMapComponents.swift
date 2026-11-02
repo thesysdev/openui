@@ -319,7 +319,7 @@ private struct NativeMapPresentation: View {
         }
       }.modifier(NativeMapToolbarSurface(theme: context.theme)).disabled(!context.canInteract)
     }
-    .openUIFont(context.theme.textBodyDefault.weight(.semibold)).foregroundStyle(context.theme.textNeutralPrimary)
+    .openUIFont(context.theme.textBodyDefaultHeavy).foregroundStyle(context.theme.textNeutralPrimary)
     .buttonStyle(.plain)
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier("openui.map.toolbar")
@@ -410,7 +410,7 @@ private struct NativeMapPlaceCard: View {
           .accessibilityHidden(true)
       }
       VStack(alignment: .leading, spacing: theme.spacing("xs")) {
-        Text(point.title).openUIFont((compact ? theme.textBodySm : theme.textBodyDefault).weight(.semibold))
+        Text(point.title).openUIFont((compact ? theme.textBodySmHeavy : theme.textBodyDefaultHeavy))
           .lineLimit(compact ? 1 : 2)
           .foregroundStyle(theme.textNeutralPrimary)
         if let subtitle = point.subtitle, !subtitle.isEmpty {
