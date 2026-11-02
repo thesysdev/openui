@@ -1,9 +1,9 @@
 import { createLibrary } from "@openuidev/react-lang";
 import { actions } from "./Action";
-import { baseComponents } from "./defineComponents";
+import { intelligentComponents } from "./defineComponents";
 import { functions } from "./functions";
 
-export const baseComponentGroups = [
+export const openuiIntelligentComponentGroups = [
   {
     name: "Layout",
     components: ["Col", "Row", "Box", "Grid", "Card", "Carousel", "Popover", "Divider", "Spacer"],
@@ -75,13 +75,22 @@ export const baseComponentGroups = [
   },
 ];
 
-export const library = createLibrary({
+/**
+ * Standalone library keyed on `Col` as root.
+ *
+ * Callers that need a prompt pass `openuiIntelligentPromptOptions` to
+ * `openuiIntelligentLibrary.prompt()`.
+ */
+export const openuiIntelligentLibrary = createLibrary({
   root: "Col",
-  components: baseComponents,
+  components: intelligentComponents,
   functions,
   actions,
-  componentGroups: baseComponentGroups,
+  componentGroups: openuiIntelligentComponentGroups,
 });
 
-// The CLI (npm run prompt) picks up these exports by name.
-export { dashboardPromptOptions, promptOptions } from "./prompt-options";
+export {
+  openuiIntelligentAdditionalRules,
+  openuiIntelligentExamples,
+  openuiIntelligentPromptOptions,
+} from "./prompt-options";

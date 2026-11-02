@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/intelligent-kit",
-  "version": "0.0.0-beta.0",
+  "version": "0.0.1",
   "description": "OpenUI Intelligent UI component library: primitives a model arranges itself, with maps, drawing and generic @functions",
   "license": "MIT",
   "type": "module",
@@ -14,26 +14,6 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    },
-    "./lib": {
-      "import": {
-        "types": "./dist/lib/index.d.mts",
-        "default": "./dist/lib/index.mjs"
-      },
-      "require": {
-        "types": "./dist/lib/index.d.cts",
-        "default": "./dist/lib/index.cjs"
-      }
-    }
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.cts",
-  "typesVersions": {
-    "*": {
-      "lib": [
-        "dist/lib/index.d.cts"
-      ]
     }
   },
   "sideEffects": false,
@@ -43,40 +23,59 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:check": "prettier --check ./src",
+    "format:fix": "prettier --write ./src",
+    "check:publint": "publint",
+    "check:attw": "attw --pack . --ignore-rules no-resolution",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
+    "ci": "pnpm run lint:check && pnpm run format:check && pnpm run typecheck"
   },
   "dependencies": {
+    "@openuidev/react-components": "workspace:>=0.0.1 <0.1.0",
+    "@openuidev/react-lang": "workspace:>=1.0.1 <2.0.0",
     "clsx": "^2.1.1",
     "katex": "^0.16.44",
     "lucide-react": "^0.562.0",
     "maplibre-gl": "^6.13.0"
   },
   "peerDependencies": {
-    "@openuidev/lang-core": ">=1.0.0 <2.0.0",
-    "@openuidev/react-components": "0.0.1",
-    "@openuidev/react-lang": ">=1.0.1 <2.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "zod": "^3.25.76 || ^4.0.0"
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@openuidev/lang-core": "workspace:^",
-    "@openuidev/react-components": "0.0.1",
-    "@openuidev/react-lang": "workspace:^",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "zod": "catalog:",
-    "zustand": "^4.5.5"
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
-  "engines": {
-    "node": "^20.19.0 || >=22.12.0"
-  },
+  "keywords": [
+    "openui",
+    "intelligent-ui",
+    "generative-ui",
+    "ai",
+    "component-library",
+    "openui-lang",
+    "maps",
+    "llm"
+  ],
+  "homepage": "https://openui.com",
+  "author": "engineering@thesys.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thesysdev/openui.git",
-    "directory": "packages/kits/Intelligent-ui"
+    "directory": "packages/kits/intelligent"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   }
 }

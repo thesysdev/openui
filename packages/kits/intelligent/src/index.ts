@@ -1,49 +1,32 @@
-"use client";
+/**
+ * AI-integration surface for the Intelligent UI kit.
+ *
+ * The library is keyed on `Col` as root and carries primitives a model arranges
+ * itself, the widgets it cannot draw (a street map, a sandboxed HTML page) and
+ * generic @functions. The five `openuiIntelligent*` names mirror the dashboard
+ * kit's `openuiDashboard*`.
+ */
+export {
+  openuiIntelligentAdditionalRules,
+  openuiIntelligentComponentGroups,
+  openuiIntelligentExamples,
+  openuiIntelligentLibrary,
+  openuiIntelligentPromptOptions,
+} from "./lib/openuiIntelligentLibrary";
 
-// Host configuration: where Photo (SearchImage, Image) and Map fetch from.
+export { intelligentComponents } from "./lib/defineComponents";
+
+// Runs the library's own action (CopyToClipboard) from a Renderer's onAction.
+export { runLibraryAction } from "./lib/Action";
+
+// Where SearchImage, Image and Map fetch from.
 export {
   configureIntelligentKit,
-  endpoints,
   type IntelligentKitConfig,
   type IntelligentKitEndpoints,
 } from "./shared/config";
 
-// The kit's own React components, usable without openui-lang. The library's
-// component definitions, which render them, are in ./lib.
-export * from "./components/Badge";
-export * from "./components/Box";
-export * from "./components/Button";
-export * from "./components/Caption";
-export * from "./components/Card";
-export * from "./components/Carousel";
-export * from "./components/Celebration";
-export * from "./components/Checkbox";
-export * from "./components/Code";
-export * from "./components/Col";
-export * from "./components/Field";
-export * from "./components/Flashcard";
-export * from "./components/Form";
-export * from "./components/Grid";
-export * from "./components/HtmlView";
-export * from "./components/Icon";
-export * from "./components/IconButton";
-export * from "./components/IntelligentThemeProvider";
-export * from "./components/Link";
-export * from "./components/List";
-export * from "./components/Map";
-export * from "./components/Markdown";
-export * from "./components/Math";
-export * from "./components/Photo";
-export * from "./components/Popover";
-export * from "./components/Pressable";
-export * from "./components/Quote";
-export * from "./components/RadioGroup";
-export * from "./components/Row";
-export * from "./components/SegmentedControl";
-export * from "./components/Slider";
-export * from "./components/Spacer";
-export * from "./components/Svg";
-export * from "./components/Text";
-export * from "./components/Timer";
-export * from "./components/Title";
-export * from "./components/YouTube";
+export {
+  IntelligentThemeProvider,
+  type IntelligentThemeProviderProps,
+} from "./components/IntelligentThemeProvider";

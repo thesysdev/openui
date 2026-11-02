@@ -52,7 +52,7 @@ import { YouTube } from "./YouTube";
  * Importing this runs no createLibrary, so a host can spread it into its own
  * library or take a subset.
  */
-export const baseComponents = [
+export const intelligentComponents = [
   Col,
   Row,
   Box,
