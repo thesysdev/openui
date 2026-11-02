@@ -304,7 +304,9 @@ export const EditableTable = React.forwardRef<HTMLDivElement, EditableTableProps
       };
 
       const compute = () => {
-        setIsScrollable(container.scrollWidth > container.clientWidth);
+        // From the columns' own widths, not scrollWidth: once scrollable, the table sizes to its
+        // content, so scrollWidth could no longer tell when it fits again.
+        setIsScrollable(table.getTotalSize() > container.clientWidth);
         updateScrollButtons();
 
         // Measure header cell left positions relative to the scroll container
@@ -334,7 +336,7 @@ export const EditableTable = React.forwardRef<HTMLDivElement, EditableTableProps
         ro.disconnect();
         container.removeEventListener("scroll", updateScrollButtons);
       };
-    }, [columns, data]);
+    }, [columns, data, table]);
 
     /**
      * Scroll right to the start of the next column that is not fully visible.
