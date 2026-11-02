@@ -1,4 +1,4 @@
-# @openuidev/dashboard-kit (beta)
+# @openuidev/dashboard-kit
 
 An OpenUI component library for dashboards: the component registry, prompt options and examples
 that let a model compose `Dashboard`, `Section`, `CardRow`, filters, cards and charts. Rendering
