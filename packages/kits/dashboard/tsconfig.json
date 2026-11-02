@@ -5,8 +5,8 @@
     "moduleResolution": "bundler",
     "rootDir": "src",
     "outDir": "dist",
-    "types": ["node", "react", "react-dom"]
+    "types": ["react"]
   },
   "include": ["src"],
-  "exclude": ["dist", "node_modules", "src/**/*.test.ts", "src/**/*.test.tsx"]
+  "exclude": ["dist", "node_modules"]
 }
