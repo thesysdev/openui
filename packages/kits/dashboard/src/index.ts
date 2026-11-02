@@ -1,16 +1,23 @@
-"use client";
+/**
+ * AI-integration surface for the dashboard kit.
+ *
+ * The library is keyed on `Dashboard` as root and carries the layout grammar
+ * (Section, CardRow, the three card sizes) plus the filter system that make a
+ * model emit dashboards rather than a vertical stack of cards. The five
+ * `openuiDashboard*` names mirror what `@openuidev/chat-kit/lib` exports as
+ * `openuiChat*`.
+ */
+export {
+  openuiDashboardAdditionalRules,
+  openuiDashboardComponentGroups,
+  openuiDashboardExamples,
+  openuiDashboardLibrary,
+  openuiDashboardPromptOptions,
+} from "./lib/openuiDashboardLibrary";
 
-export * from "./components/CardRow";
-export * from "./components/Dashboard";
-export * from "./components/DashboardCardHeader";
-export * from "./components/DashboardHeader";
-export * from "./components/DashboardThemeProvider";
-export * from "./components/FilterBar";
-export * from "./components/FilterSelect";
-export * from "./components/List";
-export * from "./components/MetricIndicator";
-export * from "./components/OverviewCardBlock";
-export * from "./components/Section";
-export * from "./components/ShellCard";
-export * from "./components/SmallCard";
-export * from "./components/Table";
+/**
+ * The component definitions on their own, for callers that embed the dashboard
+ * inside a larger library: spread this into their own `createLibrary({...})`.
+ * Importing it runs no `createLibrary`.
+ */
+export { dashboardComponents } from "./lib/defineComponents";

@@ -14,16 +14,6 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    },
-    "./lib": {
-      "import": {
-        "types": "./dist/lib/index.d.mts",
-        "default": "./dist/lib/index.mjs"
-      },
-      "require": {
-        "types": "./dist/lib/index.d.cts",
-        "default": "./dist/lib/index.cjs"
-      }
     }
   },
   "sideEffects": false,

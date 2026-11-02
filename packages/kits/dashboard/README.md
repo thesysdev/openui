@@ -22,7 +22,7 @@ Generate the system prompt ahead of time with the CLI from a file that re-export
 export {
   openuiDashboardLibrary as library,
   openuiDashboardPromptOptions as promptOptions,
-} from "@openuidev/dashboard-kit/lib";
+} from "@openuidev/dashboard-kit";
 ```
 
 ```sh
@@ -32,7 +32,7 @@ npx @openuidev/cli generate src/lib/dashboard-library.ts --out src/generated/sys
 Send that file as the system message, then render the model's response:
 
 ```tsx
-import { openuiDashboardLibrary } from "@openuidev/dashboard-kit/lib";
+import { openuiDashboardLibrary } from "@openuidev/dashboard-kit";
 import { ThemeProvider } from "@openuidev/react-components";
 import { Renderer } from "@openuidev/react-lang";
 
@@ -45,10 +45,9 @@ export function DashboardMessage({ response }: { response: string }) {
 }
 ```
 
-`/lib` holds the AI integration (`openuiDashboardLibrary`, its component groups, examples, rules,
-prompt options and `dashboardComponents`). The root exports the React components, such as
-`Dashboard`, `Section`, `CardRow` and `DashboardThemeProvider`. The dashboard takes light or dark
-mode from the surrounding `ThemeProvider`.
+The package exports the AI integration only: `openuiDashboardLibrary`, its component groups,
+examples, rules, prompt options and `dashboardComponents`, for spreading into a larger library.
+The dashboard takes light or dark mode from the surrounding `ThemeProvider`.
 
 ## Styling
 
