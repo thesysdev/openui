@@ -22,8 +22,8 @@ export interface ExecutionContext {
 }
 
 export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (
-  context: Context,
   args: Record<string, unknown>,
+  context: Context,
   options: { signal: AbortSignal },
 ) => unknown | Promise<unknown>;
 

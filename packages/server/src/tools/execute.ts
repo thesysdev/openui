@@ -95,7 +95,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
         throw new ToolExecutionError(`Unknown customer tool: ${name}`, "tool_not_found", 404);
       }
       return abortable(
-        Promise.resolve().then(() => tools[name]!(context as Context, toolArgs, { signal })),
+        Promise.resolve().then(() => tools[name]!(toolArgs, context as Context, { signal })),
         signal,
       );
     };

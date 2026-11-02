@@ -87,7 +87,7 @@ export function defineDashboard<Context extends ExecutionContext>(
    * generating in the background. Resolves with the artifact's id as soon as it has one.
    */
   async function start(
-    userId: string,
+    userId: string | undefined,
     prompt: string,
     call: { title?: string; artifactId?: string },
     signal?: AbortSignal,
@@ -125,15 +125,15 @@ export function defineDashboard<Context extends ExecutionContext>(
   }
 
   return {
-    async create({ userId, title, prompt }, { signal } = {}): Promise<ArtifactResult> {
-      const id = await start(userId, prompt, { title }, signal);
+    async create({ title, prompt }, context, { signal } = {}): Promise<ArtifactResult> {
+      const id = await start(context?.userId, prompt, { title }, signal);
       return { id, response: toolResponse(id, title) };
     },
 
     // OpenUI Cloud edits the version it stores.
-    async edit({ id, userId, prompt }, { signal } = {}): Promise<ArtifactResult> {
+    async edit({ id, prompt }, context, { signal } = {}): Promise<ArtifactResult> {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      const edited = await start(userId, prompt, { artifactId: id }, signal);
+      const edited = await start(context?.userId, prompt, { artifactId: id }, signal);
       return { id: edited, response: toolResponse(edited) };
     },
 

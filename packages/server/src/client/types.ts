@@ -37,8 +37,6 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
 } & DashboardDataTools<Context>;
 
 export interface CreateDashboardParams {
-  /** The signed-in user, from your session. Users only read and edit their own artifacts. */
-  userId: string;
   /** A short title, such as "Q3 sales by region". */
   title: string;
   /** What to build. The subagent sees only this, so include any data it needs. */
@@ -47,7 +45,6 @@ export interface CreateDashboardParams {
 
 export interface EditDashboardParams {
   id: string;
-  userId: string;
   /** The change to make, and any data it needs. */
   prompt: string;
 }
@@ -66,9 +63,21 @@ export interface ArtifactResult {
 
 /** Creates and edits live dashboards. Each call returns as soon as the artifact has an id. */
 export interface Dashboard<Context extends ExecutionContext = ExecutionContext> {
-  create(params: CreateDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;
-  /** Edits in place. Renderers keep the current version until the edit is ready. */
-  edit(params: EditDashboardParams, options?: RequestOptions): Promise<ArtifactResult>;
+  /**
+   * `context` says who's asking, as for the interpreter: the dashboard belongs
+   * to `context.userId`, who alone can read, edit and run it.
+   */
+  create(
+    params: CreateDashboardParams,
+    context: Context,
+    options?: RequestOptions,
+  ): Promise<ArtifactResult>;
+  /** Edits in place, for its owner. Renderers keep the current version until the edit is ready. */
+  edit(
+    params: EditDashboardParams,
+    context: Context,
+    options?: RequestOptions,
+  ): Promise<ArtifactResult>;
   /** Runs this dashboard's data tools and generated scripts on your server. */
   readonly interpreter: Interpreter<Context>;
 }

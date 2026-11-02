@@ -147,7 +147,7 @@ export function mcpToolLoader<Context extends ExecutionContext>(
         ...(tool.description !== undefined && { description: tool.description }),
         parameters: tool.inputSchema,
         ...(outputs && Object.hasOwn(outputs, tool.name) && { output: outputs[tool.name] }),
-        execute: async (context, args, { signal }) => {
+        execute: async (args, context, { signal }) => {
           const mcp = connect ? await connect(context) : client;
           const result = await mcp.callTool(
             { name: tool.name, arguments: setArguments(args, required) },
