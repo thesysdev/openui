@@ -52,20 +52,20 @@ Styles follow the same flat contract as `@openuidev/react-components`:
 
 ## The library
 
-Root component is `Dashboard`. 48 components in 6 groups:
+Root component is `Dashboard`. 47 components in 6 groups:
 
 | Group | Components |
 |---|---|
 | Dashboard Layout | `Dashboard`, `DashboardHeader`, `Section`, `FilterBar`, `FilterSelect`, `FilterMultiSelect`, `DatePicker`, `CardRow`, `IconButton` |
-| Shell Cards | `SmallCard`, `MediumCard`, `LargeCard`, `DashboardCardHeader`, `IconTag`, `IconText`, `TextBlock`, `List`, `ListItem`, `EntityList`, `Callout`, `Button`, `ButtonGroup`, `Select`, `SelectItem`, `ImageBlock`, `Tag`, `TagBlock`, `TextContent`, `MarkDownRenderer`, `TextCallout` |
+| Shell Cards | `SmallCard`, `MediumCard`, `LargeCard`, `DashboardCardHeader`, `List`, `ListItem`, `EntityList`, `Callout`, `Button`, `ButtonGroup`, `Select`, `SelectItem`, `ImageBlock`, `Tag`, `TagBlock`, `TextContent`, `MarkDownRenderer`, `TextCallout` |
 | Metrics | `MetricIndicator`, `OverviewCardItem`, `OverviewCardBlock` |
-| Charts | `LineChart`, `BarChart`, `AreaChart`, `HorizontalBarChart`, `RadarChart`, `ScatterChart`, `RadialChart`, `PieChart` |
+| Charts | `LineChart`, `BarChart`, `AreaChart`, `HorizontalBarChart`, `RadarChart`, `ScatterChart`, `RadialChart`, `PieChart`, `Series`, `ScatterSeries`, `Point` |
 | Data Display | `Table`, `Col` |
 | Primitives | `Icon`, `IconTag`, `IconText`, `TextBlock` |
 
-`Series`, `ScatterSeries`, `Point` and `Slice` are registered as chart data
-helpers and are described through the chart signatures rather than their own
-group.
+`Series`, `ScatterSeries` and `Point` are the chart data nodes. `IconTag`,
+`IconText`, `TextBlock` and `OverviewCardBlock` have no typed parent: they reach a
+dashboard through `SmallCard`'s slots, as its description says.
 
 ## What makes it a dashboard library
 
@@ -80,10 +80,10 @@ The component list matters less than the **layout grammar** the groups carry as
 - `SmallCard` has three forms — overview card with icon, overview card, and
   snippet card — each with a stated rule for when to choose it.
 - Some combinations are explicitly refused: no `PieChart`, `RadialChart` or
-  `RadarChart` inside `LargeCard`; no `FilterBar`, `Image`, `ImageGallery`,
-  `Separator`, `CodeBlock` or `Form` inside `MediumCard` or `LargeCard`.
+  `RadarChart` inside `LargeCard`; no `FilterBar` inside `MediumCard` or
+  `LargeCard`.
 
-That grammar is why this library is smaller than a general component set — 48
+That grammar is why this component library is smaller than a general component set — 47
 components and a ~18,000-character system prompt — while producing dashboards
 rather than a vertical stack of cards.
 
