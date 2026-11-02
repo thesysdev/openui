@@ -140,6 +140,9 @@ export const buttonStyles = {
       }
     `,
   },
+  /* The label is coloured directly, not through react-components' text token: the border and the
+     soft fill mix the kit's ink, which reads that token, so they'd take the tone too. Solid keeps
+     its label on the fill. */
   color: {
     danger: css`
       ${HOVER_FILTER}: brightness(1.08);
@@ -148,8 +151,10 @@ export const buttonStyles = {
       --openui-interactive-accent-pressed: ${tokens.danger};
       --openui-interactive-accent-disabled: ${tokens.danger};
       --openui-text-accent-primary: ${tokens.canvas};
-      --openui-text-neutral-primary: ${tokens.danger};
       --openui-text-neutral-tertiary: ${tokens.danger};
+      &.openui-button:not(.openui-button--variant-primary) {
+        color: ${tokens.danger};
+      }
     `,
     success: css`
       ${HOVER_FILTER}: brightness(1.08);
@@ -158,8 +163,10 @@ export const buttonStyles = {
       --openui-interactive-accent-pressed: ${tokens.success};
       --openui-interactive-accent-disabled: ${tokens.success};
       --openui-text-accent-primary: ${tokens.canvas};
-      --openui-text-neutral-primary: ${tokens.success};
       --openui-text-neutral-tertiary: ${tokens.success};
+      &.openui-button:not(.openui-button--variant-primary) {
+        color: ${tokens.success};
+      }
     `,
   },
 };
