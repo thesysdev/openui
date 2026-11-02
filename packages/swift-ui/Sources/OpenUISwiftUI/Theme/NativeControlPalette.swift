@@ -7,6 +7,22 @@ import SwiftUI
 #endif
 
 enum NativeControlPalette {
+    // Syntax-category hues are presentation policy, matching the existing code
+    // appearance. They do not change language tokens or evaluate source text.
+    static func syntaxColor(for types: [String], theme: OpenUIThemeValues) -> Color {
+        for type in types.reversed() {
+            switch type {
+            case "comment", "prolog", "doctype", "cdata": return adaptive(light: 0x55734D, dark: 0x81A875)
+            case "keyword", "atrule", "tag": return adaptive(light: 0x275EB3, dark: 0x7EAAE8)
+            case "string", "char", "attr-value", "inserted": return adaptive(light: 0xA14C35, dark: 0xDCA189)
+            case "number", "boolean", "constant": return adaptive(light: 0x25735C, dark: 0xA6C5A4)
+            case "function", "class-name", "builtin": return adaptive(light: 0x815A22, dark: 0xD5C28C)
+            case "operator", "punctuation": return theme.textNeutralSecondary
+            default: continue
+            }
+        }
+        return theme.textNeutralPrimary
+    }
     // Converted from the pinned reference's blue/green/yellow/red swatches.
     static var info: Color { adaptive(light: 0x1E40AF, dark: 0x93C5FD) }
     static var success: Color { adaptive(light: 0x166534, dark: 0x86EFAC) }

@@ -1,0 +1,63 @@
+--- a/packages/lang-core/src/parser/serialize.ts
++++ b/packages/lang-core/src/parser/serialize.ts
+@@ -78,7 +78,7 @@
+       return "[" + node.els.map((el) => serializeASTNode(el, calls)).join(", ") + "]";
+     case "Obj":
+       return (
+-        "{" + node.entries.map(([k, v]) => `${k}: ${serializeASTNode(v, calls)}`).join(", ") + "}"
++        "{" + node.entries.map(([k, v]) => `${key(k)}: ${serializeASTNode(v, calls)}`).join(", ") + "}"
+       );
+     case "BinOp": {
+       const left = serializeBinOpChild(node.left, node.op, "left", calls);
+@@ -86,13 +86,13 @@
+       return `${left} ${node.op} ${right}`;
+     }
+     case "UnaryOp":
+-      return `${node.op}${serializeASTNode(node.operand, calls)}`;
++      return `${node.op}${tight(node.operand, calls)}`;
+     case "Ternary":
+-      return `${serializeASTNode(node.cond, calls)} ? ${serializeASTNode(node.then, calls)} : ${serializeASTNode(node.else, calls)}`;
++      return `${node.cond.k === "Ternary" || node.cond.k === "Assign" ? "(" + serializeASTNode(node.cond, calls) + ")" : serializeASTNode(node.cond, calls)} ? ${serializeASTNode(node.then, calls)} : ${serializeASTNode(node.else, calls)}`;
+     case "Member":
+-      return `${serializeASTNode(node.obj, calls)}.${node.field}`;
++      return `${tight(node.obj, calls)}[${JSON.stringify(node.field)}]`;
+     case "Index":
+-      return `${serializeASTNode(node.obj, calls)}[${serializeASTNode(node.index, calls)}]`;
++      return `${tight(node.obj, calls)}[${serializeASTNode(node.index, calls)}]`;
+     case "Assign":
+       return `${node.target} = ${serializeASTNode(node.value, calls)}`;
+     case "Comp": {
+@@ -116,14 +116,15 @@
+ function serializeBinOpChild(
+   child: ASTNode,
+   parentOp: string,
+-  _side: "left" | "right",
++  side: "left" | "right",
+   calls: ReadonlyMap<string, CallDef>,
+ ): string {
+   const inner = serializeASTNode(child, calls);
++  if (child.k === "Ternary" || child.k === "Assign") return `(${inner})`;
+   if (child.k !== "BinOp") return inner;
+   const parentPrec = PRECEDENCE[parentOp] ?? 0;
+   const childPrec = PRECEDENCE[child.op] ?? 0;
+-  if (childPrec < parentPrec) return `(${inner})`;
++  if (childPrec < parentPrec || (side === "right" && childPrec === parentPrec)) return `(${inner})`;
+   return inner;
+ }
+ 
+@@ -155,7 +156,7 @@
+   if (typeof value === "object") {
+     const obj = value as Record<string, unknown>;
+     const entries = Object.entries(obj).map(
+-      ([k, v]) => `${k}: ${serializeValue(v, paramMap, collector)}`,
++      ([k, v]) => `${key(k)}: ${serializeValue(v, paramMap, collector)}`,
+     );
+     return "{" + entries.join(", ") + "}";
+   }
+@@ -285,3 +286,6 @@
+ 
+   return lines.join("\n");
+ }
++
++function key(k:string){return /^[A-Za-z_][A-Za-z0-9_]*$/.test(k)?k:JSON.stringify(k);}
++function tight(n:ASTNode,c:ReadonlyMap<string,CallDef>){const text=serializeASTNode(n,c);return ["BinOp","UnaryOp","Ternary","Assign"].includes(n.k)?"("+text+")":text;}

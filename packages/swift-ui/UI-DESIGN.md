@@ -136,9 +136,30 @@ Approved pixel baselines, when present, are separate from structural assertions.
 
 
 Grid peer cards accept their measured row extent, with object actions at the
-bottom. Carousel cards keep their natural extent. EntityList uses the reference reading roles and row rhythm; Table retains its column grid. Supporting callout
+bottom. Carousel cards keep their natural extent. EntityList text values use the
+ordinary body role; explicit number values and totals keep their emphasized
+roles. Short values remain at the row's trailing edge; a stacked text value
+reads from the leading edge. Read-only body rows use spaceS above and below,
+while headers/totals retain their group spacing. Table retains its column grid. Supporting callout
 copy uses the detail text role. These defaults preserve the supplied structure
 and data rather than classifying business content or reordering a response.
+
+SingleStackedBarChart uses the shared native strip thickness, theme spacing and
+minimum control target to size its plot. Its static wrapping legend is measured
+separately; charts with axes retain their normal plotting area. No Lang height
+parameter is added. Code-copy controls use the existing platform hit-target
+policy, and syntax-category colors are owned by the theme palette.
+
+Reading roles stay independent. ContextCard's title is a compact label and its
+body an emphasized summary in the reference design; use TextContent or Markdown
+for ordinary explanations rather than forcing paragraphs into that family.
+CardHeader identifies an object/section; large-heavy is emphasized body text,
+not an inferred document heading. The SDK does not remove or reorder headings.
+
+MarkdownUI combines its internal block margins using their maximum. Do not treat
+markdownMargin as unconditional outer padding or delete paragraph spacing to
+compensate for a host's Stack gap. Mixed block rhythm is checked using complete
+fixed-input reading fixtures, alongside the host's actual container spacing.
 
 Composite card footers measure one mounted price/action pair for a row when both
 complete natural widths fit, otherwise a column. Missing slots reserve no gap;

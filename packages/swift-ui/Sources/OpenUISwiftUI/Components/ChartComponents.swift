@@ -151,7 +151,9 @@ struct NativeChart: View {
       secondary: context.theme.textNeutralSecondary, border: context.theme.borderDefault,
       gridColor: context.presentation.chartGrid, axisColor: context.presentation.chartAxis,
       canvasColor: context.theme.background, labelFont: context.theme.textBodyXs.nativeFont(scale: axisScale),
-      inspected: inspected, axisScale: axisScale, axisMeasurements: axisMeasurements,
+      inspected: inspected, axisScale: axisScale,
+      singleStackedBarThickness: context.presentation.singleStackedBarThickness * axisScale,
+      axisMeasurements: axisMeasurements,
       hasYAxisTitle: context.string("yLabel")?.isEmpty == false)
   }
   private var measuredAxisLabels: some View {
@@ -227,7 +229,8 @@ struct NativeChart: View {
           }
         }
       }.frame(height: NativeChartHeight.value(explicit: context.number("height"),
-        defaultHeight: defaultHeight, scale: axisScale))
+        defaultHeight: defaultHeight, scale: axisScale,
+        minimumHeight: name == "SingleStackedBarChart" ? 0 : 100))
       if name == "RadarChart" {
         // Numbered axes keep complete category names out of competing radial
         // slots. The key uses native wrapping and the same reading role.
@@ -269,7 +272,10 @@ struct NativeChart: View {
       .onChange(of: data.accessibilityRows) { _ in inspected = nil; pinnedInspection = false }
   }
   private var defaultHeight: Double {
-    if name == "SingleStackedBarChart" { return 100 }
+    if name == "SingleStackedBarChart" {
+      return Double(max(context.presentation.minimumControlTargetSize,
+        context.presentation.singleStackedBarThickness + context.theme.spaceS * 2))
+    }
     if ["PieChart", "RadialChart"].contains(name) { return 210 }
     return 250
   }
@@ -293,8 +299,8 @@ struct NativeChart: View {
 }
 
 enum NativeChartHeight {
-  static func value(explicit: Double?, defaultHeight: Double, scale: CGFloat) -> CGFloat {
-    CGFloat(min(1200, max(100, explicit ?? defaultHeight * Double(max(1, scale)))))
+  static func value(explicit: Double?, defaultHeight: Double, scale: CGFloat, minimumHeight: Double = 100) -> CGFloat {
+    CGFloat(min(1200, max(minimumHeight, explicit ?? defaultHeight * Double(max(1, scale)))))
   }
 }
 
@@ -510,6 +516,7 @@ struct NativeChartDrawing {
   var labelFont: Font = OpenUIThemeValues().textBodyXs.nativeFont()
   var inspected: Int? = nil
   var axisScale: CGFloat = 1
+  var singleStackedBarThickness: CGFloat = OpenUIPresentation.defaults.singleStackedBarThickness
   var axisMeasurements = NativeChartAxisMeasurements()
   var hasYAxisTitle = false
   private var gridColorValue: Color { gridColor ?? border }
@@ -791,15 +798,17 @@ struct NativeChartDrawing {
     let total = values.reduce(0, +)
     guard total > 0 else { return }
     if name == "SingleStackedBarChart" {
+      let thickness = min(size.height, max(1, singleStackedBarThickness))
+      let top = (size.height - thickness) / 2
       var barCanvas = canvas
       barCanvas.clip(to: Path(roundedRect:
-        CGRect(x: 4, y: size.height / 2 - 14, width: max(0, size.width - 8), height: 28),
+        CGRect(x: 4, y: top, width: max(0, size.width - 8), height: thickness),
         cornerRadius: 6))
       var x: CGFloat = 4
       for i in values.indices {
         let width = (size.width - 8) * values[i] / total
         barCanvas.fill(
-          Path(CGRect(x: x, y: size.height / 2 - 14, width: width, height: 28)),
+          Path(CGRect(x: x, y: top, width: width, height: thickness)),
           with: .color(color(i)))
         x += width
       }

@@ -395,13 +395,15 @@ extension SharedCore {
         return prepared
     }
     func error(_ js: JSValue) -> OpenUIError {
-        OpenUIError(source: OpenUIErrorSource(rawValue: optionalString(js.forProperty("source")) ?? "parser") ?? .parser,
+        var error = OpenUIError(source: OpenUIErrorSource(rawValue: optionalString(js.forProperty("source")) ?? "parser") ?? .parser,
                     code: OpenUIErrorCode(rawValue: optionalString(js.forProperty("code")) ?? "runtime-error") ?? .runtimeError,
                     message: js.forProperty("message").toString() ?? "Shared core error",
                     statementId: optionalString(js.forProperty("statementId")), component: optionalString(js.forProperty("component")),
                     path: js.forProperty("path").isUndefined ? nil : string(js.forProperty("path")),
                     toolName: js.forProperty("toolName").isUndefined ? nil : string(js.forProperty("toolName")),
                     hint: optionalString(js.forProperty("hint")), severity: optionalString(js.forProperty("severity")))
+        error.hasProtocolSource = optionalString(js.forProperty("source")) != nil
+        return error
     }
     func parseResult(_ js: JSValue) -> ParseResult {
         let meta = js.forProperty("meta")!

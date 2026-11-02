@@ -1,5 +1,4 @@
 import Foundation
-import JavaScriptCore
 import OpenUILang
 import SwiftUI
 
@@ -8,48 +7,6 @@ import UIKit
 #elseif canImport(AppKit)
 import AppKit
 #endif
-
-struct NativeCodeToken: Sendable, Equatable {
-  let text: String
-  let types: [String]
-}
-
-/// The same refractor grammars used by the upstream Prism renderer. This realm
-/// only tokenizes strings; it is separate from OpenUI Lang and never runs code
-/// supplied by a model. A serialized worker keeps tokenization off the UI thread.
-final class NativeCodeSyntax: @unchecked Sendable {
-  static let shared = NativeCodeSyntax()
-  private let lock = NSLock()
-  private var context: JSContext?
-
-  func tokens(code: String, language: String) -> [NativeCodeToken] {
-    let plain = [NativeCodeToken(text: code, types: [])]
-    lock.lock()
-    defer { lock.unlock() }
-    guard !Task.isCancelled else { return plain }
-    if context == nil {
-      guard let url = NativeControlResources.bundle.url(forResource: "code-highlighting", withExtension: "js"),
-        let source = try? String(contentsOf: url, encoding: .utf8), let candidate = JSContext()
-      else { return plain }
-      candidate.exceptionHandler = { _, _ in }
-      candidate.evaluateScript(source, withSourceURL: url)
-      guard candidate.exception == nil else { return plain }
-      context = candidate
-    }
-    guard let context else { return plain }
-    defer { context.exception = nil }
-    let output = context.objectForKeyedSubscript("NativeCodeSyntax")
-      .invokeMethod("highlight", withArguments: [code, language])
-    guard context.exception == nil, let rows = output?.toArray() as? [[String: Any]] else { return plain }
-    let tokens = rows.compactMap { row -> NativeCodeToken? in
-      guard let text = row["text"] as? String, let types = row["types"] as? [String] else { return nil }
-      return NativeCodeToken(text: text, types: types)
-    }
-    // Highlighting must never change the code, including whitespace and Unicode.
-    guard tokens.map(\.text).joined().utf16.elementsEqual(code.utf16) else { return plain }
-    return tokens
-  }
-}
 
 struct NativeCodeBlock: View {
   let context: OpenUIComponentContext
@@ -80,7 +37,7 @@ struct NativeCodeBlockContent: View {
         Button(action: copy) {
           Image(systemName: copied ? "checkmark" : "doc.on.doc")
             .openUIFont(theme.textBodySm)
-            .frame(width: 44, height: 44).contentShape(Rectangle())
+            .openUIControlTarget()
         }.buttonStyle(.plain)
           .accessibilityLabel(Text(copied ? "Copied to clipboard" : "Copy code", bundle: NativeControlResources.bundle))
           .accessibilityValue(copied ? "copied" : "ready")
@@ -118,26 +75,11 @@ struct NativeCodeBlockContent: View {
   private var codeText: Text {
     guard highlighted == source else { return Text(verbatim: source.code.displayString).foregroundColor(theme.textNeutralPrimary) }
     return tokens.reduce(Text("")) { result, token in
-      var text = Text(verbatim: token.text).foregroundColor(color(for: token.types))
+      var text = Text(verbatim: token.text).foregroundColor(NativeControlPalette.syntaxColor(for: token.types, theme: theme))
       if token.types.contains("bold") || token.types.contains("important") { text = text.bold() }
       if token.types.contains("italic") { text = text.italic() }
       return result + text
     }
-  }
-
-  private func color(for types: [String]) -> Color {
-    for type in types.reversed() {
-      switch type {
-      case "comment", "prolog", "doctype", "cdata": return NativeControlPalette.adaptive(light: 0x55734D, dark: 0x81A875)
-      case "keyword", "atrule", "tag": return NativeControlPalette.adaptive(light: 0x275EB3, dark: 0x7EAAE8)
-      case "string", "char", "attr-value", "inserted": return NativeControlPalette.adaptive(light: 0xA14C35, dark: 0xDCA189)
-      case "number", "boolean", "constant": return NativeControlPalette.adaptive(light: 0x25735C, dark: 0xA6C5A4)
-      case "function", "class-name", "builtin": return NativeControlPalette.adaptive(light: 0x815A22, dark: 0xD5C28C)
-      case "operator", "punctuation": return theme.textNeutralSecondary
-      default: continue
-      }
-    }
-    return theme.textNeutralPrimary
   }
 
   private func copy() {

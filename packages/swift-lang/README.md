@@ -66,9 +66,11 @@ The fixed upstream is `f08a660535e55b5b2a24a0eb68568edaf9e4fe4b`, core tree
 `bf6be546007f96c87689c7b47c29e1f09175f6f6`. Exact dependency, source and resource
 hashes live in `Sources/OpenUILang/Resources/core-manifest.json`.
 
-Three compatibility corrections remain explicit: serializer round-trip grouping
-and keys, materialization limits, and bounded ECMAScript pattern execution. The
-manifest records their reasons and removal conditions. Raw message-context and
+Compatibility adaptations remain explicit: serializer round-trip grouping and
+keys, materialization limits, bounded ECMAScript pattern execution, and native
+readiness source injection. The complete inventory, reasons and removal gates
+are embedded in the manifest. See [the compatibility contract](COMPATIBILITY.md)
+for strict oracle checks, native projection rules and resource exceptions. Raw message-context and
 legacy output-format compatibility have been removed. Upstream core source is
 unmodified; a source upgrade must revalidate the build corrections and reference
 fixtures. Third-party licenses ship with the bundle and bounded regex backend.

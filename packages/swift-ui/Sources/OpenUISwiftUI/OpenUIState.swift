@@ -343,9 +343,9 @@ public final class OpenUIState: ObservableObject {
     public func triggerAction(_ userMessage: String, formName: OpenUIString? = nil, action: Value? = nil) async -> [ActionEvent] {
         await triggerAction(userMessage, formName: formName, action: action, source: nil)
     }
-    func triggerAction(_ userMessage: String, formName: OpenUIString?, action: Value?, source: EvaluatedElement?) async -> [ActionEvent] {
+    func triggerAction(_ userMessage: String, formName: OpenUIString?, action: Value?, source: EvaluatedElement?, onDispatch: ((ActionEvent) -> Void)? = nil) async -> [ActionEvent] {
         guard source.map(isElementReady) ?? canExecuteActions else { return [] }
-        if case .actionPlan(let plan) = action { return await perform(plan, formName: formName, source: source) }
+        if case .actionPlan(let plan) = action { return await perform(plan, formName: formName, source: source, onDispatch: onDispatch) }
         if case .object(let fields) = action {
             func field(_ key: String) -> Value? { fields.last(where: { $0.key == key })?.value }
             let type: OpenUIString
@@ -360,10 +360,10 @@ public final class OpenUIState: ObservableObject {
             }
             let event = ActionEvent(type: type, params: params.map { ($0.key, $0.value) }, humanFriendlyMessage: OpenUIString(userMessage),
                                     formState: formPayload(formName), formName: formName)
-            onAction?(event); return [event]
+            onDispatch?(event); onAction?(event); return [event]
         }
         guard action == nil || action == .null else { return [] }
-        return await perform(ActionPlan(steps: [.continueConversation(messageAST: .str(userMessage), contextAST: nil)]), formName: formName, source: source)
+        return await perform(ActionPlan(steps: [.continueConversation(messageAST: .str(userMessage), contextAST: nil)]), formName: formName, source: source, onDispatch: onDispatch)
     }
 
     /// A retained control can outlive a parser readiness snapshot. Resolve only
@@ -388,7 +388,7 @@ public final class OpenUIState: ObservableObject {
     public func perform(_ plan: ActionPlan, formName: OpenUIString? = nil) async -> [ActionEvent] {
         await perform(plan, formName: formName, source: nil)
     }
-    func perform(_ plan: ActionPlan, formName: OpenUIString?, source: EvaluatedElement?) async -> [ActionEvent] {
+    func perform(_ plan: ActionPlan, formName: OpenUIString?, source: EvaluatedElement?, onDispatch: ((ActionEvent) -> Void)? = nil) async -> [ActionEvent] {
         let plan = currentActionPlan(plan, source: source)
         guard source.map(isElementReady) ?? canExecuteActions, source == nil || isPlanReady(plan) else { return [] }
         let generation = streamGeneration
@@ -418,6 +418,7 @@ public final class OpenUIState: ObservableObject {
             },
             onEvent: { [weak self] event in
                 guard let self, self.streamGeneration == generation else { return }
+                onDispatch?(event)
                 self.onAction?(event)
             }
         )

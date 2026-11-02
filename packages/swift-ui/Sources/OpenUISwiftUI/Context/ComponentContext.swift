@@ -142,6 +142,20 @@ public struct OpenUIComponentContext {
     }
 
     @discardableResult
+    @MainActor func commitFieldAndTrigger(_ message: String, form: OpenUIString,
+        name: OpenUIString, value: Value, componentType: String,
+        onDispatch: (() -> Void)? = nil) async -> [ActionEvent] {
+        guard canActivate, canDispatch(nil) else { return [] }
+        state.setFieldValue(form: form, name: name, value: value, componentType: componentType)
+        // A host state-update callback may synchronously replace this answer.
+        // Preserve the captured presentation when dispatching the committed value.
+        guard canActivate, canDispatch(nil) else { return [] }
+        // This receipt means local event delivery only, not remote persistence.
+        return await state.triggerAction(message, formName: form, action: nil, source: element,
+            onDispatch: { _ in onDispatch?() })
+    }
+
+    @discardableResult
     @MainActor public func perform(_ action: ActionPlan) async -> [ActionEvent] {
         guard canInteract else { return [] }
         return await state.perform(action, formName: exactFormName, source: element)

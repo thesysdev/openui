@@ -312,10 +312,13 @@ struct NativeEntityList: View {
       NativeMarkdownText(text: NativeValue.string(value, "left") ?? "", mode: .inline,
         style: .init(font: font, color: color))
       NativeMarkdownText(text: NativeValue.string(value, "right") ?? "", mode: .inline,
-        style: .init(font: (kind == .footer ? context.theme.textHeadingSm : context.theme.inlineFont(small ? "xs" : "sm", emphasized: true)), numeric: numeric, color: color))
-      .multilineTextAlignment(.trailing)
+        style: .init(font: kind == .footer ? context.theme.textHeadingSm
+          : (numeric || kind == .header ? context.theme.inlineFont(small ? "xs" : "sm", emphasized: true) : font), numeric: numeric, color: color))
+      // Horizontal layout still anchors a short value at the row's right edge.
+      // A full-width text value must read from the left when the row stacks.
+      .multilineTextAlignment(numeric ? .trailing : .leading)
     }
-    .padding(.vertical, context.theme.spacing("m")).textSelection(.enabled)
+    .padding(.vertical, context.theme.spacing(kind == .body ? "s" : "m")).textSelection(.enabled)
     .accessibilityIdentifier("openui.entity-list.row")
   }
 }

@@ -53,7 +53,7 @@ The native renderer implements these standard presentation contracts:
 | Component | Native presentation |
 | --- | --- |
 | CodeBlock | Upstream refractor/Prism grammars, selectable native text, lossless copy and copy feedback; unknown languages remain plain text |
-| EntityList | Inline Markdown in both cells, text/number variants, default header/footer and compact rows |
+| EntityList | Inline Markdown in both cells; ordinary text values, emphasized number values/totals, compact read-only rows and leading text when stacked |
 | Tag / TagBlock | Distinct small, medium and large metrics; shared icon and semantic color presentation |
 | IconText | Semantic icon badges including inverted, with upstream filled/soft normalization |
 | TextContent | Block Markdown, GFM tables, shared fenced-code rendering, numbered source citations and offline KaTeX equations |
@@ -68,6 +68,10 @@ worker and drawn with SwiftUI Text; model code is never evaluated. Its resource
 is separate from lang-core, carries dependency licenses and requires no runtime
 downloads. Rebuild it with `npm ci --ignore-scripts` then `npm run build` in
 `scripts/code-highlighting`. SwiftPM consumers use the checked-in resource.
+
+The native view receives typed tokens from Internal/NativeCodeSyntax; it does
+not import JavaScriptCore. Syntax colors live in NativeControlPalette and the
+copy button follows OpenUIPresentation's existing platform hit target.
 
 Rich text similarly bundles the pinned Remark/KaTeX dependencies. Native blocks
 remain SwiftUI; a private nonpersistent WebKit view rasterizes equations using

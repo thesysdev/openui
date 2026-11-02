@@ -22,5 +22,8 @@ public struct OpenUIPresentation {
     public var minimumChoiceWidth: CGFloat = 136
     public var chartGrid = NativeControlPalette.adaptive(light: 0xE8EAEE, dark: 0x34373C)
     public var chartAxis = NativeControlPalette.adaptive(light: 0x6A6F78, dark: 0xB4BBC6)
+    // One shared thickness for drawing and sizing a single distribution strip.
+    // This is native geometry, not a new model-facing style parameter.
+    var singleStackedBarThickness: CGFloat = 28
     public init() {}
 }

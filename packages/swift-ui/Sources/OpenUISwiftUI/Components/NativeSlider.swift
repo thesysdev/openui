@@ -17,17 +17,27 @@ struct NativeSliderConfiguration: Equatable {
     let count = floor((maximum - minimum) / step)
     return count.isFinite ? count : Double.greatestFiniteMagnitude
   }
-  func value(at index: Double) -> Double { min(maximum, max(minimum, minimum + index * step)) }
+  func value(at index: Double) -> Double {
+    let raw = minimum + index * step
+    func precision(_ number: Double) -> Int {
+      let parts = jsNumberString(number).lowercased().split(separator: "e")
+      let fractional = parts[0].split(separator: ".", omittingEmptySubsequences: false).dropFirst().first?.count ?? 0
+      let exponent = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
+      return max(0, fractional - exponent)
+    }
+    // The lattice is minimum + n*step, so its origin contributes precision.
+    // A non-divisible maximum remains an endpoint, as in the reference slider.
+    let digits = max(precision(minimum), precision(step))
+    // toFixed supports at most 100 digits. Smaller representable steps retain
+    // their finite arithmetic value rather than being rounded down to zero.
+    let rounded = raw.isFinite && digits <= 100 ? Double(jsNumberToFixed(raw, digits: digits)) ?? raw : raw
+    return min(maximum, max(minimum, rounded))
+  }
   func snapped(_ value: Double) -> Double {
     guard valid else { return minimum }
     let index = ((min(maximum, max(minimum, value)) - minimum) / step).rounded()
     guard index.isFinite else { return min(maximum, max(minimum, value)) }
-    let raw = self.value(at: index)
-    let parts = jsNumberString(step).lowercased().split(separator: "e")
-    let fractional = parts[0].split(separator: ".", omittingEmptySubsequences: false).dropFirst().first?.count ?? 0
-    let exponent = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
-    let digits = min(100, max(0, fractional - exponent))
-    return Double(jsNumberToFixed(raw, digits: digits)) ?? raw
+    return self.value(at: index)
   }
   func error(for values: [Double], index: Int) -> String? {
     guard values.indices.contains(index) else { return nil }

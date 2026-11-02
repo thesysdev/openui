@@ -305,7 +305,11 @@ public enum OpenUIErrorCode: String, Sendable {
 
 /// Structured, LLM-friendly error. Mirrors parser/types.ts OpenUIError.
 public struct OpenUIError: Sendable {
-    public var source: OpenUIErrorSource
+    public var source: OpenUIErrorSource { didSet { hasProtocolSource = true } }
+    var hasProtocolSource = true
+    /// Exact source presence in the official diagnostic. `source` keeps its
+    /// legacy nonoptional parser fallback for existing native callers.
+    public var protocolSource: OpenUIErrorSource? { hasProtocolSource ? source : nil }
     public var code: OpenUIErrorCode
     public var message: String
     public var statementId: String?
@@ -698,10 +702,21 @@ public struct LibrarySchema: Sendable {
     var coreLibraryCache = CoreLibraryCache()
     var wireSchema: JSONValue? = nil { didSet { coreLibraryCache = CoreLibraryCache() } }
     /// Component name → params (positional order).
-    public var components: [String: [ParamDef]] { didSet { coreLibraryCache = CoreLibraryCache() } }
+    /// Prefer editing Library with extend() and recompiling. These mutable
+    /// projections remain supported and update the retained full wire document.
+    public var components: [String: [ParamDef]] { didSet {
+        if let wire = wireSchema { wireSchema = SchemaDocument.components(wire, old: oldValue, new: components) }
+        coreLibraryCache = CoreLibraryCache()
+    } }
     /// Built-in + custom function/action call defs.
-    public var callDefs: [String: CallDef] { didSet { coreLibraryCache = CoreLibraryCache() } }
-    public var rootComponent: String? { didSet { coreLibraryCache = CoreLibraryCache() } }
+    public var callDefs: [String: CallDef] { didSet {
+        if let wire = wireSchema { wireSchema = SchemaDocument.calls(wire, old: oldValue, new: callDefs) }
+        coreLibraryCache = CoreLibraryCache()
+    } }
+    public var rootComponent: String? { didSet {
+        if let wire = wireSchema { wireSchema = SchemaDocument.setting(wire, "root", rootComponent.map(JSONValue.string)) }
+        coreLibraryCache = CoreLibraryCache()
+    } }
     public init(components: [String: [ParamDef]] = [:], callDefs: [String: CallDef] = [:], rootComponent: String? = nil) {
         self.components = components
         self.callDefs = callDefs

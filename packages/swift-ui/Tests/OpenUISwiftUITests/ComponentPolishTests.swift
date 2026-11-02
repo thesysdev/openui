@@ -95,9 +95,9 @@ final class ComponentPolishTests: XCTestCase {
 
   @MainActor func testStepMarkerRespectsItsCompleteMeasuredNumeral() {
     _ = NSApplication.shared
-    var theme = OpenUIThemeValues(); theme.textBodySm.size = 42
+    var theme = OpenUIThemeValues(); theme.textBodySmHeavy.size = 42
     let marker = NSHostingView(rootView: NativeStepMarker(number: 12, theme: theme, diameter: 28))
-    let text = NSHostingView(rootView: Text("12").openUIFont(theme.textBodySm.weight(.semibold)).fixedSize())
+    let text = NSHostingView(rootView: Text("12").openUIFont(theme.textBodySmHeavy).fixedSize())
     XCTAssertGreaterThan(marker.fittingSize.height, 28)
     XCTAssertGreaterThanOrEqual(marker.fittingSize.height, text.fittingSize.height)
     XCTAssertGreaterThanOrEqual(marker.fittingSize.width, text.fittingSize.width)

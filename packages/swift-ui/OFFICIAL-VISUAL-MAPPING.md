@@ -67,7 +67,7 @@ semantic color must not silently become the chart series palette.
 | ImageText, IconText, Icon | reference compact type and neutral/semantic badge treatment; pinned Lucide artwork | icon-size parameters and nearest-view scaling retained |
 | Tag, TagBlock | informational tint, primary neutral ink, label-small across sizes | complete long labels can wrap instead of being ellipsized |
 | Button, IconButton, Buttons | primary/secondary/tertiary hierarchy; transparent bordered secondary, shared native button corner and density | native hit target, focus, press/Reduce Motion; flat neutral assistant treatment |
-| EntityList | reference body roles, header priority, tabular amounts and row rhythm | measured label/value reflow remains; open rows keep separators for header/total |
+| EntityList | shared body roles, header/total priority and tabular numeric values | native text values stay regular and lead when stacked; number values remain emphasized; read-only body rows use spaceS |
 | ListBlock, ListItem, Steps | common reading roles, media/text gap, number and action hierarchy | width-derived photo previews, complete text and scalable step marker |
 | CompositeCardItem/Block | 12pt inset, 16pt corner, quiet surface, measured amount/action relationship | full-bleed 3:2 cover; amount/action share a row when they fit, otherwise stack; one mounted action remains inside card |
 | Overview, Snippet, Context, Visual cards | family-specific radius/inset from the same scale | photo cards use width-derived extent; native collection measurement retained; compact facts stack before splitting values |

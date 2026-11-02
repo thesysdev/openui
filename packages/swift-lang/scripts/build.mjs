@@ -53,7 +53,7 @@ const result = await build({
           contents: replaceOnce(
             readFileSync(args.path, 'utf8'),
             'return new RegExp(arg).test(value) ? undefined : \"Invalid format\";',
-            'const outcome=__nativePattern(arg,value);return outcome===\"matches\"||outcome===\"invalidPattern\"?undefined:\"Invalid format\";',
+            'const outcome=__nativePattern(arg,value);return outcome===\"resourceError\"?\"Validation could not complete: regular expression resource limit exceeded.\":outcome===\"matches\"||outcome===\"invalidPattern\"?undefined:\"Invalid format\";',
           ),
           loader: 'ts',
         }));
@@ -164,7 +164,7 @@ writeFileSync(
         .digest('hex'),
       adapterSha256: createHash('sha256')
         .update(
-          ['entry.ts', 'captures.ts', 'authoring.ts', 'compat.mjs', 'readiness.ts', 'readiness-compat.mjs', 'build.mjs']
+          ['entry.ts', 'captures.ts', 'authoring.ts', 'compat.mjs', 'readiness.ts', 'readiness-compat.mjs', 'adaptations.json', 'patches/serializer-roundtrip.patch', 'build.mjs']
             .map((name) => readFileSync(join(here, name), 'utf8'))
             .join('\n'),
         )
@@ -186,6 +186,7 @@ writeFileSync(
         'serializer precedence and lossless keys',
         'materialization depth/node budgets',
       ],
+      adaptations: JSON.parse(readFileSync(join(here, 'adaptations.json'), 'utf8')),
       retainedPatches: [
         {
           module: 'parser/serialize.ts',
@@ -201,6 +202,11 @@ writeFileSync(
           module: 'utils/validation.ts',
           reason: 'Delegate pattern execution to the existing bounded native backend; stock JSC RegExp has no portable per-call budget.',
           removal: 'Equivalent bounded pattern execution in the shared core or host runtime.',
+        },
+        {
+          module: 'parser/lexer.ts, parser/expressions.ts, parser/parser.ts, parser/materialize.ts, runtime/evaluator.ts, runtime/evaluate-tree.ts',
+          reason: 'Readiness source provenance is private native metadata; the pinned core has no equivalent complete-control/dependency API.',
+          removal: 'Equivalent source/dependency readiness supplied by upstream and verified against strict intermediate snapshots.',
         },
       ],
       removedSemanticOverrides: [
