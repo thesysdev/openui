@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
 import { flow, flowName } from "../../shared/flow.styles";
 import { space } from "../../shared/style";
-import { names, styles } from "./card.styles";
+import { cardStyles, names } from "./card.styles";
 
 export interface CardProps extends HTMLAttributes<HTMLElement> {
   /** outline (the default) is a bordered panel; soft is a filled panel for summaries. */
@@ -19,7 +19,7 @@ const Card = forwardRef<HTMLElement, CardProps>(({ variant: variantProp, padding
   return (
     <section
       ref={ref}
-      className={clsx(styles.root, names.root, styles.variant[variant], names.variant[variant], gap == null && [flow, flowName], className)}
+      className={clsx(cardStyles.root, names.root, cardStyles.variant[variant], names.variant[variant], gap == null && [flow, flowName], className)}
       style={{ padding: space(padding), gap: space(gap), ...style }}
       {...rest}
     >

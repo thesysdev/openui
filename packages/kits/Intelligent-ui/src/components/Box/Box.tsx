@@ -3,8 +3,8 @@ import { forwardRef, type HTMLAttributes } from "react";
 import { flow, flowName } from "../../shared/flow.styles";
 import { tokens } from "../../shared/tokens";
 import { bg, flexStyle, onColor, radius as radiusOf, size, space, type Align, type Color, type Justify, type Length, type Radius } from "../../shared/style";
-import { names as colNames, styles as colStyles } from "../Col/col.styles";
-import { names as rowNames, styles as rowStyles } from "../Row/row.styles";
+import { colStyles, names as colNames } from "../Col/col.styles";
+import { names as rowNames, rowStyles } from "../Row/row.styles";
 import { names } from "./box.styles";
 
 export interface BoxProps extends Omit<HTMLAttributes<HTMLDivElement>, "color"> {

@@ -18,7 +18,7 @@ export const names = {
 } as const;
 
 /** A shimmer until the photo loads; none once there is nothing to wait for. */
-export const styles = {
+export const photoStyles = {
   root: css`
     position: relative;
     display: grid;

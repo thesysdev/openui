@@ -7,7 +7,7 @@ export const names = {
   cite: "openui-intelligent-quote-cite",
 } as const;
 
-export const styles = {
+export const quoteStyles = {
   root: css`
     display: flex;
     flex-direction: column;

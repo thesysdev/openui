@@ -2,7 +2,7 @@ import { Button as RCButton } from "@openuidev/react-components";
 import clsx from "clsx";
 import type { ComponentProps } from "react";
 import { Glyph } from "../Icon/Glyph";
-import { names, styles } from "./button.styles";
+import { buttonStyles, names } from "./button.styles";
 
 const VARIANT = { solid: "primary", outline: "secondary", soft: "tertiary", ghost: "tertiary" } as const;
 
@@ -34,17 +34,17 @@ export function Button({ variant: variantProp, size: sizeProp, color, icon, bloc
       variant={VARIANT[variant]}
       size={SIZE[size]}
       className={clsx(
-        styles.root,
+        buttonStyles.root,
         names.root,
-        styles.size[size],
+        buttonStyles.size[size],
         names.size[size],
-        styles.variant[variant],
+        buttonStyles.variant[variant],
         names.variant[variant],
-        color && color !== "primary" && [styles.color[color], names.color[color]],
-        block && [styles.block, names.block],
+        color && color !== "primary" && [buttonStyles.color[color], names.color[color]],
+        block && [buttonStyles.block, names.block],
         className,
       )}
-      iconLeft={icon ? <Glyph name={icon} size={size === "sm" ? 14 : 16} className={clsx(styles.icon, names.icon)} /> : undefined}
+      iconLeft={icon ? <Glyph name={icon} size={size === "sm" ? 14 : 16} className={clsx(buttonStyles.icon, names.icon)} /> : undefined}
       {...rest}
     >
       {children}

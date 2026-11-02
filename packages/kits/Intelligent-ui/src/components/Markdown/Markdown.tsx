@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
 import { MarkdownBlocks } from "./markdownBlocks";
-import { names, styles } from "./markdown.styles";
+import { markdownStyles, names } from "./markdown.styles";
 
 export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
   /** Markdown: headings, lists, quotes, code, rules and | tables |. */
@@ -14,7 +14,7 @@ export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
  * would render as a line of pipes.
  */
 const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(({ text, className, ...rest }, ref) => (
-  <div ref={ref} className={clsx(styles.root, names.root, className)} {...rest}>
+  <div ref={ref} className={clsx(markdownStyles.root, names.root, className)} {...rest}>
     <MarkdownBlocks text={text} />
   </div>
 ));

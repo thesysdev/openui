@@ -3,7 +3,7 @@ import { tokens } from "../../shared/tokens";
 
 export const names = { root: "openui-intelligent-link", arrow: "openui-intelligent-link-arrow" } as const;
 
-export const styles = {
+export const linkStyles = {
   root: css`
     color: inherit;
     text-decoration: underline;

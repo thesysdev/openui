@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { LngLatBoundsLike } from "maplibre-gl";
-import { names, styles } from "./map.styles";
+import { mapStyles, names } from "./map.styles";
 
 /** [lat, lng]. MapLibre itself takes [lng, lat]; convert with `lngLat`. */
 export type LatLng = [number, number];
@@ -63,15 +63,15 @@ export function mapColor(value: string, fallback = "#272727"): string {
 
 export function createPinElement(onSelect: () => void) {
   const element = document.createElement("div");
-  element.className = clsx(styles.marker, names.marker);
+  element.className = clsx(mapStyles.marker, names.marker);
   element.tabIndex = 0;
   element.setAttribute("role", "button");
   const content = document.createElement("div");
-  content.className = clsx(styles.markerContent, names.markerContent);
+  content.className = clsx(mapStyles.markerContent, names.markerContent);
   const pin = document.createElement("span");
-  pin.className = clsx(styles.pin, names.pin);
+  pin.className = clsx(mapStyles.pin, names.pin);
   const label = document.createElement("span");
-  label.className = clsx(styles.label, names.label);
+  label.className = clsx(mapStyles.label, names.label);
   content.append(pin, label);
   element.append(content);
   element.addEventListener("click", onSelect);

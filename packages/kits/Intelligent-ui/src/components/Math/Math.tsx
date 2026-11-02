@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import katex from "katex";
 import { useEffect, useState } from "react";
-import { names, styles } from "./math.styles";
+import { mathStyles, names } from "./math.styles";
 
 export interface MathBlockProps {
   /** A LaTeX formula, e.g. "E = mc^2". */
@@ -49,8 +49,8 @@ export function MathBlock({ tex, inline }: MathBlockProps) {
   const style = ready ? undefined : ({ visibility: "hidden" } as const);
   // KaTeX escapes its input and is configured without \href or \includegraphics.
   return inline ? (
-    <span className={clsx(styles.root, names.root)} style={style} dangerouslySetInnerHTML={{ __html: html }} />
+    <span className={clsx(mathStyles.root, names.root)} style={style} dangerouslySetInnerHTML={{ __html: html }} />
   ) : (
-    <div className={clsx(styles.root, names.root, styles.block, names.block)} style={style} dangerouslySetInnerHTML={{ __html: html }} />
+    <div className={clsx(mathStyles.root, names.root, mathStyles.block, names.block)} style={style} dangerouslySetInnerHTML={{ __html: html }} />
   );
 }

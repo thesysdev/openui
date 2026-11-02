@@ -2,7 +2,7 @@ import { IconButton as RCIconButton } from "@openuidev/react-components";
 import clsx from "clsx";
 import type { ComponentProps } from "react";
 import { Glyph } from "../Icon/Glyph";
-import { names, styles } from "./iconButton.styles";
+import { iconButtonStyles, names } from "./iconButton.styles";
 
 const VARIANT = { outline: "secondary", ghost: "tertiary", solid: "primary" } as const;
 
@@ -25,7 +25,7 @@ export function IconButton({ icon, variant: variantProp, className, ...rest }: I
       variant={VARIANT[variant]}
       shape="circle"
       size="small"
-      className={clsx(styles.root, names.root, variant !== "outline" && styles.variant[variant], names.variant[variant], className)}
+      className={clsx(iconButtonStyles.root, names.root, variant !== "outline" && iconButtonStyles.variant[variant], names.variant[variant], className)}
       {...rest}
     />
   );

@@ -2,7 +2,7 @@ import { Carousel as RCCarousel, CarouselContent, CarouselNext, CarouselPrevious
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { names, styles } from "./carousel.styles";
+import { carouselStyles, names } from "./carousel.styles";
 
 export interface CarouselProps {
   /** One entry per item. */
@@ -22,10 +22,10 @@ export interface CarouselProps {
 export function Carousel({ items, itemWidth, gap }: CarouselProps) {
   const width = Math.min(640, Math.max(80, itemWidth ?? 240));
   return (
-    <RCCarousel className={clsx(styles.root, names.root)}>
-      <CarouselContent className={clsx(styles.track, names.track)} style={gap != null ? { gap: Math.max(0, gap) * 4 } : undefined}>
+    <RCCarousel className={clsx(carouselStyles.root, names.root)}>
+      <CarouselContent className={clsx(carouselStyles.track, names.track)} style={gap != null ? { gap: Math.max(0, gap) * 4 } : undefined}>
         {items.map((item, i) => (
-          <div key={i} className={clsx(styles.item, names.item)} style={{ width }}>
+          <div key={i} className={clsx(carouselStyles.item, names.item)} style={{ width }}>
             {item}
           </div>
         ))}

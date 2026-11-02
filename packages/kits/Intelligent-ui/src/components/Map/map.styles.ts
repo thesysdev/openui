@@ -78,7 +78,7 @@ const FLOATING_NOTE = `
  * The root's rules on .maplibregl-* are not flat, because maplibre renders that DOM. The surface
  * doubles its class to beat maplibre-gl.css, which sets .maplibregl-map to position: relative.
  */
-export const styles = {
+export const mapStyles = {
   slot: css`
     width: 100%;
     min-width: 0;

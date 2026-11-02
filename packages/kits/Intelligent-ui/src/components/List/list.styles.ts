@@ -34,7 +34,7 @@ const RING = `inset 0 0 0 2px ${tokens.ink}`;
  * that joins the markers. The root's layout and spacing classes set private variables that its rows
  * and markers read. A nested list always sets its own, so nothing leaks into it.
  */
-export const styles = {
+export const listStyles = {
   root: css`
     --_openui-intelligent-strong-weight: 640;
     display: flex;

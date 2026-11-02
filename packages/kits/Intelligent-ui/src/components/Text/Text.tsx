@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { fg, type Color } from "../../shared/style";
-import { names, styles } from "./text.styles";
+import { names, textStyles } from "./text.styles";
 
 export interface TextProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "color"> {
   size?: "xs" | "sm" | "md" | "lg";
@@ -25,11 +25,11 @@ const Text = forwardRef<HTMLParagraphElement, TextProps>(
       <Element
         ref={ref as never}
         className={clsx(
-          styles.root,
+          textStyles.root,
           names.root,
-          size ? [styles.size[size], names.size[size]] : names.size.default,
-          weight && [styles.weight[weight], names.weight[weight]],
-          lines && [styles.clamp, names.clamp],
+          size ? [textStyles.size[size], names.size[size]] : names.size.default,
+          weight && [textStyles.weight[weight], names.weight[weight]],
+          lines && [textStyles.clamp, names.clamp],
           className,
         )}
         style={{
@@ -52,7 +52,7 @@ Text.displayName = "Text";
 
 /** Holds a component (an Icon, a Badge, a Math) in a line of Text, aligned with the words. */
 function TextInline({ children }: { children?: ReactNode }) {
-  return <span className={clsx(styles.inline, names.inline)}>{children}</span>;
+  return <span className={clsx(textStyles.inline, names.inline)}>{children}</span>;
 }
 
 export { Text, TextInline };

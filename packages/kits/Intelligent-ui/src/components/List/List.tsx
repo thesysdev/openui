@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
-import { names, styles } from "./list.styles";
+import { listStyles, names } from "./list.styles";
 
 export interface ListItemProps {
   title: ReactNode;
@@ -15,9 +15,9 @@ export interface ListItemProps {
 function ListItem({ title, description, children }: ListItemProps) {
   return (
     <div className={names.body}>
-      <div className={clsx(styles.title, names.title)}>{title}</div>
-      {description != null ? <div className={clsx(styles.description, names.description)}>{description}</div> : null}
-      {children !== undefined ? <div className={clsx(styles.children, names.children)}>{children}</div> : null}
+      <div className={clsx(listStyles.title, names.title)}>{title}</div>
+      {description != null ? <div className={clsx(listStyles.description, names.description)}>{description}</div> : null}
+      {children !== undefined ? <div className={clsx(listStyles.children, names.children)}>{children}</div> : null}
     </div>
   );
 }
@@ -52,11 +52,11 @@ function List({ items, marker: markerProp, timeline }: ListProps) {
   return (
     <Tag
       className={clsx(
-        styles.root,
+        listStyles.root,
         names.root,
         names.marker[marker],
-        styles.layout[layout],
-        styles.spacing[timeline ? "timeline" : "plain"],
+        listStyles.layout[layout],
+        listStyles.spacing[timeline ? "timeline" : "plain"],
         timeline && names.timeline,
         wide && names.wide,
       )}
@@ -70,27 +70,27 @@ function List({ items, marker: markerProp, timeline }: ListProps) {
           <li
             key={i}
             className={clsx(
-              styles.row,
+              listStyles.row,
               names.row,
-              rich && [styles.rich, names.rich],
-              rich && !timeline && styles.richSpacing,
-              timeline && styles.timelineRow,
-              line && styles.line,
+              rich && [listStyles.rich, names.rich],
+              rich && !timeline && listStyles.richSpacing,
+              timeline && listStyles.timelineRow,
+              line && listStyles.line,
             )}
           >
             <span
               className={clsx(
-                styles.markerCell,
+                listStyles.markerCell,
                 names.markerCell,
-                !custom && marker === "none" && [styles.markerKind.hidden, names.markerKind.hidden],
-                !custom && marker === "bullet" && [styles.markerKind.dot, names.markerKind.dot],
-                marker === "number" && (!custom || step) && [styles.markerKind.number, names.markerKind.number],
+                !custom && marker === "none" && [listStyles.markerKind.hidden, names.markerKind.hidden],
+                !custom && marker === "bullet" && [listStyles.markerKind.dot, names.markerKind.dot],
+                marker === "number" && (!custom || step) && [listStyles.markerKind.number, names.markerKind.number],
                 step && names.markerKind.chip,
-                custom && !step && [styles.markerKind.text, names.markerKind.text, timeline && wide && styles.timeDot],
+                custom && !step && [listStyles.markerKind.text, names.markerKind.text, timeline && wide && listStyles.timeDot],
               )}
               aria-hidden={!custom}
             >
-              {step ? <span className={clsx(styles.chip, names.chip)}>{custom}</span> : custom ?? (marker === "number" ? i + 1 : null)}
+              {step ? <span className={clsx(listStyles.chip, names.chip)}>{custom}</span> : custom ?? (marker === "number" ? i + 1 : null)}
             </span>
             {isListItem(item) ? item : <div className={names.body}>{item}</div>}
           </li>

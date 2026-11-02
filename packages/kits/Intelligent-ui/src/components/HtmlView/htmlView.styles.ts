@@ -7,7 +7,7 @@ export const names = {
   wait: "openui-intelligent-html-view-wait",
 } as const;
 
-export const styles = {
+export const htmlViewStyles = {
   root: css`
     position: relative;
     width: 100%;

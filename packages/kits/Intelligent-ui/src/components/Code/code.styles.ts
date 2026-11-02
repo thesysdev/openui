@@ -8,7 +8,7 @@ export const names = {
   pre: "openui-intelligent-code-pre",
 } as const;
 
-export const styles = {
+export const codeStyles = {
   root: css`
     min-width: 0;
     overflow: hidden;

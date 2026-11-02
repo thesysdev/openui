@@ -2,7 +2,7 @@ import { css } from "@openuidev/react-components";
 
 export const names = { root: "openui-intelligent-icon" } as const;
 
-export const styles = {
+export const iconStyles = {
   root: css`
     display: inline-flex;
     align-items: center;

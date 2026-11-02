@@ -18,7 +18,7 @@ export const names = {
   clamp: "openui-intelligent-text--clamp",
 } as const;
 
-export const styles = {
+export const textStyles = {
   root: css`
     --_openui-intelligent-strong-weight: 640;
     margin: 0;

@@ -10,7 +10,7 @@ export const names = {
   actions: "openui-intelligent-timer-actions",
 } as const;
 
-export const styles = {
+export const timerStyles = {
   root: css`
     display: flex;
     align-items: center;

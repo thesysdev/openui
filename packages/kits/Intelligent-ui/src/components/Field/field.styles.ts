@@ -15,7 +15,7 @@ const highlight = "var(--openui-highlight, oklch(0.097 0 0 / 0.04))";
 const interactive = "var(--openui-border-interactive, oklch(0.097 0 0 / 0.12))";
 const pad = "calc(var(--openui-space-s, 8px) - 1px) var(--openui-space-m, 12px)";
 
-export const styles = {
+export const fieldStyles = {
   /*
    * One look for every field, taken from react-components' large Input. Select, TextArea and
    * DatePicker each draw their own, so beside an Input they came out taller, rounder or darker.

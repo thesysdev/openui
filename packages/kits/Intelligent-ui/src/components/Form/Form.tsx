@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { names, styles } from "./form.styles";
+import { formStyles, names } from "./form.styles";
 
 export type FormProps = HTMLAttributes<HTMLDivElement>;
 
@@ -11,7 +11,7 @@ export type FormProps = HTMLAttributes<HTMLDivElement>;
  * dashboard kits do the same.
  */
 const Form = forwardRef<HTMLDivElement, FormProps>(({ className, children, ...rest }, ref) => (
-  <div ref={ref} role="form" className={clsx(styles.root, names.root, className)} {...rest}>
+  <div ref={ref} role="form" className={clsx(formStyles.root, names.root, className)} {...rest}>
     {children}
   </div>
 ));

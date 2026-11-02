@@ -13,7 +13,7 @@ export const names = {
   hint: "openui-intelligent-flashcard-hint",
 } as const;
 
-export const styles = {
+export const flashcardStyles = {
   root: css`
     display: block;
     width: 100%;

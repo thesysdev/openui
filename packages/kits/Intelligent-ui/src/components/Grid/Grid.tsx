@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
 import { space } from "../../shared/style";
-import { names, styles } from "./grid.styles";
+import { gridStyles, names } from "./grid.styles";
 
 export interface GridProps extends HTMLAttributes<HTMLDivElement> {
   /** Equal columns, 1 to 12 (default 2). */
@@ -21,7 +21,7 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(({ columns: columnsProp, gap:
   return (
     <div
       ref={ref}
-      className={clsx(styles.root, names.root, className)}
+      className={clsx(gridStyles.root, names.root, className)}
       style={{
         gap,
         gridTemplateColumns: min ? `repeat(auto-fill, minmax(min(100%, ${min}), 1fr))` : `repeat(${columns}, minmax(0, 1fr))`,

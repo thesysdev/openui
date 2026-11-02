@@ -12,7 +12,7 @@ const fall = keyframes`
 
 export const names = { root: "openui-intelligent-celebration", piece: "openui-intelligent-celebration-piece" } as const;
 
-export const styles = {
+export const celebrationStyles = {
   root: css`
     position: fixed;
     inset: 0;

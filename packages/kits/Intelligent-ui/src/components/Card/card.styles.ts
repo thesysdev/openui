@@ -17,7 +17,7 @@ export const names = {
  * subtitle. Card-sized type comes after it and at the same weight, because a Text subtitle stays
  * at body size.
  */
-export const styles = {
+export const cardStyles = {
   root: css`
     display: flex;
     flex-direction: column;

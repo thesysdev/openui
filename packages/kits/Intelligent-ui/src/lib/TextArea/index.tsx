@@ -4,7 +4,7 @@ import { TextArea as RCTextArea } from "@openuidev/react-components";
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import clsx from "clsx";
 import { Field } from "../../components/Field";
-import { names as fieldNames, styles as fieldStyles } from "../../components/Field/field.styles";
+import { fieldStyles, names as fieldNames } from "../../components/Field/field.styles";
 import { useFieldName, useFieldRules } from "../controlHelpers";
 import { TextAreaSchema } from "./schema";
 

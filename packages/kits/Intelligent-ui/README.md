@@ -82,7 +82,7 @@ Styles follow the same flat contract as `@openuidev/react-components` 0.0.1 and 
 
 - Every element has one generated class and one stable class. Each `<name>.styles.ts`
   writes its rules with react-components' `css`, so they go in its `<style id="openui-styles">`
-  tag and follow `configureStyles({ layer })`, and exports them as `styles` and `names`, and all stable classes start with
+  tag and follow `configureStyles({ layer })`, and exports them as `<name>Styles` (`buttonStyles`, like react-components) and `names`, and all stable classes start with
   `openui-intelligent-`, so a plain class in your stylesheet can target and override them.
 - Variants set private `--_openui-intelligent-*` variables that the parts read. States are
   attributes such as `aria-pressed`, `aria-checked`, `data-state` and `data-selected`.

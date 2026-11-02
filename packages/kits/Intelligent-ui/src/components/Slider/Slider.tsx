@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { useId } from "react";
 import { numberText } from "../../shared/style";
-import { names, styles, THUMB } from "./slider.styles";
+import { names, sliderStyles, THUMB } from "./slider.styles";
 
 export interface SliderMark {
   value: number;
@@ -35,16 +35,16 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
   const marks = (marksProp ?? []).filter((m) => m && Number.isFinite(m.value) && m.value >= min && m.value <= max);
   const id = useId();
   return (
-    <div className={clsx(styles.root, names.root)}>
+    <div className={clsx(sliderStyles.root, names.root)}>
       {(label || unitProp) && (
-        <div className={clsx(styles.head, names.head)}>
-          <label htmlFor={id} className={clsx(styles.label, names.label)}>{label}</label>
-          <output htmlFor={id} className={clsx(styles.output, names.output)}>{readout}</output>
+        <div className={clsx(sliderStyles.head, names.head)}>
+          <label htmlFor={id} className={clsx(sliderStyles.label, names.label)}>{label}</label>
+          <output htmlFor={id} className={clsx(sliderStyles.output, names.output)}>{readout}</output>
         </div>
       )}
       <input
         id={id}
-        className={clsx(styles.range, names.range)}
+        className={clsx(sliderStyles.range, names.range)}
         type="range"
         min={min}
         max={max}
@@ -55,11 +55,11 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
         onChange={(event) => onChange(Number(event.target.value))}
       />
       {marks.length > 0 && (
-        <div className={clsx(styles.marks, names.marks)} aria-hidden>
+        <div className={clsx(sliderStyles.marks, names.marks)} aria-hidden>
           {marks.map((m, i) => {
             const at = (m.value - min) / (max - min);
             return (
-              <span key={i} className={clsx(styles.mark, names.mark)} data-edge={at <= 0.02 ? "start" : at >= 0.98 ? "end" : undefined} style={{ left: `calc(${THUMB} / 2 + (100% - ${THUMB}) * ${at})` }}>
+              <span key={i} className={clsx(sliderStyles.mark, names.mark)} data-edge={at <= 0.02 ? "start" : at >= 0.98 ? "end" : undefined} style={{ left: `calc(${THUMB} / 2 + (100% - ${THUMB}) * ${at})` }}>
                 {m.label}
               </span>
             );

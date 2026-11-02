@@ -4,7 +4,7 @@ import { tokens } from "../../shared/tokens";
 export const names = { root: "openui-intelligent-checkbox" } as const;
 
 /** The box and label are react-components', so they go by their stable classes. */
-export const styles = {
+export const checkboxStyles = {
   root: css`
     display: inline-flex;
     flex-direction: column;

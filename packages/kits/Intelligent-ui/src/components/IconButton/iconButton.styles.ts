@@ -15,7 +15,7 @@ export const names = {
  * follows the kit's light and dark themes even without a host OpenUI theme: solid is ink rather than
  * the blue accent, and ghost is muted.
  */
-export const styles = {
+export const iconButtonStyles = {
   root: css`
     --openui-text-neutral-primary: ${tokens.ink};
     --openui-border-interactive: ${tokens.border};

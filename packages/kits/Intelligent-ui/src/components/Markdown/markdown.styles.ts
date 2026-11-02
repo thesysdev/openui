@@ -32,7 +32,7 @@ const CELL_BORDER = "--_openui-intelligent-markdown-cell-border";
  * A ChatGPT-like rhythm: paragraphs 16/1.65 with 12px between blocks, more air above a heading than
  * below it, lists tucked under their lead-in. The renderer picks each block's gap from its neighbour.
  */
-export const styles = {
+export const markdownStyles = {
   root: css`
     --_openui-intelligent-strong-weight: 640;
     display: flex;

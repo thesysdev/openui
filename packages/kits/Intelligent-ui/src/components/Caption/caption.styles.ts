@@ -3,7 +3,7 @@ import { tokens } from "../../shared/tokens";
 
 export const names = { root: "openui-intelligent-caption" } as const;
 
-export const styles = {
+export const captionStyles = {
   root: css`
     --_openui-intelligent-strong-weight: 640;
     margin: 0;

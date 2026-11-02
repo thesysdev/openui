@@ -13,7 +13,7 @@ export const names = {
   },
 } as const;
 
-export const styles = {
+export const titleStyles = {
   root: css`
     color: ${tokens.ink};
     font-weight: 640;

@@ -18,7 +18,7 @@ export const names = {
  * colour. A chat bubble clips anything outside it, which cut the arrow in half, so the kit draws
  * the source's arrows instead: inside the edge, round, in the frosted glass of the map controls.
  */
-export const styles = {
+export const carouselStyles = {
   root: css`
     &.openui-carousel {
       min-width: 0;

@@ -30,7 +30,7 @@ const HOVER_FILTER = "--_openui-intelligent-button-hover-filter";
  * solid, the kit's danger and success, no shadow. What it sets itself is overridden with the kit
  * class plus its stable class (`&.openui-button`): its rules register later, so one class would lose.
  */
-export const styles = {
+export const buttonStyles = {
   root: css`
     --openui-text-label-default: 560 14px/1.2 ${tokens.font};
     --openui-text-label-sm: 560 13px/1.2 ${tokens.font};

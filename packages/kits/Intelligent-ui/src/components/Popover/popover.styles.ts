@@ -3,7 +3,7 @@ import { tokens } from "../../shared/tokens";
 
 export const names = { trigger: "openui-intelligent-popover-trigger", panel: "openui-intelligent-popover" } as const;
 
-export const styles = {
+export const popoverStyles = {
   trigger: css`
     display: inline-flex;
     align-items: center;

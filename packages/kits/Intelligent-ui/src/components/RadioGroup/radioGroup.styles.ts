@@ -16,7 +16,7 @@ export const names = {
  * Short choices are pills. The list and the cards are react-components' RadioItem and OptionCards, so
  * their look goes by those stable classes.
  */
-export const styles = {
+export const radioGroupStyles = {
   root: css`
     display: flex;
     flex-direction: column;

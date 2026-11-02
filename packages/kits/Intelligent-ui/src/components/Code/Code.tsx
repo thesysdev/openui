@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../Button";
-import { names, styles } from "./code.styles";
+import { codeStyles, names } from "./code.styles";
 
 export interface CodeProps {
   code: string;
@@ -38,8 +38,8 @@ export function Code({ code, language }: CodeProps) {
   };
   const { icon, text, label } = STATES[state];
   return (
-    <div className={clsx(styles.root, names.root)}>
-      <div className={clsx(styles.head, names.head)}>
+    <div className={clsx(codeStyles.root, names.root)}>
+      <div className={clsx(codeStyles.head, names.head)}>
         <span>{language || "code"}</span>
         <Button
           variant="ghost"
@@ -47,12 +47,12 @@ export function Code({ code, language }: CodeProps) {
           icon={icon}
           aria-label={label}
           onClick={() => void copy()}
-          className={clsx(styles.copy, names.copy)}
+          className={clsx(codeStyles.copy, names.copy)}
         >
           {text}
         </Button>
       </div>
-      <pre className={clsx(styles.pre, names.pre)}>
+      <pre className={clsx(codeStyles.pre, names.pre)}>
         <code>{code}</code>
       </pre>
     </div>

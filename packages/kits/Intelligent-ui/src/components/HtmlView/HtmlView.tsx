@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useColorScheme } from "../../shared/scheme";
-import { names, styles } from "./htmlView.styles";
+import { htmlViewStyles, names } from "./htmlView.styles";
 
 export interface HtmlViewProps {
   /** A whole page: markup, inline styles and inline scripts. */
@@ -76,11 +76,11 @@ export function HtmlView({ html, height, title, pending }: HtmlViewProps) {
   // A page that is still streaming would reload on every chunk; it runs once complete.
   const boxHeight = fixed ?? measured ?? AUTO_START;
   return (
-    <div ref={box} className={clsx(styles.root, names.root)} style={{ height: boxHeight }}>
+    <div ref={box} className={clsx(htmlViewStyles.root, names.root)} style={{ height: boxHeight }}>
       {pending ? (
-        <div className={clsx(styles.wait, names.wait)}>Preparing the interactive view…</div>
+        <div className={clsx(htmlViewStyles.wait, names.wait)}>Preparing the interactive view…</div>
       ) : (
-        <iframe ref={frame} className={clsx(styles.frame, names.frame)} title={title || "Interactive view"} sandbox="allow-scripts" srcDoc={srcDoc} referrerPolicy="no-referrer" loading="lazy" />
+        <iframe ref={frame} className={clsx(htmlViewStyles.frame, names.frame)} title={title || "Interactive view"} sandbox="allow-scripts" srcDoc={srcDoc} referrerPolicy="no-referrer" loading="lazy" />
       )}
     </div>
   );

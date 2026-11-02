@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import { Fragment, type ReactNode } from "react";
 import { webUrl } from "../../shared/style";
-import { names as linkNames, styles as linkStyles } from "../Link/link.styles";
-import { names, styles } from "./markdown.styles";
+import { linkStyles, names as linkNames } from "../Link/link.styles";
+import { markdownStyles, names } from "./markdown.styles";
 
 // A small Markdown renderer that builds React elements and never injects HTML.
 // Inline: **bold**, *italic*, ~~strike~~, `code`, [text](https://...).
@@ -23,8 +23,8 @@ export function inline(text: string, key = "i"): ReactNode {
     if (m.index) out.push(rest.slice(0, m.index));
     const token = m[0];
     const k = `${key}-${n++}`;
-    if (m[1]) out.push(<code key={k} className={clsx(styles.code, names.code)}>{token.slice(1, -1)}</code>);
-    else if (m[2]) out.push(<strong key={k} className={clsx(styles.strong, names.strong)}>{inline(token.slice(2, -2), k)}</strong>);
+    if (m[1]) out.push(<code key={k} className={clsx(markdownStyles.code, names.code)}>{token.slice(1, -1)}</code>);
+    else if (m[2]) out.push(<strong key={k} className={clsx(markdownStyles.strong, names.strong)}>{inline(token.slice(2, -2), k)}</strong>);
     else if (m[3]) out.push(<s key={k}>{inline(token.slice(2, -2), k)}</s>);
     else if (m[4]) out.push(<em key={k}>{inline(token.slice(1, -1), k)}</em>);
     else {
@@ -119,7 +119,7 @@ function blocks(source: string): Block[] {
 }
 
 /** The gap above a block, from the block before it. A rule's own default is 20px. */
-function gapBefore(prev: Block | undefined, block: Block): keyof typeof styles.gap | null {
+function gapBefore(prev: Block | undefined, block: Block): keyof typeof markdownStyles.gap | null {
   if (!prev) return null;
   if (prev.kind === "h") return "afterHeading";
   if (block.kind === "h") return "beforeHeading";
@@ -135,31 +135,31 @@ export function MarkdownBlocks({ text }: { text: string }) {
       {all.map((b, i) => {
         const k = `b${i}`;
         const gap = gapBefore(all[i - 1], b);
-        const block = clsx(styles.block, names.block, gap && styles.gap[gap]);
+        const block = clsx(markdownStyles.block, names.block, gap && markdownStyles.gap[gap]);
         switch (b.kind) {
           case "p":
             return <p key={k} className={block}>{inline(b.text, k)}</p>;
           case "quote":
-            return <blockquote key={k} className={clsx(block, styles.quote, names.quote)}>{inline(b.text, k)}</blockquote>;
+            return <blockquote key={k} className={clsx(block, markdownStyles.quote, names.quote)}>{inline(b.text, k)}</blockquote>;
           case "h": {
             const level = b.level as 1 | 2 | 3 | 4;
             return (
-              <div key={k} role="heading" aria-level={b.level + 1} className={clsx(block, styles.heading, names.heading, styles.headingLevel[level], names.headingLevel[level])}>
+              <div key={k} role="heading" aria-level={b.level + 1} className={clsx(block, markdownStyles.heading, names.heading, markdownStyles.headingLevel[level], names.headingLevel[level])}>
                 {inline(b.text, k)}
               </div>
             );
           }
           case "code":
             return (
-              <pre key={k} className={clsx(block, styles.codeBlock, names.codeBlock)}>
+              <pre key={k} className={clsx(block, markdownStyles.codeBlock, names.codeBlock)}>
                 <code>{b.text}</code>
               </pre>
             );
           case "hr":
-            return <hr key={k} className={clsx(styles.rule, names.rule, gap && styles.gap[gap])} />;
+            return <hr key={k} className={clsx(markdownStyles.rule, names.rule, gap && markdownStyles.gap[gap])} />;
           case "list": {
-            const list = clsx(block, styles.list, names.list);
-            const items = b.items.map((t, j) => <li key={j} className={clsx(styles.listItem, names.listItem, b.ordered && styles.orderedItem)}>{inline(t, `${k}-${j}`)}</li>);
+            const list = clsx(block, markdownStyles.list, names.list);
+            const items = b.items.map((t, j) => <li key={j} className={clsx(markdownStyles.listItem, names.listItem, b.ordered && markdownStyles.orderedItem)}>{inline(t, `${k}-${j}`)}</li>);
             return b.ordered ? (
               <ol key={k} start={b.start} className={list}>
                 {items}
@@ -170,14 +170,14 @@ export function MarkdownBlocks({ text }: { text: string }) {
           }
           case "table":
             return (
-              <div key={k} className={clsx(block, styles.tableScroll, names.tableScroll)}>
-                <table className={clsx(styles.table, names.table)}>
+              <div key={k} className={clsx(block, markdownStyles.tableScroll, names.tableScroll)}>
+                <table className={clsx(markdownStyles.table, names.table)}>
                   <thead>
-                    <tr>{b.head.map((h, j) => <th key={j} className={clsx(styles.headCell, names.headCell)}>{inline(h, `${k}-h${j}`)}</th>)}</tr>
+                    <tr>{b.head.map((h, j) => <th key={j} className={clsx(markdownStyles.headCell, names.headCell)}>{inline(h, `${k}-h${j}`)}</th>)}</tr>
                   </thead>
                   <tbody>
                     {b.rows.map((r, j) => (
-                      <tr key={j} className={clsx(styles.row, names.row)}>{r.map((c, m) => <td key={m} className={clsx(styles.cell, names.cell)}>{inline(c, `${k}-${j}-${m}`)}</td>)}</tr>
+                      <tr key={j} className={clsx(markdownStyles.row, names.row)}>{r.map((c, m) => <td key={m} className={clsx(markdownStyles.cell, names.cell)}>{inline(c, `${k}-${j}-${m}`)}</td>)}</tr>
                     ))}
                   </tbody>
                 </table>

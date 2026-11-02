@@ -11,7 +11,7 @@ export const names = { root: "openui-intelligent-row" } as const;
  * 4:3, a third of the row (120-200px), 16px from text that starts at the photo's top edge. It needs
  * !important because a Row's gap and alignment, and a photo's size, are inline styles.
  */
-export const styles = {
+export const rowStyles = {
   root: css`
     display: flex;
     flex-direction: row;

@@ -3,7 +3,7 @@ import { tokens } from "../../shared/tokens";
 
 export const names = { root: "openui-intelligent-you-tube", frame: "openui-intelligent-you-tube-frame" } as const;
 
-export const styles = {
+export const youTubeStyles = {
   root: css`
     position: relative;
     width: 100%;

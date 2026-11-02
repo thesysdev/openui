@@ -1,7 +1,7 @@
 import { Tag } from "@openuidev/react-components";
 import clsx from "clsx";
 import { Glyph } from "../Icon/Glyph";
-import { names, styles } from "./badge.styles";
+import { badgeStyles, names } from "./badge.styles";
 
 export interface BadgeProps {
   text: string;
@@ -18,7 +18,7 @@ export function Badge({ text, color: colorProp, icon }: BadgeProps) {
       text={text}
       size="sm"
       icon={icon ? <Glyph name={icon} size={14} /> : undefined}
-      className={clsx(styles.root, names.root, color !== "neutral" && [styles.color[color], names.color[color]])}
+      className={clsx(badgeStyles.root, names.root, color !== "neutral" && [badgeStyles.color[color], names.color[color]])}
     />
   );
 }

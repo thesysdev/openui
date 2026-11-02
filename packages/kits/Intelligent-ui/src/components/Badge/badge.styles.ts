@@ -17,7 +17,7 @@ export const names = {
  * Tag gives the structure; the kit's pill replaces its shape, type and colours. Each tone only sets
  * the two variables the root reads. The Row rule isn't flat, because the Badge is the model's child there.
  */
-export const styles = {
+export const badgeStyles = {
   root: css`
     &.openui-tag {
       display: inline-flex;

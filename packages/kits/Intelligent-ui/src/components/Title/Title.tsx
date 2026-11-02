@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
 import { fg, type Color } from "../../shared/style";
-import { names, styles } from "./title.styles";
+import { names, titleStyles } from "./title.styles";
 
 export interface TitleProps extends Omit<HTMLAttributes<HTMLDivElement>, "color"> {
   /** md for a card title, lg for a section, 2xl for a big number. */
@@ -19,7 +19,7 @@ const Title = forwardRef<HTMLDivElement, TitleProps>(({ size, color, className, 
       ref={ref}
       role="heading"
       aria-level={HEADING_LEVEL[sizeName] ?? 3}
-      className={clsx(styles.root, names.root, styles.size[sizeName], names.size[sizeName], className)}
+      className={clsx(titleStyles.root, names.root, titleStyles.size[sizeName], names.size[sizeName], className)}
       style={{ color: fg(color), ...style }}
       {...rest}
     >

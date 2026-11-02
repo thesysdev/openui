@@ -10,7 +10,7 @@ import { boundsOf, type LatLng, lngLat, mapColor, reducedMotion } from "./map-ut
 import type { Place } from "./place";
 import { type PinEntry, syncPins } from "./pins";
 import { animateLine, ensureRouteLayer, setLine } from "./route-line";
-import { names, styles } from "./map.styles";
+import { mapStyles, names } from "./map.styles";
 import { useDialog } from "./use-dialog";
 import { useStreetRoute } from "./use-street-route";
 
@@ -189,17 +189,17 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
   }, [expanded]);
 
   return (
-    <div className={clsx(styles.slot, names.slot)} style={{ minHeight: height }}>
+    <div className={clsx(mapStyles.slot, names.slot)} style={{ minHeight: height }}>
       <div
         ref={container}
-        className={clsx(styles.root, names.root)}
+        className={clsx(mapStyles.root, names.root)}
         style={expanded ? undefined : { height }}
         role={expanded ? "dialog" : "region"}
         aria-modal={expanded || undefined}
         aria-label="Map"
         tabIndex={expanded ? -1 : undefined}
       >
-        <div className={clsx(styles.surface, names.surface)} ref={surface} />
+        <div className={clsx(mapStyles.surface, names.surface)} ref={surface} />
         <MapControls
           categories={categories}
           group={group}

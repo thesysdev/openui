@@ -4,7 +4,7 @@ import { tokens } from "../../shared/tokens";
 export const names = { root: "openui-intelligent-form" } as const;
 
 /** The closing action's extra space is not flat, because the children are the model's. */
-export const styles = {
+export const formStyles = {
   root: css`
     display: flex;
     flex-direction: column;

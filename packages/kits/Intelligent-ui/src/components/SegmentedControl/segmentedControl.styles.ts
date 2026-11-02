@@ -14,7 +14,7 @@ export const names = {
  * fill until chosen, then a raised pill. Colours go through its tokens; what Button and
  * react-components set themselves is overridden with all three classes.
  */
-export const styles = {
+export const segmentedControlStyles = {
   root: css`
     display: inline-flex;
     align-self: flex-start;

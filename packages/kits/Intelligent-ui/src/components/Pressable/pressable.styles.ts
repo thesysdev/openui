@@ -14,7 +14,7 @@ export const names = { root: "openui-intelligent-pressable" } as const;
  * and press. Whether it holds a Row, or a struck-through Text, is not flat: those are the model's.
  * The wash and the check are set on every tile, so a nested tile does not inherit them.
  */
-export const styles = {
+export const pressableStyles = {
   root: css`
     ${WASH}: 0;
     ${CHECK}: "";

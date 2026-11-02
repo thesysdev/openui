@@ -1,11 +1,11 @@
 import clsx from "clsx";
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
-import { names, styles } from "./field.styles";
+import { fieldStyles, names } from "./field.styles";
 
 /** A required field's marker after its label. */
 export const RequiredMark = () => (
-  <span className={clsx(styles.required, names.required)} aria-hidden="true">
+  <span className={clsx(fieldStyles.required, names.required)} aria-hidden="true">
     *
   </span>
 );
@@ -14,8 +14,8 @@ export const RequiredMark = () => (
 export function FieldError({ error, id }: { error?: string; id?: string }) {
   if (!error) return null;
   return (
-    <span id={id} className={clsx(styles.error, names.error)} role="alert">
-      <CircleAlert size={14} aria-hidden className={clsx(styles.errorIcon, names.errorIcon)} />
+    <span id={id} className={clsx(fieldStyles.error, names.error)} role="alert">
+      <CircleAlert size={14} aria-hidden className={clsx(fieldStyles.errorIcon, names.errorIcon)} />
       {error}
     </span>
   );
@@ -34,9 +34,9 @@ export interface FieldProps {
 export function Field({ label, required, error, children: content }: FieldProps) {
   if (!label && !error) return <>{content}</>;
   return (
-    <label className={clsx(styles.root, names.root)}>
+    <label className={clsx(fieldStyles.root, names.root)}>
       {label ? (
-        <span className={clsx(styles.label, names.label)}>
+        <span className={clsx(fieldStyles.label, names.label)}>
           {label}
           {required ? <RequiredMark /> : null}
         </span>
