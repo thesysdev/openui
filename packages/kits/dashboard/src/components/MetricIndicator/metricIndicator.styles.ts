@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { typography } from "../../shared/typography";
 
 export const names = { root: "openui-dashboard-metric-indicator" } as const;

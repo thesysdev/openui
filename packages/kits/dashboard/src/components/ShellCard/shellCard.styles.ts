@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { MODAL } from "../../shared/zIndex";
 
 export const names = {
