@@ -1,9 +1,9 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { ok, paint, paintAttrs } from "./helpers";
+import { Standalone } from "./standalone";
 
 export const PathSchema = z.object({ d: z.string(), ...paint });
 

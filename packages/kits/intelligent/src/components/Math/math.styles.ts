@@ -1,6 +1,9 @@
 import { css } from "@openuidev/react-components";
 
-export const names = { root: "openui-intelligent-math", block: "openui-intelligent-math--block" } as const;
+export const names = {
+  root: "openui-intelligent-math",
+  block: "openui-intelligent-math--block",
+} as const;
 
 /** Its rules on .katex are not flat, because KaTeX renders that DOM. */
 export const mathStyles = {

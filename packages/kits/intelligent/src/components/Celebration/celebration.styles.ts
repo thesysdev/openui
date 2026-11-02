@@ -10,7 +10,10 @@ const fall = keyframes`
   }
 `;
 
-export const names = { root: "openui-intelligent-celebration", piece: "openui-intelligent-celebration-piece" } as const;
+export const names = {
+  root: "openui-intelligent-celebration",
+  piece: "openui-intelligent-celebration-piece",
+} as const;
 
 export const celebrationStyles = {
   root: css`

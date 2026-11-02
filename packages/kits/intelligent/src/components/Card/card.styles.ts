@@ -4,11 +4,17 @@ import { tokens } from "../../shared/tokens";
 
 const TITLES = [".openui-intelligent-title--size-sm", ".openui-intelligent-title--size-md"];
 const SUBTITLES = [".openui-intelligent-caption", ".openui-intelligent-text"];
-const OPENERS = TITLES.flatMap((title) => [`& > ${title}:first-child`, `& > .openui-intelligent-row:first-child ${title}`]);
+const OPENERS = TITLES.flatMap((title) => [
+  `& > ${title}:first-child`,
+  `& > .openui-intelligent-row:first-child ${title}`,
+]);
 
 export const names = {
   root: "openui-intelligent-card",
-  variant: { outline: "openui-intelligent-card--variant-outline", soft: "openui-intelligent-card--variant-soft" },
+  variant: {
+    outline: "openui-intelligent-card--variant-outline",
+    soft: "openui-intelligent-card--variant-soft",
+  },
 } as const;
 
 /**

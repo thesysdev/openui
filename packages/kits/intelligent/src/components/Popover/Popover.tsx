@@ -112,15 +112,22 @@ export function Popover({ trigger, children }: PopoverProps) {
             className={clsx(popoverStyles.panel, names.panel, portalThemeClassName)}
             // Measured first (hidden), then placed: see the layout effect above.
             style={at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: "hidden" }}
-            data-theme={button.current?.closest("[data-theme]")?.getAttribute("data-theme") ?? undefined}
+            data-theme={
+              button.current?.closest("[data-theme]")?.getAttribute("data-theme") ?? undefined
+            }
             onKeyDown={(event) => {
               if (event.key !== "Tab" || !panel.current) return;
-              const focusable = [...panel.current.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, [tabindex]:not([tabindex='-1'])")];
+              const focusable = [
+                ...panel.current.querySelectorAll<HTMLElement>(
+                  "a[href], button, input, select, textarea, [tabindex]:not([tabindex='-1'])",
+                ),
+              ];
               const first = focusable[0] ?? panel.current;
               const last = focusable[focusable.length - 1] ?? panel.current;
               const leaving = event.shiftKey
                 ? document.activeElement === first || document.activeElement === panel.current
-                : document.activeElement === last || (focusable.length === 0 && document.activeElement === panel.current);
+                : document.activeElement === last ||
+                  (focusable.length === 0 && document.activeElement === panel.current);
               if (!leaving) return;
               event.preventDefault();
               close(true);

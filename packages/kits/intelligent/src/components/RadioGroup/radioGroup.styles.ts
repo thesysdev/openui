@@ -113,7 +113,9 @@ export const radioGroupStyles = {
     font-size: 15px;
     line-height: 22px;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition:
+      background 0.15s,
+      border-color 0.15s;
     &:hover {
       background: ${tokens.hover};
     }

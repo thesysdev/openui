@@ -19,7 +19,8 @@ export type Justify = "start" | "center" | "end" | "between";
 
 // Safety
 // A model-written style value could otherwise load a resource: `background: url(...)`.
-const UNSAFE_CSS = /(url|image|image-set|cross-fade|element|expression|paint|var|attr|env)\s*\(|@import|[\\;{}<>]/i;
+const UNSAFE_CSS =
+  /(url|image|image-set|cross-fade|element|expression|paint|var|attr|env)\s*\(|@import|[\\;{}<>]/i;
 const isSafeCss = (value: string) => !UNSAFE_CSS.test(value);
 
 // Values to CSS
@@ -46,18 +47,22 @@ const BACKGROUND: Record<string, string> = {
   ...Object.fromEntries(STATUS.map((s) => [s, tokens[`${s}Soft`]])),
 };
 
-const cssValue = (value: unknown) => (typeof value === "string" && value.trim() && isSafeCss(value) ? value.trim() : undefined);
+const cssValue = (value: unknown) =>
+  typeof value === "string" && value.trim() && isSafeCss(value) ? value.trim() : undefined;
 
 /** Text, icon and stroke colors: a token or a CSS color. */
-export const fg = (value: unknown) => (typeof value === "string" ? (FOREGROUND[value] ?? cssValue(value)) : undefined);
+export const fg = (value: unknown) =>
+  typeof value === "string" ? (FOREGROUND[value] ?? cssValue(value)) : undefined;
 /** Backgrounds: status tokens become their soft tints. */
-export const bg = (value: unknown) => (typeof value === "string" ? (BACKGROUND[value] ?? cssValue(value)) : undefined);
+export const bg = (value: unknown) =>
+  typeof value === "string" ? (BACKGROUND[value] ?? cssValue(value)) : undefined;
 
 /** Whether a background is one of the kit's tokens, which follow the theme, rather than a raw colour. */
 export const isColorToken = (value: string) => value in BACKGROUND;
 
 /** Spacing in 4px steps. */
-export const space = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? `${Math.max(0, value) * 4}px` : undefined);
+export const space = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) ? `${Math.max(0, value) * 4}px` : undefined;
 
 export function size(value: unknown): string | undefined {
   if (typeof value === "number" && Number.isFinite(value)) return `${Math.max(0, value)}px`;
@@ -76,7 +81,13 @@ const RADIUS: Record<string, string> = {
 export const radius = (value: unknown) => (typeof value === "string" ? RADIUS[value] : size(value));
 
 // Layout
-const FLEX: Record<string, string> = { start: "flex-start", end: "flex-end", center: "center", stretch: "stretch", between: "space-between" };
+const FLEX: Record<string, string> = {
+  start: "flex-start",
+  end: "flex-end",
+  center: "center",
+  stretch: "stretch",
+  between: "space-between",
+};
 
 export type FlexProps = { gap?: number; align?: string; justify?: string; wrap?: boolean };
 

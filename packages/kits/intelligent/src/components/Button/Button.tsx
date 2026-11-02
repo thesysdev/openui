@@ -4,12 +4,20 @@ import type { ComponentProps } from "react";
 import { Glyph } from "../Icon/Glyph";
 import { buttonStyles, names } from "./button.styles";
 
-const VARIANT = { solid: "primary", outline: "secondary", soft: "tertiary", ghost: "tertiary" } as const;
+const VARIANT = {
+  solid: "primary",
+  outline: "secondary",
+  soft: "tertiary",
+  ghost: "tertiary",
+} as const;
 
 const SIZE = { sm: "small", md: "medium", lg: "large" } as const;
 
 // null as well as undefined: a program writes a skipped argument as null.
-export interface ButtonProps extends Omit<ComponentProps<typeof RCButton>, "variant" | "size" | "color"> {
+export interface ButtonProps extends Omit<
+  ComponentProps<typeof RCButton>,
+  "variant" | "size" | "color"
+> {
   variant?: keyof typeof VARIANT | null;
   size?: keyof typeof SIZE | null;
   color?: "primary" | "danger" | "success" | null;
@@ -25,7 +33,16 @@ export interface ButtonProps extends Omit<ComponentProps<typeof RCButton>, "vari
  * the kit's light and dark themes. Timer's buttons and SegmentedControl's
  * options are this Button too.
  */
-export function Button({ variant: variantProp, size: sizeProp, color, icon, block, className, children, ...rest }: ButtonProps) {
+export function Button({
+  variant: variantProp,
+  size: sizeProp,
+  color,
+  icon,
+  block,
+  className,
+  children,
+  ...rest
+}: ButtonProps) {
   const variant = variantProp ?? "solid";
   const size = sizeProp ?? "md";
   return (
@@ -44,7 +61,15 @@ export function Button({ variant: variantProp, size: sizeProp, color, icon, bloc
         block && [buttonStyles.block, names.block],
         className,
       )}
-      iconLeft={icon ? <Glyph name={icon} size={size === "sm" ? 14 : 16} className={clsx(buttonStyles.icon, names.icon)} /> : undefined}
+      iconLeft={
+        icon ? (
+          <Glyph
+            name={icon}
+            size={size === "sm" ? 14 : 16}
+            className={clsx(buttonStyles.icon, names.icon)}
+          />
+        ) : undefined
+      }
       {...rest}
     >
       {children}

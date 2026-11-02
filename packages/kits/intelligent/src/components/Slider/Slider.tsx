@@ -24,7 +24,16 @@ export interface SliderProps {
 }
 
 /** A range with its label and value above, and optional marks under the track. */
-export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, step: stepProp, label, unit: unitProp, marks: marksProp }: SliderProps) {
+export function Slider({
+  value: rawValue,
+  onChange,
+  min: minProp,
+  max: maxProp,
+  step: stepProp,
+  label,
+  unit: unitProp,
+  marks: marksProp,
+}: SliderProps) {
   const min = Number.isFinite(minProp) ? minProp : 0;
   const max = Number.isFinite(maxProp) && maxProp > min ? maxProp : min + 100;
   const step = stepProp && stepProp > 0 ? stepProp : 1;
@@ -32,14 +41,20 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
   const unit = unitProp ?? "";
   const prefix = /^[$€£¥₹]/.test(unit);
   const readout = prefix ? `${unit}${numberText(value)}` : `${numberText(value)}${unit}`;
-  const marks = (marksProp ?? []).filter((m) => m && Number.isFinite(m.value) && m.value >= min && m.value <= max);
+  const marks = (marksProp ?? []).filter(
+    (m) => m && Number.isFinite(m.value) && m.value >= min && m.value <= max,
+  );
   const id = useId();
   return (
     <div className={clsx(sliderStyles.root, names.root)}>
       {(label || unitProp) && (
         <div className={clsx(sliderStyles.head, names.head)}>
-          <label htmlFor={id} className={clsx(sliderStyles.label, names.label)}>{label}</label>
-          <output htmlFor={id} className={clsx(sliderStyles.output, names.output)}>{readout}</output>
+          <label htmlFor={id} className={clsx(sliderStyles.label, names.label)}>
+            {label}
+          </label>
+          <output htmlFor={id} className={clsx(sliderStyles.output, names.output)}>
+            {readout}
+          </output>
         </div>
       )}
       <input
@@ -59,7 +74,12 @@ export function Slider({ value: rawValue, onChange, min: minProp, max: maxProp, 
           {marks.map((m, i) => {
             const at = (m.value - min) / (max - min);
             return (
-              <span key={i} className={clsx(sliderStyles.mark, names.mark)} data-edge={at <= 0.02 ? "start" : at >= 0.98 ? "end" : undefined} style={{ left: `calc(${THUMB} / 2 + (100% - ${THUMB}) * ${at})` }}>
+              <span
+                key={i}
+                className={clsx(sliderStyles.mark, names.mark)}
+                data-edge={at <= 0.02 ? "start" : at >= 0.98 ? "end" : undefined}
+                style={{ left: `calc(${THUMB} / 2 + (100% - ${THUMB}) * ${at})` }}
+              >
                 {m.label}
               </span>
             );

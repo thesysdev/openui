@@ -1,5 +1,6 @@
 /** A short plain-text name for an element, from its rendered text, for action messages. */
-export const textOf = (element: HTMLElement | null) => (element?.innerText ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
+export const textOf = (element: HTMLElement | null) =>
+  (element?.innerText ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
 
 /** Coerce a prop to a string; null and undefined become "". */
 export const str = (value: unknown) => (value == null ? "" : String(value));

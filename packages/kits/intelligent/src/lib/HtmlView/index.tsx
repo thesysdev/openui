@@ -9,7 +9,8 @@ export * from "./schema";
 export const HtmlView = defineComponent({
   name: "HtmlView",
   props: HtmlViewSchema,
-  description: "Sandboxed HTML page with inline JS, for games and canvas. No network except script CDNs. Fits its content unless height is set.",
+  description:
+    "Sandboxed HTML page with inline JS, for games and canvas. No network except script CDNs. Fits its content unless height is set.",
   component: function HtmlViewBinding({ props }) {
     const streaming = useIsStreaming();
     return (

@@ -4,7 +4,7 @@ import { OptionCards, RadioGroup as RCRadioGroup, RadioItem } from "@openuidev/r
 import clsx from "clsx";
 import { useId } from "react";
 import { FieldError, RequiredMark } from "../Field";
-import { fieldStyles, names as fieldNames } from "../Field/field.styles";
+import { names as fieldNames, fieldStyles } from "../Field/field.styles";
 import { names, radioGroupStyles } from "./radioGroup.styles";
 
 export interface RadioOption {
@@ -35,7 +35,15 @@ export interface RadioGroupProps {
  *
  * All three sit in one fieldset, so the label and any error show the same way.
  */
-export function RadioGroup({ options, value, onChange, variant: variantProp, label, required, error }: RadioGroupProps) {
+export function RadioGroup({
+  options,
+  value,
+  onChange,
+  variant: variantProp,
+  label,
+  required,
+  error,
+}: RadioGroupProps) {
   const name = useId();
   const variant = variantProp ?? "list";
   const errorId = `${name}-error`;
@@ -51,11 +59,25 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
     body = (
       <div role="radiogroup" className={clsx(radioGroupStyles.track, names.track)} {...state}>
         {options.map((o, i) => (
-          <label key={`${o.value}-${i}`} className={clsx(radioGroupStyles.option, names.option)} data-selected={o.value === value || undefined}>
-            <input type="radio" className={clsx(radioGroupStyles.input, names.input)} name={name} checked={o.value === value} onChange={() => onChange(o.value)} />
+          <label
+            key={`${o.value}-${i}`}
+            className={clsx(radioGroupStyles.option, names.option)}
+            data-selected={o.value === value || undefined}
+          >
+            <input
+              type="radio"
+              className={clsx(radioGroupStyles.input, names.input)}
+              name={name}
+              checked={o.value === value}
+              onChange={() => onChange(o.value)}
+            />
             <span className={clsx(radioGroupStyles.text, names.text)}>
               <span>{o.label}</span>
-              {o.description ? <span className={clsx(radioGroupStyles.description, names.description)}>{o.description}</span> : null}
+              {o.description ? (
+                <span className={clsx(radioGroupStyles.description, names.description)}>
+                  {o.description}
+                </span>
+              ) : null}
             </span>
           </label>
         ))}
@@ -75,15 +97,29 @@ export function RadioGroup({ options, value, onChange, variant: variantProp, lab
     body = (
       <RCRadioGroup value={value} onValueChange={onChange} {...state}>
         {options.map((o, i) => (
-          <RadioItem key={`${o.value}-${i}`} value={o.value} label={o.label} description={o.description} />
+          <RadioItem
+            key={`${o.value}-${i}`}
+            value={o.value}
+            label={o.label}
+            description={o.description}
+          />
         ))}
       </RCRadioGroup>
     );
   }
   return (
-    <fieldset className={clsx(radioGroupStyles.root, names.root, variant === "pills" && names.pills)}>
+    <fieldset
+      className={clsx(radioGroupStyles.root, names.root, variant === "pills" && names.pills)}
+    >
       {label ? (
-        <legend className={clsx(fieldStyles.label, fieldNames.label, radioGroupStyles.legend, names.legend)}>
+        <legend
+          className={clsx(
+            fieldStyles.label,
+            fieldNames.label,
+            radioGroupStyles.legend,
+            names.legend,
+          )}
+        >
           {label}
           {required ? <RequiredMark /> : null}
         </legend>

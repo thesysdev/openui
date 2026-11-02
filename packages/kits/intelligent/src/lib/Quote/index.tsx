@@ -13,6 +13,8 @@ export const Quote = defineComponent({
   props: QuoteSchema,
   description: "A quotation or a callout with a side rule; cite names the source.",
   component: ({ props }) => (
-    <QuoteView cite={props.cite ? inline(str(props.cite)) : undefined}>{inline(str(props.text))}</QuoteView>
+    <QuoteView cite={props.cite ? inline(str(props.cite)) : undefined}>
+      {inline(str(props.text))}
+    </QuoteView>
   ),
 });

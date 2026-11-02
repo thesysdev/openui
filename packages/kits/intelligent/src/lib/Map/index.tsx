@@ -14,13 +14,16 @@ export const MapMarker = defineComponent({
   props: MapMarkerSchema,
   description: "A place on a Map; icon is one emoji, else the pin shows its number.",
   // Inside a Map, the Map draws its markers. One placed anywhere else shows as a labelled place.
-  component: ({ props }) => <Badge text={[props.icon, props.label].filter(Boolean).join(" ")} icon="map-pin" />,
+  component: ({ props }) => (
+    <Badge text={[props.icon, props.label].filter(Boolean).join(" ")} icon="map-pin" />
+  ),
 });
 
 export const MapView = defineComponent({
   name: "Map",
   props: createMapSchema(MapMarker),
-  description: "Street map fitted to its markers. route draws the road path in marker order; selected holds the clicked marker's label.",
+  description:
+    "Street map fitted to its markers. route draws the road path in marker order; selected holds the clicked marker's label.",
   component: function MapBinding({ props, statementId }) {
     const streaming = useIsStreaming();
     const fallbackId = useId();

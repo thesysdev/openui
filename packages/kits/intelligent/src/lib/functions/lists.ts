@@ -33,7 +33,8 @@ export const Concat = defineFunction({
 
 export const Remove = defineFunction({
   name: "Remove",
-  description: 'Copy without the items whose field equals value; field "" compares the items themselves',
+  description:
+    'Copy without the items whose field equals value; field "" compares the items themselves',
   params: z.object({ list: list(), field: z.string(), value: z.any() }),
   returns: list(),
   fn: ({ list, field, value }) => list.filter((item) => !same(read(item, field), value)),
@@ -53,7 +54,13 @@ export const RemoveAt = defineFunction({
 export const Update = defineFunction({
   name: "Update",
   description: "Copy where items whose field equals value get setField set to setValue",
-  params: z.object({ list: list(), field: z.string(), value: z.any(), setField: z.string(), setValue: z.any() }),
+  params: z.object({
+    list: list(),
+    field: z.string(),
+    value: z.any(),
+    setField: z.string(),
+    setValue: z.any(),
+  }),
   returns: list(),
   fn: ({ list, field, value, setField, setValue }) =>
     list.map((item) =>
@@ -68,7 +75,8 @@ export const Toggle = defineFunction({
   description: "Adds item if missing, removes it if present (a set of strings or numbers)",
   params: z.object({ list: list(), item: z.any() }),
   returns: list(),
-  fn: ({ list, item }) => (list.some((x) => same(x, item)) ? list.filter((x) => !same(x, item)) : [...list, item]),
+  fn: ({ list, item }) =>
+    list.some((x) => same(x, item)) ? list.filter((x) => !same(x, item)) : [...list, item],
 });
 
 export const Includes = defineFunction({
@@ -77,7 +85,9 @@ export const Includes = defineFunction({
   params: z.object({ list: z.union([list(), z.string()]), item: z.any() }),
   returns: z.boolean(),
   fn: ({ list, item }) =>
-    typeof list === "string" ? item != null && list.includes(String(item)) : list.some((x) => same(x, item)),
+    typeof list === "string"
+      ? item != null && list.includes(String(item))
+      : list.some((x) => same(x, item)),
 });
 
 export const Find = defineFunction({
@@ -109,12 +119,19 @@ export const Take = defineFunction({
 
 export const Slice = defineFunction({
   name: "Slice",
-  description: "Items, or characters of text, from start up to end (not included); negative counts from the end",
-  params: z.object({ list: z.union([list(), z.string()]), start: z.number(), end: z.number().optional() }),
+  description:
+    "Items, or characters of text, from start up to end (not included); negative counts from the end",
+  params: z.object({
+    list: z.union([list(), z.string()]),
+    start: z.number(),
+    end: z.number().optional(),
+  }),
   returns: z.union([list(), z.string()]),
   fn: ({ list, start, end }) => {
     const to = end === undefined ? undefined : Math.trunc(end);
-    return typeof list === "string" ? list.slice(Math.trunc(start), to) : list.slice(Math.trunc(start), to);
+    return typeof list === "string"
+      ? list.slice(Math.trunc(start), to)
+      : list.slice(Math.trunc(start), to);
   },
 });
 
@@ -126,7 +143,10 @@ export const Unique = defineFunction({
   fn: ({ list }) => {
     const seen = new Set<string>();
     return list.filter((item) => {
-      const key = item !== null && typeof item === "object" ? `o:${JSON.stringify(item)}` : `p:${String(item)}`;
+      const key =
+        item !== null && typeof item === "object"
+          ? `o:${JSON.stringify(item)}`
+          : `p:${String(item)}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -144,7 +164,8 @@ export const Reverse = defineFunction({
 
 export const Range = defineFunction({
   name: "Range",
-  description: "Numbers from start up to end (not included) by step (default 1), e.g. @Range(0, 3) is [0, 1, 2]",
+  description:
+    "Numbers from start up to end (not included) by step (default 1), e.g. @Range(0, 3) is [0, 1, 2]",
   params: z.object({ start: z.number(), end: z.number(), step: z.number().optional() }),
   returns: z.array(z.number()),
   fn: ({ start, end, step = 1 }) => {
@@ -153,13 +174,16 @@ export const Range = defineFunction({
     if (count > MAX_ITEMS) throw new Error(`more than ${MAX_ITEMS} items`);
     const whole = Number.isInteger(start) && Number.isInteger(step);
     // Rounding keeps fractional steps clean: 0.1 * 3 is 0.30000000000000004
-    return Array.from({ length: count }, (_, i) => (whole ? start + i * step : Number((start + i * step).toPrecision(12))));
+    return Array.from({ length: count }, (_, i) =>
+      whole ? start + i * step : Number((start + i * step).toPrecision(12)),
+    );
   },
 });
 
 export const Pick = defineFunction({
   name: "Pick",
-  description: "A random item, or null for an empty list; draws anew each time, so call it inside @Set",
+  description:
+    "A random item, or null for an empty list; draws anew each time, so call it inside @Set",
   params: z.object({ list: list() }),
   returns: z.any(),
   fn: ({ list }) => (list.length ? list[Math.floor(Math.random() * list.length)] : null),
@@ -207,6 +231,23 @@ export const Chunk = defineFunction({
 });
 
 export const listFunctions = [
-  Append, Prepend, Concat, Remove, RemoveAt, Update, Toggle, Includes, Find, IndexOf,
-  Take, Slice, Unique, Reverse, Range, Pick, Shuffle, Flatten, Chunk,
+  Append,
+  Prepend,
+  Concat,
+  Remove,
+  RemoveAt,
+  Update,
+  Toggle,
+  Includes,
+  Find,
+  IndexOf,
+  Take,
+  Slice,
+  Unique,
+  Reverse,
+  Range,
+  Pick,
+  Shuffle,
+  Flatten,
+  Chunk,
 ];

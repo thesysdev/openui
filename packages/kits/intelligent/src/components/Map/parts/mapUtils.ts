@@ -8,28 +8,47 @@ export type LatLng = [number, number];
 export const coordinate = (input: unknown): LatLng | null => {
   if (!input || typeof input !== "object") return null;
   const { lat, lng } = input as { lat?: unknown; lng?: unknown };
-  return typeof lat === "number" && typeof lng === "number" && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
-    ? [lat, lng] : null;
+  return typeof lat === "number" &&
+    typeof lng === "number" &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lng) <= 180
+    ? [lat, lng]
+    : null;
 };
 
 export const lngLat = ([lat, lng]: LatLng): [number, number] => [lng, lat];
 
 export const boundsOf = (points: LatLng[]): LngLatBoundsLike => {
-  const lats = points.map((p) => p[0]); const lngs = points.map((p) => p[1]);
-  return [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]];
+  const lats = points.map((p) => p[0]);
+  const lngs = points.map((p) => p[1]);
+  return [
+    [Math.min(...lngs), Math.min(...lats)],
+    [Math.max(...lngs), Math.max(...lats)],
+  ];
 };
 
 export const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** The first points of a line, cut at `progress` (0–1) of its length. */
 export function partialLine(points: LatLng[], progress: number): LatLng[] {
-  const lengths = points.slice(1).map((p, i) => Math.hypot(p[0] - points[i][0], p[1] - points[i][1]));
+  const lengths = points
+    .slice(1)
+    .map((p, i) => Math.hypot(p[0] - points[i][0], p[1] - points[i][1]));
   let remaining = lengths.reduce((a, b) => a + b, 0) * progress;
   const out: LatLng[] = [points[0]];
   for (let i = 0; i < lengths.length; i++) {
-    if (remaining >= lengths[i]) { out.push(points[i + 1]); remaining -= lengths[i]; continue; }
+    if (remaining >= lengths[i]) {
+      out.push(points[i + 1]);
+      remaining -= lengths[i];
+      continue;
+    }
     const t = lengths[i] ? remaining / lengths[i] : 0;
-    out.push([points[i][0] + (points[i + 1][0] - points[i][0]) * t, points[i][1] + (points[i + 1][1] - points[i][1]) * t]);
+    out.push([
+      points[i][0] + (points[i + 1][0] - points[i][0]) * t,
+      points[i][1] + (points[i + 1][1] - points[i][1]) * t,
+    ]);
     break;
   }
   return out;
@@ -75,6 +94,11 @@ export function createPinElement(onSelect: () => void) {
   content.append(pin, label);
   element.append(content);
   element.addEventListener("click", onSelect);
-  element.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(); } });
+  element.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect();
+    }
+  });
   return { element, pin, label };
 }

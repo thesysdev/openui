@@ -26,13 +26,11 @@ export const rowStyles = {
       align-items: flex-start !important;
       gap: ${tokens.spaceGroupLg} !important;
     }
-    & > ${PHOTO},
-    & > ${PHOTO_BOX} {
+    & > ${PHOTO}, & > ${PHOTO_BOX} {
       flex: none !important;
       width: clamp(120px, 33%, 200px) !important;
     }
-    & > .openui-intelligent-box > ${PHOTO}:only-child,
-    & > ${PHOTO} {
+    & > .openui-intelligent-box > ${PHOTO}:only-child, & > ${PHOTO} {
       aspect-ratio: 4 / 3 !important;
       height: auto !important;
     }

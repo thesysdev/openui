@@ -8,7 +8,10 @@ export const names = {
   root: "openui-intelligent-flashcard",
   inner: "openui-intelligent-flashcard-inner",
   face: "openui-intelligent-flashcard-face",
-  side: { front: "openui-intelligent-flashcard-face--side-front", back: "openui-intelligent-flashcard-face--side-back" },
+  side: {
+    front: "openui-intelligent-flashcard-face--side-front",
+    back: "openui-intelligent-flashcard-face--side-back",
+  },
   word: "openui-intelligent-flashcard-word",
   hint: "openui-intelligent-flashcard-hint",
 } as const;

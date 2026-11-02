@@ -16,7 +16,15 @@ function iconName(value: unknown): IconName | null {
 }
 
 /** A lucide icon, loaded on first use. Unknown names render nothing. */
-export function Glyph({ name, size = 18, className }: { name: unknown; size?: number; className?: string }) {
+export function Glyph({
+  name,
+  size = 18,
+  className,
+}: {
+  name: unknown;
+  size?: number;
+  className?: string;
+}) {
   const icon = iconName(name);
   if (!icon) return null;
   return (
@@ -26,7 +34,12 @@ export function Glyph({ name, size = 18, className }: { name: unknown; size?: nu
       strokeWidth={1.8}
       aria-hidden
       className={className}
-      fallback={() => <span className={className} style={{ display: "inline-block", width: size, height: size, flex: "none" }} />}
+      fallback={() => (
+        <span
+          className={className}
+          style={{ display: "inline-block", width: size, height: size, flex: "none" }}
+        />
+      )}
     />
   );
 }

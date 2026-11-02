@@ -57,7 +57,9 @@ export const slot = z.union([z.string(), children]);
 export type Render = (value: unknown) => ReactNode;
 
 export const renderSlot = (value: unknown, renderNode: Render) =>
-  typeof value === "string" || typeof value === "number" ? inline(String(value)) : renderNode(Array.isArray(value) ? value.flat() : value);
+  typeof value === "string" || typeof value === "number"
+    ? inline(String(value))
+    : renderNode(Array.isArray(value) ? value.flat() : value);
 
 /** A component in a prop's value, as opposed to plain text or a number. */
 export const isElement = (value: unknown): value is ElementNode =>

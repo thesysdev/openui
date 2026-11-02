@@ -4,15 +4,15 @@ import clsx from "clsx";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import { useThemeMode } from "../../shared/useThemeMode";
+import { useDialog } from "./hooks/useDialog";
+import { useStreetRoute } from "./hooks/useStreetRoute";
+import { mapStyles, names } from "./map.styles";
 import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./parts/basemap";
 import { MapControls, type RouteKind } from "./parts/controls";
 import { boundsOf, type LatLng, lngLat, mapColor, reducedMotion } from "./parts/mapUtils";
-import type { Place } from "./parts/place";
 import { type PinEntry, syncPins } from "./parts/pins";
+import type { Place } from "./parts/place";
 import { animateLine, ensureRouteLayer, setLine } from "./parts/routeLine";
-import { mapStyles, names } from "./map.styles";
-import { useDialog } from "./hooks/useDialog";
-import { useStreetRoute } from "./hooks/useStreetRoute";
 
 export interface MapViewProps {
   places: Place[];
@@ -38,7 +38,14 @@ const FLY_MS = 920;
 const DRAW_MS = 760;
 
 /** A street map fitted to its places, with pins, a category filter and an optional route. */
-export function MapView({ places, route, height: heightProp, selected: selectedProp, onSelect, pending }: MapViewProps) {
+export function MapView({
+  places,
+  route,
+  height: heightProp,
+  selected: selectedProp,
+  onSelect,
+  pending,
+}: MapViewProps) {
   const selected = typeof selectedProp === "string" ? selectedProp : null;
   const container = useRef<HTMLDivElement>(null);
   const surface = useRef<HTMLDivElement>(null);
@@ -65,12 +72,23 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
   const height = `min(${Math.min(720, Math.max(200, heightProp ?? 400))}px, max(280px, 82vw))`;
 
   const visible = places.filter((p) => group === "all" || p.category === group);
-  const categories = Array.from(new Set(places.map((p) => p.category).filter((c): c is string => !!c)));
-  const placeSignature = JSON.stringify(places.map((p) => [p.key, p.lat, p.lng, p.icon, p.category, p.order]));
+  const categories = Array.from(
+    new Set(places.map((p) => p.category).filter((c): c is string => !!c)),
+  );
+  const placeSignature = JSON.stringify(
+    places.map((p) => [p.key, p.lat, p.lng, p.icon, p.category, p.order]),
+  );
   const routingKey = visible.map((p) => `${p.lng},${p.lat}`).join(";");
   const streetPoints = useStreetRoute(routingKey, !!route);
   // One place has no route to wait for, so it never reports loading.
-  const routeKind: RouteKind = !route || !routingKey.includes(";") ? "none" : streetPoints?.length ? "street" : streetPoints === null ? "overview" : "loading";
+  const routeKind: RouteKind =
+    !route || !routingKey.includes(";")
+      ? "none"
+      : streetPoints?.length
+        ? "street"
+        : streetPoints === null
+          ? "overview"
+          : "loading";
   select.current = (label) => onSelect?.(label);
   useDialog(container, expanded, () => setExpanded(false));
   // The theme the basemap was last given: the map may be created after the theme is first read.
@@ -78,8 +96,12 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
 
   useEffect(() => {
     let active = true;
-    loadMapLibre().then((module) => { if (active) setLib(module); });
-    return () => { active = false; };
+    loadMapLibre().then((module) => {
+      if (active) setLib(module);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -87,8 +109,16 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     styledDark.current = dark;
     // Zoom levels are one lower than Leaflet's: MapLibre uses 512px tiles.
     const instance = new lib.Map({
-      container: surface.current, style: vectorStyle(dark), center: [0, 20], zoom: 1, minZoom: 0,
-      scrollZoom: false, dragRotate: false, pitchWithRotate: false, touchPitch: false, attributionControl: false,
+      container: surface.current,
+      style: vectorStyle(dark),
+      center: [0, 20],
+      zoom: 1,
+      minZoom: 0,
+      scrollZoom: false,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      attributionControl: false,
       // On a phone a one-finger swipe scrolls the answer instead of getting stuck on the map.
       cooperativeGestures: window.matchMedia("(pointer: coarse)").matches,
     });
@@ -97,29 +127,48 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     instance.addControl(new lib.NavigationControl({ showCompass: false }), "bottom-right");
     // Re-adds the route line whenever a style (vector, dark or fallback) finishes loading.
     instance.on("style.load", () => {
-      const ink = getComputedStyle(container.current ?? document.body).getPropertyValue("--openui-intelligent-ink").trim();
+      const ink = getComputedStyle(container.current ?? document.body)
+        .getPropertyValue("--openui-intelligent-ink")
+        .trim();
       ensureRouteLayer(instance, mapColor(ink));
       setLine(instance, linePoints.current);
       setReady(true);
     });
     // Fall back to raster tiles if the vector style or its tile source fails.
     instance.on("error", (event) => {
-      if (fellBack.current) { setMapError(true); return; }
+      if (fellBack.current) {
+        setMapError(true);
+        return;
+      }
       const source = (event as { sourceId?: string }).sourceId;
       if (source && source !== "places") return;
       fellBack.current = true;
-      instance.setStyle(rasterStyle(getComputedStyle(surface.current ?? document.body).colorScheme === "dark"));
+      instance.setStyle(
+        rasterStyle(getComputedStyle(surface.current ?? document.body).colorScheme === "dark"),
+      );
     });
-    instance.on("sourcedata", (event) => { if (fellBack.current && event.isSourceLoaded) setMapError(false); });
-    instance.on("dragstart", () => { userMoved.current = true; });
+    instance.on("sourcedata", (event) => {
+      if (fellBack.current && event.isSourceLoaded) setMapError(false);
+    });
+    instance.on("dragstart", () => {
+      userMoved.current = true;
+    });
     map.current = instance;
     const markerEntries = markers.current;
     // A resize must never reframe the camera during streaming or user panning.
     const observer = new ResizeObserver(() => instance.resize());
     observer.observe(surface.current);
     return () => {
-      observer.disconnect(); markerEntries.forEach((entry) => entry.marker.remove()); markerEntries.clear();
-      instance.remove(); map.current = null; fitSignature.current = ""; lineDrawn.current = false; anchored.current = false; fellBack.current = false; setReady(false);
+      observer.disconnect();
+      markerEntries.forEach((entry) => entry.marker.remove());
+      markerEntries.clear();
+      instance.remove();
+      map.current = null;
+      fitSignature.current = "";
+      lineDrawn.current = false;
+      anchored.current = false;
+      fellBack.current = false;
+      setReady(false);
     };
     // The theme is applied by the effect below without rebuilding the map.
   }, [lib]);
@@ -131,7 +180,9 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     map.current.setStyle(fellBack.current ? rasterStyle(dark) : vectorStyle(dark), { diff: false });
   }, [dark]);
 
-  useEffect(() => { expandedNow.current = expanded; }, [expanded]);
+  useEffect(() => {
+    expandedNow.current = expanded;
+  }, [expanded]);
 
   // Reconcile pins with the visible places; existing pins update in place.
   useEffect(() => {
@@ -156,13 +207,24 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
     if (fitSignature.current === nextFit) return;
     fitSignature.current = nextFit;
     // A filter change must not keep displaying the previous group's route.
-    linePoints.current = []; setLine(map.current, []);
+    linePoints.current = [];
+    setLine(map.current, []);
     if (userMoved.current || reducedMotion()) {
-      if (!userMoved.current) map.current.fitBounds(boundsOf(fitPoints.current), { padding: FRAME_PADDING, maxZoom: 13, animate: false });
+      if (!userMoved.current)
+        map.current.fitBounds(boundsOf(fitPoints.current), {
+          padding: FRAME_PADDING,
+          maxZoom: 13,
+          animate: false,
+        });
       setFramedKey(routingKey);
       return;
     }
-    map.current.fitBounds(boundsOf(fitPoints.current), { padding: FRAME_PADDING, maxZoom: 13, duration: FLY_MS, linear: false });
+    map.current.fitBounds(boundsOf(fitPoints.current), {
+      padding: FRAME_PADDING,
+      maxZoom: 13,
+      duration: FLY_MS,
+      linear: false,
+    });
     // fitBounds may not emit moveend when the viewport already matches.
     const timer = window.setTimeout(() => setFramedKey(routingKey), FLY_MS + 40);
     return () => clearTimeout(timer);
@@ -179,8 +241,13 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
       setLine(instance, linePoints.current);
       return;
     }
-    const stop = animateLine(instance, positions, DRAW_MS, () => { lineDrawn.current = true; });
-    return () => { stop(); setLine(instance, linePoints.current); };
+    const stop = animateLine(instance, positions, DRAW_MS, () => {
+      lineDrawn.current = true;
+    });
+    return () => {
+      stop();
+      setLine(instance, linePoints.current);
+    };
   }, [ready, framedKey, routingKey, streetPoints, route, pending]);
 
   useEffect(() => {
@@ -196,7 +263,9 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
         style={{
           ...(expanded ? undefined : { height }),
           // maplibre's control icons are black images; dark mode turns them light.
-          ...(dark ? { ["--_openui-intelligent-map-control-icon-filter" as string]: "invert(1)" } : undefined),
+          ...(dark
+            ? { ["--_openui-intelligent-map-control-icon-filter" as string]: "invert(1)" }
+            : undefined),
         }}
         role={expanded ? "dialog" : "region"}
         aria-modal={expanded || undefined}
@@ -209,7 +278,11 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
           group={group}
           onGroup={setGroup}
           onRecenter={() => {
-            if (fitPoints.current.length) map.current?.fitBounds(boundsOf(fitPoints.current), { padding: RECENTER_PADDING, maxZoom: 14 });
+            if (fitPoints.current.length)
+              map.current?.fitBounds(boundsOf(fitPoints.current), {
+                padding: RECENTER_PADDING,
+                maxZoom: 14,
+              });
           }}
           infoOpen={infoOpen}
           onToggleInfo={() => setInfoOpen(!infoOpen)}

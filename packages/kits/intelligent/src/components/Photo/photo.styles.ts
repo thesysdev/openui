@@ -32,7 +32,13 @@ export const photoStyles = {
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, ${tokens.canvas} 55%, transparent) 50%, transparent 70%) 0 0 / 220% 100%;
+      background: linear-gradient(
+          100deg,
+          transparent 30%,
+          color-mix(in srgb, ${tokens.canvas} 55%, transparent) 50%,
+          transparent 70%
+        )
+        0 0 / 220% 100%;
       animation: ${shimmer} 1.4s linear infinite;
     }
     &[data-state="loaded"]::before {

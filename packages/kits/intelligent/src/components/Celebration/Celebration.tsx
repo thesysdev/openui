@@ -13,7 +13,14 @@ export interface CelebrationProps {
   paused?: boolean;
 }
 
-const CONFETTI = [tokens.chart1, tokens.chart2, tokens.chart3, tokens.chart4, tokens.chart5, tokens.chart6];
+const CONFETTI = [
+  tokens.chart1,
+  tokens.chart2,
+  tokens.chart3,
+  tokens.chart4,
+  tokens.chart5,
+  tokens.chart6,
+];
 
 /** Bursts confetti over the page when its condition turns true. */
 export function Celebration({ when, paused }: CelebrationProps) {

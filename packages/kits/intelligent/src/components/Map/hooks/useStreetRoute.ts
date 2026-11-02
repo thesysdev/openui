@@ -19,7 +19,9 @@ export function useStreetRoute(routingKey: string, enabled: boolean): LatLng[] |
     const debounce = setTimeout(async () => {
       timeout = setTimeout(() => controller.abort(), 10000);
       try {
-        const response = await fetch(endpoints.streetRoute(routingKey), { signal: controller.signal });
+        const response = await fetch(endpoints.streetRoute(routingKey), {
+          signal: controller.signal,
+        });
         if (!response.ok) throw new Error("Route service unavailable");
         const data: { points?: unknown[] } = await response.json();
         const points = (data.points ?? []).flatMap((point) => {
@@ -32,9 +34,16 @@ export function useStreetRoute(routingKey: string, enabled: boolean): LatLng[] |
         if (active) setResult({ key: routingKey, points });
       } catch {
         if (active) setResult({ key: routingKey, points: null });
-      } finally { clearTimeout(timeout); }
+      } finally {
+        clearTimeout(timeout);
+      }
     }, 700);
-    return () => { active = false; clearTimeout(debounce); clearTimeout(timeout); controller.abort(); };
+    return () => {
+      active = false;
+      clearTimeout(debounce);
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [routingKey, enabled]);
   return cache.get(routingKey) ?? (result?.key === routingKey ? result.points : undefined);
 }

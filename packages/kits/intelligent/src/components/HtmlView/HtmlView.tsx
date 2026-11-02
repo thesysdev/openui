@@ -19,7 +19,8 @@ export interface HtmlViewProps {
 // allow-same-origin, so no access to this app, its cookies or storage), no
 // forms, popups or navigation of the app. Its CSP allows inline code and a few
 // script CDNs, and no network otherwise.
-const CDNS = "https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://esm.sh";
+const CDNS =
+  "https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://esm.sh";
 
 const CSP = [
   "default-src 'none'",
@@ -54,7 +55,10 @@ function documentFor(html: string, scheme: "light" | "dark") {
 export function HtmlView({ html, height, title, pending }: HtmlViewProps) {
   const frame = useRef<HTMLIFrameElement>(null);
   const scheme = useThemeMode();
-  const fixed = typeof height === "number" && height > 0 ? Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height)) : null;
+  const fixed =
+    typeof height === "number" && height > 0
+      ? Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height))
+      : null;
   const [measured, setMeasured] = useState<number | null>(null);
   const srcDoc = useMemo(() => documentFor(html, scheme), [html, scheme]);
 
@@ -63,7 +67,11 @@ export function HtmlView({ html, height, title, pending }: HtmlViewProps) {
     const onMessage = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
       const data = event.data as { type?: unknown; height?: unknown };
-      if (data?.type === "openui-intelligent-html-view-height" && typeof data.height === "number" && Number.isFinite(data.height)) {
+      if (
+        data?.type === "openui-intelligent-html-view-height" &&
+        typeof data.height === "number" &&
+        Number.isFinite(data.height)
+      ) {
         setMeasured(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, data.height)));
       }
     };
@@ -79,7 +87,15 @@ export function HtmlView({ html, height, title, pending }: HtmlViewProps) {
       {pending ? (
         <div className={clsx(htmlViewStyles.wait, names.wait)}>Preparing the interactive view…</div>
       ) : (
-        <iframe ref={frame} className={clsx(htmlViewStyles.frame, names.frame)} title={title || "Interactive view"} sandbox="allow-scripts" srcDoc={srcDoc} referrerPolicy="no-referrer" loading="lazy" />
+        <iframe
+          ref={frame}
+          className={clsx(htmlViewStyles.frame, names.frame)}
+          title={title || "Interactive view"}
+          sandbox="allow-scripts"
+          srcDoc={srcDoc}
+          referrerPolicy="no-referrer"
+          loading="lazy"
+        />
       )}
     </div>
   );

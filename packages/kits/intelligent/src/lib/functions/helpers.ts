@@ -22,14 +22,24 @@ export function read(item: unknown, field: string): unknown {
  */
 export function same(a: unknown, b: unknown): boolean {
   if (a === b) return true;
-  const mixed = (typeof a === "number" && typeof b === "string") || (typeof a === "string" && typeof b === "number");
+  const mixed =
+    (typeof a === "number" && typeof b === "string") ||
+    (typeof a === "string" && typeof b === "number");
   if (mixed) return String(a) === String(b);
   if (a === null || b === null || typeof a !== "object" || typeof b !== "object") return false;
   if (Array.isArray(a) !== Array.isArray(b)) return false;
-  if (Array.isArray(a)) return a.length === (b as unknown[]).length && a.every((x, i) => same(x, (b as unknown[])[i]));
+  if (Array.isArray(a))
+    return a.length === (b as unknown[]).length && a.every((x, i) => same(x, (b as unknown[])[i]));
   const ka = Object.keys(a);
   const kb = Object.keys(b);
-  return ka.length === kb.length && ka.every((k) => Object.hasOwn(b, k) && same((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+  return (
+    ka.length === kb.length &&
+    ka.every(
+      (k) =>
+        Object.hasOwn(b, k) &&
+        same((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]),
+    )
+  );
 }
 
 /** A finite number or a thrown error, which the runtime turns into null. */
@@ -52,7 +62,9 @@ export type Agg = "sum" | "avg" | "count" | "min" | "max";
 /** Aggregates the numbers read from rows; count counts rows. */
 export function aggregate(rows: unknown[], field: string | undefined, how: Agg): number {
   if (how === "count") return rows.length;
-  const values = rows.map((r) => toNum(read(r, field ?? ""))).filter((v): v is number => v !== null);
+  const values = rows
+    .map((r) => toNum(read(r, field ?? "")))
+    .filter((v): v is number => v !== null);
   if (!values.length) return 0;
   switch (how) {
     case "sum":

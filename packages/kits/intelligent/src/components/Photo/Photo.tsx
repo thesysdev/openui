@@ -23,7 +23,8 @@ async function getJson(url: string): Promise<Record<string, unknown>> {
   return response.ok ? ((await response.json()) as Record<string, unknown>) : {};
 }
 
-const urls = (value: unknown) => (Array.isArray(value) ? value.flatMap((u) => (webUrl(u) ? [u as string] : [])) : []);
+const urls = (value: unknown) =>
+  Array.isArray(value) ? value.flatMap((u) => (webUrl(u) ? [u as string] : [])) : [];
 
 /**
  * Photo URLs for a query: the Wikipedia article with that exact title first
@@ -87,12 +88,21 @@ export function Photo(props: PhotoProps) {
   const [loaded, setLoaded] = useState<string | null>(null);
   const needSearch = (!src || failed.includes(src)) && alt.length > 2;
   const found = useImageSearch(needSearch ? alt : null);
-  const current = [src, ...(found ?? [])].find((url): url is string => !!url && !failed.includes(url));
+  const current = [src, ...(found ?? [])].find(
+    (url): url is string => !!url && !failed.includes(url),
+  );
   const settled = !current && (!needSearch || found !== undefined);
-  const ratio = typeof props.aspectRatio === "number" && props.aspectRatio > 0.2 && props.aspectRatio < 5 ? props.aspectRatio : 1.5;
+  const ratio =
+    typeof props.aspectRatio === "number" && props.aspectRatio > 0.2 && props.aspectRatio < 5
+      ? props.aspectRatio
+      : 1.5;
   return (
     <div
-      className={clsx(photoStyles.root, names.root, props.fit === "contain" && [photoStyles.contain, names.contain])}
+      className={clsx(
+        photoStyles.root,
+        names.root,
+        props.fit === "contain" && [photoStyles.contain, names.contain],
+      )}
       data-state={loaded === current ? "loaded" : settled ? "empty" : undefined}
       style={{ aspectRatio: ratio, borderRadius: radius(props.radius ?? "lg") }}
       role={current ? undefined : "img"}

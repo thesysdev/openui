@@ -14,13 +14,16 @@ export * from "./schema";
 
 type Row = Record<string, string | number>;
 
-const rowsOf = (data: unknown): Row[] => (Array.isArray(data) ? (data as Row[]).filter((r) => r && typeof r === "object") : []);
+const rowsOf = (data: unknown): Row[] =>
+  Array.isArray(data) ? (data as Row[]).filter((r) => r && typeof r === "object") : [];
 
 /** The category key, defaulting to the first non-numeric column. */
 const categoryOf = (rows: Row[], x?: string): string => {
   if (x) return x;
   const first = rows[0] ?? {};
-  return Object.keys(first).find((k) => typeof first[k] === "string") ?? Object.keys(first)[0] ?? "";
+  return (
+    Object.keys(first).find((k) => typeof first[k] === "string") ?? Object.keys(first)[0] ?? ""
+  );
 };
 
 /** Value keys, defaulting to every numeric column that is not the category. */

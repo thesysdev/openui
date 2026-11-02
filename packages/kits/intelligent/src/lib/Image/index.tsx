@@ -11,6 +11,12 @@ export const Image = defineComponent({
   props: ImageSchema,
   description: "Photo from a URL the user or a tool gave; if it fails, a photo is found for alt.",
   component: ({ props }) => (
-    <Photo query={props.alt} src={props.src} aspectRatio={props.aspectRatio} radius={props.radius} fit={props.fit} />
+    <Photo
+      query={props.alt}
+      src={props.src}
+      aspectRatio={props.aspectRatio}
+      radius={props.radius}
+      fit={props.fit}
+    />
   ),
 });

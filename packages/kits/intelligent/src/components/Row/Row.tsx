@@ -12,11 +12,18 @@ export interface RowProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /** Horizontal layout; items are vertically centered. */
-const Row = forwardRef<HTMLDivElement, RowProps>(({ gap, align, justify, wrap, className, style, children, ...rest }, ref) => (
-  <div ref={ref} className={clsx(rowStyles.root, names.root, className)} style={{ ...flexStyle({ gap, align, justify, wrap }), ...style }} {...rest}>
-    {children}
-  </div>
-));
+const Row = forwardRef<HTMLDivElement, RowProps>(
+  ({ gap, align, justify, wrap, className, style, children, ...rest }, ref) => (
+    <div
+      ref={ref}
+      className={clsx(rowStyles.root, names.root, className)}
+      style={{ ...flexStyle({ gap, align, justify, wrap }), ...style }}
+      {...rest}
+    >
+      {children}
+    </div>
+  ),
+);
 
 Row.displayName = "Row";
 

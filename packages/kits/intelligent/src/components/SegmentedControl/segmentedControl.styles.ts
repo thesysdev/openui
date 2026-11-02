@@ -54,7 +54,9 @@ export const segmentedControlStyles = {
       font-size: 13px;
       line-height: 1.4;
       font-weight: 400;
-      transition: background-color 0.2s, color 0.2s;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
       @media (max-width: 640px) {
         padding: 6px 11px;
       }
@@ -62,7 +64,9 @@ export const segmentedControlStyles = {
     &.openui-button.openui-intelligent-button[aria-checked="true"] {
       background-color: ${FILL};
       font-weight: 560;
-      box-shadow: ${tokens.shadowSm}, 0 0 0 1px ${tokens.border};
+      box-shadow:
+        ${tokens.shadowSm},
+        0 0 0 1px ${tokens.border};
     }
   `,
 };

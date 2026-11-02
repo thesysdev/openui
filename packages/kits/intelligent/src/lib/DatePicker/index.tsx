@@ -5,7 +5,7 @@ import { defineComponent, useStateField } from "@openuidev/react-lang";
 import clsx from "clsx";
 import { useState } from "react";
 import { Field } from "../../components/Field";
-import { fieldStyles, names as fieldNames } from "../../components/Field/field.styles";
+import { names as fieldNames, fieldStyles } from "../../components/Field/field.styles";
 import { useFieldName, useFieldRules } from "../controls";
 import { DatePickerSchema } from "./schema";
 
@@ -31,7 +31,8 @@ const toText = (date?: Date): string =>
   date ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` : "";
 
 const spoken = (text: string) =>
-  toDate(text)?.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) ?? text;
+  toDate(text)?.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) ??
+  text;
 
 /**
  * Why a date falls outside min..max, or undefined. react-components' calendar

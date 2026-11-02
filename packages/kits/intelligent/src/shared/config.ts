@@ -78,7 +78,8 @@ const readState = (): ConfigState => {
 const builtIn: IntelligentKitEndpoints = {
   wiki: (title) => `${readState().basePath}/api/wiki?title=${encodeURIComponent(title)}`,
   imageSearch: (query) => `${readState().basePath}/api/image-search?q=${encodeURIComponent(query)}`,
-  streetRoute: (coords) => `${readState().basePath}/api/street-route?coords=${encodeURIComponent(coords)}`,
+  streetRoute: (coords) =>
+    `${readState().basePath}/api/street-route?coords=${encodeURIComponent(coords)}`,
 };
 
 /** Point the kit at this host's routes. Call once, before rendering. */

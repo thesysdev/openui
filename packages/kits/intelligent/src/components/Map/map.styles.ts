@@ -278,12 +278,19 @@ export const mapStyles = {
     max-width: 160px;
     margin-top: 3px;
     color: ${tokens.ink};
-    font: 640 12px/15px Arial, Helvetica, sans-serif;
+    font:
+      640 12px/15px Arial,
+      Helvetica,
+      sans-serif;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-shadow: 0 1px 2px ${tokens.canvas}, 0 -1px 2px ${tokens.canvas}, 1px 0 2px ${tokens.canvas}, -1px 0 2px ${tokens.canvas};
+    text-shadow:
+      0 1px 2px ${tokens.canvas},
+      0 -1px 2px ${tokens.canvas},
+      1px 0 2px ${tokens.canvas},
+      -1px 0 2px ${tokens.canvas};
     @media (max-width: 520px) {
       max-width: 120px;
       font-size: 10px;

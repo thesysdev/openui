@@ -1,7 +1,10 @@
 import { css } from "@openuidev/react-components";
 import { tokens } from "../../shared/tokens";
 
-export const names = { root: "openui-intelligent-link", arrow: "openui-intelligent-link-arrow" } as const;
+export const names = {
+  root: "openui-intelligent-link",
+  arrow: "openui-intelligent-link-arrow",
+} as const;
 
 export const linkStyles = {
   root: css`

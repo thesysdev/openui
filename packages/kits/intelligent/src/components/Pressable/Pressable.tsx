@@ -2,9 +2,9 @@
 
 import clsx from "clsx";
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useRef } from "react";
-import { useThemeMode } from "../../shared/useThemeMode";
 import { checkIcon, onColor } from "../../shared/color";
 import { bg, type Color, type Radius, radius as radiusOf, space } from "../../shared/props";
+import { useThemeMode } from "../../shared/useThemeMode";
 import { names, pressableStyles } from "./pressable.styles";
 
 export interface PressableProps {
@@ -22,7 +22,15 @@ export interface PressableProps {
 }
 
 /** Makes any content clickable, such as a tile or a swatch. */
-export function Pressable({ onPress, selected, disabled, padding, background, radius, children }: PressableProps) {
+export function Pressable({
+  onPress,
+  selected,
+  disabled,
+  padding,
+  background,
+  radius,
+  children,
+}: PressableProps) {
   const ref = useRef<HTMLDivElement>(null);
   const mode = useThemeMode();
   const press = () => {
@@ -30,11 +38,14 @@ export function Pressable({ onPress, selected, disabled, padding, background, ra
   };
   // Clicks meant for a control inside the tile stay with that control.
   const onClick = (event: MouseEvent<HTMLDivElement>) => {
-    const target = (event.target as Element).closest("button,a,input,select,textarea,label,[role=button]");
+    const target = (event.target as Element).closest(
+      "button,a,input,select,textarea,label,[role=button]",
+    );
     if (target === event.currentTarget) press();
   };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " ")) return;
+    if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " "))
+      return;
     event.preventDefault();
     press();
   };

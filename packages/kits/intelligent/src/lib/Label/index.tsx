@@ -2,8 +2,8 @@
 
 import { Label as RCLabel } from "@openuidev/react-components";
 import { defineComponent } from "@openuidev/react-lang";
-import { LabelSchema } from "./schema";
 import { str } from "../../shared/text";
+import { LabelSchema } from "./schema";
 
 export * from "./schema";
 

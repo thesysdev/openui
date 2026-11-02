@@ -1,6 +1,11 @@
 "use client";
 
-import { defineComponent, FormNameContext, FormValidationContext, useCreateFormValidation } from "@openuidev/react-lang";
+import {
+  defineComponent,
+  FormNameContext,
+  FormValidationContext,
+  useCreateFormValidation,
+} from "@openuidev/react-lang";
 import { useId } from "react";
 import { Form as FormView } from "../../components/Form";
 import { FormSchema } from "./schema";
@@ -15,7 +20,8 @@ export * from "./schema";
 export const Form = defineComponent({
   name: "Form",
   props: FormSchema,
-  description: "Groups fields; their values go with any @ToAssistant inside, once every field's rules pass.",
+  description:
+    "Groups fields; their values go with any @ToAssistant inside, once every field's rules pass.",
   component: function FormBinding({ props, renderNode, statementId }) {
     const id = useId();
     const validation = useCreateFormValidation();

@@ -8,5 +8,11 @@ import { Svg as SvgView, useInSvg } from "../../components/Svg";
  * nothing. It draws in its own small drawing instead, on the 0 to 100 grid shapes usually use.
  */
 export function Standalone({ children }: { children: ReactNode }) {
-  return useInSvg() ? children : <SvgView viewBox="0 0 100 100" width={160}>{children}</SvgView>;
+  return useInSvg() ? (
+    children
+  ) : (
+    <SvgView viewBox="0 0 100 100" width={160}>
+      {children}
+    </SvgView>
+  );
 }

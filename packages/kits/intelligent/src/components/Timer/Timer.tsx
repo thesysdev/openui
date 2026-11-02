@@ -2,8 +2,8 @@
 
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
-import { fieldStyles, names as fieldNames } from "../Field/field.styles";
 import { Button } from "../Button";
+import { names as fieldNames, fieldStyles } from "../Field/field.styles";
 import { names, timerStyles } from "./timer.styles";
 
 export interface TimerProps {
@@ -56,16 +56,33 @@ export function Timer({ seconds, onSecondsChange, label, disabled }: TimerProps)
   const done = left === 0 && startedAt !== null;
 
   return (
-    <div className={clsx(timerStyles.root, names.root)} data-state={done ? "done" : running ? "running" : undefined} role="timer" aria-label={label || "Timer"}>
+    <div
+      className={clsx(timerStyles.root, names.root)}
+      data-state={done ? "done" : running ? "running" : undefined}
+      role="timer"
+      aria-label={label || "Timer"}
+    >
       <div className={clsx(timerStyles.read, names.read)}>
         {label && <span className={clsx(fieldStyles.label, fieldNames.label)}>{label}</span>}
         <span className={clsx(timerStyles.time, names.time)}>{clock(left)}</span>
       </div>
       <div className={clsx(timerStyles.actions, names.actions)}>
-        <Button variant="solid" size="sm" icon={running ? "pause" : "play"} disabled={disabled || left === 0} onClick={toggle}>
+        <Button
+          variant="solid"
+          size="sm"
+          icon={running ? "pause" : "play"}
+          disabled={disabled || left === 0}
+          onClick={toggle}
+        >
           {running ? "Pause" : startedAt === null || left === 0 ? "Start" : "Resume"}
         </Button>
-        <Button variant="ghost" size="sm" icon="rotate-ccw" disabled={disabled || startedAt === null} onClick={reset}>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon="rotate-ccw"
+          disabled={disabled || startedAt === null}
+          onClick={reset}
+        >
           Reset
         </Button>
       </div>

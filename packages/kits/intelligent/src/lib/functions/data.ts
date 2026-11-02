@@ -1,12 +1,26 @@
 import { defineFunction } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { isoDay, parseDate } from "./dates";
-import { agg, aggregate, finite, groups, list, MAX_ITEMS, numbers, read, toNum, type Agg } from "./helpers";
+import {
+  agg,
+  aggregate,
+  finite,
+  groups,
+  list,
+  MAX_ITEMS,
+  numbers,
+  read,
+  toNum,
+  type Agg,
+} from "./helpers";
 
-const keyValue = () => z.array(z.object({ key: z.union([z.string(), z.number()]), value: z.number() }));
+const keyValue = () =>
+  z.array(z.object({ key: z.union([z.string(), z.number()]), value: z.number() }));
 // Untyped arrays (a pluck over rows that lack the field) can still hold nulls
-const finiteOnly = (values: unknown[]) => values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-const defaultAgg = (field: string | undefined, how: Agg | undefined): Agg => how ?? (field ? "sum" : "count");
+const finiteOnly = (values: unknown[]) =>
+  values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+const defaultAgg = (field: string | undefined, how: Agg | undefined): Agg =>
+  how ?? (field ? "sum" : "count");
 
 /** Copy of each row with `field` replaced; field "" maps a list of numbers. */
 function mapField(rows: unknown[], field: string, values: number[]): unknown[] {
@@ -17,15 +31,24 @@ export const GroupBy = defineFunction({
   name: "GroupBy",
   description:
     'One row per distinct key, in first-seen order; value is agg of field (default "sum"), or the row count without a field',
-  params: z.object({ rows: list(), key: z.string(), field: z.string().optional(), agg: agg().optional() }),
+  params: z.object({
+    rows: list(),
+    key: z.string(),
+    field: z.string().optional(),
+    agg: agg().optional(),
+  }),
   returns: keyValue(),
   fn: ({ rows, key, field, agg: how }) =>
-    [...groups(rows, key)].map(([k, members]) => ({ key: k, value: aggregate(members, field, defaultAgg(field, how)) })),
+    [...groups(rows, key)].map(([k, members]) => ({
+      key: k,
+      value: aggregate(members, field, defaultAgg(field, how)),
+    })),
 });
 
 export const Pivot = defineFunction({
   name: "Pivot",
-  description: "One row per rowKey value with a column per colKey value holding agg of field, for stacked or grouped charts",
+  description:
+    "One row per rowKey value with a column per colKey value holding agg of field, for stacked or grouped charts",
   params: z.object({
     rows: list(),
     rowKey: z.string(),
@@ -39,7 +62,8 @@ export const Pivot = defineFunction({
     return [...groups(rows, rowKey)].map(([k, members]) => {
       const out: Record<string, string | number> = { key: k };
       for (const col of cols) out[col] = 0;
-      for (const [c, cell] of groups(members, colKey)) out[String(c)] = aggregate(cell, field, defaultAgg(field, how));
+      for (const [c, cell] of groups(members, colKey))
+        out[String(c)] = aggregate(cell, field, defaultAgg(field, how));
       return out;
     });
   },
@@ -48,7 +72,12 @@ export const Pivot = defineFunction({
 export const Top = defineFunction({
   name: "Top",
   description: 'The n rows with the largest field ("asc": the smallest)',
-  params: z.object({ rows: list(), field: z.string(), n: z.number(), direction: z.enum(["desc", "asc"]).optional() }),
+  params: z.object({
+    rows: list(),
+    field: z.string(),
+    n: z.number(),
+    direction: z.enum(["desc", "asc"]).optional(),
+  }),
   returns: list(),
   fn: ({ rows, field, n, direction = "desc" }) => {
     const sign = direction === "asc" ? 1 : -1;
@@ -76,7 +105,12 @@ export const Between = defineFunction({
   name: "Between",
   description:
     'Rows whose field is from min to max, both included; compares numbers, or text such as "YYYY-MM-DD" dates. Leave min or max null for an open end',
-  params: z.object({ rows: list(), field: z.string(), min: z.any().optional(), max: z.any().optional() }),
+  params: z.object({
+    rows: list(),
+    field: z.string(),
+    min: z.any().optional(),
+    max: z.any().optional(),
+  }),
   returns: list(),
   fn: ({ rows, field, min, max }) =>
     rows.filter((row) => {
@@ -146,18 +180,24 @@ export const Bucket = defineFunction({
 
 export const Cumulative = defineFunction({
   name: "Cumulative",
-  description: 'Copy of the rows with field replaced by its running total (field "" for a list of numbers)',
+  description:
+    'Copy of the rows with field replaced by its running total (field "" for a list of numbers)',
   params: z.object({ rows: list(), field: z.string() }),
   returns: list(),
   fn: ({ rows, field }) => {
     let total = 0;
-    return mapField(rows, field, rows.map((row) => (total += toNum(read(row, field)) ?? 0)));
+    return mapField(
+      rows,
+      field,
+      rows.map((row) => (total += toNum(read(row, field)) ?? 0)),
+    );
   },
 });
 
 export const MovingAvg = defineFunction({
   name: "MovingAvg",
-  description: 'Copy of the rows with field replaced by the average of its last window values (field "" for a list of numbers)',
+  description:
+    'Copy of the rows with field replaced by the average of its last window values (field "" for a list of numbers)',
   params: z.object({ rows: list(), field: z.string(), window: z.number() }),
   returns: list(),
   fn: ({ rows, field, window }) => {
@@ -174,19 +214,28 @@ export const MovingAvg = defineFunction({
 
 export const Change = defineFunction({
   name: "Change",
-  description: "Percent change from previous to current, e.g. @Change(120, 100) is 20; null when previous is 0",
+  description:
+    "Percent change from previous to current, e.g. @Change(120, 100) is 20; null when previous is 0",
   params: z.object({ current: z.number(), previous: z.number() }),
   returns: z.number().nullable(),
   // No previous value is normal while data loads, so it is null without an error
-  fn: ({ current, previous }) => (previous === 0 ? null : finite(((current - previous) / Math.abs(previous)) * 100)),
+  fn: ({ current, previous }) =>
+    previous === 0 ? null : finite(((current - previous) / Math.abs(previous)) * 100),
 });
 
 export const Histogram = defineFunction({
   name: "Histogram",
   description:
     "Counts numbers into equal-width bins (value is the count); min and max fix the range, default the data's",
-  params: z.object({ values: numbers(), bins: z.number(), min: z.number().optional(), max: z.number().optional() }),
-  returns: z.array(z.object({ key: z.string(), value: z.number(), start: z.number(), end: z.number() })),
+  params: z.object({
+    values: numbers(),
+    bins: z.number(),
+    min: z.number().optional(),
+    max: z.number().optional(),
+  }),
+  returns: z.array(
+    z.object({ key: z.string(), value: z.number(), start: z.number(), end: z.number() }),
+  ),
   fn: ({ values: raw, bins, min, max }) => {
     const values = finiteOnly(raw);
     const n = Math.trunc(bins);
@@ -233,4 +282,15 @@ export const Stats = defineFunction({
   },
 });
 
-export const dataFunctions = [GroupBy, Pivot, Top, Between, Bucket, Cumulative, MovingAvg, Change, Histogram, Stats];
+export const dataFunctions = [
+  GroupBy,
+  Pivot,
+  Top,
+  Between,
+  Bucket,
+  Cumulative,
+  MovingAvg,
+  Change,
+  Histogram,
+  Stats,
+];

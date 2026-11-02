@@ -18,7 +18,23 @@ export interface TextProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "c
 
 /** A paragraph. */
 const Text = forwardRef<HTMLParagraphElement, TextProps>(
-  ({ size, color, weight, italic, lineThrough, tabularNums, maxLines, block, className, style, children, ...rest }, ref) => {
+  (
+    {
+      size,
+      color,
+      weight,
+      italic,
+      lineThrough,
+      tabularNums,
+      maxLines,
+      block,
+      className,
+      style,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
     const Element = block ? "div" : "p";
     const lines = maxLines && maxLines > 0 ? Math.round(maxLines) : undefined;
     return (

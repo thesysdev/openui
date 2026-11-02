@@ -6,7 +6,10 @@ import { iconButtonStyles, names } from "./iconButton.styles";
 
 const VARIANT = { outline: "secondary", ghost: "tertiary", solid: "primary" } as const;
 
-export interface IconButtonProps extends Omit<ComponentProps<typeof RCIconButton>, "icon" | "variant" | "shape" | "size"> {
+export interface IconButtonProps extends Omit<
+  ComponentProps<typeof RCIconButton>,
+  "icon" | "variant" | "shape" | "size"
+> {
   /** A lucide icon name. */
   icon: string;
   variant?: keyof typeof VARIANT | null;
@@ -25,7 +28,13 @@ export function IconButton({ icon, variant: variantProp, className, ...rest }: I
       variant={VARIANT[variant]}
       shape="circle"
       size="small"
-      className={clsx(iconButtonStyles.root, names.root, variant !== "outline" && iconButtonStyles.variant[variant], names.variant[variant], className)}
+      className={clsx(
+        iconButtonStyles.root,
+        names.root,
+        variant !== "outline" && iconButtonStyles.variant[variant],
+        names.variant[variant],
+        className,
+      )}
       {...rest}
     />
   );

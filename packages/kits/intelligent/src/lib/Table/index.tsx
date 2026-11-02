@@ -10,8 +10,8 @@ import {
 } from "@openuidev/react-components";
 import { defineComponent } from "@openuidev/react-lang";
 import { inline } from "../../components/Markdown/markdownBlocks";
-import { TableSchema } from "./schema";
 import { isElement } from "../schemas";
+import { TableSchema } from "./schema";
 
 export * from "./schema";
 
@@ -31,8 +31,16 @@ export const Table = defineComponent({
     const numeric = columns.map((_, c) => {
       const cells = rows
         .map((r) => r[c])
-        .filter((v) => v != null && v !== "" && !(typeof v === "string" && /^(n\/a|—|–|-)$/i.test(v.trim())));
-      return cells.length > 0 && cells.every((v) => typeof v === "number" || (typeof v === "string" && NUMERIC.test(v.trim())));
+        .filter(
+          (v) =>
+            v != null && v !== "" && !(typeof v === "string" && /^(n\/a|—|–|-)$/i.test(v.trim())),
+        );
+      return (
+        cells.length > 0 &&
+        cells.every(
+          (v) => typeof v === "number" || (typeof v === "string" && NUMERIC.test(v.trim())),
+        )
+      );
     });
 
     // A cell may be a component, a number, or markdown-bearing text.

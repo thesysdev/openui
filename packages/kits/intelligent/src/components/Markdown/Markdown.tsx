@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { MarkdownBlocks } from "./markdownBlocks";
 import { markdownStyles, names } from "./markdown.styles";
+import { MarkdownBlocks } from "./markdownBlocks";
 
 export interface MarkdownProps extends HTMLAttributes<HTMLDivElement> {
   /** Markdown: headings, lists, quotes, code, rules and | tables |. */

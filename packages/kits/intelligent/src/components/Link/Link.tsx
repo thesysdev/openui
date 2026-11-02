@@ -16,7 +16,12 @@ export function Link({ url, children }: LinkProps) {
   const href = webUrl(url);
   if (!href) return <span>{children}</span>;
   return (
-    <a className={clsx(linkStyles.root, names.root)} href={href} target="_blank" rel="noopener noreferrer">
+    <a
+      className={clsx(linkStyles.root, names.root)}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       {children || new URL(href).hostname}
       <ArrowUpRight aria-hidden className={clsx(linkStyles.arrow, names.arrow)} />
     </a>

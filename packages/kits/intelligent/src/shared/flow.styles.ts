@@ -37,9 +37,15 @@ export const flowStyles = {
     & > ${TEXT} + ${TEXT} {
       margin-top: ${tokens.spaceGroup};
     }
-    &&& > ${TITLE} + ${TEXT},
-    &&& > ${TITLE} + ${CAPTION},
-    &&& > ${TITLE} + .openui-intelligent-row:has(> .openui-intelligent-badge) {
+    &&&
+      > ${TITLE}
+      + ${TEXT},
+      &&&
+      > ${TITLE}
+      + ${CAPTION},
+      &&&
+      > ${TITLE}
+      + .openui-intelligent-row:has(> .openui-intelligent-badge) {
       margin-top: ${tokens.spaceInner};
     }
     & > ${CAPTION} + ${TITLE} {

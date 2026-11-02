@@ -7,7 +7,10 @@ import type { ToolSpec } from "@openuidev/lang-core";
  * Used by /gallery, the /preview page and the benchmark's dashboard prompts.
  */
 
-const days = { type: "number", description: "How many days back from today, 1 to 365 (default 90)" };
+const days = {
+  type: "number",
+  description: "How many days back from today, 1 to 365 (default 90)",
+};
 
 export const demoToolSpecs: ToolSpec[] = [
   {
@@ -38,7 +41,8 @@ export const demoToolSpecs: ToolSpec[] = [
   },
   {
     name: "get_tickets",
-    description: "Support tickets opened, one row per ticket; hours and csat are set once a ticket is solved",
+    description:
+      "Support tickets opened, one row per ticket; hours and csat are set once a ticket is solved",
     inputSchema: { type: "object", properties: { days } },
     outputSchema: {
       type: "object",
@@ -100,7 +104,7 @@ function rng(seed: string): () => number {
   };
 }
 
-const pick = <T,>(r: () => number, list: readonly T[], weights?: readonly number[]): T => {
+const pick = <T>(r: () => number, list: readonly T[], weights?: readonly number[]): T => {
   if (!weights) return list[Math.floor(r() * list.length)]!;
   let x = r() * weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < list.length; i++) if ((x -= weights[i]!) < 0) return list[i]!;
@@ -112,7 +116,9 @@ function lastDays(input: unknown): string[] {
   const raw = Number((input as { days?: unknown } | null)?.days ?? 90);
   const n = Math.min(365, Math.max(1, Number.isFinite(raw) ? Math.round(raw) : 90));
   const today = Math.floor(Date.now() / DAY);
-  return Array.from({ length: n }, (_, i) => new Date((today - n + 1 + i) * DAY).toISOString().slice(0, 10));
+  return Array.from({ length: n }, (_, i) =>
+    new Date((today - n + 1 + i) * DAY).toISOString().slice(0, 10),
+  );
 }
 
 const weekday = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay();
@@ -166,7 +172,9 @@ function tickets(input: unknown) {
     return Array.from({ length: count }, (_, i) => {
       const team = pick(r, ["Billing", "Technical", "Accounts", "Shipping"] as const, [3, 5, 2, 3]);
       const priority = pick(r, ["low", "normal", "high", "urgent"] as const, [3, 6, 3, 1]);
-      const base = { Billing: 9, Technical: 22, Accounts: 6, Shipping: 14 }[team] * { low: 1.6, normal: 1, high: 0.6, urgent: 0.3 }[priority];
+      const base =
+        { Billing: 9, Technical: 22, Accounts: 6, Shipping: 14 }[team] *
+        { low: 1.6, normal: 1, high: 0.6, urgent: 0.3 }[priority];
       const hours = Math.round(base * (0.4 + r() * 1.6) * 10) / 10;
       const solved = age * 24 > hours * 1.5 || r() < 0.2;
       const status = solved ? "solved" : r() < 0.6 ? "open" : "pending";
@@ -184,7 +192,13 @@ function tickets(input: unknown) {
 }
 
 function traffic(input: unknown) {
-  const sources = { Search: [1800, 0.021], Social: [950, 0.012], Email: [420, 0.045], Direct: [700, 0.03], Referral: [300, 0.035] } as const;
+  const sources = {
+    Search: [1800, 0.021],
+    Social: [950, 0.012],
+    Email: [420, 0.045],
+    Direct: [700, 0.03],
+    Referral: [300, 0.035],
+  } as const;
   return lastDays(input).flatMap((date) => {
     const r = rng(`traffic:${date}`);
     const weekend = weekday(date) === 0 || weekday(date) === 6;

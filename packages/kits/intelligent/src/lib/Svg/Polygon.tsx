@@ -1,9 +1,9 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { ok, paint, paintAttrs, POINTS } from "./helpers";
+import { Standalone } from "./standalone";
 
 export const PolygonSchema = z.object({ points: z.string(), ...paint });
 

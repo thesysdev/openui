@@ -45,12 +45,26 @@ function useSheet() {
 /** A LaTeX formula, rendered with KaTeX. */
 export function MathBlock({ tex, inline }: MathBlockProps) {
   const ready = useSheet();
-  const html = katex.renderToString(tex, { displayMode: !inline, throwOnError: false, trust: false, strict: "ignore", output: "htmlAndMathml" });
+  const html = katex.renderToString(tex, {
+    displayMode: !inline,
+    throwOnError: false,
+    trust: false,
+    strict: "ignore",
+    output: "htmlAndMathml",
+  });
   const style = ready ? undefined : ({ visibility: "hidden" } as const);
   // KaTeX escapes its input and is configured without \href or \includegraphics.
   return inline ? (
-    <span className={clsx(mathStyles.root, names.root)} style={style} dangerouslySetInnerHTML={{ __html: html }} />
+    <span
+      className={clsx(mathStyles.root, names.root)}
+      style={style}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   ) : (
-    <div className={clsx(mathStyles.root, names.root, mathStyles.block, names.block)} style={style} dangerouslySetInnerHTML={{ __html: html }} />
+    <div
+      className={clsx(mathStyles.root, names.root, mathStyles.block, names.block)}
+      style={style}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
 }

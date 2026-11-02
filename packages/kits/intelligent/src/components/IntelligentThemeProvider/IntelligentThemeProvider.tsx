@@ -8,7 +8,14 @@ import {
   type Theme,
   type ThemeMode,
 } from "@openuidev/react-components";
-import { createContext, useContext, useId, useMemo, type CSSProperties, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useId,
+  useMemo,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { defaultIntelligentDarkTheme, defaultIntelligentLightTheme } from "./defaultThemes";
 
 /** The stable class on the provider's wrapper, a target for an app's own CSS. */
@@ -39,26 +46,40 @@ export interface IntelligentThemeProviderProps {
  * there and hide an app's own CSS variables. A mode or theme of yours gets a ThemeProvider, scoped to
  * this provider, so a light and a dark output can share a page.
  */
-export function IntelligentThemeProvider({ children, mode: modeOverride, lightTheme, darkTheme }: IntelligentThemeProviderProps) {
+export function IntelligentThemeProvider({
+  children,
+  mode: modeOverride,
+  lightTheme,
+  darkTheme,
+}: IntelligentThemeProviderProps) {
   const outer = useTheme();
   const mode: ThemeMode = modeOverride ?? outer.mode;
   const scope = `openui-intelligent-theme-${useId().replace(/[^a-zA-Z0-9-_]/g, "")}`;
   const themed = modeOverride !== undefined || lightTheme !== undefined || darkTheme !== undefined;
 
   const { theme, palette } = useMemo(() => {
-    const builtIn = (mode === "dark" ? defaultDarkTheme : defaultLightTheme) as Record<string, unknown>;
+    const builtIn = (mode === "dark" ? defaultDarkTheme : defaultLightTheme) as Record<
+      string,
+      unknown
+    >;
     // The outer theme only says something about this mode when it's in it.
     const base = (mode === outer.mode ? outer.theme : builtIn) as Record<string, unknown>;
     const kit = mode === "dark" ? defaultIntelligentDarkTheme : defaultIntelligentLightTheme;
-    const untouched = Object.fromEntries(Object.entries(kit).filter(([key]) => base[key] === builtIn[key]));
+    const untouched = Object.fromEntries(
+      Object.entries(kit).filter(([key]) => base[key] === builtIn[key]),
+    );
     const own = mode === "dark" ? (darkTheme ?? lightTheme) : lightTheme;
     return {
       theme: { ...base, ...untouched, ...own } as Theme,
-      palette: Object.fromEntries(Object.entries(untouched).map(([key, value]) => [cssVar(key), value])) as CSSProperties,
+      palette: Object.fromEntries(
+        Object.entries(untouched).map(([key, value]) => [cssVar(key), value]),
+      ) as CSSProperties,
     };
   }, [mode, outer.mode, outer.theme, lightTheme, darkTheme]);
 
-  const body = <InsideIntelligentTheme.Provider value={true}>{children}</InsideIntelligentTheme.Provider>;
+  const body = (
+    <InsideIntelligentTheme.Provider value={true}>{children}</InsideIntelligentTheme.Provider>
+  );
   if (!themed) {
     return (
       <div className={names.root} style={{ display: "contents", ...palette }}>

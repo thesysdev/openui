@@ -12,21 +12,29 @@ export interface TitleProps extends Omit<HTMLAttributes<HTMLDivElement>, "color"
 const HEADING_LEVEL: Record<string, number> = { "3xl": 1, "2xl": 2, xl: 2, lg: 2, md: 3, sm: 4 };
 
 /** A heading; its level follows its size. */
-const Title = forwardRef<HTMLDivElement, TitleProps>(({ size, color, className, style, children, ...rest }, ref) => {
-  const sizeName = size ?? "md";
-  return (
-    <div
-      ref={ref}
-      role="heading"
-      aria-level={HEADING_LEVEL[sizeName] ?? 3}
-      className={clsx(titleStyles.root, names.root, titleStyles.size[sizeName], names.size[sizeName], className)}
-      style={{ color: fg(color), ...style }}
-      {...rest}
-    >
-      {children}
-    </div>
-  );
-});
+const Title = forwardRef<HTMLDivElement, TitleProps>(
+  ({ size, color, className, style, children, ...rest }, ref) => {
+    const sizeName = size ?? "md";
+    return (
+      <div
+        ref={ref}
+        role="heading"
+        aria-level={HEADING_LEVEL[sizeName] ?? 3}
+        className={clsx(
+          titleStyles.root,
+          names.root,
+          titleStyles.size[sizeName],
+          names.size[sizeName],
+          className,
+        )}
+        style={{ color: fg(color), ...style }}
+        {...rest}
+      >
+        {children}
+      </div>
+    );
+  },
+);
 
 Title.displayName = "Title";
 

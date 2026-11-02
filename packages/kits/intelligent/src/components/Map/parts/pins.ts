@@ -3,7 +3,12 @@ import type { MapLibre } from "./basemap";
 import { createPinElement, lngLat } from "./mapUtils";
 import type { Place } from "./place";
 
-export type PinEntry = { marker: Marker; element: HTMLDivElement; pin: HTMLSpanElement; label: HTMLSpanElement };
+export type PinEntry = {
+  marker: Marker;
+  element: HTMLDivElement;
+  pin: HTMLSpanElement;
+  label: HTMLSpanElement;
+};
 
 /** Reconciles pins with the visible places: stale pins go, new ones are added, the rest update in place. */
 export function syncPins(
@@ -16,14 +21,23 @@ export function syncPins(
 ) {
   const keys = new Set(visible.map((p) => p.key));
   for (const [key, entry] of pins) {
-    if (!keys.has(key)) { entry.marker.remove(); pins.delete(key); }
+    if (!keys.has(key)) {
+      entry.marker.remove();
+      pins.delete(key);
+    }
   }
   visible.forEach((place) => {
     let entry = pins.get(place.key);
     if (!entry) {
       const pinElement = createPinElement(() => onPick(place));
       // Anchor the pin's centre (not the label below it) on the coordinate.
-      const marker = new lib.Marker({ element: pinElement.element, anchor: "top", offset: [0, -17] }).setLngLat(lngLat([place.lat, place.lng])).addTo(map);
+      const marker = new lib.Marker({
+        element: pinElement.element,
+        anchor: "top",
+        offset: [0, -17],
+      })
+        .setLngLat(lngLat([place.lat, place.lng]))
+        .addTo(map);
       entry = { marker, ...pinElement };
       pins.set(place.key, entry);
     }

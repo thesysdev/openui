@@ -15,10 +15,26 @@ export interface CheckboxProps {
 }
 
 /** react-components' CheckBoxItem, with the kit's strike-through and a field error. */
-export function Checkbox({ label, checked, onChange, lineThrough, required, error }: CheckboxProps) {
+export function Checkbox({
+  label,
+  checked,
+  onChange,
+  lineThrough,
+  required,
+  error,
+}: CheckboxProps) {
   return (
-    <span className={clsx(checkboxStyles.root, names.root)} data-done={(lineThrough && checked) || undefined}>
-      <CheckBoxItem label={label} checked={checked} aria-required={required || undefined} aria-invalid={error ? true : undefined} onChange={onChange} />
+    <span
+      className={clsx(checkboxStyles.root, names.root)}
+      data-done={(lineThrough && checked) || undefined}
+    >
+      <CheckBoxItem
+        label={label}
+        checked={checked}
+        aria-required={required || undefined}
+        aria-invalid={error ? true : undefined}
+        onChange={onChange}
+      />
       <FieldError error={error} />
     </span>
   );

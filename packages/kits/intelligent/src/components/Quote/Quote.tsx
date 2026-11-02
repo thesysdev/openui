@@ -8,12 +8,14 @@ export interface QuoteProps extends Omit<BlockquoteHTMLAttributes<HTMLQuoteEleme
 }
 
 /** A quotation or a callout with a side rule. */
-const Quote = forwardRef<HTMLQuoteElement, QuoteProps>(({ cite, className, children, ...rest }, ref) => (
-  <blockquote ref={ref} className={clsx(quoteStyles.root, names.root, className)} {...rest}>
-    <p className={clsx(quoteStyles.text, names.text)}>{children}</p>
-    {cite != null ? <cite className={clsx(quoteStyles.cite, names.cite)}>{cite}</cite> : null}
-  </blockquote>
-));
+const Quote = forwardRef<HTMLQuoteElement, QuoteProps>(
+  ({ cite, className, children, ...rest }, ref) => (
+    <blockquote ref={ref} className={clsx(quoteStyles.root, names.root, className)} {...rest}>
+      <p className={clsx(quoteStyles.text, names.text)}>{children}</p>
+      {cite != null ? <cite className={clsx(quoteStyles.cite, names.cite)}>{cite}</cite> : null}
+    </blockquote>
+  ),
+);
 
 Quote.displayName = "Quote";
 

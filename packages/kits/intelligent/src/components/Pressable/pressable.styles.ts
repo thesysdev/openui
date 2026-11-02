@@ -26,7 +26,9 @@ export const pressableStyles = {
     border-radius: ${tokens.radiusLg};
     cursor: pointer;
     outline: none;
-    transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+    transition:
+      transform 120ms ease-out,
+      box-shadow 120ms ease-out;
     &::after {
       content: "";
       position: absolute;
@@ -50,7 +52,12 @@ export const pressableStyles = {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: ${tokens.ink} var(--_openui-intelligent-pressable-check-icon, var(--_openui-intelligent-pressable-check-default, none)) center / 12px no-repeat;
+      background: ${tokens.ink}
+        var(
+          --_openui-intelligent-pressable-check-icon,
+          var(--_openui-intelligent-pressable-check-default, none)
+        )
+        center / 12px no-repeat;
     }
     &:hover:not([aria-disabled="true"]) {
       ${WASH}: 0.05;

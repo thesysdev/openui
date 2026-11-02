@@ -39,7 +39,11 @@ export const Format = defineFunction({
         : { minimumFractionDigits: fallbackMin && d, maximumFractionDigits: d };
     switch (kind) {
       case "currency":
-        return format(value, { style: "currency", currency: currencyCode(currency), ...digits(2, 2) });
+        return format(value, {
+          style: "currency",
+          currency: currencyCode(currency),
+          ...digits(2, 2),
+        });
       case "percent":
         return `${format(value, digits(1))}%`;
       case "compact":
@@ -69,18 +73,25 @@ export const Join = defineFunction({
 
 export const Plural = defineFunction({
   name: "Plural",
-  description: 'Count and word: @Plural(1, "guest") is "1 guest", 3 gives "3 guests"; plural defaults to word + "s"',
+  description:
+    'Count and word: @Plural(1, "guest") is "1 guest", 3 gives "3 guests"; plural defaults to word + "s"',
   params: z.object({ n: z.number(), word: z.string(), plural: z.string().optional() }),
   returns: z.string(),
-  fn: ({ n, word, plural }) => `${format(n, { maximumFractionDigits: 2 })} ${Math.abs(n) === 1 ? word : (plural ?? `${word}s`)}`,
+  fn: ({ n, word, plural }) =>
+    `${format(n, { maximumFractionDigits: 2 })} ${Math.abs(n) === 1 ? word : (plural ?? `${word}s`)}`,
 });
 
 export const Pad = defineFunction({
   name: "Pad",
   description: 'Pads the start of value to length with char (default "0"), e.g. 7 -> "07"',
-  params: z.object({ value: z.union([z.string(), z.number()]), length: z.number(), char: z.string().optional() }),
+  params: z.object({
+    value: z.union([z.string(), z.number()]),
+    length: z.number(),
+    char: z.string().optional(),
+  }),
   returns: z.string(),
-  fn: ({ value, length, char = "0" }) => String(value).padStart(Math.min(Math.trunc(length), 1000), char || "0"),
+  fn: ({ value, length, char = "0" }) =>
+    String(value).padStart(Math.min(Math.trunc(length), 1000), char || "0"),
 });
 
 export const Upper = defineFunction({
@@ -112,16 +123,24 @@ export const Capitalize = defineFunction({
   description: 'Each word with a capital first letter, e.g. "new york" is "New York"',
   params: z.object({ text: z.string() }),
   returns: z.string(),
-  fn: ({ text }) => text.replace(/(^|[\s\-(/"])(\p{L})/gu, (_, before: string, letter: string) => before + letter.toUpperCase()),
+  fn: ({ text }) =>
+    text.replace(
+      /(^|[\s\-(/"])(\p{L})/gu,
+      (_, before: string, letter: string) => before + letter.toUpperCase(),
+    ),
 });
 
 export const Split = defineFunction({
   name: "Split",
-  description: 'List of the parts of text between sep (default ","), each trimmed, empty parts dropped, e.g. @Split("a, b,,c") is ["a", "b", "c"]',
+  description:
+    'List of the parts of text between sep (default ","), each trimmed, empty parts dropped, e.g. @Split("a, b,,c") is ["a", "b", "c"]',
   params: z.object({ text: z.string(), sep: z.string().optional() }),
   returns: z.array(z.string()),
   fn: ({ text, sep = "," }) => {
-    const parts = text.split(sep === "" ? "" : sep).map((p) => p.trim()).filter((p) => p !== "");
+    const parts = text
+      .split(sep === "" ? "" : sep)
+      .map((p) => p.trim())
+      .filter((p) => p !== "");
     if (parts.length > MAX_ITEMS) throw new Error(`more than ${MAX_ITEMS} items`);
     return parts;
   },
@@ -155,13 +174,29 @@ export const Duration = defineFunction({
 
 export const Default = defineFunction({
   name: "Default",
-  description: 'value, or fallback when value is null, "" or not a number, e.g. an empty number input: @Default($weight, 0)',
+  description:
+    'value, or fallback when value is null, "" or not a number, e.g. an empty number input: @Default($weight, 0)',
   params: z.object({ value: z.any().optional(), fallback: z.any() }),
   returns: z.any(),
   // Annotated explicitly: z.any() params give defineFunction nothing to infer
   // from, and older @openuidev/react-lang then reports an implicit any here.
   fn: ({ value, fallback }: { value?: unknown; fallback: unknown }) =>
-    value == null || value === "" || (typeof value === "number" && Number.isNaN(value)) ? fallback : value,
+    value == null || value === "" || (typeof value === "number" && Number.isNaN(value))
+      ? fallback
+      : value,
 });
 
-export const textFunctions = [Format, Join, Plural, Pad, Upper, Lower, Trim, Capitalize, Split, Replace, Duration, Default];
+export const textFunctions = [
+  Format,
+  Join,
+  Plural,
+  Pad,
+  Upper,
+  Lower,
+  Trim,
+  Capitalize,
+  Split,
+  Replace,
+  Duration,
+  Default,
+];

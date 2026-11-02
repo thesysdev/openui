@@ -11,5 +11,7 @@ export const Badge = defineComponent({
   name: "Badge",
   props: BadgeSchema,
   description: "Pill tag; icon is an optional leading lucide name.",
-  component: ({ props }) => <BadgeView text={str(props.text)} color={props.color} icon={props.icon} />,
+  component: ({ props }) => (
+    <BadgeView text={str(props.text)} color={props.color} icon={props.icon} />
+  ),
 });

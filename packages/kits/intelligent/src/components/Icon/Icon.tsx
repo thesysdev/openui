@@ -14,11 +14,18 @@ export interface IconProps extends Omit<HTMLAttributes<HTMLSpanElement>, "color"
 const ICON_SIZE = { sm: 14, md: 18, lg: 24, xl: 32 } as const;
 
 /** A lucide icon by name. */
-const Icon = forwardRef<HTMLSpanElement, IconProps>(({ name, size, color, className, style, ...rest }, ref) => (
-  <span ref={ref} className={clsx(iconStyles.root, names.root, className)} style={{ color: fg(color), ...style }} {...rest}>
-    <Glyph name={name} size={ICON_SIZE[size ?? "md"] ?? 18} />
-  </span>
-));
+const Icon = forwardRef<HTMLSpanElement, IconProps>(
+  ({ name, size, color, className, style, ...rest }, ref) => (
+    <span
+      ref={ref}
+      className={clsx(iconStyles.root, names.root, className)}
+      style={{ color: fg(color), ...style }}
+      {...rest}
+    >
+      <Glyph name={name} size={ICON_SIZE[size ?? "md"] ?? 18} />
+    </span>
+  ),
+);
 
 Icon.displayName = "Icon";
 

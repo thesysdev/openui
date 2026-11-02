@@ -10,7 +10,7 @@ import {
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import clsx from "clsx";
 import { Field } from "../../components/Field";
-import { fieldStyles, names as fieldNames } from "../../components/Field/field.styles";
+import { names as fieldNames, fieldStyles } from "../../components/Field/field.styles";
 import { optionList, useFieldName, useFieldRules } from "../controls";
 import { SelectSchema } from "./schema";
 
@@ -49,7 +49,9 @@ export const Select = defineComponent({
           </SelectTrigger>
           <SelectContent>
             {optionList(props.options).map((o, i) => (
-              <SelectItem key={`${o.value}-${i}`} value={o.value}>{o.label}</SelectItem>
+              <SelectItem key={`${o.value}-${i}`} value={o.value}>
+                {o.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </RCSelect>

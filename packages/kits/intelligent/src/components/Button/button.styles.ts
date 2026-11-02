@@ -57,7 +57,10 @@ export const buttonStyles = {
       min-height: 36px;
       white-space: nowrap;
       font-family: inherit;
-      transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+      transition:
+        background-color 0.15s,
+        border-color 0.15s,
+        color 0.15s;
     }
     /* In a Row, which is not flat because the Button is the model's child. */
     .openui-intelligent-row > &.openui-button {
@@ -115,7 +118,7 @@ export const buttonStyles = {
       }
     `,
     outline: css`
-      &.openui-button:not(:hover,:active),
+      &.openui-button:not(:hover, :active),
       &.openui-button:disabled {
         background-color: ${tokens.canvas};
       }
@@ -126,7 +129,7 @@ export const buttonStyles = {
     soft: css`
       --openui-highlight: ${tokens.pressed};
       --openui-border-interactive: transparent;
-      &.openui-button:not(:hover,:active),
+      &.openui-button:not(:hover, :active),
       &.openui-button:disabled {
         background-color: ${tokens.surface};
       }

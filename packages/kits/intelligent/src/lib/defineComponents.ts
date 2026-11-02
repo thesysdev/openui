@@ -1,49 +1,47 @@
-import { Chart } from "./Chart";
+import { Badge } from "./Badge";
+import { Box } from "./Box";
+import { Button } from "./Button";
+import { Caption } from "./Caption";
+import { Card } from "./Card";
 import { Carousel } from "./Carousel";
 import { Celebration } from "./Celebration";
+import { Chart } from "./Chart";
+import { Checkbox } from "./Checkbox";
+import { Code } from "./Code";
+import { Col } from "./Col";
+import { DatePicker } from "./DatePicker";
+import { Divider } from "./Divider";
 import { Flashcard } from "./Flashcard";
+import { Form } from "./Form";
+import { Grid } from "./Grid";
+import { HtmlView } from "./HtmlView";
+import { Icon } from "./Icon";
+import { IconButton } from "./IconButton";
+import { Image } from "./Image";
+import { Input } from "./Input";
+import { Label } from "./Label";
+import { Link } from "./Link";
+import { List, ListItem } from "./List";
+import { MapMarker, MapView } from "./Map";
+import { Markdown } from "./Markdown";
 import { MathBlock } from "./Math";
 import { Popover } from "./Popover";
-import { Quote } from "./Quote";
-import { YouTube } from "./YouTube";
-import { Code } from "./Code";
 import { Pressable } from "./Pressable";
-import { Slider } from "./Slider";
-import { Timer } from "./Timer";
-import { SegmentedControl } from "./SegmentedControl";
-import { Button } from "./Button";
-import { IconButton } from "./IconButton";
-import { Input } from "./Input";
-import { TextArea } from "./TextArea";
-import { Select } from "./Select";
-import { Checkbox } from "./Checkbox";
-import { DatePicker } from "./DatePicker";
+import { Quote } from "./Quote";
 import { RadioGroup } from "./RadioGroup";
-import { HtmlView } from "./HtmlView";
-import { Box } from "./Box";
-import { Card } from "./Card";
-import { Col } from "./Col";
-import { Grid } from "./Grid";
 import { Row } from "./Row";
-import { Spacer } from "./Spacer";
-import { Form } from "./Form";
-import { Divider } from "./Divider";
-import { MapMarker } from "./Map";
-import { MapView } from "./Map";
-import { Icon } from "./Icon";
-import { Image } from "./Image";
 import { SearchImage } from "./SearchImage";
+import { SegmentedControl } from "./SegmentedControl";
+import { Select } from "./Select";
+import { Slider } from "./Slider";
+import { Spacer } from "./Spacer";
 import { svgComponents } from "./Svg";
 import { Table } from "./Table";
-import { Caption } from "./Caption";
-import { Link } from "./Link";
 import { Text } from "./Text";
+import { TextArea } from "./TextArea";
+import { Timer } from "./Timer";
 import { Title } from "./Title";
-import { List } from "./List";
-import { ListItem } from "./List";
-import { Badge } from "./Badge";
-import { Label } from "./Label";
-import { Markdown } from "./Markdown";
+import { YouTube } from "./YouTube";
 
 /**
  * Primitives the model arranges itself, plus a few widgets for what a model
@@ -55,10 +53,50 @@ import { Markdown } from "./Markdown";
  * library or take a subset.
  */
 export const baseComponents = [
-    Col, Row, Box, Grid, Card, Carousel, Popover, Divider, Spacer,
-    Title, Text, Caption, Label, Badge, Link, List, ListItem, Markdown, Quote, Code, MathBlock,
-    Button, IconButton, Pressable, Input, TextArea, Select, SegmentedControl, Slider, Checkbox, RadioGroup, DatePicker, Timer, Form,
-    SearchImage, Image, Icon, Table, Chart, MapView, MapMarker, YouTube,
-    Flashcard, Celebration,
-    ...svgComponents, HtmlView,
+  Col,
+  Row,
+  Box,
+  Grid,
+  Card,
+  Carousel,
+  Popover,
+  Divider,
+  Spacer,
+  Title,
+  Text,
+  Caption,
+  Label,
+  Badge,
+  Link,
+  List,
+  ListItem,
+  Markdown,
+  Quote,
+  Code,
+  MathBlock,
+  Button,
+  IconButton,
+  Pressable,
+  Input,
+  TextArea,
+  Select,
+  SegmentedControl,
+  Slider,
+  Checkbox,
+  RadioGroup,
+  DatePicker,
+  Timer,
+  Form,
+  SearchImage,
+  Image,
+  Icon,
+  Table,
+  Chart,
+  MapView,
+  MapMarker,
+  YouTube,
+  Flashcard,
+  Celebration,
+  ...svgComponents,
+  HtmlView,
 ];

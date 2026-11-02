@@ -1,7 +1,7 @@
 "use client";
 
 import { defineComponent, type ElementNode } from "@openuidev/react-lang";
-import { List as ListView, ListItem as ListItemView } from "../../components/List";
+import { ListItem as ListItemView, List as ListView } from "../../components/List";
 import { inline } from "../../components/Markdown/markdownBlocks";
 import { str } from "../../shared/text";
 import { isElement, type Render } from "../schemas";
@@ -30,7 +30,8 @@ export const ListItem = defineComponent({
   component: ({ props, renderNode }) => itemView(props, renderNode),
 });
 
-const isItem = (value: unknown): value is ElementNode => isElement(value) && value.typeName === "ListItem";
+const isItem = (value: unknown): value is ElementNode =>
+  isElement(value) && value.typeName === "ListItem";
 
 export const List = defineComponent({
   name: "List",
@@ -40,7 +41,9 @@ export const List = defineComponent({
     const items = (Array.isArray(props.items) ? props.items.flat() : []) as unknown[];
     return (
       <ListView
-        items={items.map((item) => (item == null ? null : isItem(item) ? itemView(item.props, renderNode) : inline(str(item))))}
+        items={items.map((item) =>
+          item == null ? null : isItem(item) ? itemView(item.props, renderNode) : inline(str(item)),
+        )}
         marker={props.marker}
         timeline={props.timeline}
       />
