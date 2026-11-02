@@ -55,13 +55,10 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
-export interface ArtifactResult {
-  id: string;
-  /** Return this from your tool as is, and pass the same string to the renderer. */
-  response: string;
-}
-
-/** Creates and edits live dashboards. Each call returns as soon as the artifact has an id. */
+/**
+ * Creates and edits live dashboards. Each call resolves, as soon as the artifact has an id,
+ * with the tool's response: return it from your tool as is, and pass it to the renderer.
+ */
 export interface Dashboard<Context extends ExecutionContext = ExecutionContext> {
   /**
    * `context` says who's asking, as for the interpreter: the dashboard belongs
@@ -71,13 +68,9 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
     params: CreateDashboardParams,
     context: Context,
     options?: RequestOptions,
-  ): Promise<ArtifactResult>;
+  ): Promise<string>;
   /** Edits in place, for its owner. Renderers keep the current version until the edit is ready. */
-  edit(
-    params: EditDashboardParams,
-    context: Context,
-    options?: RequestOptions,
-  ): Promise<ArtifactResult>;
+  edit(params: EditDashboardParams, context: Context, options?: RequestOptions): Promise<string>;
   /** Runs this dashboard's data tools and generated scripts on your server. */
   readonly interpreter: Interpreter<Context>;
 }

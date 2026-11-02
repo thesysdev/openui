@@ -1,16 +1,11 @@
-import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
+import { FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
-import { apiError, isRecord, type CloudApi } from "./api";
+import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
 import { createFrontendToken } from "./frontend-token";
-import {
-  OpenUIApiError,
-  type ArtifactResult,
-  type Dashboard,
-  type DashboardOptions,
-} from "./types";
+import { OpenUIApiError, type Dashboard, type DashboardOptions } from "./types";
 
 function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
@@ -99,24 +94,20 @@ export function defineDashboard<Context extends ExecutionContext>(
       createFrontendToken(api, context.userId, signal),
       toolDefinitions(),
     ]);
-    const response = await api.request("/v1/artifact/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", [FRONTEND_TOKEN_HEADER]: token },
-      body: JSON.stringify({
+    // Not streamed: OpenUI Cloud replies with the artifact's id at once and keeps generating.
+    const { id } = await api.post(
+      "/v1/artifact/chat/completions",
+      {
         model,
-        stream: true,
         messages: [
           { role: "system", content: config({ tools: definitions, ...call }) },
           { role: "user", content: prompt },
         ],
-      }),
+      },
       signal,
-    });
-    if (!response.ok) throw await apiError(response);
-    const id = response.headers.get(ARTIFACT_ID_HEADER);
-    // The generation carries on in OpenUI Cloud; renderers read it from there.
-    await response.body?.cancel().catch(() => undefined);
-    if (!id) {
+      { [FRONTEND_TOKEN_HEADER]: token },
+    );
+    if (typeof id !== "string" || !id) {
       throw new OpenUIApiError(
         "OpenUI Cloud didn't start a background artifact",
         "invalid_response",
@@ -127,16 +118,14 @@ export function defineDashboard<Context extends ExecutionContext>(
   }
 
   return {
-    async create({ title, prompt }, context, { signal } = {}): Promise<ArtifactResult> {
-      const id = await start(context, prompt, { title }, signal);
-      return { id, response: toolResponse(id, title) };
+    async create({ title, prompt }, context, { signal } = {}) {
+      return toolResponse(await start(context, prompt, { title }, signal), title);
     },
 
     // OpenUI Cloud edits the version it stores.
-    async edit({ id, prompt }, context, { signal } = {}): Promise<ArtifactResult> {
+    async edit({ id, prompt }, context, { signal } = {}) {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      const edited = await start(context, prompt, { artifactId: id }, signal);
-      return { id: edited, response: toolResponse(edited) };
+      return toolResponse(await start(context, prompt, { artifactId: id }, signal));
     },
 
     interpreter: createInterpreter<Context>(api, loadTools),

@@ -3,7 +3,6 @@ export { OpenUIApiError } from "./client/types";
 export type {
   ArtifactLibrary,
   ArtifactPromptOptions,
-  ArtifactResult,
   CreateDashboardParams,
   CreateFrontendTokenParams,
   Dashboard,
