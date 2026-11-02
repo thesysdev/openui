@@ -19,6 +19,7 @@ const DEFAULT_PAGE_SIZE = 10;
 
 export interface TableColumn {
   label: string;
+  align?: "left" | "right";
   cells: ReactNode[];
 }
 
@@ -49,7 +50,9 @@ export function Table({ columns, loading }: TableProps) {
         <TableHeader>
           <TableRow>
             {columns.map((c, i) => (
-              <TableHead key={i}>{c.label}</TableHead>
+              <TableHead key={i} align={c.align}>
+                {c.label}
+              </TableHead>
             ))}
           </TableRow>
         </TableHeader>
@@ -59,7 +62,9 @@ export function Table({ columns, loading }: TableProps) {
             return (
               <TableRow key={rowIndex}>
                 {columns.map((column, columnIndex) => (
-                  <TableCell key={columnIndex}>{column.cells[rowIndex] ?? ""}</TableCell>
+                  <TableCell key={columnIndex} align={column.align}>
+                    {column.cells[rowIndex] ?? ""}
+                  </TableCell>
                 ))}
               </TableRow>
             );

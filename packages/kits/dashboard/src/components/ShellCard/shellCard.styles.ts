@@ -1,4 +1,5 @@
 import { css } from "@openuidev/react-components";
+import { whenRowWidth } from "../../shared/rowWidth";
 import { MODAL } from "../../shared/zIndex";
 
 export const names = {
@@ -38,10 +39,7 @@ export const styles = {
   size: {
     small: css`
       flex: var(--_openui-dashboard-card-row-small-flex, 0 1 auto);
-      min-width: 220px;
-      @media (max-width: 768px) {
-        min-width: 100%;
-      }
+      min-width: ${whenRowWidth("600px", "100%", whenRowWidth("1080px", "0px", "220px"))};
       &.openui-card {
         padding: var(--openui-space-m-l, 16px);
         border-color: var(--openui-border-default, oklch(0.097 0 0 / 0.06));
@@ -52,13 +50,11 @@ export const styles = {
     medium: css`
       ${PREVIEW_HEIGHT}: 240px;
       flex: var(--_openui-dashboard-card-row-medium-flex, 0 1 auto);
-      min-width: 360px;
-      @media (min-width: 1080px) and (max-width: 1279px) {
-        min-width: 320px;
-      }
-      @media (max-width: 768px) {
-        min-width: 100%;
-      }
+      min-width: ${whenRowWidth(
+        "600px",
+        "100%",
+        whenRowWidth("1080px", "0px", whenRowWidth("1280px", "320px", "360px")),
+      )};
       &.openui-card {
         gap: var(--openui-space-l, 18px);
         padding: var(--openui-space-l, 18px);
@@ -70,13 +66,7 @@ export const styles = {
     large: css`
       ${PREVIEW_HEIGHT}: 280px;
       flex: var(--_openui-dashboard-card-row-large-flex, 0 1 auto);
-      min-width: min(832px, 100%);
-      @media (min-width: 1080px) and (max-width: 1279px) {
-        min-width: 720px;
-      }
-      @media (max-width: 1079px) {
-        min-width: 100%;
-      }
+      min-width: ${whenRowWidth("1080px", "100%", whenRowWidth("1280px", "720px", "min(832px, 100%)"))};
       &.openui-card {
         gap: var(--openui-space-l, 18px);
         padding: var(--openui-space-l, 18px);

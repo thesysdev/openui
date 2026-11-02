@@ -3,7 +3,7 @@
 import { CheckBoxItem } from "@openuidev/react-components";
 import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type RefObject } from "react";
 import { names, styles } from "./filterSelect.styles";
 
 export interface FilterOption {
@@ -11,16 +11,27 @@ export interface FilterOption {
   label: string;
 }
 
-function useClickOutside(ref: RefObject<HTMLElement | null>, onClose: () => void) {
+/** Closes an open dropdown on a click outside or on Escape, which also returns focus to its trigger. */
+function useDismiss(ref: RefObject<HTMLElement | null>, isOpen: boolean, onClose: () => void) {
   useEffect(() => {
+    if (!isOpen) return;
     function handlePointerDown(event: PointerEvent) {
       if (ref.current && !ref.current.contains(event.target as Node)) {
         onClose();
       }
     }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      onClose();
+      ref.current?.querySelector("button")?.focus();
+    }
     document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [ref, onClose]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [ref, isOpen, onClose]);
 }
 
 export interface FilterSelectProps {
@@ -44,19 +55,30 @@ export function FilterSelect({
   onValueChange,
 }: FilterSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const id = useId();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const selectedItem = options.find((item) => item.value === value);
   const summary = selectedItem?.label ?? placeholder ?? "Select...";
 
   const closeDropdown = useCallback(() => setIsOpen(false), []);
-  useClickOutside(dropdownRef, closeDropdown);
+  useDismiss(dropdownRef, isOpen, closeDropdown);
 
   return (
     <div className={clsx(styles.root, names.root)}>
-      {label && <label className={clsx(styles.label, names.label)}>{label}</label>}
+      {label && (
+        <label
+          id={`${id}-label`}
+          htmlFor={`${id}-trigger`}
+          className={clsx(styles.label, names.label)}
+        >
+          {label}
+        </label>
+      )}
       <div className={clsx(styles.control, names.control)} ref={dropdownRef}>
         <button
+          id={`${id}-trigger`}
           type="button"
+          aria-labelledby={label ? `${id}-label ${id}-trigger` : undefined}
           data-empty={!selectedItem || undefined}
           className={clsx(styles.trigger, names.trigger, styles.triggerSingle, names.triggerSingle)}
           disabled={disabled}
@@ -120,10 +142,11 @@ export function FilterMultiSelect({
   onValuesChange,
 }: FilterMultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const id = useId();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const closeDropdown = useCallback(() => setIsOpen(false), []);
-  useClickOutside(dropdownRef, closeDropdown);
+  useDismiss(dropdownRef, isOpen, closeDropdown);
 
   const summary = values.length
     ? values.map((val) => options.find((o) => o.value === val)?.label ?? val).join(", ")
@@ -134,10 +157,20 @@ export function FilterMultiSelect({
 
   return (
     <div className={clsx(styles.root, names.root)}>
-      {label && <label className={clsx(styles.label, names.label)}>{label}</label>}
+      {label && (
+        <label
+          id={`${id}-label`}
+          htmlFor={`${id}-trigger`}
+          className={clsx(styles.label, names.label)}
+        >
+          {label}
+        </label>
+      )}
       <div className={clsx(styles.control, names.control)} ref={dropdownRef}>
         <button
+          id={`${id}-trigger`}
           type="button"
+          aria-labelledby={label ? `${id}-label ${id}-trigger` : undefined}
           data-empty={!values.length || undefined}
           className={clsx(styles.trigger, names.trigger, styles.triggerMulti, names.triggerMulti)}
           onClick={() => setIsOpen(!isOpen)}

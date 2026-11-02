@@ -1,4 +1,5 @@
 import { css } from "@openuidev/react-components";
+import { whenRowWidth } from "../../shared/rowWidth";
 
 export const names = {
   root: "openui-dashboard-card-row",
@@ -19,14 +20,15 @@ const SMALL = "--_openui-dashboard-card-row-small-flex";
 const MEDIUM = "--_openui-dashboard-card-row-medium-flex";
 const LARGE = "--_openui-dashboard-card-row-large-flex";
 
-/* Phones stack every card. Each class repeats this last, so it wins over that class's widths. */
-const stacked = `
-  @media (max-width: 768px) {
-    ${SMALL}: 1 1 100%;
-    ${MEDIUM}: 1 1 100%;
-    ${LARGE}: 1 1 100%;
-  }
-`;
+const HALF = `calc((100% - ${GAP}) / 2)`;
+const THIRD = `calc((100% - ${GAP} - ${GAP}) / 3)`;
+const QUARTER = `calc((100% - ${GAP} - ${GAP} - ${GAP}) / 4)`;
+
+/* Narrow rows stack every card, and rows under 1080px hold two cards unless a rule says otherwise. */
+const stacked = (basis: string) => whenRowWidth("600px", "100%", basis);
+const smallBasis = (from1080: string) =>
+  stacked(whenRowWidth("1080px", HALF, whenRowWidth("1280px", from1080, "220px")));
+const mediumBasis = stacked(whenRowWidth("1080px", HALF, whenRowWidth("1280px", "320px", "360px")));
 
 /**
  * A row never reaches into its cards. It sets how each card size flexes in private variables,
@@ -36,14 +38,13 @@ export const styles = {
   root: css`
     --_openui-dashboard-card-row-gap: var(--openui-space-m-l, 16px);
     --_openui-dashboard-card-row-card-max-width: none;
-    ${SMALL}: 1 1 0;
-    ${MEDIUM}: 1 1 0;
-    ${LARGE}: 1 1 0;
+    ${SMALL}: 1 1 ${stacked("0px")};
+    ${MEDIUM}: 1 1 ${stacked("0px")};
+    ${LARGE}: 1 1 ${stacked("0px")};
     display: flex;
     flex-wrap: wrap;
     gap: ${GAP};
     width: 100%;
-    ${stacked}
   `,
   align: {
     start: css`
@@ -55,46 +56,26 @@ export const styles = {
   },
   type: {
     small: css`
-      ${SMALL}: 1 1 220px;
-      @media (min-width: 1080px) and (max-width: 1279px) {
-        &[data-count="5"] {
-          ${SMALL}: 1 1 calc((100% - ${GAP} - ${GAP}) / 3);
-        }
-        &[data-count="4"] {
-          ${SMALL}: 1 1 calc((100% - ${GAP} - ${GAP} - ${GAP}) / 4);
-        }
+      ${SMALL}: 1 1 ${smallBasis("220px")};
+      &[data-count="3"] {
+        ${SMALL}: 1 1 ${stacked(whenRowWidth("700px", HALF, whenRowWidth("800px", THIRD, whenRowWidth("1080px", HALF, "220px"))))};
       }
-      @media (max-width: 1079px) {
-        ${SMALL}: 1 1 calc((100% - ${GAP}) / 2);
+      &[data-count="4"] {
+        ${SMALL}: 1 1 ${smallBasis(QUARTER)};
       }
-      ${stacked}
+      &[data-count="5"] {
+        ${SMALL}: 1 1 ${smallBasis(THIRD)};
+      }
     `,
     medium: css`
-      ${MEDIUM}: 1 1 360px;
-      @media (min-width: 1080px) and (max-width: 1279px) {
-        ${MEDIUM}: 1 1 320px;
-      }
-      @media (max-width: 1079px) {
-        ${MEDIUM}: 1 1 calc((100% - ${GAP}) / 2);
-      }
-      ${stacked}
+      ${MEDIUM}: 1 1 ${mediumBasis};
     `,
     "medium-large": css`
-      ${MEDIUM}: 1 1 360px;
-      ${LARGE}: 2 1 832px;
-      @media (min-width: 1080px) and (max-width: 1279px) {
-        ${MEDIUM}: 1 1 320px;
-        ${LARGE}: 2 1 720px;
-      }
-      @media (max-width: 1079px) {
-        ${MEDIUM}: 1 1 100%;
-        ${LARGE}: 2 1 100%;
-      }
-      ${stacked}
+      ${MEDIUM}: 1 1 ${whenRowWidth("1080px", "100%", whenRowWidth("1280px", "320px", "360px"))};
+      ${LARGE}: 2 1 ${whenRowWidth("1080px", "100%", whenRowWidth("1280px", "720px", "832px"))};
     `,
     large: css`
       ${LARGE}: 1 1 100%;
-      ${stacked}
     `,
   },
 };

@@ -35,7 +35,7 @@ function DatePickerRenderer({ props }: ComponentRenderProps<DatePickerProps>) {
   const setFieldValue = useSetFieldValue();
   const isStreaming = useIsStreaming();
   const defaultDate = typeof props.defaultDate === "string" ? props.defaultDate : undefined;
-  const field = useStateField(props.name, defaultDate);
+  const field = useStateField(props.name, props.defaultDate);
 
   const fieldName = props.name;
   const mode = props.mode ?? "single";
@@ -46,12 +46,12 @@ function DatePickerRenderer({ props }: ComponentRenderProps<DatePickerProps>) {
 
   const syncBinding = React.useCallback(
     (value: string) => {
-      if (value && value !== lastSyncedRef.current) {
+      if (!field.isReactive && value && value !== lastSyncedRef.current) {
         lastSyncedRef.current = value;
         setFieldValue(formName, "DatePicker", `$${fieldName}`, value, false);
       }
     },
-    [formName, fieldName, setFieldValue],
+    [field.isReactive, formName, fieldName, setFieldValue],
   );
 
   if (mode === "range") {
