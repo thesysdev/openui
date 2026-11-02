@@ -12,26 +12,49 @@
 // it to PR CI.
 import { readdirSync, readFileSync } from "node:fs";
 
-const parseVersion = (v) => v.split("-")[0].split(".").map(Number);
+// Semver order, prerelease included: 1.0.0-beta.0 < 1.0.0-beta.1 < 1.0.0. The
+// beta kits pin each other exactly, so a stale prerelease must not compare equal.
+const parseVersion = (v) => {
+  const [release, pre] = v.split(/-(.*)/s);
+  return { release: release.split(".").map(Number), pre: pre ? pre.split(".") : [] };
+};
+const compareIdentifiers = (a, b) => {
+  const [an, bn] = [/^\d+$/.test(a), /^\d+$/.test(b)];
+  if (an && bn) return Math.sign(Number(a) - Number(b));
+  if (an !== bn) return an ? -1 : 1;
+  return a < b ? -1 : a > b ? 1 : 0;
+};
 const compare = (a, b) => {
   const [x, y] = [parseVersion(a), parseVersion(b)];
-  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1;
+  for (let i = 0; i < 3; i++)
+    if (x.release[i] !== y.release[i]) return x.release[i] < y.release[i] ? -1 : 1;
+  if (!x.pre.length || !y.pre.length) return Math.sign(y.pre.length - x.pre.length);
+  for (let i = 0; i < Math.max(x.pre.length, y.pre.length); i++) {
+    if (x.pre[i] === undefined) return -1;
+    if (y.pre[i] === undefined) return 1;
+    const c = compareIdentifiers(x.pre[i], y.pre[i]);
+    if (c) return c;
+  }
   return 0;
 };
 const satisfies = (version, range) =>
   range.split(/\s+/).every((comparator) => {
     // Allow a prerelease suffix (e.g. "0.0.0-beta.0"): the beta kits pin each
     // other exactly, and without this the comparator throws at publish time.
-    // parseVersion() already compares on the release part only.
     const m = comparator.match(/^(>=|<=|>|<|=)?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/);
     if (!m) throw new Error(`unsupported comparator "${comparator}" in "${range}"`);
     const c = compare(version, m[2]);
     switch (m[1] ?? "=") {
-      case ">=": return c >= 0;
-      case "<=": return c <= 0;
-      case ">": return c > 0;
-      case "<": return c < 0;
-      default: return c === 0;
+      case ">=":
+        return c >= 0;
+      case "<=":
+        return c <= 0;
+      case ">":
+        return c > 0;
+      case "<":
+        return c < 0;
+      default:
+        return c === 0;
     }
   });
 

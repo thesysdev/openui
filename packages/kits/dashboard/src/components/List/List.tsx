@@ -24,9 +24,11 @@ export function List({ items, variant = "number", heading, description }: ListPr
   return (
     <div className={clsx(styles.root, names.root)}>
       {(heading || description) && (
-        <div>
-          {heading && <strong>{heading}</strong>}
-          {description && <span>{description}</span>}
+        <div className={clsx(styles.intro, names.intro)}>
+          {heading && <strong className={clsx(styles.heading, names.heading)}>{heading}</strong>}
+          {description && (
+            <span className={clsx(styles.description, names.description)}>{description}</span>
+          )}
         </div>
       )}
       <ListBlock variant={variant}>

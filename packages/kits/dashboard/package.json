@@ -34,6 +34,7 @@
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format:check": "prettier --check ./src",
@@ -63,8 +64,10 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "jsdom": "catalog:",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "vitest": "^4.0.18",
     "zod": "catalog:"
   },
   "keywords": [

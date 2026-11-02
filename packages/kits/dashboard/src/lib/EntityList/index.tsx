@@ -18,6 +18,7 @@ function EntityListRenderer({ props }: ComponentRenderProps<EntityListProps>) {
 export const EntityListComponent = defineComponent({
   name: "EntityList",
   props: entityListPropsSchema,
-  description: "",
+  description:
+    'Two-column key/value rows. header and footer show only with size "default"; size "small" takes rows alone.',
   component: EntityListRenderer,
 });

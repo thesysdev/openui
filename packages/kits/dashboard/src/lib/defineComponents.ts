@@ -10,12 +10,7 @@ import { PieChartComponent } from "./Charts/PieChart";
 import { RadarChartComponent } from "./Charts/RadarChart";
 import { RadialChartComponent } from "./Charts/RadialChart";
 import { ScatterChartComponent } from "./Charts/ScatterChart";
-import {
-  PointComponent,
-  ScatterSeriesComponent,
-  SeriesComponent,
-  SliceComponent,
-} from "./Charts/dataComponents";
+import { PointComponent, ScatterSeriesComponent, SeriesComponent } from "./Charts/dataComponents";
 import { DashboardComponent } from "./Dashboard";
 import { DashboardCardHeaderComponent } from "./DashboardCardHeader";
 import { DashboardHeaderComponent } from "./DashboardHeader";
@@ -82,7 +77,6 @@ export const dashboardComponents = [
   SeriesComponent,
   ScatterSeriesComponent,
   PointComponent,
-  SliceComponent,
   // Utility (5)
   CalloutComponent,
   DatePickerComponent,
