@@ -6,7 +6,8 @@ import type { PromptOptions } from "@openuidev/react-lang";
  * it works without sending anything back to the assistant.
  */
 
-export const exampleShoppingList = `root = Card([title, stepper, list, copy])
+export const exampleShoppingList = `root = Col([title, card])
+card = Card([stepper, list, copy])
 $guests = 4
 $got = []
 title = Title("Pasta night for " + @Plural($guests, "guest"), "lg")
