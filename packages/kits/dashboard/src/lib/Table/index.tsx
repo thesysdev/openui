@@ -27,6 +27,7 @@ export const Table = defineComponent({
       .filter((c: any) => c != null && c.props)
       .map((c: any) => ({
         label: c.props?.label ?? "",
+        align: c.props?.type === "number" ? ("right" as const) : undefined,
         cells: asArray(c.props?.data ?? []).map((cell) =>
           typeof cell === "object" && cell !== null ? renderNode(cell) : String(cell ?? ""),
         ),

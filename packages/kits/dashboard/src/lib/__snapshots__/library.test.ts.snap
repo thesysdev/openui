@@ -12,6 +12,15 @@ exports[`openuiDashboardLibrary > keeps the generated prompt stable 1`] = `
 5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.
 6. Arguments are POSITIONAL (order matters, not names). Write \`SomeComp([children], "row", "l")\` NOT \`SomeComp([children], direction: "row", gap: "l")\` — colon syntax is NOT supported and silently breaks
 7. Optional arguments can be omitted from the end
+8. Declare mutable state with \`$varName = defaultValue\`. Components marked with \`$binding\` can read/write these. Undeclared $variables are auto-created with null default.
+9. String concatenation: \`"text" + $var + "more"\`
+10. Dot member access: \`query.field\` reads a field; on arrays it extracts that field from every element
+11. Index access: \`arr[0]\`, \`data[index]\`
+12. Arithmetic operators: +, -, *, /, % (work on numbers; + is string concat when either side is a string)
+13. Comparison: ==, !=, >, <, >=, <=
+14. Logical: &&, ||, ! (prefix)
+15. Ternary: \`condition ? valueIfTrue : valueIfFalse\`
+16. Parentheses for grouping: \`(a + b) * c\`
 - Strings use double quotes with backslash escaping
 
 ## Component Signatures
@@ -115,6 +124,34 @@ IconText(icon: Icon, iconVariant?: "neutral" | "info" | "success" | "warning" | 
 TextBlock(variant?: "title-text" | "number-title-text" | "text-subtext" | "highlight-text-number-subtext" | "text" | "highlight-text" | "number" | "highlight-number", primary: string, secondary?: string, tertiary?: string, type?: "text" | "number" | "textOnly", size?: "xs" | "sm" | "md" | "lg", align?: "left" | "center" | "right", secondaryMaxLines?: number, secondaryTone?: "positive" | "negative")
 Icon takes a name string (e.g. 'dollar-sign', 'users'). Use common lucide icon names.
 
+## Built-in Functions
+
+Data functions prefixed with \`@\` to distinguish from components. These are the ONLY functions available — do NOT invent new ones.
+Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on data. Do NOT hardcode computed values.
+
+@Count(array: any[]) → number — Returns array length
+@First(array: any[]) → any — Returns first element of array
+@Last(array: any[]) → any — Returns last element of array
+@Sum(numbers: number[]) → number — Sum of numeric array
+@Avg(numbers: number[]) → number — Average of numeric array
+@Min(numbers: number[]) → number — Minimum value in array
+@Max(numbers: number[]) → number — Maximum value in array
+@Sort(array: any[], field: string, direction?: "asc" | "desc") → any[] — Sort array by field. Direction: "asc" (default) or "desc"
+@Filter(array: any[], field: string, operator: "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains", value: any) → any[] — Filter array by field value
+@Round(number: number, decimals?: number) → number — Round to N decimal places (default 0)
+@Abs(number: number) → number — Absolute value
+@Floor(number: number) → number — Round down to nearest integer
+@Ceil(number: number) → number — Round up to nearest integer
+@Each(array: any[], varName: string, template: any) — Evaluate template for each element. varName is the loop variable — use it ONLY inside the template expression (inline). Do NOT create a separate statement for the template.
+
+Builtins compose — output of one is input to the next:
+\`@Count(@Filter(data.rows, "field", "==", "val"))\` for KPIs/chart values, \`@Round(@Avg(data.rows.score), 1)\`, \`@Each(data.rows, "item", Comp(item.field))\` for per-item rendering.
+Array pluck: \`data.rows.field\` extracts a field from every row → use with @Sum, @Avg, charts, tables.
+
+IMPORTANT @Each rule: The loop variable (e.g. "item") is ONLY available inside the @Each template expression. Always inline the template — do NOT extract it to a separate statement.
+CORRECT: \`list = @Each(rows, "t", Comp(t.name))\`
+WRONG: \`item = Comp(t.name)\` then \`list = @Each(rows, "t", item)\`, because t is undefined in item.
+
 ## Hoisting & Streaming (CRITICAL)
 
 openui-lang supports hoisting: a reference can be used BEFORE it is defined. The parser resolves all references after the full input is parsed.
@@ -123,8 +160,9 @@ During streaming, the output is re-parsed on every chunk. Undefined references a
 
 **Recommended statement order for optimal streaming:**
 1. \`root = Dashboard(...)\` — UI shell appears immediately
-2. Component definitions — fill in as they stream
-3. Data values — leaf content last
+2. $variable declarations — state ready for bindings
+3. Component definitions — fill in with data already available
+4. Data values — leaf content last
 
 Always write the root = Dashboard(...) statement first so the UI shell appears immediately, even before child data has streamed in.
 
@@ -156,18 +194,21 @@ unitsCol = Col("Units", [842, 1205], "number")
 revenueCol = Col("Revenue", ["$12,400", "$9,800"], "number")
 
 root = Dashboard([header, section])
+$region = "all"
 header = DashboardHeader("Usage Analytics")
-filter = FilterBar([regionFilter, productFilter])
-regionFilter = FilterSelect("region", "Region", [{value: "all", label: "All Regions"}, {value: "na", label: "North America"}], "all")
-productFilter = FilterSelect("product", "Product", [{value: "all", label: "All Products"}, {value: "saas", label: "SaaS"}], "all")
-section = Section([row1], filter)
-row1 = CardRow([pieCard, barCard])
+filter = FilterBar([regionFilter])
+regionFilter = FilterSelect("region", "Region", [{value: "all", label: "All Regions"}, {value: "na", label: "North America"}, {value: "emea", label: "EMEA"}], $region)
+data = {all: {events: "4,500", mix: [45, 35, 20], months: [1200, 1500, 1800]}, na: {events: "2,700", mix: [50, 30, 20], months: [700, 900, 1100]}, emea: {events: "1,800", mix: [38, 42, 20], months: [500, 600, 700]}}
+section = Section([row1, row2], filter)
+row1 = CardRow([eventsCard])
+eventsCard = SmallCard("Total Events", data[$region].events)
+row2 = CardRow([pieCard, barCard])
 pieCard = MediumCard([pieHeader, pie])
 pieHeader = DashboardCardHeader("Distribution")
-pie = PieChart(["API", "Web", "Mobile"], [45, 35, 20])
+pie = PieChart(["API", "Web", "Mobile"], data[$region].mix)
 barCard = MediumCard([barHeader, bar])
 barHeader = DashboardCardHeader("Monthly Usage")
-bar = BarChart(["Jan", "Feb", "Mar"], [Series("Events", [1200, 1500, 1800])])
+bar = BarChart(["Jan", "Feb", "Mar"], [Series("Events", data[$region].months)])
 
 ## Important Rules
 - Choose components that best represent the content (tables for comparisons, charts for trends, forms for input, etc.)
@@ -176,6 +217,7 @@ bar = BarChart(["Jan", "Feb", "Mar"], [Series("Events", [1200, 1500, 1800])])
 Before finishing, walk your output and verify:
 1. root = Dashboard(...) is the FIRST line (for optimal streaming).
 2. Every referenced name is defined. Every defined name (other than root) is reachable from root.
+3. Every $binding appears in at least one component or expression.
 
 - Output MUST begin with \`root = Dashboard([children])\` on the first line.
 - Arguments are POSITIONAL — do NOT use named args with colons.
@@ -187,7 +229,9 @@ Before finishing, walk your output and verify:
 - Use DashboardCardHeader for card-level titles. Use titleType 'number' for KPI-first cards.
 - Use OverviewCardBlock for KPI metric grids with flat props: OverviewCardItem(title, subtitle?, icon?, imageSrc?, imageAlt?, value?, valueSubtext?, trend?). Arguments are positional, so pass "" for imageSrc and imageAlt when using an icon.
 - Use Table with Col children for tabular data. Set Col type to 'number' for right-aligned numeric columns.
-- Use FilterBar with FilterSelect/FilterMultiSelect for interactive filters.
+- A filter must change what the dashboard shows. Declare \`$region = "all"\`, pass \`$region\` as the filter's value argument, and read every value it affects from one object with an entry per option value: \`data[$region].revenue\`.
+- Without a data tool, use only FilterSelect in a FilterBar, even when asked for a date picker or for ticking several options: written values can't follow a free date or several selections. Offer dates as options such as "Last 30 days", and groups as options such as "All products".
+- Button and IconButton only send their label and the current filter values back to you as a chat message. They can't export, download, save or change anything. If one is pressed for something you can't do, repeat the dashboard with a Callout in a MediumCard that says you can't do it, because plain text isn't shown. Never claim it started or finished, and never offer download buttons.
 - Use realistic, professional placeholder data.
 - Icon takes a name string (e.g. 'dollar-sign', 'users'). Use common lucide icon names."
 `;

@@ -25,18 +25,21 @@ unitsCol = Col("Units", [842, 1205], "number")
 revenueCol = Col("Revenue", ["$12,400", "$9,800"], "number")`;
 
 const FILTERED_DASHBOARD_EXAMPLE = `root = Dashboard([header, section])
+$region = "all"
 header = DashboardHeader("Usage Analytics")
-filter = FilterBar([regionFilter, productFilter])
-regionFilter = FilterSelect("region", "Region", [{value: "all", label: "All Regions"}, {value: "na", label: "North America"}], "all")
-productFilter = FilterSelect("product", "Product", [{value: "all", label: "All Products"}, {value: "saas", label: "SaaS"}], "all")
-section = Section([row1], filter)
-row1 = CardRow([pieCard, barCard])
+filter = FilterBar([regionFilter])
+regionFilter = FilterSelect("region", "Region", [{value: "all", label: "All Regions"}, {value: "na", label: "North America"}, {value: "emea", label: "EMEA"}], $region)
+data = {all: {events: "4,500", mix: [45, 35, 20], months: [1200, 1500, 1800]}, na: {events: "2,700", mix: [50, 30, 20], months: [700, 900, 1100]}, emea: {events: "1,800", mix: [38, 42, 20], months: [500, 600, 700]}}
+section = Section([row1, row2], filter)
+row1 = CardRow([eventsCard])
+eventsCard = SmallCard("Total Events", data[$region].events)
+row2 = CardRow([pieCard, barCard])
 pieCard = MediumCard([pieHeader, pie])
 pieHeader = DashboardCardHeader("Distribution")
-pie = PieChart(["API", "Web", "Mobile"], [45, 35, 20])
+pie = PieChart(["API", "Web", "Mobile"], data[$region].mix)
 barCard = MediumCard([barHeader, bar])
 barHeader = DashboardCardHeader("Monthly Usage")
-bar = BarChart(["Jan", "Feb", "Mar"], [Series("Events", [1200, 1500, 1800])])`;
+bar = BarChart(["Jan", "Feb", "Mar"], [Series("Events", data[$region].months)])`;
 
 /**
  * Prompt options for the Dashboard library. Pass to
@@ -61,7 +64,9 @@ export const openuiDashboardAdditionalRules: string[] = [
   "Use DashboardCardHeader for card-level titles. Use titleType 'number' for KPI-first cards.",
   'Use OverviewCardBlock for KPI metric grids with flat props: OverviewCardItem(title, subtitle?, icon?, imageSrc?, imageAlt?, value?, valueSubtext?, trend?). Arguments are positional, so pass "" for imageSrc and imageAlt when using an icon.',
   "Use Table with Col children for tabular data. Set Col type to 'number' for right-aligned numeric columns.",
-  "Use FilterBar with FilterSelect/FilterMultiSelect for interactive filters.",
+  'A filter must change what the dashboard shows. Declare `$region = "all"`, pass `$region` as the filter\'s value argument, and read every value it affects from one object with an entry per option value: `data[$region].revenue`.',
+  'Without a data tool, use only FilterSelect in a FilterBar, even when asked for a date picker or for ticking several options: written values can\'t follow a free date or several selections. Offer dates as options such as "Last 30 days", and groups as options such as "All products".',
+  "Button and IconButton only send their label and the current filter values back to you as a chat message. They can't export, download, save or change anything. If one is pressed for something you can't do, repeat the dashboard with a Callout in a MediumCard that says you can't do it, because plain text isn't shown. Never claim it started or finished, and never offer download buttons.",
   "Use realistic, professional placeholder data.",
   "Icon takes a name string (e.g. 'dollar-sign', 'users'). Use common lucide icon names.",
 ];
@@ -70,4 +75,5 @@ export const openuiDashboardPromptOptions: PromptOptions = {
   preamble: "You are generating an openui-lang dashboard.",
   examples: openuiDashboardExamples,
   additionalRules: openuiDashboardAdditionalRules,
+  bindings: true,
 };

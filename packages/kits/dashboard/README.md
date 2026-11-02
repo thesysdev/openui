@@ -16,14 +16,23 @@ pnpm add @openuidev/dashboard-kit@0.0.0-beta.0 @openuidev/react-components@0.0.1
 
 ## Usage
 
-```ts
-import {
-  openuiDashboardLibrary,
-  openuiDashboardPromptOptions,
-} from "@openuidev/dashboard-kit/lib";
+Build the system prompt ahead of time with the CLI. Don't call
+`openuiDashboardLibrary.prompt()` in a Next.js API route: `/lib` includes the React
+components, and they crash in a server route with `createContext is not a function`.
 
-const systemPrompt = openuiDashboardLibrary.prompt(openuiDashboardPromptOptions);
+```ts
+// src/lib/dashboard-library.ts
+export {
+  openuiDashboardLibrary as library,
+  openuiDashboardPromptOptions as promptOptions,
+} from "@openuidev/dashboard-kit/lib";
 ```
+
+```bash
+npx @openuidev/cli generate src/lib/dashboard-library.ts --out src/generated/system-prompt.txt
+```
+
+Read that file in your route and send it as the system message.
 
 Then render a model's response with `Renderer` from `@openuidev/react-lang`:
 
@@ -37,6 +46,18 @@ Then render a model's response with `Renderer` from `@openuidev/react-lang`:
 - Components style themselves through react-components' `css`, so there is no stylesheet to
   import. Their rules go into the same `<style id="openui-styles">` tag as react-components',
   after them, and follow `configureStyles({ layer })` if you set one.
+
+### Dark mode
+
+The dashboard takes its mode from a `ThemeProvider` in `@openuidev/react-components`. The
+`theme` you give `AgentInterface` belongs to `@openuidev/react-ui` and doesn't reach it, so wrap
+the chat as well:
+
+```tsx
+<ThemeProvider mode={mode}>
+  <AgentInterface theme={{ mode }} {...props} />
+</ThemeProvider>
+```
 
 ## Styling
 
@@ -69,6 +90,16 @@ Root component is `Dashboard`. 47 components in 6 groups:
 `IconText`, `TextBlock` and `OverviewCardBlock` have no typed parent: they reach a
 dashboard through `SmallCard`'s slots, as its description says.
 
+## Filters
+
+The prompt teaches the model to bind each `FilterSelect` to a `$variable` and read values from it,
+such as `data[$region].revenue`, so filters change the dashboard with no backend. Those values are
+written by the model, so they are placeholders. For live data, give the model your own tools so it
+can pass `$region` to `Query`. The kit can't supply those.
+
+Without tools, the model uses `FilterSelect` even when asked for a date picker or several ticked
+options, because written values can't follow them.
+
 ## What makes it a dashboard library
 
 The component list matters less than the **layout grammar** the groups carry as
@@ -86,7 +117,7 @@ The component list matters less than the **layout grammar** the groups carry as
   `LargeCard`.
 
 That grammar is why this component library is smaller than a general component set — 47
-components and a ~18,000-character system prompt — while producing dashboards
+components and a ~22,000-character system prompt — while producing dashboards
 rather than a vertical stack of cards.
 
 ## Provenance

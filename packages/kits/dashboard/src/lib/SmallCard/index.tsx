@@ -42,11 +42,14 @@ function isSnippetRhs(value: unknown): value is SnippetRhs {
 }
 
 function SmallCardRenderer({ props, renderNode }: ComponentRenderProps<SmallCardProps>) {
-  if (typeof props.top === "string" && typeof props.bottom === "string") {
+  if (
+    typeof props.top === "string" &&
+    (typeof props.bottom === "string" || typeof props.bottom === "number")
+  ) {
     return (
       <SmallCardMetric
         title={props.top}
-        metric={props.bottom}
+        metric={String(props.bottom)}
         trend={typeof props.trend === "object" && props.trend !== null ? props.trend : undefined}
       />
     );
