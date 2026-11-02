@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { metricOverrides } from "../MetricIndicator/metricIndicator.styles";
 
 export const names = { root: "openui-dashboard-overview-card-block" } as const;

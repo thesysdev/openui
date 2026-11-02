@@ -465,9 +465,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      goober:
-        specifier: 2.1.19
-        version: 2.1.19(csstype@3.2.3)
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.4)

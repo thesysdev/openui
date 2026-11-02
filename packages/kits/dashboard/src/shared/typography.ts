@@ -1,5 +1,5 @@
 /**
- * openui's type scale as CSS declarations for a goober template:
+ * openui's type scale as CSS declarations for a css template:
  *
  *   ${typography("body", "small")}
  *

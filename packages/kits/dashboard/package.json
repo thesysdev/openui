@@ -47,7 +47,6 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "goober": "2.1.19",
     "lucide-react": "^0.562.0",
     "remark-gfm": "^4.0.1"
   },
