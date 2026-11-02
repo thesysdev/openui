@@ -13,18 +13,17 @@ import { Rect } from "./Rect";
 import { Standalone } from "./standalone";
 import { SvgText } from "./SvgText";
 
+/** The shapes, in prompt order. Svg's drawable set and the library's list derive from this. */
+export const shapeComponents = [Circle, Ellipse, Rect, Line, Path, Polyline, Polygon, SvgText];
+
 /** What a group holds: shapes, so the prompt shows a model what fits. */
 export const shapes = z.array(
-  z.union([
-    Circle.ref,
-    Ellipse.ref,
-    Rect.ref,
-    Line.ref,
-    Path.ref,
-    Polyline.ref,
-    Polygon.ref,
-    SvgText.ref,
-  ]),
+  z.union(
+    shapeComponents.map((shape) => shape.ref) as [
+      (typeof shapeComponents)[number]["ref"],
+      ...(typeof shapeComponents)[number]["ref"][],
+    ],
+  ),
 );
 
 export const GSchema = z.object({

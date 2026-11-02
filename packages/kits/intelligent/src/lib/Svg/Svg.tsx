@@ -4,19 +4,9 @@ import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { Svg as SvgView } from "../../components/Svg";
 import { isElement, length } from "../schemas";
-import { G, shapes } from "./G";
+import { G, shapeComponents, shapes } from "./G";
 
-const DRAWABLE = new Set([
-  "Circle",
-  "Ellipse",
-  "Rect",
-  "Line",
-  "Path",
-  "Polyline",
-  "Polygon",
-  "SvgText",
-  "G",
-]);
+const DRAWABLE = new Set([...shapeComponents.map((shape) => shape.name), G.name]);
 
 export const SvgSchema = z.object({
   children: z.array(z.union([...shapes.element.options, G.ref])),
