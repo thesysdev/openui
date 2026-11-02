@@ -42,5 +42,3 @@ final class NativeCodeSyntax: @unchecked Sendable {
     return tokens
   }
 }
-
-

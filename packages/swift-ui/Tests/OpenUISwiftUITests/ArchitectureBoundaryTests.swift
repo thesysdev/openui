@@ -51,4 +51,3 @@ final class ArchitectureBoundaryTests: XCTestCase {
     XCTAssertTrue(bridgeFiles.allSatisfy { $0.0.deletingLastPathComponent().lastPathComponent == "Internal" })
   }
 }
-

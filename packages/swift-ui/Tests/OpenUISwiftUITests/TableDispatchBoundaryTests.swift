@@ -91,4 +91,3 @@ final class TableDispatchBoundaryTests: XCTestCase {
     XCTAssertEqual(state.root?.typeName, "TextContent")
   }
 }
-

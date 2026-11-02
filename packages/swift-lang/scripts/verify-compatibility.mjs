@@ -19,7 +19,7 @@ const sha=value=>createHash('sha256').update(value).digest('hex');
 process.env.OPENUI_RUNTIME_TELEMETRY_ENABLED='0';
 try {
   const modulePath=join(temporary,'official.mjs');
-  await build({absWorkingDir:root,entryPoints:['packages/lang-core/src/index.ts'],outfile:modulePath,bundle:true,platform:'node',format:'esm',nodePaths:[join(here,'node_modules')],external:['ci-info'],logLevel:'silent'});
+  await build({absWorkingDir:root,entryPoints:['packages/lang-core/src/index.ts'],outfile:modulePath,bundle:true,platform:'node',format:'esm',minifyWhitespace:true,legalComments:'none',nodePaths:[join(here,'node_modules')],external:['ci-info'],logLevel:'silent'});
   const official=await import(pathToFileURL(modulePath));
   const realm=vm.createContext({__utf8Encode:x=>[...Buffer.from(x)],__utf8Decode:x=>Buffer.from(x).toString('utf8'),setInterval,clearInterval});
   vm.runInContext(readFileSync(join(here,'../Sources/OpenUILang/Resources/lang-core.js'),'utf8'),realm);
