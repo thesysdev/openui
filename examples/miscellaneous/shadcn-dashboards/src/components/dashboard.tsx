@@ -30,10 +30,10 @@ const {
   Error: ErrorSlot,
 } = LiveArtifactRenderer;
 
-interface DashboardProps {
-  /** The dashboard tool's result, as is. Or, for a dashboard from the list, its id. */
-  response?: string;
-  id?: string;
+/** What to render: the dashboard tool's result, as is, or for a dashboard from the list, its id. */
+type DashboardSource = { response: string } | { id: string };
+
+type DashboardProps = DashboardSource & {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   /** The side panel the dashboard opens in. */
@@ -42,7 +42,7 @@ interface DashboardProps {
   onEdit: (title: string) => void;
   /** The card that opens it: `<DashboardCard />` in the chat, nothing from the list. */
   preview: ReactNode;
-}
+};
 
 /**
  * One live dashboard. LiveArtifactRenderer streams it from OpenUI Cloud and runs its Query()
@@ -51,18 +51,16 @@ interface DashboardProps {
  * part is replaced with shadcn/ui, so the renderer needs none of react-ui's styles.
  */
 export function Dashboard({
-  response,
-  id,
   isOpen,
   onOpenChange,
   panel,
   onEdit,
   preview,
+  ...source
 }: DashboardProps) {
   return (
     <LiveArtifactRenderer
-      response={response}
-      id={id}
+      {...source}
       library={library}
       interpreter={{ url: "/api/interpreter" }}
       isOpen={isOpen}
