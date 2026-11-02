@@ -346,6 +346,10 @@ private struct NativeMapPresentation: View {
               compact: context.string("size") == "compact" && imposedHeight == nil)
           } else {
             VStack(alignment: .leading, spacing: context.theme.spacing("s")) { context.render(page(id)) }
+              // Custom pages need the same separation from map labels as the
+              // built-in preview, without changing their padding or geometry.
+              .modifier(NativeOverlaySurface(theme: context.theme, material: true,
+                compact: true, materialStyle: .ultraThin))
           }
       }
       .background(GeometryReader { geometry in
