@@ -20,7 +20,10 @@ const compare = (a, b) => {
 };
 const satisfies = (version, range) =>
   range.split(/\s+/).every((comparator) => {
-    const m = comparator.match(/^(>=|<=|>|<|=)?(\d+\.\d+\.\d+)$/);
+    // Allow a prerelease suffix (e.g. "0.0.0-beta.0"): the beta kits pin each
+    // other exactly, and without this the comparator throws at publish time.
+    // parseVersion() already compares on the release part only.
+    const m = comparator.match(/^(>=|<=|>|<|=)?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/);
     if (!m) throw new Error(`unsupported comparator "${comparator}" in "${range}"`);
     const c = compare(version, m[2]);
     switch (m[1] ?? "=") {
@@ -34,16 +37,31 @@ const satisfies = (version, range) =>
 
 const versions = new Map();
 const manifests = [];
-for (const dir of readdirSync("packages")) {
-  let manifest;
+
+// `packages/*` AND `packages/*/*`: the kits live at packages/kits/<name>, and a
+// one-level scan silently skipped them — the try/catch swallowed the missing
+// packages/kits/package.json, so their peer windows were never checked at all.
+// pnpm-workspace.yaml already lists "packages/kits/*"; this keeps the guard in
+// step with it.
+const collect = (dir, depth) => {
   try {
-    manifest = JSON.parse(readFileSync(`packages/${dir}/package.json`, "utf8"));
+    const manifest = JSON.parse(readFileSync(`${dir}/package.json`, "utf8"));
+    versions.set(manifest.name, manifest.version);
+    manifests.push(manifest);
+    return;
   } catch {
-    continue;
+    // No manifest here — recurse into it as a grouping directory.
   }
-  versions.set(manifest.name, manifest.version);
-  manifests.push(manifest);
-}
+  if (depth === 0) return;
+  let entries;
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return;
+  }
+  for (const entry of entries) collect(`${dir}/${entry}`, depth - 1);
+};
+for (const dir of readdirSync("packages")) collect(`packages/${dir}`, 1);
 
 const violations = [];
 for (const manifest of manifests) {
