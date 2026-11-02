@@ -7,11 +7,11 @@ comes from `@openuidev/react-components`.
 ## Install
 
 ```sh
-pnpm add @openuidev/dashboard-kit @openuidev/react-components @openuidev/react-lang react react-dom zod zustand
+pnpm add @openuidev/dashboard-kit react react-dom zod zustand
 ```
 
-Peer dependencies: `@openuidev/react-components` 0.0.x, `@openuidev/react-lang` 1.x, React 19
-and `zod` 3.25 or 4. `zustand` is for `@openuidev/react-components`.
+`@openuidev/react-components` and `@openuidev/react-lang` come with it. Peer dependencies: React
+18 or 19 and `zod` 3.25 or 4, plus `react-dom` and `zustand` for `@openuidev/react-components`.
 
 ## Usage
 
@@ -82,7 +82,6 @@ Every element carries a stable `openui-dashboard-*` class:
 ```sh
 pnpm --filter @openuidev/dashboard-kit run build
 pnpm --filter @openuidev/dashboard-kit run ci
-pnpm --filter @openuidev/dashboard-kit test
 ```
 
 The build writes ESM and CJS bundles with declarations and source maps to `dist/`.

@@ -34,7 +34,6 @@
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format:check": "prettier --check ./src",
@@ -46,27 +45,19 @@
     "ci": "pnpm run lint:check && pnpm run format:check && pnpm run typecheck"
   },
   "dependencies": {
+    "@openuidev/react-components": "workspace:>=0.0.1 <0.1.0",
+    "@openuidev/react-lang": "workspace:>=1.0.1 <2.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "remark-gfm": "^4.0.1"
   },
   "peerDependencies": {
-    "@openuidev/react-components": ">=0.0.1 <0.1.0",
-    "@openuidev/react-lang": ">=1.0.1 <2.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "zod": "^3.25.76 || ^4.0.0"
+    "react": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@openuidev/react-components": "workspace:^",
-    "@openuidev/react-lang": "workspace:^",
-    "@types/node": "catalog:",
     "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "jsdom": "catalog:",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "vitest": "^4.0.18",
+    "react": "catalog:",
     "zod": "catalog:"
   },
   "keywords": [
