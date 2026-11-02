@@ -28,13 +28,20 @@ npx @openuidev/cli generate src/lib/dashboard-library.ts --out src/generated/sys
 Send that file as the system message, then render the model's response:
 
 ```tsx
-import { openuiDashboardLibrary } from "@openuidev/dashboard-kit";
+import { DashboardThemeProvider, openuiDashboardLibrary } from "@openuidev/dashboard-kit";
 import { Renderer } from "@openuidev/react-lang";
 
 export function DashboardMessage({ response }: { response: string }) {
-  return <Renderer response={response} library={openuiDashboardLibrary} />;
+  return (
+    <DashboardThemeProvider mode="dark">
+      <Renderer response={response} library={openuiDashboardLibrary} />
+    </DashboardThemeProvider>
+  );
 }
 ```
+
+`DashboardThemeProvider` is optional. It sets the mode (light by default) and takes `lightTheme`
+and `darkTheme` overrides.
 
 ## Components
 

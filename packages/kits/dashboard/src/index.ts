@@ -16,3 +16,8 @@ export {
 } from "./lib/openuiDashboardLibrary";
 
 export { dashboardComponents } from "./lib/defineComponents";
+
+export {
+  DashboardThemeProvider,
+  type DashboardThemeProviderProps,
+} from "./components/DashboardThemeProvider";
