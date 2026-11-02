@@ -25,6 +25,7 @@ catalog:
   eslint-plugin-react-refresh: "^0.5.2"
   eslint-plugin-storybook: "^10.2.14"
   eslint-plugin-unused-imports: "^4.4.1"
+  goober: "2.1.19"
   jsdom: "^26.1.0"
   ng-packagr: "^22.1.1"
   react: "^18.3.1 || ^19.0.0"
