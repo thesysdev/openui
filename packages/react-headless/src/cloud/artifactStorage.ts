@@ -35,6 +35,7 @@ function toSummary(artifact: CloudArtifact): ArtifactSummary {
     type: artifact.kind,
     threadId: artifact.conversation_id ?? "",
     updatedAt: (artifact.updated_at ?? artifact.created_at) * 1000,
+    ...(artifact.pinned !== undefined && { pinned: artifact.pinned }),
   };
 }
 
@@ -54,7 +55,6 @@ export function cloudArtifactStorage({
       if (params?.name !== undefined && params.name !== "") query.set("name", params.name);
       for (const type of params?.type ?? []) query.append("kind", type);
       if (params?.pinned !== undefined) query.set("pinned", String(params.pinned));
-      if (params?.threadId !== undefined) query.set("conversation_id", params.threadId);
       if (params?.order !== undefined) query.set("order", params.order);
       if (params?.cursor !== undefined) query.set("after", params.cursor);
       query.set("limit", String(params?.limit ?? pageLimit));
@@ -84,6 +84,25 @@ export function cloudArtifactStorage({
         body: JSON.stringify({ content }),
       });
       return toSummary((await res.json()) as CloudArtifact);
+    },
+
+    /** POST /v1/artifacts/:id/pin. */
+    async pin(id: string): Promise<ArtifactSummary> {
+      const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/pin`, { method: "POST" });
+      return toSummary((await res.json()) as CloudArtifact);
+    },
+
+    /** POST /v1/artifacts/:id/unpin. */
+    async unpin(id: string): Promise<ArtifactSummary> {
+      const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/unpin`, {
+        method: "POST",
+      });
+      return toSummary((await res.json()) as CloudArtifact);
+    },
+
+    /** DELETE /v1/artifacts/:id. */
+    async delete(id: string): Promise<void> {
+      await request(`/v1/artifacts/${encodeURIComponent(id)}`, { method: "DELETE" });
     },
 
     /** GET /v1/artifacts/:id/stream (SSE). Replays a finished artifact the

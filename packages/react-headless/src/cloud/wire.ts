@@ -39,6 +39,7 @@ export interface CloudArtifact {
   name?: string;
   version?: string; // server bumps via String(Date.now()) when omitted
   content?: string;
+  pinned?: boolean;
   created_at: number;
   updated_at?: number;
 }
