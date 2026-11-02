@@ -57,7 +57,7 @@ export const Now = defineFunction({
 export const FormatDate = defineFunction({
   name: "FormatDate",
   description:
-    'A date as text: "date" Oct 9, 2026 (default), "short" Oct 9, "long" Friday, October 9, 2026, "weekday" Fri, "month" Oct 2026, "time" 9:30 PM, "datetime", "iso" 2026-10-09. Dates are "YYYY-MM-DD", ISO or a timestamp',
+    'A date as text: "date" Oct 9, 2026 (default), "short" Oct 9, "long" Friday, October 9, 2026, "weekday" Fri, "month" Oct 2026, "time" 9:30 PM, "datetime", "iso" 2026-10-09. Dates are "YYYY-MM-DD", ISO or a timestamp; "time" and "datetime" need a timestamp or an ISO date-time, as a plain date has no time',
   params: z.object({
     date: date(),
     style: z

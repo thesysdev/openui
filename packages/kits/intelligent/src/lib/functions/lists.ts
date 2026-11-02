@@ -9,7 +9,10 @@ export const Append = defineFunction({
   description: "Copy of the list with item added at the end",
   params: z.object({ list: list(), item: z.any() }),
   returns: list(),
-  fn: ({ list, item }) => [...list, item],
+  fn: ({ list, item }) => {
+    if (list.length + 1 > MAX_ITEMS) throw new Error(`more than ${MAX_ITEMS} items`);
+    return [...list, item];
+  },
 });
 
 export const Prepend = defineFunction({
@@ -17,7 +20,10 @@ export const Prepend = defineFunction({
   description: "Copy of the list with item added at the start",
   params: z.object({ list: list(), item: z.any() }),
   returns: list(),
-  fn: ({ list, item }) => [item, ...list],
+  fn: ({ list, item }) => {
+    if (list.length + 1 > MAX_ITEMS) throw new Error(`more than ${MAX_ITEMS} items`);
+    return [item, ...list];
+  },
 });
 
 export const Concat = defineFunction({
@@ -140,15 +146,19 @@ export const Unique = defineFunction({
   description: "Distinct items in first-seen order",
   params: z.object({ list: list() }),
   returns: list(),
+  // Equal as @Includes and @Toggle see it (same): 1 matches "1", and object key order is ignored.
   fn: ({ list }) => {
-    const seen = new Set<string>();
+    const primitives = new Set<string>();
+    const objects: unknown[] = [];
     return list.filter((item) => {
-      const key =
-        item !== null && typeof item === "object"
-          ? `o:${JSON.stringify(item)}`
-          : `p:${String(item)}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
+      if (item === null || typeof item !== "object") {
+        const key = String(item);
+        if (primitives.has(key)) return false;
+        primitives.add(key);
+        return true;
+      }
+      if (objects.some((kept) => same(kept, item))) return false;
+      objects.push(item);
       return true;
     });
   },

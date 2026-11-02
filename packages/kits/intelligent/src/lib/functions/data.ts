@@ -48,7 +48,7 @@ export const GroupBy = defineFunction({
 export const Pivot = defineFunction({
   name: "Pivot",
   description:
-    "One row per rowKey value with a column per colKey value holding agg of field, for stacked or grouped charts",
+    "One row per rowKey value, under key, with a column per colKey value holding agg of field, for stacked or grouped charts",
   params: z.object({
     rows: list(),
     rowKey: z.string(),
@@ -91,11 +91,24 @@ export const Top = defineFunction({
   },
 });
 
-/** Orders two field values: numbers by value, anything else (such as "YYYY-MM-DD") as text. */
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}/;
+const isoDate = (value: unknown) => typeof value === "string" && ISO_DATE.test(value.trim());
+
+/**
+ * Orders two field values: numbers by value; a "YYYY-MM-DD" or ISO date against another date or
+ * a timestamp by day; anything else as text.
+ */
 function compare(a: unknown, b: unknown): number {
   const x = toNum(a);
   const y = toNum(b);
   if (x !== null && y !== null) return x - y;
+  if ((isoDate(a) || isoDate(b)) && (isoDate(a) || x !== null) && (isoDate(b) || y !== null)) {
+    try {
+      return parseDate(a as string | number).day - parseDate(b as string | number).day;
+    } catch {
+      // Not a real date after all: compare as text below.
+    }
+  }
   const s = String(a);
   const t = String(b);
   return s < t ? -1 : s > t ? 1 : 0;
@@ -104,7 +117,7 @@ function compare(a: unknown, b: unknown): number {
 export const Between = defineFunction({
   name: "Between",
   description:
-    'Rows whose field is from min to max, both included; compares numbers, or text such as "YYYY-MM-DD" dates. Leave min or max null for an open end',
+    'Rows whose field is from min to max, both included; compares numbers, dates by day ("YYYY-MM-DD", ISO or a timestamp), or text. Leave min or max null for an open end',
   params: z.object({
     rows: list(),
     field: z.string(),

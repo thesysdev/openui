@@ -25,6 +25,8 @@ export const Random = defineFunction({
   params: z.object({ min: z.number(), max: z.number(), integer: z.boolean().optional() }),
   returns: z.number(),
   fn: ({ min, max, integer }) => {
+    if (!Number.isFinite(min) || !Number.isFinite(max))
+      throw new Error("min and max must be numbers");
     const lo = Math.min(min, max);
     const hi = Math.max(min, max);
     if (!integer) return lo + Math.random() * (hi - lo);
@@ -40,7 +42,8 @@ export const Clamp = defineFunction({
   description: "number kept between min and max",
   params: z.object({ number: z.number(), min: z.number(), max: z.number() }),
   returns: z.number(),
-  fn: ({ number, min, max }) => Math.min(Math.max(number, Math.min(min, max)), Math.max(min, max)),
+  fn: ({ number, min, max }) =>
+    finite(Math.min(Math.max(number, Math.min(min, max)), Math.max(min, max))),
 });
 
 export const Percent = defineFunction({
@@ -72,7 +75,8 @@ export const Allocate = defineFunction({
     // All-zero weights (a day with nothing to split across) give all zeros
     if (sum === 0) return weights.map(() => 0);
     // Whole units (cents for 2 decimals); the leftover units go to the largest remainders
-    const scale = 10 ** Math.min(6, Math.max(0, Math.round(decimals ?? 2)));
+    const places = decimals !== undefined && Number.isFinite(decimals) ? decimals : 2;
+    const scale = 10 ** Math.min(6, Math.max(0, Math.round(places)));
     const units = Math.round(Math.abs(total) * scale);
     const exact = weights.map((w) => (units * w) / sum);
     const parts = exact.map(Math.floor);
