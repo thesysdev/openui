@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { children } from "../schemas";
 
-type RefComponent = { ref: any };
+type RefComponent = { ref: z.core.$ZodType };
 
 export const ListItemSchema = z.object({
   title: z.string(),

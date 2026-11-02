@@ -1,7 +1,7 @@
 import { reactive } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 
-type RefComponent = { ref: any };
+type RefComponent = { ref: z.core.$ZodType };
 
 export const MapMarkerSchema = z.object({
   label: z.string(),
