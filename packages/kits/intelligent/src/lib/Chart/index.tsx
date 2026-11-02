@@ -45,7 +45,7 @@ export const Chart = defineComponent({
   name: "Chart",
   props: ChartSchema,
   description:
-    'Rows of data; x is the category key (a number key for scatter), series the value keys (default: every number key). percent values are like 45; currency is a code like "EUR".',
+    'Rows of data; x is the category key (a number key for scatter), series the value keys (default: every number key). format applies to pie and donut only: "percent" shows each slice as a share of the total, "number" its value. stacked stacks bar and area series.',
   component: ({ props }: { props: ChartProps }) => {
     const rows = rowsOf(props.data);
     const category = categoryOf(rows, props.x);
@@ -63,6 +63,7 @@ export const Chart = defineComponent({
           dataKey={series[0] ?? ""}
           variant={props.type}
           format={props.format === "percent" ? "percentage" : "number"}
+          height={height}
           isAnimationActive={false}
         />
       );
@@ -91,7 +92,8 @@ export const Chart = defineComponent({
     const common = { data, categoryKey: category, height, isAnimationActive: false } as const;
 
     if (props.type === "line") return <LineChart {...common} />;
-    if (props.type === "area") return <AreaChart {...common} />;
+    // AreaChart stacks unless told not to; like a bar chart, this one stacks only when asked.
+    if (props.type === "area") return <AreaChart {...common} stacked={props.stacked === true} />;
     return <BarChart {...common} variant={props.stacked ? "stacked" : "grouped"} />;
   },
 });

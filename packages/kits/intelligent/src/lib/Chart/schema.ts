@@ -6,7 +6,7 @@ import { z } from "zod/v4";
  *
  *   $type = "bar"
  *   SegmentedControl($type, ["bar", "line", "area"])
- *   chart = Chart($type, rows, "year", [...], "currency", null, $type != "line")
+ *   chart = Chart($type, rows, "year", [...], null, $type != "line")
  *
  * Splitting this into BarChart/LineChart/AreaChart the way the chat and
  * dashboard kits do cannot express that, so the vocabulary stays as it is and
@@ -17,8 +17,7 @@ export const ChartSchema = z.object({
   data: z.array(z.record(z.string(), z.union([z.string(), z.number()]))),
   x: z.string().optional(),
   series: z.array(z.string()).optional(),
-  format: z.enum(["number", "currency", "percent"]).optional(),
-  currency: z.string().optional(),
+  format: z.enum(["number", "percent"]).optional(),
   stacked: z.boolean().optional(),
   height: z.number().optional(),
 });
