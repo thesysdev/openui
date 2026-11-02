@@ -226,16 +226,15 @@ export const Change = defineFunction({
 export const Histogram = defineFunction({
   name: "Histogram",
   description:
-    "Counts numbers into equal-width bins (value is the count); min and max fix the range, default the data's",
+    "Counts numbers into equal-width bins as {key, value} rows: key is the bin's start, value the count; min and max fix the range, default the data's",
   params: z.object({
     values: numbers(),
     bins: z.number(),
     min: z.number().optional(),
     max: z.number().optional(),
   }),
-  returns: z.array(
-    z.object({ key: z.string(), value: z.number(), start: z.number(), end: z.number() }),
-  ),
+  // Only key and value, as @GroupBy and @Bucket return: Chart plots every number key by default.
+  returns: z.array(z.object({ key: z.string(), value: z.number() })),
   fn: ({ values: raw, bins, min, max }) => {
     const values = finiteOnly(raw);
     const n = Math.trunc(bins);
@@ -250,10 +249,10 @@ export const Histogram = defineFunction({
       if (v < lo || v > hi) continue;
       counts[Math.min(n - 1, Math.floor((v - lo) / width))]!++;
     }
-    return counts.map((value, i) => {
-      const start = lo + i * width;
-      return { key: String(Number(start.toFixed(decimals))), value, start, end: start + width };
-    });
+    return counts.map((value, i) => ({
+      key: String(Number((lo + i * width).toFixed(decimals))),
+      value,
+    }));
   },
 });
 
