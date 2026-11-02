@@ -16,6 +16,6 @@ export function dataTool(
     description,
     parameters: z.toJSONSchema(parameters),
     output,
-    execute: (_context, args, { signal }) => run(args ?? {}, signal),
+    execute: (args, _context, { signal }) => run(args ?? {}, signal),
   };
 }
