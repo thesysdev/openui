@@ -2,7 +2,9 @@
 
 import { TextArea as RCTextArea } from "@openuidev/react-components";
 import { defineComponent, useStateField } from "@openuidev/react-lang";
+import clsx from "clsx";
 import { Field } from "../../components/Field";
+import { names as fieldNames, styles as fieldStyles } from "../../components/Field/field.styles";
 import { useFieldName, useFieldRules } from "../controlHelpers";
 import { TextAreaSchema } from "./schema";
 
@@ -19,6 +21,7 @@ export const TextArea = defineComponent({
     return (
       <Field label={props.label} required={rules.required} error={rules.error}>
         <RCTextArea
+          className={clsx(fieldStyles.control, fieldNames.control)}
           rows={Math.min(20, Math.max(2, Math.round(props.rows ?? 3)))}
           value={String(field.value ?? "")}
           placeholder={props.placeholder}

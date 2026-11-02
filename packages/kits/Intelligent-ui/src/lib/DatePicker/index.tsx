@@ -2,8 +2,10 @@
 
 import { DatePicker as RCDatePicker } from "@openuidev/react-components";
 import { defineComponent, useStateField } from "@openuidev/react-lang";
+import clsx from "clsx";
 import { useState } from "react";
 import { Field } from "../../components/Field";
+import { names as fieldNames, styles as fieldStyles } from "../../components/Field/field.styles";
 import { useFieldName, useFieldRules } from "../controlHelpers";
 import { DatePickerSchema } from "./schema";
 
@@ -57,6 +59,7 @@ export const DatePicker = defineComponent({
     return (
       <Field label={props.label} required={rules.required} error={rangeError ?? rules.error}>
         <RCDatePicker
+          className={clsx(fieldStyles.control, fieldNames.control)}
           mode="single"
           selectedSingleDate={toDate(field.value)}
           setSelectedSingleDate={(date?: Date) => {

@@ -92,15 +92,26 @@ function contrastOn(background: unknown): string | undefined {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.36 ? "#0d0d0d" : "#ffffff";
 }
 
-/** Style for content on a raw-color background: text tokens switch to the readable color. */
+/** A selected tile's tick, drawn in the color that sits on ink: white on dark ink, dark on light. */
+const tick = (stroke: string) =>
+  `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='${stroke}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5'/%3E%3C/svg%3E")`;
+
+/**
+ * Style for content on a raw-color background: text tokens switch to the readable color. What sits on
+ * ink (a solid button's label, a selected tile's tick) switches with it, or it would keep the page
+ * theme's color and vanish: dark on dark in dark mode.
+ */
 export function onColor(background: unknown): CSSProperties {
   const ink = contrastOn(background);
   if (!ink) return {};
+  const darkInk = ink !== "#ffffff";
   return {
     color: ink,
     "--openui-intelligent-ink": ink,
     "--openui-intelligent-muted": `color-mix(in srgb, ${ink} 72%, transparent)`,
     "--openui-intelligent-faint": `color-mix(in srgb, ${ink} 55%, transparent)`,
+    "--openui-intelligent-on-ink": darkInk ? "#ffffff" : "#0d0d0d",
+    "--_openui-intelligent-pressable-check-icon": tick(darkInk ? "white" : "%230d0d0d"),
   } as CSSProperties;
 }
 

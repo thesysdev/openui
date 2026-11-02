@@ -8,7 +8,9 @@ import {
   SelectValue,
 } from "@openuidev/react-components";
 import { defineComponent, useStateField } from "@openuidev/react-lang";
+import clsx from "clsx";
 import { Field } from "../../components/Field";
+import { names as fieldNames, styles as fieldStyles } from "../../components/Field/field.styles";
 import { optionList, useFieldName, useFieldRules } from "../controlHelpers";
 import { SelectSchema } from "./schema";
 
@@ -38,6 +40,7 @@ export const Select = defineComponent({
           {/* Select sizes are "sm" | "md" | "lg", not Input's "small" | "medium" | "large". */}
           <SelectTrigger
             size="lg"
+            className={clsx(fieldStyles.control, fieldNames.control)}
             aria-label={props.label ? undefined : props.placeholder}
             aria-required={rules.required || undefined}
             aria-invalid={rules.error ? true : undefined}

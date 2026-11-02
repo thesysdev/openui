@@ -23,7 +23,7 @@ export const Input = defineComponent({
     return (
       <Field label={props.label} required={rules.required} error={rules.error}>
         <RCInput
-          // "large" lines the field up with DatePicker's trigger (42px); the
+          // "large" is the field size every control matches (40px); the
           // default "medium" is 36px, which left the controls uneven.
           size="large"
           type="text"
