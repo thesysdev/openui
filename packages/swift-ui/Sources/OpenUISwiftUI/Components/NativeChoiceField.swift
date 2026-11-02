@@ -96,7 +96,7 @@ struct NativeChoiceField: View {
         selected ? context.theme.textNeutralPrimary : context.theme.borderInteractive, lineWidth: context.presentation.borderWidth))
     .opacity(PropValue.value(item, "disabled") == .boolean(true) || !context.canInteract ? 0.5 : 1)
   }
-  private var choiceRadius: CGFloat { max(0, context.theme.radiusL + (cards ? 4 : -2)) }
+  private var choiceRadius: CGFloat { cards ? max(0, context.theme.radiusL + 4) : context.theme.radiusFull }
   private func cardCopy(_ item: EvaluatedElement, selected: Bool) -> some View {
     VStack(alignment: .leading, spacing: context.theme.spacing("3xs")) {
       HStack(spacing: context.theme.spacing("xs")) {

@@ -75,15 +75,16 @@ final class ThemeArchitectureTests: XCTestCase {
         let text = try XCTUnwrap(standard.library.components.first { $0.name == "TextContent" })
         let library = try standard.extending(overriding: [OpenUIComponent(text) { _ in Color.primary.frame(height: 10) }])
         var theme = OpenUIThemeValues(); theme.space000 = 99; theme.spaceM = 31
-        for source in [
-            "root=Stack([TextContent(\"A\"),TextContent(\"B\")],\"column\",\"none\")",
-            "root=Card([TextContent(\"A\"),TextContent(\"B\")],\"card\",\"column\",\"none\")"
+        for (source, inset) in [
+            ("root=Stack([TextContent(\"A\"),TextContent(\"B\")],\"column\",\"none\")", CGFloat.zero),
+            ("root=Card([TextContent(\"A\"),TextContent(\"B\")],\"card\",\"column\",\"none\")", theme.spaceML * 2)
         ] {
             let state = OpenUIState(schema: library.library.toSchema()); state.setSource(source)
             XCTAssertTrue(state.errors.isEmpty, "\(state.errors)")
             let height = NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
                 .openUITheme(theme).frame(width: 300)).fittingSize.height
-            XCTAssertEqual(height, 20, accuracy: 0.5)
+            XCTAssertEqual(height - inset, 20, accuracy: 0.5,
+                "No gap may be introduced between the two 10-point children")
         }
     }
 

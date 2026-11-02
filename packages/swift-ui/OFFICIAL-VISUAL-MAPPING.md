@@ -60,7 +60,7 @@ semantic color must not silently become the chart series palette.
 
 | Family | Reference relationship adopted | Native boundary / remaining review |
 | --- | --- | --- |
-| Stack, Card | declared direction/alignment/wrap; Card default open, clear side insets, sunk recessed | measured native Layout; rounded background/media do not mask text; existing legal parameters preserved |
+| Stack, Card | declared direction/alignment/wrap and existing variants | native Card defaults to a padded foreground panel with a light border; clear remains transparent and sunk recessed; rounded backgrounds do not mask text |
 | TextContent, Markdown, Text, BoldText | shared type hierarchy, small does not imply gray, emphasis does not change reading size | system font metrics, MarkdownUI block layout |
 | CardHeader, InlineHeader, Label | role-specific typography, description priority and spacing | full text may grow at larger type |
 | Image, ImageBlock, ImageGallery, ImageTextLarge | shared media radius and stable slots | user-approved 3:2 photo covers instead of fixed 180px banner |
@@ -75,16 +75,14 @@ semantic color must not silently become the chart series palette.
 | Accordion | continuous clear disclosure list, no separate card per item | native DisclosureGroup affordance; streaming open-selection behavior retained |
 | Form, FormControl | open vertical flow, 16pt form gap, 8pt control gap | one input subtree; native field/picker interaction retained |
 | Input, TextArea, Select, DatePicker | shared reading role, subtle surface, interactive/error border | native keyboard, date sheet, text editor and minimum targets |
-| CheckBoxGroup, RadioGroup, SwitchGroup | shared labels, descriptions, spacing and semantic colors | platform controls and affordances retained |
+| CheckBoxGroup, RadioGroup, SwitchGroup | shared labels, descriptions, spacing and semantic colors | iOS radio choices use a wrapping row without descriptions and a vertical list with descriptions; selection targets and feedback retained |
 | Chips, OptionCards | reference selection border/tint, density and corners | native targets; card columns adapt to complete copy without duplicate controls |
-| Slider | same field/text/spacing language | native track, discrete picker and draft behavior retained |
+| Slider | same field/text/spacing language | compact label/value header without an extra field panel; range and accessibility headers stack; native track, discrete picker and draft behavior retained |
 | Table, EditableTable | shared borders, insets and reading hierarchy | horizontal data-preserving overflow and native editing retained |
-| MetricIndicator family | 16pt numeric emphasis; units and old value stay secondary | native number formatting and responsive reflow; oversized amounts scroll intact |
+| MetricIndicator family | 16pt numeric emphasis; units and old value stay secondary | current/previous values and trend wrap together above the explanation; oversized amounts scroll intact |
 | CodeBlock | shared mono role, header, surface and padding | native copy action and pinned syntax tokenizer retained |
 | Chart family | shared surrounding text and colors with existing series palette | native axis measurement, legend balance and canvas scaling; radar uses numbered axes plus complete category key |
-| Map | shared typography/surfaces and action hierarchy | native extension: map gestures, pins, local selection and resource lifecycle |
-| Modal, Popover | shared content roles, overlay surface and spacing | native presentation, safe area, dismissal and focus |
-| SVG, WebView | shared boundary, state and surface presentation | opt-in extensions in OpenUISwiftUI; authored web content owns its internal CSS |
+| Modal | shared content roles, overlay surface and spacing | ordinary iOS modals fit short content with expansion available; large modals retain full presentation; local Dynamic Type, safe area and dismissal preserved |
 | Loading, unavailable, empty | same visual tokens; localized user-facing state | preserve adjacent facts/actions and reserved media frame; diagnostics separate |
 
 Data-only registrations (Col, Series, ScatterSeries, Point, Slice, TabItem,
@@ -133,13 +131,11 @@ The three-item retained-patch list alone is not a complete customization invento
 
 Stable element/control identity, prepared schema caches, request coalescing,
 resource ownership, cancellation and execution budgets are SDK runtime policy.
-They must remain independent of hotel/travel/example content. The optional Map,
-Popover, SVG and WebView definitions are declared component extensions; the
-standard catalog retains 82 definitions, with 86 in the current review registry.
+They remain independent of hotel/travel/example content. The SDK catalogue
+contains only the 82 pinned standard definitions.
 
-The 50 imported scenes, their synthetic data, calculator functions, timers and
-fixed web-game scripts live under `Tests/Review`, and are not production SDK
-components or default prompt additions. UI verification of the review shell does
+Scene catalogs, synthetic data and interaction samples belong to the separate
+visual review application, not to SDK targets or default prompt additions. UI verification of the review shell does
 not establish the consuming client's bubble, lifecycle or transport behavior.
 
 ## Acceptance and change control
@@ -160,7 +156,7 @@ requires one. Preserve earlier dirty work and distinguish this batch's diff.
 Spacing and radius tokens follow the pinned `ThemeProvider/types.ts` and
 `defaultTheme.ts`; component gap mappings follow `genui-lib/Stack/index.tsx` and
 `genui-lib/Card/index.tsx`. Existing native overrides retain precedence. Literal
-spacing in metrics, chart details, citations, embedded fallbacks and map controls
+spacing in metrics, chart details and citations
 now reads those shared tokens with the same default values. Platform/control
 geometry is retained.
 

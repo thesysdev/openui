@@ -20,7 +20,7 @@ Hosts may replace theme values without redefining components or rewriting progra
   An explicit nonresponsive layout keeps its declaration and remains scrollable.
 - Tables preserve column alignment and measured row heights. Wider content scrolls
   horizontally rather than turning the table into an unrelated card template.
-- Carousel and map pages use the same native pager and current container width.
+- Carousel and card collections use the same native pager and current container width.
   A page selection survives appends; removing a selected page clamps the selection.
 - Stable statement and component identities preserve local UI during streaming,
   state updates and theme changes. Replacing a program resets that program only.
@@ -96,17 +96,6 @@ container whose positional direction has not arrived uses the existing compact
 preferred width as a provisional proposal, retaining the same photo aspect. This
 local structural guard does not affect declared card covers, gallery slots or
 other media, and a resolved inner row does not wait for an unfinished outer row.
-
-The optional Map renders supplied coordinates and valid point facts. Its default
-bottom cards are compact, internal to the map and synchronized with icon markers.
-The bottom overlay requests the pager's intrinsic capped height: a short card
-must not align to the top of an empty maximum-height frame. Inline cards keep an
-18pt bottom inset for map attribution. Default place previews use ultra-thin
-system material behind fully opaque content; Reduce Transparency uses the opaque
-control surface. Fullscreen content continues to respect its safe-area inset.
-Custom content uses ordinary registered components. No ratings, metadata or routes
-are inferred from labels. SVG and WebView are opt-in registrations through
-`OpenUIWebComponents.install(into:)` in `OpenUISwiftUI`.
 
 ## Platform boundaries
 
@@ -204,8 +193,10 @@ can still override semantic theme roles. Secondary actions have a transparent
 surface, an interactive border and quiet elevation; tags are informational, not
 secondary buttons. Tabs use the reference's open underline treatment. Accordion
 is a continuous open disclosure list, not one card per section. Generic Card
-follows its own reference variants: default is open, clear adds side insets, and
-sunk owns a recessed surface. Composite object cards remain independent surfaces.
+uses a padded foreground panel with a quiet border by default; clear keeps its
+transparent side-inset layout, and sunk keeps its recessed surface. This is a
+native presentation choice; the existing variants and layout parameters are
+unchanged. Composite object cards remain independent surfaces.
 
 The baseline typeface remains the platform system face with nearest-view Dynamic
 Type. CSS line-box height, variable Inter axes, inset shadows and hover are not
@@ -215,7 +206,5 @@ replaced by the user-approved width-derived 3:2 cover contract.
 
 Compact fact cards reflow their complete value below the description before
 compressing digits. MetricIndicator keeps oversized amounts on one horizontally
-scrollable line. Long accessibility tab labels wrap within the viewport. Default
-map cards give enlarged names more reading space and use a smaller thumbnail,
-without changing the mounted image or declared map viewport. Radar axes use
+scrollable line. Long accessibility tab labels wrap within the viewport. Radar axes use
 short numbers and a native full-label key, sharing drawing/inspection geometry.

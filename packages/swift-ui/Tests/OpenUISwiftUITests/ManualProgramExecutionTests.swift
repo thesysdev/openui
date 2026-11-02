@@ -42,7 +42,7 @@ final class ManualProgramExecutionTests: XCTestCase {
     """
 
     @MainActor func testManualReplacementExecutesOnceAcrossReusedState() async throws {
-        let library = try OpenUIMapComponents.library(basemapCoordinateSystem: .gcj02)
+        let library = try OpenUIStandardComponents.library()
         let state = OpenUIState(schema: library.library.toSchema())
         for iteration in 1...10 {
             if iteration > 1 { state.reset() }
@@ -52,7 +52,7 @@ final class ManualProgramExecutionTests: XCTestCase {
     }
 
     @MainActor func testManualReplacementExecutesOnceAcrossFreshStates() async throws {
-        let library = try OpenUIMapComponents.library(basemapCoordinateSystem: .gcj02)
+        let library = try OpenUIStandardComponents.library()
         for iteration in 1...10 {
             let state = OpenUIState(schema: library.library.toSchema())
             try await assertReplacementSequence(state: state, library: library,

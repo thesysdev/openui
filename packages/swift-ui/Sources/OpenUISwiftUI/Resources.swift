@@ -46,7 +46,7 @@ public struct OpenUIResourceContext {
     }
 }
 
-/// Presentation-scoped transport shared by images, SVG and native Markdown.
+/// Presentation-scoped transport shared by images and native Markdown.
 /// A view relocation does not own/cancel the underlying request. Credentials,
 /// resource policy and source addresses continue to belong to the injected loader.
 @MainActor final class NativeResourceStore {

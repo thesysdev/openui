@@ -64,33 +64,9 @@ final class ContractAlignmentTests: XCTestCase {
             runtime.snapshotState().isEmpty, "Uncontrolled Tabs must not allocate a shared variable")
     }
 
-    @MainActor func testMapAndStandardSelectShareStateWithoutExtraTabsParameters() throws {
-        let library = try OpenUIMapComponents.library()
-        let runtime = OpenUIState(schema: library.library.toSchema())
-        let source = """
-            $place="first"
-            root=Stack([
-              Map([{id:"first",title:"First",lat:30,lng:120},{id:"second",title:"Second",lat:31,lng:121}],[],$place),
-              Select("place",[SelectItem("first","First"),SelectItem("second","Second")],null,null,$place)
-            ])
-            """
-        runtime.setSource(source)
-        XCTAssertTrue(runtime.errors.isEmpty, "\(runtime.errors)")
-        var events = 0
-        runtime.onAction = { _ in events += 1 }
-        let children = PropValue.children(try XCTUnwrap(runtime.root))
-        let map = try XCTUnwrap(runtime.binding(for: children[0], prop: "value"))
-        let field = try XCTUnwrap(runtime.binding(for: children[1], prop: "value"))
-        field.wrappedValue = .string("second")
-        XCTAssertEqual(map.wrappedValue, .string("second"))
-        map.wrappedValue = .string("first")
-        XCTAssertEqual(field.wrappedValue, .string("first"))
-        XCTAssertEqual(events, 0)
-    }
-
     @MainActor func testNativeOnlyRegistrationsAreRemoved() throws {
         let library = try OpenUIStandardComponents.library()
-        for name in ["Tab", "Section", "AdaptiveGroup", "NavigationLink"] {
+        for name in ["Tab", "Section", "AdaptiveGroup", "NavigationLink", "Map", "SVG", "WebView", "Popover"] {
             XCTAssertNil(library.registry[name], name)
             XCTAssertFalse(library.library.components.contains { $0.name == name })
         }

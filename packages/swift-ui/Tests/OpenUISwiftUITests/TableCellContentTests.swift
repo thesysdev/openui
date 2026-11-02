@@ -17,16 +17,16 @@ final class TableCellContentTests: XCTestCase {
         }
     }
     func testReadOnlyRegistryKeepsPresentationAndExcludesInputActionAndHeavyContainers() throws {
-        let library = try installingPresentation(into: OpenUIMapComponents.library())
+        let library = try OpenUIStandardComponents.library()
         let cells = NativeTableCellContent.registry(from: library.registry, policy: .readOnly)
         for name in ["TextContent", "Icon", "Tag", "Image", "MetricIndicatorInline",
-                     "MetricIndicatorWithStrikethrough", "BarChart", "LineChart", "SVG", "Stack", "Popover"] {
+                     "MetricIndicatorWithStrikethrough", "BarChart", "LineChart", "Stack"] {
             XCTAssertNotNil(cells[name], name)
         }
         for name in ["Input", "TextArea", "Form", "FormControl", "EditableTable", "Select", "DatePicker",
                      "Slider", "CheckBoxGroup", "RadioGroup", "SwitchGroup", "Chips", "OptionCards",
                      "Button", "Buttons", "IconButton", "Table", "Card", "Tabs", "Carousel",
-                     "Map", "WebView", "ImageGallery", "MarkDownRenderer", "CompositeCardBlock"] {
+                     "ImageGallery", "MarkDownRenderer", "CompositeCardBlock"] {
             XCTAssertNotNil(library.registry[name], "Original registration must remain available: \(name)")
             XCTAssertNil(cells[name], "Cannot mount inside a table cell: \(name)")
         }

@@ -74,9 +74,6 @@ struct NativeCallout: View {
           }
           Spacer(minLength: 0)
         }.padding(context.theme.spaceM)
-          .background(
-            semanticColor(context.string("variant"), theme: context.theme).opacity(0.08),
-            in: RoundedRectangle(cornerRadius: context.theme.radius3xl))
       }
     }.task(id: "\(state.sourceRevision):\(visible):\(context.canInteract)") {
       guard visible, context.canInteract, binding != nil else { return }
@@ -505,6 +502,8 @@ struct NativeCarousel: View {
 struct NativeModal: View {
   let context: OpenUIComponentContext
   @EnvironmentObject private var state: OpenUIState
+  @Environment(\.dynamicTypeSize) private var typeSize
+  @State private var contentHeight: CGFloat = 420
   private var presented: Binding<Bool> {
     Binding(
       get: {
@@ -538,12 +537,40 @@ struct NativeModal: View {
             .buttonStyle(.plain).keyboardShortcut(.cancelAction)
             .accessibilityLabel(Text("Close", bundle: NativeControlResources.bundle))
           }
-          ScrollView { context.slot().frame(maxWidth: .infinity, alignment: .leading) }
+          .background(GeometryReader { geometry in
+            Color.clear.preference(key: NativeModalSizes.self, value: [0: geometry.size.height])
+          })
+          ScrollView {
+            context.slot().frame(maxWidth: .infinity, alignment: .leading)
+              .fixedSize(horizontal: false, vertical: true)
+              .background(GeometryReader { geometry in
+                Color.clear.preference(key: NativeModalSizes.self, value: [1: geometry.size.height])
+              })
+          }
         }.padding(context.theme.spaceM).frame(
           idealWidth: context.string("size") == "lg"
             ? 720 : context.string("size") == "sm" ? 360 : 520, idealHeight: 420
         )
+        .onPreferenceChange(NativeModalSizes.self) { parts in
+          guard let header = parts[0], let body = parts[1] else { return }
+          let height = header + body + context.theme.spaceML + context.theme.spaceM * 2
+          if height.isFinite, height > 0, abs(height - contentHeight) > 0.5 { contentHeight = height }
+        }
+        .environment(\.dynamicTypeSize, typeSize)
+        #if os(iOS)
+        .presentationDetents(context.string("size") == "lg" ? [.large] : [
+          .height(min(420, max(context.presentation.minimumControlTargetSize * 2, contentHeight))), .large
+        ])
+        .presentationDragIndicator(.visible)
+        #endif
       }
+  }
+}
+
+private struct NativeModalSizes: PreferenceKey {
+  static let defaultValue: [Int: CGFloat] = [:]
+  static func reduce(value: inout [Int: CGFloat], nextValue: () -> [Int: CGFloat]) {
+    value.merge(nextValue(), uniquingKeysWith: { _, next in next })
   }
 }
 

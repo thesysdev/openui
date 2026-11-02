@@ -142,13 +142,18 @@ Use `.openUITheme(theme)` for appearance and `.openUIPresentation(options)` for 
 
 The component layer uses the upgraded runtime's immutable reference containers and `OpenUIString` values. `context.string(...)` is a display convenience; `context.codeUnitString(...)` and `context.value(...)` retain exact semantic data. Resource lookup also accepts `OpenUIString` and compares exact keys. Stable render keys keep canonical Unicode variants and isolated UTF-16 units distinct. Native host transports must explicitly convert or reject values their own JSON representation cannot carry; see the [language package](../swift-lang/README.md).
 
-`OpenUIActionSurface` presents a single native button with a presentation-only label. Use it for an entire clickable resource card; do not nest other buttons in that label. `context.perform(plan)` uses the existing asynchronous runtime and host callback. The message/action overload uses the runtime's legacy/default-action dispatcher as well. `OpenUIActions.openURL(...)` and `continueConversation(...)` construct existing action plans; the host still owns navigation and business execution. Choose returned events or the state callback for host routing, never both; the standard surface uses the callback and does not route returned events a second time. Interaction stays disabled until streaming completes. Replacing source invalidates callbacks and context bindings from the previous source revision. Construct component contexts on the main actor; registered component hosts already do this.
+`OpenUIActionSurface` presents a single native button with a presentation-only label. Use it for an entire clickable resource card; do not nest other buttons in that label. `context.perform(plan)` uses the existing asynchronous runtime and host callback. The message/action overload uses the runtime's legacy/default-action dispatcher as well. `OpenUIActions.openURL(...)` and `continueConversation(...)` construct existing action plans; the host still owns navigation and business execution. Choose returned events or the state callback for host routing, never both; the standard surface uses the callback and does not route returned events a second time. Interactions require complete control dependencies in the current source revision; ready controls can act while unrelated content streams. Replacing source invalidates callbacks and context bindings from the previous source revision. Construct component contexts on the main actor; registered component hosts already do this.
 
 `context.isStreaming` is the streaming flag for the current render. Component hosts pass a new snapshot when a stream completes, so indirect child views refresh even when their props are unchanged. `context.canInteract` checks the live completion state and source revision; use it to gate controls and context action helpers to dispatch guarded operations.
 
 Custom input/form views can use context.fieldBinding, fieldValue and initializeField in the nearest `.openUIForm(...)` scope. Field initialization must happen on mount rather than while evaluating a view body.
 
 Stateful dynamic children should declare a stable `key`, `id`, or `resourceId` prop. An explicit instance key separates duplicate presentations of one resource. Named statements retain statementId identity; anonymous positional content is suitable for static/append-only presentation, not stateful reordering. Store a message's source, library version, and runtime snapshot for history restoration.
+
+The next RC removes the earlier Map, SVG, WebView and Popover installers.
+Consumers upgrading from rc.4 should use `OpenUIStandardComponents.library()`
+and export its matching spec. Older programs that depend on the removed names
+are not part of this standard catalogue; the SDK does not silently rewrite them.
 
 ## Local selection and navigation
 
@@ -159,17 +164,16 @@ container declares its own component and renderer rather than relying on hidden
 standard-component behavior.
 
 Use `OpenUIParameter.selection` and `context.binding` for declared bindings.
-Standard Select and Map can share the same variable without changing their
-contracts. Expanded presentations share the existing runtime and resource scope.
+Standard inputs can share the same variable without changing their contracts.
+Presentations share the existing runtime and resource scope.
 
 Declare host actions and invoke them with standard Button/ActionPlan. Business
 facts, transactions and application navigation stay with the caller. The SDK
-provides native rendering, resource hooks and optional presentation capabilities.
+provides native rendering and resource hooks.
 `replacingDefinition` can reuse a native builder when the extended definition
 preserves the semantics that builder implements; new behavior needs its own
 renderer. Export the actual resulting LibrarySpec.
 
-SVG/WebView and Popover live in `OpenUISwiftUI` as opt-in component extensions.
-No additional SwiftPM product or module import is required. Native PromptOptions and Table cell
-policies are explicit caller choices; base prompt generation and unrestricted
-Table rendering retain the upstream default capabilities.
+Native PromptOptions and Table cell policies are explicit caller choices; base
+prompt generation and unrestricted Table rendering retain the upstream default
+capabilities.

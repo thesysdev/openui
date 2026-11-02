@@ -137,33 +137,16 @@ struct OpenUINativeField: View {
                     Text(label)
                 }
                 .pickerStyle(.radioGroup).openUIHideLabel(fieldLabel != nil)
-                .modifier(NativeFieldSurface(theme: context.theme))
+                .openUIFont(context.theme.textBodyDefault)
             #else
-                VStack(alignment: .leading, spacing: context.theme.spacing("s")) {
-                    ForEach(options) { option in
-                        let selected = option.value == field.selected.wrappedValue
-                        Button {
-                            field.selected.wrappedValue = option.value
-                        } label: {
-                            HStack(alignment: .top, spacing: context.theme.spacing("sm")) {
-                                Image(systemName: selected ? "largecircle.fill.circle" : "circle")
-                                    .openUIFont(context.theme.textBodyDefault).foregroundStyle(
-                                        selected ? context.theme.interactiveAccentDefault : context.theme.textNeutralSecondary
-                                    )
-                                    .padding(.top, 2)
-                                optionLabel(option).frame(maxWidth: .infinity, alignment: .leading)
-                            }.frame(minHeight: 44)
-                            .modifier(NativeFieldSurface(theme: context.theme))
-                        }.buttonStyle(.plain)
-                            .accessibilityLabel(option.label).accessibilityHint(option.description)
-                            .accessibilityValue(
-                                selected
-                                    ? Text("Selected", bundle: NativeControlResources.bundle)
-                                    : Text("Not selected", bundle: NativeControlResources.bundle)
-                            )
-                            .accessibilityAddTraits(selected ? .isSelected : [])
+                Group {
+                    if options.contains(where: { !$0.description.isEmpty }) {
+                        VStack(alignment: .leading, spacing: context.theme.spaceS) { radioOptions(expanded: true) }
+                    } else {
+                        NativeWrappingRow(gap: context.theme.spaceML) { radioOptions(expanded: false) }
                     }
-                }.accessibilityElement(children: .contain).accessibilityLabel(label)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .contain).accessibilityLabel(label)
             #endif
         case .checkbox, .switches:
             VStack(alignment: .leading, spacing: context.theme.spacing("s")) {
@@ -195,6 +178,27 @@ struct OpenUINativeField: View {
                 Text(option.description).openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textNeutralSecondary)
             }
         }.fixedSize(horizontal: false, vertical: true)
+    }
+    private func radioOptions(expanded: Bool) -> some View {
+        ForEach(options) { option in
+            let selected = option.value == field.selected.wrappedValue
+            Button { field.selected.wrappedValue = option.value } label: {
+                HStack(alignment: .firstTextBaseline, spacing: context.theme.spaceS) {
+                    Image(systemName: selected ? "largecircle.fill.circle" : "circle")
+                        .openUIFont(context.theme.textBodyDefault)
+                        .foregroundStyle(selected ? context.theme.interactiveAccentDefault : context.theme.textNeutralSecondary)
+                    optionLabel(option)
+                }
+                .frame(maxWidth: expanded ? .infinity : nil, alignment: .leading)
+                .openUIControlTarget(alignment: .leading)
+                .contentShape(Rectangle())
+            }.buttonStyle(.plain)
+                .accessibilityLabel(option.label).accessibilityHint(option.description)
+                .accessibilityValue(selected
+                    ? Text("Selected", bundle: NativeControlResources.bundle)
+                    : Text("Not selected", bundle: NativeControlResources.bundle))
+                .accessibilityAddTraits(selected ? .isSelected : [])
+        }
     }
     private var options: [NativeFieldOption] { NativeFieldOption.read(field.options) }
     private var choiceHeight: CGFloat {

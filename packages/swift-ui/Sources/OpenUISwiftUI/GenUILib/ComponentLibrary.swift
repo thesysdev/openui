@@ -85,12 +85,6 @@ public struct OpenUIComponentLibrary {
     }
     public func toSpec() -> LibrarySpec { library.toSpec() }
 
-    package var standardContentSlots: [String] {
-        [("Card", "children"), ("TabItem", "content"), ("AccordionItem", "content")].compactMap { name, parameter in
-            library.components.contains { $0.name == name && $0.params.contains { $0.name == parameter } }
-                ? name + "." + parameter : nil
-        }
-    }
 }
 
 /// Helpers construct ordinary JSON Schema; argument order remains explicit.

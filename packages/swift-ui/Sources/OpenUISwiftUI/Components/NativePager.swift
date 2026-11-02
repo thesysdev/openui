@@ -32,11 +32,9 @@ struct NativePager<ID: Hashable, Content: View>: View {
   let enabled: Bool
   let identifier: String
   var showsControls = true
-  var maximumHeight: CGFloat? = nil
   var maximumPageWidth: CGFloat? = nil
   var trailingPeek: CGFloat = 0
   var pageSpacing: CGFloat = 0
-  var decorationOutset: CGFloat = 0
   /// Card blocks keep the same mounted pages when a late layout argument
   /// resolves to a grid. Other pagers leave this nil.
   var grid: NativeCardGrid? = nil
@@ -44,7 +42,6 @@ struct NativePager<ID: Hashable, Content: View>: View {
   @ViewBuilder let content: (ID) -> Content
   @Namespace private var scope
   @State private var width: CGFloat = 0
-  @State private var naturalHeight: CGFloat = 0
   @GestureState private var translation: CGFloat = 0
   @GestureState private var trackingDrag = false
   @State private var activationIntent = NativeActivationIntent()
@@ -63,18 +60,7 @@ struct NativePager<ID: Hashable, Content: View>: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      if let maximumHeight, naturalHeight > maximumHeight + 0.5 {
-        // Only explicitly capped map previews need a vertical scroll viewport.
-        ScrollView(.vertical, showsIndicators: naturalHeight > maximumHeight) {
-          strip.padding(decorationOutset)
-        }
-          .frame(height: min(max(1, naturalHeight), maximumHeight) + 2 * decorationOutset)
-          .padding(-decorationOutset)
-      } else {
-        // A non-overflowing map card must not add a vertical scroll recognizer
-        // between its buttons and the document's reading gesture.
-        strip.frame(maxHeight: maximumHeight, alignment: .top)
-      }
+      strip
       if showsControls && ids.count > 1 {
         NativePageControls(page: index, count: ids.count, enabled: enabled, identifier: identifier, select: select)
       }
@@ -119,7 +105,7 @@ struct NativePager<ID: Hashable, Content: View>: View {
         content(id).id(id).accessibilityHidden(grid == nil && !isCarousel && id != selection)
       }
     }
-    .clipShape(NativePagerDecorationClip(outset: decorationOutset)).contentShape(Rectangle())
+    .clipped().contentShape(Rectangle())
     .environment(\.openUIActivationIntent, activationIntent)
     .background(
       GeometryReader { measured in
@@ -129,9 +115,9 @@ struct NativePager<ID: Hashable, Content: View>: View {
     .onPreferenceChange(NativePagerSizes.self) { sizes in
       guard let size = sizes[scope], size.width.isFinite, size.height.isFinite else { return }
       if abs(size.width - width) > 0.5 { width = size.width }
-      if maximumHeight != nil, abs(size.height - naturalHeight) > 0.5 { naturalHeight = size.height }
     }
-    // Keep document scrolling available; only horizontal movement pages the strip.
+    // A grid must not install the pager recognizer: ignoring its callbacks
+    // still lets it compete with the document's vertical reading gesture.
     .simultaneousGesture(
       DragGesture(minimumDistance: 16)
         .updating($trackingDrag) { _, tracking, _ in tracking = enabled && grid == nil }
@@ -149,7 +135,7 @@ struct NativePager<ID: Hashable, Content: View>: View {
           else { return }
           let movement = value.predictedEndTranslation.width * (direction == .rightToLeft ? -1 : 1)
           select(index + (movement < 0 ? 1 : -1))
-        })
+        }, including: enabled && grid == nil ? .all : .subviews)
   }
 
   private func select(_ next: Int) {
@@ -164,13 +150,6 @@ private struct NativePagerAdjustment: ViewModifier {
   @ViewBuilder func body(content: Content) -> some View {
     if enabled { content.accessibilityAdjustableAction(action) }
     else { content }
-  }
-}
-
-private struct NativePagerDecorationClip: Shape {
-  let outset: CGFloat
-  func path(in rect: CGRect) -> Path {
-    Path(rect.insetBy(dx: -outset, dy: -outset))
   }
 }
 

@@ -8,22 +8,23 @@ import OpenUILang
 final class CardTextClippingTests: XCTestCase {
   /// Compare visible glyph coverage, excluding color-space/antialias rounding.
   /// An explicit old rounded mask is a negative control for missing strokes.
-  @MainActor func testOpenCardsPreserveChineseAndLatinGlyphs() throws {
+  @MainActor func testCardsPreserveChineseAndLatinGlyphs() throws {
     _ = NSApplication.shared
     let library = try OpenUIStandardComponents.library()
     let schema = library.library.toSchema()
-    func bitmap(_ source: String, horizontalInset: CGFloat = 0, oldMask: Bool = false) throws -> (Int, Int, Data) {
+    func bitmap(_ source: String, horizontalInset: CGFloat = 0, verticalInset: CGFloat = 0, oldMask: Bool = false) throws -> (Int, Int, Data) {
       let state = OpenUIState(schema: schema)
       state.setSource(source)
       XCTAssertTrue(state.errors.isEmpty, "\(state.errors)")
       let content = OpenUIRenderer(state: state, registry: library.registry)
         .padding(.horizontal, horizontalInset)
+        .padding(.vertical, verticalInset)
         .frame(width: 320, alignment: .leading)
       let view = Group {
         if oldMask { content.clipShape(RoundedRectangle(cornerRadius: OpenUIThemeValues().radius3xl, style: .continuous)) }
         else { content }
       }
-      .padding(8).background(Color.white)
+      .padding(8).background(OpenUIThemeValues().foreground)
       .environment(\.colorScheme, .light)
       .environment(\.locale, Locale(identifier: "zh_CN"))
       let renderer = ImageRenderer(content: view)
@@ -47,10 +48,12 @@ final class CardTextClippingTests: XCTestCase {
     for title in ["岩质行星", "Retirement savings"] {
       let header = "CardHeader(\"\(title)\",\"水星 · 金星 · 地球 · 火星\")"
       let reference = try bitmap("root=Stack([\(header)])")
+      let padded = try bitmap("root=Stack([\(header)])",
+        horizontalInset: OpenUIThemeValues().spaceML, verticalInset: OpenUIThemeValues().spaceML)
       let card = try bitmap("root=Card([\(header)],\"card\")")
-      XCTAssertEqual(card.0, reference.0)
-      XCTAssertEqual(card.1, reference.1)
-      XCTAssertEqual(card.2, reference.2, "Default Card must retain all visible glyph strokes: \(title)")
+      XCTAssertEqual(card.0, padded.0)
+      XCTAssertEqual(card.1, padded.1)
+      XCTAssertEqual(card.2, padded.2, "Default Card must retain all visible glyph strokes within its content inset: \(title)")
       let insetReference = try bitmap("root=Stack([\(header)])", horizontalInset: OpenUIThemeValues().spacing("l"))
       let clear = try bitmap("root=Card([\(header)],\"clear\")")
       XCTAssertEqual(clear.0, insetReference.0)

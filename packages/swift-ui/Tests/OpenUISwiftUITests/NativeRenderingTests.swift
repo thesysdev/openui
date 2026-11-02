@@ -120,11 +120,10 @@
                 let natural = try height(source, proposedHeight: nil)
                 XCTAssertEqual(try height(source, proposedHeight: 400), natural, accuracy: 1,
                     "A height proposal is a constraint, not a request to fill it")
-                // The pinned reference's default/clear Card has no vertical
-                // inset. Sunk has space-l on both sides of the complete copy.
-                let inset = variant == "sunk" ? 2 * OpenUIThemeValues().spacing("l") : 0
+                let theme = OpenUIThemeValues()
+                let inset = variant == "clear" ? 0 : 2 * (variant == "sunk" ? theme.spaceL : theme.spaceML)
                 XCTAssertEqual(natural, textHeight + inset, accuracy: 1,
-                    "Card variants must preserve their reference padding relationship")
+                    "Card height must include only its content and declared native inset")
             }
         }
 

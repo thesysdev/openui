@@ -80,66 +80,11 @@ components read resolved values from `context.theme`. Media sizes, cover ratio
 and motion belong to `OpenUIPresentation`, applied with `.openUIPresentation(...)`.
 See [theme overrides and the RC migration](COMPONENTS.md#theme-overrides).
 
-## Optional native map
+## Component catalogue
 
-`OpenUIStandardComponents.library()` retains the 82 pinned upstream registrations.
-When an app needs a map in an `openui-lang` answer, use the SDK extension:
-
-```swift
-let installed = try OpenUIMapComponents.library(
-    id: "my-agent", basemapCoordinateSystem: .gcj02)
-let schema = installed.library.toSchema()
-let registry = installed.registry
-```
-
-The resulting library has 83 definitions: the original 82 plus `Map`. Its Schema,
-prompt and native registry come from the same library. An app can keep the Map
-renderer installed while deriving a generation subset with the existing
-`Library.extend(removeComponents:)` API. `Map` is also accepted in `Card`,
-`TabItem` and `AccordionItem` slots through the core's existing extension rule.
-
-`Map(points, routes?, value?, size?, crs?, content?)` accepts supplied `{id,title,lat,lng}`
-points, optional subtitle/imageSrc/url, and routes as arrays of actual `{lat,lng}`
-vertices. `value` may bind to a local `$selected` point id; `size` is compact,
-regular or expanded. `crs` declares the input coordinates (`wgs84` by default,
-or `gcj02`). Set `basemapCoordinateSystem` to the coordinate system your
-MapKit basemap displays in the region. The SDK converts only this platform
-coordinate representation. It does not fetch places, geocode, calculate paths,
-or draw a route when no polyline was supplied.
-
-Map is a general spatial component. Valid supplied points automatically receive
-compact place cards inside the map's bottom edge: title plus available subtitle
-and image. Missing optional facts consume no space; no score, route or business
-fact is inferred. Markers use compact icon logos, not rating badges. Optional
-`icon` is an SF Symbol name; the default is a location symbol.
-
-Swiping cards and selecting markers share `value`. The map viewport follows the
-container width and declared size; card measurements do not increase map height.
-Pages use their measured content height and scroll vertically only when they
-exceed the available area. Camera padding reserves the visible card height.
-With no valid point or route the component renders no
-map. Explicit routes can render without place cards. Optional `content` overrides
-pages by point id with ordinary components; missing overrides use default facts,
-while an empty object or explicit null page hides the corresponding cards.
-Map does not geocode or calculate routes. The caller supplies factual coordinates
-and declares their CRS.
-
-## Optional web and contextual content
-
-SVG and WebView are included in `OpenUISwiftUI` and remain opt-in component
-registrations. Importing the UI module alone does not expose them to the model:
-
-```swift
-import OpenUISwiftUI
-let native = try OpenUIPopoverComponents.install(into: OpenUIMapComponents.library())
-let installed = try OpenUIWebComponents.install(into: native)
-```
-
-Popover is a pure SwiftUI extension. SVG and WebView use WebKit inside the same
-UI target; page JavaScript is disabled by default and can be enabled by host policy.
-All native media use `OpenUIResourceContext`; WebKit owns its document subresources.
-The base product also uses a private WebKit renderer for offline mathematical
-equations. It does not register a general web component.
+`OpenUIStandardComponents.library()` registers the 82 pinned upstream components.
+Generate the prompt and render using the same library. Host-owned additions can
+use the existing library extension API; the SDK does not ship an extra component catalogue.
 
 ## Rich text and source citations
 
@@ -177,8 +122,8 @@ OpenUIRenderer(state: state, registry: installed.registry)
     .openUITableCellPolicy(.readOnly)
 ```
 
-The read-only policy permits text/numbers and 11 lightweight components, applying
-the same reduced registry recursively through Stack, arrays and Popover. A custom
+The read-only policy permits text/numbers and 9 lightweight components, applying
+the same reduced registry recursively through Stack and arrays. A custom
 policy can name another registered subset. Outside this opt-in subtree the full
 component library remains available; the language and Col contract are unchanged.
 
@@ -318,7 +263,7 @@ Commit the generated resources, dependency lockfile and license notices together
 resource hashes and embedded font count. npm is not invoked by SwiftPM or the app.
 
 
-## Scoped resources and embedded content
+## Scoped resources
 
 Apply `.openUIResourceContext(OpenUIResourceContext(baseURL: ...))` once to the
 renderer. Image, ImageBlock, ImageText, ImageTextLarge, ImageGallery, ListItem,
@@ -330,26 +275,8 @@ The default uses URLSession, accepts HTTP(S), and treats HTTP failures as failur
 A changed request cancels the previous load; an obsolete result cannot replace
 current content. Gallery previews share the same loaded resource.
 
-`OpenUIPopoverComponents.install(into:)` registers the native Popover extension.
-`OpenUIWebComponents.install(into:)` from `OpenUISwiftUI` registers
-SVG and WebView. They do not change the 82 upstream component contracts.
-SVG accepts an inline XML document or resource URL and preserves its viewBox.
-WebView accepts HTML or a URL, measures content by default, and uses a scrollable
-viewport when height is supplied. Both use WebKit's standard document renderer.
-Page JavaScript is disabled by default and enabled only through
-`.openUIWebPolicy(OpenUIWebPolicy(allowsJavaScript: true))`; there is no model-to-native
-script action bridge. WebKit owns document subresource loading; the shared resource
-context supplies base URLs and top-level requests, while native image and remote
-SVG data use the injected async transport. Popover accepts any ordinary trigger
-and content, so icons and concise labels can expose optional context without
-inserting content into the document flow.
-
 Chart inspection is anchored within the chart. Tap selects/deselects a datum;
 a deliberate hold supports scrubbing while ordinary vertical swipes still scroll.
-Map content is ordinary components keyed by point id, presented inside its lower
-edge as swipeable content without page controls. The native camera reserves the
-measured content inset. Supplied place facts create compact default cards when
-custom component pages are absent; no missing facts or ratings are invented.
 
 `OpenUIState.onActionEvaluation` is an optional diagnostic hook exposing the real
 action AST, source revision, prior state and evaluated value before the state write.

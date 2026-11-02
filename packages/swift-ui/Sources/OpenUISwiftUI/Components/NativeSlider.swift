@@ -116,6 +116,8 @@ private struct NativeSliderTarget: Equatable {
 struct NativeSliderField: View {
   let context: OpenUIComponentContext
   @Environment(\.openUIFieldLabel) private var fieldLabel
+  @Environment(\.dynamicTypeSize) private var typeSize
+  @ScaledMetric(relativeTo: .body) private var valueWidth: CGFloat = 88
   @StateObject private var draft = NativeSliderDraft()
   @State private var picker: NativeSliderPickerRequest?
   private var field: NativeFieldState { .init(context: context) }
@@ -132,24 +134,25 @@ struct NativeSliderField: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: context.theme.spacing("s")) {
-      if fieldLabel == nil { Text(label).openUIFont(context.theme.textBodySm) }
+      header
       if configuration.valid {
-        if context.canInteract {
-          HStack(alignment: .top, spacing: context.theme.spacing("m")) {
-            ForEach(Array(draft.values.indices.prefix(2)), id: \.self) { index in
-              valueControl(index)
-            }
-          }
-        }
         NativeSliderTrack(values: draft.values.isEmpty ? external : draft.values,
           configuration: configuration, enabled: context.canInteract,
           showsDots: configuration.discrete && context.canInteract, label: label,
           select: { value, index in draft.select(value, at: index) })
+        ForEach(Array(draft.values.indices.prefix(2)), id: \.self) { index in
+          if let error = configuration.error(for: draft.values, index: index) {
+            Text(error).openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textDangerPrimary)
+              .fixedSize(horizontal: false, vertical: true)
+              .accessibilityIdentifier("openui.slider.validation.\(field.name.displayString).\(index)")
+          }
+        }
       } else {
         Text("Value unavailable", bundle: NativeControlResources.bundle).foregroundStyle(context.theme.textNeutralSecondary)
       }
     }
-    .modifier(NativeFieldSurface(theme: context.theme))
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .foregroundStyle(context.theme.textNeutralPrimary)
     .onAppear { configure(target); draft.receive(external) }
     .onChange(of: target) { configure($0) }
     .onChange(of: external) { draft.receive($0) }
@@ -175,6 +178,33 @@ struct NativeSliderField: View {
       NativeFieldState(context: target.context).write(.array(values.map(Value.number)))
     }
   }
+  private var header: some View {
+    let stacked = typeSize.isAccessibilitySize || external.count > 1
+    let layout = stacked
+      ? AnyLayout(VStackLayout(alignment: .leading, spacing: context.theme.spaceS))
+      : AnyLayout(HStackLayout(alignment: .center, spacing: context.theme.spaceM))
+    return layout {
+      if fieldLabel == nil {
+        Text(label).openUIFont(context.theme.textBodySm)
+          .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }
+      if configuration.valid {
+        HStack(spacing: context.theme.spaceS) {
+          ForEach(Array(external.indices.prefix(2)), id: \.self) { index in
+            Group {
+              if context.canInteract && draft.values.indices.contains(index) {
+                valueControl(index)
+              } else {
+                Text(jsNumberString(external[index])).monospacedDigit()
+                  .padding(.horizontal, context.theme.spaceSM).openUIControlTarget()
+              }
+            }.frame(width: valueWidth)
+          }
+        }.openUIFont(context.theme.textBodyDefaultHeavy)
+      }
+    }
+  }
   @ViewBuilder private func valueControl(_ index: Int) -> some View {
     VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
       if configuration.discrete {
@@ -183,18 +213,17 @@ struct NativeSliderField: View {
             Text(jsNumberString(draft.values[index])).monospacedDigit()
             Spacer(minLength: context.theme.spacing("s"))
             Image(systemName: "chevron.up.chevron.down").openUIFont(context.theme.textBodyXs)
-          }.padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.sunk, in: RoundedRectangle(cornerRadius: context.theme.radiusL))
+          }.padding(.horizontal, context.theme.spaceSM).openUIControlTarget()
+            .background(context.theme.sunk, in: RoundedRectangle(cornerRadius: context.theme.radiusL))
         }.buttonStyle(.plain).accessibilityIdentifier("openui.slider.choice.\(field.name.displayString).\(index)")
       } else {
-        TextField(label, text: Binding(get: { draft.text.indices.contains(index) ? draft.text[index] : "" },
+        TextField("", text: Binding(get: { draft.text.indices.contains(index) ? draft.text[index] : "" },
           set: { draft.edit($0, at: index) }))
           .textFieldStyle(.plain).monospacedDigit().nativeSliderKeyboard()
-          .padding(context.theme.spacing("sm")).frame(minHeight: 44).background(context.theme.sunk, in: RoundedRectangle(cornerRadius: context.theme.radiusL))
+          .multilineTextAlignment(.trailing).accessibilityLabel(label)
+          .padding(.horizontal, context.theme.spaceSM).openUIControlTarget()
+          .background(context.theme.sunk, in: RoundedRectangle(cornerRadius: context.theme.radiusL))
           .accessibilityIdentifier("openui.slider.input.\(field.name.displayString).\(index)")
-        if let error = configuration.error(for: draft.values, index: index) {
-          Text(error).openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textDangerPrimary)
-            .accessibilityIdentifier("openui.slider.validation.\(field.name.displayString).\(index)")
-        }
       }
     }.frame(maxWidth: .infinity)
   }

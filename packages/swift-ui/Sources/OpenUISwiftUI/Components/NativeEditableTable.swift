@@ -129,21 +129,25 @@ struct NativeEditableTable: View {
           RoundedRectangle(cornerRadius: context.theme.radiusL).strokeBorder(
             context.theme.borderDefault, lineWidth: context.presentation.borderWidth))
       if changed > 0 {
-        HStack(spacing: context.theme.spacing("m")) {
-          Text("\(changed)").monospacedDigit()
-          Text("Changed cells", bundle: NativeControlResources.bundle).foregroundStyle(
-            context.theme.textNeutralSecondary)
-          Spacer(minLength: 8)
-          Button {
-            editing.draft.reset()
-          } label: {
-            Text("Reset", bundle: NativeControlResources.bundle)
+        NativeLabelValueLayout(gap: context.theme.spaceM,
+          minimumLabelWidth: .greatestFiniteMagnitude, centerVertically: true) {
+          HStack(spacing: context.theme.spaceXs) {
+            Text("\(changed)").monospacedDigit()
+            Text("Changed cells", bundle: NativeControlResources.bundle)
+              .foregroundStyle(context.theme.textNeutralSecondary)
           }
-          .buttonStyle(
-            NativeActionButtonStyle(theme: context.theme, variant: "tertiary", size: "small"))
-          Button(action: save) { Text("Save Changes", bundle: NativeControlResources.bundle) }
+          NativeButtonsLayout(rowGap: context.theme.spaceS, columnGap: context.theme.spaceS) {
+            Button {
+              editing.draft.reset()
+            } label: {
+              Text("Reset", bundle: NativeControlResources.bundle)
+            }
             .buttonStyle(
-              NativeActionButtonStyle(theme: context.theme, variant: "primary", size: "small"))
+              NativeActionButtonStyle(theme: context.theme, variant: "tertiary", size: "small"))
+            Button(action: save) { Text("Save Changes", bundle: NativeControlResources.bundle) }
+              .buttonStyle(
+                NativeActionButtonStyle(theme: context.theme, variant: "primary", size: "small"))
+          }
         }.openUIFont(context.theme.textBodySm).disabled(!context.canInteract || saving)
       }
     }

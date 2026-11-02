@@ -34,17 +34,6 @@ upstream current-page state when rows temporarily disappear. Tabs, Accordion,
 Carousel and Table pagination are local browsing, available during streaming;
 form writes and business actions keep their separate completion checks.
 
-## Optional extensions
-
-- `OpenUIMapComponents`: Map for supplied locations, icon markers, default place
-  cards and optional ordinary component pages. No geocoding or fabricated routes.
-- `OpenUIPopoverComponents`: native contextual explanations.
-- `OpenUIWebComponents` in `OpenUISwiftUI`: opt-in SVG and WebView.
-
-These extensions are not part of the upstream default 82. Installation extends
-existing slots through the core; hosts can independently choose their generation
-subset. Component selection and business actions belong to the caller.
-
 ## Native presentation scope
 
 Registration and positional-schema parity do not imply web pixel equivalence.
@@ -75,8 +64,8 @@ copy button follows OpenUIPresentation's existing platform hit target.
 
 Rich text similarly bundles the pinned Remark/KaTeX dependencies. Native blocks
 remain SwiftUI; a private nonpersistent WebKit view rasterizes equations using
-embedded fonts. General SVG/WebView components are in the same UI module and still require
-explicit registration through `OpenUIWebComponents.install(into:)`. Citation metadata is supplied by `CardSourceProvider`, using
+embedded fonts. This private math implementation is not a general web component.
+Citation metadata is supplied by `CardSourceProvider`, using
 the upstream source fields rather than extending the language syntax.
 
 Chart inspection uses a shared native detail panel: the selected category is a

@@ -32,7 +32,11 @@ struct NativeMetric: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
-                    value; details
+                    NativeWrappingRow(gap: context.theme.spaceS) {
+                        value
+                        comparison
+                    }
+                    subtitle
                 }
             }
         }.accessibilityElement(children: .combine)
@@ -43,6 +47,10 @@ struct NativeMetric: View {
             theme: context.theme)
     }
     @ViewBuilder private var details: some View {
+        comparison
+        subtitle
+    }
+    @ViewBuilder private var comparison: some View {
         if let previous = context.string("previousValue") {
             Text(previous).strikethrough().openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textNeutralSecondary)
         }
@@ -56,6 +64,8 @@ struct NativeMetric: View {
             )
             .openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textNeutralSecondary)
         }
+    }
+    @ViewBuilder private var subtitle: some View {
         if let subtext = context.string("subtext") {
             Text(subtext).openUIFont(context.theme.textBodySm).foregroundStyle(context.theme.textNeutralSecondary)
         }

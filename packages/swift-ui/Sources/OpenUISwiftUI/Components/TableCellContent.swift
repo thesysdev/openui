@@ -29,7 +29,7 @@ enum NativeTableCellContent {
     static let componentNames = [
         "TextContent", "Icon", "Tag", "Image",
         "MetricIndicatorInline", "MetricIndicatorWithStrikethrough",
-        "BarChart", "LineChart", "SVG", "Stack", "Popover",
+        "BarChart", "LineChart", "Stack",
     ]
 
     static func registry(from installed: ComponentRegistry, policy: OpenUITableCellPolicy) -> ComponentRegistry {

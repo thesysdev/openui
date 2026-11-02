@@ -6,17 +6,15 @@ struct OpenUICardSurface: ViewModifier {
     let variant: String?
     func body(content: Content) -> some View {
         content.environment(\.openUIActionDensity, .compact)
-            // react-ui Card is an open container by default. Clear only adds
-            // side insets; sunk owns the recessed surface and full padding.
-            .padding(.horizontal, variant == "clear" || variant == "sunk" ? theme.spacing("l") : 0)
-            .padding(.vertical, variant == "sunk" ? theme.spacing("l") : 0)
+            .padding(.horizontal, variant == "clear" || variant == "sunk" ? theme.spaceL : theme.spaceML)
+            .padding(.vertical, variant == "clear" ? 0 : variant == "sunk" ? theme.spaceL : theme.spaceML)
             .frame(maxWidth: .infinity, alignment: .leading)
             // Background and media own their corners; the open container must
             // not mask glyphs at the edge of its unpadded content.
             .modifier(NativeCardSurface(
                 theme: theme,
-                fill: variant == "sunk" ? theme.sunk : .clear,
-                bordered: variant == "sunk"))
+                fill: variant == "clear" ? .clear : variant == "sunk" ? theme.sunk : theme.foreground,
+                bordered: variant != "clear"))
             .shadow(color: .black.opacity(variant == "sunk" ? theme.shadowS.opacity : 0),
                     radius: theme.shadowS.radius, x: theme.shadowS.x, y: theme.shadowS.y)
     }
