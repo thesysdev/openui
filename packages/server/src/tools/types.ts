@@ -21,12 +21,16 @@ export interface ExecutionContext {
   userId: string;
 }
 
-export const USER_ID_REQUIRED = "context.userId is required: the signed-in user, from your session";
-
-/** `context.userId` when it's set. The types require it; this catches callers they don't check. */
-export function userIdOf(context: unknown): string | undefined {
+/** Every call needs `context.userId`. The types require it; this catches callers they don't check. */
+export function assertUserIdRequired(context: unknown): asserts context is ExecutionContext {
   const userId = (context as { userId?: unknown } | undefined)?.userId;
-  return typeof userId === "string" && userId.trim() ? userId : undefined;
+  if (typeof userId !== "string" || !userId.trim()) {
+    throw new ToolExecutionError(
+      "context.userId is required: the signed-in user, from your session",
+      "invalid_input",
+      400,
+    );
+  }
 }
 
 export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (

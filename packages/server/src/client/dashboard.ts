@@ -1,12 +1,7 @@
 import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
-import {
-  ToolExecutionError,
-  USER_ID_REQUIRED,
-  userIdOf,
-  type ExecutionContext,
-} from "../tools/types";
+import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { apiError, isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
 import { createFrontendToken } from "./frontend-token";
@@ -98,10 +93,10 @@ export function defineDashboard<Context extends ExecutionContext>(
     signal?: AbortSignal,
   ): Promise<string> {
     // The dashboard belongs to the user the context names.
-    const userId = userIdOf(context) ?? invalidInput(USER_ID_REQUIRED);
+    assertUserIdRequired(context);
     // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
     const [{ token }, definitions] = await Promise.all([
-      createFrontendToken(api, userId, signal),
+      createFrontendToken(api, context.userId, signal),
       toolDefinitions(),
     ]);
     const response = await api.request("/v1/artifact/chat/completions", {
