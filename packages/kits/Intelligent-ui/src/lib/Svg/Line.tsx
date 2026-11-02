@@ -1,6 +1,7 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
+import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { n, paintAttrs } from "./helpers";
 import { color } from "../helpers";
@@ -11,5 +12,9 @@ export const Line = defineComponent({
   name: "Line",
   props: LineSchema,
   description: "",
-  component: ({ props }) => <line x1={n(props.x1)} y1={n(props.y1)} x2={n(props.x2)} y2={n(props.y2)} {...paintAttrs(props, false)} />,
+  component: ({ props }) => (
+    <Standalone>
+      <line x1={n(props.x1)} y1={n(props.y1)} x2={n(props.x2)} y2={n(props.y2)} {...paintAttrs(props, false)} />
+    </Standalone>
+  ),
 });

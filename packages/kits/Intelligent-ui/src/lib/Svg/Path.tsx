@@ -1,6 +1,7 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
+import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { ok, paint, paintAttrs } from "./helpers";
 
@@ -12,5 +13,9 @@ export const Path = defineComponent({
   name: "Path",
   props: PathSchema,
   description: "",
-  component: ({ props }) => <path d={ok(props.d, PATH)} {...paintAttrs(props, props.fill !== undefined)} />,
+  component: ({ props }) => (
+    <Standalone>
+      <path d={ok(props.d, PATH)} {...paintAttrs(props, props.fill !== undefined)} />
+    </Standalone>
+  ),
 });

@@ -23,6 +23,7 @@ export const Text = defineComponent({
       lineThrough={props.lineThrough}
       tabularNums={props.tabularNums}
       maxLines={props.maxLines}
+      block={Array.isArray(props.text) && (props.text as unknown[]).flat().some(isElement)}
     >
       {Array.isArray(props.text)
         ? (props.text as unknown[]).flat().map((part, i) =>

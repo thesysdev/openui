@@ -1,6 +1,7 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
+import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { tokens } from "../../shared/tokens";
 import { n } from "./helpers";
@@ -22,7 +23,8 @@ export const SvgText = defineComponent({
   props: SvgTextSchema,
   description: "",
   component: ({ props }) => (
-    <text
+    <Standalone>
+      <text
       x={n(props.x)}
       y={n(props.y)}
       fontSize={n(props.size) ?? 12}
@@ -33,5 +35,6 @@ export const SvgText = defineComponent({
     >
       {String(props.text ?? "")}
     </text>
+    </Standalone>
   ),
 });

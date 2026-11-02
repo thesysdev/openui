@@ -1,6 +1,7 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
+import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { n, paint, paintAttrs } from "./helpers";
 
@@ -11,6 +12,8 @@ export const Rect = defineComponent({
   props: RectSchema,
   description: "",
   component: ({ props }) => (
-    <rect x={n(props.x)} y={n(props.y)} width={Math.max(0, n(props.width) ?? 0)} height={Math.max(0, n(props.height) ?? 0)} rx={n(props.rx)} {...paintAttrs(props, true)} />
+    <Standalone>
+      <rect x={n(props.x)} y={n(props.y)} width={Math.max(0, n(props.width) ?? 0)} height={Math.max(0, n(props.height) ?? 0)} rx={n(props.rx)} {...paintAttrs(props, true)} />
+    </Standalone>
   ),
 });

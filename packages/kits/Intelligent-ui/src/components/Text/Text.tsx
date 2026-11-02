@@ -12,15 +12,18 @@ export interface TextProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "c
   tabularNums?: boolean;
   /** Clamps the paragraph to this many lines. */
   maxLines?: number;
+  /** Holds block components (a Badge, a Math): a div, since a paragraph can't contain them. */
+  block?: boolean;
 }
 
 /** A paragraph. */
 const Text = forwardRef<HTMLParagraphElement, TextProps>(
-  ({ size, color, weight, italic, lineThrough, tabularNums, maxLines, className, style, children, ...rest }, ref) => {
+  ({ size, color, weight, italic, lineThrough, tabularNums, maxLines, block, className, style, children, ...rest }, ref) => {
+    const Element = block ? "div" : "p";
     const lines = maxLines && maxLines > 0 ? Math.round(maxLines) : undefined;
     return (
-      <p
-        ref={ref}
+      <Element
+        ref={ref as never}
         className={clsx(
           styles.root,
           names.root,
@@ -40,7 +43,7 @@ const Text = forwardRef<HTMLParagraphElement, TextProps>(
         {...rest}
       >
         {children}
-      </p>
+      </Element>
     );
   },
 );

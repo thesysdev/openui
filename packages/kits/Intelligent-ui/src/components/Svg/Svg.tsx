@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import { size, type Length } from "../../shared/style";
 import { names, styles } from "./svg.styles";
 
@@ -13,6 +13,11 @@ export interface SvgProps {
   children?: ReactNode;
 }
 
+const InSvg = createContext(false);
+
+/** Whether a shape is inside an Svg. A shape outside one draws in its own small drawing instead. */
+export const useInSvg = () => useContext(InSvg);
+
 const VIEW_BOX = /^\s*[-\d.]+(\s*[\s,]\s*[-\d.]+){3}\s*$/;
 
 /** A drawing that scales to its width. */
@@ -23,7 +28,7 @@ export function Svg({ viewBox: viewBoxProp, width, height, children }: SvgProps)
   const maxWidth = width == null && natural > 0 ? `${Math.max(280, natural * 1.5)}px` : undefined;
   return (
     <svg className={clsx(styles.root, names.root)} viewBox={viewBox} style={{ width: size(width) ?? "100%", maxWidth, height: size(height) }} role="img" preserveAspectRatio="xMidYMid meet">
-      {children}
+      <InSvg.Provider value>{children}</InSvg.Provider>
     </svg>
   );
 }

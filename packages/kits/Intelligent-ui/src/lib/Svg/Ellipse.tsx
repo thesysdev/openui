@@ -1,6 +1,7 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
+import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { n, paint, paintAttrs } from "./helpers";
 
@@ -10,5 +11,9 @@ export const Ellipse = defineComponent({
   name: "Ellipse",
   props: EllipseSchema,
   description: "",
-  component: ({ props }) => <ellipse cx={n(props.cx)} cy={n(props.cy)} rx={Math.max(0, n(props.rx) ?? 0)} ry={Math.max(0, n(props.ry) ?? 0)} {...paintAttrs(props, true)} />,
+  component: ({ props }) => (
+    <Standalone>
+      <ellipse cx={n(props.cx)} cy={n(props.cy)} rx={Math.max(0, n(props.rx) ?? 0)} ry={Math.max(0, n(props.ry) ?? 0)} {...paintAttrs(props, true)} />
+    </Standalone>
+  ),
 });
