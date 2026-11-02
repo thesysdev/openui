@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 
 export const names = { root: "openui-intelligent-math", block: "openui-intelligent-math--block" } as const;
 

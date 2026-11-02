@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { cardSizedType } from "../../shared/flow.styles";
 
 export const names = { root: "openui-intelligent-grid" } as const;

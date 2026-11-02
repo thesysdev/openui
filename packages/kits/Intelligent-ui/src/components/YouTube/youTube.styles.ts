@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { tokens } from "../../shared/tokens";
 
 export const names = { root: "openui-intelligent-you-tube", frame: "openui-intelligent-you-tube-frame" } as const;

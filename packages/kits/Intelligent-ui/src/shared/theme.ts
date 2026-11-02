@@ -1,6 +1,10 @@
 import { glob } from "goober";
 
 /**
+ * Every selector is wrapped in :where(), so these rules weigh nothing: react-components exports no
+ * glob, so they can't join an app's cascade layer, and an app's own :root colours must still win
+ * however its stylesheet is ordered against these runtime rules.
+ *
  * Global rules rather than a stylesheet: their selectors reach elements the kit does not class, and
  * a stylesheet import would stop this package loading in plain Node, where a server reads the
  * library's spec. Goober also collects these with the rest of the kit's styles for SSR.
@@ -10,8 +14,7 @@ glob`
    borders) follow the OpenUI theme tokens, so components match the Agent
    Interface in light and dark; the dark block only retunes status, chart and
    map colors. */
-:root,
-[data-theme="light"] {
+:where(:root, [data-theme="light"]) {
   color-scheme: light;
   --openui-intelligent-font: var(--openui-font-body, "Inter", sans-serif);
   --openui-intelligent-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -96,8 +99,7 @@ glob`
   --_openui-intelligent-pressable-check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5'/%3E%3C/svg%3E");
 }
 
-:root[data-openui-theme="dark"],
-[data-theme="dark"] {
+:where(:root[data-openui-theme="dark"], [data-theme="dark"]) {
   color-scheme: dark;
 
   /* Neutral fallbacks for dark.
@@ -173,5 +175,5 @@ glob`
 
 /* Weights are set with font-weight (Inter 440 / 560 / 640), so drop the
    "wght" variation the page body sets for react-ui text. */
-[class*="openui-intelligent-"] { font-variation-settings: normal; }
+:where([class*="openui-intelligent-"]) { font-variation-settings: normal; }
 `;

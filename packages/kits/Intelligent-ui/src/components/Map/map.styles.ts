@@ -1,4 +1,4 @@
-import { css, keyframes } from "goober";
+import { css, keyframes } from "@openuidev/react-components";
 import { tokens } from "../../shared/tokens";
 
 const pinIn = keyframes`

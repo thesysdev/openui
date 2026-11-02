@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { cardSizedType } from "../../shared/flow.styles";
 import { tokens } from "../../shared/tokens";
 

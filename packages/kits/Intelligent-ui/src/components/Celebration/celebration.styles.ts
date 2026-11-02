@@ -1,4 +1,4 @@
-import { css, keyframes } from "goober";
+import { css, keyframes } from "@openuidev/react-components";
 
 export const DRIFT = "--_openui-intelligent-celebration-drift";
 export const SPIN = "--_openui-intelligent-celebration-spin";

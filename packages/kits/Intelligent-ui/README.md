@@ -15,7 +15,8 @@ pnpm add @openuidev/intelligent-kit@0.0.0-beta.0
 ```
 
 `@openuidev/react-components`, `@openuidev/react-lang`, `@openuidev/lang-core`,
-`react`, `react-dom` and `zod` are peer dependencies. Like the chat and
+`react`, `react-dom` and `zod` are peer dependencies. It needs react-components 0.0.1, the
+published release, which itself expects `zustand` 4 (`^4.5.5`). Like the chat and
 dashboard kits, it draws with react-components where that has the component
 (Button, Input, Select, Table, the charts, ...); the rest are the kit's own.
 
@@ -76,29 +77,32 @@ layout, text and media, the map, and the controls with their own look (`Badge`,
 
 ## Styling
 
-Styles follow the same flat contract as `@openuidev/react-components`, and it needs
-that package's flat-styles release ([#124](https://github.com/ankit-thesys/openui-comp/pull/124)):
+Styles follow the same flat contract as `@openuidev/react-components` 0.0.1 and use its public
+`css` and `keyframes`:
 
 - Every element has one generated class and one stable class. Each `<name>.styles.ts`
-  exports them as `styles` and `names`, and all stable classes start with
+  writes its rules with react-components' `css`, so they go in its `<style id="openui-styles">`
+  tag and follow `configureStyles({ layer })`, and exports them as `styles` and `names`, and all stable classes start with
   `openui-intelligent-`, so a plain class in your stylesheet can target and override them.
 - Variants set private `--_openui-intelligent-*` variables that the parts read. States are
   attributes such as `aria-pressed`, `aria-checked`, `data-state` and `data-selected`.
 - Every token has a fallback, so components still render without a provider.
 - Where the kit changes a react-components element, it uses the kit class plus that
-  element's stable class, such as `&.openui-button`: react-components registers its rules
-  at first render, so one class would tie and lose.
+  element's stable class, such as `&.openui-button`: both sets of rules share one tag, so one
+  class would tie with react-components' own and could lose.
 - `shared/theme.ts` is the one set of global rules, through goober's `glob`: its selectors
   reach elements the kit does not class, such as a `data-theme` on your own element.
+  react-components exports no `glob`, so the theme goes in goober's own tag, outside the layer.
+  Its selectors are wrapped in `:where()` so they weigh nothing, and an app's own `:root` colours
+  win whichever stylesheet loads first.
 
 A few rules are not flat, because the kit does not render the elements they reach: the
 spacing system and card-sized type (the model's children), a Row's or Grid's children, a
 Form's closing action, the photo row (which needs `!important` to beat inline styles), and
 the rules over the DOM of KaTeX, maplibre and react-components' Checkbox, RadioItem and OptionCards.
 
-On the server, `getComponentStyles()` from react-components collects the kit's styles
-too. As with react-components, streaming SSR is not supported in first paint: the kit is
-unstyled until the page's JavaScript runs.
+As with react-components, styles are written in the browser: server-rendered HTML does not
+include them yet, so the kit is unstyled until the page's JavaScript runs.
 
 ## Configuration
 
@@ -193,7 +197,7 @@ Root `Col`, 55 components in 6 groups, 59 `@functions`, 1 action
 | Root | `Card` | `Dashboard` | `Col` |
 | Registered | 84 | 48 | 55 |
 | `@functions` | — | — | 59 |
-| Styling | goober | goober | goober |
+| Styling | goober | react-components' `css` | react-components' `css` |
 
 ## Parity with the source app
 
@@ -223,4 +227,8 @@ for the other kits.
 ```sh
 pnpm --filter @openuidev/intelligent-kit run build
 pnpm --filter @openuidev/intelligent-kit run typecheck
+pnpm --filter @openuidev/intelligent-kit run test          # fast: the library, the prompt, the style rules
+pnpm --filter @openuidev/intelligent-kit run test:browser  # rendering, styles, layout and clicks in Chromium
+pnpm --filter @openuidev/intelligent-kit run test:parity  # the kit against the real app; see src/__tests__/parity
+pnpm --filter @openuidev/intelligent-kit run gallery      # every program, live
 ```

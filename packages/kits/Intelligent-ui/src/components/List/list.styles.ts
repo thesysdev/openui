@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { tokens } from "../../shared/tokens";
 
 export const names = {
@@ -161,12 +161,17 @@ export const styles = {
       line-height: 1;
       font-variant-numeric: tabular-nums;
     `,
+    /* A label wider than its lane, such as "Early afternoon", wraps rather than running into the
+       timeline's dot or the item's text. A short one still sits on the title's line. */
     text: css`
       justify-content: flex-start;
+      height: auto;
+      min-height: 1.55em;
       color: ${tokens.muted};
       font-size: 13px;
       font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
     `,
   },
   /* On a timeline with a text lane, the dot sits just past the time. */

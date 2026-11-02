@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { tokens } from "../../shared/tokens";
 
 export const names = { trigger: "openui-intelligent-popover-trigger", panel: "openui-intelligent-popover" } as const;

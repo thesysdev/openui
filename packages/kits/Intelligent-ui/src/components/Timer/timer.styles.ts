@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { tokens } from "../../shared/tokens";
 
 const TIME_COLOR = "--_openui-intelligent-timer-time-color";
