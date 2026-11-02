@@ -48,8 +48,8 @@ Valid CardRow patterns are: small-only, medium-only, medium+large mixed, or larg
 
 ### Shell Cards
 SmallCard(top: any, bottom?: any, trend?: any) — Compact dashboard card with three named forms. Overview card with icon: SmallCard(IconText(Icon(...), iconVariant), [MetricIndicator(value, label, trend?)]) for a metric that has a clear universal symbol. Overview card: SmallCard(title, metric, trend?) for abstract, composite, or system-specific metrics without a universal icon. Snippet card: SmallCard(lhs, rhs) for compact entity, task, account, or status rows; lhs is a non-emphasized object with title plus icon or imageSrc, and rhs is a required object with an emphasized value.
-MediumCard(children?: (DashboardCardHeader | BarChart | LineChart | AreaChart | RadarChart | HorizontalBarChart | PieChart | RadialChart | ScatterChart | Table | MetricIndicator | TextContent | MarkDownRenderer | Callout | TextCallout | ImageBlock | TagBlock | Button | ButtonGroup | Select | List | EntityList)[], collapsed?: boolean)
-LargeCard(children?: (DashboardCardHeader | BarChart | LineChart | AreaChart | HorizontalBarChart | ScatterChart | Table | MetricIndicator | TextContent | MarkDownRenderer | Callout | TextCallout | ImageBlock | TagBlock | Button | ButtonGroup | Select | List | EntityList)[], collapsed?: boolean)
+MediumCard(children?: (DashboardCardHeader | BarChart | LineChart | AreaChart | RadarChart | HorizontalBarChart | PieChart | RadialChart | ScatterChart | Table | MetricIndicator | TextContent | MarkDownRenderer | Callout | ImageBlock | TagBlock | Button | ButtonGroup | Select | List | EntityList)[], collapsed?: boolean)
+LargeCard(children?: (DashboardCardHeader | BarChart | LineChart | AreaChart | HorizontalBarChart | ScatterChart | Table | MetricIndicator | TextContent | MarkDownRenderer | Callout | ImageBlock | TagBlock | Button | ButtonGroup | Select | List | EntityList)[], collapsed?: boolean)
 DashboardCardHeader(title: string, subtitle?: string, titleType?: "text" | "number", controls?: (IconButton)[]) — Card header for MediumCard and LargeCard. If the card has a clear leading KPI or score, prefer making that value the title with titleType "number" and use the subtitle for the label; use titleType "text" for descriptive titles.
 List(items?: ListItem[], variant?: "icon" | "number", heading?: string, description?: string)
 ListItem(title: string, subtitle?: string, icon?: Icon)
@@ -64,7 +64,6 @@ Tag(text: string, variant?: "neutral" | "info" | "success" | "warning" | "danger
 TagBlock(children?: Tag[])
 TextContent(text: string, size?: "small" | "default" | "large" | "small-heavy" | "large-heavy")
 MarkDownRenderer(textMarkdown: string)
-TextCallout(variant?: "neutral" | "info" | "warning" | "success" | "danger", title?: string, description?: string)
 SmallCard is compact. MediumCard supports DashboardCardHeader, text, callouts, ImageBlock, charts, tables, lists, actions, tags, and metrics. LargeCard supports the same content as MediumCard except PieChart, donut charts, RadialChart, and RadarChart.
 Use Callout inside MediumCard or LargeCard for info, success, warning, or danger alerts.
 Use Button and ButtonGroup inside MediumCard or LargeCard for action triggers. ButtonGroup arranges buttons in a row or column.
@@ -72,7 +71,6 @@ Use Select inside MediumCard or LargeCard for inline dropdowns that are not part
 Use ImageBlock inside MediumCard for displaying images such as logos, product photos, or illustrations.
 Use TagBlock with Tag children inside MediumCard or LargeCard for status labels or category chips. Tag variants: success, info, warning, danger, neutral.
 Use TextContent for inline markdown text or MarkDownRenderer for full markdown blocks inside MediumCard or LargeCard.
-Use TextCallout for a variant-colored callout with title and description. Variants: success, info, warning, danger.
 SelectItem is a child of Select. Each SelectItem has a value and label.
 Use DashboardCardHeader as the first child inside MediumCard or LargeCard when the card needs title/subtext plus optional compact controls. If a card has a clear leading KPI or score, prefer making that value the DashboardCardHeader title with titleType "number" and use the subtitle for the label; use titleType "text" for descriptive card titles.
 Do not use FilterBar inside MediumCard or LargeCard.

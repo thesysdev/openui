@@ -75,12 +75,12 @@ Styles follow the same flat contract as `@openuidev/react-components`:
 
 ## The library
 
-Root component is `Dashboard`. 47 components in 6 groups:
+Root component is `Dashboard`. 46 components in 6 groups:
 
 | Group | Components |
 |---|---|
 | Dashboard Layout | `Dashboard`, `DashboardHeader`, `Section`, `FilterBar`, `FilterSelect`, `FilterMultiSelect`, `DatePicker`, `CardRow`, `IconButton` |
-| Shell Cards | `SmallCard`, `MediumCard`, `LargeCard`, `DashboardCardHeader`, `List`, `ListItem`, `EntityList`, `Callout`, `Button`, `ButtonGroup`, `Select`, `SelectItem`, `ImageBlock`, `Tag`, `TagBlock`, `TextContent`, `MarkDownRenderer`, `TextCallout` |
+| Shell Cards | `SmallCard`, `MediumCard`, `LargeCard`, `DashboardCardHeader`, `List`, `ListItem`, `EntityList`, `Callout`, `Button`, `ButtonGroup`, `Select`, `SelectItem`, `ImageBlock`, `Tag`, `TagBlock`, `TextContent`, `MarkDownRenderer` |
 | Metrics | `MetricIndicator`, `OverviewCardItem`, `OverviewCardBlock` |
 | Charts | `LineChart`, `BarChart`, `AreaChart`, `HorizontalBarChart`, `RadarChart`, `ScatterChart`, `RadialChart`, `PieChart`, `Series`, `ScatterSeries`, `Point` |
 | Data Display | `Table`, `Col` |
@@ -116,7 +116,7 @@ The component list matters less than the **layout grammar** the groups carry as
   `RadarChart` inside `LargeCard`; no `FilterBar` inside `MediumCard` or
   `LargeCard`.
 
-That grammar is why this component library is smaller than a general component set — 47
+That grammar is why this component library is smaller than a general component set — 46
 components and a ~22,000-character system prompt — while producing dashboards
 rather than a vertical stack of cards.
 

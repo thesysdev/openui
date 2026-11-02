@@ -35,7 +35,6 @@ import { SmallCardComponent } from "./SmallCard";
 import { ColComponent, TableComponent } from "./Table";
 import { TagBlockComponent, TagComponent } from "./TagBlock";
 import { TextBlockComponent } from "./TextBlock";
-import { TextCalloutComponent } from "./TextCallout";
 import { TextContentComponent } from "./TextContent";
 /**
  * All openui-lang components that make up the Dashboard artifact.
@@ -97,7 +96,6 @@ export const dashboardComponents = [
   SelectComponent,
   TextContentComponent,
   MarkDownRendererComponent,
-  TextCalloutComponent,
   ImageBlockComponent,
   TagComponent,
   TagBlockComponent,
