@@ -19,6 +19,7 @@ export const names = {
  */
 export const cardStyles = {
   root: css`
+    font-variation-settings: normal;
     display: flex;
     flex-direction: column;
     min-width: 0;

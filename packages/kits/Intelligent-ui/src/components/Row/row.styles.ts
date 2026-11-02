@@ -13,6 +13,7 @@ export const names = { root: "openui-intelligent-row" } as const;
  */
 export const rowStyles = {
   root: css`
+    font-variation-settings: normal;
     display: flex;
     flex-direction: row;
     align-items: center;

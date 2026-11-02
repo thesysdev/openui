@@ -1,10 +1,9 @@
-import "./theme";
-
 /**
- * The kit's design tokens as they are written in its styles, each with its light
- * value as a fallback. theme.ts holds the values, for light and dark. A neutral
- * reads through to the OpenUI theme, so the kit follows a host's theme. Importing
- * the theme here means anything that uses a token brings it along.
+ * The kit's design tokens as they are written in its styles. Each reads a
+ * react-components token, so the kit follows ThemeProvider: its mode, its
+ * lightTheme and darkTheme, wherever it writes them. Nothing sets the
+ * --openui-intelligent-* variables by default; an app sets one to override that
+ * token alone. Mixes resolve where they are used, so they follow the theme there.
  */
 export const tokens = {
   font: "var(--openui-intelligent-font, var(--openui-font-body, \"Inter\", sans-serif))",
@@ -27,40 +26,40 @@ export const tokens = {
   focus: "var(--openui-intelligent-focus, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)))",
   glass: "var(--openui-intelligent-glass, color-mix(in srgb, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)) 70%, transparent))",
   glassHover: "var(--openui-intelligent-glass-hover, color-mix(in srgb, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)) 85%, transparent))",
-  glassRing: "var(--openui-intelligent-glass-ring, rgb(255 255 255 / 70%))",
-  glassRingHover: "var(--openui-intelligent-glass-ring-hover, rgb(255 255 255 / 85%))",
-  shadow: "var(--openui-intelligent-shadow, 0 4px 20px rgb(0 0 0 / 6%))",
-  shadowSm: "var(--openui-intelligent-shadow-sm, 0 1px 3px rgb(0 0 0 / 5%))",
+  glassRing: "var(--openui-intelligent-glass-ring, color-mix(in srgb, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)) 70%, transparent))",
+  glassRingHover: "var(--openui-intelligent-glass-ring-hover, color-mix(in srgb, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff)) 85%, transparent))",
+  shadow: "var(--openui-intelligent-shadow, var(--openui-shadow-l, 0 4px 20px rgb(0 0 0 / 6%)))",
+  shadowSm: "var(--openui-intelligent-shadow-sm, var(--openui-shadow-s, 0 1px 3px rgb(0 0 0 / 5%)))",
   info: "var(--openui-intelligent-info, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)))",
   infoSoft: "var(--openui-intelligent-info-soft, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 6%, transparent))",
-  success: "var(--openui-intelligent-success, #00805d)",
-  successSoft: "var(--openui-intelligent-success-soft, #edf9f2)",
-  warning: "var(--openui-intelligent-warning, #8a5300)",
-  warningSoft: "var(--openui-intelligent-warning-soft, #ffefc7)",
-  danger: "var(--openui-intelligent-danger, #c1322c)",
-  dangerSoft: "var(--openui-intelligent-danger-soft, #fff0ee)",
-  purple: "var(--openui-intelligent-purple, #7040c1)",
-  purpleSoft: "var(--openui-intelligent-purple-soft, #f4f0ff)",
-  pink: "var(--openui-intelligent-pink, #b7377c)",
-  pinkSoft: "var(--openui-intelligent-pink-soft, #fff0f6)",
+  success: "var(--openui-intelligent-success, var(--openui-text-success-primary, #00805d))",
+  successSoft: "var(--openui-intelligent-success-soft, var(--openui-success-background, #edf9f2))",
+  warning: "var(--openui-intelligent-warning, var(--openui-text-alert-primary, #8a5300))",
+  warningSoft: "var(--openui-intelligent-warning-soft, var(--openui-alert-background, #ffefc7))",
+  danger: "var(--openui-intelligent-danger, var(--openui-text-danger-primary, #c1322c))",
+  dangerSoft: "var(--openui-intelligent-danger-soft, var(--openui-danger-background, #fff0ee))",
+  purple: "var(--openui-intelligent-purple, var(--openui-text-purple-primary, #7040c1))",
+  purpleSoft: "var(--openui-intelligent-purple-soft, var(--openui-purple-background, #f4f0ff))",
+  pink: "var(--openui-intelligent-pink, var(--openui-text-pink-primary, #b7377c))",
+  pinkSoft: "var(--openui-intelligent-pink-soft, var(--openui-pink-background, #fff0f6))",
   badgeNeutralSoft: "var(--openui-intelligent-badge-neutral-soft, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)) 6%, transparent))",
-  badgeSuccess: "var(--openui-intelligent-badge-success, #1f6b4f)",
-  badgeSuccessSoft: "var(--openui-intelligent-badge-success-soft, #e8f3ec)",
-  badgeWarning: "var(--openui-intelligent-badge-warning, #8a5300)",
-  badgeWarningSoft: "var(--openui-intelligent-badge-warning-soft, #ffefc7)",
-  badgeDanger: "var(--openui-intelligent-badge-danger, #9f3a33)",
-  badgeDangerSoft: "var(--openui-intelligent-badge-danger-soft, #f8e8e5)",
-  badgePurple: "var(--openui-intelligent-badge-purple, #5d4596)",
-  badgePurpleSoft: "var(--openui-intelligent-badge-purple-soft, #efebf7)",
-  badgePink: "var(--openui-intelligent-badge-pink, #94456d)",
-  badgePinkSoft: "var(--openui-intelligent-badge-pink-soft, #f7eaf1)",
+  badgeSuccess: "var(--openui-intelligent-badge-success, var(--openui-text-success-primary, #1f6b4f))",
+  badgeSuccessSoft: "var(--openui-intelligent-badge-success-soft, var(--openui-success-background, #e8f3ec))",
+  badgeWarning: "var(--openui-intelligent-badge-warning, var(--openui-text-alert-primary, #8a5300))",
+  badgeWarningSoft: "var(--openui-intelligent-badge-warning-soft, var(--openui-alert-background, #ffefc7))",
+  badgeDanger: "var(--openui-intelligent-badge-danger, var(--openui-text-danger-primary, #9f3a33))",
+  badgeDangerSoft: "var(--openui-intelligent-badge-danger-soft, var(--openui-danger-background, #f8e8e5))",
+  badgePurple: "var(--openui-intelligent-badge-purple, var(--openui-text-purple-primary, #5d4596))",
+  badgePurpleSoft: "var(--openui-intelligent-badge-purple-soft, var(--openui-purple-background, #efebf7))",
+  badgePink: "var(--openui-intelligent-badge-pink, var(--openui-text-pink-primary, #94456d))",
+  badgePinkSoft: "var(--openui-intelligent-badge-pink-soft, var(--openui-pink-background, #f7eaf1))",
   chart1: "var(--openui-intelligent-chart-1, #0285ff)",
   chart2: "var(--openui-intelligent-chart-2, #00a67d)",
   chart3: "var(--openui-intelligent-chart-3, #8b5cf6)",
   chart4: "var(--openui-intelligent-chart-4, #f4a340)",
   chart5: "var(--openui-intelligent-chart-5, #e46d91)",
   chart6: "var(--openui-intelligent-chart-6, #4b9ca6)",
-  mapWater: "var(--openui-intelligent-map-water, #a9dff0)",
+  mapWater: "var(--openui-intelligent-map-water, color-mix(in oklab, #4fb3d9 45%, var(--openui-intelligent-canvas, var(--openui-foreground, #ffffff))))",
   ring: "var(--openui-intelligent-ring, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, #0d0d0d)))",
   spaceTight: "var(--openui-intelligent-space-tight, 4px)",
   spaceInner: "var(--openui-intelligent-space-inner, 8px)",

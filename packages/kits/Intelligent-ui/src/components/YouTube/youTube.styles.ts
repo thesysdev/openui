@@ -5,6 +5,7 @@ export const names = { root: "openui-intelligent-you-tube", frame: "openui-intel
 
 export const youTubeStyles = {
   root: css`
+    font-variation-settings: normal;
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;

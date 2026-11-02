@@ -2,7 +2,8 @@
 
 import clsx from "clsx";
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useRef } from "react";
-import { bg, onColor, radius as radiusOf, space, type Color, type Radius } from "../../shared/style";
+import { useThemeMode } from "../../shared/scheme";
+import { bg, checkIcon, onColor, radius as radiusOf, space, type Color, type Radius } from "../../shared/style";
 import { names, pressableStyles } from "./pressable.styles";
 
 export interface PressableProps {
@@ -22,6 +23,7 @@ export interface PressableProps {
 /** Makes any content clickable, such as a tile or a swatch. */
 export function Pressable({ onPress, selected, disabled, padding, background, radius, children }: PressableProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const mode = useThemeMode();
   const press = () => {
     if (!disabled) onPress?.(ref.current);
   };
@@ -43,7 +45,14 @@ export function Pressable({ onPress, selected, disabled, padding, background, ra
       aria-pressed={selected === undefined ? undefined : !!selected}
       aria-disabled={disabled || undefined}
       className={clsx(pressableStyles.root, names.root)}
-      style={{ padding: space(padding), background: bg(background), ...onColor(background), borderRadius: radiusOf(radius) }}
+      style={{
+        padding: space(padding),
+        background: bg(background),
+        // The page's tick; onColor sets the coloured tile's own, which wins.
+        ["--_openui-intelligent-pressable-check-default" as string]: checkIcon(mode),
+        ...onColor(background),
+        borderRadius: radiusOf(radius),
+      }}
       onClick={onClick}
       onKeyDown={onKeyDown}
     >

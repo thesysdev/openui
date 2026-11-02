@@ -17,7 +17,7 @@ export const names = {
  */
 export const iconButtonStyles = {
   root: css`
-    --openui-text-neutral-primary: ${tokens.ink};
+    font-variation-settings: normal;
     --openui-border-interactive: ${tokens.border};
     --openui-highlight: ${tokens.hover};
     &.openui-icon-button:focus-visible {

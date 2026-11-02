@@ -32,6 +32,7 @@ const HOVER_FILTER = "--_openui-intelligent-button-hover-filter";
  */
 export const buttonStyles = {
   root: css`
+    font-variation-settings: normal;
     --openui-text-label-default: 560 14px/1.2 ${tokens.font};
     --openui-text-label-sm: 560 13px/1.2 ${tokens.font};
     --openui-text-label-default-letter-spacing: normal;
@@ -42,7 +43,6 @@ export const buttonStyles = {
     --openui-radius-l: 999px;
     --openui-space-xs: 7px;
     --openui-shadow-m: none;
-    --openui-text-neutral-primary: ${tokens.ink};
     --openui-text-neutral-tertiary: ${tokens.ink};
     --openui-border-interactive: ${tokens.border};
     --openui-border-default: transparent;
@@ -147,7 +147,7 @@ export const buttonStyles = {
       --openui-interactive-accent-hover: ${tokens.danger};
       --openui-interactive-accent-pressed: ${tokens.danger};
       --openui-interactive-accent-disabled: ${tokens.danger};
-      --openui-text-accent-primary: var(--_openui-intelligent-button-on-status, #fff);
+      --openui-text-accent-primary: ${tokens.canvas};
       --openui-text-neutral-primary: ${tokens.danger};
       --openui-text-neutral-tertiary: ${tokens.danger};
     `,
@@ -157,7 +157,7 @@ export const buttonStyles = {
       --openui-interactive-accent-hover: ${tokens.success};
       --openui-interactive-accent-pressed: ${tokens.success};
       --openui-interactive-accent-disabled: ${tokens.success};
-      --openui-text-accent-primary: var(--_openui-intelligent-button-on-status, #fff);
+      --openui-text-accent-primary: ${tokens.canvas};
       --openui-text-neutral-primary: ${tokens.success};
       --openui-text-neutral-tertiary: ${tokens.success};
     `,

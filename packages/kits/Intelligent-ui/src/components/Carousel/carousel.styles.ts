@@ -20,6 +20,7 @@ export const names = {
  */
 export const carouselStyles = {
   root: css`
+    font-variation-settings: normal;
     &.openui-carousel {
       min-width: 0;
     }

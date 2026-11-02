@@ -15,6 +15,7 @@ export const names = {
 
 export const titleStyles = {
   root: css`
+    font-variation-settings: normal;
     color: ${tokens.ink};
     font-weight: 640;
     font-variant-numeric: tabular-nums;

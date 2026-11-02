@@ -9,6 +9,7 @@ export const names = {
 
 export const htmlViewStyles = {
   root: css`
+    font-variation-settings: normal;
     position: relative;
     width: 100%;
     min-width: 0;

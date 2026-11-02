@@ -55,8 +55,8 @@ src/
                                     kit's own components
   components/<Name>/                the kit's own React components, no openui-lang:
     <Name>.tsx  <name>.styles.ts  index.ts
-  shared/                           what both halves need: theme.ts (the tokens),
-                                    tokens.ts, flow.styles.ts (the spacing system),
+  shared/                           what both halves need: tokens.ts (the tokens,
+                                    read from ThemeProvider), flow.styles.ts (the spacing system),
                                     style.ts (prop values to CSS), scheme.ts, config.ts
   lib/
     index.ts                        the library and every component definition
@@ -83,18 +83,18 @@ Styles follow the same flat contract as `@openuidev/react-components` 0.0.1 and 
 - Every element has one generated class and one stable class. Each `<name>.styles.ts`
   writes its rules with react-components' `css`, so they go in its `<style id="openui-styles">`
   tag and follow `configureStyles({ layer })`, and exports them as `<name>Styles` (`buttonStyles`, like react-components) and `names`, and all stable classes start with
-  `openui-intelligent-`, so a plain class in your stylesheet can target and override them.
+  `openui-intelligent-`, so your stylesheet can target them. With the kit in your layer
+  (`configureStyles({ layer })`), a single class overrides it; without one, a rule needs two
+  classes and has to load after the kit's.
 - Variants set private `--_openui-intelligent-*` variables that the parts read. States are
   attributes such as `aria-pressed`, `aria-checked`, `data-state` and `data-selected`.
 - Every token has a fallback, so components still render without a provider.
 - Where the kit changes a react-components element, it uses the kit class plus that
   element's stable class, such as `&.openui-button`: both sets of rules share one tag, so one
   class would tie with react-components' own and could lose.
-- `shared/theme.ts` is the one set of global rules, through goober's `glob`: its selectors
-  reach elements the kit does not class, such as a `data-theme` on your own element.
-  react-components exports no `glob`, so the theme goes in goober's own tag, outside the layer.
-  Its selectors are wrapped in `:where()` so they weigh nothing, and an app's own `:root` colours
-  win whichever stylesheet loads first.
+- There are no global rules. Colours come from react-components' `ThemeProvider` (see
+  Theming), and each component's root drops the `"wght"` variation a page may set on `body`,
+  because the kit sets weights with `font-weight`.
 
 A few rules are not flat, because the kit does not render the elements they reach: the
 spacing system and card-sized type (the model's children), a Row's or Grid's children, a
@@ -135,44 +135,42 @@ answers JSON:
 
 ## Theming
 
-Light is the default. Switch to dark with either attribute:
+The kit follows react-components' `ThemeProvider`, as react-components' own components do.
+Light is the default; `mode="dark"` switches both:
 
-```html
-<!-- on any ancestor of the rendered output -->
-<div data-theme="dark">…</div>
-
-<!-- or on the document, which is what AgentInterface sets -->
-<html data-openui-theme="dark">
+```tsx
+<ThemeProvider mode="dark">
+  <Renderer response={program} library={library} />
+</ThemeProvider>
 ```
 
-`data-theme` works on any element; `data-openui-theme` is matched as
-`:root[data-openui-theme="dark"]`, so it only takes effect on `<html>`. Without an
-OpenUI theme, either one also sets the `--openui-*` neutrals, at zero weight, so
-react-components' controls go dark too and any theme of yours still wins.
+Each colour reads a ThemeProvider token, so `lightTheme` and `darkTheme` restyle the kit with
+the rest of the page:
 
-Colours are CSS custom properties in `shared/theme.ts` (`--openui-intelligent-*`). Only the base
-neutrals and the status, chart and map colours are set directly; borders,
-surfaces, hover, focus and range tracks are derived from
-`--openui-intelligent-ink` and `--openui-intelligent-canvas` with `color-mix`, so re-pointing those two
-re-tunes the whole scale.
+| Kit colour | ThemeProvider token |
+|---|---|
+| ink (text, solid buttons, ticks) | `textNeutralPrimary` |
+| muted text | `textNeutralSecondary` |
+| canvas, and labels on ink | `foreground` |
+| success, warning, danger, purple, pink | `textSuccessPrimary`, `textAlertPrimary`, `textDangerPrimary`, `textPurplePrimary`, `textPinkPrimary` |
+| their soft tints (badges, callouts) | `successBackground`, `alertBackground`, `dangerBackground`, `purpleBackground`, `pinkBackground` |
+| shadows | `shadowL`, `shadowS` |
 
-### With an OpenUI theme
+Borders, surfaces, hover, focus and range tracks are mixed from ink and canvas where they are
+used, so they follow too. Chart and confetti colours are a fixed six-colour palette that reads
+in both modes: ThemeProvider's chart palettes are arrays for react-components' charts, not CSS
+variables.
 
-The neutrals read through to the OpenUI theme variables:
+To change one kit colour alone, set its `--openui-intelligent-*` variable (listed in
+`shared/tokens.ts`) anywhere above the output. The kit sets none of them itself:
 
 ```css
---openui-intelligent-ink: var(--openui-text-neutral-primary, #0d0d0d);
---openui-intelligent-canvas: var(--openui-foreground, #ffffff);
+:root { --openui-intelligent-ink: #1d4ed8; }
 ```
 
-So in an app that already has an OpenUI theme — `AgentInterface` or
-`ThemeProvider` from `@openuidev/react-ui`, or `--openui-*` set by hand — these
-components pick it up and match the chat around them, in both modes.
-
-Without one, the fallbacks apply, and they are correct in both modes: this kit
-has no `@openuidev/react-ui` dependency, so `data-theme="dark"` alone gives a
-fully dark surface. Set the OpenUI variables only when you want the components
-to follow a theme you already have.
+Like react-components, the kit doesn't set the page's text colour or `color-scheme`. What it
+leaves to inherit, such as `Text` and `Code`, takes the page's colour, so a dark page sets its
+own, for example `body { color: var(--openui-text-neutral-primary); background: var(--openui-background); }`.
 
 ## What it registers
 

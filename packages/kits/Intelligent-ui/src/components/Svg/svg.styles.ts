@@ -5,6 +5,7 @@ export const names = { root: "openui-intelligent-svg" } as const;
 
 export const svgStyles = {
   root: css`
+    font-variation-settings: normal;
     display: block;
     max-width: 100%;
     height: auto;

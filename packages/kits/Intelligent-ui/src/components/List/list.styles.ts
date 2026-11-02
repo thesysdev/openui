@@ -36,6 +36,7 @@ const RING = `inset 0 0 0 2px ${tokens.ink}`;
  */
 export const listStyles = {
   root: css`
+    font-variation-settings: normal;
     --_openui-intelligent-strong-weight: 640;
     display: flex;
     flex-direction: column;

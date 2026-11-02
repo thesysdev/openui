@@ -45,6 +45,7 @@ export const fieldStyles = {
     }
   `,
   root: css`
+    font-variation-settings: normal;
     display: flex;
     flex-direction: column;
     gap: 8px;

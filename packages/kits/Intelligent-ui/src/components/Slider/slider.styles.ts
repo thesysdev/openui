@@ -16,6 +16,7 @@ export const names = {
 /** A 24px pill track with an 18px thumb inside a 40px hit area. */
 export const sliderStyles = {
   root: css`
+    font-variation-settings: normal;
     --_openui-intelligent-slider-thumb-size: 18px;
     display: flex;
     flex-direction: column;

@@ -5,6 +5,7 @@ export const names = { root: "openui-intelligent-math", block: "openui-intellige
 /** Its rules on .katex are not flat, because KaTeX renders that DOM. */
 export const mathStyles = {
   root: css`
+    font-variation-settings: normal;
     & .katex {
       font-size: 1.12em;
     }

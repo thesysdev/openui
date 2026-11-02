@@ -34,6 +34,7 @@ const CELL_BORDER = "--_openui-intelligent-markdown-cell-border";
  */
 export const markdownStyles = {
   root: css`
+    font-variation-settings: normal;
     --_openui-intelligent-strong-weight: 640;
     display: flex;
     flex-direction: column;

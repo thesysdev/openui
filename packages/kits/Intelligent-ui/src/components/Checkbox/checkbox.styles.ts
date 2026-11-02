@@ -6,6 +6,7 @@ export const names = { root: "openui-intelligent-checkbox" } as const;
 /** The box and label are react-components', so they go by their stable classes. */
 export const checkboxStyles = {
   root: css`
+    font-variation-settings: normal;
     display: inline-flex;
     flex-direction: column;
     gap: 6px;

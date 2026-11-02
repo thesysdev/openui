@@ -96,6 +96,9 @@ function contrastOn(background: unknown): string | undefined {
 const tick = (stroke: string) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='${stroke}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5'/%3E%3C/svg%3E")`;
 
+/** The selected tile's tick on the page's ink: white on light mode's dark ink, dark on dark mode's. */
+export const checkIcon = (mode: "light" | "dark") => tick(mode === "dark" ? "%23171717" : "white");
+
 /**
  * Style for content on a raw-color background: text tokens switch to the readable color. What sits on
  * ink (a solid button's label, a selected tile's tick) switches with it, or it would keep the page
@@ -110,6 +113,9 @@ export function onColor(background: unknown): CSSProperties {
     "--openui-intelligent-ink": ink,
     "--openui-intelligent-muted": `color-mix(in srgb, ${ink} 72%, transparent)`,
     "--openui-intelligent-faint": `color-mix(in srgb, ${ink} 55%, transparent)`,
+    // react-components' parts inside (a field, a chart) read these, so they switch too.
+    "--openui-text-neutral-primary": ink,
+    "--openui-text-neutral-secondary": `color-mix(in srgb, ${ink} 72%, transparent)`,
     "--openui-intelligent-on-ink": darkInk ? "#ffffff" : "#0d0d0d",
     "--_openui-intelligent-pressable-check-icon": tick(darkInk ? "white" : "%230d0d0d"),
   } as CSSProperties;

@@ -20,6 +20,7 @@ export const names = {
 
 export const textStyles = {
   root: css`
+    font-variation-settings: normal;
     --_openui-intelligent-strong-weight: 640;
     margin: 0;
     overflow-wrap: anywhere;

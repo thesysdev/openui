@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
-import { useColorScheme } from "../../shared/scheme";
+import { useThemeMode } from "../../shared/scheme";
 import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./basemap";
 import { MapControls, type RouteKind } from "./controls";
 import { boundsOf, type LatLng, lngLat, mapColor, reducedMotion } from "./map-utils";
@@ -60,7 +60,7 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
   const [group, setGroup] = useState("all");
   const [infoOpen, setInfoOpen] = useState(false);
   const [mapError, setMapError] = useState(false);
-  const dark = useColorScheme(container) === "dark";
+  const dark = useThemeMode() === "dark";
   // Phones get a shorter map so it never fills the whole screen.
   const height = `min(${Math.min(720, Math.max(200, heightProp ?? 400))}px, max(280px, 82vw))`;
 
@@ -193,7 +193,11 @@ export function MapView({ places, route, height: heightProp, selected: selectedP
       <div
         ref={container}
         className={clsx(mapStyles.root, names.root)}
-        style={expanded ? undefined : { height }}
+        style={{
+          ...(expanded ? undefined : { height }),
+          // maplibre's control icons are black images; dark mode turns them light.
+          ...(dark ? { ["--_openui-intelligent-map-control-icon-filter" as string]: "invert(1)" } : undefined),
+        }}
         role={expanded ? "dialog" : "region"}
         aria-modal={expanded || undefined}
         aria-label="Map"

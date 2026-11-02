@@ -5,6 +5,7 @@ export const names = { root: "openui-intelligent-caption" } as const;
 
 export const captionStyles = {
   root: css`
+    font-variation-settings: normal;
     --_openui-intelligent-strong-weight: 640;
     margin: 0;
     color: ${tokens.muted};

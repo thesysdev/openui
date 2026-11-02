@@ -10,6 +10,7 @@ export const names = {
 
 export const codeStyles = {
   root: css`
+    font-variation-settings: normal;
     min-width: 0;
     overflow: hidden;
     border: 1px solid ${tokens.border};

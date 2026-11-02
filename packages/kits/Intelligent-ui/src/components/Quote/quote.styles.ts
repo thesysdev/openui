@@ -9,6 +9,7 @@ export const names = {
 
 export const quoteStyles = {
   root: css`
+    font-variation-settings: normal;
     display: flex;
     flex-direction: column;
     gap: 4px;

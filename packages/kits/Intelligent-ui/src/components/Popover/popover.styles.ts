@@ -20,6 +20,7 @@ export const popoverStyles = {
     }
   `,
   panel: css`
+    font-variation-settings: normal;
     position: fixed;
     z-index: 2000;
     display: flex;

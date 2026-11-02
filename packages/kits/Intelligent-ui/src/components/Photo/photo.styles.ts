@@ -20,6 +20,7 @@ export const names = {
 /** A shimmer until the photo loads; none once there is nothing to wait for. */
 export const photoStyles = {
   root: css`
+    font-variation-settings: normal;
     position: relative;
     display: grid;
     place-items: center;

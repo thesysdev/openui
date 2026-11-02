@@ -12,6 +12,7 @@ export const names = {
 
 export const timerStyles = {
   root: css`
+    font-variation-settings: normal;
     display: flex;
     align-items: center;
     justify-content: space-between;

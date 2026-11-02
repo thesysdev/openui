@@ -14,6 +14,7 @@ export const names = { root: "openui-intelligent-celebration", piece: "openui-in
 
 export const celebrationStyles = {
   root: css`
+    font-variation-settings: normal;
     position: fixed;
     inset: 0;
     z-index: 3000;

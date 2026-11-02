@@ -16,6 +16,7 @@ export const names = { root: "openui-intelligent-pressable" } as const;
  */
 export const pressableStyles = {
   root: css`
+    font-variation-settings: normal;
     ${WASH}: 0;
     ${CHECK}: "";
     position: relative;
@@ -49,7 +50,7 @@ export const pressableStyles = {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: ${tokens.ink} var(--_openui-intelligent-pressable-check-icon, none) center / 12px no-repeat;
+      background: ${tokens.ink} var(--_openui-intelligent-pressable-check-icon, var(--_openui-intelligent-pressable-check-default, none)) center / 12px no-repeat;
     }
     &:hover:not([aria-disabled="true"]) {
       ${WASH}: 0.05;

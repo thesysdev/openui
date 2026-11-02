@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useColorScheme } from "../../shared/scheme";
+import { useThemeMode } from "../../shared/scheme";
 import { htmlViewStyles, names } from "./htmlView.styles";
 
 export interface HtmlViewProps {
@@ -53,8 +53,7 @@ function documentFor(html: string, scheme: "light" | "dark") {
 /** A sandboxed HTML page with inline JS, for games and canvas. */
 export function HtmlView({ html, height, title, pending }: HtmlViewProps) {
   const frame = useRef<HTMLIFrameElement>(null);
-  const box = useRef<HTMLDivElement>(null);
-  const scheme = useColorScheme(box);
+  const scheme = useThemeMode();
   const fixed = typeof height === "number" && height > 0 ? Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height)) : null;
   const [measured, setMeasured] = useState<number | null>(null);
   const srcDoc = useMemo(() => documentFor(html, scheme), [html, scheme]);
@@ -76,7 +75,7 @@ export function HtmlView({ html, height, title, pending }: HtmlViewProps) {
   // A page that is still streaming would reload on every chunk; it runs once complete.
   const boxHeight = fixed ?? measured ?? AUTO_START;
   return (
-    <div ref={box} className={clsx(htmlViewStyles.root, names.root)} style={{ height: boxHeight }}>
+    <div className={clsx(htmlViewStyles.root, names.root)} style={{ height: boxHeight }}>
       {pending ? (
         <div className={clsx(htmlViewStyles.wait, names.wait)}>Preparing the interactive view…</div>
       ) : (

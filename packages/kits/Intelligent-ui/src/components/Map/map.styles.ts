@@ -84,6 +84,7 @@ export const mapStyles = {
     min-width: 0;
   `,
   root: css`
+    font-variation-settings: normal;
     position: relative;
     overflow: hidden;
     border-radius: ${tokens.radius2xl};

@@ -5,6 +5,7 @@ export const names = { root: "openui-intelligent-link", arrow: "openui-intellige
 
 export const linkStyles = {
   root: css`
+    font-variation-settings: normal;
     color: inherit;
     text-decoration: underline;
     text-decoration-color: ${tokens.borderStrong};

@@ -36,9 +36,7 @@
       ]
     }
   },
-  "sideEffects": [
-    "**/shared/theme.*"
-  ],
+  "sideEffects": false,
   "files": [
     "dist",
     "README.md"
@@ -49,7 +47,6 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "goober": "2.1.19",
     "katex": "^0.16.44",
     "lucide-react": "^0.562.0",
     "maplibre-gl": "^6.13.0"

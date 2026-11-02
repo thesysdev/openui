@@ -6,6 +6,7 @@ export const names = { root: "openui-intelligent-form" } as const;
 /** The closing action's extra space is not flat, because the children are the model's. */
 export const formStyles = {
   root: css`
+    font-variation-settings: normal;
     display: flex;
     flex-direction: column;
     gap: ${tokens.fieldGap};

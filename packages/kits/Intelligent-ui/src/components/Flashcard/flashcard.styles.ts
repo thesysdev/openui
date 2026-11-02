@@ -15,6 +15,7 @@ export const names = {
 
 export const flashcardStyles = {
   root: css`
+    font-variation-settings: normal;
     display: block;
     width: 100%;
     min-height: 168px;
