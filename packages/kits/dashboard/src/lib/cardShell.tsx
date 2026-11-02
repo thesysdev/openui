@@ -23,7 +23,6 @@ import { MetricIndicatorComponent } from "./MetricIndicator";
 import { SelectComponent } from "./Select";
 import { TableComponent } from "./Table";
 import { TagBlockComponent } from "./TagBlock";
-import { TextCalloutComponent } from "./TextCallout";
 import { TextContentComponent } from "./TextContent";
 export const mediumCardChildSchema = z.union([
   DashboardCardHeaderComponent.ref,
@@ -40,7 +39,6 @@ export const mediumCardChildSchema = z.union([
   TextContentComponent.ref,
   MarkDownRendererComponent.ref,
   CalloutComponent.ref,
-  TextCalloutComponent.ref,
   ImageBlockComponent.ref,
   TagBlockComponent.ref,
   ButtonComponent.ref,
@@ -62,7 +60,6 @@ export const largeCardChildSchema = z.union([
   TextContentComponent.ref,
   MarkDownRendererComponent.ref,
   CalloutComponent.ref,
-  TextCalloutComponent.ref,
   ImageBlockComponent.ref,
   TagBlockComponent.ref,
   ButtonComponent.ref,

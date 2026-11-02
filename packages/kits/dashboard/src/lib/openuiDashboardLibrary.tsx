@@ -50,7 +50,6 @@ export const openuiDashboardComponentGroups: ComponentGroup[] = [
       "TagBlock",
       "TextContent",
       "MarkDownRenderer",
-      "TextCallout",
     ],
     notes: [
       "SmallCard is compact. MediumCard supports DashboardCardHeader, text, callouts, ImageBlock, charts, tables, lists, actions, tags, and metrics. LargeCard supports the same content as MediumCard except PieChart, donut charts, RadialChart, and RadarChart.",
@@ -60,7 +59,6 @@ export const openuiDashboardComponentGroups: ComponentGroup[] = [
       "Use ImageBlock inside MediumCard for displaying images such as logos, product photos, or illustrations.",
       "Use TagBlock with Tag children inside MediumCard or LargeCard for status labels or category chips. Tag variants: success, info, warning, danger, neutral.",
       "Use TextContent for inline markdown text or MarkDownRenderer for full markdown blocks inside MediumCard or LargeCard.",
-      "Use TextCallout for a variant-colored callout with title and description. Variants: success, info, warning, danger.",
       "SelectItem is a child of Select. Each SelectItem has a value and label.",
       'Use DashboardCardHeader as the first child inside MediumCard or LargeCard when the card needs title/subtext plus optional compact controls. If a card has a clear leading KPI or score, prefer making that value the DashboardCardHeader title with titleType "number" and use the subtitle for the label; use titleType "text" for descriptive card titles.',
       "Do not use FilterBar inside MediumCard or LargeCard.",
