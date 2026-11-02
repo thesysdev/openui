@@ -10,7 +10,8 @@ export * from "./schema";
 export const Checkbox = defineComponent({
   name: "Checkbox",
   props: CheckboxSchema,
-  description: "lineThrough strikes the label when checked, for to-do lists.",
+  description:
+    "lineThrough strikes the label when checked, for to-do lists. rules takes only required.",
   component: function CheckboxBinding({ props, statementId }) {
     const name = useFieldName(props.label, statementId);
     const field = useStateField(name, props.checked);

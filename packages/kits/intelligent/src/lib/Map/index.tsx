@@ -12,7 +12,8 @@ export * from "./schema";
 export const MapMarker = defineComponent({
   name: "MapMarker",
   props: MapMarkerSchema,
-  description: "A place on a Map; icon is one emoji, else the pin shows its number.",
+  description:
+    "A place on a Map; icon is one emoji, else the pin shows its number. category groups markers under a filter on the map.",
   // Inside a Map, the Map draws its markers. One placed anywhere else shows as a labelled place.
   component: ({ props }) => (
     <Badge text={[props.icon, props.label].filter(Boolean).join(" ")} icon="map-pin" />

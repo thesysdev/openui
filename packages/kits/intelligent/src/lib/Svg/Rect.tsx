@@ -17,7 +17,8 @@ export const RectSchema = z.object({
 export const Rect = defineComponent({
   name: "Rect",
   props: RectSchema,
-  description: "",
+  description:
+    "rx rounds the corners; fill defaults to the text color, and with only a stroke it stays unfilled.",
   component: ({ props }) => (
     <Standalone>
       <rect

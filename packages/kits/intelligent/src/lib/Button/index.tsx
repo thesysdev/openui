@@ -10,7 +10,7 @@ export * from "./schema";
 export const Button = defineComponent({
   name: "Button",
   props: ButtonSchema,
-  description: "icon is a lucide name.",
+  description: "icon is a lucide name. Without an action it sends its label to the assistant.",
   component: ({ props }) => {
     const run = useRunAction();
     const streaming = useIsStreaming();

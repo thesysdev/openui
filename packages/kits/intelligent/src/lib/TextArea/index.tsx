@@ -13,7 +13,7 @@ export * from "./schema";
 export const TextArea = defineComponent({
   name: "TextArea",
   props: TextAreaSchema,
-  description: "",
+  description: "Multi-line text field; rows is 2 to 20 (default 3).",
   component: ({ props, statementId }) => {
     const name = useFieldName(props.label, statementId);
     const field = useStateField(name, props.value);

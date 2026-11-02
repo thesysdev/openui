@@ -19,7 +19,7 @@ export const LineSchema = z.object({
 export const Line = defineComponent({
   name: "Line",
   props: LineSchema,
-  description: "",
+  description: "Stroked in the text color, 2 wide, unless stroke and strokeWidth are set.",
   component: ({ props }) => (
     <Standalone>
       <line

@@ -10,7 +10,7 @@ export const CircleSchema = z.object({ cx: z.number(), cy: z.number(), r: z.numb
 export const Circle = defineComponent({
   name: "Circle",
   props: CircleSchema,
-  description: "",
+  description: "fill defaults to the text color; with only a stroke it stays unfilled.",
   component: ({ props }) => (
     <Standalone>
       <circle

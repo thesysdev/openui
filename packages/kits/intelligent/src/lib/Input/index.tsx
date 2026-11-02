@@ -12,7 +12,7 @@ export * from "./schema";
 export const Input = defineComponent({
   name: "Input",
   props: InputSchema,
-  description: "Text or number field; a number field stores numbers.",
+  description: "Text or number field; a number field stores numbers, and null when emptied.",
   component: function InputView({ props, statementId }) {
     const name = useFieldName(props.label, statementId);
     const field = useStateField(name, props.value);

@@ -11,7 +11,7 @@ export * from "./schema";
 export const Pressable = defineComponent({
   name: "Pressable",
   props: PressableSchema,
-  description: "Makes any content clickable, such as a tile or a swatch.",
+  description: "Makes any content clickable, such as a tile or a swatch. Needs an action.",
   component: function PressableBinding({ props, renderNode }) {
     const run = useRunAction();
     const streaming = useIsStreaming();

@@ -10,7 +10,7 @@ export const Grid = defineComponent({
   name: "Grid",
   props: GridSchema,
   description:
-    "Equal columns (default 2). With minChildWidth (px), columns drop on narrow screens.",
+    "Equal columns, 1 to 12 (default 2). With minChildWidth (px), columns drop on narrow screens.",
   component: ({ props, renderNode }) => (
     <GridView columns={props.columns} gap={props.gap} minChildWidth={props.minChildWidth}>
       {renderNode(props.children)}

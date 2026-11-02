@@ -64,7 +64,8 @@ function transform(value: unknown): string | undefined {
 export const G = defineComponent({
   name: "G",
   props: GSchema,
-  description: 'Group; transform like "rotate(30 50 50)" or "translate(10 0)".',
+  description:
+    'Group; transform like "rotate(30 50 50)" or "translate(10 0)"; one with the wrong number of arguments is dropped.',
   component: ({ props, renderNode }) => (
     <Standalone>
       <g transform={transform(props.transform)} opacity={opacity(props.opacity)}>

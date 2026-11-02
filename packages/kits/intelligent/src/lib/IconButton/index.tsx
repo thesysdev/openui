@@ -10,7 +10,7 @@ export * from "./schema";
 export const IconButton = defineComponent({
   name: "IconButton",
   props: IconButtonSchema,
-  description: "Round icon-only button; label is read aloud.",
+  description: "Round icon-only button; label is read aloud. Needs an action.",
   component: ({ props }) => {
     const run = useRunAction();
     const streaming = useIsStreaming();

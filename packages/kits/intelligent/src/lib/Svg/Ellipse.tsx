@@ -16,7 +16,7 @@ export const EllipseSchema = z.object({
 export const Ellipse = defineComponent({
   name: "Ellipse",
   props: EllipseSchema,
-  description: "",
+  description: "fill defaults to the text color; with only a stroke it stays unfilled.",
   component: ({ props }) => (
     <Standalone>
       <ellipse

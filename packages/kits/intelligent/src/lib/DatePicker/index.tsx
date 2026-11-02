@@ -49,7 +49,7 @@ const outOfRange = (text: string, min?: string, max?: string) => {
 export const DatePicker = defineComponent({
   name: "DatePicker",
   props: DatePickerSchema,
-  description: 'Dates are "YYYY-MM-DD".',
+  description: 'Dates, min and max are "YYYY-MM-DD". rules takes only required.',
   component: function DatePickerView({ props, statementId }) {
     const name = useFieldName(props.label, statementId);
     const field = useStateField(name, props.value);

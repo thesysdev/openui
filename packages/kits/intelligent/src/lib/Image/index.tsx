@@ -9,7 +9,8 @@ export * from "./schema";
 export const Image = defineComponent({
   name: "Image",
   props: ImageSchema,
-  description: "Photo from a URL the user or a tool gave; if it fails, a photo is found for alt.",
+  description:
+    "Photo from a URL the user or a tool gave; if it fails, a photo is found for alt. aspectRatio is 0.2 to 5 (default 1.5).",
   component: ({ props }) => (
     <Photo
       query={props.alt}

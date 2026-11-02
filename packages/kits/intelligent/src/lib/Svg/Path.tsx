@@ -12,7 +12,8 @@ const PATH = /^[MmLlHhVvCcSsQqTtAaZz\d\s,.eE+-]*$/;
 export const Path = defineComponent({
   name: "Path",
   props: PathSchema,
-  description: "",
+  description:
+    "d is SVG path data only (M, L, C, A, Z...), else nothing draws; unfilled unless fill is set.",
   component: ({ props }) => (
     <Standalone>
       <path d={ok(props.d, PATH)} {...paintAttrs(props, props.fill !== undefined)} />

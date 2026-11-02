@@ -21,7 +21,7 @@ export const SvgTextSchema = z.object({
 export const SvgText = defineComponent({
   name: "SvgText",
   props: SvgTextSchema,
-  description: "",
+  description: "A text label at x, y; anchor sets which end sits on x.",
   component: ({ props }) => (
     <Standalone>
       <text

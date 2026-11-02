@@ -9,6 +9,6 @@ export * from "./schema";
 export const Divider = defineComponent({
   name: "Divider",
   props: DividerSchema,
-  description: "",
+  description: "A thin horizontal rule between blocks.",
   component: () => <Separator />,
 });
