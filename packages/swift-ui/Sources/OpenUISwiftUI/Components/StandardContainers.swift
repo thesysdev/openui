@@ -21,12 +21,7 @@ struct OpenUICardSurface: ViewModifier {
 }
 
 private struct OpenUIStretchHeightKey: EnvironmentKey { static let defaultValue = false }
-private struct OpenUIContainerDirectionKnownKey: EnvironmentKey { static let defaultValue = true }
 extension EnvironmentValues {
-    fileprivate var openUIContainerDirectionKnown: Bool {
-        get { self[OpenUIContainerDirectionKnownKey.self] }
-        set { self[OpenUIContainerDirectionKnownKey.self] = newValue }
-    }
     var openUIStretchHeight: Bool {
         get { self[OpenUIStretchHeightKey.self] }
         set { self[OpenUIStretchHeightKey.self] = newValue }
@@ -50,8 +45,6 @@ struct OpenUIStack: View {
             ForEach(children) { child in
                 context.render(child.value)
                     .environment(\.openUIStretchHeight, context.string("direction") == "row" && stretches)
-                    .environment(\.openUIContainerDirectionKnown,
-                        context.element.isSourceComplete || ["row", "column"].contains(context.string("direction") ?? ""))
             }
         }
     }
@@ -60,7 +53,6 @@ struct OpenUIStack: View {
 
 struct NativeContentImage: View {
     let context: OpenUIComponentContext
-    @Environment(\.openUIContainerDirectionKnown) private var directionKnown
     var body: some View {
         NativeRemoteImage(src: context.string("src"), alt: context.string("alt") ?? "",
             layout: .cover)
@@ -68,10 +60,6 @@ struct NativeContentImage: View {
             // widths are unrelated; the parent still controls the final width.
             // Standard Image follows the pinned reference's 3:2 photo default.
             .frame(idealWidth: context.presentation.thumbnailSize)
-            // A positional direction can arrive after the children. Reserve a
-            // compact 3:2 proposal until that local container is known; settled
-            // covers and unrelated media never inherit this provisional bound.
-            .frame(maxWidth: directionKnown ? nil : context.presentation.thumbnailSize, alignment: .leading)
             .clipShape(RoundedRectangle(cornerRadius: context.theme.radiusM, style: .continuous))
     }
 }

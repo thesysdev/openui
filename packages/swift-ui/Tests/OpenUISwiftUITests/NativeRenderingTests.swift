@@ -26,7 +26,7 @@
             XCTAssertTrue(state.errors.isEmpty, "\(state.errors)")
         }
 
-        @MainActor func testUnfinishedContainerUsesACompactPhotoProposalUntilItsDirectionArrives() throws {
+        @MainActor func testUnfinishedContainerUsesColumnDefaultBeforeAnExplicitRowArrives() throws {
             _ = NSApplication.shared
             let library = try OpenUIStandardComponents.library()
             let state = OpenUIState(schema: library.library.toSchema())
@@ -37,8 +37,8 @@
             }
             state.push("root=Stack([Image(\"Photo\",null),TextContent(\"Copy grows")
             let pending = try height()
-            XCTAssertGreaterThan(pending, 80, "The waiting media must have a visible skeleton rather than zero-size blank space")
-            XCTAssertLessThan(pending, 160, "A missing row argument must not temporarily produce a full-width photo")
+            XCTAssertGreaterThanOrEqual(pending, 320 / OpenUIPresentation().coverAspectRatio,
+                "The standard column default must reserve the full-width photo, even before its pixels arrive")
             state.push(" beside the image\")],\"row\",\"m\",\"stretch\",\"start\",false)")
             state.complete()
             XCTAssertTrue(state.errors.isEmpty)

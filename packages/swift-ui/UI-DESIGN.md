@@ -91,11 +91,10 @@ On platforms using SwiftUI Layout (iOS 16+/macOS 13+), rows negotiate their
 available width and measured content. Photo previews retain the common cover
 ratio, including in stretched rows; they no longer introduce a separate 4:5
 image rule. Preferred thumbnail widths, column minimums and carousel maximums
-are measurement hints or bounds, not fixed photo heights. An ordinary Image in a
-container whose positional direction has not arrived uses the existing compact
-preferred width as a provisional proposal, retaining the same photo aspect. This
-local structural guard does not affect declared card covers, gallery slots or
-other media, and a resolved inner row does not wait for an unfinished outer row.
+are measurement hints or bounds, not fixed photo heights. Ordinary Image follows
+the container's current direction, including the standard column default. Its
+width does not depend on unrelated descendants becoming executable or on stream
+completion. A later explicit row argument changes the actual parent layout.
 
 ## Platform boundaries
 

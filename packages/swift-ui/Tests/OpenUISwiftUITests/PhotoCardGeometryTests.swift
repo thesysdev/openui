@@ -6,6 +6,78 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class PhotoCardGeometryTests: XCTestCase {
+  @MainActor private func withStreamingImage(
+    _ inspect: (OpenUIState, () -> Void, PhotoCardWidth) throws -> Void
+  ) throws {
+    _ = NSApplication.shared
+    let measured = PhotoCardWidth()
+    let standard = try OpenUIStandardComponents.library()
+    let image = try XCTUnwrap(standard.library.components.first { $0.name == "Image" })
+    let library = try standard.extending(overriding: [OpenUIComponent(image) { context in
+      NativeContentImage(context: context).background(GeometryReader { geometry in
+        Color.clear.onAppear { measured.width = geometry.size.width }
+          .onChange(of: geometry.size.width) { measured.width = $0 }
+      })
+    }])
+    let state = OpenUIState(schema: library.library.toSchema())
+    let host = NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry).frame(width: 300))
+    let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 300, height: 500),
+      styleMask: [.borderless], backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false; window.contentView = host
+    window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
+    defer { window.close() }
+    func settle() {
+      host.layoutSubtreeIfNeeded()
+      RunLoop.main.run(until: Date().addingTimeInterval(0.06))
+      host.layoutSubtreeIfNeeded()
+    }
+    try inspect(state, settle, measured)
+  }
+
+  @MainActor func testDefaultAndExplicitColumnsReserveTheSameImageWidthBeforeCompletion() throws {
+    try withStreamingImage { state, settle, measured in
+      let variants = [
+        ("Stack([picture,tail])", CGFloat(300)),
+        ("Stack([picture,tail],\"column\")", CGFloat(300)),
+        ("Card([picture,tail])", 300 - OpenUIThemeValues().spaceML * 2)
+      ]
+      for (container, expected) in variants {
+        state.setSource("root=\(container)\npicture=Image(\"photo\")\ntail=TextContent(\"still", streaming: true)
+        settle()
+        XCTAssertTrue(state.errors.isEmpty)
+        XCTAssertFalse(state.isComplete)
+        XCTAssertEqual(measured.width, expected, accuracy: 1,
+          "A column's width must not wait for its unrelated trailing text")
+        state.push(" arriving\")")
+        settle()
+        XCTAssertFalse(state.isComplete)
+        XCTAssertEqual(measured.width, expected, accuracy: 1)
+        state.complete()
+        settle()
+        XCTAssertEqual(measured.width, expected, accuracy: 1,
+          "Completing unchanged layout cannot resize the image")
+      }
+    }
+  }
+
+  @MainActor func testLateRowChangesLayoutOnlyWhenItsDirectionArrives() throws {
+    try withStreamingImage { state, settle, measured in
+      state.push("root=Stack([Image(\"photo\"),TextContent(\"Caption\")]")
+      settle()
+      XCTAssertEqual(measured.width, 300, accuracy: 1, "An omitted direction uses the standard column default")
+      state.push(",\"row\")\nother=TextContent(\"still")
+      settle()
+      XCTAssertTrue(state.errors.isEmpty)
+      XCTAssertFalse(state.isComplete)
+      let rowWidth = measured.width
+      XCTAssertGreaterThan(rowWidth, 0)
+      XCTAssertLessThan(rowWidth, 300, "The actual row argument changes the parent's width proposal")
+      state.push(" arriving\")")
+      state.complete()
+      settle()
+      XCTAssertEqual(measured.width, rowWidth, accuracy: 1)
+    }
+  }
   @MainActor private func card(_ source: String, kind: String, width: CGFloat) throws -> CGFloat {
     _ = NSApplication.shared
     let library = try OpenUIStandardComponents.library()
