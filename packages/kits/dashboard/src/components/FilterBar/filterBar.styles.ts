@@ -34,6 +34,13 @@ export const styles = {
       background: var(--openui-foreground, oklch(0.994 0 89.876 / 1));
       box-shadow: none;
       ${typography("label", "small")}
+      /* react-components' hover and open rules match this one's specificity, so naming the
+         states keeps the FilterSelect look without depending on which rule loads last. */
+      &:hover,
+      &[data-state="open"] {
+        border-color: var(--openui-border-interactive, oklch(0.097 0 0 / 0.12));
+        background: var(--openui-foreground, oklch(0.994 0 89.876 / 1));
+      }
     }
     & .openui-date-picker-trigger[data-placeholder] {
       color: var(--openui-text-neutral-secondary, oklch(0.097 0 0 / 0.6));
