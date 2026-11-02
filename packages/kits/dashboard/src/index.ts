@@ -15,9 +15,4 @@ export {
   openuiDashboardPromptOptions,
 } from "./lib/openuiDashboardLibrary";
 
-/**
- * The component definitions on their own, for callers that embed the dashboard
- * inside a larger library: spread this into their own `createLibrary({...})`.
- * Importing it runs no `createLibrary`.
- */
 export { dashboardComponents } from "./lib/defineComponents";
