@@ -687,16 +687,16 @@ importers:
         specifier: ^15.5.13
         version: 15.5.13
       react:
-        specifier: ^19.0.0
+        specifier: 'catalog:'
         version: 19.2.4
       react-dom:
-        specifier: ^19.0.0
+        specifier: 'catalog:'
         version: 19.2.4(react@19.2.4)
       zod:
         specifier: 'catalog:'
         version: 4.4.3
       zustand:
-        specifier: ^4.5.5
+        specifier: 'catalog:'
         version: 4.5.7(@types/react@19.2.17)(react@19.2.4)
 
   packages/react-email:
