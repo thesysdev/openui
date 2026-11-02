@@ -49,15 +49,13 @@ export function dashboardTools(signal: AbortSignal) {
       "create_dashboard",
       "Create a live dashboard. It loads its numbers live from npm, GitHub, and OSV.dev every time it is opened, so name the packages or repositories and describe which data to show and how, without numbers. Returns right away while the dashboard is generated.",
       createArgs,
-      async ({ title, prompt }) =>
-        (await dashboards.create({ title, prompt }, { userId: userId() }, { signal })).response,
+      ({ title, prompt }) => dashboards.create({ title, prompt }, { userId: userId() }, { signal }),
     ),
     tool(
       "edit_dashboard",
       "Change a dashboard in place, such as adding a chart or a section. Returns right away; the user sees the new version when it is ready.",
       editArgs,
-      async ({ id, prompt }) =>
-        (await dashboards.edit({ id, prompt }, { userId: userId() }, { signal })).response,
+      ({ id, prompt }) => dashboards.edit({ id, prompt }, { userId: userId() }, { signal }),
     ),
   ];
 }
