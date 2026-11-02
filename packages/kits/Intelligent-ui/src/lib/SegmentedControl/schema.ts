@@ -1,6 +1,6 @@
 import { reactive } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { options } from "../controlHelpers";
+import { options } from "../controls";
 
 export const SegmentedControlSchema = z.object({
   value: reactive(z.string()),

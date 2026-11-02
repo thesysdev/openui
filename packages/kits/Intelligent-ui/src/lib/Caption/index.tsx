@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { inline } from "../../components/Markdown/markdownBlocks";
 import { Caption as CaptionView } from "../../components/Caption";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { CaptionSchema } from "./schema";
 
 export * from "./schema";

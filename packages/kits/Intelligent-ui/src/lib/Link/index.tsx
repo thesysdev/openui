@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Link as LinkView } from "../../components/Link";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { LinkSchema } from "./schema";
 
 export * from "./schema";

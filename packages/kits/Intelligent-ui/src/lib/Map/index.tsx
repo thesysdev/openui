@@ -4,7 +4,7 @@ import { defineComponent, useIsStreaming, useStateField } from "@openuidev/react
 import { useId } from "react";
 import { Badge } from "../../components/Badge";
 import { MapView as StreetMap } from "../../components/Map";
-import { placesOf } from "../mapPlaces";
+import { placesOf } from "./places";
 import { createMapSchema, MapMarkerSchema } from "./schema";
 
 export * from "./schema";

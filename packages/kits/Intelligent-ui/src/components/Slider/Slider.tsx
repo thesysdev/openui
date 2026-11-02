@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { useId } from "react";
-import { numberText } from "../../shared/style";
+import { numberText } from "../../shared/text";
 import { names, sliderStyles, THUMB } from "./slider.styles";
 
 export interface SliderMark {

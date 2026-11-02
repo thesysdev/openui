@@ -2,7 +2,7 @@
 
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import { RadioGroup as RadioGroupView } from "../../components/RadioGroup";
-import { choiceList, useFieldName, useFieldRules } from "../controlHelpers";
+import { choiceList, useFieldName, useFieldRules } from "../controls";
 import { RadioGroupSchema } from "./schema";
 
 export * from "./schema";

@@ -2,7 +2,7 @@
 
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import { Slider as SliderView } from "../../components/Slider";
-import { useFieldName } from "../controlHelpers";
+import { useFieldName } from "../controls";
 import { SliderSchema } from "./schema";
 
 export * from "./schema";

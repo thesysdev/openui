@@ -5,7 +5,7 @@ import { defineComponent, useStateField } from "@openuidev/react-lang";
 import clsx from "clsx";
 import { Field } from "../../components/Field";
 import { fieldStyles, names as fieldNames } from "../../components/Field/field.styles";
-import { useFieldName, useFieldRules } from "../controlHelpers";
+import { useFieldName, useFieldRules } from "../controls";
 import { TextAreaSchema } from "./schema";
 
 export * from "./schema";

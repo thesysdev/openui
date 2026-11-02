@@ -2,7 +2,7 @@
 
 import { defineComponent, useIsStreaming, useStateField } from "@openuidev/react-lang";
 import { Timer as TimerView } from "../../components/Timer";
-import { useFieldName } from "../controlHelpers";
+import { useFieldName } from "../controls";
 import { TimerSchema } from "./schema";
 
 export * from "./schema";

@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Badge as BadgeView } from "../../components/Badge";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { BadgeSchema } from "./schema";
 
 export * from "./schema";

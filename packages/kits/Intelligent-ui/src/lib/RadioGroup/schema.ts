@@ -1,7 +1,7 @@
 import { reactive } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { choice } from "../controlHelpers";
-import { rulesSchema } from "../helpers";
+import { choice } from "../controls";
+import { rulesSchema } from "../schemas";
 
 export const RadioGroupSchema = z.object({
   value: reactive(z.string()),

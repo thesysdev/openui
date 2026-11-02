@@ -1,6 +1,6 @@
 import { defineFunction } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { list, MAX_ITEMS, read } from "./shared";
+import { list, MAX_ITEMS, read } from "./helpers";
 
 const LOCALE = "en-US";
 

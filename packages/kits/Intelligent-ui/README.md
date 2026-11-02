@@ -53,18 +53,28 @@ Laid out like the dashboard kit:
 src/
   index.ts                          "use client", the host configuration and the
                                     kit's own components
+  env.d.ts                          module declarations (the maplibre and KaTeX sheets)
   components/<Name>/                the kit's own React components, no openui-lang:
     <Name>.tsx  <name>.styles.ts  index.ts
-  shared/                           what both halves need: tokens.ts (the tokens,
-                                    read from ThemeProvider), flow.styles.ts (the spacing system),
-                                    style.ts (prop values to CSS), scheme.ts, config.ts
+    Map/parts/  Map/hooks/          the map's pieces and hooks, beside MapView.tsx
+  shared/                           what both halves need:
+    tokens.ts                       the tokens, read from ThemeProvider
+    props.ts                        the model's prop values as CSS
+    color.ts  url.ts  text.ts       raw-colour backgrounds, safe links, text helpers
+    flow.styles.ts                  the spacing system
+    useThemeMode.ts  config.ts      ThemeProvider's mode; the host configuration
   lib/
     index.ts                        the library and every component definition
     <Name>/{index.tsx, schema.ts}   one binding per library component
     Svg/                            the drawing family, one file per shape
+    Map/places.ts                   the model's places, as the map draws them
+    Action/                         the library's action and runLibraryAction
+    functions/                      the @functions, by subject, and their helpers.ts
+    prompt-options/  demo/          prompt examples and rules; the demo tools
     defineComponents.ts             the definitions
     openuiIntelligentLibrary.ts     the library and its groups
-    helpers.ts  controlHelpers.ts  mapPlaces.ts  actions.ts  functions/  prompt-options/
+    schemas.ts  controls.ts         shared prop schemas; the form controls' hooks
+  __tests__/                        fast, browser, function and source-comparison tests
 ```
 
 A binding maps the model's props onto components and draws no markup of its

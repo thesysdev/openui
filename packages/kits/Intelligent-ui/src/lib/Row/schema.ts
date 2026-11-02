@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { align, children, justify } from "../helpers";
+import { align, children, justify } from "../schemas";
 
 export const RowSchema = z.object({
   children,

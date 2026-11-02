@@ -11,7 +11,8 @@ import clsx from "clsx";
 import { ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { endpoints } from "../../shared/config";
-import { radius, webUrl, type Radius } from "../../shared/style";
+import { radius, type Radius } from "../../shared/props";
+import { webUrl } from "../../shared/url";
 import { names, photoStyles } from "./photo.styles";
 
 // Image search

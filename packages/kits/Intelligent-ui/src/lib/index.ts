@@ -8,12 +8,12 @@ export {
   exampleTrip,
   promptOptions,
 } from "./prompt-options";
-export { actions, CopyToClipboard, runLibraryAction } from "./actions";
+export { actions, CopyToClipboard, runLibraryAction } from "./Action";
 export { functions } from "./functions";
 // Only the tool *specs* are public: dashboardPromptOptions needs them to tell a
 // model which Query tools exist. The handlers that return the fabricated rows
 // are demo scaffolding from the source app and have no role in a published kit.
-export { demoToolSpecs } from "./demo-data";
+export { demoToolSpecs } from "./demo";
 
 // Each component definition, so a host can compose its own library from a
 // subset or add its own, as the coach and chess libraries do in Open

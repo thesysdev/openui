@@ -1,7 +1,7 @@
 import { reactive } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { options } from "../controlHelpers";
-import { rulesSchema } from "../helpers";
+import { options } from "../controls";
+import { rulesSchema } from "../schemas";
 
 export const SelectSchema = z.object({
   value: reactive(z.string()),

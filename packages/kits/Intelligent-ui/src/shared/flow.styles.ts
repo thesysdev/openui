@@ -6,7 +6,7 @@ const TEXT = ".openui-intelligent-text";
 const CAPTION = ".openui-intelligent-caption";
 const FLOW = ".openui-intelligent-flow";
 
-export const flowName = "openui-intelligent-flow";
+export const names = { root: "openui-intelligent-flow" } as const;
 
 /**
  * The spacing system: one scale (4/8/12/16/24px) in three tiers that always nest,
@@ -22,29 +22,31 @@ export const flowName = "openui-intelligent-flow";
  * base rule above a child's own margin reset whichever registers first, and `&&&`
  * keeps a subtitle's gap above Card's opening-title rule.
  */
-export const flow = css`
-  && > * + * {
-    margin-top: ${tokens.spaceSection};
-  }
-  & > ${TITLE} + * {
-    margin-top: ${tokens.spaceGroup};
-  }
-  ${FLOW} & > * + *,
-  &.openui-intelligent-card > * + * {
-    margin-top: ${tokens.spaceGroup};
-  }
-  & > ${TEXT} + ${TEXT} {
-    margin-top: ${tokens.spaceGroup};
-  }
-  &&& > ${TITLE} + ${TEXT},
-  &&& > ${TITLE} + ${CAPTION},
-  &&& > ${TITLE} + .openui-intelligent-row:has(> .openui-intelligent-badge) {
-    margin-top: ${tokens.spaceInner};
-  }
-  & > ${CAPTION} + ${TITLE} {
-    margin-top: ${tokens.spaceTight};
-  }
-`;
+export const flowStyles = {
+  root: css`
+    && > * + * {
+      margin-top: ${tokens.spaceSection};
+    }
+    & > ${TITLE} + * {
+      margin-top: ${tokens.spaceGroup};
+    }
+    ${FLOW} & > * + *,
+    &.openui-intelligent-card > * + * {
+      margin-top: ${tokens.spaceGroup};
+    }
+    & > ${TEXT} + ${TEXT} {
+      margin-top: ${tokens.spaceGroup};
+    }
+    &&& > ${TITLE} + ${TEXT},
+    &&& > ${TITLE} + ${CAPTION},
+    &&& > ${TITLE} + .openui-intelligent-row:has(> .openui-intelligent-badge) {
+      margin-top: ${tokens.spaceInner};
+    }
+    & > ${CAPTION} + ${TITLE} {
+      margin-top: ${tokens.spaceTight};
+    }
+  `,
+};
 
 const BIG_TITLES = ["lg", "xl", "2xl", "3xl"];
 

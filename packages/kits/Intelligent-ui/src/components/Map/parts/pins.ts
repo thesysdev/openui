@@ -1,6 +1,6 @@
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import type { MapLibre } from "./basemap";
-import { createPinElement, lngLat } from "./map-utils";
+import { createPinElement, lngLat } from "./mapUtils";
 import type { Place } from "./place";
 
 export type PinEntry = { marker: Marker; element: HTMLDivElement; pin: HTMLSpanElement; label: HTMLSpanElement };

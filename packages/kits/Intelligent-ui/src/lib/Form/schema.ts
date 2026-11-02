@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { children } from "../helpers";
+import { children } from "../schemas";
 
 export const FormSchema = z.object({
   children,

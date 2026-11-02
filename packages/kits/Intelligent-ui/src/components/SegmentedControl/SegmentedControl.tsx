@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { Button } from "../Button";
-import { useThemeMode } from "../../shared/scheme";
+import { useThemeMode } from "../../shared/useThemeMode";
 import { tokens } from "../../shared/tokens";
 import { names, segmentedControlStyles } from "./segmentedControl.styles";
 

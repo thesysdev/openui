@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useThemeMode } from "../../shared/scheme";
+import { useThemeMode } from "../../shared/useThemeMode";
 import { htmlViewStyles, names } from "./htmlView.styles";
 
 export interface HtmlViewProps {

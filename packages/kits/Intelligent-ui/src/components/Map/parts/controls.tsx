@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { mapStyles, names } from "./map.styles";
+import { mapStyles, names } from "../map.styles";
 
 export type RouteKind = "none" | "street" | "overview" | "loading";
 

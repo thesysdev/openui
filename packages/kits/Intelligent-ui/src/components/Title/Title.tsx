@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { fg, type Color } from "../../shared/style";
+import { type Color, fg } from "../../shared/props";
 import { names, titleStyles } from "./title.styles";
 
 export interface TitleProps extends Omit<HTMLAttributes<HTMLDivElement>, "color"> {

@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { flow, flowName } from "../../shared/flow.styles";
-import { flexStyle, type Align, type Justify } from "../../shared/style";
+import { flowStyles, names as flowNames } from "../../shared/flow.styles";
+import { type Align, flexStyle, type Justify } from "../../shared/props";
 import { colStyles, names } from "./col.styles";
 
 export interface ColProps extends HTMLAttributes<HTMLDivElement> {
@@ -16,7 +16,7 @@ export interface ColProps extends HTMLAttributes<HTMLDivElement> {
 const Col = forwardRef<HTMLDivElement, ColProps>(({ gap, align, justify, wrap, className, style, children, ...rest }, ref) => (
   <div
     ref={ref}
-    className={clsx(colStyles.root, names.root, gap == null && [flow, flowName], className)}
+    className={clsx(colStyles.root, names.root, gap == null && [flowStyles.root, flowNames.root], className)}
     style={{ ...flexStyle({ gap, align, justify, wrap }, true), ...style }}
     {...rest}
   >

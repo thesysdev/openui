@@ -1,5 +1,5 @@
 import { createLibrary } from "@openuidev/react-lang";
-import { actions } from "./actions";
+import { actions } from "./Action";
 import { baseComponents } from "./defineComponents";
 import { functions } from "./functions";
 

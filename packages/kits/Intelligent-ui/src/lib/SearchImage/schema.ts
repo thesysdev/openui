@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { fitSchema, radiusSchema } from "../helpers";
+import { fitSchema, radiusSchema } from "../schemas";
 
 export const SearchImageSchema = z.object({
   query: z.string(),

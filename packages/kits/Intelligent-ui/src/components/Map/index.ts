@@ -1,2 +1,2 @@
 export * from "./MapView";
-export type { Place } from "./place";
+export type { Place } from "./parts/place";

@@ -2,8 +2,8 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Flashcard as FlashcardView } from "../../components/Flashcard";
-import { str } from "../../shared/style";
-import { renderSlot, type Render } from "../helpers";
+import { str } from "../../shared/text";
+import { renderSlot, type Render } from "../schemas";
 import { FlashcardSchema } from "./schema";
 
 export * from "./schema";

@@ -2,7 +2,7 @@
 
 import { defineComponent, useIsStreaming } from "@openuidev/react-lang";
 import { Button as ButtonView } from "../../components/Button";
-import { useRunAction } from "../controlHelpers";
+import { useRunAction } from "../controls";
 import { ButtonSchema } from "./schema";
 
 export * from "./schema";

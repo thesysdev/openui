@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { align, children } from "../helpers";
+import { align, children } from "../schemas";
 
 export const ColSchema = z.object({ children, gap: z.number().optional(), align: align.optional() });
 

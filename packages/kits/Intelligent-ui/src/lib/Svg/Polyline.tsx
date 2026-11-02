@@ -4,7 +4,7 @@ import { defineComponent } from "@openuidev/react-lang";
 import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { ok, paintAttrs, POINTS } from "./helpers";
-import { color } from "../helpers";
+import { color } from "../schemas";
 
 export const PolylineSchema = z.object({ points: z.string(), stroke: color.optional(), strokeWidth: z.number().optional(), fill: color.optional(), opacity: z.number().optional() });
 

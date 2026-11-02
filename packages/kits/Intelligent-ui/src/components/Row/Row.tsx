@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { flexStyle, type Align, type Justify } from "../../shared/style";
+import { type Align, flexStyle, type Justify } from "../../shared/props";
 import { names, rowStyles } from "./row.styles";
 
 export interface RowProps extends HTMLAttributes<HTMLDivElement> {

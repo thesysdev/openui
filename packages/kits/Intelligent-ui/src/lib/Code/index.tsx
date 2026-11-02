@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Code as CodeView } from "../../components/Code";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { CodeSchema } from "./schema";
 
 export * from "./schema";

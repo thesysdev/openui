@@ -1,5 +1,5 @@
 import type { PromptOptions } from "@openuidev/react-lang";
-import { demoToolSpecs } from "../demo-data";
+import { demoToolSpecs } from "../demo";
 
 /**
  * Prompt options that teach the model to answer with working tools: the page

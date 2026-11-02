@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Fragment, type ReactNode } from "react";
-import { webUrl } from "../../shared/style";
+import { webUrl } from "../../shared/url";
 import { linkStyles, names as linkNames } from "../Link/link.styles";
 import { markdownStyles, names } from "./markdown.styles";
 

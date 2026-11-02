@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { webUrl } from "../../shared/style";
+import { webUrl } from "../../shared/url";
 import { linkStyles, names } from "./link.styles";
 
 export interface LinkProps {

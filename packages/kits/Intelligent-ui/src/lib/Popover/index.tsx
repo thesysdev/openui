@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Popover as PopoverView } from "../../components/Popover";
-import { renderSlot } from "../helpers";
+import { renderSlot } from "../schemas";
 import { PopoverSchema } from "./schema";
 
 export * from "./schema";

@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { YouTube as YouTubeView } from "../../components/YouTube";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { YouTubeSchema } from "./schema";
 
 export * from "./schema";

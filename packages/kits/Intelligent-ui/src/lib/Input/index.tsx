@@ -4,7 +4,7 @@ import { Input as RCInput } from "@openuidev/react-components";
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import { useState } from "react";
 import { Field } from "../../components/Field";
-import { useFieldName, useFieldRules } from "../controlHelpers";
+import { useFieldName, useFieldRules } from "../controls";
 import { InputSchema } from "./schema";
 
 export * from "./schema";

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { LngLatBoundsLike } from "maplibre-gl";
-import { mapStyles, names } from "./map.styles";
+import { mapStyles, names } from "../map.styles";
 
 /** [lat, lng]. MapLibre itself takes [lng, lat]; convert with `lngLat`. */
 export type LatLng = [number, number];

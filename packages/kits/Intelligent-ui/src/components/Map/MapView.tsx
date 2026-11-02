@@ -3,16 +3,16 @@
 import clsx from "clsx";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
-import { useThemeMode } from "../../shared/scheme";
-import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./basemap";
-import { MapControls, type RouteKind } from "./controls";
-import { boundsOf, type LatLng, lngLat, mapColor, reducedMotion } from "./map-utils";
-import type { Place } from "./place";
-import { type PinEntry, syncPins } from "./pins";
-import { animateLine, ensureRouteLayer, setLine } from "./route-line";
+import { useThemeMode } from "../../shared/useThemeMode";
+import { loadMapLibre, type MapLibre, rasterStyle, vectorStyle } from "./parts/basemap";
+import { MapControls, type RouteKind } from "./parts/controls";
+import { boundsOf, type LatLng, lngLat, mapColor, reducedMotion } from "./parts/mapUtils";
+import type { Place } from "./parts/place";
+import { type PinEntry, syncPins } from "./parts/pins";
+import { animateLine, ensureRouteLayer, setLine } from "./parts/routeLine";
 import { mapStyles, names } from "./map.styles";
-import { useDialog } from "./use-dialog";
-import { useStreetRoute } from "./use-street-route";
+import { useDialog } from "./hooks/useDialog";
+import { useStreetRoute } from "./hooks/useStreetRoute";
 
 export interface MapViewProps {
   places: Place[];

@@ -4,7 +4,7 @@ import { defineComponent } from "@openuidev/react-lang";
 import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { n, paintAttrs } from "./helpers";
-import { color } from "../helpers";
+import { color } from "../schemas";
 
 export const LineSchema = z.object({ x1: z.number(), y1: z.number(), x2: z.number(), y2: z.number(), stroke: color.optional(), strokeWidth: z.number().optional(), opacity: z.number().optional() });
 

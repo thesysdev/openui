@@ -1,6 +1,6 @@
 import { defineFunction } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { finite, numbers } from "./shared";
+import { finite, numbers } from "./helpers";
 
 export const Pow = defineFunction({
   name: "Pow",

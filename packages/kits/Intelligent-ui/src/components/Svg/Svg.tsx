@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { createContext, useContext, type ReactNode } from "react";
-import { size, type Length } from "../../shared/style";
+import { type Length, size } from "../../shared/props";
 import { names, svgStyles } from "./svg.styles";
 
 export interface SvgProps {

@@ -2,7 +2,7 @@
 
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import { Checkbox as CheckboxView } from "../../components/Checkbox";
-import { useFieldName, useFieldRules } from "../controlHelpers";
+import { useFieldName, useFieldRules } from "../controls";
 import { CheckboxSchema } from "./schema";
 
 export * from "./schema";

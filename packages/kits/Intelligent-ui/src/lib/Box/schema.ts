@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { align, children, color, justify, length, radiusSchema } from "../helpers";
+import { align, children, color, justify, length, radiusSchema } from "../schemas";
 
 export const BoxSchema = z.object({
   children: children.optional(),

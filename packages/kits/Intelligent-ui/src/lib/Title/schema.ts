@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { color } from "../helpers";
+import { color } from "../schemas";
 
 export const TitleSchema = z.object({
   text: z.string(),

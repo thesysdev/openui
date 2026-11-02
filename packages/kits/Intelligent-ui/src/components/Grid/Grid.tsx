@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { space } from "../../shared/style";
+import { space } from "../../shared/props";
 import { gridStyles, names } from "./grid.styles";
 
 export interface GridProps extends HTMLAttributes<HTMLDivElement> {

@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { MathBlock as MathView } from "../../components/Math";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { MathSchema } from "./schema";
 
 export * from "./schema";

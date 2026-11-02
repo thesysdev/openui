@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { fg, type Color } from "../../shared/style";
+import { type Color, fg } from "../../shared/props";
 import { captionStyles, names } from "./caption.styles";
 
 export interface CaptionProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "color"> {

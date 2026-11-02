@@ -1,5 +1,5 @@
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
-import { type LatLng, lngLat, partialLine } from "./map-utils";
+import { type LatLng, lngLat, partialLine } from "./mapUtils";
 
 export const ROUTE = "route";
 

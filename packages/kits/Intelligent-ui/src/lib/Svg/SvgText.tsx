@@ -5,8 +5,8 @@ import { Standalone } from "./standalone";
 import { z } from "zod/v4";
 import { tokens } from "../../shared/tokens";
 import { n } from "./helpers";
-import { fg } from "../../shared/style";
-import { color } from "../helpers";
+import { fg } from "../../shared/props";
+import { color } from "../schemas";
 
 export const SvgTextSchema = z.object({
   text: z.string(),

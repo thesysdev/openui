@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { children, color } from "../helpers";
+import { children, color } from "../schemas";
 
 /** Text, or a run of strings and inline components such as Icon, Badge, Link or Math. */
 export const richText = z.union([z.string(), children]);

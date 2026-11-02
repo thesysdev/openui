@@ -4,8 +4,8 @@ import { defineComponent } from "@openuidev/react-lang";
 import { Fragment } from "react";
 import { inline } from "../../components/Markdown/markdownBlocks";
 import { Text as TextView, TextInline } from "../../components/Text";
-import { str } from "../../shared/style";
-import { isElement } from "../helpers";
+import { str } from "../../shared/text";
+import { isElement } from "../schemas";
 import { TextSchema } from "./schema";
 
 export * from "./schema";

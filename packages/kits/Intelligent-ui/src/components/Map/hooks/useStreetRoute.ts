@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { endpoints } from "../../shared/config";
-import { coordinate, type LatLng } from "./map-utils";
+import { endpoints } from "../../../shared/config";
+import { coordinate, type LatLng } from "../parts/mapUtils";
 
 const cache = new Map<string, LatLng[]>();
 

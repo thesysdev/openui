@@ -3,8 +3,8 @@
 import { defineComponent, type ElementNode } from "@openuidev/react-lang";
 import { List as ListView, ListItem as ListItemView } from "../../components/List";
 import { inline } from "../../components/Markdown/markdownBlocks";
-import { str } from "../../shared/style";
-import { isElement, type Render } from "../helpers";
+import { str } from "../../shared/text";
+import { isElement, type Render } from "../schemas";
 import { createListSchema, ListItemSchema } from "./schema";
 
 export * from "./schema";

@@ -1,8 +1,9 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes } from "react";
-import { flow, flowName } from "../../shared/flow.styles";
+import { flowStyles, names as flowNames } from "../../shared/flow.styles";
 import { tokens } from "../../shared/tokens";
-import { bg, flexStyle, onColor, radius as radiusOf, size, space, type Align, type Color, type Justify, type Length, type Radius } from "../../shared/style";
+import { onColor } from "../../shared/color";
+import { type Align, bg, type Color, flexStyle, type Justify, type Length, type Radius, radius as radiusOf, size, space } from "../../shared/props";
 import { colStyles, names as colNames } from "../Col/col.styles";
 import { names as rowNames, rowStyles } from "../Row/row.styles";
 import { names } from "./box.styles";
@@ -35,7 +36,7 @@ const Box = forwardRef<HTMLDivElement, BoxProps>(
     return (
       <div
         ref={ref}
-        className={clsx(names.root, row ? [rowStyles.root, rowNames.root] : [colStyles.root, colNames.root], !row && gap == null && [flow, flowName], className)}
+        className={clsx(names.root, row ? [rowStyles.root, rowNames.root] : [colStyles.root, colNames.root], !row && gap == null && [flowStyles.root, flowNames.root], className)}
         style={{
           ...flexStyle({ gap, align, justify, wrap }, !row),
           padding: space(padding),

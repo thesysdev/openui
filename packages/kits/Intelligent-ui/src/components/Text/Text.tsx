@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-import { fg, type Color } from "../../shared/style";
+import { type Color, fg } from "../../shared/props";
 import { names, textStyles } from "./text.styles";
 
 export interface TextProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "color"> {

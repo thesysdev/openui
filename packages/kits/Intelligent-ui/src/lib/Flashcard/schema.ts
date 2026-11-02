@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { slot } from "../helpers";
+import { slot } from "../schemas";
 
 export const FlashcardSchema = z.object({ front: slot, back: slot, hint: z.string().optional() });
 

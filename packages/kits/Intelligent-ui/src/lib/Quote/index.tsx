@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { inline } from "../../components/Markdown/markdownBlocks";
 import { Quote as QuoteView } from "../../components/Quote";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { QuoteSchema } from "./schema";
 
 export * from "./schema";

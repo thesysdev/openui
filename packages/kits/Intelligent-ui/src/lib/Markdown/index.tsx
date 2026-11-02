@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Markdown as MarkdownView } from "../../components/Markdown";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { MarkdownSchema } from "./schema";
 
 export * from "./schema";

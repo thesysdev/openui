@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { inline } from "../../components/Markdown/markdownBlocks";
 import { Title as TitleView } from "../../components/Title";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 import { TitleSchema } from "./schema";
 
 export * from "./schema";

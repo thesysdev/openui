@@ -1,6 +1,6 @@
 import { reactive } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { rulesSchema } from "../helpers";
+import { rulesSchema } from "../schemas";
 
 export const DatePickerSchema = z.object({
   value: reactive(z.string()),

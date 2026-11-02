@@ -11,7 +11,7 @@ import {
 import { defineComponent } from "@openuidev/react-lang";
 import { inline } from "../../components/Markdown/markdownBlocks";
 import { TableSchema } from "./schema";
-import { isElement } from "../helpers";
+import { isElement } from "../schemas";
 
 export * from "./schema";
 

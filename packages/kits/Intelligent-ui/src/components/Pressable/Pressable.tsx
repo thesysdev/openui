@@ -2,8 +2,9 @@
 
 import clsx from "clsx";
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useRef } from "react";
-import { useThemeMode } from "../../shared/scheme";
-import { bg, checkIcon, onColor, radius as radiusOf, space, type Color, type Radius } from "../../shared/style";
+import { useThemeMode } from "../../shared/useThemeMode";
+import { checkIcon, onColor } from "../../shared/color";
+import { bg, type Color, type Radius, radius as radiusOf, space } from "../../shared/props";
 import { names, pressableStyles } from "./pressable.styles";
 
 export interface PressableProps {

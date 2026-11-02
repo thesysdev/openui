@@ -3,7 +3,7 @@
 import { Label as RCLabel } from "@openuidev/react-components";
 import { defineComponent } from "@openuidev/react-lang";
 import { LabelSchema } from "./schema";
-import { str } from "../../shared/style";
+import { str } from "../../shared/text";
 
 export * from "./schema";
 

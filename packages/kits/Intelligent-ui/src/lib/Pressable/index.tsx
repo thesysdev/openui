@@ -2,8 +2,8 @@
 
 import { defineComponent, useIsStreaming } from "@openuidev/react-lang";
 import { Pressable as PressableView } from "../../components/Pressable";
-import { textOf } from "../../shared/style";
-import { useRunAction } from "../controlHelpers";
+import { textOf } from "../../shared/text";
+import { useRunAction } from "../controls";
 import { PressableSchema } from "./schema";
 
 export * from "./schema";

@@ -1,6 +1,6 @@
 import { defineFunction } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { list, MAX_ITEMS, read, same } from "./shared";
+import { list, MAX_ITEMS, read, same } from "./helpers";
 
 const index = (i: number, length: number) => (i < 0 ? length + i : i);
 

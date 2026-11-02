@@ -1,6 +1,6 @@
 import { action } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { children, color, radiusSchema } from "../helpers";
+import { children, color, radiusSchema } from "../schemas";
 
 export const PressableSchema = z.object({
   children,

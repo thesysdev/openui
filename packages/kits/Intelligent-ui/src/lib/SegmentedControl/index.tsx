@@ -2,7 +2,7 @@
 
 import { defineComponent, useStateField } from "@openuidev/react-lang";
 import { SegmentedControl as SegmentedControlView } from "../../components/SegmentedControl";
-import { optionList, useFieldName } from "../controlHelpers";
+import { optionList, useFieldName } from "../controls";
 import { SegmentedControlSchema } from "./schema";
 
 export * from "./schema";
