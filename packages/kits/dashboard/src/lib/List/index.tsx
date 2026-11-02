@@ -23,6 +23,7 @@ function ListRenderer({ props }: ComponentRenderProps<ListProps>) {
 export const ListComponent = defineComponent({
   name: "List",
   props: listPropsSchema,
-  description: "",
+  description:
+    'Numbered or icon list. variant "number" (default) numbers the rows; use variant "icon" when the ListItems carry icons, otherwise their icons are not shown.',
   component: ListRenderer,
 });

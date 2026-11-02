@@ -9,6 +9,7 @@ export const datePickerPropsSchema = z.object({
     })
     .optional(),
   defaultDate: reactive(z.string().optional()),
+  label: z.string().optional(),
 });
 
 // Use a manual type that treats defaultDate as string for the renderer
@@ -17,4 +18,5 @@ export type DatePickerProps = {
   mode: "single" | "range";
   rules?: { required?: boolean };
   defaultDate: any;
+  label?: string;
 };

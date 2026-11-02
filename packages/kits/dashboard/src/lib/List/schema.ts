@@ -10,7 +10,8 @@ export const listItemPropsSchema = z.object({
 export const ListItemComponent = defineComponent({
   name: "ListItem",
   props: listItemPropsSchema,
-  description: "",
+  description:
+    'One List row. icon shows only when the List variant is "icon"; in the default "number" variant rows are numbered and icon is ignored.',
   component: () => null,
 });
 

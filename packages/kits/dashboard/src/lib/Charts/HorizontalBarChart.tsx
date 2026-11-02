@@ -12,6 +12,7 @@ export const horizontalBarChartPropsSchema = z.object({
   variant: z.enum(["grouped", "stacked"]).optional(),
   xLabel: z.string().optional(),
   yLabel: z.string().optional(),
+  legend: z.boolean().optional(),
 });
 
 export type HorizontalBarChartProps = z.infer<typeof horizontalBarChartPropsSchema>;
@@ -29,6 +30,7 @@ function HorizontalBarChartRenderer({ props }: ComponentRenderProps<HorizontalBa
       variant={props.variant}
       xAxisLabel={props.xLabel}
       yAxisLabel={props.yLabel}
+      legend={props.legend}
       isAnimationActive={false}
       height={DASHBOARD_CHART_HEIGHT}
     />
@@ -39,6 +41,6 @@ export const HorizontalBarChartComponent = defineComponent({
   name: "HorizontalBarChart",
   props: horizontalBarChartPropsSchema,
   description:
-    "Horizontal bars; use only when category labels are too long for a vertical BarChart or the user explicitly asks for horizontal bars.",
+    "Horizontal bars; use only when category labels are too long for a vertical BarChart or the user explicitly asks for horizontal bars. legend false hides the legend and, with it, the axis labels.",
   component: HorizontalBarChartRenderer,
 });

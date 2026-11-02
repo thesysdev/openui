@@ -16,6 +16,8 @@ export const areaChartPropsSchema = z.object({
   variant: z.enum(["linear", "natural", "step"]).optional(),
   xLabel: z.string().optional(),
   yLabel: z.string().optional(),
+  stacked: z.boolean().optional(),
+  legend: z.boolean().optional(),
 });
 
 export type AreaChartProps = z.infer<typeof areaChartPropsSchema>;
@@ -32,6 +34,8 @@ function AreaChartRenderer({ props }: ComponentRenderProps<AreaChartProps>) {
       variant={props.variant}
       xAxisLabel={props.xLabel}
       yAxisLabel={props.yLabel}
+      stacked={props.stacked}
+      legend={props.legend}
       isAnimationActive={false}
       condensed
       height={getCondensedCartesianChartHeight(DASHBOARD_CHART_HEIGHT)}
@@ -42,6 +46,7 @@ function AreaChartRenderer({ props }: ComponentRenderProps<AreaChartProps>) {
 export const AreaChartComponent = defineComponent({
   name: "AreaChart",
   props: areaChartPropsSchema,
-  description: "Filled area under lines; use for cumulative totals or volume trends over time.",
+  description:
+    "Filled area under lines; use for cumulative totals or volume trends over time. stacked (default true) stacks the series; false overlaps them. legend false hides the legend and, with it, the axis labels.",
   component: AreaChartRenderer,
 });

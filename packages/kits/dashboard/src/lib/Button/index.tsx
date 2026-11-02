@@ -6,9 +6,9 @@ import {
   useFormName,
   useIsStreaming,
   useTriggerAction,
-  type ActionPlan,
   type ComponentRenderProps,
 } from "@openuidev/react-lang";
+import { toActionPlan } from "../Action/toActionPlan";
 import { buttonPropsSchema, type ButtonProps } from "./schema";
 const variantMap: Record<string, "primary" | "secondary" | "tertiary"> = {
   primary: "primary",
@@ -24,7 +24,7 @@ function ButtonRenderer({ props }: ComponentRenderProps<ButtonProps>) {
   const variant = variantMap[props.variant as string] || "primary";
 
   const handleClick = () => {
-    triggerAction(props.label, formName, props.action as ActionPlan);
+    triggerAction(props.label, formName, toActionPlan(props.action));
   };
 
   return (

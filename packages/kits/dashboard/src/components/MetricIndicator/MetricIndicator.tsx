@@ -1,5 +1,6 @@
 import { MetricIndicatorWithStrikethrough } from "@openuidev/react-components";
 import clsx from "clsx";
+import { trendMagnitude } from "../../shared/trend";
 import { names, styles } from "./metricIndicator.styles";
 
 export interface MetricIndicatorProps {
@@ -15,7 +16,11 @@ export function MetricIndicator({ value, subtext, trend }: MetricIndicatorProps)
       className={clsx(styles.root, names.root)}
       value={value}
       subtext={subtext}
-      trend={trend && Number.isFinite(trend.value) ? trend : undefined}
+      trend={
+        trend && Number.isFinite(trend.value)
+          ? { ...trend, value: trendMagnitude(trend.value, trend.direction) }
+          : undefined
+      }
     />
   );
 }

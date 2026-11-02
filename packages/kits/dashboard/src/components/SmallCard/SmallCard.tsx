@@ -1,6 +1,7 @@
 import { Card, IconTag, TextBlockView } from "@openuidev/react-components";
 import clsx from "clsx";
 import type { ComponentProps, ReactNode } from "react";
+import { trendMagnitude } from "../../shared/trend";
 import { names as shellNames, styles as shellStyles } from "../ShellCard/shellCard.styles";
 import { names, styles } from "./smallCard.styles";
 
@@ -51,7 +52,7 @@ export function SmallCardMetric({ title, metric, trend }: SmallCardMetricProps) 
               )}
             >
               {isPositive ? "+" : isNegative ? "-" : ""}
-              {trend.value}%
+              {trendMagnitude(trend.value, trend.direction)}%
             </div>
           )}
         </div>
