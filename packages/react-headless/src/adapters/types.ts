@@ -24,6 +24,8 @@ export interface ArtifactSummary {
   /** Thread the artifact was created in. Drives the "go to original thread" action. */
   threadId: string;
   updatedAt?: string | number;
+  /** Whether the user pinned it. */
+  pinned?: boolean;
 }
 
 /** Full artifact. `content` must have the same shape as the tool-call `response` the renderer's parser expects. */
@@ -38,8 +40,6 @@ export interface ArtifactListParams {
   type?: string[];
   /** `true`: only pinned artifacts; `false`: only unpinned ones. Server-side. */
   pinned?: boolean;
-  /** Only artifacts from this thread. Server-side. */
-  threadId?: string;
   /** Newest first (`desc`, the default) or oldest first. */
   order?: "asc" | "desc";
   cursor?: string;
@@ -79,6 +79,12 @@ export interface ArtifactStorage {
    * connection throws and is retried. Storages without it are read with `get`.
    */
   stream?(id: string, options?: ArtifactStreamOptions): AsyncIterable<ArtifactStreamEvent>;
+  /** Optional. Pin an artifact for the user. */
+  pin?(id: string): Promise<ArtifactSummary>;
+  /** Optional. Unpin an artifact. */
+  unpin?(id: string): Promise<ArtifactSummary>;
+  /** Optional. Delete an artifact. */
+  delete?(id: string): Promise<void>;
 }
 
 /**
