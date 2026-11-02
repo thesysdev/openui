@@ -20,6 +20,7 @@ import { ImageBlockComponent } from "./ImageBlock";
 import { ListComponent } from "./List";
 import { MarkDownRendererComponent } from "./MarkDownRenderer";
 import { MetricIndicatorComponent } from "./MetricIndicator";
+import { SelectComponent } from "./Select";
 import { TableComponent } from "./Table";
 import { TagBlockComponent } from "./TagBlock";
 import { TextCalloutComponent } from "./TextCallout";
@@ -44,6 +45,7 @@ export const mediumCardChildSchema = z.union([
   TagBlockComponent.ref,
   ButtonComponent.ref,
   ButtonGroupComponent.ref,
+  SelectComponent.ref,
   ListComponent.ref,
   EntityListComponent.ref,
 ]);
@@ -65,6 +67,7 @@ export const largeCardChildSchema = z.union([
   TagBlockComponent.ref,
   ButtonComponent.ref,
   ButtonGroupComponent.ref,
+  SelectComponent.ref,
   ListComponent.ref,
   EntityListComponent.ref,
 ]);

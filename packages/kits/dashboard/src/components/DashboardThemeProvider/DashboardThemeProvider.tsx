@@ -1,6 +1,16 @@
 import { ThemeProvider, useTheme, type Theme, type ThemeMode } from "@openuidev/react-components";
-import { useMemo, type FC, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type FC, type ReactNode } from "react";
 import { defaultDashboardDarkTheme, defaultDashboardLightTheme } from "./defaultThemes";
+const InsideDashboardTheme = createContext(false);
+
+/**
+ * Whether a `DashboardThemeProvider` is already above this point. Every provider
+ * writes its theme to the shared `.openui-dashboard-theme` selector, so a nested
+ * one would append a later sheet with the defaults and undo the outer theme for
+ * every dashboard on the page.
+ */
+export const useIsInsideDashboardTheme = () => useContext(InsideDashboardTheme);
+
 export interface DashboardThemeProviderProps {
   children: ReactNode;
   /** Overrides the mode read from the outer `<ThemeProvider>`. */
@@ -47,7 +57,7 @@ export const DashboardThemeProvider: FC<DashboardThemeProviderProps> = ({
         darkTheme={mergedDark}
         cssSelector=".openui-dashboard-theme"
       >
-        {children}
+        <InsideDashboardTheme.Provider value={true}>{children}</InsideDashboardTheme.Provider>
       </ThemeProvider>
     </div>
   );

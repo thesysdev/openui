@@ -44,16 +44,3 @@ export const ScatterSeriesComponent = defineComponent({
   description: "Named dataset",
   component: () => null,
 });
-
-// Slice — category/value pair, registered for completeness (PieChart/RadialChart use flat arrays)
-export const slicePropsSchema = z.object({
-  category: z.string(),
-  value: z.number(),
-});
-
-export const SliceComponent = defineComponent({
-  name: "Slice",
-  props: slicePropsSchema,
-  description: "One slice",
-  component: () => null,
-});
