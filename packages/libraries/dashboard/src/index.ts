@@ -9,7 +9,4 @@ export { additionalRules, componentGroups, examples, library, promptOptions } fr
 
 export { dashboardComponents } from "./lib/defineComponents";
 
-export {
-  DashboardThemeProvider,
-  type DashboardThemeProviderProps,
-} from "./components/DashboardThemeProvider";
+export { ThemeProvider, type ThemeProviderProps } from "./components/ThemeProvider";
