@@ -52,21 +52,37 @@ response gets the kit's theme, whatever its root.
 `runLibraryAction` runs the kit's own `CopyToClipboard` action and returns `null` for any other
 action.
 
-`SearchImage`, `Image` and `Map` fetch from the host. Point them at your routes once, before
-rendering:
+### Server routes
+
+Three components call routes on your server. The kit doesn't ship them: you serve them, and
+`configureIntelligentKit` tells the kit where they are.
+
+- `SearchImage` finds a photo for its query. `Image` searches the same way when its own URL fails.
+  Both call `wiki` and `imageSearch` together and show the first photo that loads.
+- `Map` calls `streetRoute` to draw a route along the streets between its stops.
+
+Without a route, nothing breaks. `SearchImage`, and an `Image` whose URL fails, show an empty photo
+placeholder. `Map` draws straight lines between the stops and says "Street routing unavailable".
+
+By default the kit calls `/api/wiki`, `/api/image-search` and `/api/street-route`, under
+`NEXT_PUBLIC_BASE_PATH` when a bundler inlines it. If you serve them there, no configuration is
+needed. Otherwise call `configureIntelligentKit` once, before rendering. `basePath` moves all
+three. `endpoints` replaces any of them.
 
 ```ts
 import { configureIntelligentKit } from "@openuidev/intelligent-library";
 
 configureIntelligentKit({
+  // The kit now calls /my-app/api/wiki and /my-app/api/image-search.
   basePath: "/my-app",
+  // This one route is served somewhere else.
   endpoints: {
-    wiki: (title) => `/api/wiki?title=${encodeURIComponent(title)}`,
-    imageSearch: (q) => `/api/image-search?q=${encodeURIComponent(q)}`,
-    streetRoute: (coords) => `/api/street-route?coords=${encodeURIComponent(coords)}`,
+    streetRoute: (coords) => `/routing/street?coords=${encodeURIComponent(coords)}`,
   },
 });
 ```
+
+Each route answers JSON:
 
 | Endpoint      | Receives                                        | Answers                                             |
 | ------------- | ----------------------------------------------- | --------------------------------------------------- |
