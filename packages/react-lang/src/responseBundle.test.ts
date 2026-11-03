@@ -10,6 +10,14 @@ function scriptsSection(values: unknown, count: unknown = 1) {
   return `]]>openui:scripts ${JSON.stringify({ count })}\n${JSON.stringify(values)}\n`;
 }
 
+// While streaming, a last line that may still open a fence is held back.
+function visible(text: string) {
+  const at = text.lastIndexOf("\n") + 1;
+  return /^(`{1,2}|`{3,}(o(p(e(n(u(i(-(j(s ?)?)?)?)?)?)?)?)?)?)$/.test(text.slice(at))
+    ? text.slice(0, at)
+    : text;
+}
+
 describe("parseResponseBundle", () => {
   describe("plain programs", () => {
     it.each([null, "", "  \n", 'root = Text("Hello")', program])(
@@ -172,7 +180,7 @@ describe("parseResponseBundle", () => {
         expect(parsed.isBundle, `prefix length ${length}`).toBe(length >= header.length);
         if (parsed.isBundle) expect(parsed.complete, `prefix length ${length}`).toBe(false);
         const visibleLength = Math.max(0, Math.min(program.length, length - header.length));
-        expect(parsed.program.trimEnd()).toBe(program.slice(0, visibleLength).trimEnd());
+        expect(parsed.program.trimEnd()).toBe(visible(program.slice(0, visibleLength)).trimEnd());
       }
       expect(parseResponseBundle(response, false)).toMatchObject({
         complete: true,
