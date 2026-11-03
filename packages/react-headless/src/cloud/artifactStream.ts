@@ -22,6 +22,8 @@ export interface ArtifactStreamSnapshot {
   title?: string;
   /** The program to render. `null` until the first content arrives. */
   program: string | null;
+  /** The stored version `program` is, so a script runs against the one on screen. */
+  version?: string;
   isStreaming: boolean;
   error: ArtifactStreamError | null;
 }
@@ -252,7 +254,7 @@ class ArtifactStreamStore {
         this.update(id, {
           type: event.data?.type ?? snapshot.type,
           title: event.data?.title ?? snapshot.title,
-          ...(entry.target === "program" ? { program: "" } : {}),
+          ...(entry.target === "program" ? { program: "", version } : {}),
         });
         return;
       }
@@ -267,7 +269,8 @@ class ArtifactStreamStore {
         return;
       }
       case "end": {
-        const swapped = entry.target === "pending" ? { program: entry.pending } : {};
+        const swapped =
+          entry.target === "pending" ? { program: entry.pending, version: entry.version } : {};
         entry.target = "program";
         entry.pending = "";
         entry.version = undefined;
