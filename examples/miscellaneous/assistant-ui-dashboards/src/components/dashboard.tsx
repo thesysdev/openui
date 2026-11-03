@@ -36,17 +36,28 @@ type Open = DashboardSource & { key: string };
 const OpenDashboard = createContext<{
   open: Open | null;
   setOpen: (open: Open | null) => void;
+  /** The open dashboard's artifact id, once its renderer knows it. */
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
   /** Bumped when a dashboard finishes generating and is saved, so the lists load it. */
   saved: number;
   onSaved: () => void;
-}>({ open: null, setOpen: () => {}, saved: 0, onSaved: () => {} });
+}>({
+  open: null,
+  setOpen: () => {},
+  openId: null,
+  setOpenId: () => {},
+  saved: 0,
+  onSaved: () => {},
+});
 
 export function OpenDashboardProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState<Open | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [saved, setSaved] = useState(0);
   const onSaved = useCallback(() => setSaved((count) => count + 1), []);
   return (
-    <OpenDashboard.Provider value={{ open, setOpen, saved, onSaved }}>
+    <OpenDashboard.Provider value={{ open, setOpen, openId, setOpenId, saved, onSaved }}>
       {children}
     </OpenDashboard.Provider>
   );
@@ -159,7 +170,7 @@ export function DashboardPanel(source: DashboardSource) {
               </>
             }
           >
-            <SavedNotice />
+            <PanelReport />
             <LiveArtifactRenderer.Content className="relative h-full overflow-y-auto p-4 sm:p-6">
               <LiveArtifactRenderer.Loading>
                 <DashboardLoading />
@@ -175,10 +186,17 @@ export function DashboardPanel(source: DashboardSource) {
   );
 }
 
-/** Tells the lists when the open dashboard finishes generating: OpenUI Cloud saves it then. */
-function SavedNotice() {
-  const { isStreaming } = useArtifactRenderer();
-  const { onSaved } = useOpenDashboard();
+/**
+ * Tells the lists which dashboard is open, by the id the renderer read from its source, and when
+ * it finishes generating: OpenUI Cloud saves it then.
+ */
+function PanelReport() {
+  const { id, isStreaming } = useArtifactRenderer();
+  const { onSaved, setOpenId } = useOpenDashboard();
+  useEffect(() => {
+    setOpenId(id);
+    return () => setOpenId(null);
+  }, [id, setOpenId]);
   const wasStreaming = useRef(isStreaming);
   useEffect(() => {
     if (wasStreaming.current && !isStreaming) onSaved();
