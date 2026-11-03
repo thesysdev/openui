@@ -1,8 +1,8 @@
 "use client";
 
+import { ThemeProvider, useTheme } from "@openuidev/react-components";
 import { defineComponent } from "@openuidev/react-lang";
 import { Col as ColView } from "../../components/Col";
-import { ThemeProvider, useIsInsideTheme } from "../../components/ThemeProvider";
 import { ColSchema } from "./schema";
 
 export * from "./schema";
@@ -17,9 +17,15 @@ export const Col = defineComponent({
         {renderNode(props.children)}
       </ColView>
     );
-    // The program's root brings the kit's theme, as the dashboard kit's Dashboard does. Only the root:
-    // a wrapper inside a Card would sit where its spacing rules expect the Col.
-    const inside = useIsInsideTheme();
-    return statementId !== "root" || inside ? col : <ThemeProvider>{col}</ThemeProvider>;
+    // With no react-components ThemeProvider above, the program's root brings the default theme,
+    // scoped to the response. Only the root: a wrapper inside a Card would sit where its spacing
+    // rules expect the Col. Every provider sets a portal class, so an empty one means there is none.
+    const { portalThemeClassName } = useTheme();
+    if (statementId !== "root" || portalThemeClassName) return col;
+    return (
+      <div className="openui-intelligent-theme" style={{ display: "contents" }}>
+        <ThemeProvider cssSelector=".openui-intelligent-theme">{col}</ThemeProvider>
+      </div>
+    );
   },
 });
