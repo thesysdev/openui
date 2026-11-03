@@ -68,8 +68,12 @@ export interface ArtifactStreamOptions {
 export interface ArtifactStorage {
   list(params?: ArtifactListParams): Promise<{ artifacts: ArtifactSummary[]; nextCursor?: string }>;
   get(id: string): Promise<Artifact>;
-  /** Persist edited artifact content. Called by renderer implementations (via `useArtifactStorage`), not by the framework. */
-  update(patch: { id: string; content: unknown }): Promise<ArtifactSummary>;
+  /**
+   * Persist edited content, a new title, or both. Called by renderer implementations (via
+   * `useArtifactStorage`) and `useArtifactUpdate`, not by the framework. A storage that
+   * doesn't rename can ignore `title`.
+   */
+  update(patch: { id: string; content?: unknown; title?: string }): Promise<ArtifactSummary>;
   /**
    * Optional. Stream an artifact while it is generated, or replay a finished
    * one. A missing artifact yields one `error` event with code `not-found`,
