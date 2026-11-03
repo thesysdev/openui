@@ -1,10 +1,13 @@
-import { defineAction, type ActionEvent } from "@openuidev/react-lang";
+import { defineAction, type ActionEvent, type DefinedAction } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 
-export const CopyToClipboard = defineAction({
+const copyParams = z.object({ text: z.string() });
+
+// Typed by hand: inferred, the published declaration printed `undefined<…>`, which doesn't parse.
+export const CopyToClipboard: DefinedAction<typeof copyParams, "CopyToClipboard"> = defineAction({
   name: "CopyToClipboard",
   description: "Copy text to the clipboard, e.g. a shopping list built with @Join",
-  params: z.object({ text: z.string() }),
+  params: copyParams,
 });
 
 export const actions = [CopyToClipboard];
