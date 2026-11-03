@@ -1,6 +1,6 @@
 ---
 title: "How Claude Dashboards work"
-seoTitle: "How Claude Dashboards work and how to build them"
+seoTitle: "How Claude Dashboards work, from build time to run time"
 description: "Claude Dashboards work by having Claude write a small set of documents (a title, one dataset per data source, and an HTML page) that a fixed viewer runs in each reader's browser, with no model call at view time. We traced each layer, from how Claude probes connectors at build time to live queries, the verification loop and consent at run time."
 author: Thesys Engineering Team
 date: 2026-11-03
@@ -61,22 +61,7 @@ files/index.html
 
 A dataset never holds the numbers. It holds where they come from, so the numbers can be fetched fresh and traced back to a source. Each `datasets/<id>` document describes one source, and comes in one of two kinds.
 
-A **query** is a saved tool call: a connector, one of its tools, and the arguments to call it with. This is the dataset from our Google Sheets dashboard:
-
-```json
-{
-  "title": "Class Data sheet",
-  "description": "Gender, class level, home state and major for each student in Google's public sample sheet (student names are not read).",
-  "source": {
-    "kind": "query",
-    "connector": "Google Sheets",
-    "tool": "get_values",
-    "args": { "spreadsheetId": "1BxiMVs0…", "range": "Class Data!B1:E" }
-  }
-}
-```
-
-A **file** points to a CSV, TSV or JSON file of up to 8 MB attached to the dashboard, for data with no connector behind it:
+A **file** points to a CSV, TSV or JSON file of up to 8 MB attached to the dashboard, for data with no connector behind it. The signups numbers were pasted into the chat, so this is the dataset Claude wrote:
 
 ```json
 {
@@ -86,7 +71,22 @@ A **file** points to a CSV, TSV or JSON file of up to 8 MB attached to the dashb
 }
 ```
 
-The `title` and `description` aren't for the viewer. They are what a reader sees in the Sources panel after clicking a number.
+A **query** is a saved tool call: a connector, one of its tools, and the arguments to call it with. If the same numbers lived in BigQuery, the dataset would look like this:
+
+```json
+{
+  "title": "Weekly signups",
+  "description": "Signups per week, by the Monday each week starts.",
+  "source": {
+    "kind": "query",
+    "connector": "BigQuery",
+    "tool": "bigquery_query",
+    "args": { "sql": "SELECT week_start, signups FROM `app.weekly_signups` ORDER BY week_start" }
+  }
+}
+```
+
+The `title` and `description` aren't used to load anything. They are what a reader sees in the Sources panel after clicking a number.
 
 ### The page
 
@@ -107,7 +107,7 @@ The `title` and `description` aren't for the viewer. They are what a reader sees
 
 Until the draw runs, the reader sees a loading skeleton and a dash. Once it has, the span still carries its source and field. That is how the [Sources panel](#the-sources-panel) knows where a clicked number came from, and how the [verification loop](#the-verification-loop) can flag a number on screen that doesn't match its data.
 
-There is no component library. Claude gets theme tokens, Anthropic's fonts and d3 (v7.9.0), and writes every tile, chart and table itself. The signups page is about 13 KB. The Dashboard type's instructions tell Claude to stick to d3 ("No network, modules or React"). Even so, in one of our other builds Claude's page loaded Plotly from a CDN by adding the script from code.
+There is no component library. Claude gets theme tokens, Anthropic's fonts and d3 (v7.9.0), and writes every tile, chart and table itself. The signups page is 12 to 14 KB. The Dashboard type's instructions tell Claude to stick to d3 ("No network, modules or React"). Even so, in another dashboard built in chat, Claude's page loaded Plotly from a CDN by adding the script from code.
 
 ### The Dash runtime
 
@@ -183,7 +183,7 @@ The other case is a param inside a query. A query can name a param as a `{{name}
 
 Every dashboard needs the same machinery around Claude's page: loading data, showing when it was updated, refreshing it, explaining it. Claude doesn't write any of that. The viewer is Anthropic's prebuilt runtime, shipped with the Dashboard type (`app.js`, about 1.9 MB, plus its stylesheet), and it is the same code for every dashboard. It runs in the reader's browser, inside an iframe on its own origin, `<dashboard-id>.frame.claudeusercontent.com`.
 
-The viewer reads the stored documents, cleans Claude's HTML, and runs its scripts with the [Dash runtime](#the-dash-runtime) passed in. Around the page it draws the toolbar ("Updated … ago", a refresh button, the Sources button), the [Sources panel](#the-sources-panel), and the [verification loop](#the-verification-loop). It also gives the page theme tokens, Anthropic's fonts and d3.
+The viewer reads the stored documents, cleans Claude's HTML, and runs its scripts with the [Dash runtime](#the-dash-runtime) passed in. Around the page it draws the toolbar ("Updated … ago", a refresh button, the Sources button), the [Sources panel](#the-sources-panel), and the [verification loop](#the-verification-loop).
 
 ### The verification loop
 
@@ -198,6 +198,7 @@ After every change to the page, the viewer looks for script errors, `NaN` on scr
 ```
 
 The first patch had added the tile's four placeholders, and the second hadn't yet added the draws that fill them. Once it had, the check passed and the viewer deleted the document.
+
 ### The Sources panel
 
 A number on a dashboard is only useful if a reader can trust it without asking. The Sources panel answers "where did this come from?" for any marked number. Clicking a number opens its source, and the panel shows what produced it:
@@ -210,7 +211,7 @@ A number on a dashboard is only useful if a reader can trust it without asking. 
 
 ![A test build of the weekly signups dashboard with the Sources panel open on a calc named "Change on the week before", showing the value 1,544, a Formula section with the calc's JavaScript, and a Result section.](/images/blog/claude-dashboards/sources-panel-formula.jpg)
 
-<figcaption>The Sources panel on a test build of the signups dashboard, open on the calc behind the highlighted 1,544. Marked numbers and the chart have dotted outlines.</figcaption>
+<figcaption>The Sources panel on a test build of the signups dashboard, open on the calc behind the highlighted 1,544. Marked numbers are underlined and the chart outlined, both dotted.</figcaption>
 
 </figure>
 
@@ -232,7 +233,7 @@ The signups dashboard started from one message in a claude.ai chat:
 
 > Build me a dashboard of weekly signups from this data. Show last week's number, the change on the week before, and a bar chart per week. Data (week start, signups): 2026-09-07 1180, 2026-09-14 1245, …
 
-Claude builds a dashboard with tools from a built-in connector, `claude-artifacts`, and each call appears in the chat on an approval card. "Dashboard" is an *artifact type* on claude.ai: a template that ships the viewer along with written instructions for Claude.
+Claude builds a dashboard with tools from a built-in connector, `claude-artifacts`, and each call appears in the chat (with approvals on, on an approval card). "Dashboard" is an *artifact type* on claude.ai: a template that ships the viewer along with written instructions for Claude.
 
 <BuildTimeline />
 
@@ -264,7 +265,7 @@ A dashboard page is code a model wrote, running in every reader's browser, with 
 
 A script served from claude.ai itself would run as the reader, with their session cookies, and could read their chats. Plain HTML could do damage too: a `meta refresh` to a fake sign-in page, or a `<form>` that posts what they type elsewhere.
 
-Instead, the page runs on its own origin (`<dashboard-id>.frame.claudeusercontent.com`) in a sandboxed iframe. The viewer strips `script`, `meta`, `form`, `iframe`, `on…` attributes and similar from Claude's HTML before running it. The frame's Content-Security-Policy blocks `fetch`, images, WebSockets and frames to outside hosts. Only scripts added from code get through, and only from six CDNs.
+Instead, the page runs on its own origin (`<dashboard-id>.frame.claudeusercontent.com`) in a sandboxed iframe. The viewer strips `meta`, `form`, `iframe`, `on…` attributes and similar from Claude's HTML, and runs the page's inline scripts itself. The frame's Content-Security-Policy blocks `fetch`, images, WebSockets and frames to outside hosts. A `<script src>` to an outside host is stripped. A script that page code adds can still load, but only from six CDNs.
 
 ### Credential handling
 
@@ -323,7 +324,7 @@ A tile reads `latest.signups`. That is the `latest` calc, the `weeks` param and 
 
 ### Security is smaller
 
-A Claude Dashboard runs JavaScript the model wrote, which is why it needs a sandbox, HTML cleaning and a Content-Security-Policy. OpenUI Lang runs no model-written code. The renderer draws only components from your library and calls only the functions and tools you registered. Anything else is an error.
+A Claude Dashboard runs JavaScript the model wrote, which is why it needs a sandbox, HTML cleaning and a Content-Security-Policy. OpenUI Lang runs no model-written code. The renderer draws only components from your library, and calls only built-in functions, the functions you registered, and your tools. Anything else is an error.
 
 Authentication and authorization still need the same care. Your API routes must check who the user is and what each call may touch, and validate the arguments the model chose as you would any user input.
 
