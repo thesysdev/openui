@@ -3,6 +3,7 @@ import { tokens } from "../../shared/tokens";
 
 export const names = {
   root: "openui-intelligent-badge",
+  icon: "openui-intelligent-badge-icon",
   color: {
     info: "openui-intelligent-badge--color-info",
     success: "openui-intelligent-badge--color-success",
@@ -16,6 +17,7 @@ export const names = {
 /**
  * Tag gives the structure; the kit's pill replaces its shape, type and colours. Each tone only sets
  * the two variables the root reads. The Row rule isn't flat, because the Badge is the model's child there.
+ * The icon keeps the kit's 1.8 stroke: Tag draws any svg in it at 2.5.
  */
 export const badgeStyles = {
   root: css`
@@ -40,6 +42,10 @@ export const badgeStyles = {
       align-self: center;
       flex: none;
     }
+  `,
+  icon: css`
+    stroke-width: 1.8;
+    margin-left: -2px;
   `,
   color: {
     info: css`

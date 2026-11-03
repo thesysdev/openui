@@ -17,7 +17,11 @@ export function Badge({ text, color: colorProp, icon }: BadgeProps) {
     <Tag
       text={text}
       size="sm"
-      icon={icon ? <Glyph name={icon} size={14} /> : undefined}
+      icon={
+        icon ? (
+          <Glyph name={icon} size={14} className={clsx(badgeStyles.icon, names.icon)} />
+        ) : undefined
+      }
       className={clsx(
         badgeStyles.root,
         names.root,
