@@ -9,3 +9,44 @@ body {
 .h-screen {
   height: 100vh;
 }
+
+/* The chat card that stands in for a dashboard reply. */
+.dashboard-message-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--openui-space-m);
+  max-width: 420px;
+  padding: var(--openui-space-m);
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-l);
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--openui-font-body);
+}
+
+.dashboard-message-card__title {
+  font-weight: 600;
+}
+
+.dashboard-message-card__status {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 0.875em;
+}
+
+.dashboard-message-card__button {
+  padding: var(--openui-space-s) var(--openui-space-m);
+  border: 1px solid var(--openui-border-interactive);
+  border-radius: var(--openui-radius-m);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The dashboard in the side panel scrolls on its own. */
+.dashboard-message-panel {
+  height: 100%;
+  overflow: auto;
+  padding: var(--openui-space-m);
+  box-sizing: border-box;
+}

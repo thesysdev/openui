@@ -1,7 +1,6 @@
 "use client";
 
 import { localStorageChat } from "@/lib/local-storage";
-import { openuiDashboardLibrary } from "@openuidev/dashboard-kit/lib";
 import { ThemeProvider } from "@openuidev/react-components";
 import {
   AgentInterface,
@@ -9,6 +8,7 @@ import {
   openAIMessageFormat,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
+import { DashboardMessage } from "./DashboardMessage";
 
 const { llm, storage } = localStorageChat(
   {
@@ -28,13 +28,14 @@ export default function Page() {
   const mode = useSystemThemeMode();
 
   // The dashboard kit reads light or dark mode from the react-components ThemeProvider.
+  // Replies render through DashboardMessage, which puts the dashboard in the side panel.
   return (
     <ThemeProvider mode={mode}>
       <div className="h-screen">
         <AgentInterface
           llm={llm}
           storage={storage}
-          componentLibrary={openuiDashboardLibrary}
+          components={{ AssistantMessage: DashboardMessage }}
           agentName="Dashboard Kit Test Bench"
           theme={{ mode }}
           starterVariant="short"
