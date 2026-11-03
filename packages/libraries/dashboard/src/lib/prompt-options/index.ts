@@ -43,17 +43,17 @@ bar = BarChart(["Jan", "Feb", "Mar"], [Series("Events", data[$region].months)])`
 
 /**
  * Prompt options for the Dashboard library. Pass to
- * `openuiDashboardLibrary.prompt(openuiDashboardPromptOptions)` when a dashboard
+ * `library.prompt(promptOptions)` when a dashboard
  * prompt is needed. The explicit generator does not currently emit a dashboard
  * artifact.
  */
-export const openuiDashboardExamples: string[] = [
+export const examples: string[] = [
   DASHBOARD_EXAMPLE,
   OVERVIEW_CARDS_EXAMPLE,
   FILTERED_DASHBOARD_EXAMPLE,
 ];
 
-export const openuiDashboardAdditionalRules: string[] = [
+export const additionalRules: string[] = [
   "Output MUST begin with `root = Dashboard([children])` on the first line.",
   "Arguments are POSITIONAL — do NOT use named args with colons.",
   "Dashboard children must be DashboardHeader and Section components.",
@@ -71,9 +71,9 @@ export const openuiDashboardAdditionalRules: string[] = [
   "Icon takes a name string (e.g. 'dollar-sign', 'users'). Use common lucide icon names.",
 ];
 
-export const openuiDashboardPromptOptions: PromptOptions = {
+export const promptOptions: PromptOptions = {
   preamble: "You are generating an openui-lang dashboard.",
-  examples: openuiDashboardExamples,
-  additionalRules: openuiDashboardAdditionalRules,
+  examples,
+  additionalRules,
   bindings: true,
 };

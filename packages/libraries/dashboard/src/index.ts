@@ -5,13 +5,7 @@
  * (Section, CardRow, the three card sizes) plus the filter system that make a
  * model emit dashboards rather than a vertical stack of cards.
  */
-export {
-  openuiDashboardAdditionalRules as additionalRules,
-  openuiDashboardComponentGroups as componentGroups,
-  openuiDashboardExamples as examples,
-  openuiDashboardLibrary as library,
-  openuiDashboardPromptOptions as promptOptions,
-} from "./lib/openuiDashboardLibrary";
+export { additionalRules, componentGroups, examples, library, promptOptions } from "./lib/library";
 
 export { dashboardComponents } from "./lib/defineComponents";
 

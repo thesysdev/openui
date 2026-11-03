@@ -1,12 +1,8 @@
 import { createLibrary, type ComponentGroup } from "@openuidev/react-lang";
 import { dashboardComponents } from "./defineComponents";
-export {
-  openuiDashboardAdditionalRules,
-  openuiDashboardExamples,
-  openuiDashboardPromptOptions,
-} from "./prompt-options/index";
+export { additionalRules, examples, promptOptions } from "./prompt-options/index";
 
-export const openuiDashboardComponentGroups: ComponentGroup[] = [
+export const componentGroups: ComponentGroup[] = [
   {
     name: "Dashboard Layout",
     components: [
@@ -124,11 +120,11 @@ export const openuiDashboardComponentGroups: ComponentGroup[] = [
 /**
  * Standalone library keyed on `Dashboard` as root.
  *
- * Callers that need a prompt pass `openuiDashboardPromptOptions` to
- * `openuiDashboardLibrary.prompt()`.
+ * Callers that need a prompt pass `promptOptions` to
+ * `library.prompt()`.
  */
-export const openuiDashboardLibrary = createLibrary({
+export const library = createLibrary({
   root: "Dashboard",
   components: dashboardComponents,
-  componentGroups: openuiDashboardComponentGroups,
+  componentGroups,
 });
