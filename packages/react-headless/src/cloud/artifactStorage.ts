@@ -106,15 +106,13 @@ export function cloudArtifactStorage({
     },
 
     /** GET /v1/artifacts/:id/stream (SSE). Replays a finished artifact the
-     *  same way; `Last-Event-ID` resumes a dropped stream. */
+     *  same way; every connection starts from the whole program. */
     async *stream(
       id: string,
       options?: ArtifactStreamOptions,
     ): AsyncGenerator<ArtifactStreamEvent> {
-      const headers: Record<string, string> = { Accept: "text/event-stream" };
-      if (options?.lastEventId) headers["Last-Event-ID"] = options.lastEventId;
       const res = await fetchImpl(`${base}/v1/artifacts/${encodeURIComponent(id)}/stream`, {
-        headers,
+        headers: { Accept: "text/event-stream" },
         signal: options?.signal,
       });
       if (res.status === 404) {
@@ -142,7 +140,6 @@ export function cloudArtifactStorage({
         if (!STREAM_EVENT_TYPES.has(message.event)) continue;
         yield {
           type: message.event,
-          eventId: message.id,
           data: parseJson(message.data),
         } as ArtifactStreamEvent;
       }

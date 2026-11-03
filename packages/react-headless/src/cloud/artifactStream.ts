@@ -31,10 +31,13 @@ interface Entry {
   listeners: Set<() => void>;
   controller: AbortController | null;
   started: boolean;
-  lastEventId?: string;
+  /** The version being streamed, from its `reference`. */
+  version?: string;
   /** First generation streams into `program`; edits and refreshes into `pending`. */
   target: "program" | "pending";
   pending: string;
+  /** Reconnected into the version being streamed: the next delta has all of it, so it replaces. */
+  replace: boolean;
   reconnects: number;
   versions: Set<string>;
   /** A newer revision was seen while a stream was still running. */
@@ -99,7 +102,6 @@ class ArtifactStreamStore {
         if (entry.listeners.size > 0 || !entry.controller) return;
         entry.controller.abort();
         entry.controller = null;
-        // Keep `lastEventId`, so the next subscriber resumes where this left off.
         entry.started = false;
       }, 0);
     };
@@ -134,6 +136,7 @@ class ArtifactStreamStore {
         started: false,
         target: "program",
         pending: "",
+        replace: false,
         reconnects: 0,
         versions: new Set(),
         stale: false,
@@ -166,12 +169,8 @@ class ArtifactStreamStore {
         await this.load(id);
         return;
       }
-      for await (const event of this.storage.stream(id, {
-        lastEventId: entry.lastEventId,
-        signal: controller.signal,
-      })) {
+      for await (const event of this.storage.stream(id, { signal: controller.signal })) {
         if (controller.signal.aborted) return;
-        if (event.eventId) entry.lastEventId = event.eventId;
         if (event.type === "end" || event.type === "error") {
           finished = true;
           this.onEvent(id, event);
@@ -242,8 +241,14 @@ class ArtifactStreamStore {
     const snapshot = entry.snapshot;
     switch (event.type) {
       case "reference": {
-        entry.target = snapshot.program === null ? "program" : "pending";
-        entry.pending = "";
+        const version = event.data?.version;
+        // A reconnect into the version being streamed sends it whole again.
+        entry.replace = version !== undefined && version === entry.version;
+        entry.version = version;
+        if (!entry.replace) {
+          entry.target = snapshot.program === null ? "program" : "pending";
+          entry.pending = "";
+        }
         this.update(id, {
           type: event.data?.type ?? snapshot.type,
           title: event.data?.title ?? snapshot.title,
@@ -254,16 +259,18 @@ class ArtifactStreamStore {
       case "delta": {
         const text = event.data?.text;
         if (typeof text !== "string") return;
+        const replace = entry.replace;
+        entry.replace = false;
         // Edits stay hidden until `end`, so the current version stays on screen.
-        if (entry.target === "pending") entry.pending += text;
-        else this.update(id, { program: (snapshot.program ?? "") + text });
+        if (entry.target === "pending") entry.pending = (replace ? "" : entry.pending) + text;
+        else this.update(id, { program: (replace ? "" : (snapshot.program ?? "")) + text });
         return;
       }
       case "end": {
         const swapped = entry.target === "pending" ? { program: entry.pending } : {};
         entry.target = "program";
         entry.pending = "";
-        entry.lastEventId = undefined;
+        entry.version = undefined;
         this.update(id, { ...swapped, isStreaming: false });
         this.catchUp(id);
         return;
@@ -271,7 +278,7 @@ class ArtifactStreamStore {
       case "error": {
         entry.target = "program";
         entry.pending = "";
-        entry.lastEventId = undefined;
+        entry.version = undefined;
         const code = event.data?.code;
         const errorCode =
           code && ERROR_CODES.has(code) ? (code as ArtifactStreamErrorCode) : "generation-failed";
