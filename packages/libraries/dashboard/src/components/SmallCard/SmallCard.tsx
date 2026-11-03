@@ -1,6 +1,7 @@
 import { Card, IconTag, TextBlockView } from "@openuidev/react-components";
 import clsx from "clsx";
 import type { ComponentProps, ReactNode } from "react";
+import { formatMetric } from "../../shared/format";
 import { trendMagnitude } from "../../shared/trend";
 import { names as shellNames, styles as shellStyles } from "../ShellCard/shellCard.styles";
 import { names, styles } from "./smallCard.styles";
@@ -41,7 +42,7 @@ export function SmallCardMetric({ title, metric, trend }: SmallCardMetricProps) 
       <div className={clsx(styles.root, names.root)}>
         <div className={clsx(styles.title, names.title)}>{title}</div>
         <div className={clsx(styles.metricRow, names.metricRow)}>
-          <div className={clsx(styles.metric, names.metric)}>{metric}</div>
+          <div className={clsx(styles.metric, names.metric)}>{formatMetric(metric)}</div>
           {trend?.value !== undefined && (
             <div
               className={clsx(
