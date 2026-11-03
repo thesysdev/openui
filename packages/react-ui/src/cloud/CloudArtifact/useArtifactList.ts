@@ -29,11 +29,6 @@ export interface ArtifactListState {
   loadMore: () => void;
   /** Loads the list again from the first page. */
   refresh: () => void;
-  /** Pin an artifact. Shows everywhere right away; reverts if it fails. */
-  pin: (id: string) => Promise<void>;
-  unpin: (id: string) => Promise<void>;
-  /** Delete an artifact. Lists and renderers showing it update right away; reverts if it fails. */
-  deleteArtifact: (id: string) => Promise<void>;
 }
 
 const NO_STORAGE = new Error(
@@ -43,8 +38,9 @@ const noopSubscribe = () => () => {};
 const zero = () => 0;
 
 /**
- * Lists the user's artifacts in OpenUI Cloud, page by page, with pin, unpin
- * and delete. Every list and renderer on the same storage shares one cache.
+ * Lists the user's artifacts in OpenUI Cloud, page by page. Every list and
+ * renderer on the same storage shares one cache, so a pin, rename or delete
+ * from `useArtifactPin`, `useArtifactUpdate` or `useArtifactDelete` shows here at once.
  *
  * @category Hooks
  */
@@ -114,41 +110,6 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
   }, [cursor, isLoading, load]);
   const refresh = useCallback(() => setReloads((count) => count + 1), []);
 
-  const setPinned = useCallback(
-    async (id: string, next: boolean) => {
-      const method = next ? storage?.pin : storage?.unpin;
-      if (!storage || !cache || !method) throw new Error("This storage can't pin artifacts.");
-      const previous = cache.get(id)?.pinned;
-      cache.patch(id, { pinned: next });
-      try {
-        cache.put([await method.call(storage, id)]);
-      } catch (cause) {
-        cache.patch(id, { pinned: previous });
-        throw cause;
-      }
-    },
-    [storage, cache],
-  );
-  const pin = useCallback((id: string) => setPinned(id, true), [setPinned]);
-  const unpin = useCallback((id: string) => setPinned(id, false), [setPinned]);
-
-  const deleteArtifact = useCallback(
-    async (id: string) => {
-      if (!storage || !cache || !storage.delete) {
-        throw new Error("This storage can't delete artifacts.");
-      }
-      const previous = cache.get(id);
-      cache.remove(id);
-      try {
-        await storage.delete(id);
-      } catch (cause) {
-        if (previous) cache.restore(previous);
-        throw cause;
-      }
-    },
-    [storage, cache],
-  );
-
   // Read through the cache, so pins and deletes from anywhere show here too.
   const artifacts = useMemo(() => {
     if (!cache) return [];
@@ -177,8 +138,5 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
     hasMore: cursor !== undefined,
     loadMore,
     refresh,
-    pin,
-    unpin,
-    deleteArtifact,
   };
 }
