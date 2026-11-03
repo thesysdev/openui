@@ -1,11 +1,32 @@
-import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { ToolExecutionError, type DataTool, type ExecutionContext } from "./types";
 
-/** An MCP client, such as `Client` from `@modelcontextprotocol/sdk`. */
-export type McpToolClient = Pick<Client, "listTools" | "callTool">;
+// Only the parts of the MCP SDK's types used here, so the SDK stays an optional
+// peer: the published declarations never import it.
 
-type McpCallToolResult = Awaited<ReturnType<McpToolClient["callTool"]>>;
+/** An MCP tool, as the server lists it. */
+export interface McpTool {
+  name: string;
+  description?: string;
+  inputSchema: { type: "object"; properties?: Record<string, unknown>; required?: string[] };
+  annotations?: { readOnlyHint?: boolean };
+}
+
+interface McpCallToolResult {
+  content?: unknown;
+  structuredContent?: unknown;
+  toolResult?: unknown;
+  isError?: boolean;
+}
+
+/** An MCP client, such as `Client` from `@modelcontextprotocol/sdk`. */
+export interface McpToolClient {
+  listTools(params?: { cursor?: string }): Promise<{ tools: McpTool[]; nextCursor?: string }>;
+  callTool(
+    params: { name: string; arguments?: Record<string, unknown> },
+    resultSchema?: undefined,
+    options?: { signal?: AbortSignal },
+  ): Promise<McpCallToolResult>;
+}
 
 /** Which tools an MCP server offers your artifacts, and how calls reach it. */
 export interface McpConfig<Context extends ExecutionContext = ExecutionContext> {
@@ -14,7 +35,7 @@ export interface McpConfig<Context extends ExecutionContext = ExecutionContext> 
    * Which tools to offer, by MCP name or with a filter. Default: the tools the
    * server marks read-only (`readOnlyHint`), since scripts run on every view.
    */
-  include?: string[] | ((tool: Tool) => boolean);
+  include?: string[] | ((tool: McpTool) => boolean);
   /** Example outputs by MCP tool name, so artifacts know the shape of the data. */
   outputs?: Record<string, unknown>;
   /**
@@ -107,7 +128,7 @@ export function mcpToolLoader<Context extends ExecutionContext>(
   let loading: Promise<Record<string, DataTool<Context>>> | undefined;
 
   async function load(): Promise<Record<string, DataTool<Context>>> {
-    const listed: Tool[] = [];
+    const listed: McpTool[] = [];
     let cursor: string | undefined;
     try {
       do {
