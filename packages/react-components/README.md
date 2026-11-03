@@ -1,7 +1,7 @@
-# @openuidev/react-components (beta)
+# @openuidev/react-components
 
-Reusable OpenUI React components, charts and themes, styled with Goober. It sits beside
-`@openuidev/react-ui`, which stays unchanged.
+A React component library for OpenUI: components, charts and themes, styled with Goober. It sits
+beside `@openuidev/react-ui`, which is unchanged. Version `0.0.1`.
 
 ## Install
 
@@ -48,16 +48,13 @@ nonce, set `window.__nonce__` before the component library loads.
 
 ```text
 packages/react-components/
-└── src/
-    ├── index.ts               # the public entry: every export
-    ├── components/            # one folder per component
-    │   ├── Charts/            # area, bar, line, pie, radar and other charts
-    │   ├── ThemeProvider/     # themes and token variables
-    │   └── _shared/           # parts shared by cards, Markdown and icons
-    ├── styles/                # the component sheet (css.ts), style tags and token defaults
-    ├── context/               # layout and print context
-    ├── hooks/                 # shared React hooks
-    └── utils/                 # class name and preference helpers
+├── src/
+│   ├── index.ts           # the public entry: every component, part and type
+│   ├── components/        # inputs and controls, layout, text and Markdown, images and citations,
+│   │                      # tables and lists, cards, loading, charts
+│   ├── components/ThemeProvider/   # light and dark themes, token variables
+│   └── styles/            # the component sheet, style tags and token defaults
+└── README.md              # install, usage, styling and a site map
 ```
 
 ## Stable selectors
