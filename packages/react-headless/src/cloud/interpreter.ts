@@ -87,7 +87,7 @@ async function callEndpoint(
  * tool calls to your interpreter, endpoint or function. Results come back as
  * `structuredContent`, so `Renderer` unwraps them the usual way.
  *
- * @category Functions
+ * @internal Used by the `@openuidev/react-ui/cloud` renderers.
  */
 export function createInterpreterToolProvider(
   options: InterpreterToolProviderOptions,
