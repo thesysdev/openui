@@ -16,10 +16,7 @@ Generate the system prompt with the CLI from a file that re-exports the library:
 
 ```ts
 // src/lib/intelligent-library.ts
-export {
-  openuiIntelligentLibrary as library,
-  openuiIntelligentPromptOptions as promptOptions,
-} from "@openuidev/intelligent-library";
+export { library, promptOptions } from "@openuidev/intelligent-library";
 ```
 
 ```sh
@@ -31,7 +28,7 @@ Send that file as the system message, then render the model's response:
 ```tsx
 import {
   IntelligentThemeProvider,
-  openuiIntelligentLibrary,
+  library,
   runLibraryAction,
 } from "@openuidev/intelligent-library";
 import { Renderer } from "@openuidev/react-lang";
@@ -41,7 +38,7 @@ export function IntelligentMessage({ response }: { response: string }) {
     <IntelligentThemeProvider mode="dark">
       <Renderer
         response={response}
-        library={openuiIntelligentLibrary}
+        library={library}
         onAction={(event) => void runLibraryAction(event)}
       />
     </IntelligentThemeProvider>

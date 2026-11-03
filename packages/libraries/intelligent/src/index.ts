@@ -1,20 +1,19 @@
 /**
- * AI-integration surface for the Intelligent UI kit.
+ * AI-integration surface for the Intelligent UI library.
  *
  * The library is keyed on `Col` as root and carries primitives a model arranges
  * itself, the widgets it cannot draw (a street map, a sandboxed HTML page) and
- * generic @functions. The five `openuiIntelligent*` names mirror the dashboard
- * kit's `openuiDashboard*`.
+ * generic @functions.
  */
 export {
-  openuiIntelligentComponentGroups,
-  openuiIntelligentLibrary,
+  openuiIntelligentComponentGroups as componentGroups,
+  openuiIntelligentLibrary as library,
 } from "./lib/openuiIntelligentLibrary";
 
 export {
-  openuiIntelligentAdditionalRules,
-  openuiIntelligentExamples,
-  openuiIntelligentPromptOptions,
+  openuiIntelligentAdditionalRules as additionalRules,
+  openuiIntelligentExamples as examples,
+  openuiIntelligentPromptOptions as promptOptions,
 } from "./lib/prompt-options";
 
 export { intelligentComponents } from "./lib/defineComponents";
