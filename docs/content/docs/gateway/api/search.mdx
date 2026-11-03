@@ -1,9 +1,9 @@
 ---
 title: Search API
-description: Run a web search or an image search with one API call, without a model.
+description: Web search and image search endpoints you can use as tools in your own agent.
 ---
 
-Send a search query and get the results back as JSON. No model is involved: you get the raw results to use in your own code or to pass to any model.
+The Search API gives you two endpoints: web search and image search. Use them to implement search tools in your agent. When the model calls your search tool, your server calls the endpoint and returns the results to the model. You can also call them anywhere else on your server.
 
 **Endpoints:**
 
@@ -110,10 +110,27 @@ curl https://api.thesys.dev/v1/search/images \
 
 Both answers also carry `usage.search_units`, the number of searches you are charged for. It is always 1.
 
-## Call from TypeScript
+## Use as a tool
 
-```ts title="server.ts"
-async function searchWeb(query: string) {
+Define a search tool for your model, and call the Search API when the model uses it:
+
+```ts title="tools/search-web.ts"
+// The tool your model sees.
+export const searchWebTool = {
+  type: "function",
+  function: {
+    name: "search_web",
+    description: "Search the web for current information.",
+    parameters: {
+      type: "object",
+      properties: { query: { type: "string", description: "What to search for" } },
+      required: ["query"],
+    },
+  },
+} as const;
+
+// Run it when the model calls search_web.
+export async function runSearchWeb({ query }: { query: string }) {
   const response = await fetch("https://api.thesys.dev/v1/search/web", {
     method: "POST",
     headers: {
@@ -126,9 +143,17 @@ async function searchWeb(query: string) {
     const { error } = await response.json();
     throw new Error(`${response.status} ${error.type}: ${error.message}`);
   }
-  return response.json();
+  const { results } = await response.json();
+  // Give the model what it needs to answer and cite its sources.
+  return JSON.stringify(
+    results.map(({ title, url, text }) => ({ title, url, text: text?.slice(0, 1500) })),
+  );
 }
 ```
+
+Add `searchWebTool` to the `tools` of your model request. When the model calls `search_web`, run `runSearchWeb` with its arguments and send the returned string back as the tool result. An image search tool works the same way with `/v1/search/images`. Return `image_url`, `page_url`, and `title` so the model can show the images and link to their source.
+
+If your app uses the Gateway [Responses API](/docs/gateway/api/responses), you can instead declare Gateway's built-in [web search and image search tools](/docs/gateway/api/responses/hosted-tools), and Gateway runs the searches for you.
 
 ## Data
 
