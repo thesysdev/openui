@@ -108,7 +108,7 @@ const STABLE = /^\d+\.\d+\.\d+$/;
 
 export const npmTools = {
   get_npm_downloads: dataTool(
-    "Downloads of up to 5 npm packages over the last months, per day, week, or month: the period labels, and each package's downloads per period (aligned with periods), total, average per period, and change_pct (last period vs the one before).",
+    "Downloads of up to 5 npm packages over the last months, per day, week, or whole month: the period labels, and each package's downloads per period (aligned with periods), total, average per period, and change_pct (last period vs the one before).",
     z.object({
       packages: z
         .string()
@@ -122,8 +122,12 @@ export const npmTools = {
       if (!names.length) names.push("react");
       const months = int(args.months, 6, 1, 12);
       const interval = oneOf(args.interval, INTERVALS, "week");
-      // npm's data ends yesterday.
+      // npm's data ends yesterday; months end at the last whole one, so this month's first days
+      // don't read as a drop.
       const end = new Date(Date.now() - DAY_MS);
+      if (interval === "month" && new Date(end.getTime() + DAY_MS).getUTCDate() !== 1) {
+        end.setUTCDate(0);
+      }
       const start = new Date(end);
       start.setUTCMonth(start.getUTCMonth() - months);
       const [from, to] = [isoDay(start), isoDay(end)];
