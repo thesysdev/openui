@@ -1,5 +1,3 @@
-export { parseArtifactReference } from "./cloud/artifactReference";
-export type { ArtifactReference } from "./cloud/artifactReference";
 export { useArtifactStream } from "./cloud/artifactStream";
 export type {
   ArtifactStreamError,

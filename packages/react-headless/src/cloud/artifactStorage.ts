@@ -74,14 +74,23 @@ export function cloudArtifactStorage({
       return { ...toSummary(artifact), content: artifact.content };
     },
 
-    /** POST /v1/artifacts/:id {content}. Send the edited inner program (a
-     *  string); omit version to let the server bump it. */
-    async update(patch: { id: string; content: unknown }): Promise<ArtifactSummary> {
-      const content =
-        typeof patch.content === "string" ? patch.content : JSON.stringify(patch.content);
+    /** POST /v1/artifacts/:id {content?, name?}. New content (the edited inner program) is a
+     *  new version, which the server bumps; a title alone renames it. */
+    async update(patch: {
+      id: string;
+      content?: unknown;
+      title?: string;
+    }): Promise<ArtifactSummary> {
+      const body = {
+        ...(patch.content !== undefined && {
+          content:
+            typeof patch.content === "string" ? patch.content : JSON.stringify(patch.content),
+        }),
+        ...(patch.title !== undefined && { name: patch.title }),
+      };
       const res = await request(`/v1/artifacts/${encodeURIComponent(patch.id)}`, {
         method: "POST",
-        body: JSON.stringify({ content }),
+        body: JSON.stringify(body),
       });
       return toSummary((await res.json()) as CloudArtifact);
     },
