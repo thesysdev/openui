@@ -31,15 +31,24 @@ import {
   library,
   runLibraryAction,
 } from "@openuidev/intelligent-library";
-import { Renderer } from "@openuidev/react-lang";
+import { Renderer, type ActionEvent } from "@openuidev/react-lang";
 
-export function IntelligentMessage({ response }: { response: string }) {
+export function IntelligentMessage({
+  response,
+  onAction,
+}: {
+  response: string;
+  onAction: (event: ActionEvent) => void;
+}) {
   return (
     <IntelligentUiThemeProvider mode="dark">
       <Renderer
         response={response}
         library={library}
-        onAction={(event) => void runLibraryAction(event)}
+        onAction={(event) => {
+          // The kit's own action runs here; the rest are yours.
+          if (runLibraryAction(event) === null) onAction(event);
+        }}
       />
     </IntelligentUiThemeProvider>
   );
@@ -49,8 +58,20 @@ export function IntelligentMessage({ response }: { response: string }) {
 `IntelligentUiThemeProvider` is optional. It follows the outer `ThemeProvider`'s mode (light by
 default) and takes `lightTheme` and `darkTheme` overrides. Wrap the `Renderer` in it so every
 response gets the kit's theme, whatever its root.
-`runLibraryAction` runs the kit's own `CopyToClipboard` action and returns `null` for any other
-action.
+
+### Actions
+
+The `Renderer` hands every action a user takes to `onAction`. Most of them are yours to run:
+`continue_conversation` sends a message back to the model, and `open_url` opens a link.
+
+The kit adds one action of its own, `CopyToClipboard`. The model uses it for buttons like "Copy
+list". A library action carries no code, so the kit exports `runLibraryAction` to run it. Call it
+first in `onAction`:
+
+- For `CopyToClipboard`, it copies the text and returns a promise of whether the copy worked.
+- For any other action, it returns `null` and does nothing, so pass the event to your own handler.
+
+Without `runLibraryAction`, a copy button does nothing.
 
 ### Server routes
 
