@@ -18,25 +18,6 @@ function invalidLibrary(error: unknown): never {
   );
 }
 
-/**
- * What a tool returns to the model: a sentence, then the artifact's header line
- * for the renderer. A new `version` tells renderers there's a newer revision.
- */
-function toolResponse(id: string, title?: string): string {
-  const version = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  const header = {
-    artifact_id: id,
-    type: "live",
-    ...(title && { name: title }),
-    version,
-  };
-  const sentence =
-    title === undefined
-      ? "Editing the dashboard; the user sees the new version when it's ready."
-      : `Started the dashboard "${title}"; the user sees it as it's generated.`;
-  return `${sentence}\n]]>openui:artifact ${JSON.stringify(header)}\n`;
-}
-
 /** The dashboard behind `openui.defineDashboard`. */
 export function defineDashboard<Context extends ExecutionContext>(
   api: CloudApi,
@@ -79,7 +60,9 @@ export function defineDashboard<Context extends ExecutionContext>(
 
   /**
    * Mints the user's frontend token, so the artifact is theirs, and starts
-   * generating in the background. Resolves with the artifact's id as soon as it has one.
+   * generating in the background. Resolves as soon as OpenUI Cloud has the
+   * artifact, with the tool response it writes: a sentence for the model and
+   * the artifact's header line for the renderer.
    */
   async function start(
     context: Context,
@@ -94,8 +77,8 @@ export function defineDashboard<Context extends ExecutionContext>(
       createFrontendToken(api, context.userId, signal),
       toolDefinitions(),
     ]);
-    // Not streamed: OpenUI Cloud replies with the artifact's id at once and keeps generating.
-    const { id } = await api.post(
+    // Not streamed: OpenUI Cloud replies at once and keeps generating.
+    const { response } = await api.post(
       "/v1/artifact/chat/completions",
       {
         model,
@@ -107,25 +90,25 @@ export function defineDashboard<Context extends ExecutionContext>(
       signal,
       { [FRONTEND_TOKEN_HEADER]: token },
     );
-    if (typeof id !== "string" || !id) {
+    if (typeof response !== "string" || !response) {
       throw new OpenUIApiError(
         "OpenUI Cloud didn't start a background artifact",
         "invalid_response",
         502,
       );
     }
-    return id;
+    return response;
   }
 
   return {
     async create({ title, prompt }, context, { signal } = {}) {
-      return toolResponse(await start(context, prompt, { title }, signal), title);
+      return start(context, prompt, { title }, signal);
     },
 
     // OpenUI Cloud edits the version it stores.
     async edit({ id, prompt }, context, { signal } = {}) {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      return toolResponse(await start(context, prompt, { id }, signal));
+      return start(context, prompt, { id }, signal);
     },
 
     interpreter: createInterpreter<Context>(api, loadTools),
