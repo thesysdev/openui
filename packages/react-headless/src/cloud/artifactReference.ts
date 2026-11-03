@@ -4,7 +4,7 @@
  * The response is opaque to developers: a readable sentence for the model plus
  * OpenUI Cloud's artifact header line,
  *
- *   ]]>openui:artifact {"artifact_id":"art_…","type":"live","name":"…","version":"…"}
+ *   ]]>openui:artifact {"artifact_id":"art_…","type":"dashboard","name":"…","version":"…"}
  *
  * Renderers pass it here unchanged; nothing else parses it.
  */
