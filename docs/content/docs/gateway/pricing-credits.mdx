@@ -23,8 +23,8 @@ Annual billing saves up to 20%.
 | Additional features              | BYOK, style customization, and popular models | Everything in Free | Everything in Build, plus SSO/SAML         | Self-hosting, VPC deployment, compliance, and usage controls |
 
 <Callout type="info">
-  Select models are available with no LLM token cost. These models are limited to approximately
-  100 calls per day and 3,000 calls per month, and request data may be used for training.
+  Select models are available with no LLM token cost. These models are limited to approximately 100
+  calls per day and 3,000 calls per month, and request data may be used for training.
 </Callout>
 
 Paid models use zero data retention.
@@ -41,6 +41,15 @@ Model usage is billed at the provider's rates without markup. The Gateway API an
 ### Autofix API
 
 An [Autofix API](/docs/autofix) call that runs a fix costs a flat $0.02, deducted from your Gateway Credits. It does not use a plan API call. A generation that is already valid is free.
+
+### Search
+
+Web search and image search cost the same whether a model calls them as [hosted tools](/docs/gateway/api/responses/hosted-tools) or you call the [Search API](/docs/gateway/api/search). Each is deducted from your Gateway Credits and does not use a plan API call. A failed search is free.
+
+| Search       | Price                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------- |
+| Web search   | The search provider's cost per search, without markup (currently $0.007)                |
+| Image search | $0.005 per query. A Search API call runs one query; a hosted tool call can run several. |
 
 ### Finding model pricing
 
