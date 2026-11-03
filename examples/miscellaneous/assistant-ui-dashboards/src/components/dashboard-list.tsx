@@ -2,21 +2,32 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { parseArtifactReference } from "@openuidev/react-headless";
-import { useArtifactList, type ArtifactSummary } from "@openuidev/react-ui/cloud";
-import { LayoutDashboard, Pin, PinOff, Trash2 } from "lucide-react";
+import {
+  useArtifactDelete,
+  useArtifactList,
+  useArtifactPin,
+  useArtifactUnpin,
+  useArtifactUpdate,
+  type ArtifactSummary,
+} from "@openuidev/react-ui/cloud";
+import { LayoutDashboard, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import { useEffect } from "react";
 import { useOpenDashboard } from "./dashboard";
 
 /**
  * The user's dashboards in OpenUI Cloud: pinned ones first, then the rest, newest first. Each
- * opens in the panel by its id, and can be pinned, unpinned, or deleted. Every list and renderer
- * shares one cache, so a change shows everywhere at once and reverts if OpenUI Cloud refuses it.
+ * opens in the panel by its id, and can be pinned, unpinned, renamed, or deleted. Every list and
+ * renderer shares one cache, so a change shows everywhere at once and reverts if OpenUI Cloud
+ * refuses it.
  */
 export function DashboardList() {
   const pinned = useArtifactList({ filter: { type: "dashboard", pinned: true } });
   const recent = useArtifactList({ filter: { type: "dashboard", pinned: false, limit: 20 } });
-  const { open, setOpen, saved } = useOpenDashboard();
+  const { pin } = useArtifactPin();
+  const { unpin } = useArtifactUnpin();
+  const { update } = useArtifactUpdate();
+  const { deleteArtifact } = useArtifactDelete();
+  const { open, setOpen, openId, saved } = useOpenDashboard();
 
   // A dashboard joins the list, or shows its new title, once it's generated and saved.
   const refreshPinned = pinned.refresh;
@@ -27,21 +38,14 @@ export function DashboardList() {
     refreshRecent();
   }, [saved, refreshPinned, refreshRecent]);
 
-  // Pinning moves a dashboard between the two lists, so both reload.
-  const setPinned = async (id: string, next: boolean) => {
-    await (next ? recent.pin(id) : pinned.unpin(id));
-    pinned.refresh();
-    recent.refresh();
+  const rename = (artifact: ArtifactSummary) => {
+    const title = window.prompt("Rename this dashboard", artifact.title)?.trim();
+    if (title && title !== artifact.title) void update(artifact.id, { title });
   };
-  const openId = open
-    ? "id" in open
-      ? open.id
-      : parseArtifactReference(open.response)?.id
-    : undefined;
-  const remove = async (id: string) => {
+  const remove = (id: string) => {
     if (!window.confirm("Delete this dashboard? This can't be undone.")) return;
     if (openId === id) setOpen(null);
-    await recent.deleteArtifact(id);
+    void deleteArtifact(id);
   };
 
   const row = (artifact: ArtifactSummary) => (
@@ -49,10 +53,10 @@ export function DashboardList() {
       <button
         type="button"
         onClick={() => setOpen({ key: `list:${artifact.id}`, id: artifact.id })}
-        aria-current={openId === artifact.id}
+        aria-current={open !== null && openId === artifact.id}
         className={cn(
-          "flex w-full items-center gap-2 rounded-md px-2 py-1.5 pr-16 text-left text-sm hover:bg-sidebar-accent",
-          openId === artifact.id && "bg-sidebar-accent font-medium",
+          "flex w-full items-center gap-2 rounded-md px-2 py-1.5 pr-20 text-left text-sm hover:bg-sidebar-accent",
+          open !== null && openId === artifact.id && "bg-sidebar-accent font-medium",
         )}
       >
         <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" />
@@ -63,15 +67,18 @@ export function DashboardList() {
           variant="ghost"
           size="icon-xs"
           aria-label={artifact.pinned ? "Unpin" : "Pin"}
-          onClick={() => void setPinned(artifact.id, !artifact.pinned)}
+          onClick={() => void (artifact.pinned ? unpin(artifact.id) : pin(artifact.id))}
         >
           {artifact.pinned ? <PinOff /> : <Pin />}
+        </Button>
+        <Button variant="ghost" size="icon-xs" aria-label="Rename" onClick={() => rename(artifact)}>
+          <Pencil />
         </Button>
         <Button
           variant="ghost"
           size="icon-xs"
           aria-label="Delete"
-          onClick={() => void remove(artifact.id)}
+          onClick={() => remove(artifact.id)}
         >
           <Trash2 />
         </Button>
