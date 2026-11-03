@@ -335,7 +335,7 @@ const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: nu
  * - During an edit, `program` keeps the current version until the new one ends.
  * - Storages without `stream` are read once with `get`.
  *
- * @category Hooks
+ * @internal Used by the `@openuidev/react-ui/cloud` renderers.
  */
 export function useArtifactStream({
   id,

@@ -71,8 +71,6 @@ export type {
   ArtifactCategory,
   ArtifactListParams,
   ArtifactStorage,
-  ArtifactStreamEvent,
-  ArtifactStreamOptions,
   ArtifactSummary,
   ChatLLM,
   ChatStorage,
