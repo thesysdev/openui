@@ -48,22 +48,20 @@ export interface ArtifactListParams {
 
 /**
  * One event on an artifact's stream: its reference first, then its content in
- * pieces, then `end` (or `error`). `eventId` is the resume point after a
- * dropped connection.
+ * pieces, then `end` (or `error`). Every connection starts over: the
+ * reference, then everything so far. A reference with the `version` a reader
+ * already has replaces what it has of it.
  */
 export type ArtifactStreamEvent =
   | {
       type: "reference";
-      eventId?: string;
-      data: { id: string; type?: string; title?: string };
+      data: { id: string; type?: string; title?: string; version?: string };
     }
-  | { type: "delta"; eventId?: string; data: { text: string } }
-  | { type: "end"; eventId?: string }
-  | { type: "error"; eventId?: string; data: { code?: string; message?: string } };
+  | { type: "delta"; data: { text: string } }
+  | { type: "end" }
+  | { type: "error"; data: { code?: string; message?: string } };
 
 export interface ArtifactStreamOptions {
-  /** Resume after this event. */
-  lastEventId?: string;
   signal?: AbortSignal;
 }
 

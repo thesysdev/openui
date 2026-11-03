@@ -10,8 +10,6 @@ export interface InterpreterRequest {
   /** The query or tool to run. */
   name: string;
   arguments: Record<string, unknown>;
-  /** The artifact's saved content, when you keep artifacts in your own storage. */
-  response?: string;
 }
 
 /** Your interpreter endpoint: it receives an `InterpreterRequest` as JSON and returns `{ result }`. @category Types */
@@ -40,7 +38,7 @@ export interface InterpreterToolProviderOptions {
   /** Read on every call, so the provider's identity can stay stable. */
   getInterpreter: () => Interpreter | undefined;
   /** The artifact the calls are for. */
-  getRequest: () => { id: string | null | undefined; response?: string };
+  getRequest: () => { id: string | null | undefined };
   /** Defaults to the global `fetch`. */
   fetch?: typeof fetch;
   /** Called when a call starts. */
@@ -95,16 +93,11 @@ export function createInterpreterToolProvider(
   return {
     async callTool({ name, arguments: args = {} }) {
       const interpreter = options.getInterpreter();
-      const { id, response } = options.getRequest();
+      const { id } = options.getRequest();
       if (!interpreter) throw new Error("This artifact has no interpreter.");
       if (!id) throw new Error("This artifact has no id yet.");
 
-      const request: InterpreterRequest = {
-        id,
-        name,
-        arguments: args,
-        ...(response !== undefined ? { response } : {}),
-      };
+      const request: InterpreterRequest = { id, name, arguments: args };
       options.onStart?.(name);
       try {
         const result =
