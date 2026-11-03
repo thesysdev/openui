@@ -79,13 +79,14 @@ configureIntelligentKit({
 
 ## Components
 
-`Col` is the root. 55 components in 6 groups:
+`Col` is the root. `Chart` draws with react-components' charts and their default palette, shades of
+one blue. 55 components in 6 groups:
 
-| Group          | Components                                                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Layout         | `Col`, `Row`, `Box`, `Grid`, `Card`, `Carousel`, `Popover`, `Divider`, `Spacer`                                                             |
-| Text           | `Title`, `Text`, `Caption`, `Label`, `Badge`, `Link`, `List`, `ListItem`, `Markdown`, `Quote`, `Code`, `Math`                               |
+| Group          | Components                                                                                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layout         | `Col`, `Row`, `Box`, `Grid`, `Card`, `Carousel`, `Popover`, `Divider`, `Spacer`                                                                           |
+| Text           | `Title`, `Text`, `Caption`, `Label`, `Badge`, `Link`, `List`, `ListItem`, `Markdown`, `Quote`, `Code`, `Math`                                             |
 | Inputs         | `Button`, `IconButton`, `Pressable`, `Input`, `TextArea`, `Select`, `SegmentedControl`, `Slider`, `Checkbox`, `RadioGroup`, `DatePicker`, `Timer`, `Form` |
-| Media and data | `SearchImage`, `Image`, `Icon`, `Table`, `Chart`, `Map`, `MapMarker`, `YouTube`                                                             |
-| Play           | `Flashcard`, `Celebration`                                                                                                                  |
-| Drawing        | `Svg`, `G`, `Circle`, `Ellipse`, `Rect`, `Line`, `Path`, `Polyline`, `Polygon`, `SvgText`, `HtmlView`                                       |
+| Media and data | `SearchImage`, `Image`, `Icon`, `Table`, `Chart`, `Map`, `MapMarker`, `YouTube`                                                                           |
+| Play           | `Flashcard`, `Celebration`                                                                                                                                |
+| Drawing        | `Svg`, `G`, `Circle`, `Ellipse`, `Rect`, `Line`, `Path`, `Polyline`, `Polygon`, `SvgText`, `HtmlView`                                                     |
