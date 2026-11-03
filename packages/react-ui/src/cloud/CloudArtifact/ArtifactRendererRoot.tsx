@@ -162,8 +162,8 @@ export function ArtifactRendererRoot({
   const [rendererKey, setRendererKey] = useState(0);
   const interpreterRef = useRef(interpreter);
   interpreterRef.current = interpreter;
-  const requestRef = useRef<{ id: string | null; response?: string }>({ id });
-  requestRef.current = { id, response: content };
+  const requestRef = useRef({ id });
+  requestRef.current = { id };
 
   const toolProvider = useMemo(
     () =>
