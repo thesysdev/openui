@@ -1,5 +1,5 @@
 {
-  "name": "@openuidev/dashboard-kit",
+  "name": "@openuidev/dashboard-library",
   "version": "0.0.1",
   "description": "OpenUI dashboard AI component library: the Dashboard/Section/CardRow layout grammar, filters, cards and charts a model composes into dashboards",
   "license": "MIT",
@@ -65,7 +65,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thesysdev/openui.git",
-    "directory": "packages/kits/dashboard"
+    "directory": "packages/libraries/dashboard"
   },
   "bugs": {
     "url": "https://github.com/thesysdev/openui/issues"

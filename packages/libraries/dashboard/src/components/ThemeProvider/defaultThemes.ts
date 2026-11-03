@@ -1,7 +1,7 @@
 import { type Theme } from "@openuidev/react-components";
 /**
  * Only the tokens the dashboard changes: the typography, retuned for dense cards (13/14px rather
- * than openui's 16px). `ThemeProvider` merges these over its own default theme, so colours, spacing
+ * than openui's 16px). react-components' `ThemeProvider` merges these over its own default theme, so colours, spacing
  * and radii come from there and keep following the light or dark mode.
  *
  * The five family tokens keep their `--openui-dashboard-font-*` escape hatch so a consumer can
@@ -108,6 +108,6 @@ const dashboardScaleTokens: Partial<Theme> = {
   textCodeDefaultHeavy: "700 14px/1.5 var(--openui-font-code)",
 };
 
-export const defaultDashboardLightTheme: Theme = dashboardScaleTokens;
+export const defaultLightTheme: Theme = dashboardScaleTokens;
 
-export const defaultDashboardDarkTheme: Theme = dashboardScaleTokens;
+export const defaultDarkTheme: Theme = dashboardScaleTokens;

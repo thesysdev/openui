@@ -1,6 +1,6 @@
 packages:
   - "packages/*"
-  - "packages/kits/*"
+  - "packages/libraries/*"
   - "docs/"
   - "!templates/**"
 
