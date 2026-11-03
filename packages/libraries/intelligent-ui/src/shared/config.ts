@@ -64,7 +64,7 @@ type ConfigState = { basePath: string; overrides: Partial<IntelligentKitEndpoint
  * hold two independent configurations, and configuring one would silently
  * leave the other on the defaults.
  */
-const STATE_KEY = Symbol.for("@openuidev/intelligent-library.config");
+const STATE_KEY = Symbol.for("@openuidev/intelligent-ui-library.config");
 
 const readState = (): ConfigState => {
   const store = globalThis as unknown as Record<symbol, ConfigState | undefined>;

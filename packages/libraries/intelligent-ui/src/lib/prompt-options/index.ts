@@ -39,7 +39,7 @@ drawings = [s0, s1, s2, s3]
 viewer = Card([Row([Badge("Step " + ($step + 1) + " of 4", "info"), Spacer(), Caption(@Format(@Percent($step + 1, 4), "percent") + " done")], 2), Box([drawings[$step]], null, null, 3, "surface", "lg"), Title(steps[$step].title, "md"), Text(steps[$step].text, "sm"), Row([Button("Back", @Set($step, @Clamp($step - 1, 0, 3)), "outline", null, null, "arrow-left", $step == 0), Spacer(), Button("Next step", @Set($step, @Clamp($step + 1, 0, 3)), "solid", null, null, "arrow-right", $step == 3)], 2)], null, 4)
 strip = Grid(@Each(@Range(0, 4), "i", Pressable([drawings[i], Caption((i + 1) + ". " + steps[i].title)], @Set($step, i), i == $step, 2)), 4, 110, 2)`;
 
-export const openuiIntelligentAdditionalRules = [
+export const additionalRules = [
   "Compose the answer like a page, not a form letter: a Title, a short Text, then a mix of blocks that show the content. SearchImage for every place, dish, product or thing that has a look (the app finds the photo, so never say you cannot show photos); Row, Grid and Carousel to set things side by side; Badge rows for quick facts; Card only to group a block; Popover for an aside.",
   "Spacing is a system with three tiers that always nest: inner (gap 1-2, 4-8px) for a title with its subtitle, tags or line; group (gap 3-4, 12-16px) between blocks inside a Card or grid cell; section (24px) between the blocks of the page. Leave gap unset on the page's root Col and on a Card's own contents: the app applies these tiers. Set it on a Row, a Grid or an inner Col. Never use one gap for everything, and never a gap larger than the section gap.",
   'A photo beside text is a media row: Row([Box([SearchImage(query, 1.33)]), Col([Title(..., "md"), Row([Badge(...), Badge(...)], 1, null, null, true), Text(..., "sm")], 2)], 4, "start"). The app sizes the photo to a third of the row (at most 200px) and top-aligns the text. Facts are Badges, never Buttons or boxed pills.',
@@ -60,15 +60,15 @@ export const openuiIntelligentAdditionalRules = [
   "Answer a plain knowledge or safety question with Markdown text, adding a SearchImage or a Quote only where it helps.",
 ];
 
-export const openuiIntelligentExamples = [
+export const examples = [
   `Example 1: A guest stepper that rescales a shopping list, with a checklist and a copy button:\n\n${exampleShoppingList}`,
   `Example 2: A composed trip answer: photos, facts, day rows and a short form:\n\n${exampleTrip}`,
   `Example 3: Step-by-step instructions with a drawing for each step, driven by $step:\n\n${exampleSteps}`,
 ];
 
 /** The chat prompt: no tools, $variables and functions. */
-export const openuiIntelligentPromptOptions: PromptOptions = {
+export const promptOptions: PromptOptions = {
   bindings: true,
-  additionalRules: openuiIntelligentAdditionalRules,
-  examples: openuiIntelligentExamples,
+  additionalRules,
+  examples,
 };

@@ -1,4 +1,4 @@
-# @openuidev/intelligent-library
+# @openuidev/intelligent-ui-library
 
 An OpenUI component library for Intelligent UI answers: primitives a model arranges itself, the
 widgets it cannot draw (a street map, a sandboxed HTML page) and generic `@functions` so an answer
@@ -7,7 +7,7 @@ can compute with its own state.
 ## Install
 
 ```sh
-pnpm add @openuidev/intelligent-library
+pnpm add @openuidev/intelligent-ui-library
 ```
 
 ## Usage
@@ -15,12 +15,12 @@ pnpm add @openuidev/intelligent-library
 Generate the system prompt with the CLI from a file that re-exports the library:
 
 ```ts
-// src/lib/intelligent-library.ts
-export { library, promptOptions } from "@openuidev/intelligent-library";
+// src/lib/intelligent-ui-library.ts
+export { library, promptOptions } from "@openuidev/intelligent-ui-library";
 ```
 
 ```sh
-npx @openuidev/cli generate src/lib/intelligent-library.ts --out src/generated/system-prompt.txt
+npx @openuidev/cli generate src/lib/intelligent-ui-library.ts --out src/generated/system-prompt.txt
 ```
 
 Send that file as the system message, then render the model's response:
@@ -30,7 +30,7 @@ import {
   IntelligentUiThemeProvider,
   library,
   runLibraryAction,
-} from "@openuidev/intelligent-library";
+} from "@openuidev/intelligent-ui-library";
 import { Renderer, type ActionEvent } from "@openuidev/react-lang";
 
 export function IntelligentMessage({
@@ -91,7 +91,7 @@ needed. Otherwise call `configureIntelligentKit` once, before rendering. `basePa
 three. `endpoints` replaces any of them.
 
 ```ts
-import { configureIntelligentKit } from "@openuidev/intelligent-library";
+import { configureIntelligentKit } from "@openuidev/intelligent-ui-library";
 
 configureIntelligentKit({
   // The kit now calls /my-app/api/wiki and /my-app/api/image-search.

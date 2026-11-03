@@ -3,7 +3,7 @@ import { actions } from "./Action";
 import { intelligentComponents } from "./defineComponents";
 import { functions } from "./functions";
 
-export const openuiIntelligentComponentGroups = [
+export const componentGroups = [
   {
     name: "Layout",
     components: ["Col", "Row", "Box", "Grid", "Card", "Carousel", "Popover", "Divider", "Spacer"],
@@ -78,13 +78,13 @@ export const openuiIntelligentComponentGroups = [
 /**
  * Standalone library keyed on `Col` as root.
  *
- * Callers that need a prompt pass `openuiIntelligentPromptOptions` to
- * `openuiIntelligentLibrary.prompt()`.
+ * Callers that need a prompt pass `promptOptions` to
+ * `library.prompt()`.
  */
-export const openuiIntelligentLibrary = createLibrary({
+export const library = createLibrary({
   root: "Col",
   components: intelligentComponents,
   functions,
   actions,
-  componentGroups: openuiIntelligentComponentGroups,
+  componentGroups,
 });

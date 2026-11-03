@@ -5,16 +5,9 @@
  * itself, the widgets it cannot draw (a street map, a sandboxed HTML page) and
  * generic @functions.
  */
-export {
-  openuiIntelligentComponentGroups as componentGroups,
-  openuiIntelligentLibrary as library,
-} from "./lib/openuiIntelligentLibrary";
+export { componentGroups, library } from "./lib/library";
 
-export {
-  openuiIntelligentAdditionalRules as additionalRules,
-  openuiIntelligentExamples as examples,
-  openuiIntelligentPromptOptions as promptOptions,
-} from "./lib/prompt-options";
+export { additionalRules, examples, promptOptions } from "./lib/prompt-options";
 
 export { intelligentComponents } from "./lib/defineComponents";
 
