@@ -93,6 +93,13 @@ export function MapView({
   useDialog(container, expanded, () => setExpanded(false));
   // The theme the basemap was last given: the map may be created after the theme is first read.
   const styledDark = useRef(dark);
+  // The current theme and places, for effects that must not re-run when they change.
+  const darkNow = useRef(dark);
+  const visibleNow = useRef(visible);
+  useEffect(() => {
+    darkNow.current = dark;
+    visibleNow.current = visible;
+  });
 
   useEffect(() => {
     let active = true;
@@ -106,11 +113,11 @@ export function MapView({
 
   useEffect(() => {
     if (!lib || !surface.current) return;
-    styledDark.current = dark;
+    styledDark.current = darkNow.current;
     // Zoom levels are one lower than Leaflet's: MapLibre uses 512px tiles.
     const instance = new lib.Map({
       container: surface.current,
-      style: vectorStyle(dark),
+      style: vectorStyle(styledDark.current),
       center: [0, 20],
       zoom: 1,
       minZoom: 0,
@@ -187,11 +194,11 @@ export function MapView({
   // Reconcile pins with the visible places; existing pins update in place.
   useEffect(() => {
     if (!lib || !ready || !map.current) return;
-    syncPins(lib, map.current, markers.current, visible, selected, (place) => {
+    syncPins(lib, map.current, markers.current, visibleNow.current, selected, (place) => {
       select.current(place.label);
       if (expandedNow.current) setExpanded(false);
     });
-    fitPoints.current = visible.map((p) => [p.lat, p.lng] as LatLng);
+    fitPoints.current = visibleNow.current.map((p) => [p.lat, p.lng] as LatLng);
     if (fitPoints.current.length && !anchored.current) {
       // Begin with a steady city overview; later points do not move the camera.
       map.current.jumpTo({ center: lngLat(fitPoints.current[0]), zoom: 10.5 });

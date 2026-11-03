@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 /** While `open`: lock page scroll, trap Tab focus inside `container`, close on Escape, then restore focus. */
 export function useDialog(
@@ -6,6 +6,12 @@ export function useDialog(
   open: boolean,
   close: () => void,
 ) {
+  // The latest `close`: re-running on its identity would steal focus.
+  const closeNow = useRef(close);
+  useEffect(() => {
+    closeNow.current = close;
+  });
+
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -14,7 +20,7 @@ export function useDialog(
     container.current?.focus();
     const keydown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        close();
+        closeNow.current();
         return;
       }
       if (event.key !== "Tab" || !container.current) return;
@@ -41,6 +47,5 @@ export function useDialog(
       window.removeEventListener("keydown", keydown);
       previous?.focus();
     };
-    // `close` only flips state; re-running on its identity would steal focus.
-  }, [open]);
+  }, [container, open]);
 }

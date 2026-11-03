@@ -37,9 +37,10 @@ export function Popover({ trigger, children }: PopoverProps) {
   // The panel is portaled out of any nested ThemeProvider, so it carries that provider's theme with it.
   const { portalThemeClassName } = useTheme();
 
-  // An icon-only trigger has no text to name it (or the panel it labels).
+  // An icon-only trigger has no text to name it (or the panel it labels). Measured after each new
+  // trigger, which may still be streaming in.
   const [unnamed, setUnnamed] = useState(false);
-  useLayoutEffect(() => setUnnamed(!button.current?.textContent?.trim()));
+  useLayoutEffect(() => setUnnamed(!button.current?.textContent?.trim()), [trigger]);
 
   const close = (refocus: boolean) => {
     setOpen(false);
