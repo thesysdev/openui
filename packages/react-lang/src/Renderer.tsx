@@ -88,14 +88,18 @@ interface ErrorBoundaryState {
 }
 
 /**
- * Error boundary that intentionally shows the last successfully rendered
- * children when a render error occurs. This "show last good state" behavior
- * prevents the UI from going blank during streaming or transient evaluation
- * errors, and auto-recovers when new valid children arrive.
+ * Error boundary for a single rendered element.
+ *
+ * On a render error it renders nothing instead of re-presenting the last
+ * successfully rendered children. Those stale element instances belong to a
+ * tree React has already reconciled; returning them again — at index-keyed
+ * positions whose node type may have changed during the failed pass — desyncs
+ * React's fiber tree from the live DOM and surfaces as a commit-phase
+ * `NotFoundError: insertBefore` in the host app, which no nested error
+ * boundary can catch (see #727). Unmounting is a clean, recoverable state:
+ * the boundary auto-recovers as soon as the parent supplies new children.
  */
 class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  private lastValidChildren: React.ReactNode = null;
-
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -105,16 +109,9 @@ class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true };
   }
 
-  componentDidMount(): void {
-    if (!this.state.hasError) {
-      this.lastValidChildren = this.props.children;
-    }
-  }
-
   componentDidUpdate(prevProps: ErrorBoundaryProps): void {
-    if (!this.state.hasError) {
-      this.lastValidChildren = this.props.children;
-    }
+    // Auto-recover when new children arrive: the render after a recovered
+    // error pass renders the new children normally again.
     if (this.state.hasError && prevProps.children !== this.props.children) {
       this.setState({ hasError: false });
     }
@@ -132,7 +129,7 @@ class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     if (this.state.hasError) {
-      return this.lastValidChildren;
+      return null;
     }
     return this.props.children;
   }
