@@ -50,8 +50,10 @@ export function IntelligentMessage({ response }: { response: string }) {
 ```
 
 `IntelligentThemeProvider` is optional. It follows the outer `ThemeProvider`'s mode (light by
-default) and takes `lightTheme` and `darkTheme` overrides. `runLibraryAction` runs the kit's own
-`CopyToClipboard` action and returns `null` for any other action.
+default) and takes `lightTheme` and `darkTheme` overrides. Without it, a `Col` root applies the
+kit's theme itself, but a response with any other root gets react-components' default colours.
+`runLibraryAction` runs the kit's own `CopyToClipboard` action and returns `null` for any other
+action.
 
 `SearchImage`, `Image` and `Map` fetch from the host. Point them at your routes once, before
 rendering:
