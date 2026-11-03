@@ -18,6 +18,7 @@ interface ParsedStatement {
 function splitStatementSource(input: string): string[] {
   const stmts: string[] = [];
   let depth = 0;
+  let ternaryDepth = 0;
   let inStr: false | '"' | "'" = false;
   let esc = false;
   let start = 0;
@@ -44,7 +45,18 @@ function splitStatementSource(input: string): string[] {
 
     if (c === "(" || c === "[" || c === "{") depth++;
     else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
+    // Track ternary `?`/`:` at bracket depth 0 so a multi-line ternary
+    // (condition on one line, `?`/`:` continuation on the next) stays a single
+    // statement — mirrors split() in statements.ts. Without this the char-level
+    // splitter disagrees with the parser and drops the branches (#821).
+    else if (c === "?" && depth === 0) ternaryDepth++;
+    else if (c === ":" && depth === 0 && ternaryDepth > 0) ternaryDepth--;
     else if (c === "\n" && depth <= 0) {
+      if (ternaryDepth > 0) continue; // mid-ternary, awaiting the `:` branch
+      // Peek past whitespace/newlines: a `?` continuation keeps the statement.
+      let j = i + 1;
+      while (j < input.length && /\s/.test(input[j])) j++;
+      if (input[j] === "?") continue;
       const stmt = input.slice(start, i).trim();
       if (stmt) stmts.push(stmt);
       start = i + 1;
