@@ -1,6 +1,7 @@
 export { BuiltinActionType } from "./types";
 export type {
   ActionEvent,
+  DiscardedSource,
   ElementNode,
   LibraryJSONSchema,
   MutationStatementInfo,

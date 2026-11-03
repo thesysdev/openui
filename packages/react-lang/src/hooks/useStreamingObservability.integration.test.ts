@@ -24,6 +24,7 @@ const result = {
     orphaned: [],
     statementCount: 1,
     errors: [],
+    discarded: [],
   },
   stateDeclarations: {},
   queryStatements: [],

@@ -20,8 +20,11 @@ const PREC_MEMBER = 9;
 /**
  * Parse a token array into an AST node using a Pratt (top-down operator
  * precedence) parser.
+ *
+ * Tokens left after the expression are ignored; `onTrailing` is called once
+ * when there are any.
  */
-export function parseExpression(tokens: Token[]): ASTNode {
+export function parseExpression(tokens: Token[], onTrailing?: () => void): ASTNode {
   let pos = 0;
 
   const cur = (): Token => tokens[pos] ?? { t: T.EOF };
@@ -331,5 +334,7 @@ export function parseExpression(tokens: Token[]): ASTNode {
     return { k: "Obj", entries };
   }
 
-  return parseExpr(0);
+  const node = parseExpr(0);
+  if (onTrailing && pos < tokens.length && cur().t !== T.EOF) onTrailing();
+  return node;
 }

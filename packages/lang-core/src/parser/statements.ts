@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { T, type Token } from "./tokens";
+import type { DiscardedSource } from "./types";
 
 export interface RawStmt {
   id: string;
@@ -67,9 +68,10 @@ export function autoClose(input: string): { text: string; wasIncomplete: boolean
  * Accepts `Ident`, `Type`, and `StateVar` as statement identifiers.
  * For StateVar, the id is the full token value including $ (e.g., "$count").
  *
- * Invalid lines (no `=`, or no identifier) are silently skipped.
+ * Invalid lines (no identifier, `=`, or expression) are skipped; each one is
+ * reported to `onDiscard` when it is given.
  */
-export function split(tokens: Token[]): RawStmt[] {
+export function split(tokens: Token[], onDiscard?: (d: DiscardedSource) => void): RawStmt[] {
   const stmts: RawStmt[] = [];
   let pos = 0;
 
@@ -82,6 +84,7 @@ export function split(tokens: Token[]): RawStmt[] {
     const tok = tokens[pos];
     if (tok.t !== T.Ident && tok.t !== T.Type && tok.t !== T.StateVar) {
       while (pos < tokens.length && tokens[pos].t !== T.Newline && tokens[pos].t !== T.EOF) pos++;
+      onDiscard?.({ kind: "invalid-statement" });
       continue;
     }
     const id = tok.v as string;
@@ -91,6 +94,7 @@ export function split(tokens: Token[]): RawStmt[] {
     // Must be followed by `=`
     if (pos >= tokens.length || tokens[pos].t !== T.Equals) {
       while (pos < tokens.length && tokens[pos].t !== T.Newline && tokens[pos].t !== T.EOF) pos++;
+      onDiscard?.({ kind: "invalid-statement" });
       continue;
     }
     pos++;
@@ -131,6 +135,7 @@ export function split(tokens: Token[]): RawStmt[] {
     }
 
     if (expr.length) stmts.push({ id, idTokenType, tokens: expr });
+    else onDiscard?.({ kind: "invalid-statement" });
   }
 
   return stmts;

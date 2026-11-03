@@ -56,6 +56,7 @@ export type {
   ActionEvent,
   ActionPlan,
   ActionStep,
+  DiscardedSource,
   ElementNode,
   MutationStatementInfo,
   OpenUIError,
