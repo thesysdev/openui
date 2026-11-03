@@ -116,6 +116,8 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
       // Only the artifact's owner can run its scripts.
       const source = {
         artifact_id: input.id,
+        ...(typeof input.version === "string" &&
+          input.version && { artifact_version: input.version }),
         user_id: context.userId,
         ...(api.appId !== undefined && { app_id: api.appId }),
       };

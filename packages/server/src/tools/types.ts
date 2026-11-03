@@ -54,6 +54,8 @@ export interface InterpreterRequest {
   arguments?: Record<string, unknown>;
   /** The artifact the call is for. Generated scripts run from its stored content. */
   id?: string;
+  /** The version the renderer shows. A script run against an older one is refused (409). */
+  version?: string;
 }
 
 export interface InterpreterExecuteOptions {
