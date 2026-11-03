@@ -39,12 +39,12 @@ curl https://api.thesys.dev/v1/search/web \
 
 ### Request
 
-| Field             | Type     | Required | Purpose                                                                            |
-| ----------------- | -------- | -------- | ---------------------------------------------------------------------------------- |
-| `query`           | string   | Yes      | What to search for. 1 to 2,048 characters.                                         |
-| `num_results`     | integer  | No       | How many results to return, from 1 to 10. The default is 5.                        |
-| `include_domains` | string[] | No       | Only return results from these domains, for example `["nestjs.com"]`.              |
-| `user_location`   | string   | No       | Where the searcher is, to rank local results first, for example `"Paris, France"`. |
+| Field             | Type     | Required | Purpose                                                                                                  |
+| ----------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `query`           | string   | Yes      | What to search for. 1 to 2,048 characters.                                                               |
+| `num_results`     | integer  | No       | How many results to return, from 1 to 10. The default is 5.                                              |
+| `include_domains` | string[] | No       | Only return results from these domains, for example `["nestjs.com"]`.                                    |
+| `user_location`   | string   | No       | The searcher's country as a two-letter ISO 3166-1 code, to rank local results first, for example `"FR"`. |
 
 ### Result
 
@@ -153,9 +153,9 @@ A search does not use a plan API call, and a failed search is free. Your organiz
 
 The endpoints return the same error shape as the Chat Completions and Responses APIs.
 
-| Status | Type                    | When                                                                                         |
-| ------ | ----------------------- | -------------------------------------------------------------------------------------------- |
-| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters, or `num_results` is not 1 to 10. |
-| `401`  | `authentication_error`  | The API key is missing or invalid.                                                           |
-| `429`  | `rate_limit_error`      | The organization has no credits, a spend limit is reached, or billing is suspended.          |
-| `500`  | `internal_server_error` | The search provider could not be reached. Nothing is charged.                                |
+| Status | Type                    | When                                                                                                                                           |
+| ------ | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10, or `user_location` is not a two-letter country code. |
+| `401`  | `authentication_error`  | The API key is missing or invalid.                                                                                                             |
+| `429`  | `rate_limit_error`      | The organization has no credits, a spend limit is reached, or billing is suspended.                                                            |
+| `500`  | `internal_server_error` | The search provider could not be reached. Nothing is charged.                                                                                  |
