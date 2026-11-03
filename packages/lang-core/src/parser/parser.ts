@@ -253,7 +253,9 @@ function extractStatements(
 const DEFAULT_ROOT_STATEMENT_ID = "root";
 
 /** A call to a library component: not an `@` function, built-in, Query or Mutation. */
-function isComponentCall(node: ASTNode | undefined): node is Extract<ASTNode, { k: "Comp" }> {
+export function isComponentCall(
+  node: ASTNode | undefined,
+): node is Extract<ASTNode, { k: "Comp" }> {
   return node?.k === "Comp" && !node.fn && !isBuiltin(node.name) && !isReservedCall(node.name);
 }
 
@@ -289,6 +291,9 @@ function containsComponent(node: ASTNode): boolean {
   });
   return found;
 }
+
+/** Each parse result's statements as parsed, by name, for `dataSources`. Not public. */
+export const parsedStatements = new WeakMap<ParseResult, ReadonlyMap<string, ASTNode>>();
 
 function buildResult(
   stmtMap: Map<string, Statement>,
@@ -361,7 +366,7 @@ function buildResult(
   // With no entry nothing is reachable; `no-root` alone describes the problem.
   const orphaned = entry ? [...unreached] : [];
 
-  return {
+  const result: ParseResult = {
     root,
     ...(rootExpression ? { rootExpression } : {}),
     meta: {
@@ -375,6 +380,8 @@ function buildResult(
     queryStatements,
     mutationStatements,
   };
+  parsedStatements.set(result, syms);
+  return result;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

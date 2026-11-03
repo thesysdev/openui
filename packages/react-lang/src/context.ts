@@ -1,4 +1,10 @@
-import type { ActionPlan, EvaluationContext, OpenUIError, Store } from "@openuidev/lang-core";
+import type {
+  ActionPlan,
+  EvaluationContext,
+  OpenUIError,
+  ParseResult,
+  Store,
+} from "@openuidev/lang-core";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect } from "react";
 import type { Library } from "./library";
@@ -60,6 +66,9 @@ export interface OpenUIContextValue {
 
   /** Report a structured error (used internally by error boundary). */
   reportError?: (error: OpenUIError) => void;
+
+  /** The current parse result. A function, so the context doesn't change on every parse. */
+  getParseResult?: () => ParseResult | null;
 }
 
 export const OpenUIContext = createContext<OpenUIContextValue | null>(null);
