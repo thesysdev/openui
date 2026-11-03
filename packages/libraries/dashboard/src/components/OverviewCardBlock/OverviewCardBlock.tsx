@@ -5,7 +5,7 @@ import {
   TextBlockView,
 } from "@openuidev/react-components";
 import clsx from "clsx";
-import { formatMetric } from "../../shared/format";
+import { formatDate, formatMetric } from "../../shared/format";
 import { trendMagnitude } from "../../shared/trend";
 import { names, styles } from "./overviewCardBlock.styles";
 
@@ -59,7 +59,7 @@ export function OverviewCardBlock({ items, layout, responsive, gap }: OverviewCa
           item.value || item.valueSubtext || item.trend
             ? {
                 value: formatMetric(item.value ?? ""),
-                subtext: item.valueSubtext,
+                subtext: item.valueSubtext && formatDate(item.valueSubtext),
                 trend: item.trend && {
                   ...item.trend,
                   value: trendMagnitude(item.trend.value, item.trend.direction),

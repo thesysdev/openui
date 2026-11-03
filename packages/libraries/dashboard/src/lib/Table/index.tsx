@@ -3,6 +3,7 @@
 import { defineComponent, useIsQueryLoading } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { Table as DashboardTable } from "../../components/Table";
+import { formatDate } from "../../shared/format";
 import { asArray } from "../helpers";
 import { ColSchema } from "./schema";
 
@@ -29,7 +30,9 @@ export const Table = defineComponent({
         label: c.props?.label ?? "",
         align: c.props?.type === "number" ? ("right" as const) : undefined,
         cells: asArray(c.props?.data ?? []).map((cell) =>
-          typeof cell === "object" && cell !== null ? renderNode(cell) : String(cell ?? ""),
+          typeof cell === "object" && cell !== null
+            ? renderNode(cell)
+            : formatDate(String(cell ?? "")),
         ),
       }));
 
