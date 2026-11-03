@@ -17,7 +17,7 @@ export const names = {
   modal: "openui-dashboard-shell-card-modal",
   modalOverlay: "openui-dashboard-shell-card-modal-overlay",
   modalFrame: "openui-dashboard-shell-card-modal-frame",
-  modalMinimize: "openui-dashboard-shell-card-modal-minimize",
+  modalClose: "openui-dashboard-shell-card-modal-close",
   modalContent: "openui-dashboard-shell-card-modal-content",
   modalBody: "openui-dashboard-shell-card-modal-body",
 } as const;
@@ -137,29 +137,22 @@ export const styles = {
     left: 50%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: var(--openui-space-s, 8px);
     width: min(1120px, calc(100vw - 48px));
     max-height: calc(100vh - 48px);
     transform: translate(-50%, -50%);
   `,
-  modalMinimize: css`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--openui-radius-m, 8px);
-    background: var(--openui-foreground, oklch(0.994 0 89.876 / 1));
-    box-shadow: var(
-      --openui-shadow-s,
-      0 1px 3px -2px oklch(0 0 0 / 0.02),
-      0 2px 5px -2px oklch(0 0 0 / 0.04)
-    );
+  modalClose: css`
+    position: absolute;
+    top: var(--openui-space-m, 12px);
+    right: var(--openui-space-m, 12px);
+    z-index: 1;
   `,
   modalContent: css`
+    position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-height: calc(100vh - 96px);
+    max-height: calc(100vh - 48px);
     overflow: hidden;
     border: 1px solid var(--openui-border-default, oklch(0.097 0 0 / 0.06));
     border-radius: var(--openui-radius-4xl, 20px);

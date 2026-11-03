@@ -1,8 +1,8 @@
 "use client";
 
-import { Button, Card } from "@openuidev/react-components";
+import { Button, Card, IconButton } from "@openuidev/react-components";
 import clsx from "clsx";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { names, styles } from "./shellCard.styles";
 
@@ -127,21 +127,19 @@ export function ShellCard({
           <button
             type="button"
             className={clsx(styles.modalOverlay, names.modalOverlay)}
-            aria-label="Minimize expanded card"
+            aria-label="Close expanded card"
             onClick={() => setIsModalOpen(false)}
           />
           <div className={clsx(styles.modalFrame, names.modalFrame)}>
-            <div className={clsx(styles.modalMinimize, names.modalMinimize)}>
-              <Button
-                variant="secondary"
-                size="small"
-                iconLeft={<Minimize2 size={14} />}
-                onClick={() => setIsModalOpen(false)}
-              >
-                Minimize
-              </Button>
-            </div>
             <div className={clsx(styles.modalContent, names.modalContent)}>
+              <IconButton
+                className={clsx(styles.modalClose, names.modalClose)}
+                icon={<X size={16} />}
+                variant="tertiary"
+                size="small"
+                aria-label="Close expanded card"
+                onClick={() => setIsModalOpen(false)}
+              />
               <div className={clsx(styles.modalBody, names.modalBody)}>
                 <div className={clsx(styles.content, names.content)}>{children}</div>
               </div>

@@ -138,6 +138,7 @@ export const markdownStyles = {
     color: ${primary};
     ${body}
     max-width: none;
+    overflow-wrap: break-word;
     & {
       & h1,
       & h2,
