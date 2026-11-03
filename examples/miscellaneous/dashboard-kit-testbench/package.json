@@ -1,0 +1,53 @@
+{
+  "name": "@openuidev/example-dashboard-kit-testbench",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "openui generate src/lib/library.ts --spec --out src/generated/spec.json",
+    "predev": "npm run generate",
+    "dev": "next dev",
+    "prebuild": "npm run generate",
+    "build": "next build",
+    "preverify": "npm run generate",
+    "verify": "next build",
+    "start": "next start",
+    "kit:pack": "pnpm --dir ../../.. --filter \"@openuidev/dashboard-kit...\" run build && pnpm --dir ../../../packages/kits/dashboard pack --out ../../../examples/miscellaneous/dashboard-kit-testbench/.kit/dashboard-kit.tgz"
+  },
+  "dependencies": {
+    "@openuidev/dashboard-kit": "file:.kit/dashboard-kit.tgz",
+    "@openuidev/lang-core": "1.0.2",
+    "@openuidev/react-components": "0.0.1",
+    "@openuidev/react-headless": "0.18.1",
+    "@openuidev/react-lang": "1.0.2",
+    "@openuidev/react-ui": "0.18.1",
+    "next": "16.3.8",
+    "openai": "^6.22.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^3.25.0 || ^4.0.0",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@openuidev/cli": "0.6.1",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
+    "overrides": {
+      "postcss@<8.5.10": ">=8.5.10"
+    }
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
+  }
+}

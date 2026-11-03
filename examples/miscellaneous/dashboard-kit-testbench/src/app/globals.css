@@ -1,0 +1,11 @@
+@import "@openuidev/react-ui/styles/index.css";
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+.h-screen {
+  height: 100vh;
+}
