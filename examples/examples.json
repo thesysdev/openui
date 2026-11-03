@@ -191,9 +191,9 @@
       }
     },
     {
-      "title": "OpenUI x ShadCN Dashboards",
-      "description": "Live dashboards a chat agent builds from shadcn/ui components in OpenUI Cloud, with data from npm, GitHub, and an OSV.dev MCP server.",
-      "path": "miscellaneous/shadcn-dashboards",
+      "title": "OpenUI x assistant-ui Dashboards",
+      "description": "A text-only assistant-ui chat whose model builds live dashboard artifacts in OpenUI Cloud from @openuidev/dashboard-kit, with data from npm, GitHub, and an OSV.dev MCP server.",
+      "path": "miscellaneous/assistant-ui-dashboards",
       "env": {
         "file": ".env.local",
         "key": "THESYS_API_KEY"
