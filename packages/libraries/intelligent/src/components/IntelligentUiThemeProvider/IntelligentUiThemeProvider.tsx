@@ -21,12 +21,12 @@ import { defaultIntelligentDarkTheme, defaultIntelligentLightTheme } from "./def
 /** The stable class on the provider's wrapper, a target for an app's own CSS. */
 export const names = { root: "openui-intelligent-theme" } as const;
 
-const InsideIntelligentTheme = createContext(false);
+const InsideIntelligentUiTheme = createContext(false);
 
-/** Whether an `IntelligentThemeProvider` is already above this point, so the root doesn't add another. */
-export const useIsInsideIntelligentTheme = () => useContext(InsideIntelligentTheme);
+/** Whether an `IntelligentUiThemeProvider` is already above this point, so the root doesn't add another. */
+export const useIsInsideIntelligentUiTheme = () => useContext(InsideIntelligentUiTheme);
 
-export interface IntelligentThemeProviderProps {
+export interface IntelligentUiThemeProviderProps {
   children: ReactNode;
   /** Overrides the mode read from the outer `<ThemeProvider>`. */
   mode?: ThemeMode;
@@ -46,12 +46,12 @@ export interface IntelligentThemeProviderProps {
  * there and hide an app's own CSS variables. A mode or theme of yours gets a ThemeProvider, scoped to
  * this provider, so a light and a dark output can share a page.
  */
-export function IntelligentThemeProvider({
+export function IntelligentUiThemeProvider({
   children,
   mode: modeOverride,
   lightTheme,
   darkTheme,
-}: IntelligentThemeProviderProps) {
+}: IntelligentUiThemeProviderProps) {
   const outer = useTheme();
   const mode: ThemeMode = modeOverride ?? outer.mode;
   const scope = `openui-intelligent-theme-${useId().replace(/[^a-zA-Z0-9-_]/g, "")}`;
@@ -78,7 +78,7 @@ export function IntelligentThemeProvider({
   }, [mode, outer.mode, outer.theme, lightTheme, darkTheme]);
 
   const body = (
-    <InsideIntelligentTheme.Provider value={true}>{children}</InsideIntelligentTheme.Provider>
+    <InsideIntelligentUiTheme.Provider value={true}>{children}</InsideIntelligentUiTheme.Provider>
   );
   if (!themed) {
     return (

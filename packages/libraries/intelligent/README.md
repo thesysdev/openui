@@ -27,7 +27,7 @@ Send that file as the system message, then render the model's response:
 
 ```tsx
 import {
-  IntelligentThemeProvider,
+  IntelligentUiThemeProvider,
   library,
   runLibraryAction,
 } from "@openuidev/intelligent-library";
@@ -35,18 +35,18 @@ import { Renderer } from "@openuidev/react-lang";
 
 export function IntelligentMessage({ response }: { response: string }) {
   return (
-    <IntelligentThemeProvider mode="dark">
+    <IntelligentUiThemeProvider mode="dark">
       <Renderer
         response={response}
         library={library}
         onAction={(event) => void runLibraryAction(event)}
       />
-    </IntelligentThemeProvider>
+    </IntelligentUiThemeProvider>
   );
 }
 ```
 
-`IntelligentThemeProvider` is optional. It follows the outer `ThemeProvider`'s mode (light by
+`IntelligentUiThemeProvider` is optional. It follows the outer `ThemeProvider`'s mode (light by
 default) and takes `lightTheme` and `darkTheme` overrides. Wrap the `Renderer` in it so every
 response gets the kit's theme, whatever its root.
 `runLibraryAction` runs the kit's own `CopyToClipboard` action and returns `null` for any other

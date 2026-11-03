@@ -27,6 +27,6 @@ export {
 } from "./shared/config";
 
 export {
-  IntelligentThemeProvider,
-  type IntelligentThemeProviderProps,
-} from "./components/IntelligentThemeProvider";
+  IntelligentUiThemeProvider,
+  type IntelligentUiThemeProviderProps,
+} from "./components/IntelligentUiThemeProvider";
