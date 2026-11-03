@@ -13,7 +13,7 @@ import {
   useAui,
   useRemoteThreadListRuntime,
 } from "@assistant-ui/react";
-import { OpenUICloudProvider } from "@openuidev/react-headless";
+import { OpenUICloudProvider } from "@openuidev/react-ui/cloud";
 import { LayoutDashboard, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import toolkit from "../lib/toolkit";
