@@ -128,14 +128,6 @@ async function searchWeb(query: string) {
 
 The endpoints are plain JSON over HTTP. They are not OpenAI compatible, so call them with `fetch` or any HTTP client, not the OpenAI SDK.
 
-## Limits
-
-- One query per call.
-- Up to 10 results per call. A search can return fewer than you ask for.
-- Image search returns HTTPS images only, with safe search on.
-- Web search never returns `wikipedia.org` pages.
-- Only non-streaming responses are supported.
-
 ## Data
 
 The query is sent to a third-party search provider to run the search. The query and the results are not stored beyond the request logs.
