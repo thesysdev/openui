@@ -253,9 +253,7 @@ function extractStatements(
 const DEFAULT_ROOT_STATEMENT_ID = "root";
 
 /** A call to a library component: not an `@` function, built-in, Query or Mutation. */
-export function isComponentCall(
-  node: ASTNode | undefined,
-): node is Extract<ASTNode, { k: "Comp" }> {
+function isComponentCall(node: ASTNode | undefined): node is Extract<ASTNode, { k: "Comp" }> {
   return node?.k === "Comp" && !node.fn && !isBuiltin(node.name) && !isReservedCall(node.name);
 }
 

@@ -463,6 +463,21 @@ function useTriggerAction(): (
 ) => void | Promise<void>;
 function useIsStreaming(): boolean;
 function useIsQueryLoading(): boolean;
+// Where a component's data comes from: its queries (tool, arguments, loading, result), the
+// statements in between and the $variables it reads, also by prop. Pass the statementId the
+// component receives; null for an inline component.
+function useDataSources(statementId: string | undefined): {
+  queries: {
+    statementId: string;
+    toolName: string | undefined;
+    args: unknown;
+    loading: boolean;
+    data: unknown;
+  }[];
+  via: string[];
+  state: Record<string, unknown>;
+  props?: Record<string, { queries: string[]; via: string[]; state: Record<string, unknown> }>;
+} | null;
 function useGetFieldValue(): (formName: string | undefined, name: string) => any;
 function useSetFieldValue(): (
   formName: string | undefined,

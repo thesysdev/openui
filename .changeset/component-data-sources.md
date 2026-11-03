@@ -3,4 +3,4 @@
 "@openuidev/react-lang": minor
 ---
 
-Where a component's data comes from. `dataSources(parseResult, statementId)` in lang-core returns the queries a statement reads (chained queries included), the statements in between, and the `$variables` it uses. For a component it also gives the same for each prop, and marks a prop whose value is written in the program rather than read from anything. `useDataSources(props.statementId)` in react-lang adds each query's tool, current arguments and current result, for a "where did this number come from" view. Nothing is computed until it is asked for.
+Where a component's data comes from. `dataSources(parseResult, statementId)` in lang-core returns the queries a statement reads (chained queries included), the statements in between and the `$variables` it uses, and the same for each prop of a component. `useDataSources(props.statementId)` in react-lang adds each query's tool name and arguments, whether it is loading, and its result, for a "where did this number come from" view. Other renderers can call `dataSources` and their query manager's new `getCall(statementId)`.

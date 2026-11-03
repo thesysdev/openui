@@ -489,6 +489,7 @@ export function useOpenUIState(
       reportError,
       isQueryLoading,
       getParseResult,
+      queryManager,
     }),
     [
       library,
@@ -502,6 +503,7 @@ export function useOpenUIState(
       evaluationContext,
       reportError,
       getParseResult,
+      queryManager,
     ],
   );
 

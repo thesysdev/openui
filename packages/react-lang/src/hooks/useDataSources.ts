@@ -1,53 +1,60 @@
-import { dataSources, evaluate } from "@openuidev/lang-core";
+import { dataSources } from "@openuidev/lang-core";
 import { useMemo } from "react";
 import { useOpenUI } from "../context";
 
-/** A query a component reads: its tool, its arguments now, and its current result. */
+/** A query a component reads: the call it last ran with, whether it is loading, and its result. */
 interface DataSourceQuery {
   statementId: string;
-  tool: unknown;
+  toolName: string | undefined;
   args: unknown;
+  loading: boolean;
   data: unknown;
 }
 
-/** Where a component's data comes from. */
-interface ComponentDataSources {
-  queries: DataSourceQuery[];
+interface Sources<Q> {
+  queries: Q[];
   /** Statements between the component and its queries, e.g. `latest = @Last(weekly.rows)`. */
   via: string[];
   /** The `$variables` it reads, with their current values. */
   state: Record<string, unknown>;
-  /** The same by prop, as names only (`state` too). `literal`: the prop reads nothing, its value is written in the program. */
-  props?: Record<string, { queries: string[]; via: string[]; state: string[]; literal: boolean }>;
 }
 
 /**
- * Where a component's data comes from, for a "where did this number come from" view.
- * Pass the `statementId` the component gets. Null for an inline component (no statement).
- * Values are read when the component renders; the hook does not subscribe to changes.
+ * Where a component's data comes from, for a "where did this number come from" view: its
+ * queries, the statements in between and the `$variables` it reads, also by prop. A prop with no
+ * queries and no state is written in the program. Pass the `statementId` the component gets;
+ * null for an inline component (no statement). It reads the values when the component renders
+ * and does not subscribe to changes.
  */
-export function useDataSources(statementId: string | undefined): ComponentDataSources | null {
-  const { getParseResult, evaluationContext } = useOpenUI();
-  const result = getParseResult?.();
+export function useDataSources(
+  statementId: string | undefined,
+): (Sources<DataSourceQuery> & { props?: Record<string, Sources<string>> }) | null {
+  const { getParseResult, queryManager, evaluationContext } = useOpenUI();
+  const result = getParseResult();
   const found = useMemo(
-    () =>
-      result && statementId ? dataSources(result, statementId, evaluationContext.actions) : null,
-    [result, statementId, evaluationContext.actions],
+    () => (result && statementId ? dataSources(result, statementId) : null),
+    [result, statementId],
   );
-  if (!result || !found) return null;
-  const { queries, via, state, props } = found;
+  if (!found) return null;
+  const values = (names: string[]) =>
+    Object.fromEntries(names.map((name) => [name, evaluationContext.getState(name)]));
   return {
-    queries: queries.map((id) => {
-      const query = result.queryStatements.find((q) => q.statementId === id);
+    queries: found.queries.map((id) => {
+      const call = queryManager.getCall(id);
       return {
         statementId: id,
-        tool: query?.toolAST ? evaluate(query.toolAST, evaluationContext) : undefined,
-        args: query?.argsAST ? evaluate(query.argsAST, evaluationContext) : undefined,
-        data: evaluationContext.resolveRef(id),
+        toolName: call?.toolName,
+        args: call?.args,
+        loading: queryManager.isLoading(id),
+        data: queryManager.getResult(id),
       };
     }),
-    via,
-    state: Object.fromEntries(state.map((name) => [name, evaluationContext.getState(name)])),
-    props,
+    via: found.via,
+    state: values(found.state),
+    props:
+      found.props &&
+      Object.fromEntries(
+        Object.entries(found.props).map(([name, s]) => [name, { ...s, state: values(s.state) }]),
+      ),
   };
 }

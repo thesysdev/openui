@@ -84,6 +84,8 @@ export interface QueryManager {
    */
   evaluateQueries(queryNodes: QueryNode[]): void;
   getResult(statementId: string): unknown;
+  /** The tool name and arguments a query was last evaluated with. Null for an unknown query. */
+  getCall(statementId: string): { toolName: string; args: unknown } | null;
   isLoading(statementId: string): boolean;
   isAnyLoading(): boolean;
   invalidate(statementIds?: string[]): void;
@@ -511,6 +513,11 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     return data !== undefined ? data : q.defaults;
   }
 
+  function getCall(statementId: string) {
+    const q = queries.get(statementId);
+    return q ? { toolName: q.toolName, args: q.args } : null;
+  }
+
   function isLoading(statementId: string): boolean {
     return isPending(statementId);
   }
@@ -686,6 +693,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     evaluateStatements,
     evaluateQueries,
     getResult,
+    getCall,
     isLoading,
     isAnyLoading,
     invalidate,

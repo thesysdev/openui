@@ -3,6 +3,7 @@ import type {
   EvaluationContext,
   OpenUIError,
   ParseResult,
+  QueryManager,
   Store,
 } from "@openuidev/lang-core";
 import type { ReactNode } from "react";
@@ -68,7 +69,10 @@ export interface OpenUIContextValue {
   reportError?: (error: OpenUIError) => void;
 
   /** The current parse result. A function, so the context doesn't change on every parse. */
-  getParseResult?: () => ParseResult | null;
+  getParseResult: () => ParseResult | null;
+
+  /** The query manager running this program's queries. */
+  queryManager: QueryManager;
 }
 
 export const OpenUIContext = createContext<OpenUIContextValue | null>(null);
