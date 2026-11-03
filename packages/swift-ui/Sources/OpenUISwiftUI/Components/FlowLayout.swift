@@ -265,53 +265,6 @@ struct NativeMediaRow<Media: View, Copy: View>: View {
     }
 }
 
-private enum NativeMediaCopyLeading: AlignmentID {
-    static func defaultValue(in dimensions: ViewDimensions) -> CGFloat { 0 }
-}
-private enum NativeMediaCopyBottom: AlignmentID {
-    static func defaultValue(in dimensions: ViewDimensions) -> CGFloat { dimensions.height }
-}
-extension HorizontalAlignment {
-    static let nativeMediaCopyLeading = HorizontalAlignment(NativeMediaCopyLeading.self)
-}
-extension VerticalAlignment {
-    static let nativeMediaCopyBottom = VerticalAlignment(NativeMediaCopyBottom.self)
-}
-
-/// The header keeps its registered renderer. Its media-row guides let the
-/// remaining content continue beside the image without copying either slot.
-struct NativeCompositeCardLayout: Layout {
-    let sideMedia: Bool
-    let gap: CGFloat
-    let minimumCopyWidth: CGFloat
-
-    private func frames(_ proposal: ProposedViewSize, _ views: Subviews, height: CGFloat? = nil) -> [CGRect] {
-        guard views.count == 2 else { return [] }
-        let width = proposal.width.flatMap { $0.isFinite ? max(1, $0) : nil } ?? max(1, minimumCopyWidth)
-        let header = views[0].dimensions(in: .init(width: width, height: nil))
-        let leading = sideMedia ? header[HorizontalAlignment.nativeMediaCopyLeading] : 0
-        let beside = leading > 0 && width - leading >= minimumCopyWidth
-        let x = beside ? leading : 0
-        let copy = views[1].sizeThatFits(.init(width: width - x, height: nil))
-        let headerBottom = beside ? header[VerticalAlignment.nativeMediaCopyBottom] : header.height
-        let y = headerBottom + (headerBottom > 0 && copy.height > 0 ? gap : 0)
-        let total = max(header.height, y + copy.height, height ?? 0)
-        return [CGRect(x: 0, y: 0, width: width, height: header.height),
-                CGRect(x: x, y: y, width: width - x, height: max(0, total - y))]
-    }
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let frames = frames(proposal, subviews, height: proposal.height.flatMap { $0.isFinite ? $0 : nil })
-        return CGSize(width: frames.map(\.maxX).max() ?? 0, height: frames.map(\.maxY).max() ?? 0)
-    }
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let frames = frames(.init(width: bounds.width, height: nil), subviews, height: bounds.height)
-        for (view, frame) in zip(subviews, frames) {
-            view.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
-                anchor: .topLeading, proposal: .init(frame.size))
-        }
-    }
-}
-
 private struct NativeMediaRowLayout: Layout {
     let fallbackWidth: CGFloat
     let gap: CGFloat
@@ -329,16 +282,6 @@ private struct NativeMediaRowLayout: Layout {
     }
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         measured(proposal, subviews).size
-    }
-    func explicitAlignment(of guide: HorizontalAlignment, in bounds: CGRect, proposal: ProposedViewSize,
-                           subviews: Subviews, cache: inout ()) -> CGFloat? {
-        guard guide == .nativeMediaCopyLeading, axis == .horizontal else { return nil }
-        return measured(proposal, subviews).text.minX
-    }
-    func explicitAlignment(of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize,
-                           subviews: Subviews, cache: inout ()) -> CGFloat? {
-        guard guide == .nativeMediaCopyBottom, axis == .horizontal else { return nil }
-        return measured(proposal, subviews).text.maxY
     }
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let result = measured(proposal, subviews)

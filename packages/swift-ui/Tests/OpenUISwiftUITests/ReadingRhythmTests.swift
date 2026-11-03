@@ -6,63 +6,6 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class ReadingRhythmTests: XCTestCase {
-  @MainActor func testCompositeSideMediaKeepsBodyAndFooterInTheCopyColumn() throws {
-    _ = NSApplication.shared
-    let standard = try OpenUIStandardComponents.library()
-    let frames = OverviewSlotFrames()
-    func tracked<Content: View>(_ name: String, @ViewBuilder _ content: () -> Content) -> some View {
-      content().background(GeometryReader { geometry in
-        Color.clear.onAppear { frames.values[name] = geometry.frame(in: .named("composite")) }
-          .onChange(of: geometry.frame(in: .named("composite"))) { frames.values[name] = $0 }
-      })
-    }
-    let image = try XCTUnwrap(standard.library.components.first { $0.name == "ImageText" })
-    let text = try XCTUnwrap(standard.library.components.first { $0.name == "Text" })
-    let bold = try XCTUnwrap(standard.library.components.first { $0.name == "BoldText" })
-    let button = try XCTUnwrap(standard.library.components.first { $0.name == "Button" })
-    for overriddenHeader in [false, true] {
-      let library = try standard.extending(overriding: [
-        OpenUIComponent(image) { context in
-          tracked("header") {
-            if overriddenHeader { SwiftUI.Text("Custom heading") }
-            else { NativeMediaText(context: context, media: .thumbnail) }
-          }
-        },
-        OpenUIComponent(text) { context in tracked("body") { NativeInlineText(context: context, bold: false) } },
-        OpenUIComponent(bold) { context in tracked("price") { NativeInlineText(context: context, bold: true) } },
-        OpenUIComponent(button) { context in tracked("button") { OpenUINativeButton(context: context) } }
-      ])
-      for width in [CGFloat(300), 344] {
-        frames.values = [:]
-        let state = OpenUIState(schema: library.library.toSchema())
-        state.setSource("root=CompositeCardBlock([CompositeCardItem(\"a\",ImageText(\"photo.jpg\",\"Photo\",\"Title\",\"Subtitle\",true),[Text(\"text\",\"Description\")],{price:BoldText(\"number\",\"¥238\"),button:Button(\"View\",@ToAssistant(\"View\"),\"secondary\")}),CompositeCardItem(\"b\",null,[])])")
-        XCTAssertTrue(state.errors.isEmpty)
-        let element = try XCTUnwrap(PropValue.children(try XCTUnwrap(state.root), "items").first)
-        let context = OpenUIComponentContext(element: element, registry: library.registry, state: state)
-        let host = NSHostingView(rootView: NativeCardItem(context: context, kind: "Composite")
-          .environmentObject(state).frame(width: width, height: 240).coordinateSpace(name: "composite"))
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: width, height: 240),
-          styleMask: [.borderless], backing: .buffered, defer: false)
-        window.isReleasedWhenClosed = false; window.contentView = host
-        window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
-        defer { window.close() }
-        host.layoutSubtreeIfNeeded(); RunLoop.main.run(until: Date().addingTimeInterval(0.08))
-        let header = try XCTUnwrap(frames.values["header"])
-        let body = try XCTUnwrap(frames.values["body"])
-        let price = try XCTUnwrap(frames.values["price"])
-        let action = try XCTUnwrap(frames.values["button"])
-        let expected = OpenUIThemeValues().spaceM + (overriddenHeader ? 0 : OpenUIPresentation().compactThumbnailSize + OpenUIThemeValues().spaceM)
-        XCTAssertEqual(body.minX, expected, accuracy: 1)
-        XCTAssertEqual(price.minX, expected, accuracy: 1)
-        XCTAssertGreaterThanOrEqual(action.minX, expected - 1)
-        XCTAssertEqual(max(price.maxY, action.maxY), 240 - OpenUIThemeValues().spaceM, accuracy: 1)
-        if !overriddenHeader {
-          XCTAssertEqual(header.height, OpenUIPresentation().compactThumbnailSize, accuracy: 1)
-          XCTAssertLessThan(body.minY, header.maxY, "Copy should continue beside the photo, not below its full height")
-        }
-      }
-    }
-  }
   @MainActor func testOverviewMediaAndMetricShareTheContentLeadingEdge() throws {
     _ = NSApplication.shared
     let standard = try OpenUIStandardComponents.library()
