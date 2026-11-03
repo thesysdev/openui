@@ -45,7 +45,7 @@ export const Chart = defineComponent({
   name: "Chart",
   props: ChartSchema,
   description:
-    'Rows of data; x is the category key (a number key for scatter), series the value keys (default: every number key). format applies to pie and donut only: "percent" shows each slice as a share of the total, "number" its value. stacked stacks bar and area series.',
+    'Rows of data; x is the category key (a number key for scatter), series the value keys (default: every number key). format applies to pie and donut only: "percent" shows each slice as a share of the total, "number" its value. stacked stacks bar and area series. height sets the plot height in px; pie and donut ignore it and size themselves.',
   component: ({ props }: { props: ChartProps }) => {
     const rows = rowsOf(props.data);
     const category = categoryOf(rows, props.x);
@@ -54,7 +54,8 @@ export const Chart = defineComponent({
 
     if (!rows.length || !category) return null;
 
-    // 1D: one slice per row, valued by the first series key.
+    // 1D: one slice per row, valued by the first series key. No height: PieChart gives it to the
+    // box but not the pie, so a short one lets the pie spill over the content below.
     if (props.type === "pie" || props.type === "donut") {
       return (
         <PieChart
@@ -63,7 +64,6 @@ export const Chart = defineComponent({
           dataKey={series[0] ?? ""}
           variant={props.type}
           format={props.format === "percent" ? "percentage" : "number"}
-          height={height}
           isAnimationActive={false}
         />
       );
