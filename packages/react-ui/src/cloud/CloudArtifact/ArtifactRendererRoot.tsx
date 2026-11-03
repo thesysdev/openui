@@ -2,7 +2,6 @@
 
 import {
   createInterpreterToolProvider,
-  parseArtifactReference,
   useArtifactStorage,
   useArtifactStream,
   type Interpreter,
@@ -23,6 +22,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { cacheFor } from "./artifactCache";
+import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ContentConfigContext,
@@ -108,6 +108,7 @@ const DELETED_ERROR: ArtifactError = {
 
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
+const noTitle = () => undefined;
 
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
 function extractRegions(children: ReactNode) {
@@ -154,6 +155,11 @@ export function ArtifactRendererRoot({
     cache?.subscribe ?? noopSubscribe,
     cache && id ? () => cache.isDeleted(id) : notDeleted,
     notDeleted,
+  );
+  const cachedTitle = useSyncExternalStore(
+    cache?.subscribe ?? noopSubscribe,
+    cache && id ? () => cache.get(id)?.title : noTitle,
+    noTitle,
   );
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
@@ -248,7 +254,8 @@ export function ArtifactRendererRoot({
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
-  const title = stream.title ?? reference?.title;
+  // A rename from useArtifactUpdate reaches the cache before the stream.
+  const title = cachedTitle ?? stream.title ?? reference?.title;
   const state = useMemo<ArtifactRendererState>(
     () => ({
       id,

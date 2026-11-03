@@ -12,6 +12,13 @@ export type {
   OpenUICloudProviderProps,
 } from "@openuidev/react-headless";
 
+export {
+  useArtifactDelete,
+  useArtifactPin,
+  useArtifactUnpin,
+  useArtifactUpdate,
+} from "./CloudArtifact/artifactActions";
+export type { ArtifactActionState, ArtifactUpdate } from "./CloudArtifact/artifactActions";
 export { LiveArtifactRenderer, StaticArtifactRenderer } from "./CloudArtifact/ArtifactRenderer";
 export type {
   LiveArtifactRendererProps,
