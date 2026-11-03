@@ -50,8 +50,8 @@ export function IntelligentMessage({ response }: { response: string }) {
 ```
 
 `IntelligentThemeProvider` is optional. It follows the outer `ThemeProvider`'s mode (light by
-default) and takes `lightTheme` and `darkTheme` overrides. Without it, a `Col` root applies the
-kit's theme itself, but a response with any other root gets react-components' default colours.
+default) and takes `lightTheme` and `darkTheme` overrides. Wrap the `Renderer` in it so every
+response gets the kit's theme, whatever its root.
 `runLibraryAction` runs the kit's own `CopyToClipboard` action and returns `null` for any other
 action.
 
@@ -79,8 +79,7 @@ configureIntelligentKit({
 
 ## Components
 
-`Col` is the root. `Chart` draws with react-components' charts and their default palette, shades of
-one blue. 55 components in 6 groups:
+`Col` is the root. 55 components in 6 groups:
 
 | Group          | Components                                                                                                                                                |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |

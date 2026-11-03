@@ -11,8 +11,6 @@ export {
   openuiIntelligentLibrary,
 } from "./lib/openuiIntelligentLibrary";
 
-// Exported from their own module: re-exported through the library module, they left a bare
-// import there that bundlers drop under sideEffects false, with a warning.
 export {
   openuiIntelligentAdditionalRules,
   openuiIntelligentExamples,
@@ -21,10 +19,8 @@ export {
 
 export { intelligentComponents } from "./lib/defineComponents";
 
-// Runs the library's own action (CopyToClipboard) from a Renderer's onAction.
 export { runLibraryAction } from "./lib/Action";
 
-// Where SearchImage, Image and Map fetch from.
 export {
   configureIntelligentKit,
   type IntelligentKitConfig,
