@@ -69,7 +69,7 @@ semantic color must not silently become the chart series palette.
 | Button, IconButton, Buttons | primary/secondary/tertiary hierarchy; transparent bordered secondary, shared native button corner and density | native hit target, focus, press/Reduce Motion; flat neutral assistant treatment |
 | EntityList | shared body roles, header/total priority and tabular numeric values | native text values stay regular and lead when stacked; number values remain emphasized; read-only body rows use spaceS |
 | ListBlock, ListItem, Steps | common reading roles, media/text gap, number and action hierarchy | width-derived photo previews, complete text and scalable step marker |
-| CompositeCardItem/Block | 12pt inset, 16pt corner, quiet surface, measured amount/action relationship | full-bleed 3:2 cover; amount/action share a row when they fit, otherwise stack; one mounted action remains inside card |
+| CompositeCardItem/Block | existing header/body/footer contracts, shared inset, corner and surface | horizontal ImageText lets body/footer continue beside its thumbnail when space permits; ImageTextLarge retains its 3:2 cover; amount/action reflow inside the content column |
 | Overview, Snippet, Context, Visual cards | family-specific radius/inset from the same scale | photo cards use width-derived extent; native collection measurement retained; compact facts stack before splitting values |
 | Tabs | open labels with selected underline and neutral divider | native horizontal scrolling and focus; long accessibility labels wrap within the viewport |
 | Accordion | continuous clear disclosure list, no separate card per item | native DisclosureGroup affordance; streaming open-selection behavior retained |

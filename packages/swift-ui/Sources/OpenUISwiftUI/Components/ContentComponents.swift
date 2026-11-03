@@ -157,7 +157,12 @@ struct NativeInlineText: View {
   }
 }
 private struct NativeCardHeaderInsetKey: EnvironmentKey { static let defaultValue: CGFloat = 0 }
+private struct NativeCompositeMediaHeaderKey: EnvironmentKey { static let defaultValue = false }
 extension EnvironmentValues {
+  fileprivate var openUICompositeMediaHeader: Bool {
+    get { self[NativeCompositeMediaHeaderKey.self] }
+    set { self[NativeCompositeMediaHeaderKey.self] = newValue }
+  }
   fileprivate var openUICardHeaderInset: CGFloat {
     get { self[NativeCardHeaderInsetKey.self] }
     set { self[NativeCardHeaderInsetKey.self] = newValue }
@@ -166,6 +171,7 @@ extension EnvironmentValues {
 
 struct NativeMediaText: View {
   @Environment(\.openUICardHeaderInset) private var cardHeaderInset
+  @Environment(\.openUICompositeMediaHeader) private var compositeHeader
   @ScaledMetric(relativeTo: .body) private var iconScale: CGFloat = 1
   enum Media { case icon, thumbnail, banner }
   let context: OpenUIComponentContext
@@ -185,7 +191,7 @@ struct NativeMediaText: View {
       } else {
         NativeMediaRow(axis: context.string("layout") == "vertical" ? .vertical : .horizontal,
           gap: media == .icon ? context.theme.spaceM * iconScale : context.theme.spaceM,
-          centered: true,
+          centered: !compositeHeader,
           media: { leadingMedia }, copy: {
             words.frame(maxWidth: .infinity, alignment: context.string("layout") == "vertical" ? .center : .leading)
               .multilineTextAlignment(context.string("layout") == "vertical" ? .center : .leading)
@@ -214,7 +220,7 @@ struct NativeMediaText: View {
     // The reference CSS has a default thumbnail in either orientation;
     // an explicit imageSize overrides it without native-only bounds.
     if let size = context.number("imageSize"), size.isFinite, size > 0 { return CGFloat(size) }
-    return context.presentation.inlineThumbnailSize
+    return compositeHeader ? context.presentation.compactThumbnailSize : context.presentation.inlineThumbnailSize
   }
   private var words: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -615,6 +621,11 @@ struct NativeCardItem: View {
     guard case .element(let header) = context.value("header"), header.typeName == "ImageTextLarge" else { return 0 }
     return context.theme.spaceM
   }
+  private var hasSideMediaHeader: Bool {
+    guard kind == "Composite", case .element(let header) = context.value("header"),
+      header.typeName == "ImageText" else { return false }
+    return PropValue.string(header, "layout") != "vertical"
+  }
   private var artworkSource: String? {
     guard ["Visual", "Context"].contains(kind), let source = context.string("bgImageSrc"),
       !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
@@ -712,14 +723,24 @@ struct NativeCardItem: View {
           }
         }
       default:
-        context.slot("header").environment(\.openUICardHeaderInset, bannerHeaderInset)
-        context.slot("body")
-        if let footer = context.value("footer"), footer != .null {
-          NativeCompositeFooter(context: context, footer: footer)
-            .frame(maxHeight: .infinity, alignment: .bottom)
+        NativeCompositeCardLayout(sideMedia: hasSideMediaHeader, gap: context.theme.spaceM,
+          minimumCopyWidth: context.presentation.minimumTextColumnWidth) {
+          VStack(alignment: .leading, spacing: 0) {
+            context.slot("header")
+              .environment(\.openUICardHeaderInset, bannerHeaderInset)
+              .environment(\.openUICompositeMediaHeader, hasSideMediaHeader)
+          }
+          VStack(alignment: .leading, spacing: context.theme.spaceM) {
+            context.slot("body")
+            if let footer = context.value("footer"), footer != .null {
+              NativeCompositeFooter(context: context, footer: footer)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+            }
+            groupEntry
+          }
         }
       }
-      groupEntry
+      if kind != "Composite" { groupEntry }
     }
       .environment(\.openUICardGroupAction, nil)
       .padding(itemTheme.spaceM)
