@@ -15,10 +15,7 @@ Generate the system prompt with the CLI from a file that re-exports the library:
 
 ```ts
 // src/lib/dashboard-library.ts
-export {
-  openuiDashboardLibrary as library,
-  openuiDashboardPromptOptions as promptOptions,
-} from "@openuidev/dashboard-library";
+export { library, promptOptions } from "@openuidev/dashboard-library";
 ```
 
 ```sh
@@ -28,13 +25,13 @@ npx @openuidev/cli generate src/lib/dashboard-library.ts --out src/generated/sys
 Send that file as the system message, then render the model's response:
 
 ```tsx
-import { DashboardThemeProvider, openuiDashboardLibrary } from "@openuidev/dashboard-library";
+import { DashboardThemeProvider, library } from "@openuidev/dashboard-library";
 import { Renderer } from "@openuidev/react-lang";
 
 export function DashboardMessage({ response }: { response: string }) {
   return (
     <DashboardThemeProvider mode="dark">
-      <Renderer response={response} library={openuiDashboardLibrary} />
+      <Renderer response={response} library={library} />
     </DashboardThemeProvider>
   );
 }
