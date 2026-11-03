@@ -3,14 +3,16 @@ title: Search API
 description: Run a web search or an image search with one API call, without a model.
 ---
 
-The Search API runs the same web search and image search that the [hosted tools](/docs/gateway/api/responses/hosted-tools) run inside a Responses request, but on their own. Send a query and get the results back as JSON. No model is called, so you can use the results in your own pipeline, cache them, or pass them to any model.
+Send a search query and get the results back as JSON. No model is involved: you get the raw results to use in your own code or to pass to any model.
 
 **Endpoints:**
 
 - `POST https://api.thesys.dev/v1/search/web`
 - `POST https://api.thesys.dev/v1/search/images`
 
-Both endpoints authenticate with your inference API key. See [Authentication](/docs/gateway/authentication). Call them from your server, never from the browser.
+Send your Thesys API key as a bearer token. Create one in the [Thesys Console](https://console.thesys.dev/keys) and keep it on your server. See [Authentication](/docs/gateway/authentication).
+
+These endpoints take plain JSON over HTTP. They are not part of the OpenAI-compatible API, so call them with `fetch` or any HTTP client.
 
 ## Search the web
 
@@ -44,7 +46,7 @@ curl https://api.thesys.dev/v1/search/web \
 | `query`           | string   | Yes      | What to search for. 1 to 2,048 characters.                                                               |
 | `num_results`     | integer  | No       | How many results to return, from 1 to 10. The default is 5.                                              |
 | `include_domains` | string[] | No       | Only return results from these domains, for example `["nestjs.com"]`.                                    |
-| `user_location`   | string   | No       | The searcher's country as a two-letter ISO 3166-1 code, to rank local results first, for example `"FR"`. |
+| `user_location`   | string   | No       | The searcher's country as a two-letter code, for example `"FR"`. Results are localized for that country. |
 
 ### Result
 
@@ -106,6 +108,8 @@ curl https://api.thesys.dev/v1/search/images \
 | `thumbnail_url` | string  | No             | The URL of a smaller copy.                |
 | `mime_type`     | string  | No             | The image type, for example `image/jpeg`. |
 
+Both answers also carry `usage.search_units`, the number of searches you are charged for. It is always 1.
+
 ## Call from TypeScript
 
 ```ts title="server.ts"
@@ -126,28 +130,38 @@ async function searchWeb(query: string) {
 }
 ```
 
-The endpoints are plain JSON over HTTP. They are not OpenAI compatible, so call them with `fetch` or any HTTP client, not the OpenAI SDK.
-
 ## Data
 
-The query is sent to a third-party search provider to run the search. The query and the results are not stored beyond the request logs.
+We send your query to a third-party search provider to run the search. We don't store the query or the results, apart from standard request logs.
 
 ## Pricing
 
-Each successful search is charged from your credits:
+Each search that returns `200` is charged once from your [Gateway Credits](/docs/gateway/pricing-credits), even if it finds no results:
 
-- **Web search:** the search provider's cost for the call, without markup.
-- **Image search:** a flat price per call.
+- **Web search:** the search provider's price, with no markup. Currently $0.007 per search.
+- **Image search:** $0.005 per search.
 
-A search does not use a plan API call, and a failed search is free. Your organization needs enough credit for one call before the search runs. See [Pricing](/docs/gateway/pricing-credits) for the current rates.
+A search that fails costs nothing. Searches don't count toward the API calls included in your plan. If your credits can't cover one search, the call fails with `429` and no search runs.
 
 ## Errors
 
-The endpoints return the same error shape as the Chat Completions and Responses APIs.
+An error answer looks like this. For a `400`, `message` lists every problem found.
 
-| Status | Type                    | When                                                                                                                                           |
-| ------ | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10, or `user_location` is not a two-letter country code. |
-| `401`  | `authentication_error`  | The API key is missing or invalid.                                                                                                             |
-| `429`  | `rate_limit_error`      | The organization has no credits, a spend limit is reached, or billing is suspended.                                                            |
-| `500`  | `internal_server_error` | The search provider could not be reached. Nothing is charged.                                                                                  |
+```json
+{
+  "error": {
+    "message": ["num_results must not be greater than 10"],
+    "type": "invalid_request_error",
+    "param": null
+  }
+}
+```
+
+| Status | Type                    | When                                                                                                                                                      |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10, or `user_location` is not a two-letter country code.            |
+| `401`  | `invalid_api_key`       | The API key is missing or invalid.                                                                                                                        |
+| `429`  | `rate_limit_error`      | Your organization is out of credits, has reached its spend limit, or has billing suspended. Retrying won't help until you add credits or raise the limit. |
+| `500`  | `internal_server_error` | The search provider failed. Nothing is charged. You can retry.                                                                                            |
+
+On some older accounts, the `type` of a `429` is `ERR_QUOTA_EXCEEDED` or `ERR_BILLING_THRESHOLD_EXCEEDED` instead.

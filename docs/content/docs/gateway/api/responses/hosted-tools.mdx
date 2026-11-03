@@ -12,7 +12,7 @@ The Responses API can run supported tools inside the Gateway. Application functi
 | Remote MCP           | `{ type: "mcp", server_label, server_url }` | Gateway      |
 | Application function | `{ type: "function", name, parameters }`    | Your backend |
 
-To run a web search or an image search without a model, use the [Search API](/docs/gateway/api/search).
+To run a search yourself and get the raw results, without a model deciding when to search, use the [Search API](/docs/gateway/api/search).
 
 ```ts
 import { generateSystemPrompt } from "@openuidev/lang-core";
