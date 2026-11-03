@@ -1,4 +1,4 @@
-# @openuidev/intelligent-kit
+# @openuidev/intelligent-library
 
 An OpenUI component library for Intelligent UI answers: primitives a model arranges itself, the
 widgets it cannot draw (a street map, a sandboxed HTML page) and generic `@functions` so an answer
@@ -7,7 +7,7 @@ can compute with its own state.
 ## Install
 
 ```sh
-pnpm add @openuidev/intelligent-kit
+pnpm add @openuidev/intelligent-library
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ Generate the system prompt with the CLI from a file that re-exports the library:
 export {
   openuiIntelligentLibrary as library,
   openuiIntelligentPromptOptions as promptOptions,
-} from "@openuidev/intelligent-kit";
+} from "@openuidev/intelligent-library";
 ```
 
 ```sh
@@ -33,7 +33,7 @@ import {
   IntelligentThemeProvider,
   openuiIntelligentLibrary,
   runLibraryAction,
-} from "@openuidev/intelligent-kit";
+} from "@openuidev/intelligent-library";
 import { Renderer } from "@openuidev/react-lang";
 
 export function IntelligentMessage({ response }: { response: string }) {
@@ -59,7 +59,7 @@ action.
 rendering:
 
 ```ts
-import { configureIntelligentKit } from "@openuidev/intelligent-kit";
+import { configureIntelligentKit } from "@openuidev/intelligent-library";
 
 configureIntelligentKit({
   basePath: "/my-app",

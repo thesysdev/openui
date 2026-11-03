@@ -1,5 +1,5 @@
 {
-  "name": "@openuidev/intelligent-kit",
+  "name": "@openuidev/intelligent-library",
   "version": "0.0.1",
   "description": "OpenUI Intelligent UI component library: primitives a model arranges itself, with maps, drawing and generic @functions",
   "license": "MIT",
@@ -70,7 +70,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thesysdev/openui.git",
-    "directory": "packages/kits/intelligent"
+    "directory": "packages/libraries/intelligent"
   },
   "bugs": {
     "url": "https://github.com/thesysdev/openui/issues"
