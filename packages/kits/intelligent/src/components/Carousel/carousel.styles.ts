@@ -62,6 +62,7 @@ export const carouselStyles = {
     }
   `,
   track: css`
+    nullbox-sizing: border-box;
     &.openui-carousel-content {
       margin-block: -4px;
       padding-block: 4px;

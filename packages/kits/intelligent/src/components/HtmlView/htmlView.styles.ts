@@ -9,6 +9,7 @@ export const names = {
 
 export const htmlViewStyles = {
   root: css`
+    box-sizing: border-box;
     font-variation-settings: normal;
     position: relative;
     width: 100%;

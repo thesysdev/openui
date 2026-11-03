@@ -23,6 +23,7 @@ export const popoverStyles = {
     }
   `,
   panel: css`
+    box-sizing: border-box;
     font-variation-settings: normal;
     position: fixed;
     z-index: 2000;

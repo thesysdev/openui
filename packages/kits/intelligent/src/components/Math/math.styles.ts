@@ -14,6 +14,7 @@ export const mathStyles = {
     }
   `,
   block: css`
+    box-sizing: border-box;
     overflow-x: auto;
     overflow-y: hidden;
     padding: 4px 0;

@@ -70,6 +70,7 @@ export const radioGroupStyles = {
       grid-column: auto;
     }
     & .openui-option-cards-card {
+      box-sizing: border-box;
       padding: 14px 16px;
       border-color: ${tokens.border};
     }
@@ -101,6 +102,7 @@ export const radioGroupStyles = {
     gap: ${tokens.controlGap};
   `,
   option: css`
+    box-sizing: border-box;
     position: relative;
     display: flex;
     align-items: center;

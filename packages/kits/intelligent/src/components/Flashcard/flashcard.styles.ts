@@ -56,6 +56,7 @@ export const flashcardStyles = {
     }
   `,
   face: css`
+    box-sizing: border-box;
     grid-area: 1 / 1;
     display: flex;
     flex-direction: column;

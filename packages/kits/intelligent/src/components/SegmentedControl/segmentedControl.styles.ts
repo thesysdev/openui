@@ -16,6 +16,7 @@ export const names = {
  */
 export const segmentedControlStyles = {
   root: css`
+    box-sizing: border-box;
     font-variation-settings: normal;
     display: inline-flex;
     align-self: flex-start;
@@ -35,6 +36,7 @@ export const segmentedControlStyles = {
   /* The label's colour is set directly: the ink token reads react-components' text token, so setting
      that token to muted here would leave no ink for hover and the chosen option to return to. */
   option: css`
+    nullbox-sizing: border-box;
     &.openui-button {
       color: ${tokens.muted};
       --openui-highlight: transparent;

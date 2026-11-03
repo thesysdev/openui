@@ -103,6 +103,7 @@ export const mapStyles = {
       }
     }
     & ${SURFACE} .maplibregl-ctrl-attrib {
+      box-sizing: border-box;
       max-width: calc(100% - 50px);
       padding: 1px 4px;
       background: color-mix(in srgb, ${tokens.canvas} 90%, transparent);
@@ -155,6 +156,7 @@ export const mapStyles = {
     gap: 8px;
   `,
   pill: css`
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -174,6 +176,7 @@ export const mapStyles = {
     padding: 0;
   `,
   select: css`
+    box-sizing: border-box;
     appearance: none;
     max-width: 180px;
     padding: 8px 30px 8px 12px;
@@ -192,6 +195,7 @@ export const mapStyles = {
     pointer-events: none;
   `,
   recenter: css`
+    box-sizing: border-box;
     width: 34px;
     height: 34px;
     padding: 6px;
@@ -218,6 +222,7 @@ export const mapStyles = {
     height: 18px;
   `,
   expand: css`
+    box-sizing: border-box;
     position: absolute;
     top: 12px;
     right: 12px;
@@ -245,6 +250,7 @@ export const mapStyles = {
     }
   `,
   pin: css`
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -305,6 +311,7 @@ export const mapStyles = {
     bottom: 28px;
   `,
   overview: css`
+    box-sizing: border-box;
     position: absolute;
     bottom: 22px;
     left: 12px;

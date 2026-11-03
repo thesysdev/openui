@@ -48,6 +48,7 @@ export const markdownStyles = {
     font-weight: var(--_openui-intelligent-strong-weight, bolder);
   `,
   code: css`
+    box-sizing: border-box;
     padding: 1px 5px;
     border-radius: 5px;
     background: ${tokens.surface};
@@ -96,12 +97,14 @@ export const markdownStyles = {
     `,
   },
   list: css`
+    box-sizing: border-box;
     padding-left: 1.4em;
     display: flex;
     flex-direction: column;
     gap: 6px;
   `,
   listItem: css`
+    box-sizing: border-box;
     padding-left: 2px;
     &::marker {
       color: ${tokens.muted};
@@ -114,6 +117,7 @@ export const markdownStyles = {
     }
   `,
   quote: css`
+    box-sizing: border-box;
     padding: 12px 16px;
     border-left: 3px solid ${tokens.borderStrong};
     border-radius: 0 12px 12px 0;
@@ -121,6 +125,7 @@ export const markdownStyles = {
     color: ${tokens.ink};
   `,
   codeBlock: css`
+    box-sizing: border-box;
     padding: 14px 16px;
     overflow-x: auto;
     border-radius: ${tokens.radiusMd};
@@ -128,6 +133,7 @@ export const markdownStyles = {
     font: 13px/1.6 ${tokens.mono};
   `,
   rule: css`
+    box-sizing: border-box;
     width: 100%;
     height: 0;
     margin: var(${GAP}, 20px) 0 20px;
@@ -136,6 +142,7 @@ export const markdownStyles = {
   `,
   /* A framed table: 14px corners, a surface header row, hover rows. */
   tableScroll: css`
+    box-sizing: border-box;
     width: 100%;
     min-width: 0;
     overflow-x: auto;
@@ -149,6 +156,7 @@ export const markdownStyles = {
     line-height: 1.5;
   `,
   headCell: css`
+    box-sizing: border-box;
     padding: 11px 16px;
     border-bottom: 1px solid ${tokens.border};
     text-align: left;
@@ -172,6 +180,7 @@ export const markdownStyles = {
     }
   `,
   cell: css`
+    box-sizing: border-box;
     padding: 13px 16px;
     border-bottom: var(${CELL_BORDER}, 1px) solid ${tokens.border};
     text-align: left;

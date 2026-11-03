@@ -10,6 +10,7 @@ export const names = {
 
 export const codeStyles = {
   root: css`
+    box-sizing: border-box;
     font-variation-settings: normal;
     min-width: 0;
     overflow: hidden;
@@ -18,6 +19,7 @@ export const codeStyles = {
     background: ${tokens.surface};
   `,
   head: css`
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -28,6 +30,7 @@ export const codeStyles = {
   `,
   copy: css`
     &&.openui-button {
+      box-sizing: border-box;
       gap: 5px;
       height: auto;
       min-height: 0;
@@ -43,6 +46,7 @@ export const codeStyles = {
     }
   `,
   pre: css`
+    box-sizing: border-box;
     margin: 0;
     padding: 14px 16px;
     overflow-x: auto;

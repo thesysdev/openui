@@ -16,6 +16,7 @@ export const names = { root: "openui-intelligent-pressable" } as const;
  */
 export const pressableStyles = {
   root: css`
+    box-sizing: border-box;
     font-variation-settings: normal;
     ${WASH}: 0;
     ${CHECK}: "";

@@ -25,6 +25,7 @@ export const names = {
  */
 export const cardStyles = {
   root: css`
+    box-sizing: border-box;
     font-variation-settings: normal;
     display: flex;
     flex-direction: column;

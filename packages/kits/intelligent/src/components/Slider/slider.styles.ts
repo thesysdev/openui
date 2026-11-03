@@ -42,6 +42,7 @@ export const sliderStyles = {
     white-space: nowrap;
   `,
   range: css`
+    box-sizing: border-box;
     appearance: none;
     -webkit-appearance: none;
     display: block;

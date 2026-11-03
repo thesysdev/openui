@@ -75,6 +75,7 @@ const Box = forwardRef<HTMLDivElement, BoxProps>(
         )}
         style={{
           ...flexStyle({ gap, align, justify, wrap }, !row),
+          boxSizing: "border-box",
           padding: space(padding),
           background: bg(background),
           ...onColor(background),

@@ -51,8 +51,10 @@ export const Table = defineComponent({
           ? value.toLocaleString("en-US", { maximumFractionDigits: 2 })
           : inline(String(value ?? ""));
 
+    // react-components' container is 100% wide with a 1px border and sets no box-sizing, so it is
+    // 2px wider than its column on a page with no reset.
     return (
-      <RCTable>
+      <RCTable containerStyle={{ boxSizing: "border-box" }}>
         <TableHeader>
           <TableRow>
             {columns.map((c, i) => (

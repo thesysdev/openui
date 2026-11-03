@@ -107,9 +107,11 @@ export const listStyles = {
     --_openui-intelligent-list-title-weight: 560;
   `,
   richSpacing: css`
+    box-sizing: border-box;
     padding-bottom: 4px;
   `,
   timelineRow: css`
+    box-sizing: border-box;
     padding-bottom: 18px;
     &:last-child {
       padding-bottom: 0;
@@ -191,6 +193,7 @@ export const listStyles = {
   `,
   /* Short custom markers ("1", "2", "A") read as steps: white numerals on an ink chip. */
   chip: css`
+    box-sizing: border-box;
     display: grid;
     place-items: center;
     min-width: 20px;

@@ -22,8 +22,10 @@ export const fieldStyles = {
    * Hover, focus, open and error states keep react-components' own borders.
    */
   control: css`
+    box-sizing: border-box;
     &.openui-select-trigger,
     & .openui-date-picker-trigger {
+      box-sizing: border-box;
       padding: ${pad};
       border-radius: var(--openui-radius-l, 10px);
     }

@@ -19,6 +19,7 @@ export const names = {
  */
 export const badgeStyles = {
   root: css`
+    box-sizing: border-box;
     font-variation-settings: normal;
     &.openui-tag {
       display: inline-flex;
