@@ -13,26 +13,25 @@ import {
   useAui,
   useRemoteThreadListRuntime,
 } from "@assistant-ui/react";
-import { OpenUICloudProvider, useOpenuiCloudStorage } from "@openuidev/react-headless";
+import { OpenUICloudProvider } from "@openuidev/react-headless";
 import { LayoutDashboard, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import toolkit from "../lib/toolkit";
 import { DashboardPanel, OpenDashboardProvider, useOpenDashboard } from "./dashboard";
 import { DashboardList } from "./dashboard-list";
-import { useCloudThreadList } from "./threads";
+import { localThreadList } from "./threads";
 
 const token = "/api/frontend-token";
 
 export default function App({ apiBaseUrl }: { apiBaseUrl?: string }) {
-  // Threads live in OpenUI Cloud conversations, read with the user's frontend token. Each thread
-  // posts to /api/chat, which runs the dashboard tools and saves the turn to its conversation.
-  const storage = useOpenuiCloudStorage({ token, apiBaseUrl });
+  // Each thread posts to /api/chat, which runs the dashboard tools on the server. Threads are
+  // kept in this browser (src/components/threads.tsx), not in OpenUI Cloud.
   const runtime = useRemoteThreadListRuntime({
     runtimeHook: () => useChatRuntime(),
-    adapter: useCloudThreadList(storage.thread),
+    adapter: localThreadList,
   });
   return (
-    // Every renderer and list below reads OpenUI Cloud through this provider: it fetches the
+    // The dashboards' renderers and list read OpenUI Cloud through this provider: it fetches the
     // frontend token from /api/frontend-token and refreshes it before it expires.
     <OpenUICloudProvider token={token} apiBaseUrl={apiBaseUrl}>
       <AssistantRuntimeProvider runtime={runtime}>
@@ -112,7 +111,7 @@ const tabs = [
   { id: "dashboards", label: "Dashboards", icon: LayoutDashboard },
 ] as const;
 
-/** Two tabs: the user's chats, kept in OpenUI Cloud, and their dashboards. */
+/** Two tabs: the user's chats, kept in this browser, and their dashboards in OpenUI Cloud. */
 function Sidebar() {
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>("chats");
   return (
