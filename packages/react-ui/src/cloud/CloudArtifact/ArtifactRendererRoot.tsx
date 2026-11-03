@@ -11,7 +11,6 @@ import type { McpClientLike, OpenUIError } from "@openuidev/react-lang";
 import clsx from "clsx";
 import {
   Children,
-  Fragment,
   isValidElement,
   useCallback,
   useEffect,
@@ -56,7 +55,10 @@ export interface ArtifactRendererBaseProps {
   id?: string;
   /** The artifact's saved content, if you keep artifacts in your own storage. */
   content?: string;
-  /** `true` (default): a preview card that opens the artifact. `false`: standalone, inline. */
+  /**
+   * `true` (default): a preview card that opens the artifact. `false`: standalone, inline,
+   * framed by the `Chrome` you pass, or with no frame without one.
+   */
   preview?: boolean;
   /** The element the artifact opens in, such as a side panel. Omit to open it under the card. */
   renderInHtmlElement?: HTMLElement | null;
@@ -121,24 +123,6 @@ function extractRegions(children: ReactNode) {
     else chrome = child;
   });
   return { preview, chrome };
-}
-
-/**
- * Standalone mode shows only the chrome's `Content`. Look for it through plain
- * elements and fragments; a `Content` inside your own component can't be seen
- * from here, so the default `Content` is used then.
- */
-function findContent(node: ReactNode): ReactElement | null {
-  let found: ReactElement | null = null;
-  Children.forEach(node, (child) => {
-    if (found || !isValidElement(child)) return;
-    if (child.type === Content) {
-      found = child;
-    } else if (typeof child.type === "string" || child.type === Fragment || child.type === Chrome) {
-      found = findContent((child.props as { children?: ReactNode }).children);
-    }
-  });
-  return found;
 }
 
 /** The shared renderer: streaming, live data, errors, open state, slots and layout. */
@@ -327,9 +311,7 @@ export function ArtifactRendererRoot({
                 (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
             </>
           ) : (
-            <RegionProvider region="chrome">
-              {findContent(regions.chrome) ?? <Content />}
-            </RegionProvider>
+            <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
           )}
         </div>
       </ContentConfigContext.Provider>
