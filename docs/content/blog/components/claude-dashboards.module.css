@@ -1,0 +1,142 @@
+/* Shared styles for the figures in "How Claude Dashboards work".
+   Colours come from the site's theme variables, so the figures follow light and dark mode. */
+
+.card {
+  --accent: #0b7a64;
+  --accent-soft: rgba(11, 122, 100, 0.1);
+  --violet: #6e62d8;
+  --violet-soft: rgba(110, 98, 216, 0.1);
+  --orange: #d4683a;
+  --orange-soft: rgba(212, 104, 58, 0.1);
+  --surface: var(--openui-foreground, #fff);
+  --sunk: var(--openui-sunk, #f4f4f5);
+  --line: var(--openui-border-default, rgba(0, 0, 0, 0.08));
+  --text: var(--openui-text-neutral-primary, #18191e);
+  --text-2: var(--openui-text-neutral-secondary, #515257);
+  --text-3: var(--openui-text-neutral-tertiary, #717277);
+  --mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  margin: 2.25rem 0;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px -12px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-theme="dark"]) .card {
+  --accent: #3ccfa6;
+  --accent-soft: rgba(60, 207, 166, 0.12);
+  --violet: #9d94ff;
+  --violet-soft: rgba(157, 148, 255, 0.12);
+  --orange: #f08a5d;
+  --orange-soft: rgba(240, 138, 93, 0.12);
+  box-shadow: none;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.attr {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--sunk);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+/* ─── Build timeline ────────────────────────────────────────────────────── */
+
+.timeline {
+  position: relative;
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 14px;
+  padding: 0 0 14px;
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+.time {
+  padding-top: 1px;
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: right;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepBody {
+  position: relative;
+  padding-left: 18px;
+  border-left: 2px solid var(--line);
+}
+
+.stepBody::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--violet);
+}
+
+.step[data-key="true"] .stepBody::before {
+  background: var(--violet);
+}
+
+.stepTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stepTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 2px;
+}
+
+.stepNote {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--text-2);
+}

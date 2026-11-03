@@ -7,6 +7,8 @@ date: 2026-11-03
 featured: false
 ---
 
+import { BuildTimeline } from "./components/claude-dashboards-figures";
+
 ## What are Claude Dashboards?
 
 Claude Dashboards is a capability, launched in beta on October 8, 2026 alongside Claude Motion, that lets Claude answer a question about your data with a live dashboard ([Anthropic announcement](https://claude.com/resources/articles/dashboards-and-motion)). You connect a data platform such as BigQuery, Databricks or Snowflake, or another connector such as Salesforce, and ask in plain language. Claude finds the data, builds the dashboard, and keeps it current as the data changes.
@@ -95,11 +97,13 @@ The `title` and `description` aren't for the viewer. They are what a reader sees
       data-draw="tile-signups" data-source="latest" data-field="signups">—</span>
 ```
 
-Read the three attributes in order, and they answer where the number comes from and how it gets on screen:
+`data-source` picks the source, `data-field` picks one column of it, and `data-draw` names the draw that writes the value. Here is the whole path for the tile, and for the chart beside it:
 
-1. **`data-source="latest"`** picks the source: a [dataset](#datasets), or a value [calculated](#the-dash-runtime) from one. Here, `latest` is a calc over the signups dataset that returns one row for the most recent week.
-2. **`data-field="signups"`** picks one column of that row: the week's signup count.
-3. **`data-draw="tile-signups"`** names the [draw](#the-dash-runtime) that puts the value on screen. In this page, that draw takes the `latest` row and writes its `signups` value, formatted as a count, into the span.
+<figure>
+
+![The weekly dataset, a file, feeds two paths. In the first, 8 rows go to the latest calc, which passes 1 row to the tile-signups draw, which writes 1,544 into the "Last week's signups" tile, marked data-source="latest", data-field="signups" and data-draw="tile-signups". In the second, 8 rows go to the chart draw, which writes the "Signups per week" bar chart, marked data-source="weekly" and data-draw="chart".](/images/blog/claude-dashboards/dataflow.webp)
+
+</figure>
 
 Until the draw runs, the reader sees a loading skeleton and a dash. Once it has, the span still carries its source and field. That is how the [Sources panel](#the-sources-panel) knows where a clicked number came from, and how the [verification loop](#the-verification-loop) can flag a number on screen that doesn't match its data.
 
@@ -216,7 +220,11 @@ Draws never appear in Sources: they use sources and don't create them. That's wh
 
 The pieces split across two phases. At **build time**, Claude writes the documents in the chat. At **run time**, the viewer runs them in each reader's browser. The model works only at build time. Loading data, filters, clicks and refreshes all happen at run time, with no model call. The stored documents are the handoff between the two.
 
-{/* TODO figure: two lanes, build time (chat, Claude, tool calls) and run time (reader's browser, viewer, connector), with the stored documents between them. */}
+<figure>
+
+![Three panels. Build time, in the chat: Claude, the model, writes with create_from_type, db_write and db_str_replace. Stored documents: dash/meta, dash/params, datasets/weekly and files/index.html. Run time, in each reader's browser: the viewer and Dash runtime read them, with no model call. Below, live sync runs from build time to run time, and the verification loop and Ask Claude run back from run time to build time.](/images/blog/claude-dashboards/build-run.webp)
+
+</figure>
 
 ### Build time: Claude writes the documents
 
@@ -224,14 +232,13 @@ The signups dashboard started from one message in a claude.ai chat:
 
 > Build me a dashboard of weekly signups from this data. Show last week's number, the change on the week before, and a bar chart per week. Data (week start, signups): 2026-09-07 1180, 2026-09-14 1245, …
 
-Claude builds a dashboard with tools from a built-in connector, `claude-artifacts`. Each call appears in the chat on an approval card. In order:
+Claude builds a dashboard with tools from a built-in connector, `claude-artifacts`, and each call appears in the chat on an approval card. "Dashboard" is an *artifact type* on claude.ai: a template that ships the viewer along with written instructions for Claude.
 
-1. **Reading the instructions.** "Dashboard" is an *artifact type* on claude.ai: a template that ships the viewer along with written instructions for Claude. Claude listed the types (`list_types`), read the Dashboard type's instructions, and then read the two reference files it needed out of fourteen (`describe_type`).
-2. **Finding the data.** When the data sits behind a connector, Claude first probes it. It calls the connector's tools itself, on the chat user's account, to learn which tools exist, whether the connector is signed in, what shape the answer takes, and which call returns the right data. It then saves the call that worked as a query dataset. The signups numbers were pasted into the chat, so there was nothing to probe and no call to save. Claude wrote the numbers to a 147-byte CSV in its sandbox and attached it with `upload_asset`, which returned the `/_blob/…` URL the dataset points to.
-3. **Creating the dashboard.** `create_from_type` made a new, empty dashboard. The side panel opened at once, showing "Nothing on this dashboard yet" and rotating tips.
-4. **Writing the page.** Claude wrote the 12 KB page to a file in its sandbox first, which took about a minute. Nothing rendered in the meantime.
-5. **One write.** A single `db_write` call wrote all three documents at once (`dash/meta`, `datasets/weekly`, `files/index.html`, 13,226 bytes). After the approval, the whole dashboard was on screen within about 3 seconds.
-6. **Checking and fixing.** Claude read the check document with `db_get`, the [verification loop](#the-verification-loop). Later edits, like the Total signups tile, were `db_str_replace` patches: find-and-replace on one field of one document. Each patch carries `ifVersion`, the version Claude last read, so it applies only if nobody has changed the document since.
+<BuildTimeline />
+
+Two steps need more than a line. When the data sits behind a connector, Claude first probes it. It calls the connector's tools itself, on the chat user's account, to learn which tools exist, whether the connector is signed in, what shape the answer takes, and which call returns the right data. It then saves the call that worked as a query dataset. The signups numbers were pasted into the chat, so there was nothing to probe, and Claude attached them as a file instead.
+
+The other is editing. A `db_str_replace` patch is a find-and-replace on one field of one document. Each patch carries `ifVersion`, the version Claude last read, so it applies only if nobody has changed the document since.
 
 ### Run time: the viewer runs them for each reader
 
@@ -248,14 +255,6 @@ A query dataset changes only step 3. Instead of fetching a file, the viewer asks
 The same chain runs whenever data changes: a refresh, a new file, a filter. The page never fetches or polls on its own.
 
 Every visit makes the live call again. So that the page can draw at once, the reader's browser keeps each answer for 24 hours, keyed by account, dashboard and exact call (each set of filter values is its own entry). The page draws from that copy, shows "Refreshing…", and swaps in the live answer when it arrives. Errors, tools that aren't read-only, and answers over 16 MB aren't kept. The viewer's code also has refresh choices other than "On each visit" (after 5 minutes, an hour, a day or a week). They sit behind a feature flag and weren't shown on our account.
-
-### Where the two phases meet
-
-Build time and run time aren't sealed off from each other. They touch in three places:
-
-- **Live sync.** When Claude writes a document, claude.ai pushes the change to every open copy of the dashboard over a WebSocket, with no reload. A reader watching while Claude edits can see a half-finished state between two patches, which is what the failed check after the first Total tile patch caught.
-- **The verification loop.** The check runs at run time, in the reader's browser, and Claude reads it at build time.
-- **Asking Claude.** A reader can select something on the page and ask Claude about it. The request goes back to the chat, so any change goes through build time again.
 
 ## Security
 
