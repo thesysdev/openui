@@ -84,7 +84,7 @@ export function defineDashboard<Context extends ExecutionContext>(
   async function start(
     context: Context,
     prompt: string,
-    call: { title?: string; artifactId?: string },
+    call: { title?: string; id?: string },
     signal?: AbortSignal,
   ): Promise<string> {
     // The dashboard belongs to the user the context names.
@@ -125,7 +125,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     // OpenUI Cloud edits the version it stores.
     async edit({ id, prompt }, context, { signal } = {}) {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      return toolResponse(await start(context, prompt, { artifactId: id }, signal));
+      return toolResponse(await start(context, prompt, { id }, signal));
     },
 
     interpreter: createInterpreter<Context>(api, loadTools),

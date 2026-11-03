@@ -7,19 +7,20 @@ import type { ToolDefinition } from "../tools/types";
 
 const CONFIG_MARKER = "]]>openui:config\n";
 
-/** What a dashboard call adds to the config block. */
+/** What a dashboard call adds to the config block, as its `artifact` key. */
 export interface ArtifactCall {
+  /** The data tools its queries may call. */
   tools: ToolDefinition[];
   /** The artifact's title, on create. */
   title?: string;
   /** The artifact an edit changes. */
-  artifactId?: string;
+  id?: string;
 }
 
 /**
  * OpenUI Cloud's config block for an artifact: lang-core writes the library
- * part (`chatLibrary`, `systemPromptOptions`), and each call adds the rest:
- * its data tools (`script`), title (`meta`) and edit target.
+ * part (`chatLibrary`, `systemPromptOptions`), and each call adds its own
+ * under `artifact`: data tools, title and edit target.
  */
 export function artifactConfig(library: LibrarySpec, promptOptions?: CloudPromptOptions) {
   // Built once, so an invalid library fails when the dashboard is defined.
@@ -33,12 +34,5 @@ export function artifactConfig(library: LibrarySpec, promptOptions?: CloudPrompt
   }
   const base = JSON.parse(block.slice(CONFIG_MARKER.length)) as Record<string, unknown>;
 
-  return ({ tools, title, artifactId }: ArtifactCall): string =>
-    CONFIG_MARKER +
-    JSON.stringify({
-      ...base,
-      script: { tools },
-      ...(title !== undefined && { meta: { name: title } }),
-      ...(artifactId !== undefined && { artifactId }),
-    });
+  return (artifact: ArtifactCall): string => CONFIG_MARKER + JSON.stringify({ ...base, artifact });
 }
