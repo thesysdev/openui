@@ -2,8 +2,10 @@
 
 import { MarkDownRenderer } from "@openuidev/react-components";
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
+import clsx from "clsx";
 import type { CSSProperties } from "react";
 import remarkGfm from "remark-gfm";
+import { markdownName, markdownStyle } from "../../shared/markdown";
 import { textContentPropsSchema, type TextContentProps } from "./schema";
 
 // MarkDownRenderer sets its body text from --openui-text-body-default, so a size
@@ -32,6 +34,7 @@ function TextContentRenderer({ props }: ComponentRenderProps<TextContentProps>) 
   const markdown = (
     <MarkDownRenderer
       textMarkdown={props.text ?? ""}
+      className={clsx(markdownStyle, markdownName)}
       options={{
         // singleTilde: false → only ~~double tildes~~ render as strikethrough.
         remarkPlugins: [[remarkGfm, { singleTilde: false }]],
