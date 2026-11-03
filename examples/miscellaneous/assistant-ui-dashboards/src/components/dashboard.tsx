@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
-import { DashboardThemeProvider } from "@openuidev/dashboard-kit";
+import { ThemeProvider } from "@openuidev/dashboard-library";
 import { LiveArtifactRenderer, useArtifactRenderer } from "@openuidev/react-ui/cloud";
 import {
   AlertTriangle,
@@ -145,7 +145,7 @@ export function DashboardPanel(source: DashboardSource) {
   // renderer of one dashboard shares a stream, and an edit's response tells it a newer version
   // exists. The kit's components follow the system's light or dark mode.
   return (
-    <DashboardThemeProvider mode={mode}>
+    <ThemeProvider mode={mode}>
       <LiveArtifactRenderer
         {...source}
         library={library}
@@ -182,7 +182,7 @@ export function DashboardPanel(source: DashboardSource) {
           </PanelFrame>
         </LiveArtifactRenderer.Chrome>
       </LiveArtifactRenderer>
-    </DashboardThemeProvider>
+    </ThemeProvider>
   );
 }
 

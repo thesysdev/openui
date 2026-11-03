@@ -1,6 +1,6 @@
 # OpenUI x assistant-ui Dashboards
 
-A text-only [assistant-ui](https://www.assistant-ui.com) chat whose model builds live dashboards about any npm package or GitHub repository. Each dashboard is an artifact: a card in the chat that opens it full size beside the conversation. It's stored in OpenUI Cloud and built from [`@openuidev/dashboard-kit`](https://www.npmjs.com/package/@openuidev/dashboard-kit), but its numbers load live every time it opens: downloads and releases from npm, stars and commit activity from GitHub, and known vulnerabilities from [OSV.dev](https://osv.dev) through an MCP server. Ask for a change and the same dashboard updates in place.
+A text-only [assistant-ui](https://www.assistant-ui.com) chat whose model builds live dashboards about any npm package or GitHub repository. Each dashboard is an artifact: a card in the chat that opens it full size beside the conversation. It's stored in OpenUI Cloud and built from [`@openuidev/dashboard-library`](https://www.npmjs.com/package/@openuidev/dashboard-library), but its numbers load live every time it opens: downloads and releases from npm, stars and commit activity from GitHub, and known vulnerabilities from [OSV.dev](https://osv.dev) through an MCP server. Ask for a change and the same dashboard updates in place.
 
 It runs on Next.js, assistant-ui with the AI SDK on OpenAI, and `@openuidev/server`'s dashboards. The chat is entirely yours: your model, and threads kept in the browser's `localStorage`. OpenUI Cloud only builds, stores, and streams the dashboards.
 
@@ -88,7 +88,7 @@ The chat is assistant-ui's `Thread` and `ThreadList` from its shadcn registry, i
 
 ## The component library
 
-`src/library.ts` exports `openuiDashboardLibrary` from `@openuidev/dashboard-kit`: 46 dashboard components, from the `Dashboard` root, sections, card rows and filters to metrics, charts and tables. `npm run generate` writes its specification to `src/generated/spec.json`, which the server builds dashboards from, so it never loads React components; the browser renders dashboards with the library itself. `src/lib/openui.ts` passes the kit's examples and rules to the model that builds them, with this app's own preamble.
+`src/library.ts` exports `library` from `@openuidev/dashboard-library`: 46 dashboard components, from the `Dashboard` root, sections, card rows and filters to metrics, charts and tables. `npm run generate` writes its specification to `src/generated/spec.json`, which the server builds dashboards from, so it never loads React components; the browser renders dashboards with the library itself. `src/lib/openui.ts` passes the library's examples and rules to the model that builds them, with this app's own preamble.
 
 ## The server
 

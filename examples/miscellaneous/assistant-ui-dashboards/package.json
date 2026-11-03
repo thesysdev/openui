@@ -21,7 +21,7 @@
     "@assistant-ui/react": "^0.15.32",
     "@assistant-ui/react-markdown": "^0.14.24",
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "@openuidev/dashboard-kit": "0.0.1",
+    "@openuidev/dashboard-library": "0.0.1",
     "@openuidev/lang-core": "1.0.2",
     "@openuidev/react-headless": "0.18.2",
     "@openuidev/react-lang": "1.0.2",

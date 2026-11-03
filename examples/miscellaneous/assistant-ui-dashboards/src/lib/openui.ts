@@ -1,4 +1,4 @@
-import { openuiDashboardPromptOptions } from "@openuidev/dashboard-kit";
+import { promptOptions } from "@openuidev/dashboard-library";
 import { OpenUIClient } from "@openuidev/server";
 import spec from "../generated/spec.json";
 import { dataTools, osv } from "./data";
@@ -31,7 +31,7 @@ export const dashboards = openui.defineDashboard({
   promptOptions: {
     preamble:
       "You build dashboards about open-source JavaScript projects: npm packages, their GitHub repositories, and their known security advisories. All data is live from public APIs, loaded by Query() each time the dashboard opens.",
-    examples: openuiDashboardPromptOptions.examples,
-    additionalRules: openuiDashboardPromptOptions.additionalRules,
+    examples: promptOptions.examples,
+    additionalRules: promptOptions.additionalRules,
   },
 });
