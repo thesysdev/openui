@@ -1,21 +1,13 @@
 "use client";
 
-import { DynamicIcon, iconNames, type IconName } from "lucide-react/dynamic.mjs";
+import { IconWrapper } from "@openuidev/react-components";
+import clsx from "clsx";
+import { iconStyles, names } from "./icon.styles";
 
-const names = new Set<string>(iconNames);
-
-/** "MapPin", "map_pin" and "map pin" all mean the lucide icon "map-pin". */
-function iconName(value: unknown): IconName | null {
-  if (typeof value !== "string") return null;
-  const name = value
-    .trim()
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .replace(/[\s_]+/g, "-")
-    .toLowerCase();
-  return names.has(name) ? (name as IconName) : null;
-}
-
-/** A lucide icon, loaded on first use. Unknown names render nothing. */
+/**
+ * A lucide icon by name, loaded on first use through react-components' IconWrapper. "MapPin",
+ * "map_pin" and "map pin" all mean "map-pin"; a name it can't match draws its fallback icon.
+ */
 export function Glyph({
   name,
   size = 18,
@@ -25,21 +17,12 @@ export function Glyph({
   size?: number;
   className?: string;
 }) {
-  const icon = iconName(name);
-  if (!icon) return null;
+  if (typeof name !== "string" || !name.trim()) return null;
   return (
-    <DynamicIcon
-      name={icon}
+    <IconWrapper
+      name={name}
       size={size}
-      strokeWidth={1.8}
-      aria-hidden
-      className={className}
-      fallback={() => (
-        <span
-          className={className}
-          style={{ display: "inline-block", width: size, height: size, flex: "none" }}
-        />
-      )}
+      className={clsx(iconStyles.glyph, names.glyph, className)}
     />
   );
 }
