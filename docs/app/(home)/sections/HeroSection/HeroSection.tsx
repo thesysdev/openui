@@ -428,7 +428,7 @@ function DesktopHero({
             <DesktopGithubButton href={githubRepoUrl} label={githubButtonLabel} />
           )}
         </div>
-        {proofSlot}
+        {proofSlot && <div className={styles.desktopProof}>{proofSlot}</div>}
       </div>
     </div>
   );

@@ -1,52 +1,165 @@
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import styles from "./LogoStrip.module.css";
 
 type Logo = {
   src: string;
   alt: string;
   href?: string;
+  /* Optical size applied to layout dimensions, not a visual-only transform. */
+  scale?: number;
+  /* Horizontal artwork bounds within the original 160 × 48 SVG canvas. */
+  bounds?: readonly [number, number];
   /* Backed by Y Combinator: shows the orange YC badge beside the mark. */
   yc?: boolean;
-  /* How far to pull the badge in, in px, when the mark sits narrower than its
-     160px box and the badge would otherwise float away from it. */
-  ycInset?: number;
 };
 
 const HOME_LOGOS: Logo[] = [
   {
     src: "/logos/walt-disney.svg",
+    bounds: [10, 150],
+    scale: 0.78,
     alt: "The Walt Disney Company",
     href: "https://thewaltdisneycompany.com/",
   },
-  { src: "/logos/walmart.svg", alt: "Walmart", href: "https://www.walmart.com/" },
-  { src: "/logos/oodle.svg", alt: "Oodle AI", href: "https://www.oodle.ai/" },
-  { src: "/logos/ebay.svg", alt: "eBay", href: "https://www.ebay.com/" },
-  { src: "/logos/accenture.svg", alt: "Accenture", href: "https://www.accenture.com/" },
-  { src: "/logos/vendo.svg", alt: "Vendo", href: "https://vendo.run/", yc: true },
+  {
+    src: "/logos/walmart.svg",
+    bounds: [20, 140],
+    scale: 0.94,
+    alt: "Walmart",
+    href: "https://www.walmart.com/",
+  },
+  { src: "/logos/oodle.svg", bounds: [25, 134], alt: "Oodle AI", href: "https://www.oodle.ai/" },
+  {
+    src: "/logos/ebay.svg",
+    bounds: [42, 118],
+    scale: 0.94,
+    alt: "eBay",
+    href: "https://www.ebay.com/",
+  },
+  {
+    src: "/logos/accenture.svg",
+    bounds: [23, 137],
+    scale: 0.9,
+    alt: "Accenture",
+    href: "https://www.accenture.com/",
+  },
+  {
+    src: "/logos/vendo.svg",
+    bounds: [25, 135],
+    scale: 0.94,
+    alt: "Vendo",
+    href: "https://vendo.run/",
+    yc: true,
+  },
   {
     src: "/logos/palo-alto-networks.svg",
+    bounds: [10, 150],
+    scale: 0.92,
     alt: "Palo Alto Networks",
     href: "https://www.paloaltonetworks.com/",
   },
   {
     src: "/logos/standard-metrics.svg",
+    bounds: [7, 155],
     alt: "Standard Metrics",
     href: "https://standardmetrics.io/",
   },
-  { src: "/logos/softbank.svg", alt: "SoftBank", href: "https://group.softbank/en" },
-  { src: "/logos/experian.svg", alt: "Experian", href: "https://www.experian.com/" },
-  { src: "/logos/entelligence.svg", alt: "Entelligence AI", href: "https://entelligence.ai/" },
-  { src: "/logos/charles-schwab.svg", alt: "Charles Schwab", href: "https://www.schwab.com/" },
-  { src: "/logos/payflow.svg", alt: "Payflow", href: "https://payflow.es/", yc: true },
-  { src: "/logos/zillow.svg", alt: "Zillow", href: "https://www.zillow.com/" },
-  { src: "/logos/andfacts.svg", alt: "&facts", href: "https://www.andfacts.com/" },
-  { src: "/logos/td-ameritrade.svg", alt: "TD Ameritrade", href: "https://www.tdameritrade.com/" },
-  { src: "/logos/paytm.svg", alt: "Paytm", href: "https://paytm.com/" },
-  { src: "/logos/gaia.svg", alt: "GAIA", href: "https://heygaia.io/" },
-  { src: "/logos/aia.svg", alt: "AIA Singapore", href: "https://www.aia.com.sg/" },
-  { src: "/logos/prox.svg", alt: "Prox", href: "https://useprox.com/", yc: true, ycInset: 22 },
-  { src: "/logos/rasa.svg", alt: "Rasa", href: "https://rasa.com/" },
-  { src: "/logos/productboard.svg", alt: "Productboard", href: "https://productboard.com/" },
+  {
+    src: "/logos/softbank.svg",
+    bounds: [10, 150],
+    scale: 0.9,
+    alt: "SoftBank",
+    href: "https://group.softbank/en",
+  },
+  {
+    src: "/logos/experian.svg",
+    bounds: [30, 130],
+    alt: "Experian",
+    href: "https://www.experian.com/",
+  },
+  {
+    src: "/logos/entelligence.svg",
+    bounds: [7, 152],
+    alt: "Entelligence AI",
+    href: "https://entelligence.ai/",
+  },
+  {
+    src: "/logos/charles-schwab.svg",
+    bounds: [50, 110],
+    scale: 1.06,
+    alt: "Charles Schwab",
+    href: "https://www.schwab.com/",
+  },
+  {
+    src: "/logos/payflow.svg",
+    bounds: [13, 147],
+    scale: 0.95,
+    alt: "Payflow",
+    href: "https://payflow.es/",
+    yc: true,
+  },
+  {
+    src: "/logos/zillow.svg",
+    bounds: [20, 140],
+    scale: 0.84,
+    alt: "Zillow",
+    href: "https://www.zillow.com/",
+  },
+  {
+    src: "/logos/andfacts.svg",
+    bounds: [44, 117],
+    alt: "&facts",
+    href: "https://www.andfacts.com/",
+  },
+  {
+    src: "/logos/td-ameritrade.svg",
+    bounds: [13, 147],
+    scale: 0.88,
+    alt: "TD Ameritrade",
+    href: "https://www.tdameritrade.com/",
+  },
+  {
+    src: "/logos/paytm.svg",
+    bounds: [35, 125],
+    scale: 0.76,
+    alt: "Paytm",
+    href: "https://paytm.com/",
+  },
+  {
+    src: "/logos/gaia.svg",
+    bounds: [30, 125],
+    scale: 0.92,
+    alt: "GAIA",
+    href: "https://heygaia.io/",
+  },
+  {
+    src: "/logos/aia.svg",
+    bounds: [46, 114],
+    scale: 0.78,
+    alt: "AIA Singapore",
+    href: "https://www.aia.com.sg/",
+  },
+  {
+    src: "/logos/prox.svg",
+    bounds: [36, 124],
+    alt: "Prox",
+    href: "https://useprox.com/",
+    yc: true,
+  },
+  {
+    src: "/logos/rasa.svg",
+    bounds: [43, 117],
+    scale: 0.84,
+    alt: "Rasa",
+    href: "https://rasa.com/",
+  },
+  {
+    src: "/logos/productboard.svg",
+    bounds: [7, 146],
+    alt: "Productboard",
+    href: "https://productboard.com/",
+  },
 ];
 
 const CLOUD_LOGOS: Logo[] = [
@@ -82,7 +195,10 @@ export function LogoStrip({
       : [logos.filter((_, i) => i % 2 === 0), logos.filter((_, i) => i % 2 === 1)];
 
   return (
-    <section className={styles.section} aria-label="Customers using OpenUI">
+    <section
+      className={`${styles.section} ${variant === "home" ? styles.opticalStrip : ""}`}
+      aria-label="Customers using OpenUI"
+    >
       {title ? <h3 className={styles.title}>{title}</h3> : null}
       <div className={styles.inner}>
         {rows.map((row, rowIndex) => (
@@ -97,22 +213,30 @@ export function LogoStrip({
               {Array.from({ length: SETS }, (_, set) =>
                 row.map((logo) => {
                   const image = (
-                    <>
-                      <Image
-                        className={styles.logo}
-                        src={logo.src}
-                        alt={logo.alt}
-                        aria-hidden={set === 0 ? undefined : true}
-                        width={160}
-                        height={48}
-                        loading="lazy"
-                      />
+                    <span
+                      className={styles.mark}
+                      style={
+                        {
+                          "--logo-scale": logo.scale ?? 1,
+                          "--artwork-width":
+                            ((logo.bounds?.[1] ?? 160) - (logo.bounds?.[0] ?? 0)) / 48,
+                          "--artwork-left": (logo.bounds?.[0] ?? 0) / 48,
+                        } as CSSProperties
+                      }
+                    >
+                      <span className={styles.artwork}>
+                        <Image
+                          className={styles.logo}
+                          src={logo.src}
+                          alt={logo.alt}
+                          aria-hidden={set === 0 ? undefined : true}
+                          width={160}
+                          height={48}
+                          loading="lazy"
+                        />
+                      </span>
                       {logo.yc ? (
-                        <span
-                          className={styles.yc}
-                          style={logo.ycInset ? { marginLeft: -12 - logo.ycInset } : undefined}
-                          title="Backed by Y Combinator"
-                        >
+                        <span className={styles.yc} title="Backed by Y Combinator">
                           <svg viewBox="0 0 16 16" aria-hidden="true">
                             <rect width="16" height="16" rx="3" fill="#F26522" />
                             <path
@@ -122,7 +246,7 @@ export function LogoStrip({
                           </svg>
                         </span>
                       ) : null}
-                    </>
+                    </span>
                   );
 
                   return logo.href ? (

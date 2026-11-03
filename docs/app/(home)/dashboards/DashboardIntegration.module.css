@@ -1,0 +1,201 @@
+/* The setup band: gray, like the OUI-1 how-to band. The numbers section above
+   supplies the space before it, so it carries no top margin of its own. */
+.band {
+  padding-block: var(--dash-space);
+  background: var(--openui-background);
+}
+
+/* Five steps as in the OUI-1 and AppLess how-to rows: no rule above them,
+   hairlines between the columns. */
+.row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rowStep {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding-inline: 24px;
+}
+
+.rowStep:first-child {
+  padding-left: 0;
+}
+
+.rowStep:last-child {
+  padding-right: 0;
+}
+
+.rowStep + .rowStep {
+  border-left: 1px solid var(--home-hairline);
+}
+
+.stepTitle {
+  margin: 16px 0 0;
+  font-family: var(--home-font-display);
+  font-size: var(--home-lead-size);
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--openui-text-neutral-primary);
+}
+
+.stepText {
+  margin: 4px 0 0;
+  font-size: var(--home-body-size);
+  line-height: 1.5;
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* ---------- Logo marks ---------- */
+
+/* Logos sit on one baseline whatever the copy above them runs to. */
+.marks {
+  display: inline-flex;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.markStack {
+  display: flex;
+  padding-left: 4px;
+}
+
+.mark {
+  --stack-logo-size: 28px;
+  --stack-logo-glyph: 15px;
+
+  display: flex;
+  margin-left: -4px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--openui-background);
+}
+
+.markIcon {
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--openui-border-default);
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-primary);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1023px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 40px;
+  }
+
+  .rowStep,
+  .rowStep:first-child,
+  .rowStep:last-child {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    column-gap: 16px;
+    padding: 20px 0;
+  }
+
+  .rowStep:first-child {
+    padding-top: 0;
+  }
+
+  .rowStep + .rowStep {
+    border-top: 1px solid var(--home-hairline);
+    border-left: 0;
+  }
+
+  .rowStep > * {
+    grid-column: 2;
+  }
+
+  .rowStep > :first-child {
+    grid-row: 1 / span 3;
+    grid-column: 1;
+  }
+
+  .stepTitle {
+    margin-top: 0;
+  }
+
+  .marks {
+    padding-top: 12px;
+  }
+}
+
+/* Five columns get tight between tablet and desktop; close the gutters up. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .rowStep {
+    padding-inline: 16px;
+  }
+}
+
+/* Phones: the five steps sit in one row you swipe through, like the How it
+   works steps, each card snapping into place. */
+@media (max-width: 767px) {
+  .row {
+    display: flex;
+    gap: 12px;
+    margin-inline: calc(-1 * var(--dash-gutter, 1rem));
+    padding-inline: var(--dash-gutter, 1rem);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--dash-gutter, 1rem);
+    scrollbar-width: none;
+  }
+
+  .row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rowStep,
+  .rowStep:first-child,
+  .rowStep:last-child {
+    display: flex;
+    flex: 0 0 78%;
+    flex-direction: column;
+    gap: 0;
+    padding: 18px;
+    border: 1px solid var(--home-hairline);
+    border-radius: 14px;
+    background: var(--openui-foreground, #fff);
+    scroll-snap-align: start;
+  }
+
+  .rowStep + .rowStep {
+    border-top: 1px solid var(--home-hairline);
+  }
+
+  .rowStep > :first-child {
+    margin-bottom: 14px;
+  }
+
+  .stepTitle {
+    margin-top: 0;
+  }
+
+  .marks {
+    margin-top: auto;
+  }
+
+  .marks {
+    padding-top: 10px;
+  }
+
+  .mark {
+    --stack-logo-size: 24px;
+    --stack-logo-glyph: 13px;
+  }
+
+  .markIcon {
+    width: 24px;
+    height: 24px;
+  }
+}

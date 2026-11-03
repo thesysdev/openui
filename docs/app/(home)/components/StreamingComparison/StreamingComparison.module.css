@@ -1324,9 +1324,13 @@
   }
 }
 
-/* The example tabs float over the bottom edge of the visual, on its fade. */
+/* The selector straddles the visual's bottom edge: half in, half out. */
 .tabsHost {
   position: relative;
+}
+
+.tabsHost .panel {
+  border: 1px solid var(--openui-border-default, rgba(0, 0, 0, 0.08));
 }
 
 /* A full-width strip pinned to the bottom edge that centres the tab bar with
@@ -1335,7 +1339,8 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 1.25rem;
+  bottom: 0;
+  transform: translateY(50%);
   z-index: 2;
   display: flex;
   justify-content: center;
@@ -1731,10 +1736,6 @@
 @media (max-width: 767px) {
   .frame {
     padding-inline: 0;
-  }
-
-  .tabsBar {
-    bottom: 0.75rem;
   }
 
   .tab {

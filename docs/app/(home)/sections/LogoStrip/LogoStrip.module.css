@@ -2,8 +2,13 @@
   margin-top: 2.5rem;
 }
 
+/* Titled strips follow the homepage/dashboard hero's edge-mounted selector. */
+.section:has(.title) {
+  margin-top: 6rem;
+}
+
 .title {
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.5rem;
   color: var(--home-color-text-muted);
   font-family: var(--home-font-text);
   font-size: var(--home-body-size);
@@ -74,9 +79,33 @@
 
 /* Flattened to the page's ink so the strip reads as one row of marks rather
    than a spread of brand colours. Both pages share the treatment. */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  --logo-height: 2.5rem;
+}
+
+/* Crop transparent SVG gutters while retaining each mark’s optical size. */
+.artwork {
+  display: block;
+  overflow: hidden;
+  flex: 0 0 auto;
+  width: calc(var(--logo-height) * var(--logo-scale) * var(--artwork-width));
+  height: calc(var(--logo-height) * var(--logo-scale));
+}
+
+.opticalStrip .card {
+  margin-inline: 0;
+  padding-inline: 1.5rem;
+}
+
 .logo {
-  height: 2.5rem;
+  display: block;
+  height: 100%;
   width: auto;
+  max-width: none;
+  margin-left: calc(-1 * var(--logo-height) * var(--logo-scale) * var(--artwork-left));
   flex: 0 0 auto;
   opacity: 0.5;
   filter: brightness(0);
@@ -95,9 +124,9 @@
 /* YC badge keeps its own orange: it sits outside the flattened .logo. */
 .yc {
   display: flex;
-  margin-left: -0.75rem;
+  margin-left: 0.25rem;
   margin-bottom: 1.25rem;
-  transform: translate(4px, -4px);
+  transform: translateY(-4px);
 }
 
 .yc svg {
@@ -110,7 +139,15 @@
     margin-top: 3rem;
   }
 
-  .logo {
-    height: 3rem;
+  .section:has(.title) {
+    margin-top: 7.5rem;
+  }
+
+  .mark {
+    --logo-height: 3rem;
+  }
+
+  .opticalStrip .card {
+    padding-inline: 2rem;
   }
 }

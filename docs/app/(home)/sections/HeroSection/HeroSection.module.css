@@ -995,6 +995,7 @@
 
 .previewFrameSlot {
   max-width: 1280px;
+  overflow: visible;
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -1040,6 +1041,7 @@
 }
 
 .mobileIllustrationViewportSlot {
+  overflow: visible;
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -1280,6 +1282,23 @@
 .mobileProof {
   display: flex;
   justify-content: center;
-  margin-block: 1.25rem 0.5rem;
+  margin-block: 3.5rem 2rem;
   padding-inline: 1rem;
+}
+
+/* The renderer proof introduces the preview, separately from the CTA group. */
+.desktopProof {
+  margin-top: 4.5rem;
+}
+
+.desktopHeroInner:has(.desktopProof) {
+  padding-bottom: 0;
+}
+
+.section:has(.desktopProof) .previewSection {
+  margin-top: 2rem;
+}
+
+.section .mobileHero:has(.mobileProof) .mobileCtaStack {
+  padding-bottom: 0;
 }

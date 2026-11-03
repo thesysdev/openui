@@ -109,6 +109,7 @@ function dropdownColumns(item: NavDropdown): NavGroup[][] {
 export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
   { title: "Demos", ...SITE_NAV_LINKS.demos },
   { title: "Documentation", ...SITE_NAV_LINKS.documentation },
+  { title: "Dashboards", ...SITE_NAV_LINKS.dashboards, badge: "New" },
   {
     title: "Resources",
     layout: "list",

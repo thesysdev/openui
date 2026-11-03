@@ -1,0 +1,508 @@
+/* OpenUI Dashboards. Type, surfaces and components come from the homepage,
+   OUI-1 and Gateway pages; this file only sets the page rhythm and the few
+   pieces those pages do not have. The gutter tracks the hero's own inline
+   padding, so every section lines up with the hero lockup at every width. */
+.page {
+  --dash-space: 128px;
+  /* Above How it works and above the feature grid (which is also the space
+     below How it works). Only .sectionWide reads it. */
+  --dash-space-wide: 200px;
+  --dash-gutter: 2rem;
+  --dash-stage-stroke: #f8f8f8;
+}
+
+[data-theme="dark"] .page {
+  --dash-stage-stroke: #0e0e0e;
+}
+
+/* Body copy balances its last line so no paragraph ends on a single word, at
+   any width. Headings already balance. */
+.page p,
+.page dt,
+.page li {
+  text-wrap: pretty;
+}
+
+.container {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(var(--home-container-max) + 2 * var(--dash-gutter));
+  margin-inline: auto;
+  padding-inline: var(--dash-gutter);
+}
+
+.section {
+  padding-top: var(--dash-space);
+}
+
+.section.sectionWide {
+  padding-top: var(--dash-space-wide);
+}
+
+/* Section lockup: heading on the left, lead on the right (as on Gateway). The
+   lead takes the hero subtitle's 400px column, so both share one edge. */
+.lockup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  align-items: end;
+  gap: 32px;
+}
+
+/* The Gateway section eyebrow. */
+.eyebrow {
+  margin: 0 0 1rem;
+  font-family: var(--home-font-text);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.heading {
+  max-width: 20ch;
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: var(--home-title-size);
+  font-weight: var(--home-title-weight);
+  line-height: var(--home-title-leading);
+  letter-spacing: var(--home-title-tracking);
+  color: var(--openui-text-neutral-primary);
+  text-wrap: balance;
+}
+
+.lead {
+  max-width: 34rem;
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: var(--home-lead-size);
+  font-weight: var(--home-lead-weight);
+  line-height: var(--home-lead-leading);
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: pretty;
+}
+
+/* ---------- Hero ---------- */
+
+/* The CTA row spans the lockup, so the model proof sits in the subtitle's
+   400px column and starts on its left edge. */
+.heroActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+
+.page div:has(> .heroActions),
+.page div:has(> div > .heroActions) {
+  align-self: stretch;
+  width: 100%;
+}
+
+.modelProof {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: start;
+  color: var(--openui-text-neutral-secondary);
+  font-size: var(--home-body-size);
+  line-height: 1.4;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.modelMarks {
+  display: flex;
+  padding-left: 4px;
+}
+
+/* Overlapping marks ringed in the page colour, like the homepage stacks. */
+.modelMark {
+  --stack-logo-size: 30px;
+  --stack-logo-glyph: 16px;
+
+  display: flex;
+  margin-left: -4px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--openui-foreground);
+}
+
+.modelText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modelArrow {
+  width: 14px;
+  height: 14px;
+  transition: transform 150ms ease;
+}
+
+.modelProof:hover {
+  color: var(--openui-text-neutral-primary);
+}
+
+.modelProof:hover .modelArrow {
+  transform: translateX(2px);
+}
+
+.heroStage {
+  width: 100%;
+}
+
+.heroArt.heroArt {
+  aspect-ratio: 1280 / 620;
+}
+
+/* ---------- Feature grid ---------- */
+
+.features {
+  margin-top: 64px;
+}
+
+/* ---------- Numbers ---------- */
+
+/* A light band: one line of heading, three figures, one link. */
+.numbersSection {
+  padding-block: var(--dash-space-wide);
+  text-align: center;
+}
+
+.numbersTitle {
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: var(--home-title-medium-size);
+  font-weight: var(--home-title-weight);
+  line-height: var(--home-title-leading);
+  letter-spacing: var(--home-title-tracking);
+  color: var(--openui-text-neutral-primary);
+  text-wrap: balance;
+}
+
+.numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.number {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 24px;
+}
+
+.number + .number {
+  border-left: 1px solid var(--home-hairline);
+}
+
+.numberValue {
+  order: -1;
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: clamp(2.25rem, 4vw, 3rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--openui-text-neutral-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.numberLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+/* The benefit in ink, right under the figure, so it reads with it. */
+.numberBenefit {
+  font-family: var(--home-font-display);
+  font-size: var(--home-lead-size);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--openui-text-neutral-primary);
+}
+
+.numberDetail {
+  font-size: var(--home-body-size);
+  line-height: 1.45;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.numbersLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 48px;
+  font-size: var(--home-body-size);
+  color: var(--openui-text-neutral-primary);
+  text-decoration: none;
+}
+
+.numbersLink svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 150ms ease;
+}
+
+.numbersLink:hover svg {
+  transform: translateX(2px);
+}
+
+/* ---------- Comparison ---------- */
+
+.compare {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  align-items: start;
+  gap: 80px;
+}
+
+.compareIntro .lead {
+  margin-top: 20px;
+}
+
+/* The benchmark table's own frame, without the chart card around it. */
+.compareTable.compareTable {
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+/* Column widths go on the cols: the benchmark table sizes its cells itself. */
+.capabilityColumn {
+  width: 30%;
+}
+
+.compareTable th,
+.compareTable td {
+  vertical-align: middle;
+}
+
+.compareTable tbody th {
+  font-weight: 500;
+}
+
+.dash {
+  color: var(--ink-muted);
+}
+
+.check {
+  color: var(--c1);
+}
+
+.dash,
+.check {
+  flex-shrink: 0;
+}
+
+.cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The losing column reads quieter than the OpenUI one. */
+.compareTable td.worse {
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* ---------- FAQ ---------- */
+
+.faqBand {
+  padding-block: var(--dash-space);
+}
+
+/* The shared FAQ on this page's grid, so its title lines up with the rest. */
+.faqBand > section {
+  max-width: calc(var(--home-container-max) + 2 * var(--dash-gutter));
+  margin-top: 0;
+  padding-inline: var(--dash-gutter);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1023px) {
+  .page {
+    --dash-space: 96px;
+    --dash-space-wide: 152px;
+    --dash-gutter: 1.5rem;
+  }
+
+  .lockup {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .numbersSection {
+    padding-block: var(--dash-space);
+  }
+}
+
+/* Below desktop the table's column is narrower than the table, so the
+   comparison stacks: intro first, then the table at full width. */
+@media (max-width: 1199px) {
+  .compare {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .compareIntro {
+    max-width: 36rem;
+  }
+}
+
+@media (max-width: 899.98px) {
+  .heroActions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .modelProof {
+    justify-self: auto;
+  }
+
+  .heroArt.heroArt {
+    aspect-ratio: 358 / 440;
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    --dash-space: 72px;
+    --dash-space-wide: 104px;
+    --dash-gutter: var(--home-section-padding-inline);
+  }
+
+  .lockup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .heading {
+    max-width: none;
+  }
+
+  /* Logos and text side by side; the text wraps beside the stack. */
+  .modelProof {
+    max-width: 320px;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .modelMarks {
+    flex-shrink: 0;
+  }
+
+  .modelText {
+    display: inline;
+  }
+
+  .modelArrow {
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: -2px;
+  }
+
+  .features {
+    margin-top: 40px;
+  }
+
+  /* On a phone each figure sits beside its label, left-aligned, so the three
+     read as a short list instead of three tall centred blocks. */
+  .numbersSection {
+    padding-block: 56px;
+    text-align: left;
+  }
+
+  .numbers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .number {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    align-items: center;
+    column-gap: 16px;
+    padding: 16px 0;
+  }
+
+  .number + .number {
+    border-top: 1px solid var(--home-hairline);
+    border-left: 0;
+  }
+
+  .numberValue {
+    font-size: 2rem;
+  }
+
+  .numberLabel {
+    margin-top: 0;
+  }
+
+  .numbersLink {
+    margin-top: 20px;
+  }
+
+  /* On a phone each row is the capability as a small label, then the two
+     answers side by side at full width, so nothing wraps into a third column. */
+  .compareTable.compareTable table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .compareTable.compareTable.compareTable colgroup {
+    display: none;
+  }
+
+  .compareTable.compareTable.compareTable thead,
+  .compareTable.compareTable.compareTable tbody {
+    display: block;
+  }
+
+  .compareTable.compareTable.compareTable tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compareTable.compareTable.compareTable th,
+  .compareTable.compareTable.compareTable td {
+    width: auto;
+    padding: 6px 14px 14px;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .compareTable.compareTable.compareTable thead th {
+    padding-block: 14px;
+    font-size: 0.875rem;
+  }
+
+  .compareTable.compareTable.compareTable thead th:first-child {
+    display: none;
+  }
+
+  .compareTable.compareTable.compareTable tbody th {
+    grid-column: 1 / -1;
+    padding: 14px 14px 0;
+    border-right: 0;
+    border-bottom: 0;
+    font-size: 0.8125rem;
+    color: var(--openui-text-neutral-secondary);
+  }
+
+  .cell {
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .cell svg {
+    margin-top: 3px;
+  }
+}
