@@ -2,7 +2,7 @@
 
 A text-only [assistant-ui](https://www.assistant-ui.com) chat whose model builds live dashboards about any npm package or GitHub repository. Each dashboard is an artifact: a card in the chat that opens it full size beside the conversation. It's stored in OpenUI Cloud and built from [`@openuidev/dashboard-kit`](https://www.npmjs.com/package/@openuidev/dashboard-kit), but its numbers load live every time it opens: downloads and releases from npm, stars and commit activity from GitHub, and known vulnerabilities from [OSV.dev](https://osv.dev) through an MCP server. Ask for a change and the same dashboard updates in place.
 
-It runs on Next.js, assistant-ui with the AI SDK, OpenUI Gateway's Chat Completions API, and `@openuidev/server`'s dashboards.
+It runs on Next.js, assistant-ui with the AI SDK on OpenAI, and `@openuidev/server`'s dashboards. The chat is entirely yours: your model, and threads kept in the browser's `localStorage`. OpenUI Cloud only builds, stores, and streams the dashboards.
 
 ## Run
 
@@ -18,10 +18,12 @@ Mint a `THESYS_API_KEY` into `.env.local`, or create one in the [Thesys Console]
 npm run generate:apiKey
 ```
 
+The chat runs on OpenAI: add your `OPENAI_API_KEY` to `.env.local` too.
+
 Optional settings, also in `.env.local` (see `.env.example`):
 
 - `GITHUB_TOKEN` raises GitHub's rate limit from 60 to 5,000 requests an hour. Any token works; public repositories need no scopes. Without it, a few GitHub dashboards an hour are fine.
-- `OPENUI_MODEL` selects the chat model as a `provider/model` identifier; the default is `openai/gpt-5.5`.
+- `OPENAI_MODEL` selects the chat model; the default is `gpt-5.5`.
 - `OPENUI_DASHBOARD_MODEL` selects the model that builds dashboards; the default is `anthropic/claude-sonnet-4.6`.
 - `THESYS_BASE_URL` points the app at another OpenUI Cloud deployment, such as a local stack at `http://localhost:3102`; the default is `https://api.thesys.dev`. The browser then reaches it through this app's origin, so set it before `npm run dev` or `npm run build`.
 
@@ -65,18 +67,17 @@ card (the tool's render) ◄─────────── streamed with the 
                      Query() ─► /api/interpreter ─► data tools, MCP tools, generated scripts
 ```
 
-1. The chat sends the thread to `/api/chat`, which streams a reply from OpenUI Gateway with two tools, `create_dashboard` and `edit_dashboard`.
+1. The chat sends the thread to `/api/chat`, which streams a reply from OpenAI with two tools, `create_dashboard` and `edit_dashboard`.
 2. The model calls `create_dashboard` with a title and a description of the dashboard. Its `execute` runs on this server and calls `dashboards.create()`, which starts generating in OpenUI Cloud and returns as soon as the dashboard has an id. The result, written by OpenUI Cloud, is a sentence for the model plus the dashboard's reference, and the model replies in a sentence or two.
 3. assistant-ui renders the tool call with the toolkit's `render`: a card in the chat. When the result arrives, the card opens the dashboard beside the chat, and `LiveArtifactRenderer` streams it from OpenUI Cloud as it's generated.
 4. The dashboard loads its data with `Query()` calls. The renderer sends each one to `/api/interpreter`, where `dashboards.interpreter.execute()` runs the matching data tool or MCP tool on this server, or a script the dashboard was generated with, which calls the same tools.
 5. For a change, the model calls `edit_dashboard` with the id from the first tool result. The open dashboard stays on screen until the new version is ready, then every renderer showing it switches over.
-6. When the turn ends, the route saves it, the user's message plus the model's replies and tool results, to the thread's OpenUI Cloud conversation with `storeChatCompletionHistory`.
 
 ## Chats and dashboards
 
 The sidebar has two tabs:
 
-- **Chats** is assistant-ui's thread list, kept in OpenUI Cloud conversations. `src/components/threads.tsx` is a `RemoteThreadListAdapter` over `useOpenuiCloudStorage().thread`, which reads them with the user's frontend token: it creates, lists, titles and deletes threads, and loads a thread's stored items back as messages, tool calls included, so its dashboard cards render again. assistant-ui sends the thread's conversation id with each request, which the route saves the turn to.
+- **Chats** is assistant-ui's thread list, kept in this browser. `src/components/threads.tsx` is a `RemoteThreadListAdapter` with a history adapter over `localStorage`: it creates, lists, titles and deletes threads, and saves each message in assistant-ui's own format, tool calls included, so a thread reloads with its dashboard cards. Swap its storage helpers for your database to keep threads on your server; OpenUI Cloud never sees them.
 - **Dashboards** lists the user's dashboards with `useArtifactList()` from `@openuidev/react-ui/cloud`: pinned ones first, then the rest, newest first, each with pin, unpin, and delete. Every list and renderer shares one cache, so a change shows everywhere at once. A row opens its dashboard by id; a new dashboard joins the list once it finishes generating and OpenUI Cloud saves it.
 
 ## The toolkit
@@ -106,10 +107,9 @@ The chat is assistant-ui's `Thread` and `ThreadList` from its shadcn registry, i
 | `src/app/api/interpreter/route.ts`    | Runs dashboards' `Query()` calls with `dashboards.interpreter`        |
 | `src/app/api/frontend-token/route.ts` | The user's frontend token for OpenUI Cloud                            |
 | `src/components/app.tsx`              | Runtime, providers, and the chat and panel layout                     |
-| `src/components/threads.tsx`          | assistant-ui's thread list over OpenUI Cloud conversations            |
+| `src/components/threads.tsx`          | assistant-ui's thread list, kept in `localStorage`                    |
 | `src/components/dashboard-list.tsx`   | The Dashboards tab: `useArtifactList()` with pin, unpin, and delete   |
 | `src/components/assistant-ui/`        | assistant-ui's `Thread` and `ThreadList`, from its registry           |
-| `src/lib/history.ts`                  | Saves each turn with `storeChatCompletionHistory`                     |
 | `src/components/dashboard.tsx`        | The dashboard card and the panel with `LiveArtifactRenderer`          |
 
 `npm run generate` creates the ignored component specification before dev/build/verify.
@@ -118,7 +118,7 @@ The chat is assistant-ui's `Thread` and `ThreadList` from its shadcn registry, i
 
 The app binds to loopback and every browser shares one local user. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication) and use the signed-in user's id for the frontend token and the dashboard tools. Pass the user as the interpreter's `context` if data tools should return only what they may see. Add request-size and rate limits to the routes, and set `GITHUB_TOKEN`.
 
-OpenUI Cloud stores each dashboard's definition, not its data: numbers reach the browser only through `/api/interpreter`, from your server. Gateway receives the conversation, the dashboard descriptions, and the data tools' descriptions and example outputs.
+OpenUI Cloud stores each dashboard's definition, not its data: numbers reach the browser only through `/api/interpreter`, from your server. OpenAI receives the conversation; OpenUI Cloud receives only each dashboard's title and description, and the data tools' descriptions and example outputs.
 
 ## Verify
 
