@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "tw-shimmer";
 
-/* shadcn/ui's theme tokens (neutral) for the chat. Dashboards bring @openuidev/dashboard-kit's
+/* shadcn/ui's theme tokens (neutral) for the chat. Dashboards bring @openuidev/dashboard-library's
    theme. Dark mode follows the system. */
 
 @theme inline {
