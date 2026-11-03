@@ -7,6 +7,8 @@
 export interface InterpreterRequest {
   /** The artifact's id. */
   id: string;
+  /** The version on screen; OpenUI Cloud refuses a script run when the artifact has moved on. */
+  version?: string;
   /** The query or tool to run. */
   name: string;
   arguments: Record<string, unknown>;
@@ -38,7 +40,7 @@ export interface InterpreterToolProviderOptions {
   /** Read on every call, so the provider's identity can stay stable. */
   getInterpreter: () => Interpreter | undefined;
   /** The artifact the calls are for. */
-  getRequest: () => { id: string | null | undefined };
+  getRequest: () => { id: string | null | undefined; version?: string };
   /** Defaults to the global `fetch`. */
   fetch?: typeof fetch;
   /** Called when a call starts. */
@@ -93,11 +95,16 @@ export function createInterpreterToolProvider(
   return {
     async callTool({ name, arguments: args = {} }) {
       const interpreter = options.getInterpreter();
-      const { id } = options.getRequest();
+      const { id, version } = options.getRequest();
       if (!interpreter) throw new Error("This artifact has no interpreter.");
       if (!id) throw new Error("This artifact has no id yet.");
 
-      const request: InterpreterRequest = { id, name, arguments: args };
+      const request: InterpreterRequest = {
+        id,
+        ...(version !== undefined && { version }),
+        name,
+        arguments: args,
+      };
       options.onStart?.(name);
       try {
         const result =
