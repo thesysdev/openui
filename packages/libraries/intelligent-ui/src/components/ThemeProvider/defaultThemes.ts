@@ -1,8 +1,8 @@
 import { type Theme } from "@openuidev/react-components";
 
 /**
- * Only the tokens the kit changes: the source app's status colours, for text and for the soft tints
- * behind badges and callouts. `ThemeProvider` merges these over its own default theme, so neutrals,
+ * Only the tokens the library changes: the source app's status colours, for text and for the soft tints
+ * behind badges and callouts. react-components' `ThemeProvider` merges these over its own default theme, so neutrals,
  * spacing and type come from there and keep following the light or dark mode.
  */
 export const defaultLightTheme: Partial<Theme> = {

@@ -53,7 +53,7 @@ export function IntelligentMessage({
 
 `ThemeProvider` is optional. It follows the outer `ThemeProvider`'s mode (light by
 default) and takes `lightTheme` and `darkTheme` overrides. Wrap the `Renderer` in it so every
-response gets the kit's theme, whatever its root.
+response gets the library's theme, whatever its root.
 
 ### Actions
 
