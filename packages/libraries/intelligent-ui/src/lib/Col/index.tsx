@@ -2,10 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Col as ColView } from "../../components/Col";
-import {
-  IntelligentUiThemeProvider,
-  useIsInsideIntelligentUiTheme,
-} from "../../components/IntelligentUiThemeProvider";
+import { ThemeProvider, useIsInsideTheme } from "../../components/ThemeProvider";
 import { ColSchema } from "./schema";
 
 export * from "./schema";
@@ -22,11 +19,7 @@ export const Col = defineComponent({
     );
     // The program's root brings the kit's theme, as the dashboard kit's Dashboard does. Only the root:
     // a wrapper inside a Card would sit where its spacing rules expect the Col.
-    const inside = useIsInsideIntelligentUiTheme();
-    return statementId !== "root" || inside ? (
-      col
-    ) : (
-      <IntelligentUiThemeProvider>{col}</IntelligentUiThemeProvider>
-    );
+    const inside = useIsInsideTheme();
+    return statementId !== "root" || inside ? col : <ThemeProvider>{col}</ThemeProvider>;
   },
 });

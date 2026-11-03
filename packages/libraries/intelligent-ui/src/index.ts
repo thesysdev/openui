@@ -19,7 +19,4 @@ export {
   type IntelligentKitEndpoints,
 } from "./shared/config";
 
-export {
-  IntelligentUiThemeProvider,
-  type IntelligentUiThemeProviderProps,
-} from "./components/IntelligentUiThemeProvider";
+export { ThemeProvider, type ThemeProviderProps } from "./components/ThemeProvider";

@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  defaultDarkTheme,
-  defaultLightTheme,
-  ThemeProvider,
+  ThemeProvider as BaseThemeProvider,
+  defaultDarkTheme as baseDarkTheme,
+  defaultLightTheme as baseLightTheme,
   useTheme,
   type Theme,
   type ThemeMode,
@@ -16,19 +16,19 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { defaultIntelligentDarkTheme, defaultIntelligentLightTheme } from "./defaultThemes";
+import { defaultDarkTheme, defaultLightTheme } from "./defaultThemes";
 
 /** The stable class on the provider's wrapper, a target for an app's own CSS. */
 export const names = { root: "openui-intelligent-theme" } as const;
 
-const InsideIntelligentUiTheme = createContext(false);
+const InsideTheme = createContext(false);
 
-/** Whether an `IntelligentUiThemeProvider` is already above this point, so the root doesn't add another. */
-export const useIsInsideIntelligentUiTheme = () => useContext(InsideIntelligentUiTheme);
+/** Whether this library's `ThemeProvider` is already above this point, so the root doesn't add another. */
+export const useIsInsideTheme = () => useContext(InsideTheme);
 
-export interface IntelligentUiThemeProviderProps {
+export interface ThemeProviderProps {
   children: ReactNode;
-  /** Overrides the mode read from the outer `<ThemeProvider>`. */
+  /** Overrides the mode read from the outer react-components `<ThemeProvider>`. */
   mode?: ThemeMode;
   /** Shallow-merged over the kit's light theme. */
   lightTheme?: Partial<Theme>;
@@ -37,7 +37,7 @@ export interface IntelligentUiThemeProviderProps {
 }
 
 /**
- * Themes the kit's output, like the dashboard kit's `DashboardThemeProvider`: a react-components
+ * Themes the kit's output, like the dashboard library's `ThemeProvider`: a react-components
  * `ThemeProvider` that follows the outer one's mode and adds the kit's default theme.
  *
  * Two things differ. The outer theme is kept: a token an app changed from react-components' default
@@ -46,25 +46,22 @@ export interface IntelligentUiThemeProviderProps {
  * there and hide an app's own CSS variables. A mode or theme of yours gets a ThemeProvider, scoped to
  * this provider, so a light and a dark output can share a page.
  */
-export function IntelligentUiThemeProvider({
+export function ThemeProvider({
   children,
   mode: modeOverride,
   lightTheme,
   darkTheme,
-}: IntelligentUiThemeProviderProps) {
+}: ThemeProviderProps) {
   const outer = useTheme();
   const mode: ThemeMode = modeOverride ?? outer.mode;
   const scope = `openui-intelligent-theme-${useId().replace(/[^a-zA-Z0-9-_]/g, "")}`;
   const themed = modeOverride !== undefined || lightTheme !== undefined || darkTheme !== undefined;
 
   const { theme, palette } = useMemo(() => {
-    const builtIn = (mode === "dark" ? defaultDarkTheme : defaultLightTheme) as Record<
-      string,
-      unknown
-    >;
+    const builtIn = (mode === "dark" ? baseDarkTheme : baseLightTheme) as Record<string, unknown>;
     // The outer theme only says something about this mode when it's in it.
     const base = (mode === outer.mode ? outer.theme : builtIn) as Record<string, unknown>;
-    const kit = mode === "dark" ? defaultIntelligentDarkTheme : defaultIntelligentLightTheme;
+    const kit = mode === "dark" ? defaultDarkTheme : defaultLightTheme;
     const untouched = Object.fromEntries(
       Object.entries(kit).filter(([key]) => base[key] === builtIn[key]),
     );
@@ -77,9 +74,7 @@ export function IntelligentUiThemeProvider({
     };
   }, [mode, outer.mode, outer.theme, lightTheme, darkTheme]);
 
-  const body = (
-    <InsideIntelligentUiTheme.Provider value={true}>{children}</InsideIntelligentUiTheme.Provider>
-  );
+  const body = <InsideTheme.Provider value={true}>{children}</InsideTheme.Provider>;
   if (!themed) {
     return (
       <div className={names.root} style={{ display: "contents", ...palette }}>
@@ -89,9 +84,9 @@ export function IntelligentUiThemeProvider({
   }
   return (
     <div className={`${names.root} ${scope}`} style={{ display: "contents" }}>
-      <ThemeProvider mode={mode} lightTheme={theme} darkTheme={theme} cssSelector={`.${scope}`}>
+      <BaseThemeProvider mode={mode} lightTheme={theme} darkTheme={theme} cssSelector={`.${scope}`}>
         {body}
-      </ThemeProvider>
+      </BaseThemeProvider>
     </div>
   );
 }

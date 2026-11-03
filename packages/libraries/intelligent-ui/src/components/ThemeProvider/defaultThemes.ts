@@ -5,7 +5,7 @@ import { type Theme } from "@openuidev/react-components";
  * behind badges and callouts. `ThemeProvider` merges these over its own default theme, so neutrals,
  * spacing and type come from there and keep following the light or dark mode.
  */
-export const defaultIntelligentLightTheme: Partial<Theme> = {
+export const defaultLightTheme: Partial<Theme> = {
   textSuccessPrimary: "#00805d",
   successBackground: "#edf9f2",
   textAlertPrimary: "#8a5300",
@@ -18,7 +18,7 @@ export const defaultIntelligentLightTheme: Partial<Theme> = {
   pinkBackground: "#fff0f6",
 };
 
-export const defaultIntelligentDarkTheme: Partial<Theme> = {
+export const defaultDarkTheme: Partial<Theme> = {
   textSuccessPrimary: "#5bcf9c",
   successBackground: "#13291f",
   textAlertPrimary: "#f0b84f",
