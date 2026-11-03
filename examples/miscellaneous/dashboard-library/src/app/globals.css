@@ -10,7 +10,13 @@ body {
   height: 100vh;
 }
 
-/* The chat card that stands in for a dashboard reply. */
+/* A reply: its text, then a card that stands in for its dashboard. */
+.dashboard-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--openui-space-m);
+}
+
 .dashboard-message-card {
   display: flex;
   align-items: center;

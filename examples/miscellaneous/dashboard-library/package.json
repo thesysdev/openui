@@ -1,5 +1,5 @@
 {
-  "name": "@openuidev/example-dashboard-kit-testbench",
+  "name": "@openuidev/example-dashboard-library",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
     "preverify": "npm run generate",
     "verify": "next build",
     "start": "next start",
-    "kit:pack": "pnpm --dir ../../.. --filter \"@openuidev/dashboard-kit...\" run build && pnpm --dir ../../../packages/kits/dashboard pack --out ../../../examples/miscellaneous/dashboard-kit-testbench/.kit/dashboard-kit.tgz"
+    "kit:pack": "pnpm --dir ../../.. --filter \"@openuidev/dashboard-kit...\" run build && pnpm --dir ../../../packages/kits/dashboard pack --out ../../../examples/miscellaneous/dashboard-library/.kit/dashboard-kit.tgz"
   },
   "dependencies": {
     "@openuidev/dashboard-kit": "file:.kit/dashboard-kit.tgz",

@@ -21,7 +21,7 @@ const { llm, storage } = localStorageChat(
       }),
     streamProtocol: openAIAdapter(),
   },
-  "openui-dashboard-kit-testbench",
+  "openui-dashboard-library",
 );
 
 export default function Page() {
@@ -36,29 +36,29 @@ export default function Page() {
           llm={llm}
           storage={storage}
           components={{ AssistantMessage: DashboardMessage }}
-          agentName="Dashboard Kit Test Bench"
+          agentName="Dashboard Library"
           theme={{ mode }}
           starterVariant="short"
           starters={[
             {
-              displayText: "SaaS revenue",
+              displayText: "Sales overview",
               prompt:
-                "Build a SaaS revenue dashboard: MRR, churn and new customers as KPIs, MRR by month, revenue by plan, and the top 5 accounts. Add a region filter.",
+                "Build a sales overview dashboard with region and period filters: revenue, orders and churn KPIs, the revenue trend, revenue by category, and recent orders.",
             },
             {
               displayText: "E-commerce orders",
               prompt:
-                "Show an e-commerce orders dashboard for last quarter with a date filter: orders and AOV KPIs, orders by week, sales by category, and recent orders in a table.",
+                "Show an e-commerce orders dashboard for last quarter: orders and AOV KPIs, orders by week, sales by category, and recent orders in a table.",
             },
             {
-              displayText: "Support tickets",
+              displayText: "Order management",
               prompt:
-                "Make a support ticket dashboard: open tickets, median first response and CSAT, tickets by priority, and a list of the oldest open tickets.",
+                "Show recent orders in a table with a status filter, where I can mark pending orders as shipped.",
             },
             {
-              displayText: "Website traffic",
+              displayText: "Regional comparison",
               prompt:
-                "Build a website analytics dashboard with sessions, bounce rate and conversion rate, traffic by source, and sessions by day with a device filter.",
+                "Compare revenue across North America, EMEA and APAC over the last 12 months.",
             },
           ]}
         />

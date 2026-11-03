@@ -2,11 +2,15 @@ import { generateSystemPrompt, type LibrarySpec, type PromptOptions } from "@ope
 import { readFileSync } from "fs";
 import { join } from "path";
 
-/** Load the generated dashboard-kit spec and wrap it in Cloud's managed prompt block. */
+/**
+ * Build the full system prompt from the generated dashboard-kit spec.
+ *
+ * Not `cloud: true`: Cloud's managed config only forwards preamble, examples and
+ * additionalRules, so tools, edit mode, inline mode and bindings would be dropped.
+ */
 export function systemPrompt(): string {
-  // generateSystemPrompt takes the library and its prompt options separately.
   const { promptOptions, ...library } = JSON.parse(
     readFileSync(join(process.cwd(), "src/generated/spec.json"), "utf-8"),
   ) as LibrarySpec & { promptOptions?: PromptOptions };
-  return generateSystemPrompt({ cloud: true, library, promptOptions });
+  return generateSystemPrompt({ library, promptOptions });
 }
