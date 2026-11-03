@@ -6,6 +6,58 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class ReadingRhythmTests: XCTestCase {
+  @MainActor func testOverviewMediaAndMetricShareTheContentLeadingEdge() throws {
+    _ = NSApplication.shared
+    let standard = try OpenUIStandardComponents.library()
+    let frames = OverviewSlotFrames()
+    let names = ["IconText", "ImageText", "Text", "MetricIndicatorInline"]
+    let replacements = try names.map { name -> OpenUIComponent in
+      let component = try XCTUnwrap(OpenUIStandardComponents.components.first { $0.definition.name == name })
+      return OpenUIComponent(component.definition) { context in
+        Group {
+          switch name {
+          case "IconText": NativeMediaText(context: context, media: .icon)
+          case "ImageText": NativeMediaText(context: context, media: .thumbnail)
+          case "Text": NativeInlineText(context: context, bold: false)
+          default: NativeMetric(context: context, inline: true)
+          }
+        }.background(GeometryReader { geometry in
+          Color.clear.onAppear { frames.values[name] = geometry.frame(in: .named("overview")) }
+            .onChange(of: geometry.frame(in: .named("overview"))) { frames.values[name] = $0 }
+        })
+      }
+    }
+    let library = try standard.extending(overriding: replacements)
+    for (name, header) in [
+      ("IconText", "IconText(Icon(\"wallet\"),\"neutral\",\"m\",\"预算\",\"两人合计\")"),
+      ("ImageText", "ImageText(\"photo.jpg\",\"Room\",\"住宿\",\"一晚\")"),
+      ("Text", "Text(\"text\",\"预算\",\"两人合计\")")
+    ] {
+      for width in [CGFloat(166), 300] {
+        frames.values = [:]
+        let state = OpenUIState(schema: library.library.toSchema())
+        state.setSource("root=OverviewCardBlock([OverviewCardItem(\"a\",\(header),MetricIndicatorInline(\"¥1200\",\"含餐饮\")),OverviewCardItem(\"b\",Text(\"text\",\"Other\"))])")
+        XCTAssertTrue(state.errors.isEmpty)
+        let element = try XCTUnwrap(PropValue.children(try XCTUnwrap(state.root), "items").first)
+        let context = OpenUIComponentContext(element: element, registry: library.registry, state: state)
+        let host = NSHostingView(rootView: NativeCardItem(context: context, kind: "Overview")
+          .environmentObject(state).frame(width: width).coordinateSpace(name: "overview"))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: width, height: 240),
+          styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false; window.contentView = host
+        window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
+        defer { window.close() }
+        host.layoutSubtreeIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.08))
+        let top = try XCTUnwrap(frames.values[name])
+        let bottom = try XCTUnwrap(frames.values["MetricIndicatorInline"])
+        XCTAssertEqual(top.minX, OpenUIThemeValues().spaceSM, accuracy: 1)
+        XCTAssertEqual(bottom.minX, top.minX, accuracy: 1,
+          "An intrinsic-width metric must align with the top slot at \(width)pt")
+        XCTAssertLessThanOrEqual(bottom.maxX, width - OpenUIThemeValues().spaceSM + 1)
+      }
+    }
+  }
   @MainActor private func height(_ source: String, theme: OpenUIThemeValues = OpenUIThemeValues(),
     presentation: OpenUIPresentation = OpenUIPresentation()) throws -> CGFloat {
     _ = NSApplication.shared
@@ -89,4 +141,6 @@ final class ReadingRhythmTests: XCTestCase {
       "The copy control must use the same platform policy as other native controls")
   }
 }
+
+@MainActor private final class OverviewSlotFrames { var values: [String: CGRect] = [:] }
 #endif

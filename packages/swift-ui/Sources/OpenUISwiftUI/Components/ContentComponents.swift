@@ -687,13 +687,13 @@ struct NativeCardItem: View {
         }
       case "Overview":
         HStack(alignment: .top, spacing: context.theme.spacing("s")) {
-          context.slot("top").multilineTextAlignment(.center).frame(maxWidth: .infinity, alignment: .center)
+          context.slot("top").multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
           if isAction {
             Spacer(minLength: 0)
             actionIndicator
           }
         }
-        context.slot("bottom").multilineTextAlignment(.center).frame(maxWidth: .infinity, alignment: .center)
+        context.slot("bottom").multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
       case "Context":
         context.slot("title").openUIFont(context.theme.textBodyXs)
           .foregroundStyle(contentTheme.textNeutralSecondary)
