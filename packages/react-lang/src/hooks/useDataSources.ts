@@ -1,4 +1,5 @@
 import { dataSources, evaluate } from "@openuidev/lang-core";
+import { useMemo } from "react";
 import { useOpenUI } from "../context";
 
 /** A query a component reads: its tool, its arguments now, and its current result. */
@@ -16,6 +17,8 @@ interface ComponentDataSources {
   via: string[];
   /** The `$variables` it reads, with their current values. */
   state: Record<string, unknown>;
+  /** The same by prop, as names only (`state` too). `literal`: the prop reads nothing, its value is written in the program. */
+  props?: Record<string, { queries: string[]; via: string[]; state: string[]; literal: boolean }>;
 }
 
 /**
@@ -26,8 +29,13 @@ interface ComponentDataSources {
 export function useDataSources(statementId: string | undefined): ComponentDataSources | null {
   const { getParseResult, evaluationContext } = useOpenUI();
   const result = getParseResult?.();
-  if (!result || !statementId) return null;
-  const { queries, via, state } = dataSources(result, statementId, evaluationContext.actions);
+  const found = useMemo(
+    () =>
+      result && statementId ? dataSources(result, statementId, evaluationContext.actions) : null,
+    [result, statementId, evaluationContext.actions],
+  );
+  if (!result || !found) return null;
+  const { queries, via, state, props } = found;
   return {
     queries: queries.map((id) => {
       const query = result.queryStatements.find((q) => q.statementId === id);
@@ -40,5 +48,6 @@ export function useDataSources(statementId: string | undefined): ComponentDataSo
     }),
     via,
     state: Object.fromEntries(state.map((name) => [name, evaluationContext.getState(name)])),
+    props,
   };
 }

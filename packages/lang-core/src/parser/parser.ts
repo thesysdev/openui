@@ -292,8 +292,11 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
-/** Each parse result's statements as parsed, by name, for `dataSources`. Not public. */
-export const parsedStatements = new WeakMap<ParseResult, ReadonlyMap<string, ASTNode>>();
+/** Each parse result's statements as parsed, by name, and its library, for `dataSources`. Not public. */
+export const parsedStatements = new WeakMap<
+  ParseResult,
+  { statements: ReadonlyMap<string, ASTNode>; cat: ParamMap | undefined }
+>();
 
 function buildResult(
   stmtMap: Map<string, Statement>,
@@ -380,7 +383,7 @@ function buildResult(
     queryStatements,
     mutationStatements,
   };
-  parsedStatements.set(result, syms);
+  parsedStatements.set(result, { statements: syms, cat });
   return result;
 }
 
