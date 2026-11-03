@@ -7,12 +7,17 @@
  * kit's `openuiDashboard*`.
  */
 export {
-  openuiIntelligentAdditionalRules,
   openuiIntelligentComponentGroups,
-  openuiIntelligentExamples,
   openuiIntelligentLibrary,
-  openuiIntelligentPromptOptions,
 } from "./lib/openuiIntelligentLibrary";
+
+// Exported from their own module: re-exported through the library module, they left a bare
+// import there that bundlers drop under sideEffects false, with a warning.
+export {
+  openuiIntelligentAdditionalRules,
+  openuiIntelligentExamples,
+  openuiIntelligentPromptOptions,
+} from "./lib/prompt-options";
 
 export { intelligentComponents } from "./lib/defineComponents";
 

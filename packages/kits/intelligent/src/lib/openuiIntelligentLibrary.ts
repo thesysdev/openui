@@ -88,9 +88,3 @@ export const openuiIntelligentLibrary = createLibrary({
   actions,
   componentGroups: openuiIntelligentComponentGroups,
 });
-
-export {
-  openuiIntelligentAdditionalRules,
-  openuiIntelligentExamples,
-  openuiIntelligentPromptOptions,
-} from "./prompt-options";
