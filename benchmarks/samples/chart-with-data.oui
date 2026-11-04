@@ -1,0 +1,12 @@
+root = Stack([header, layout], "column", "l")
+header = TextContent("Revenue Dashboard", "large-heavy")
+layout = Stack([metricCard, chartCard], "row", "l", "stretch", "start", true)
+metricCard = Card([metricHeader, metricValue, metricDelta], "card")
+metricHeader = CardHeader("Total Revenue", "Last 6 months")
+metricValue = TextContent("$1,284,000", "large-heavy")
+metricDelta = TextCallout("success", "Up 8.4%", "Compared to the previous 6 months")
+chartCard = Card([chartHeader, revenueChart], "card")
+chartHeader = CardHeader("Monthly Revenue", "Last 6 months")
+revenueChart = BarChart(monthLabels, [revenueSeries], "grouped", "Month", "Revenue (USD)")
+monthLabels = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
+revenueSeries = Series("Revenue", [198000, 205000, 214000, 210000, 223000, 234000])

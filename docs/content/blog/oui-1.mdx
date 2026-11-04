@@ -33,7 +33,7 @@ OUI-1 is our first step toward solving that problem: an open-weight model built 
 
 ## Finding a model that fit the constraints
 
-The protocol was already in place. OpenUI Lang is up to 2.6x cheaper than JSON formats in the [Generative UI benchmark](/benchmarks), and it streams, so the interface starts appearing before the model has finished generating it. The harder part was finding a model with the right speed and hardware profile.
+The protocol was already in place. OpenUI Lang costs up to 67% fewer tokens than JSON and streams, so the interface starts appearing before the model has finished generating it. The harder part was finding a model with the right speed and hardware profile.
 
 That is why we chose DiffusionGemma. Autoregressive models generate one token at a time and are bottlenecked on memory bandwidth. DiffusionGemma writes a 256-token block at once, starting from noise and committing each token the moment it is sure of it. Google reports over 1,000 tokens per second on a single H100 and over 700 on an RTX 5090<sup><a href="#source-1" style={{ color: "#3978e6", textDecoration: "none", fontWeight: 600 }}>[1]</a></sup>.
 

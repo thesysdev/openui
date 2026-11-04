@@ -135,7 +135,7 @@
 }
 
 /* Same job as .compatLead, for the grid when it runs above the header: without
-   it the last row of cards butts straight into the content below. */
+   it the last row of cards butts straight into "Renders 3x faster". */
 .gridLead {
   margin-bottom: clamp(4.5rem, 9vw, 8rem);
 }
@@ -485,4 +485,13 @@
       transition: none;
     }
   }
+}
+
+.speedCaption {
+  display: block;
+  max-width: 30rem;
+  margin-inline: auto;
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+  line-height: 1.5;
+  text-wrap: balance;
 }

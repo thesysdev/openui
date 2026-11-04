@@ -1,0 +1,389 @@
+root: stack-1
+elements:
+  textcontent-3:
+    type: TextContent
+    props:
+      text: Pricing
+      size: large-heavy
+  textcontent-4:
+    type: TextContent
+    props:
+      text: Choose the plan that fits your team today. Upgrade, downgrade, or cancel
+        anytime.
+      size: default
+  tagblock-5:
+    type: TagBlock
+    props:
+      tags:
+        - Monthly billing
+        - Annual discounts available
+        - No hidden fees
+  stack-2:
+    type: Stack
+    props:
+      direction: column
+      gap: s
+    children:
+      - textcontent-3
+      - textcontent-4
+      - tagblock-5
+  cardheader-8:
+    type: CardHeader
+    props:
+      title: Basic
+      subtitle: For individuals and small projects
+  textcontent-9:
+    type: TextContent
+    props:
+      text: $12 / month
+      size: large-heavy
+  textcontent-10:
+    type: TextContent
+    props:
+      text: Core features to get started with reliable essentials.
+      size: default
+  textcontent-11:
+    type: TextContent
+    props:
+      text: "Includes:"
+      size: small-heavy
+  markdownrenderer-12:
+    type: MarkDownRenderer
+    props:
+      textMarkdown: |-
+        - 1 workspace
+        - Up to 3 projects
+        - 5 GB storage
+        - Community support
+        - Basic analytics
+      variant: clear
+  button-14:
+    type: Button
+    props:
+      label: Start Basic
+      action: action:select_plan_basic
+      variant: secondary
+  button-15:
+    type: Button
+    props:
+      label: Try free
+      action: action:trial_basic
+      variant: tertiary
+  buttons-13:
+    type: Buttons
+    props: {}
+    children:
+      - button-14
+      - button-15
+  card-7:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-8
+      - textcontent-9
+      - textcontent-10
+      - textcontent-11
+      - markdownrenderer-12
+      - buttons-13
+  cardheader-17:
+    type: CardHeader
+    props:
+      title: Pro
+      subtitle: For growing teams that need more power
+  textcontent-18:
+    type: TextContent
+    props:
+      text: $29 / month
+      size: large-heavy
+  textcontent-19:
+    type: TextContent
+    props:
+      text: Advanced collaboration, automation, and deeper insights.
+      size: default
+  textcontent-20:
+    type: TextContent
+    props:
+      text: "Everything in Basic, plus:"
+      size: small-heavy
+  markdownrenderer-21:
+    type: MarkDownRenderer
+    props:
+      textMarkdown: |-
+        - 5 workspaces
+        - Unlimited projects
+        - 100 GB storage
+        - Team roles & permissions
+        - Automations (1,000 runs/month)
+        - Integrations (Slack, GitHub, Zapier)
+        - Priority email support
+      variant: clear
+  button-23:
+    type: Button
+    props:
+      label: Choose Pro
+      action: action:select_plan_pro
+      variant: primary
+  button-24:
+    type: Button
+    props:
+      label: Try free
+      action: action:trial_pro
+      variant: secondary
+  buttons-22:
+    type: Buttons
+    props: {}
+    children:
+      - button-23
+      - button-24
+  callout-25:
+    type: Callout
+    props:
+      variant: success
+      title: Most popular
+      description: Best value for teams that want to scale without switching tools later.
+  card-16:
+    type: Card
+    props:
+      variant: sunk
+    children:
+      - cardheader-17
+      - textcontent-18
+      - textcontent-19
+      - textcontent-20
+      - markdownrenderer-21
+      - buttons-22
+      - callout-25
+  cardheader-27:
+    type: CardHeader
+    props:
+      title: Enterprise
+      subtitle: For organizations with advanced security and scale
+  textcontent-28:
+    type: TextContent
+    props:
+      text: Custom pricing
+      size: large-heavy
+  textcontent-29:
+    type: TextContent
+    props:
+      text: Security, compliance, and dedicated support tailored to your needs.
+      size: default
+  textcontent-30:
+    type: TextContent
+    props:
+      text: "Everything in Pro, plus:"
+      size: small-heavy
+  markdownrenderer-31:
+    type: MarkDownRenderer
+    props:
+      textMarkdown: |-
+        - Unlimited workspaces
+        - Unlimited storage (fair use)
+        - SSO/SAML & SCIM provisioning
+        - Audit logs & data retention controls
+        - Dedicated success manager
+        - 99.9% uptime SLA
+        - Custom legal & invoicing
+      variant: clear
+  button-33:
+    type: Button
+    props:
+      label: Contact sales
+      action: action:contact_sales_enterprise
+      variant: primary
+  button-34:
+    type: Button
+    props:
+      label: Request demo
+      action: action:request_demo_enterprise
+      variant: secondary
+  buttons-32:
+    type: Buttons
+    props: {}
+    children:
+      - button-33
+      - button-34
+  textcallout-35:
+    type: TextCallout
+    props:
+      variant: neutral
+      title: Need procurement support?
+      description: We can provide security docs, vendor onboarding, and custom terms.
+  card-26:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-27
+      - textcontent-28
+      - textcontent-29
+      - textcontent-30
+      - markdownrenderer-31
+      - buttons-32
+      - textcallout-35
+  stack-6:
+    type: Stack
+    props:
+      direction: row
+      gap: l
+      align: stretch
+      justify: start
+      wrap: true
+    children:
+      - card-7
+      - card-16
+      - card-26
+  textcontent-36:
+    type: TextContent
+    props:
+      text: Feature comparison
+      size: large-heavy
+  col-38:
+    type: Col
+    props:
+      label: Feature
+      type: string
+  col-39:
+    type: Col
+    props:
+      label: Basic
+      type: string
+  col-40:
+    type: Col
+    props:
+      label: Pro
+      type: string
+  col-41:
+    type: Col
+    props:
+      label: Enterprise
+      type: string
+  table-37:
+    type: Table
+    props:
+      rows:
+        - - Price (monthly)
+          - $12
+          - $29
+          - Custom
+        - - Workspaces
+          - "1"
+          - "5"
+          - Unlimited
+        - - Projects
+          - Up to 3
+          - Unlimited
+          - Unlimited
+        - - Storage
+          - 5 GB
+          - 100 GB
+          - Unlimited (fair use)
+        - - Team members
+          - "1"
+          - Up to 25
+          - Unlimited
+        - - Roles & permissions
+          - —
+          - Yes
+          - Advanced (custom roles)
+        - - Automations
+          - —
+          - 1,000 runs/mo
+          - Unlimited (policy-based)
+        - - Integrations
+          - Limited
+          - Standard
+          - Standard + custom
+        - - Analytics
+          - Basic
+          - Advanced
+          - Advanced + exports
+        - - SSO (SAML)
+          - —
+          - —
+          - Yes
+        - - SCIM provisioning
+          - —
+          - —
+          - Yes
+        - - Audit logs
+          - —
+          - —
+          - Yes
+        - - Support
+          - Community
+          - Priority email
+          - Dedicated + SLA
+    children:
+      - col-38
+      - col-39
+      - col-40
+      - col-41
+  textcontent-44:
+    type: TextContent
+    props:
+      text: Yes. You can upgrade or downgrade at any time. Changes take effect
+        immediately, and we prorate when applicable.
+  accordionitem-43:
+    type: AccordionItem
+    props:
+      value: billing
+      trigger: Can I switch plans later?
+    children:
+      - textcontent-44
+  textcontent-46:
+    type: TextContent
+    props:
+      text: Yes. Basic and Pro include a free trial. Enterprise trials are available
+        upon request via Sales.
+  accordionitem-45:
+    type: AccordionItem
+    props:
+      value: trial
+      trigger: Do you offer a free trial?
+    children:
+      - textcontent-46
+  textcontent-48:
+    type: TextContent
+    props:
+      text: Yes. Annual billing includes a discount. Contact Sales for Enterprise
+        annual terms and invoicing.
+  accordionitem-47:
+    type: AccordionItem
+    props:
+      value: annual
+      trigger: Do you offer annual billing?
+    children:
+      - textcontent-48
+  textcontent-50:
+    type: TextContent
+    props:
+      text: Enterprise includes SSO/SAML, SCIM, audit logs, and data retention
+        controls. We can share security documentation during procurement.
+  accordionitem-49:
+    type: AccordionItem
+    props:
+      value: security
+      trigger: What about security and compliance?
+    children:
+      - textcontent-50
+  accordion-42:
+    type: Accordion
+    props: {}
+    children:
+      - accordionitem-43
+      - accordionitem-45
+      - accordionitem-47
+      - accordionitem-49
+  stack-1:
+    type: Stack
+    props:
+      direction: column
+      gap: xl
+    children:
+      - stack-2
+      - stack-6
+      - textcontent-36
+      - table-37
+      - accordion-42

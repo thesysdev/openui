@@ -1,0 +1,387 @@
+root: stack-1
+elements:
+  cardheader-3:
+    type: CardHeader
+    props:
+      title: Product Analytics Dashboard
+      subtitle: Usage, acquisition, feature adoption, and revenue trends
+  card-2:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-3
+  textcontent-6:
+    type: TextContent
+    props:
+      text: Monthly Active Users (MAU)
+      size: small-heavy
+  textcontent-7:
+    type: TextContent
+    props:
+      text: 128,400
+      size: large-heavy
+  textcontent-8:
+    type: TextContent
+    props:
+      text: +6.2% vs last month
+      size: small
+  card-5:
+    type: Card
+    props:
+      variant: sunk
+    children:
+      - textcontent-6
+      - textcontent-7
+      - textcontent-8
+  textcontent-10:
+    type: TextContent
+    props:
+      text: New Users (30d)
+      size: small-heavy
+  textcontent-11:
+    type: TextContent
+    props:
+      text: 24,950
+      size: large-heavy
+  textcontent-12:
+    type: TextContent
+    props:
+      text: +3.1% vs last 30d
+      size: small
+  card-9:
+    type: Card
+    props:
+      variant: sunk
+    children:
+      - textcontent-10
+      - textcontent-11
+      - textcontent-12
+  textcontent-14:
+    type: TextContent
+    props:
+      text: MRR
+      size: small-heavy
+  textcontent-15:
+    type: TextContent
+    props:
+      text: $412,000
+      size: large-heavy
+  textcontent-16:
+    type: TextContent
+    props:
+      text: +4.4% MoM
+      size: small
+  card-13:
+    type: Card
+    props:
+      variant: sunk
+    children:
+      - textcontent-14
+      - textcontent-15
+      - textcontent-16
+  textcontent-18:
+    type: TextContent
+    props:
+      text: ARR
+      size: small-heavy
+  textcontent-19:
+    type: TextContent
+    props:
+      text: $4.94M
+      size: large-heavy
+  textcontent-20:
+    type: TextContent
+    props:
+      text: +18.7% YoY
+      size: small
+  card-17:
+    type: Card
+    props:
+      variant: sunk
+    children:
+      - textcontent-18
+      - textcontent-19
+      - textcontent-20
+  stack-4:
+    type: Stack
+    props:
+      direction: row
+      gap: m
+      align: stretch
+      justify: start
+      wrap: true
+    children:
+      - card-5
+      - card-9
+      - card-13
+      - card-17
+  cardheader-23:
+    type: CardHeader
+    props:
+      title: Monthly Active Users
+      subtitle: Last 12 months
+  series-25:
+    type: Series
+    props:
+      category: MAU
+      values:
+        - 84500
+        - 87200
+        - 90100
+        - 93800
+        - 96500
+        - 100200
+        - 104800
+        - 109600
+        - 114300
+        - 119900
+        - 123700
+        - 128400
+  barchart-24:
+    type: BarChart
+    props:
+      labels:
+        - Apr
+        - May
+        - Jun
+        - Jul
+        - Aug
+        - Sep
+        - Oct
+        - Nov
+        - Dec
+        - Jan
+        - Feb
+        - Mar
+      variant: grouped
+      xLabel: Month
+      yLabel: Users
+    children:
+      - series-25
+  card-22:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-23
+      - barchart-24
+  cardheader-27:
+    type: CardHeader
+    props:
+      title: User Acquisition
+      subtitle: Share of new users (last 30 days)
+  slice-29:
+    type: Slice
+    props:
+      category: Organic Search
+      value: 34
+  slice-30:
+    type: Slice
+    props:
+      category: Paid Search
+      value: 22
+  slice-31:
+    type: Slice
+    props:
+      category: Referrals
+      value: 16
+  slice-32:
+    type: Slice
+    props:
+      category: Social
+      value: 12
+  slice-33:
+    type: Slice
+    props:
+      category: Direct / Other
+      value: 16
+  piechart-28:
+    type: PieChart
+    props:
+      variant: donut
+    children:
+      - slice-29
+      - slice-30
+      - slice-31
+      - slice-32
+      - slice-33
+  textcontent-34:
+    type: TextContent
+    props:
+      text: "Tip: Track CAC and conversion rate by channel to explain mix shifts."
+      size: small
+  card-26:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-27
+      - piechart-28
+      - textcontent-34
+  stack-21:
+    type: Stack
+    props:
+      direction: row
+      gap: l
+      align: stretch
+      justify: start
+      wrap: true
+    children:
+      - card-22
+      - card-26
+  cardheader-36:
+    type: CardHeader
+    props:
+      title: Top Features
+      subtitle: Adoption and engagement (last 30 days)
+  col-38:
+    type: Col
+    props:
+      label: Feature
+      type: string
+  col-39:
+    type: Col
+    props:
+      label: Weekly Active Users
+      type: number
+  col-40:
+    type: Col
+    props:
+      label: Adoption Rate (%)
+      type: number
+  col-41:
+    type: Col
+    props:
+      label: Avg. Uses / User
+      type: number
+  table-37:
+    type: Table
+    props:
+      rows:
+        - - Dashboards
+          - 48200
+          - 62.5
+          - 5.8
+        - - Automations
+          - 31750
+          - 41.2
+          - 3.1
+        - - Integrations
+          - 28900
+          - 37.5
+          - 2.4
+        - - Team Collaboration
+          - 27100
+          - 35.2
+          - 4.6
+        - - Exports
+          - 19850
+          - 25.8
+          - 1.7
+        - - Alerts
+          - 17600
+          - 22.9
+          - 2
+        - - API Access
+          - 12150
+          - 15.8
+          - 6.3
+    children:
+      - col-38
+      - col-39
+      - col-40
+      - col-41
+  card-35:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-36
+      - table-37
+  cardheader-43:
+    type: CardHeader
+    props:
+      title: Revenue Trend
+      subtitle: MRR and ARR (last 12 months)
+  series-45:
+    type: Series
+    props:
+      category: MRR ($)
+      values:
+        - 332000
+        - 341000
+        - 349000
+        - 356000
+        - 364000
+        - 372000
+        - 381000
+        - 389000
+        - 397000
+        - 404000
+        - 408000
+        - 412000
+  series-46:
+    type: Series
+    props:
+      category: ARR ($)
+      values:
+        - 3984000
+        - 4092000
+        - 4188000
+        - 4272000
+        - 4368000
+        - 4464000
+        - 4572000
+        - 4668000
+        - 4764000
+        - 4848000
+        - 4896000
+        - 4944000
+  linechart-44:
+    type: LineChart
+    props:
+      labels:
+        - Apr
+        - May
+        - Jun
+        - Jul
+        - Aug
+        - Sep
+        - Oct
+        - Nov
+        - Dec
+        - Jan
+        - Feb
+        - Mar
+      variant: natural
+      xLabel: Month
+      yLabel: USD
+    children:
+      - series-45
+      - series-46
+  textcontent-47:
+    type: TextContent
+    props:
+      text: ARR shown as 12×MRR for directional tracking; replace with contracted ARR
+        if you track annual commitments.
+      size: small
+  card-42:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-43
+      - linechart-44
+      - textcontent-47
+  stack-1:
+    type: Stack
+    props:
+      direction: column
+      gap: l
+    children:
+      - card-2
+      - stack-4
+      - stack-21
+      - card-35
+      - card-42

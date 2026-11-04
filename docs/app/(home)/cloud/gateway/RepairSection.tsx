@@ -110,6 +110,7 @@ export function RepairSection() {
       <div className={styles.repairGrid}>
         <FeatureGridSection
           features={STACK_FEATURES}
+          showHeader={false}
           showCompat={false}
           showBottomSeparator={false}
           flushSectionPadding

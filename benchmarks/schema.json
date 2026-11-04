@@ -1,0 +1,1536 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "Card": {
+      "$ref": "#/$defs/Card"
+    },
+    "CardHeader": {
+      "$ref": "#/$defs/CardHeader"
+    },
+    "TextContent": {
+      "$ref": "#/$defs/TextContent"
+    },
+    "MarkDownRenderer": {
+      "$ref": "#/$defs/MarkDownRenderer"
+    },
+    "Callout": {
+      "$ref": "#/$defs/Callout"
+    },
+    "TextCallout": {
+      "$ref": "#/$defs/TextCallout"
+    },
+    "Image": {
+      "$ref": "#/$defs/Image"
+    },
+    "ImageBlock": {
+      "$ref": "#/$defs/ImageBlock"
+    },
+    "ImageGallery": {
+      "$ref": "#/$defs/ImageGallery"
+    },
+    "CodeBlock": {
+      "$ref": "#/$defs/CodeBlock"
+    },
+    "Table": {
+      "$ref": "#/$defs/Table"
+    },
+    "Col": {
+      "$ref": "#/$defs/Col"
+    },
+    "BarChart": {
+      "$ref": "#/$defs/BarChart"
+    },
+    "LineChart": {
+      "$ref": "#/$defs/LineChart"
+    },
+    "AreaChart": {
+      "$ref": "#/$defs/AreaChart"
+    },
+    "RadarChart": {
+      "$ref": "#/$defs/RadarChart"
+    },
+    "HorizontalBarChart": {
+      "$ref": "#/$defs/HorizontalBarChart"
+    },
+    "Series": {
+      "$ref": "#/$defs/Series"
+    },
+    "PieChart": {
+      "$ref": "#/$defs/PieChart"
+    },
+    "RadialChart": {
+      "$ref": "#/$defs/RadialChart"
+    },
+    "SingleStackedBarChart": {
+      "$ref": "#/$defs/SingleStackedBarChart"
+    },
+    "Slice": {
+      "$ref": "#/$defs/Slice"
+    },
+    "ScatterChart": {
+      "$ref": "#/$defs/ScatterChart"
+    },
+    "ScatterSeries": {
+      "$ref": "#/$defs/ScatterSeries"
+    },
+    "Point": {
+      "$ref": "#/$defs/Point"
+    },
+    "Form": {
+      "$ref": "#/$defs/Form"
+    },
+    "FormControl": {
+      "$ref": "#/$defs/FormControl"
+    },
+    "Label": {
+      "$ref": "#/$defs/Label"
+    },
+    "Input": {
+      "$ref": "#/$defs/Input"
+    },
+    "TextArea": {
+      "$ref": "#/$defs/TextArea"
+    },
+    "Select": {
+      "$ref": "#/$defs/Select"
+    },
+    "SelectItem": {
+      "$ref": "#/$defs/SelectItem"
+    },
+    "DatePicker": {
+      "$ref": "#/$defs/DatePicker"
+    },
+    "Slider": {
+      "$ref": "#/$defs/Slider"
+    },
+    "CheckBoxGroup": {
+      "$ref": "#/$defs/CheckBoxGroup"
+    },
+    "CheckBoxItem": {
+      "$ref": "#/$defs/CheckBoxItem"
+    },
+    "RadioGroup": {
+      "$ref": "#/$defs/RadioGroup"
+    },
+    "RadioItem": {
+      "$ref": "#/$defs/RadioItem"
+    },
+    "SwitchGroup": {
+      "$ref": "#/$defs/SwitchGroup"
+    },
+    "SwitchItem": {
+      "$ref": "#/$defs/SwitchItem"
+    },
+    "Button": {
+      "$ref": "#/$defs/Button"
+    },
+    "Buttons": {
+      "$ref": "#/$defs/Buttons"
+    },
+    "Stack": {
+      "$ref": "#/$defs/Stack"
+    },
+    "Tabs": {
+      "$ref": "#/$defs/Tabs"
+    },
+    "TabItem": {
+      "$ref": "#/$defs/TabItem"
+    },
+    "Accordion": {
+      "$ref": "#/$defs/Accordion"
+    },
+    "AccordionItem": {
+      "$ref": "#/$defs/AccordionItem"
+    },
+    "Steps": {
+      "$ref": "#/$defs/Steps"
+    },
+    "StepsItem": {
+      "$ref": "#/$defs/StepsItem"
+    },
+    "Carousel": {
+      "$ref": "#/$defs/Carousel"
+    },
+    "Separator": {
+      "$ref": "#/$defs/Separator"
+    },
+    "TagBlock": {
+      "$ref": "#/$defs/TagBlock"
+    },
+    "Tag": {
+      "$ref": "#/$defs/Tag"
+    }
+  },
+  "required": [
+    "Card",
+    "CardHeader",
+    "TextContent",
+    "MarkDownRenderer",
+    "Callout",
+    "TextCallout",
+    "Image",
+    "ImageBlock",
+    "ImageGallery",
+    "CodeBlock",
+    "Table",
+    "Col",
+    "BarChart",
+    "LineChart",
+    "AreaChart",
+    "RadarChart",
+    "HorizontalBarChart",
+    "Series",
+    "PieChart",
+    "RadialChart",
+    "SingleStackedBarChart",
+    "Slice",
+    "ScatterChart",
+    "ScatterSeries",
+    "Point",
+    "Form",
+    "FormControl",
+    "Label",
+    "Input",
+    "TextArea",
+    "Select",
+    "SelectItem",
+    "DatePicker",
+    "Slider",
+    "CheckBoxGroup",
+    "CheckBoxItem",
+    "RadioGroup",
+    "RadioItem",
+    "SwitchGroup",
+    "SwitchItem",
+    "Button",
+    "Buttons",
+    "Stack",
+    "Tabs",
+    "TabItem",
+    "Accordion",
+    "AccordionItem",
+    "Steps",
+    "StepsItem",
+    "Carousel",
+    "Separator",
+    "TagBlock",
+    "Tag"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Card": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/MarkDownRenderer"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/CodeBlock"
+              },
+              {
+                "$ref": "#/$defs/Image"
+              },
+              {
+                "$ref": "#/$defs/ImageBlock"
+              },
+              {
+                "$ref": "#/$defs/ImageGallery"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Form"
+              },
+              {
+                "$ref": "#/$defs/Buttons"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/Tabs"
+              },
+              {
+                "$ref": "#/$defs/Carousel"
+              },
+              {
+                "$ref": "#/$defs/Stack"
+              }
+            ]
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["card", "sunk", "clear"]
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["row", "column"]
+        },
+        "gap": {
+          "type": "string",
+          "enum": ["none", "xs", "s", "m", "l", "xl", "2xl"]
+        },
+        "align": {
+          "type": "string",
+          "enum": ["start", "center", "end", "stretch", "baseline"]
+        },
+        "justify": {
+          "type": "string",
+          "enum": ["start", "center", "end", "between", "around", "evenly"]
+        },
+        "wrap": {
+          "type": "boolean"
+        }
+      },
+      "required": ["children"],
+      "additionalProperties": false,
+      "id": "Card"
+    },
+    "TextContent": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": ["small", "default", "large", "small-heavy", "large-heavy"]
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false,
+      "id": "TextContent"
+    },
+    "MarkDownRenderer": {
+      "type": "object",
+      "properties": {
+        "textMarkdown": {
+          "type": "string"
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["clear", "card", "sunk"]
+        }
+      },
+      "required": ["textMarkdown"],
+      "additionalProperties": false,
+      "id": "MarkDownRenderer"
+    },
+    "CardHeader": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "id": "CardHeader"
+    },
+    "Callout": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": ["info", "warning", "error", "success", "neutral"]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["variant", "title", "description"],
+      "additionalProperties": false,
+      "id": "Callout"
+    },
+    "TextCallout": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": ["neutral", "info", "warning", "success", "danger"]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "id": "TextCallout"
+    },
+    "CodeBlock": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "codeString": {
+          "type": "string"
+        }
+      },
+      "required": ["language", "codeString"],
+      "additionalProperties": false,
+      "id": "CodeBlock"
+    },
+    "Image": {
+      "type": "object",
+      "properties": {
+        "alt": {
+          "type": "string"
+        },
+        "src": {
+          "type": "string"
+        }
+      },
+      "required": ["alt"],
+      "additionalProperties": false,
+      "id": "Image"
+    },
+    "ImageBlock": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string"
+        },
+        "alt": {
+          "type": "string"
+        }
+      },
+      "required": ["src"],
+      "additionalProperties": false,
+      "id": "ImageBlock"
+    },
+    "ImageGallery": {
+      "type": "object",
+      "properties": {
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              },
+              "details": {
+                "type": "string"
+              }
+            },
+            "required": ["src"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["images"],
+      "additionalProperties": false,
+      "id": "ImageGallery"
+    },
+    "Separator": {
+      "type": "object",
+      "properties": {
+        "orientation": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"]
+        },
+        "decorative": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "id": "Separator"
+    },
+    "HorizontalBarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["grouped", "stacked"]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": ["labels", "series"],
+      "additionalProperties": false,
+      "id": "HorizontalBarChart"
+    },
+    "Series": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": ["category", "values"],
+      "additionalProperties": false,
+      "id": "Series"
+    },
+    "RadarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        }
+      },
+      "required": ["labels", "series"],
+      "additionalProperties": false,
+      "id": "RadarChart"
+    },
+    "PieChart": {
+      "type": "object",
+      "properties": {
+        "slices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Slice"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["pie", "donut"]
+        }
+      },
+      "required": ["slices"],
+      "additionalProperties": false,
+      "id": "PieChart"
+    },
+    "Slice": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "required": ["category", "value"],
+      "additionalProperties": false,
+      "id": "Slice"
+    },
+    "RadialChart": {
+      "type": "object",
+      "properties": {
+        "slices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Slice"
+          }
+        }
+      },
+      "required": ["slices"],
+      "additionalProperties": false,
+      "id": "RadialChart"
+    },
+    "SingleStackedBarChart": {
+      "type": "object",
+      "properties": {
+        "slices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Slice"
+          }
+        }
+      },
+      "required": ["slices"],
+      "additionalProperties": false,
+      "id": "SingleStackedBarChart"
+    },
+    "ScatterChart": {
+      "type": "object",
+      "properties": {
+        "datasets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScatterSeries"
+          }
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": ["datasets"],
+      "additionalProperties": false,
+      "id": "ScatterChart"
+    },
+    "ScatterSeries": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Point"
+          }
+        }
+      },
+      "required": ["name", "points"],
+      "additionalProperties": false,
+      "id": "ScatterSeries"
+    },
+    "Point": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      },
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "id": "Point"
+    },
+    "AreaChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["linear", "natural", "step"]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": ["labels", "series"],
+      "additionalProperties": false,
+      "id": "AreaChart"
+    },
+    "BarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["grouped", "stacked"]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": ["labels", "series"],
+      "additionalProperties": false,
+      "id": "BarChart"
+    },
+    "LineChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["linear", "natural", "step"]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": ["labels", "series"],
+      "additionalProperties": false,
+      "id": "LineChart"
+    },
+    "Table": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Col"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "required": ["columns", "rows"],
+      "additionalProperties": false,
+      "id": "Table"
+    },
+    "Col": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "action"]
+        }
+      },
+      "required": ["label"],
+      "additionalProperties": false,
+      "id": "Col"
+    },
+    "TagBlock": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["tags"],
+      "additionalProperties": false,
+      "id": "TagBlock"
+    },
+    "Form": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FormControl"
+          }
+        },
+        "buttons": {
+          "$ref": "#/$defs/Buttons"
+        }
+      },
+      "required": ["name", "fields"],
+      "additionalProperties": false,
+      "id": "Form"
+    },
+    "FormControl": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Input"
+            },
+            {
+              "$ref": "#/$defs/TextArea"
+            },
+            {
+              "$ref": "#/$defs/Select"
+            },
+            {
+              "$ref": "#/$defs/DatePicker"
+            },
+            {
+              "$ref": "#/$defs/Slider"
+            },
+            {
+              "$ref": "#/$defs/CheckBoxGroup"
+            },
+            {
+              "$ref": "#/$defs/RadioGroup"
+            }
+          ]
+        },
+        "hint": {
+          "type": "string"
+        }
+      },
+      "required": ["label", "input"],
+      "additionalProperties": false,
+      "id": "FormControl"
+    },
+    "Input": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["text", "email", "password", "number", "url"]
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false,
+      "id": "Input"
+    },
+    "TextArea": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "number"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false,
+      "id": "TextArea"
+    },
+    "Select": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SelectItem"
+          }
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["name", "items"],
+      "additionalProperties": false,
+      "id": "Select"
+    },
+    "SelectItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": ["value", "label"],
+      "additionalProperties": false,
+      "id": "SelectItem"
+    },
+    "DatePicker": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["single", "range"]
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["name", "mode"],
+      "additionalProperties": false,
+      "id": "DatePicker"
+    },
+    "Slider": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["continuous", "discrete"]
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "defaultValue": {
+          "type": "number"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["name", "variant", "min", "max"],
+      "additionalProperties": false,
+      "id": "Slider"
+    },
+    "CheckBoxGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckBoxItem"
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["name", "items"],
+      "additionalProperties": false,
+      "id": "CheckBoxGroup"
+    },
+    "CheckBoxItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "defaultChecked": {
+          "type": "boolean"
+        }
+      },
+      "required": ["label", "description", "name"],
+      "additionalProperties": false,
+      "id": "CheckBoxItem"
+    },
+    "RadioGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RadioItem"
+          }
+        },
+        "defaultValue": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["name", "items"],
+      "additionalProperties": false,
+      "id": "RadioGroup"
+    },
+    "RadioItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": ["label", "description", "value"],
+      "additionalProperties": false,
+      "id": "RadioItem"
+    },
+    "Buttons": {
+      "type": "object",
+      "properties": {
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Button"
+          }
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["row", "column"]
+        }
+      },
+      "required": ["buttons"],
+      "additionalProperties": false,
+      "id": "Buttons"
+    },
+    "Button": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["primary", "secondary", "tertiary"]
+        },
+        "type": {
+          "type": "string",
+          "enum": ["normal", "destructive"]
+        },
+        "size": {
+          "type": "string",
+          "enum": ["extra-small", "small", "medium", "large"]
+        }
+      },
+      "required": ["label", "action"],
+      "additionalProperties": false,
+      "id": "Button"
+    },
+    "Steps": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepsItem"
+          }
+        }
+      },
+      "required": ["items"],
+      "additionalProperties": false,
+      "id": "Steps"
+    },
+    "StepsItem": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        }
+      },
+      "required": ["title", "details"],
+      "additionalProperties": false,
+      "id": "StepsItem"
+    },
+    "Tabs": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TabItem"
+          }
+        }
+      },
+      "required": ["items"],
+      "additionalProperties": false,
+      "id": "Tabs"
+    },
+    "TabItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/MarkDownRenderer"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/CodeBlock"
+              },
+              {
+                "$ref": "#/$defs/Image"
+              },
+              {
+                "$ref": "#/$defs/ImageBlock"
+              },
+              {
+                "$ref": "#/$defs/ImageGallery"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Form"
+              },
+              {
+                "$ref": "#/$defs/Buttons"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              }
+            ]
+          }
+        }
+      },
+      "required": ["value", "trigger", "content"],
+      "additionalProperties": false,
+      "id": "TabItem"
+    },
+    "Carousel": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Stack"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["card", "sunk"]
+        }
+      },
+      "required": ["children"],
+      "additionalProperties": false,
+      "id": "Carousel"
+    },
+    "Stack": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {}
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["row", "column"]
+        },
+        "gap": {
+          "type": "string",
+          "enum": ["none", "xs", "s", "m", "l", "xl", "2xl"]
+        },
+        "align": {
+          "type": "string",
+          "enum": ["start", "center", "end", "stretch", "baseline"]
+        },
+        "justify": {
+          "type": "string",
+          "enum": ["start", "center", "end", "between", "around", "evenly"]
+        },
+        "wrap": {
+          "type": "boolean"
+        }
+      },
+      "required": ["children"],
+      "additionalProperties": false,
+      "id": "Stack"
+    },
+    "Label": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false,
+      "id": "Label"
+    },
+    "SwitchGroup": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SwitchItem"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["clear", "card", "sunk"]
+        }
+      },
+      "required": ["items"],
+      "additionalProperties": false,
+      "id": "SwitchGroup"
+    },
+    "SwitchItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "checked": {
+          "type": "boolean"
+        },
+        "defaultChecked": {
+          "type": "boolean"
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "id": "SwitchItem"
+    },
+    "Accordion": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AccordionItem"
+          }
+        }
+      },
+      "required": ["items"],
+      "additionalProperties": false,
+      "id": "Accordion"
+    },
+    "AccordionItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/MarkDownRenderer"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/CodeBlock"
+              },
+              {
+                "$ref": "#/$defs/Image"
+              },
+              {
+                "$ref": "#/$defs/ImageBlock"
+              },
+              {
+                "$ref": "#/$defs/ImageGallery"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Form"
+              },
+              {
+                "$ref": "#/$defs/Buttons"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              }
+            ]
+          }
+        }
+      },
+      "required": ["value", "trigger", "content"],
+      "additionalProperties": false,
+      "id": "AccordionItem"
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": ["sm", "md", "lg"]
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["neutral", "info", "success", "warning", "danger"]
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false,
+      "id": "Tag"
+    }
+  }
+}

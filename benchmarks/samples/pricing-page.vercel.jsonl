@@ -1,0 +1,51 @@
+{"op":"add","path":"/root","value":"stack-1"}
+{"op":"add","path":"/elements/textcontent-3","value":{"type":"TextContent","props":{"text":"Pricing","size":"large-heavy"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-4","value":{"type":"TextContent","props":{"text":"Choose the plan that fits your team today. Upgrade, downgrade, or cancel anytime.","size":"default"},"children":[]}}
+{"op":"add","path":"/elements/tagblock-5","value":{"type":"TagBlock","props":{"tags":["Monthly billing","Annual discounts available","No hidden fees"]},"children":[]}}
+{"op":"add","path":"/elements/stack-2","value":{"type":"Stack","props":{"direction":"column","gap":"s"},"children":["textcontent-3","textcontent-4","tagblock-5"]}}
+{"op":"add","path":"/elements/cardheader-8","value":{"type":"CardHeader","props":{"title":"Basic","subtitle":"For individuals and small projects"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-9","value":{"type":"TextContent","props":{"text":"$12 / month","size":"large-heavy"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-10","value":{"type":"TextContent","props":{"text":"Core features to get started with reliable essentials.","size":"default"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-11","value":{"type":"TextContent","props":{"text":"Includes:","size":"small-heavy"},"children":[]}}
+{"op":"add","path":"/elements/markdownrenderer-12","value":{"type":"MarkDownRenderer","props":{"textMarkdown":"- 1 workspace\n- Up to 3 projects\n- 5 GB storage\n- Community support\n- Basic analytics","variant":"clear"},"children":[]}}
+{"op":"add","path":"/elements/button-14","value":{"type":"Button","props":{"label":"Start Basic","action":"action:select_plan_basic","variant":"secondary"},"children":[]}}
+{"op":"add","path":"/elements/button-15","value":{"type":"Button","props":{"label":"Try free","action":"action:trial_basic","variant":"tertiary"},"children":[]}}
+{"op":"add","path":"/elements/buttons-13","value":{"type":"Buttons","props":{},"children":["button-14","button-15"]}}
+{"op":"add","path":"/elements/card-7","value":{"type":"Card","props":{"variant":"card"},"children":["cardheader-8","textcontent-9","textcontent-10","textcontent-11","markdownrenderer-12","buttons-13"]}}
+{"op":"add","path":"/elements/cardheader-17","value":{"type":"CardHeader","props":{"title":"Pro","subtitle":"For growing teams that need more power"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-18","value":{"type":"TextContent","props":{"text":"$29 / month","size":"large-heavy"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-19","value":{"type":"TextContent","props":{"text":"Advanced collaboration, automation, and deeper insights.","size":"default"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-20","value":{"type":"TextContent","props":{"text":"Everything in Basic, plus:","size":"small-heavy"},"children":[]}}
+{"op":"add","path":"/elements/markdownrenderer-21","value":{"type":"MarkDownRenderer","props":{"textMarkdown":"- 5 workspaces\n- Unlimited projects\n- 100 GB storage\n- Team roles & permissions\n- Automations (1,000 runs/month)\n- Integrations (Slack, GitHub, Zapier)\n- Priority email support","variant":"clear"},"children":[]}}
+{"op":"add","path":"/elements/button-23","value":{"type":"Button","props":{"label":"Choose Pro","action":"action:select_plan_pro","variant":"primary"},"children":[]}}
+{"op":"add","path":"/elements/button-24","value":{"type":"Button","props":{"label":"Try free","action":"action:trial_pro","variant":"secondary"},"children":[]}}
+{"op":"add","path":"/elements/buttons-22","value":{"type":"Buttons","props":{},"children":["button-23","button-24"]}}
+{"op":"add","path":"/elements/callout-25","value":{"type":"Callout","props":{"variant":"success","title":"Most popular","description":"Best value for teams that want to scale without switching tools later."},"children":[]}}
+{"op":"add","path":"/elements/card-16","value":{"type":"Card","props":{"variant":"sunk"},"children":["cardheader-17","textcontent-18","textcontent-19","textcontent-20","markdownrenderer-21","buttons-22","callout-25"]}}
+{"op":"add","path":"/elements/cardheader-27","value":{"type":"CardHeader","props":{"title":"Enterprise","subtitle":"For organizations with advanced security and scale"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-28","value":{"type":"TextContent","props":{"text":"Custom pricing","size":"large-heavy"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-29","value":{"type":"TextContent","props":{"text":"Security, compliance, and dedicated support tailored to your needs.","size":"default"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-30","value":{"type":"TextContent","props":{"text":"Everything in Pro, plus:","size":"small-heavy"},"children":[]}}
+{"op":"add","path":"/elements/markdownrenderer-31","value":{"type":"MarkDownRenderer","props":{"textMarkdown":"- Unlimited workspaces\n- Unlimited storage (fair use)\n- SSO/SAML & SCIM provisioning\n- Audit logs & data retention controls\n- Dedicated success manager\n- 99.9% uptime SLA\n- Custom legal & invoicing","variant":"clear"},"children":[]}}
+{"op":"add","path":"/elements/button-33","value":{"type":"Button","props":{"label":"Contact sales","action":"action:contact_sales_enterprise","variant":"primary"},"children":[]}}
+{"op":"add","path":"/elements/button-34","value":{"type":"Button","props":{"label":"Request demo","action":"action:request_demo_enterprise","variant":"secondary"},"children":[]}}
+{"op":"add","path":"/elements/buttons-32","value":{"type":"Buttons","props":{},"children":["button-33","button-34"]}}
+{"op":"add","path":"/elements/textcallout-35","value":{"type":"TextCallout","props":{"variant":"neutral","title":"Need procurement support?","description":"We can provide security docs, vendor onboarding, and custom terms."},"children":[]}}
+{"op":"add","path":"/elements/card-26","value":{"type":"Card","props":{"variant":"card"},"children":["cardheader-27","textcontent-28","textcontent-29","textcontent-30","markdownrenderer-31","buttons-32","textcallout-35"]}}
+{"op":"add","path":"/elements/stack-6","value":{"type":"Stack","props":{"direction":"row","gap":"l","align":"stretch","justify":"start","wrap":true},"children":["card-7","card-16","card-26"]}}
+{"op":"add","path":"/elements/textcontent-36","value":{"type":"TextContent","props":{"text":"Feature comparison","size":"large-heavy"},"children":[]}}
+{"op":"add","path":"/elements/col-38","value":{"type":"Col","props":{"label":"Feature","type":"string"},"children":[]}}
+{"op":"add","path":"/elements/col-39","value":{"type":"Col","props":{"label":"Basic","type":"string"},"children":[]}}
+{"op":"add","path":"/elements/col-40","value":{"type":"Col","props":{"label":"Pro","type":"string"},"children":[]}}
+{"op":"add","path":"/elements/col-41","value":{"type":"Col","props":{"label":"Enterprise","type":"string"},"children":[]}}
+{"op":"add","path":"/elements/table-37","value":{"type":"Table","props":{"rows":[["Price (monthly)","$12","$29","Custom"],["Workspaces","1","5","Unlimited"],["Projects","Up to 3","Unlimited","Unlimited"],["Storage","5 GB","100 GB","Unlimited (fair use)"],["Team members","1","Up to 25","Unlimited"],["Roles & permissions","—","Yes","Advanced (custom roles)"],["Automations","—","1,000 runs/mo","Unlimited (policy-based)"],["Integrations","Limited","Standard","Standard + custom"],["Analytics","Basic","Advanced","Advanced + exports"],["SSO (SAML)","—","—","Yes"],["SCIM provisioning","—","—","Yes"],["Audit logs","—","—","Yes"],["Support","Community","Priority email","Dedicated + SLA"]]},"children":["col-38","col-39","col-40","col-41"]}}
+{"op":"add","path":"/elements/textcontent-44","value":{"type":"TextContent","props":{"text":"Yes. You can upgrade or downgrade at any time. Changes take effect immediately, and we prorate when applicable."},"children":[]}}
+{"op":"add","path":"/elements/accordionitem-43","value":{"type":"AccordionItem","props":{"value":"billing","trigger":"Can I switch plans later?"},"children":["textcontent-44"]}}
+{"op":"add","path":"/elements/textcontent-46","value":{"type":"TextContent","props":{"text":"Yes. Basic and Pro include a free trial. Enterprise trials are available upon request via Sales."},"children":[]}}
+{"op":"add","path":"/elements/accordionitem-45","value":{"type":"AccordionItem","props":{"value":"trial","trigger":"Do you offer a free trial?"},"children":["textcontent-46"]}}
+{"op":"add","path":"/elements/textcontent-48","value":{"type":"TextContent","props":{"text":"Yes. Annual billing includes a discount. Contact Sales for Enterprise annual terms and invoicing."},"children":[]}}
+{"op":"add","path":"/elements/accordionitem-47","value":{"type":"AccordionItem","props":{"value":"annual","trigger":"Do you offer annual billing?"},"children":["textcontent-48"]}}
+{"op":"add","path":"/elements/textcontent-50","value":{"type":"TextContent","props":{"text":"Enterprise includes SSO/SAML, SCIM, audit logs, and data retention controls. We can share security documentation during procurement."},"children":[]}}
+{"op":"add","path":"/elements/accordionitem-49","value":{"type":"AccordionItem","props":{"value":"security","trigger":"What about security and compliance?"},"children":["textcontent-50"]}}
+{"op":"add","path":"/elements/accordion-42","value":{"type":"Accordion","props":{},"children":["accordionitem-43","accordionitem-45","accordionitem-47","accordionitem-49"]}}
+{"op":"add","path":"/elements/stack-1","value":{"type":"Stack","props":{"direction":"column","gap":"xl"},"children":["stack-2","stack-6","textcontent-36","table-37","accordion-42"]}}

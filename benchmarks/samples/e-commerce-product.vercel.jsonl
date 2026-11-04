@@ -1,0 +1,50 @@
+{"op":"add","path":"/root","value":"stack-1"}
+{"op":"add","path":"/elements/textcontent-3","value":{"type":"TextContent","props":{"text":"Product Details","size":"large-heavy"},"children":[]}}
+{"op":"add","path":"/elements/card-2","value":{"type":"Card","props":{"variant":"clear"},"children":["textcontent-3"]}}
+{"op":"add","path":"/elements/cardheader-7","value":{"type":"CardHeader","props":{"title":"AeroStride Runner Sneakers","subtitle":"Lightweight daily trainers with responsive cushioning"},"children":[]}}
+{"op":"add","path":"/elements/imagegallery-8","value":{"type":"ImageGallery","props":{"images":[{"src":"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80","alt":"Sneakers angled side view","details":"Side profile showing breathable mesh and cushioned midsole"},{"src":"https://images.unsplash.com/photo-1528701800489-20be3c1ea3b1?auto=format&fit=crop&w=1200&q=80","alt":"Sneakers top view","details":"Top view highlighting laces and padded tongue"},{"src":"https://images.unsplash.com/photo-1600269452121-4f2416e55c28?auto=format&fit=crop&w=1200&q=80","alt":"Sneakers outsole view","details":"Rubber outsole pattern for traction"},{"src":"https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80","alt":"Sneakers lifestyle shot","details":"Everyday styling in an urban setting"}]},"children":[]}}
+{"op":"add","path":"/elements/card-6","value":{"type":"Card","props":{"variant":"card"},"children":["cardheader-7","imagegallery-8"]}}
+{"op":"add","path":"/elements/cardheader-10","value":{"type":"CardHeader","props":{"title":"AeroStride Runner","subtitle":"Men's / Women's • Road & casual"},"children":[]}}
+{"op":"add","path":"/elements/textcontent-12","value":{"type":"TextContent","props":{"text":"$129.00","size":"large-heavy"},"children":[]}}
+{"op":"add","path":"/elements/tag-13","value":{"type":"Tag","props":{"text":"In stock","icon":"check","size":"md","variant":"success"},"children":[]}}
+{"op":"add","path":"/elements/stack-11","value":{"type":"Stack","props":{"direction":"row","gap":"m","align":"center","justify":"between","wrap":true},"children":["textcontent-12","tag-13"]}}
+{"op":"add","path":"/elements/separator-14","value":{"type":"Separator","props":{"orientation":"horizontal","decorative":true},"children":[]}}
+{"op":"add","path":"/elements/selectitem-18","value":{"type":"SelectItem","props":{"value":"7","label":"US 7"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-19","value":{"type":"SelectItem","props":{"value":"7.5","label":"US 7.5"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-20","value":{"type":"SelectItem","props":{"value":"8","label":"US 8"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-21","value":{"type":"SelectItem","props":{"value":"8.5","label":"US 8.5"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-22","value":{"type":"SelectItem","props":{"value":"9","label":"US 9"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-23","value":{"type":"SelectItem","props":{"value":"9.5","label":"US 9.5"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-24","value":{"type":"SelectItem","props":{"value":"10","label":"US 10"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-25","value":{"type":"SelectItem","props":{"value":"10.5","label":"US 10.5"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-26","value":{"type":"SelectItem","props":{"value":"11","label":"US 11"},"children":[]}}
+{"op":"add","path":"/elements/selectitem-27","value":{"type":"SelectItem","props":{"value":"12","label":"US 12"},"children":[]}}
+{"op":"add","path":"/elements/select-17","value":{"type":"Select","props":{"name":"size","placeholder":"Select your size...","rules":["required"]},"children":["selectitem-18","selectitem-19","selectitem-20","selectitem-21","selectitem-22","selectitem-23","selectitem-24","selectitem-25","selectitem-26","selectitem-27"]}}
+{"op":"add","path":"/elements/formcontrol-16","value":{"type":"FormControl","props":{"label":"Size"},"children":["select-17"]}}
+{"op":"add","path":"/elements/form-15","value":{"type":"Form","props":{"name":"select_size"},"children":["formcontrol-16"]}}
+{"op":"add","path":"/elements/separator-28","value":{"type":"Separator","props":{"orientation":"horizontal","decorative":true},"children":[]}}
+{"op":"add","path":"/elements/textcontent-30","value":{"type":"TextContent","props":{"text":"Color","size":"small-heavy"},"children":[]}}
+{"op":"add","path":"/elements/radioitem-32","value":{"type":"RadioItem","props":{"label":"Black / White","description":"Classic contrast with white midsole","value":"black_white"},"children":[]}}
+{"op":"add","path":"/elements/radioitem-33","value":{"type":"RadioItem","props":{"label":"Sand / Gum","description":"Neutral upper with gum outsole","value":"sand_gum"},"children":[]}}
+{"op":"add","path":"/elements/radioitem-34","value":{"type":"RadioItem","props":{"label":"Slate / Neon","description":"Cool tones with neon accents","value":"slate_neon"},"children":[]}}
+{"op":"add","path":"/elements/radiogroup-31","value":{"type":"RadioGroup","props":{"name":"color","defaultValue":"black_white","rules":["required"]},"children":["radioitem-32","radioitem-33","radioitem-34"]}}
+{"op":"add","path":"/elements/stack-29","value":{"type":"Stack","props":{"direction":"column","gap":"s"},"children":["textcontent-30","radiogroup-31"]}}
+{"op":"add","path":"/elements/separator-35","value":{"type":"Separator","props":{"orientation":"horizontal","decorative":true},"children":[]}}
+{"op":"add","path":"/elements/button-37","value":{"type":"Button","props":{"label":"Add to Cart","action":"action:add_to_cart_sneakers","variant":"primary"},"children":[]}}
+{"op":"add","path":"/elements/button-38","value":{"type":"Button","props":{"label":"Save","action":"action:save_sneakers","variant":"secondary"},"children":[]}}
+{"op":"add","path":"/elements/buttons-36","value":{"type":"Buttons","props":{"direction":"row"},"children":["button-37","button-38"]}}
+{"op":"add","path":"/elements/textcontent-39","value":{"type":"TextContent","props":{"text":"Free returns within 30 days. Ships in 1–2 business days.","size":"small"},"children":[]}}
+{"op":"add","path":"/elements/card-9","value":{"type":"Card","props":{"variant":"card"},"children":["cardheader-10","stack-11","separator-14","form-15","separator-28","stack-29","separator-35","buttons-36","textcontent-39"]}}
+{"op":"add","path":"/elements/stack-5","value":{"type":"Stack","props":{"direction":"row","gap":"l","align":"start","justify":"start","wrap":true},"children":["card-6","card-9"]}}
+{"op":"add","path":"/elements/cardheader-42","value":{"type":"CardHeader","props":{"title":"About this item","subtitle":"Built for comfort from morning commutes to weekend miles"},"children":[]}}
+{"op":"add","path":"/elements/markdownrenderer-43","value":{"type":"MarkDownRenderer","props":{"textMarkdown":"The **AeroStride Runner** blends breathable mesh with a supportive heel counter for a secure fit. A responsive foam midsole delivers soft landings and quick transitions, while the durable rubber outsole adds traction on city streets.\n\n**Fit note:** True to size. If you’re between sizes, consider going up 0.5.","variant":"clear"},"children":[]}}
+{"op":"add","path":"/elements/tagblock-44","value":{"type":"TagBlock","props":{"tags":["Breathable mesh upper","Responsive foam cushioning","Rubber traction outsole","Padded collar & tongue","Everyday training"]},"children":[]}}
+{"op":"add","path":"/elements/card-41","value":{"type":"Card","props":{"variant":"sunk"},"children":["cardheader-42","markdownrenderer-43","tagblock-44"]}}
+{"op":"add","path":"/elements/cardheader-46","value":{"type":"CardHeader","props":{"title":"Specs","subtitle":"Materials, weight, and care"},"children":[]}}
+{"op":"add","path":"/elements/col-48","value":{"type":"Col","props":{"label":"Detail","type":"string"},"children":[]}}
+{"op":"add","path":"/elements/col-49","value":{"type":"Col","props":{"label":"Value","type":"string"},"children":[]}}
+{"op":"add","path":"/elements/table-47","value":{"type":"Table","props":{"rows":[["Weight","9.8 oz (US 9)"],["Drop","8 mm"],["Upper","Engineered mesh"],["Midsole","EVA-based foam"],["Outsole","High-abrasion rubber"],["Care","Spot clean; air dry"]]},"children":["col-48","col-49"]}}
+{"op":"add","path":"/elements/card-45","value":{"type":"Card","props":{"variant":"sunk"},"children":["cardheader-46","table-47"]}}
+{"op":"add","path":"/elements/stack-40","value":{"type":"Stack","props":{"direction":"row","gap":"l","align":"start","justify":"start","wrap":true},"children":["card-41","card-45"]}}
+{"op":"add","path":"/elements/stack-4","value":{"type":"Stack","props":{"direction":"column","gap":"l"},"children":["stack-5","stack-40"]}}
+{"op":"add","path":"/elements/stack-1","value":{"type":"Stack","props":{"direction":"column","gap":"l"},"children":["card-2","stack-4"]}}

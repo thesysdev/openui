@@ -134,9 +134,25 @@ OpenUI Lang is designed for model-generated UI that needs to be both structured 
 
 - **Streaming output** - Emit UI incrementally as tokens arrive.
 - **Few tokens** - In the [Generative UI benchmark](https://www.openui.com/benchmarks), OpenUI was up to 2.6x cheaper than JSON formats with similar or better validity (96.9%).
-  - Output tokens per screen: OpenUI 1,362, A2UI 2,823, json-render 3,258 ([benchmark data](https://www.openui.com/benchmarks)).
 - **Controlled rendering** - Restrict output to the components you define and register.
 - **Typed component contracts** - Define component props and structure up front with Zod schemas.
+
+### Generative UI benchmark
+
+OpenUI Lang vs two JSON-based formats on the same 46 screens, four runs each, across six models. Cost per 1,000 screens at provider list prices:
+
+| Model                        |    OpenUI |      A2UI | json-render |  vs A2UI | vs json-render |
+| ---------------------------- | --------: | --------: | ----------: | -------: | -------------: |
+| Gemini 3.7 Flash             |     $9.13 |    $20.65 |      $18.48 |     2.3x |           2.0x |
+| Muse Spark 1.2               |    $15.43 |    $30.00 |      $29.13 |     1.9x |           1.9x |
+| Qwen3.8 2.4T                 |    $17.61 |    $41.30 |      $31.74 |     2.3x |           1.8x |
+| Kimi K3                      |    $33.26 |    $68.70 |      $63.26 |     2.1x |           1.9x |
+| Claude Opus 4.8              |    $49.35 |   $127.17 |     $106.09 |     2.6x |           2.1x |
+| Sol (GPT-5.6)                |    $66.96 |   $148.70 |     $136.96 |     2.2x |           2.0x |
+| **Output tokens per screen** | **1,362** | **2,823** |   **3,258** | **2.1x** |       **2.4x** |
+| **Valid screens**            | **96.9%** | **95.6%** |   **82.8%** |          |                |
+
+Tokens counted with `tiktoken` (o200k), mean over all 1,104 runs per format. Full results and methodology at [openui.com/benchmarks](https://www.openui.com/benchmarks).
 
 ## Documentation
 
@@ -171,7 +187,8 @@ openui/
 │   ├── design-systems/
 │   ├── harnesses/
 │   └── miscellaneous/
-└── docs/                 # Documentation site (openui.com)
+├── docs/                 # Documentation site (openui.com)
+└── benchmarks/           # Token efficiency benchmarks
 ```
 
 Good places to start:

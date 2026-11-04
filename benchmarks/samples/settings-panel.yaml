@@ -1,0 +1,197 @@
+root: stack-1
+elements:
+  textcontent-2:
+    type: TextContent
+    props:
+      text: User Settings
+      size: large-heavy
+  cardheader-6:
+    type: CardHeader
+    props:
+      title: Profile
+      subtitle: Update your personal information and avatar.
+  input-9:
+    type: Input
+    props:
+      name: display_name
+      placeholder: e.g., Alex Johnson
+      type: text
+      rules:
+        - required
+        - minLength:2
+        - maxLength:60
+  formcontrol-8:
+    type: FormControl
+    props:
+      label: Display name
+    children:
+      - input-9
+  input-11:
+    type: Input
+    props:
+      name: avatar_url
+      placeholder: https://example.com/avatar.png
+      type: url
+      rules:
+        - url
+  formcontrol-10:
+    type: FormControl
+    props:
+      label: Avatar URL
+    children:
+      - input-11
+  button-13:
+    type: Button
+    props:
+      label: Save changes
+      action: submit:profile_update
+      variant: primary
+  button-14:
+    type: Button
+    props:
+      label: Reset
+      action: action:reset_profile_form
+      variant: secondary
+  buttons-12:
+    type: Buttons
+    props: {}
+    children:
+      - button-13
+      - button-14
+  form-7:
+    type: Form
+    props:
+      name: profile_update
+    children:
+      - formcontrol-8
+      - formcontrol-10
+      - buttons-12
+  card-5:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-6
+      - form-7
+  tabitem-4:
+    type: TabItem
+    props:
+      value: profile
+      trigger: Profile
+    children:
+      - card-5
+  cardheader-17:
+    type: CardHeader
+    props:
+      title: Security
+      subtitle: Manage sign-in protection and account security.
+  switchitem-19:
+    type: SwitchItem
+    props:
+      label: Two-factor authentication (2FA)
+      description: Require a verification code when signing in.
+      name: two_fa
+      value: enabled
+      checked: false
+      defaultChecked: true
+      disabled: false
+  switchgroup-18:
+    type: SwitchGroup
+    props:
+      variant: sunk
+    children:
+      - switchitem-19
+  textcallout-20:
+    type: TextCallout
+    props:
+      variant: info
+      title: Tip
+      description: After enabling 2FA, you may be asked to set up an authenticator app
+        or backup codes.
+  card-16:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-17
+      - switchgroup-18
+      - textcallout-20
+  tabitem-15:
+    type: TabItem
+    props:
+      value: security
+      trigger: Security
+    children:
+      - card-16
+  cardheader-23:
+    type: CardHeader
+    props:
+      title: Notifications
+      subtitle: Choose what you want to be notified about.
+  switchitem-25:
+    type: SwitchItem
+    props:
+      label: Email notifications
+      description: Receive updates and account messages by email.
+      name: notif_email
+      value: enabled
+      checked: true
+      defaultChecked: true
+      disabled: false
+  switchitem-26:
+    type: SwitchItem
+    props:
+      label: Product updates
+      description: Get notified about new features and improvements.
+      name: notif_product
+      value: enabled
+      checked: false
+      defaultChecked: false
+      disabled: false
+  switchitem-27:
+    type: SwitchItem
+    props:
+      label: Security alerts
+      description: Important alerts about sign-ins and security changes.
+      name: notif_security
+      value: enabled
+      checked: true
+      defaultChecked: true
+      disabled: false
+  switchgroup-24:
+    type: SwitchGroup
+    props:
+      variant: sunk
+    children:
+      - switchitem-25
+      - switchitem-26
+      - switchitem-27
+  card-22:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-23
+      - switchgroup-24
+  tabitem-21:
+    type: TabItem
+    props:
+      value: notifications
+      trigger: Notifications
+    children:
+      - card-22
+  tabs-3:
+    type: Tabs
+    props: {}
+    children:
+      - tabitem-4
+      - tabitem-15
+      - tabitem-21
+  stack-1:
+    type: Stack
+    props:
+      direction: column
+      gap: l
+    children:
+      - textcontent-2
+      - tabs-3

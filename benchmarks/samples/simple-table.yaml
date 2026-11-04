@@ -1,0 +1,62 @@
+root: stack-1
+elements:
+  textcontent-2:
+    type: TextContent
+    props:
+      text: Employees (Sample)
+      size: large-heavy
+  col-4:
+    type: Col
+    props:
+      label: Name
+      type: string
+  col-5:
+    type: Col
+    props:
+      label: Department
+      type: string
+  col-6:
+    type: Col
+    props:
+      label: Salary
+      type: number
+  col-7:
+    type: Col
+    props:
+      label: YoY change (%)
+      type: number
+  table-3:
+    type: Table
+    props:
+      rows:
+        - - Ava Patel
+          - Engineering
+          - 132000
+          - 6.5
+        - - Marcus Lee
+          - Sales
+          - 98000
+          - 4.2
+        - - Sofia Ramirez
+          - Marketing
+          - 105000
+          - 3.1
+        - - Ethan Brooks
+          - Finance
+          - 118500
+          - 5
+        - - Nina Chen
+          - HR
+          - 89000
+          - 2.4
+    children:
+      - col-4
+      - col-5
+      - col-6
+      - col-7
+  stack-1:
+    type: Stack
+    props: {}
+    children:
+      - textcontent-2
+      - table-3

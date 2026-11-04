@@ -159,10 +159,11 @@ export default function HomePage() {
           {/* Fold 4: integrations. */}
           <CompatibilitySection />
 
-          {/* The proof: cost and reliability from the Generative UI benchmark. */}
+          {/* The proof, then the hosted product: fewer tokens and faster
+              generation, then reliability in production. */}
           <HeroProof />
 
-          {/* Then the hosted product, who uses OpenUI and what they say. */}
+          {/* Then who uses OpenUI and what they say. */}
           <div className={styles.cloudGroup}>
             <ShiroPeek />
             <CloudSection />

@@ -52,6 +52,7 @@ export function OpenClawFeatures() {
   return (
     <FeatureGridSection
       features={OPENCLAW_FEATURES}
+      showHeader={false}
       showCompat={false}
       header="A power-packed workspace for your OpenClaw agents, where you can generate apps for every use case."
       showBottomSeparator={false}

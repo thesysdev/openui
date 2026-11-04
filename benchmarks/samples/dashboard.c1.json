@@ -1,0 +1,406 @@
+{
+  "component": {
+    "component": "Stack",
+    "props": {
+      "children": [
+        {
+          "component": "Card",
+          "props": {
+            "children": [
+              {
+                "component": "CardHeader",
+                "props": {
+                  "title": "Product Analytics Dashboard",
+                  "subtitle": "Usage, acquisition, feature adoption, and revenue trends"
+                }
+              }
+            ],
+            "variant": "card"
+          }
+        },
+        {
+          "component": "Stack",
+          "props": {
+            "children": [
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "Monthly Active Users (MAU)",
+                        "size": "small-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "128,400",
+                        "size": "large-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "+6.2% vs last month",
+                        "size": "small"
+                      }
+                    }
+                  ],
+                  "variant": "sunk"
+                }
+              },
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "New Users (30d)",
+                        "size": "small-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "24,950",
+                        "size": "large-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "+3.1% vs last 30d",
+                        "size": "small"
+                      }
+                    }
+                  ],
+                  "variant": "sunk"
+                }
+              },
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "MRR",
+                        "size": "small-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "$412,000",
+                        "size": "large-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "+4.4% MoM",
+                        "size": "small"
+                      }
+                    }
+                  ],
+                  "variant": "sunk"
+                }
+              },
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "ARR",
+                        "size": "small-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "$4.94M",
+                        "size": "large-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "+18.7% YoY",
+                        "size": "small"
+                      }
+                    }
+                  ],
+                  "variant": "sunk"
+                }
+              }
+            ],
+            "direction": "row",
+            "gap": "m",
+            "align": "stretch",
+            "justify": "start",
+            "wrap": true
+          }
+        },
+        {
+          "component": "Stack",
+          "props": {
+            "children": [
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "CardHeader",
+                      "props": {
+                        "title": "Monthly Active Users",
+                        "subtitle": "Last 12 months"
+                      }
+                    },
+                    {
+                      "component": "BarChart",
+                      "props": {
+                        "labels": [
+                          "Apr",
+                          "May",
+                          "Jun",
+                          "Jul",
+                          "Aug",
+                          "Sep",
+                          "Oct",
+                          "Nov",
+                          "Dec",
+                          "Jan",
+                          "Feb",
+                          "Mar"
+                        ],
+                        "series": [
+                          {
+                            "component": "Series",
+                            "props": {
+                              "category": "MAU",
+                              "values": [
+                                84500, 87200, 90100, 93800, 96500, 100200, 104800, 109600, 114300,
+                                119900, 123700, 128400
+                              ]
+                            }
+                          }
+                        ],
+                        "variant": "grouped",
+                        "xLabel": "Month",
+                        "yLabel": "Users"
+                      }
+                    }
+                  ],
+                  "variant": "card"
+                }
+              },
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "CardHeader",
+                      "props": {
+                        "title": "User Acquisition",
+                        "subtitle": "Share of new users (last 30 days)"
+                      }
+                    },
+                    {
+                      "component": "PieChart",
+                      "props": {
+                        "slices": [
+                          {
+                            "component": "Slice",
+                            "props": {
+                              "category": "Organic Search",
+                              "value": 34
+                            }
+                          },
+                          {
+                            "component": "Slice",
+                            "props": {
+                              "category": "Paid Search",
+                              "value": 22
+                            }
+                          },
+                          {
+                            "component": "Slice",
+                            "props": {
+                              "category": "Referrals",
+                              "value": 16
+                            }
+                          },
+                          {
+                            "component": "Slice",
+                            "props": {
+                              "category": "Social",
+                              "value": 12
+                            }
+                          },
+                          {
+                            "component": "Slice",
+                            "props": {
+                              "category": "Direct / Other",
+                              "value": 16
+                            }
+                          }
+                        ],
+                        "variant": "donut"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "Tip: Track CAC and conversion rate by channel to explain mix shifts.",
+                        "size": "small"
+                      }
+                    }
+                  ],
+                  "variant": "card"
+                }
+              }
+            ],
+            "direction": "row",
+            "gap": "l",
+            "align": "stretch",
+            "justify": "start",
+            "wrap": true
+          }
+        },
+        {
+          "component": "Card",
+          "props": {
+            "children": [
+              {
+                "component": "CardHeader",
+                "props": {
+                  "title": "Top Features",
+                  "subtitle": "Adoption and engagement (last 30 days)"
+                }
+              },
+              {
+                "component": "Table",
+                "props": {
+                  "columns": [
+                    {
+                      "component": "Col",
+                      "props": {
+                        "label": "Feature",
+                        "type": "string"
+                      }
+                    },
+                    {
+                      "component": "Col",
+                      "props": {
+                        "label": "Weekly Active Users",
+                        "type": "number"
+                      }
+                    },
+                    {
+                      "component": "Col",
+                      "props": {
+                        "label": "Adoption Rate (%)",
+                        "type": "number"
+                      }
+                    },
+                    {
+                      "component": "Col",
+                      "props": {
+                        "label": "Avg. Uses / User",
+                        "type": "number"
+                      }
+                    }
+                  ],
+                  "rows": [
+                    ["Dashboards", 48200, 62.5, 5.8],
+                    ["Automations", 31750, 41.2, 3.1],
+                    ["Integrations", 28900, 37.5, 2.4],
+                    ["Team Collaboration", 27100, 35.2, 4.6],
+                    ["Exports", 19850, 25.8, 1.7],
+                    ["Alerts", 17600, 22.9, 2],
+                    ["API Access", 12150, 15.8, 6.3]
+                  ]
+                }
+              }
+            ],
+            "variant": "card"
+          }
+        },
+        {
+          "component": "Card",
+          "props": {
+            "children": [
+              {
+                "component": "CardHeader",
+                "props": {
+                  "title": "Revenue Trend",
+                  "subtitle": "MRR and ARR (last 12 months)"
+                }
+              },
+              {
+                "component": "LineChart",
+                "props": {
+                  "labels": [
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                    "Jan",
+                    "Feb",
+                    "Mar"
+                  ],
+                  "series": [
+                    {
+                      "component": "Series",
+                      "props": {
+                        "category": "MRR ($)",
+                        "values": [
+                          332000, 341000, 349000, 356000, 364000, 372000, 381000, 389000, 397000,
+                          404000, 408000, 412000
+                        ]
+                      }
+                    },
+                    {
+                      "component": "Series",
+                      "props": {
+                        "category": "ARR ($)",
+                        "values": [
+                          3984000, 4092000, 4188000, 4272000, 4368000, 4464000, 4572000, 4668000,
+                          4764000, 4848000, 4896000, 4944000
+                        ]
+                      }
+                    }
+                  ],
+                  "variant": "natural",
+                  "xLabel": "Month",
+                  "yLabel": "USD"
+                }
+              },
+              {
+                "component": "TextContent",
+                "props": {
+                  "text": "ARR shown as 12×MRR for directional tracking; replace with contracted ARR if you track annual commitments.",
+                  "size": "small"
+                }
+              }
+            ],
+            "variant": "card"
+          }
+        }
+      ],
+      "direction": "column",
+      "gap": "l"
+    }
+  },
+  "error": null
+}

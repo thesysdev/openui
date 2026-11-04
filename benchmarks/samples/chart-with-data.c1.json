@@ -1,0 +1,94 @@
+{
+  "component": {
+    "component": "Stack",
+    "props": {
+      "children": [
+        {
+          "component": "TextContent",
+          "props": {
+            "text": "Revenue Dashboard",
+            "size": "large-heavy"
+          }
+        },
+        {
+          "component": "Stack",
+          "props": {
+            "children": [
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "CardHeader",
+                      "props": {
+                        "title": "Total Revenue",
+                        "subtitle": "Last 6 months"
+                      }
+                    },
+                    {
+                      "component": "TextContent",
+                      "props": {
+                        "text": "$1,284,000",
+                        "size": "large-heavy"
+                      }
+                    },
+                    {
+                      "component": "TextCallout",
+                      "props": {
+                        "variant": "success",
+                        "title": "Up 8.4%",
+                        "description": "Compared to the previous 6 months"
+                      }
+                    }
+                  ],
+                  "variant": "card"
+                }
+              },
+              {
+                "component": "Card",
+                "props": {
+                  "children": [
+                    {
+                      "component": "CardHeader",
+                      "props": {
+                        "title": "Monthly Revenue",
+                        "subtitle": "Last 6 months"
+                      }
+                    },
+                    {
+                      "component": "BarChart",
+                      "props": {
+                        "labels": ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"],
+                        "series": [
+                          {
+                            "component": "Series",
+                            "props": {
+                              "category": "Revenue",
+                              "values": [198000, 205000, 214000, 210000, 223000, 234000]
+                            }
+                          }
+                        ],
+                        "variant": "grouped",
+                        "xLabel": "Month",
+                        "yLabel": "Revenue (USD)"
+                      }
+                    }
+                  ],
+                  "variant": "card"
+                }
+              }
+            ],
+            "direction": "row",
+            "gap": "l",
+            "align": "stretch",
+            "justify": "start",
+            "wrap": true
+          }
+        }
+      ],
+      "direction": "column",
+      "gap": "l"
+    }
+  },
+  "error": null
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import svgPaths from "@/imports/svg-urruvoh2be";
+import { PillLink } from "../../components/Button/Button";
 import { FeatureList, type FeatureListItem } from "../../components/FeatureList/FeatureList";
 import styles from "./FeaturesSection.module.css";
 
@@ -57,12 +58,30 @@ const DEFAULT_FEATURES: FeatureListItem[] = [
 
 export function FeaturesSection({
   features = DEFAULT_FEATURES,
+  showCta = true,
 }: {
   features?: FeatureListItem[];
+  showCta?: boolean;
 } = {}) {
   return (
     <div className={styles.section}>
       <div className={styles.container}>
+        {showCta && (
+          <div className={styles.header}>
+            <h2 className={styles.title}>Renders 3 times faster</h2>
+            <p className={styles.subtitle}>With 67% fewer tokens</p>
+            <p className={styles.caption}>when compared to JSON-Render</p>
+            <div className={styles.ctaWrap}>
+              <PillLink
+                href="/docs/openui-lang/benchmarks"
+                className={`${styles.ctaLink} ${styles.ctaButton}`}
+              >
+                <span>View benchmarks</span>
+              </PillLink>
+            </div>
+          </div>
+        )}
+
         <FeatureList items={features} />
       </div>
     </div>

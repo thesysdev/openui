@@ -1,0 +1,88 @@
+root: stack-1
+elements:
+  textcontent-2:
+    type: TextContent
+    props:
+      text: Revenue Dashboard
+      size: large-heavy
+  cardheader-5:
+    type: CardHeader
+    props:
+      title: Total Revenue
+      subtitle: Last 6 months
+  textcontent-6:
+    type: TextContent
+    props:
+      text: $1,284,000
+      size: large-heavy
+  textcallout-7:
+    type: TextCallout
+    props:
+      variant: success
+      title: Up 8.4%
+      description: Compared to the previous 6 months
+  card-4:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-5
+      - textcontent-6
+      - textcallout-7
+  cardheader-9:
+    type: CardHeader
+    props:
+      title: Monthly Revenue
+      subtitle: Last 6 months
+  series-11:
+    type: Series
+    props:
+      category: Revenue
+      values:
+        - 198000
+        - 205000
+        - 214000
+        - 210000
+        - 223000
+        - 234000
+  barchart-10:
+    type: BarChart
+    props:
+      labels:
+        - Oct
+        - Nov
+        - Dec
+        - Jan
+        - Feb
+        - Mar
+      variant: grouped
+      xLabel: Month
+      yLabel: Revenue (USD)
+    children:
+      - series-11
+  card-8:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-9
+      - barchart-10
+  stack-3:
+    type: Stack
+    props:
+      direction: row
+      gap: l
+      align: stretch
+      justify: start
+      wrap: true
+    children:
+      - card-4
+      - card-8
+  stack-1:
+    type: Stack
+    props:
+      direction: column
+      gap: l
+    children:
+      - textcontent-2
+      - stack-3

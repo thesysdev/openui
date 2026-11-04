@@ -54,14 +54,14 @@ export function HeroProof() {
               </div>
             </div>
             <p className={styles.sideNote}>
-              Across six models, OpenUI cost 1.8 to 2.6x less than A2UI and json-render, with the
-              highest structural validity ({OPENUI_VALIDITY}%). It writes less than half the output
-              tokens per screen, so screens finish streaming about 2x sooner at the same model
-              speed.
+              OpenUI Lang writes less than half the tokens of JSON-based UI formats, with the
+              highest validity across six models. Fewer tokens means every screen finishes about 2x
+              sooner and costs less.
             </p>
           </div>
         </div>
       </div>
+      {/* The token race is hidden for now; BlockRace is kept for reuse. */}
     </section>
   );
 }

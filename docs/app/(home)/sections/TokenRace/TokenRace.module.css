@@ -1,0 +1,147 @@
+.race {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 640px;
+  margin: 1.25rem auto 0.5rem;
+  padding: 1rem 1.25rem 1.125rem;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 16px;
+  background: var(--openui-background);
+  font-family: var(--home-font-text, "Inter", sans-serif);
+  text-align: left;
+}
+
+.raceCompact {
+  max-width: none;
+  margin: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.replay {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--openui-text-neutral-primary);
+  cursor: pointer;
+}
+
+.replay:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 5.5rem 3.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.rowOpenui {
+  color: var(--openui-text-neutral-primary);
+  font-weight: 600;
+}
+
+.name {
+  white-space: nowrap;
+}
+
+.vendor {
+  font-weight: 400;
+  color: var(--openui-text-neutral-tertiary, var(--openui-text-neutral-secondary));
+}
+
+.track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--openui-foreground);
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--openui-text-neutral-tertiary, #a3a3a3);
+}
+
+.rowOpenui .fill {
+  background: var(--openui-text-neutral-primary);
+}
+
+.count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  display: inline-flex;
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--openui-text-neutral-tertiary, var(--openui-text-neutral-secondary));
+}
+
+.statusDone {
+  color: var(--openui-text-neutral-primary);
+}
+
+@media (max-width: 767px) {
+  .race {
+    padding: 0.875rem 1rem 1rem;
+  }
+
+  .row {
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas:
+      "name count status"
+      "track track track";
+    row-gap: 0.375rem;
+  }
+
+  .name {
+    grid-area: name;
+  }
+
+  .track {
+    grid-area: track;
+  }
+
+  .count {
+    grid-area: count;
+  }
+
+  .status {
+    grid-area: status;
+    min-width: 4.5rem;
+    justify-content: flex-end;
+  }
+}
