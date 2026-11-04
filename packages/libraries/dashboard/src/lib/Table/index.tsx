@@ -3,7 +3,7 @@
 import { defineComponent, useIsQueryLoading } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { Table as DashboardTable } from "../../components/Table";
-import { formatDate } from "../../shared/format";
+import { formatDate, formatMetric } from "../../shared/format";
 import { asArray } from "../helpers";
 import { ColSchema } from "./schema";
 
@@ -26,15 +26,19 @@ export const Table = defineComponent({
     const isQueryLoading = useIsQueryLoading();
     const columns = (props.columns ?? [])
       .filter((c: any) => c != null && c.props)
-      .map((c: any) => ({
-        label: c.props?.label ?? "",
-        align: c.props?.type === "number" ? ("right" as const) : undefined,
-        cells: asArray(c.props?.data ?? []).map((cell) =>
-          typeof cell === "object" && cell !== null
-            ? renderNode(cell)
-            : formatDate(String(cell ?? "")),
-        ),
-      }));
+      .map((c: any) => {
+        const isNumber = c.props?.type === "number";
+        return {
+          label: c.props?.label ?? "",
+          align: isNumber ? ("right" as const) : undefined,
+          // Large numbers shorten only in number columns, so IDs and codes elsewhere stay whole.
+          cells: asArray(c.props?.data ?? []).map((cell) =>
+            typeof cell === "object" && cell !== null
+              ? renderNode(cell)
+              : (isNumber ? formatMetric : formatDate)(String(cell ?? "")),
+          ),
+        };
+      });
 
     return <DashboardTable columns={columns} loading={isQueryLoading} />;
   },

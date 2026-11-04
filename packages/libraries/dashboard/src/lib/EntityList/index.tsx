@@ -2,16 +2,29 @@
 
 import { EntityList } from "@openuidev/react-components";
 import { type ComponentRenderProps, defineComponent } from "@openuidev/react-lang";
-import { type EntityListProps, entityListPropsSchema } from "./schema";
+import { formatMetric } from "../../shared/format";
+import { type EntityListProps, type EntityListRow, entityListPropsSchema } from "./schema";
+
+// `right` may be a number (rightVariant "number" asks for one); react-components takes text,
+// and dates and large numbers read better formatted.
+function toRow(row: EntityListRow) {
+  return { ...row, right: formatMetric(row.right == null ? "" : String(row.right)) };
+}
+
 /**
  * Thin adapter over react-components' EntityList. The row contract matches
- * exactly — same `{ left, right, rightVariant }`, same "small" | "default"
- * sizes, same header/footer rules — so the kit only supplies the schema the
- * model is prompted against and lets react-components own the markup.
+ * — same `{ left, right, rightVariant }`, same "small" | "default" sizes,
+ * same header/footer rules — so the kit only supplies the schema the model is
+ * prompted against, formats `right`, and lets react-components own the markup.
  */
 function EntityListRenderer({ props }: ComponentRenderProps<EntityListProps>) {
   return (
-    <EntityList rows={props.rows} size={props.size} header={props.header} footer={props.footer} />
+    <EntityList
+      rows={(props.rows ?? []).map(toRow)}
+      size={props.size}
+      header={props.header && toRow(props.header)}
+      footer={props.footer && toRow(props.footer)}
+    />
   );
 }
 

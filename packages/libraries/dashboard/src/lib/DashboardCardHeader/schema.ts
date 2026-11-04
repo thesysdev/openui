@@ -3,7 +3,7 @@ import { IconButtonComponent } from "../IconButton";
 export const dashboardCardHeaderControlSchema = z.union([IconButtonComponent.ref]);
 
 export const dashboardCardHeaderPropsSchema = z.object({
-  title: z.string(),
+  title: z.union([z.string(), z.number()]),
   subtitle: z.string().optional(),
   titleType: z.enum(["text", "number"]).default("text"),
   controls: z.array(dashboardCardHeaderControlSchema).max(2).optional(),

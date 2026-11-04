@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 export const entityListRowSchema = z.object({
   left: z.string(),
-  right: z.string(),
+  right: z.union([z.string(), z.number()]),
   rightVariant: z.enum(["text", "number"]).default("text"),
 });
 

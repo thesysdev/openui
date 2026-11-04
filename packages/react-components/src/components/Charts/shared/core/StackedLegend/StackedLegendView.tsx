@@ -144,7 +144,7 @@ export const StackedLegendView = ({
         {itemsToDisplay.map((item, index) => {
           const isHidden = hiddenKeys?.has(item.key);
           return (
-            <React.Fragment key={item.key}>
+            <React.Fragment key={`${item.key}-${index}`}>
               <div
                 className={clsx(styles.item, names.item)}
                 data-state={activeKey === item.key ? "active" : undefined}
