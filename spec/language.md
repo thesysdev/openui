@@ -1,6 +1,6 @@
 # The OpenUI Language
 
-**1.1** (draft)
+**1.1**
 
 The exact rules of OpenUI Lang. For a guided tour, read [overview.md](./overview.md). [prompt.md](./prompt.md) covers the LibrarySpec, the prompt, and stored responses. MUST, MUST NOT, SHOULD, and MAY are used as in RFC 2119.
 
@@ -18,7 +18,13 @@ The grammar uses EBNF: `=` defines, `|` separates alternatives, `[ ]` is optiona
 
 The client accepts text with or without the host's `]]>openui:` marker lines ([prompt.md](./prompt.md), section 7) and renders only the content. It then prepares the text in this order:
 
-1. **Fence extraction.** A fence line starts with three backticks, optionally followed by a language tag. A fence opens on such a line and closes on the next one. Three backticks closed again on the same line are inline code and are ignored. Code may follow the tag on the opening line (```` ```openui root = Stack([ ````). A fence tagged `openui-js` holds a script, not the program, and is skipped. If a fence's first code line, after comment lines, starts a statement, the client joins the contents of every fence with newlines and ignores the text outside them. Otherwise, if the text outside the fences holds a statement, that text is the program and the fence lines are dropped, as with a lone closing fence after the program or `js` helper blocks after it. A fence line inside a double-quoted string on a statement line is part of the string. Quotes in prose do not shield anything, and single-quoted strings do not shield fences. Comments are stripped after extraction. An unterminated fence runs to the end of the text.
+1. **Fence extraction.** The client takes the program out of markdown code fences.
+   - A fence line starts with three backticks and an optional language tag. It opens a block, and the next fence line closes it. An unterminated block runs to the end of the text.
+   - Three backticks that close again on the same line are inline code, not a fence.
+   - Code may follow the tag on the opening line (```` ```openui root = Stack([ ````).
+   - A block tagged `openui-js` is a script, not the program, and is skipped.
+   - If a block's first code line, after comment lines, starts a statement, the program is every block joined with newlines, and text outside the blocks is ignored. Otherwise, if the text outside the blocks holds a statement, that text is the program. This covers a stray closing fence or `js` helper blocks after the program.
+   - A fence line inside a double-quoted string on a statement line is part of the string. Nothing else shields a fence: not quotes in prose, not single-quoted strings, and not comments, which are stripped after extraction.
 2. **Comment stripping.** `//` and `#` start a comment that runs to the end of the line. Comment markers inside strings, even multi-line ones, are not comments.
 3. **Trimming.** Leading and trailing whitespace is removed.
 
