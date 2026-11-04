@@ -1,3 +1,4 @@
+import { completionOver } from "@/lib/benchmark-data";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { BevelButton } from "../../components/Button/BevelButton";
 import productStyles from "../ProductSection/ProductSection.module.css";
@@ -7,8 +8,11 @@ import styles from "./HeroProof.module.css";
 /* The benchmark fold, laid out like the product bands' header: a two-line
    headline and a pill on the left; the two numbers with the copy under them
    on the right. The numbers come from the Generative UI benchmark
-   (lib/benchmark-data.ts): cost per pass on Claude Opus 4.8, OpenUI $2.27
-   against A2UI $5.85, and OpenUI's structural validity across all six models. */
+   (lib/benchmark-data.ts): 2.6x is the largest cost-per-pass ratio (Claude
+   Opus 4.8, OpenUI $2.27 against A2UI $5.85), 1.8x the smallest, and validity
+   is OpenUI's pooled completion across all six models. */
+const OPENUI_VALIDITY = Number(completionOver("openui").toFixed(1));
+
 export function HeroProof() {
   return (
     <section className={styles.section} aria-labelledby="benchmark-title">
@@ -39,7 +43,7 @@ export function HeroProof() {
               <div className={styles.stat}>
                 <CountUp
                   className={styles.statValue}
-                  value={96.5}
+                  value={OPENUI_VALIDITY}
                   decimals={1}
                   suffix="%"
                   delay={200}
@@ -48,9 +52,10 @@ export function HeroProof() {
               </div>
             </div>
             <p className={styles.sideNote}>
-              Across six models in the Generative UI benchmark, OpenUI was up to 2.6x cheaper than
-              JSON formats, with similar or better validity (96.5%). Shorter output also means
-              screens finish sooner.
+              Across six models, OpenUI cost 1.8 to 2.6x less than A2UI and json-render, with the
+              highest structural validity ({OPENUI_VALIDITY}%). It writes less than half the output
+              tokens per screen, so screens finish streaming about 2x sooner at the same model
+              speed.
             </p>
           </div>
         </div>

@@ -17,7 +17,7 @@ Include these sections in order:
 8. EmailHeading "Why developers choose OpenUI" (level 2)
 9. EmailText "OpenUI streams UI as the model writes it, is up to 2.6x cheaper than JSON with the same reliability, and works with any LLM provider."
 10. EmailDivider
-11. EmailStats with 3 items: ("2.6x", "Cheaper Than JSON"), ("96.5%", "Valid Screens"), ("0", "Arbitrary Code Execution")
+11. EmailStats with 3 items: ("2.6x", "Cheaper Than JSON"), ("96.9%", "Valid Screens"), ("0", "Arbitrary Code Execution")
 12. EmailDivider
 13. EmailFeatureGrid titled "Built for the modern AI stack" with description "Everything you need to ship generative UI experiences." and 4 items:
     - (https://react.dev/favicon-32x32.png, "React", "React Components", "40+ production-ready components with defineComponent and Zod-powered type safety.")

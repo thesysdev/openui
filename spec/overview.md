@@ -59,7 +59,7 @@ The full walkthrough is the [docs quickstart](https://openui.com/docs/openui-lan
 
 ### 1.2 Design goals
 
-- **Few tokens.** Positional arguments and short names keep programs small. In the [Generative UI benchmark](https://www.openui.com/benchmarks), OpenUI was up to 2.6x cheaper than JSON formats with similar or better validity (96.5%).
+- **Few tokens.** Positional arguments and short names keep programs small. In the [Generative UI benchmark](https://www.openui.com/benchmarks), OpenUI was up to 2.6x cheaper than JSON formats with similar or better validity (96.9%).
 - **Streams by default.** Every partial program is a valid page, so the UI builds up as the model writes.
 - **Forgiving.** A mistake removes the smallest broken piece. The rest of the page still renders.
 - **Interactive without the model.** State, expressions, and actions run in the client, with no round trip to the model.

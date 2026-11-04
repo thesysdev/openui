@@ -406,9 +406,8 @@ export function StreamingComparison() {
         <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-800 dark:bg-emerald-900/20">
           <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
             OpenUI Lang completed in <strong>{OPENUI_DURATION.toFixed(1)}s</strong> vs JSON&apos;s{" "}
-            <strong>{JSON_DURATION.toFixed(1)}s</strong> &mdash;{" "}
-            <strong>{(JSON_DURATION / OPENUI_DURATION).toFixed(1)}x faster</strong> with{" "}
-            <strong>{JSON_TOKENS - OPENUI_TOKENS} fewer tokens</strong>.
+            <strong>{JSON_DURATION.toFixed(1)}s</strong>, with{" "}
+            <strong>{JSON_TOKENS - OPENUI_TOKENS} fewer tokens</strong> for this example.
           </p>
           <button
             onClick={() => {

@@ -133,7 +133,7 @@ npm install @openuidev/a2ui zod
 OpenUI Lang is designed for model-generated UI that needs to be both structured and streamable.
 
 - **Streaming output** - Emit UI incrementally as tokens arrive.
-- **Few tokens** - In the [Generative UI benchmark](https://www.openui.com/benchmarks), OpenUI was up to 2.6x cheaper than JSON formats with similar or better validity (96.5%).
+- **Few tokens** - In the [Generative UI benchmark](https://www.openui.com/benchmarks), OpenUI was up to 2.6x cheaper than JSON formats with similar or better validity (96.9%).
 - **Controlled rendering** - Restrict output to the components you define and register.
 - **Typed component contracts** - Define component props and structure up front with Zod schemas.
 
