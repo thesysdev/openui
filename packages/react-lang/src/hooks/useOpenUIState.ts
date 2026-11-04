@@ -504,6 +504,9 @@ export function useOpenUIState(
       reportError,
       getParseResult,
       queryManager,
+      // A store write or new query results give a new value, so memoized components re-render
+      storeSnapshot,
+      querySnapshot,
     ],
   );
 
