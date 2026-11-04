@@ -18,6 +18,7 @@ import { CloudSection } from "./sections/CloudSection/CloudSection";
 import { CompatibilitySection } from "./sections/CompatibilitySection/CompatibilitySection";
 import { FAQS, FaqSection } from "./sections/FaqSection/FaqSection";
 import { Footer } from "./sections/Footer/Footer";
+import { HeroProof } from "./sections/HeroProof/HeroProof";
 import { HeroSection } from "./sections/HeroSection/HeroSection";
 import { LogoStrip } from "./sections/LogoStrip/LogoStrip";
 import { LangHeadline } from "./sections/ProductSection/LangHeadline";
@@ -157,6 +158,9 @@ export default function HomePage() {
 
           {/* Fold 4: integrations. */}
           <CompatibilitySection />
+
+          {/* The proof: cost and reliability from the Generative UI benchmark. */}
+          <HeroProof />
 
           {/* Then the hosted product, who uses OpenUI and what they say. */}
           <div className={styles.cloudGroup}>

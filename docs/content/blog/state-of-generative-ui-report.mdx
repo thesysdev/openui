@@ -172,7 +172,7 @@ OpenUI ships a working implementation of this pattern: [`examples/miscellaneous/
 
 Within the Declarative bucket the entrants are functionally similar: catalogs, streaming, typed props. The measurable differentiator is wire-format efficiency, because for generated UI, token count translates directly into two things. The first is time-to-first-render: the model emits the spec token by token, and every token of format syntax extends the period the user spends looking at a skeleton. The second is cost: every UI response is billed as output tokens, typically the most expensive tokens a model produces.
 
-Our [Generative UI benchmark](/benchmarks) compares OpenUI, A2UI and json-render on the same screens across many models, covering output tokens, cost and reliability. The [methodology](/benchmarks/methodology) and data are published with the results.
+Our [Generative UI benchmark](/benchmarks) runs OpenUI, A2UI and json-render on the same screens across six models, and OpenUI came out up to 2.6x cheaper than the JSON formats. The [methodology](/benchmarks/methodology) and data are published with the results.
 
 The comparison applies only to Declarative formats. Static has no meaningful wire format. Open-Ended sits at the other extreme of the cost scale: emitting a full HTML/CSS/JS page per request runs 5-10x the tokens of an equivalent Declarative spec, paid at output-token prices on every response. That cost profile is a large part of why Open-Ended works best as a sandboxed escape hatch inside a Declarative catalog rather than as the default path.
 

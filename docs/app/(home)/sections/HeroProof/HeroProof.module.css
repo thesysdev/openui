@@ -1,0 +1,166 @@
+/* Lines up with the hero's left-aligned text: the same 75rem container and
+   2rem inline padding as HeroSection's .desktopHeroInnerLeft. */
+.proof {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 4vw, 4rem);
+  width: 100%;
+  max-width: 75rem;
+  margin-inline: auto;
+  padding-inline: 2rem;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.5rem 2.75rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-family: var(--home-font-display);
+  font-size: clamp(2.75rem, 4.5vw, 4rem);
+  font-weight: var(--home-display-weight, 600);
+  line-height: 1;
+  letter-spacing: var(--home-display-tracking, -0.02em);
+  color: var(--openui-text-neutral-primary);
+}
+
+.statLabel {
+  font-family: var(--home-font-text);
+  font-size: 0.9375rem;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.statNote {
+  flex-basis: 100%;
+  max-width: 22rem;
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.link {
+  display: inline-flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--home-font-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--openui-text-neutral-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--openui-border-default);
+  text-underline-offset: 4px;
+}
+
+.link:hover {
+  text-decoration-color: currentColor;
+}
+
+.race {
+  min-width: 0;
+}
+
+@media (max-width: 899px) {
+  .proof {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 1.25rem;
+  }
+
+  .stats {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .stat {
+    align-items: center;
+  }
+
+  .link,
+  .statNote {
+    justify-content: center;
+    margin-inline: auto;
+  }
+}
+
+/* The fold: the product-band header, then the numbers and the race. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  width: 100%;
+  /* Taller, so the fold reads at the same scale as the hero above it. */
+  padding-block: clamp(1.25rem, 4vw, 4rem);
+}
+
+/* Same measure and gutters as the home fold (hero + comparison): a 75rem
+   content box inside 3vw gutters capped at 2.5rem. */
+.section > .header {
+  --fold-gutter: clamp(1.25rem, 3vw, 2.5rem);
+  box-sizing: border-box;
+  max-width: calc(75rem + 2 * var(--fold-gutter));
+  padding-inline: var(--fold-gutter);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  /* Top-aligned with the headline. */
+  padding-top: 0;
+}
+
+.sideNote {
+  max-width: 30rem;
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* Phones: one centred column in reading order, headline, numbers, copy, then
+   the button as a hugging pill. The lead and side boxes drop out
+   (display: contents) so their children can be ordered inside the band's
+   column. */
+@media (max-width: 767px) {
+  .lead,
+  .side {
+    display: contents;
+  }
+
+  .header .title {
+    order: 1;
+    text-align: center;
+  }
+
+  .stats {
+    order: 2;
+    justify-content: center;
+    margin-top: 0.75rem;
+  }
+
+  .sideNote {
+    order: 3;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .header .ctas {
+    order: 4;
+    align-self: center;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+}

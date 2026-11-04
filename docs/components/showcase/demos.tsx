@@ -15,7 +15,8 @@ const PLAYGROUND: ShowcaseItem[] = [
   {
     name: "OpenUI vs JSON",
     tagline: "Tokens",
-    description: "Generate UI from a prompt and watch OpenUI Lang stream against JSON.",
+    description:
+      "Generate UI from a prompt and watch OpenUI Lang stream against JSON, at up to 2.6x lower cost.",
     image: { light: "/nav/vsjson-light.webp", dark: "/nav/vsjson-dark.webp" },
     links: [{ label: "Open demo", href: "/openui-vs-json" }],
   },

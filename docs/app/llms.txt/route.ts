@@ -5,7 +5,7 @@ export const dynamic = "force-static";
 export const revalidate = false;
 
 const SITE_DESCRIPTION =
-  "Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular.";
+  "Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular. Up to 2.6x cheaper than JSON, with the same reliability.";
 
 export async function GET() {
   const pages = source.getPages().map((page) => {
