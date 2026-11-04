@@ -169,12 +169,14 @@ function renderDeep(value: unknown): React.ReactNode {
  * RenderNodeInner reads (typeName, statementId, props). `partial` is skipped: the parser sets
  * it on every element of a pass, so it flips for finished elements while later ones stream.
  */
-function rendersSame(a: unknown, b: unknown): boolean {
+function rendersSame(a: unknown, b: unknown, depth = 0): boolean {
   if (Object.is(a, b)) return true;
   if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  // Deeper than any program builds, e.g. a cyclic value from a library function: re-render
+  if (depth > 64) return false;
   if (Array.isArray(a)) {
     if (!Array.isArray(b) || a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) if (!rendersSame(a[i], b[i])) return false;
+    for (let i = 0; i < a.length; i++) if (!rendersSame(a[i], b[i], depth + 1)) return false;
     return true;
   }
   if (Array.isArray(b)) return false;
@@ -185,7 +187,7 @@ function rendersSame(a: unknown, b: unknown): boolean {
       isElementNode(b) &&
       a.typeName === b.typeName &&
       a.statementId === b.statementId &&
-      rendersSame(a.props, b.props)
+      rendersSame(a.props, b.props, depth + 1)
     );
   }
   // Class instances (dates, maps, values from library functions) compare by identity
@@ -193,11 +195,16 @@ function rendersSame(a: unknown, b: unknown): boolean {
   if (proto !== Object.getPrototypeOf(b) || (proto !== Object.prototype && proto !== null)) {
     return false;
   }
+  // Same keys in the same order: components may iterate an object's keys
   const keys = Object.keys(a);
-  if (keys.length !== Object.keys(b).length) return false;
-  for (const k of keys) {
-    if (!Object.prototype.hasOwnProperty.call(b, k)) return false;
-    if (!rendersSame((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) {
+  const keysB = Object.keys(b);
+  if (keys.length !== keysB.length) return false;
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i]!;
+    if (k !== keysB[i]) return false;
+    if (
+      !rendersSame((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], depth + 1)
+    ) {
       return false;
     }
   }
