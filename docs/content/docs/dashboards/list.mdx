@@ -1,0 +1,106 @@
+---
+title: List dashboards
+description: Show the user's saved dashboards with useArtifactList, and pin, unpin, delete, and open them.
+---
+
+`useArtifactList()` returns the signed-in user's saved dashboards, newest first, page by page. It also pins, unpins, and deletes them. Every list and renderer in the app shares one cache, so a change shows everywhere at once.
+
+```tsx title="components/dashboard-list.tsx"
+"use client";
+
+import { useArtifactList } from "@openuidev/react-ui/cloud";
+
+export function DashboardList({ onOpen }: { onOpen: (id: string) => void }) {
+  const { artifacts, isLoading, error, hasMore, loadMore } = useArtifactList({
+    filter: { type: "dashboard" },
+  });
+
+  if (error) return <p>Couldn't load dashboards.</p>;
+  if (!isLoading && artifacts.length === 0) return <p>No dashboards yet.</p>;
+
+  return (
+    <ul>
+      {artifacts.map((dashboard) => (
+        <li key={dashboard.id}>
+          <button onClick={() => onOpen(dashboard.id)}>{dashboard.title || "Untitled"}</button>
+        </li>
+      ))}
+      {hasMore && <button onClick={loadMore}>Show more</button>}
+    </ul>
+  );
+}
+```
+
+The hook must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser).
+
+## Filter
+
+| Field    | Description                                              |
+| -------- | -------------------------------------------------------- |
+| `type`   | Only these kinds, such as `"dashboard"`.                 |
+| `pinned` | `true` for pinned dashboards only, `false` for unpinned. |
+| `search` | Match on the title.                                      |
+| `limit`  | Page size.                                               |
+
+## Returns
+
+| Field                  | Description                                                                 |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `artifacts`            | The dashboards loaded so far: `id`, `title`, `type`, `updatedAt`, `pinned`. |
+| `isLoading`, `error`   | The load state.                                                             |
+| `hasMore`, `loadMore`  | Load the next page.                                                         |
+| `refresh`              | Load the list again from the first page.                                    |
+| `pin(id)`, `unpin(id)` | Pin or unpin a dashboard.                                                   |
+| `deleteArtifact(id)`   | Delete a dashboard.                                                         |
+
+`pin`, `unpin`, and `deleteArtifact` update every list and renderer right away, and revert if the request fails. A deleted dashboard can't be restored.
+
+## Open a dashboard
+
+Pass the id to `LiveArtifactRenderer`:
+
+```tsx
+<LiveArtifactRenderer
+  id={id}
+  library={library}
+  interpreter={{ url: "/api/interpreter" }}
+  preview={false}
+/>
+```
+
+A renderer opened by id shows the latest version, and switches when an edit finishes, like one opened from a tool response.
+
+## Pinned and recent
+
+Use two lists to show pinned dashboards above the rest:
+
+```tsx
+const pinned = useArtifactList({ filter: { type: "dashboard", pinned: true } });
+const recent = useArtifactList({ filter: { type: "dashboard", pinned: false, limit: 20 } });
+
+async function setPinned(id: string, next: boolean) {
+  await (next ? recent.pin(id) : pinned.unpin(id));
+  pinned.refresh();
+  recent.refresh();
+}
+```
+
+Pinning moves a dashboard from one list to the other, so refresh both.
+
+## New dashboards
+
+A new dashboard joins the list when it finishes generating and is saved. To show it right away, call `refresh` when a renderer stops streaming:
+
+```tsx
+function RefreshWhenSaved({ onSaved }: { onSaved: () => void }) {
+  const { isStreaming } = useArtifactRenderer();
+  const wasStreaming = useRef(isStreaming);
+  useEffect(() => {
+    if (wasStreaming.current && !isStreaming) onSaved();
+    wasStreaming.current = isStreaming;
+  }, [isStreaming, onSaved]);
+  return null;
+}
+```
+
+Render it in the children of a renderer slot, such as a custom `Chrome`, and pass the list's `refresh` as `onSaved`.

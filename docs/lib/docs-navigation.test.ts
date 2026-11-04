@@ -51,6 +51,12 @@ describe("global docs navigation", () => {
         url: "/docs/build-agents",
         children: undefined,
       },
+      {
+        type: "page",
+        name: "Dashboards",
+        url: "/docs/dashboards",
+        children: undefined,
+      },
       { type: "separator", name: "Production", url: undefined, children: undefined },
       { type: "page", name: "Overview", url: "/docs/production", children: undefined },
       { type: "page", name: "Gateway", url: "/docs/gateway", children: undefined },

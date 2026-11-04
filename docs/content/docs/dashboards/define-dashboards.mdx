@@ -1,0 +1,98 @@
+---
+title: Define dashboards
+description: Choose the component library, the model, and the data tools that every dashboard is built from.
+---
+
+`openui.defineDashboard()` sets up how every dashboard in the app is built: the components it's made of, the model that builds it, and the data tools it can call. It returns an object with `create`, `edit`, and `interpreter`, which the rest of the integration uses.
+
+```ts title="lib/openui.ts"
+import { promptOptions } from "@openuidev/dashboard-library";
+import { OpenUIClient } from "@openuidev/server";
+import spec from "../generated/spec.json";
+import { dataTools } from "./data";
+
+export const openui = new OpenUIClient();
+
+export const dashboards = openui.defineDashboard({
+  library: spec,
+  model: "anthropic/claude-sonnet-4.6",
+  tools: dataTools,
+  promptOptions: {
+    preamble: "You build dashboards about the store's orders, customers, and refunds.",
+    examples: promptOptions.examples,
+    additionalRules: promptOptions.additionalRules,
+  },
+});
+```
+
+Define it once and import `dashboards` wherever the app creates, edits, or loads dashboards.
+
+| Option          | Description                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `library`       | The component library's spec. See [Component library](#component-library).                                              |
+| `model`         | The model that builds and edits dashboards, as `provider/model`. See [Models](/docs/gateway/models).                    |
+| `tools`         | Your data tools. See [Connect data](/docs/dashboards/connect-data).                                                     |
+| `mcp`           | One or more MCP servers whose tools dashboards can call. See [Connect data](/docs/dashboards/connect-data#mcp-servers). |
+| `promptOptions` | `preamble`, `examples`, and `additionalRules` added to the prompt the model builds dashboards from.                     |
+
+`tools`, `mcp`, or both are required.
+
+## Component library
+
+`@openuidev/dashboard-library` is a prebuilt component library for dashboards: layout, cards, metrics, charts, tables, and filters.
+
+The server builds dashboards from the library's spec, a JSON description of its components. The browser renders them with the library itself.
+
+### Generate the spec
+
+Install the library:
+
+```bash
+npm install @openuidev/dashboard-library
+```
+
+Re-export it from a file in your app:
+
+```ts title="lib/dashboard-library.ts"
+export { library, promptOptions } from "@openuidev/dashboard-library";
+```
+
+Generate the spec from that file:
+
+```bash
+npx @openuidev/cli generate lib/dashboard-library.ts --spec --out generated/spec.json
+```
+
+Run this before `dev` and `build`, for example as a `predev` and `prebuild` script, so the spec matches the installed library:
+
+```json title="package.json"
+{
+  "scripts": {
+    "generate": "openui generate lib/dashboard-library.ts --spec --out generated/spec.json",
+    "predev": "npm run generate",
+    "prebuild": "npm run generate"
+  }
+}
+```
+
+Passing the JSON spec keeps the React components out of the server. `library.toSpec()` returns the same spec when importing the library on the server is fine.
+
+## Prompt options
+
+`promptOptions` adds to the prompt the model builds dashboards from:
+
+- `preamble`: what the dashboards are about, such as the domain and where its data comes from.
+- `examples`: example dashboards in OpenUI Lang. `@openuidev/dashboard-library` exports a set as `promptOptions.examples`.
+- `additionalRules`: extra rules for the model. The library exports its own as `promptOptions.additionalRules`.
+
+Describe the domain in the `preamble`, and keep the library's examples and rules unless the dashboards need a different style.
+
+## Bring your own library
+
+Any OpenUI library can build dashboards. Generate its spec the same way and pass it as `library`:
+
+```bash
+npx @openuidev/cli generate lib/my-library.ts --spec --out generated/spec.json
+```
+
+The browser must render with the same library the spec came from. See [Defining components](/docs/openui-lang/defining-components) for building a library.

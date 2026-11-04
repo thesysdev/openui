@@ -1,0 +1,39 @@
+---
+title: How it works
+description: How a dashboard is generated, loads its data, and changes with an edit.
+---
+
+import { DashboardFlowDiagram } from "@/components/dashboard-flow-diagram";
+
+A dashboard is generated once and loads its data every time it opens.
+
+<DashboardFlowDiagram />
+
+**Set up:**
+
+- **Component library:** The charts, tables, KPIs, and filters dashboards are built from. Use the prebuilt dashboard library, or your design system's components.
+- **Data tools:** The APIs a dashboard can call for its data, such as "orders by day". They run on your server, or come from an MCP server.
+
+**Generate:** The user asks for a dashboard in the chat. The agent calls a tool that creates the dashboard, and OpenUI generates it from the component library, validating and repairing the output as it's built. For data that has to be derived, such as a metric that combines several data tools, OpenUI also generates a script. The tool returns a response, and the chat renders the dashboard from it.
+
+**Load data:** Each time it opens, the dashboard calls its data tools for live data. Scripts run in OpenUI's interpreter, with secure execution, and call the data tools they need.
+
+**Edit:** A follow-up request calls a tool that edits the dashboard. OpenUI patches only the parts the request describes. Renderers keep showing the current version until the new one is ready.
+
+## Key concepts
+
+### Model
+
+The model that builds and edits dashboards: any supported model. Its output is validated and repaired before it renders. See [Define dashboards](/docs/dashboards/define-dashboards).
+
+### Interpreter
+
+A dashboard can run a generated script that calls several data tools and computes new metrics from their results. Scripts run in OpenUI's interpreter, with secure execution. See [Connect data](/docs/dashboards/connect-data#add-the-interpreter-route).
+
+### Renderer
+
+The renderer shows a dashboard from the agent's tool response or from its id: as a card in the chat, in a side panel, or on its own page. Filters and refreshes load new data into the same layout, without another model call. See [Render a dashboard](/docs/dashboards/render).
+
+### Edits
+
+A follow-up request patches only the parts it describes, and the rest of the dashboard stays as it is. See [Edit a dashboard](/docs/dashboards/edit).
