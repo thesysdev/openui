@@ -2,6 +2,9 @@
   "name": "@openuidev/example-pi",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.19"
+  },
   "scripts": {
     "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
     "generate:apiKey": "openui generate-api-key",
@@ -16,25 +19,25 @@
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^0.79.4",
-    "@openuidev/lang-core": "1.0.1",
+    "@openuidev/lang-core": "1.0.2",
     "@openuidev/react-headless": "0.18.1",
-    "@openuidev/react-lang": "1.0.1",
+    "@openuidev/react-lang": "1.0.2",
     "@openuidev/react-ui": "0.18.1",
     "ai": "^6.0.0",
-    "next": "16.1.6",
+    "next": "16.3.8",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "zod": "^4.0.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.0",
+    "@openuidev/cli": "0.6.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

@@ -3,13 +3,13 @@ const MESSAGES_KEY = "email-chat-messages";
 
 export function saveView(view: "compose" | "chat") {
   try {
-    sessionStorage.setItem(VIEW_KEY, view);
+    localStorage.setItem(VIEW_KEY, view);
   } catch { /* ignore */ }
 }
 
 export function loadView(): "compose" | "chat" {
   try {
-    const v = sessionStorage.getItem(VIEW_KEY);
+    const v = localStorage.getItem(VIEW_KEY);
     if (v === "chat") return "chat";
   } catch { /* ignore */ }
   return "compose";
@@ -17,13 +17,13 @@ export function loadView(): "compose" | "chat" {
 
 export function saveMessages(messages: unknown[]) {
   try {
-    sessionStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+    localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
   } catch { /* ignore */ }
 }
 
 export function loadMessages(): unknown[] | null {
   try {
-    const raw = sessionStorage.getItem(MESSAGES_KEY);
+    const raw = localStorage.getItem(MESSAGES_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -34,7 +34,7 @@ export function loadMessages(): unknown[] | null {
 
 export function clearSession() {
   try {
-    sessionStorage.removeItem(VIEW_KEY);
-    sessionStorage.removeItem(MESSAGES_KEY);
+    localStorage.removeItem(VIEW_KEY);
+    localStorage.removeItem(MESSAGES_KEY);
   } catch { /* ignore */ }
 }

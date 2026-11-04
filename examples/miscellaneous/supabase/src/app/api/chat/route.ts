@@ -1,6 +1,6 @@
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { cloudInstructions } from "@/lib/cloud-prompt";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
 
@@ -31,14 +31,28 @@ export async function POST(req: NextRequest) {
     baseURL: "https://api.thesys.dev/v1/embed",
   });
 
-  const stream = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: "system", content: cloudInstructions() },
-      ...messages.filter((message) => message.role !== "system"),
-    ],
-    stream: true,
-  });
+  const createStream = () =>
+    client.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: "system", content: cloudInstructions() },
+        ...messages.filter((message) => message.role !== "system"),
+      ],
+      stream: true,
+    });
+  let stream: Awaited<ReturnType<typeof createStream>>;
+  try {
+    stream = await createStream();
+  } catch (err) {
+    // Return the real reason (e.g. "401 Incorrect API key provided") so the
+    // chat can show it, instead of a bare 500.
+    const status =
+      err instanceof OpenAI.APIError && typeof err.status === "number" ? err.status : 500;
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : String(err) },
+      { status },
+    );
+  }
 
   let assistantContent = "";
   const encoder = new TextEncoder();

@@ -1,5 +1,32 @@
 # @openuidev/react-lang
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - A Query that reads another query's result waits for it and reruns when it changes (react-lang; other renderers call `queryManager.evaluateStatements`).
+
+  - `QueryManager` implementations must add `evaluateStatements`.
+  - Queries that read each other report the new `query-cycle` error and do not run.
+  - A failed fetch is retried only by `@Run`, a refresh interval or `invalidate`, not on every evaluation.
+
+### Patch Changes
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Faster streaming: each statement is built once per parse, and react-lang skips elements whose props did not change. Treat parse results as immutable. A component that reads values outside its props, `$state`, queries or context no longer re-renders on every chunk.
+- Updated dependencies [[`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`70efb10`](https://github.com/thesysdev/openui/commit/70efb107a505351dd1bede0de8eab477fcf1a6df)]:
+  - @openuidev/lang-core@1.1.0
+
+## 1.0.2
+
+### Patch Changes
+
+- [#1500](https://github.com/thesysdev/openui/pull/1500) [`d4711b2`](https://github.com/thesysdev/openui/commit/d4711b2b5c53fefe870dba10112b8d13e5b70929) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Settle the devtools stream row when a Renderer unmounts mid-stream. It used to stay on "Streaming" forever; react-lang now publishes an `unmounted` stream event and devtools shows an "Interrupted" badge with the final duration.
+
+- [#1455](https://github.com/thesysdev/openui/pull/1455) [`c9f93b6`](https://github.com/thesysdev/openui/commit/c9f93b6e57d05b19b9781846769da530c6741dc4) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - The React Native entry now renders React Native primitives instead of DOM elements. `Renderer`, its slots, and `WithPreviewRenderer` used to mount `<div>`/`<button>`/`<section>` on native, which crashed Metro with "View config getter callback for component `div` must be a function". The native build now uses `View`, `Pressable`, and `ActivityIndicator`, with slot props typed for React Native (`onPress`, `View` styles). `react-native` is an optional peer dependency. Web is unchanged.
+- Updated dependencies [[`6fbaf91`](https://github.com/thesysdev/openui/commit/6fbaf91fb31fa3ad4008718540ca2fe24eb4d60c), [`e2ae4f1`](https://github.com/thesysdev/openui/commit/e2ae4f1de01cf1a48c40cf1a6d8042f7c0d50f2f), [`d4711b2`](https://github.com/thesysdev/openui/commit/d4711b2b5c53fefe870dba10112b8d13e5b70929)]:
+  - @openuidev/lang-core@1.0.2
+  - @openuidev/devtools@0.3.1
+
 ## 1.0.1
 
 ### Patch Changes

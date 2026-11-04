@@ -1,6 +1,8 @@
 "use client";
 
 import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
+import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
+import { DEMOS_DISABLED } from "@/lib/demos-offline";
 import { OPENUI_CLOUD_UNAVAILABLE_MESSAGE } from "@/lib/openui-cloud/errors";
 import dynamic from "next/dynamic";
 import {
@@ -149,6 +151,10 @@ export function ComparePageClient({
 
   const submitToAll = useCallback(
     (content: string) => {
+      if (DEMOS_DISABLED) {
+        openDemosOfflineDialog();
+        return;
+      }
       const controllers = getReadyControllers();
       if (!controllers) return;
       const states = controllers.map((controller) => controller.getSnapshot());

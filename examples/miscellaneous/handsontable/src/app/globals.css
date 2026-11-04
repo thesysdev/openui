@@ -204,9 +204,21 @@ body {
   color: #ededed;
 }
 
+.chat-bubble--error {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
 .chat-thinking {
   color: #888;
   font-size: 13px;
+}
+
+.chat-thinking,
+.chat-text {
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 .chat-composer {
@@ -283,6 +295,16 @@ body {
 .chat-close-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
+}
+
+.chat-close-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-panel__actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* Floating action button to open chat */

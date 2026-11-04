@@ -31,7 +31,7 @@
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.5",
-    "@openuidev/cli": "0.6.0",
+    "@openuidev/cli": "0.6.1",
     "prettier": "^3.8.1",
     "typescript": "^6.0.3"
   },

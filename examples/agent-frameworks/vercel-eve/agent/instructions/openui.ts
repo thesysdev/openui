@@ -1,5 +1,5 @@
-import { cloudInstructions } from "../../src/lib/cloud-prompt";
 import { defineDynamic, defineInstructions } from "eve/instructions";
+import { cloudInstructions } from "../../src/lib/cloud-prompt.ts";
 
 /**
  * Teach the agent to answer in OpenUI Lang. Resolved once per session so the

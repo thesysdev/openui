@@ -5,6 +5,7 @@ const react = requireReact();
 export const {
   useState,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   useRef,

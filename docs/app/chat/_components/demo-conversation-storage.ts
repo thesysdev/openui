@@ -1,3 +1,5 @@
+import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
+import { DEMOS_DISABLED } from "@/lib/demos-offline";
 import type { ChatStorage } from "@openuidev/react-headless";
 import {
   cloneDemoMessages,
@@ -17,6 +19,16 @@ export function createDemoConversationStorage(
     ...cloudStorage,
     thread: {
       ...cloudStorage.thread,
+      // The first send in a new chat creates its Cloud thread before the model
+      // call, so stop it here while the hosted demos are offline. The page-only
+      // thread lets the send end quietly at createCloudChatLLM's own check.
+      async createThread(firstMessage) {
+        if (DEMOS_DISABLED) {
+          openDemosOfflineDialog();
+          return { id: `offline-${crypto.randomUUID()}`, title: "New chat", createdAt: Date.now() };
+        }
+        return cloudStorage.thread.createThread(firstMessage);
+      },
       async getMessages(threadId) {
         const directDemo = getDemoConversation(threadId);
         if (directDemo) return cloneDemoMessages(directDemo);

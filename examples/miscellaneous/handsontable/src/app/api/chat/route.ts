@@ -46,6 +46,10 @@ Examples of good follow-ups:
 - After a chart: "Break down by product", "Show as a table instead", "Compare Q1 vs Q4"
 
 The follow-up buttons should be contextually relevant to what you just did.
+
+FORMS:
+- A Form's submit button must send the entries to you: its action must be @ToAssistant(...), e.g. Button("Plan my trip", @ToAssistant("Plan my trip"), "primary"), never @Set or another local-only action. Don't put what the form produces (a summary, plan or itinerary) in the same reply, hidden or not; write it in your next reply from the values the user submitted.
+- When a field should only appear for a certain answer (e.g. a company name only for Business trips), bind the deciding field to a $variable with its value argument, e.g. RadioGroup("tripType", items, "Leisure", { required: true }, $tripType), and show the field with $tripType == "Business" ? companyField : null.
 `.trim();
 
 const systemPrompt = cloudInstructions(SPREADSHEET_INSTRUCTIONS);
@@ -137,9 +141,9 @@ function sseToolCallArgs(
 }
 
 export async function POST(req: NextRequest) {
-  const { messages } = await req.json();
+  const { messages, tableId } = await req.json();
 
-  setCurrentThreadId("default");
+  setCurrentThreadId(typeof tableId === "string" && tableId ? tableId : "default");
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const lastUserMsg = (messages as any[])
@@ -151,7 +155,8 @@ export async function POST(req: NextRequest) {
     .filter((m) => m.role !== "tool")
     .map((m) => {
       if (m.role === "assistant" && m.tool_calls?.length) {
-        const { tool_calls: _tc, ...rest } = m;
+        const rest = { ...m };
+        delete rest.tool_calls;
         return rest;
       }
       return m;
@@ -171,9 +176,15 @@ export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
   let controllerClosed = false;
 
+  // Resolves on the first chunk, or with the error if the run fails before any output,
+  // so a rejected key or rate limit returns as an HTTP error the chat can show.
+  let settle!: (error?: unknown) => void;
+  const started = new Promise<unknown>((resolve) => (settle = resolve));
+
   const readable = new ReadableStream({
     start(controller) {
       const enqueue = (data: Uint8Array) => {
+        settle();
         if (controllerClosed) return;
         try {
           controller.enqueue(data);
@@ -244,6 +255,7 @@ export async function POST(req: NextRequest) {
       });
 
       runner.on("end", () => {
+        settle();
         enqueue(encoder.encode("data: [DONE]\n\n"));
         close();
       });
@@ -251,12 +263,22 @@ export async function POST(req: NextRequest) {
       runner.on("error", (err: any) => {
         const msg = err instanceof Error ? err.message : "Stream error";
         console.error("Chat route error:", msg);
+        settle(err);
         enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
         close();
       });
       /* eslint-enable @typescript-eslint/no-explicit-any */
     },
   });
+
+  const error = await started;
+  if (error) {
+    const status = (error as { status?: number }).status ?? 500;
+    return Response.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status }
+    );
+  }
 
   return new Response(readable, {
     headers: {

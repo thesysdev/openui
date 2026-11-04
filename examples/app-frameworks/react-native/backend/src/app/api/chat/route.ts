@@ -64,11 +64,22 @@ export async function POST(req: NextRequest) {
   const lastUserMsg = (messages as any[]).filter((m: any) => m.role === "user").pop();
   if (lastUserMsg) conversationLog.push({ role: "user", content: extractText(lastUserMsg) });
 
-  const completion = await openai.chat.completions.create({
-    model: "google/gemini-3.6-flash-free",
-    stream: true,
-    messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-  });
+  // A rejected key, rate limit, or bad request fails here, before streaming starts.
+  // Return it as JSON so the app can show the real reason.
+  let completion;
+  try {
+    completion = await openai.chat.completions.create({
+      model: "google/gemini-3.6-flash-free",
+      stream: true,
+      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+    });
+  } catch (error) {
+    const status = (error as { status?: number }).status ?? 500;
+    return Response.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status, headers: { "Access-Control-Allow-Origin": "*" } },
+    );
+  }
 
   // Stream raw text chunks — simpler for React Native to consume than SSE
   const readable = new ReadableStream({

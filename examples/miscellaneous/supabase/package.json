@@ -15,13 +15,13 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/lang-core": "1.0.1",
+    "@openuidev/lang-core": "1.0.2",
     "@openuidev/react-headless": "0.18.1",
-    "@openuidev/react-lang": "1.0.1",
+    "@openuidev/react-lang": "1.0.2",
     "@openuidev/react-ui": "0.18.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.49.4",
-    "next": "16.2.6",
+    "next": "16.3.8",
     "openai": "^6.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -29,13 +29,13 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.0",
+    "@openuidev/cli": "0.6.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

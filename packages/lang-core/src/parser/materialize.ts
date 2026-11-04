@@ -3,9 +3,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { ASTNode } from "./ast";
-import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST, walkAST } from "./ast";
+import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
-import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
+import {
+  isElementNode,
+  type CallDef,
+  type ElementNode,
+  type MaterializeCtx,
+  type ParamDef,
+} from "./types";
 import {
   buildParamsSignature,
   INVALID,
@@ -23,7 +29,7 @@ export function containsDynamicValue(v: unknown): boolean {
   if (isASTNode(v)) return true;
   if (Array.isArray(v)) return v.some(containsDynamicValue);
   if (isElementNode(v)) {
-    return Object.values(v.props).some(containsDynamicValue);
+    return v.hasDynamicProps ?? Object.values(v.props).some(containsDynamicValue);
   }
   const obj = v as Record<string, unknown>;
   // A `{steps: [...]}` literal is evaluated too, so data cannot pose as custom action steps
@@ -32,15 +38,28 @@ export function containsDynamicValue(v: unknown): boolean {
 }
 
 /**
+ * Tag an element with the statement it came from. An element already tagged with another
+ * statement is a shared memoized node reached through an alias (`b = a`): copy it.
+ */
+export function withStatementId(el: ElementNode, id: string): ElementNode {
+  if (el.statementId === undefined || el.statementId === id) {
+    el.statementId = id;
+    return el;
+  }
+  return { ...el, statementId: id };
+}
+
+/**
  * Resolve a Ref node: inline from symbol table, detect cycles, emit RuntimeRef
  * for Query/Mutation declarations. Shared by materializeValue and materializeExpr.
+ *
+ * Memoized per pass: a statement used many times materializes once (shared refs are otherwise
+ * exponential) and reports its errors once. A result that met an unresolved or cyclic ref
+ * depends on the path, so it is not memoized. Validation copies on write, so a shared result
+ * is never pruned in place.
  */
 function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): unknown | ASTNode {
-  if (ctx.visited.has(name)) {
-    ctx.unres.push(name);
-    return mode === "expr" ? { k: "Ph", n: name } : null;
-  }
-  if (!ctx.syms.has(name)) {
+  if (ctx.visited.has(name) || !ctx.syms.has(name)) {
     ctx.unres.push(name);
     return mode === "expr" ? { k: "Ph", n: name } : null;
   }
@@ -52,19 +71,31 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
       target.name === RESERVED_CALLS.Mutation ? ("mutation" as const) : ("query" as const);
     return { k: "RuntimeRef", n: name, refType };
   }
+  const key = `${mode}:${name}`;
+  const memo = (ctx.memo ??= new Map());
+  if (memo.has(key)) return memo.get(key);
   ctx.visited.add(name);
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = name;
   try {
-    const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
-    // Tag ElementNode with its source statement name
-    if (mode === "value" && isElementNode(result)) {
-      result.statementId = name;
-    }
-    return result;
+    return withStatement(ctx, name, () => {
+      const unresBefore = ctx.unres.length;
+      let value = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+      if (mode === "value" && isElementNode(value)) value = withStatementId(value, name);
+      if (ctx.unres.length === unresBefore) memo.set(key, value);
+      return value;
+    });
   } finally {
-    ctx.currentStatementId = prevStatementId;
     ctx.visited.delete(name);
+  }
+}
+
+/** Run fn with ctx.currentStatementId set to id, so the issues it reports name that statement. */
+export function withStatement<R>(ctx: MaterializeCtx, id: string, fn: () => R): R {
+  const prev = ctx.currentStatementId;
+  ctx.currentStatementId = id;
+  try {
+    return fn();
+  } finally {
+    ctx.currentStatementId = prev;
   }
 }
 
@@ -141,25 +172,6 @@ function materializeCall(
   return def.kind === "action"
     ? { k: "Comp", name: "Action", args: [{ k: "Arr", els: [] }] }
     : { k: "Null" };
-}
-
-// Query("s", {n: @Count(rows)}): names @Count's args in place.
-// Literal library args are checked like props; an invalid call keeps raw names and is null at runtime.
-export function nameRawCallArgs(args: ASTNode[], ctx: MaterializeCtx, statementId: string): void {
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = statementId;
-  const seen = new Set<ASTNode>(); // walkAST visits nested calls through args and mappedProps
-  for (const arg of args) {
-    walkAST(arg, (node) => {
-      if (node.k !== "Comp" || seen.has(node)) return;
-      seen.add(node);
-      const def = getCallDefs(ctx.cat).get(node.name);
-      if (!def || def.lazy) return;
-      const checked = def.builtin ? null : mapCallArgs(node.name, node.args, def, ctx);
-      node.mappedProps = checked ?? nameArgs(node.args, def.params);
-    });
-  }
-  ctx.currentStatementId = prevStatementId;
 }
 
 /**

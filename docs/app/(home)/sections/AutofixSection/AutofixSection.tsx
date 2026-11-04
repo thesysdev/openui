@@ -93,7 +93,7 @@ export function AutofixSection({
             <BevelButton
               className={styles.cta}
               variant="secondary"
-              href={content?.action.href ?? "/docs/gateway/api/autofix"}
+              href={content?.action.href ?? "/docs/autofix"}
               label={content?.action.label ?? "View docs"}
               badge={<ArrowRight size={16} weight="bold" />}
             />
@@ -105,7 +105,7 @@ export function AutofixSection({
             <BevelButton
               className={styles.cta}
               variant="secondary"
-              href={content?.action.href ?? "/docs/gateway/api/autofix"}
+              href={content?.action.href ?? "/docs/autofix"}
               label={content?.action.label ?? "View docs"}
               badge={<ArrowRight size={16} weight="bold" />}
             />

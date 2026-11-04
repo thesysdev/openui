@@ -14,6 +14,18 @@ import { resolve } from "node:path";
 import { stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
 
+// The Pi SDK needs Node 22.19+. On older versions every chat message fails with
+// a cryptic "webidl.util.markAsUncloneable is not a function", so stop early.
+const MIN_NODE = [22, 19];
+const [major, minor] = process.versions.node.split(".").map(Number);
+if (major < MIN_NODE[0] || (major === MIN_NODE[0] && minor < MIN_NODE[1])) {
+  console.error(
+    `launch.mjs: this app needs Node.js ${MIN_NODE.join(".")} or newer (you have ${process.versions.node}).`,
+  );
+  console.error("Switch Node versions (e.g. `nvm install 22 && nvm use 22`) and run it again.");
+  process.exit(1);
+}
+
 const NEXT_ARGS = {
   dev: ["dev", "--webpack"],
   start: ["start"],

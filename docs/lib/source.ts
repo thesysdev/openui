@@ -2,6 +2,7 @@ import { type InferPageType, loader } from "fumadocs-core/source";
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
 import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
 import { blogPosts, docs, integrationGuides } from "fumadocs-mdx:collections/server";
+import { expandShowcaseComponents } from "./showcase-markdown";
 
 export const BASE_URL = "https://www.openui.com";
 
@@ -42,6 +43,6 @@ export async function getLLMText(page: InferPageType<typeof source>) {
 
 Source: ${canonicalUrl}
 
-${processed.trim()}
+${expandShowcaseComponents(processed.trim())}
 `;
 }

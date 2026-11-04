@@ -386,8 +386,11 @@ export function recalculateAggregates(
     const startRow1 = dataStart + 1; // 1-based
     const endRow1 = dataEnd + 1;
 
-    // Rewrite formulas for columns 1+ (skip column 0 which is the label)
+    // Rewrite only cells that already hold a formula. Cells left empty on purpose
+    // (text columns like Category, or Unit Price, where a total means nothing) stay empty.
     for (let c = 1; c < store.data[r].length; c++) {
+      const cell = store.data[r][c];
+      if (typeof cell !== "string" || !cell.startsWith("=")) continue;
       const cl = colLetter(c);
       store.data[r][c] = `=${func}(${cl}${startRow1}:${cl}${endRow1})`;
     }

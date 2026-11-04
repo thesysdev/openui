@@ -9,9 +9,15 @@ onlyBuiltDependencies:
   - unrs-resolver
 allowBuilds:
   "@openuidev/lang-core": true
+  '@scarf/scarf': set this to true or false
   esbuild: true
   sharp: true
   unrs-resolver: true
-packages: ["."]
+packages: [ "." ]
 minimumReleaseAgeExclude:
   - "@openuidev/*"
+# Same overrides as the package.json "pnpm" field, which pnpm 10.14+ no longer reads.
+overrides:
+  "postcss@<8.5.10": ">=8.5.10"
+  "@ai-sdk/provider-utils@<=3.0.97": "^4.0.27"
+  "@ai-sdk/ui-utils@1.2.11>@ai-sdk/provider-utils": "2.2.8"

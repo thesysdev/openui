@@ -1,8 +1,4 @@
-import {
-  getFunctionCalls,
-  getFunctionResponses,
-  type Event,
-} from "@google/adk";
+import { getFunctionCalls, getFunctionResponses, type Event } from "@google/adk";
 import { EventType } from "@openuidev/react-headless";
 
 function toolResultContent(response: unknown): string {
@@ -56,6 +52,19 @@ export async function* adkToAguiEvents(
   yield { type: EventType.RUN_STARTED, threadId, runId };
 
   for await (const event of events) {
+    // A failed model call (e.g. a rejected key) arrives as an event with an error
+    // instead of throwing. Report it so the chat shows the reason.
+    const failure = event as { errorCode?: string; errorMessage?: string };
+    if (failure.errorMessage || failure.errorCode) {
+      const end = closeText();
+      if (end) yield end;
+      yield {
+        type: EventType.RUN_ERROR,
+        message: failure.errorMessage || `Model request failed (${failure.errorCode}).`,
+      };
+      return;
+    }
+
     // Wait for the merged (non-partial) function-call event so we emit one
     // START/ARGS/END per ADK call, not streaming argument crumbs.
     if (!event.partial) {

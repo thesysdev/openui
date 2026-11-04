@@ -7,8 +7,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type ComponentPropsWithRef,
 } from "react";
+import { Button, Section, type ButtonProps, type SectionProps } from "./components";
 import { Renderer, type RendererProps } from "./Renderer";
 import { parseResponseBundle, type ResponseMetadata } from "./responseBundle";
 
@@ -101,60 +101,44 @@ function PreviewRoot({
   );
 }
 
-export type PreviewButtonProps = ComponentPropsWithRef<"button">;
+export type PreviewButtonProps = ButtonProps;
 
-function PreviewTrigger({ children, onClick, disabled, ...props }: PreviewButtonProps) {
+function PreviewTrigger({ children, ...props }: PreviewButtonProps) {
   const { metadata, isOpen, isStreaming, contentId, open, close } = useRendererPreview();
   return (
-    <button
-      type="button"
+    <Button
       {...props}
-      disabled={disabled}
       aria-expanded={isOpen}
-      aria-controls={isOpen ? contentId : undefined}
-      onClick={(event) => {
-        if (disabled || event.defaultPrevented) return;
-        onClick?.(event);
-        if (!event.defaultPrevented) (isOpen ? close : open)();
-      }}
+      controls={isOpen ? contentId : undefined}
+      onActivate={isOpen ? close : open}
     >
       {children === undefined
         ? `${metadata.name || "Untitled artifact"}${isStreaming ? " (generating…)" : ""}`
         : children}
-    </button>
+    </Button>
   );
 }
 
-function PreviewClose({ children, onClick, disabled, ...props }: PreviewButtonProps) {
+function PreviewClose({ children, ...props }: PreviewButtonProps) {
   const { metadata, close } = useRendererPreview();
   return (
-    <button
-      type="button"
-      {...props}
-      disabled={disabled}
-      onClick={(event) => {
-        if (disabled || event.defaultPrevented) return;
-        onClick?.(event);
-        if (!event.defaultPrevented) close();
-      }}
-    >
+    <Button {...props} onActivate={close}>
       {children === undefined ? `Close ${metadata.name || "Untitled artifact"}` : children}
-    </button>
+    </Button>
   );
 }
 
-export type PreviewContentProps = ComponentPropsWithRef<"section">;
+export type PreviewContentProps = SectionProps;
 
 /** Mount one content slot per preview. Query hooks and Renderer slots belong inside it. */
-function PreviewContent({ children, style, ...props }: PreviewContentProps) {
+function PreviewContent({ children, ...props }: PreviewContentProps) {
   const { state, rendererProps } = usePreviewContext();
   if (!state.isOpen) return null;
   return (
-    <section
+    <Section
       aria-label={state.metadata.name || "Untitled artifact"}
       {...props}
       id={state.contentId}
-      style={{ position: "relative", ...style }}
     >
       {children === undefined ? (
         <>
@@ -164,7 +148,7 @@ function PreviewContent({ children, style, ...props }: PreviewContentProps) {
       ) : (
         <Renderer {...rendererProps}>{children}</Renderer>
       )}
-    </section>
+    </Section>
   );
 }
 

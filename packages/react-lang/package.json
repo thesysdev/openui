@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-lang",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in React — the core runtime for OpenUI generative UI",
   "license": "MIT",
   "type": "module",
@@ -44,7 +44,7 @@
     "test": "vitest run --passWithNoTests",
     "build": "tsdown",
     "watch": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.native.json --noEmit",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format:fix": "prettier --write ./src",
@@ -53,7 +53,7 @@
     "check:attw": "attw --pack .",
     "prepare": "pnpm run build",
     "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
-    "ci": "pnpm run lint:check && pnpm run format:check && pnpm run test && tsc -p tsconfig.test.json --noEmit"
+    "ci": "pnpm run lint:check && pnpm run format:check && pnpm run test && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.native.json --noEmit"
   },
   "keywords": [
     "openui",
@@ -90,6 +90,7 @@
     "@modelcontextprotocol/sdk": ">=1.0.0",
     "react": "*",
     "react-dom": "*",
+    "react-native": "*",
     "zod": "catalog:"
   },
   "peerDependenciesMeta": {
@@ -97,6 +98,9 @@
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "react-native": {
       "optional": true
     }
   },
@@ -107,6 +111,7 @@
     "@types/react-dom": "catalog:",
     "jsdom": "catalog:",
     "react-dom": "catalog:",
+    "react-native": "0.83.10",
     "vitest": "^4.0.18"
   }
 }

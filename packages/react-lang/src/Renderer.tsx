@@ -7,17 +7,17 @@ import type {
   ParseResult,
   ToolProvider,
 } from "@openuidev/lang-core";
-import { ToolNotFoundError, extractToolResult } from "@openuidev/lang-core";
+import { ToolNotFoundError, extractToolResult, isElementNode } from "@openuidev/lang-core";
 import React, {
   Component,
   Fragment,
   createContext,
   useContext,
   useEffect,
-  useInsertionEffect,
   useMemo,
   useRef,
 } from "react";
+import { Button, Spinner, View, type ButtonProps, type ViewProps } from "./components";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
@@ -165,20 +165,72 @@ function renderDeep(value: unknown): React.ReactNode {
 }
 
 /**
- * Renders a single ElementNode.
+ * True when two values render the same: equal plain data, with elements compared on what
+ * RenderNodeInner reads (typeName, statementId, props). `partial` is skipped: the parser sets
+ * it on every element of a pass, so it flips for finished elements while later ones stream.
  */
-function RenderNode({ node }: { node: ElementNode }) {
-  const { library, reportError } = useOpenUI();
-  const Comp = library.components[node.typeName]?.component;
-
-  if (!Comp) return null;
-
-  return (
-    <ElementErrorBoundary componentName={node.typeName} onError={reportError}>
-      <RenderNodeInner el={node} Comp={Comp} />
-    </ElementErrorBoundary>
-  );
+function rendersSame(a: unknown, b: unknown, depth = 0): boolean {
+  if (Object.is(a, b)) return true;
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  // Deeper than any program builds, e.g. a cyclic value from a library function: re-render
+  if (depth > 64) return false;
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (!rendersSame(a[i], b[i], depth + 1)) return false;
+    return true;
+  }
+  if (Array.isArray(b)) return false;
+  // Only real elements: plain data may have `type: "element"` too
+  if (isElementNode(a) || isElementNode(b)) {
+    return (
+      isElementNode(a) &&
+      isElementNode(b) &&
+      a.typeName === b.typeName &&
+      a.statementId === b.statementId &&
+      rendersSame(a.props, b.props, depth + 1)
+    );
+  }
+  // Class instances (dates, maps, values from library functions) compare by identity
+  const proto = Object.getPrototypeOf(a);
+  if (proto !== Object.getPrototypeOf(b) || (proto !== Object.prototype && proto !== null)) {
+    return false;
+  }
+  // Same keys in the same order: components may iterate an object's keys
+  const keys = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keys.length !== keysB.length) return false;
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i]!;
+    if (k !== keysB[i]) return false;
+    if (
+      !rendersSame((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], depth + 1)
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
+
+/**
+ * Renders a single ElementNode. Memoized: an element a chunk leaves unchanged renders the
+ * same (rendersSame), so it skips rendering; a store, query or context change re-renders
+ * every node.
+ */
+const RenderNode = React.memo(
+  function RenderNode({ node }: { node: ElementNode }) {
+    const { library, reportError } = useOpenUI();
+    const Comp = library.components[node.typeName]?.component;
+
+    if (!Comp) return null;
+
+    return (
+      <ElementErrorBoundary componentName={node.typeName} onError={reportError}>
+        <RenderNodeInner el={node} Comp={Comp} />
+      </ElementErrorBoundary>
+    );
+  },
+  (prev, next) => rendersSame(prev.node, next.node),
+);
 
 /**
  * Renders a resolved element using its renderer.
@@ -189,37 +241,7 @@ function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRendere
   return <Comp props={el.props} renderNode={renderNode} statementId={el.statementId} />;
 }
 
-// ─── Loading style injection (once per document) ───
-
-let loadingStyleInjected = false;
-function ensureLoadingStyle() {
-  if (loadingStyleInjected || typeof document === "undefined") return;
-  loadingStyleInjected = true;
-  const style = document.createElement("style");
-  style.textContent = `@keyframes openui-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
-  document.head.appendChild(style);
-}
-
 // ─── Public component ───
-
-const DefaultQueryLoader = () => (
-  <div
-    role="status"
-    aria-label="Loading data"
-    style={{
-      position: "absolute",
-      top: 8,
-      right: 8,
-      width: 16,
-      height: 16,
-      border: "2px solid #e5e7eb",
-      borderTopColor: "#3b82f6",
-      borderRadius: "50%",
-      animation: "openui-spin 0.6s linear infinite",
-      zIndex: 10,
-    }}
-  />
-);
 
 function RendererRoot<L extends Library = Library>({
   response,
@@ -235,10 +257,6 @@ function RendererRoot<L extends Library = Library>({
   onError,
   publishObservability,
 }: RendererProps<L>) {
-  useInsertionEffect(() => {
-    ensureLoadingStyle();
-  }, []);
-
   const onParseResultRef = useRef(onParseResult);
   onParseResultRef.current = onParseResult;
 
@@ -331,21 +349,21 @@ export function useRendererQuery(): RendererQueryState {
   return useRendererContext().query;
 }
 
-export type RendererContentSlotProps = Omit<React.ComponentPropsWithRef<"div">, "children">;
+export type RendererContentSlotProps = Omit<ViewProps, "children" | "dimmed">;
 
 /** Displays generated content, preserving mounted components while queries load or fail. */
-function RendererContent({ style, hidden, ...props }: RendererContentSlotProps) {
+function RendererContent({ hidden, ...props }: RendererContentSlotProps) {
   const { root, query } = useRendererContext();
   if (!root) return null;
   return (
-    <div
+    <View
       {...props}
       aria-busy={query.isLoading}
       hidden={hidden || query.errors.length > 0}
-      style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease", ...style }}
+      dimmed={query.isLoading}
     >
       <RenderNode node={root} />
-    </div>
+    </View>
   );
 }
 
@@ -360,7 +378,7 @@ function RendererQueryLoading({ children }: RendererSlotProps) {
     queryLoader,
   } = useRendererContext();
   if (!isLoading || errors.length > 0) return null;
-  return <>{children === undefined ? (queryLoader ?? <DefaultQueryLoader />) : children}</>;
+  return <>{children === undefined ? (queryLoader ?? <Spinner />) : children}</>;
 }
 
 /** Shows the supplied content when queries fail; renders nothing without children. */
@@ -370,24 +388,12 @@ function RendererQueryError({ children }: RendererSlotProps) {
   return <>{children}</>;
 }
 
-export type RendererRetryProps = React.ComponentPropsWithRef<"button">;
+export type RendererRetryProps = ButtonProps;
 
-function RendererRetry({ children, onClick, disabled, ...props }: RendererRetryProps) {
+function RendererRetry({ disabled, ...props }: RendererRetryProps) {
   const { retry, isLoading, errors } = useRendererQuery();
-  const isDisabled = disabled || isLoading || errors.length === 0;
   return (
-    <button
-      type="button"
-      {...props}
-      disabled={isDisabled}
-      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-        if (isDisabled || event.defaultPrevented) return;
-        onClick?.(event);
-        if (!event.defaultPrevented) retry();
-      }}
-    >
-      {children}
-    </button>
+    <Button {...props} disabled={disabled || isLoading || errors.length === 0} onActivate={retry} />
   );
 }
 
@@ -395,12 +401,12 @@ function DefaultRendererContent() {
   const { root, query, queryLoader } = useRendererContext();
   if (!root) return null;
   return (
-    <div aria-busy={query.isLoading} style={{ position: "relative" }}>
-      {query.isLoading && (queryLoader ?? <DefaultQueryLoader />)}
-      <div style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
+    <View aria-busy={query.isLoading} style={{ position: "relative" }}>
+      {query.isLoading && (queryLoader ?? <Spinner />)}
+      <View dimmed={query.isLoading}>
         <RenderNode node={root} />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSpreadsheetSync } from "@/app/useSpreadsheetSync";
 import { createLibrary, defineComponent } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { z } from "zod";
@@ -22,9 +23,7 @@ export const SpreadsheetTable = defineComponent({
       .optional()
       .describe("Array of column header names"),
   }),
-  component: ({ props }) => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { useSpreadsheetSync } = require("@/app/useSpreadsheetSync");
+  component: function SpreadsheetSync({ props }) {
     useSpreadsheetSync(props.data, props.colHeaders);
     return null;
   },

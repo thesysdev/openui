@@ -49,6 +49,8 @@ export async function POST({ request }: { request: Request }) {
   });
 
   return result.toUIMessageStreamResponse({
+    // Pass the real error (for example a rejected key) to the client instead of the SDK's generic text.
+    onError: (error) => (error instanceof Error ? error.message : String(error)),
     headers: {
       "Cache-Control": "no-cache, no-transform",
       "X-Accel-Buffering": "no",

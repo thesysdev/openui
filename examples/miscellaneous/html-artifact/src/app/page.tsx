@@ -1,36 +1,36 @@
 "use client";
 
+import { localStorageChat } from "@/lib/local-storage";
 import { library } from "@/library";
 import {
   AgentInterface,
   openAIAdapter,
   openAIMessageFormat,
   useSystemThemeMode,
-  type ChatLLM,
 } from "@openuidev/react-ui";
-import { useMemo } from "react";
+
+const { llm, storage } = localStorageChat(
+  {
+    send: ({ messages, signal }) =>
+      fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: openAIMessageFormat.toApi(messages) }),
+        signal,
+      }),
+    streamProtocol: openAIAdapter(),
+  },
+  "openui-html-artifact",
+);
 
 export default function Page() {
   const mode = useSystemThemeMode();
-
-  const llm = useMemo<ChatLLM>(
-    () => ({
-      send: ({ messages, signal }) =>
-        fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: openAIMessageFormat.toApi(messages) }),
-          signal,
-        }),
-      streamProtocol: openAIAdapter(),
-    }),
-    [],
-  );
 
   return (
     <div className="h-screen w-screen overflow-hidden relative">
       <AgentInterface
         llm={llm}
+        storage={storage}
         componentLibrary={library}
         agentName="HTML Artifact"
         theme={{ mode }}

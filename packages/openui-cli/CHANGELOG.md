@@ -1,5 +1,11 @@
 # @openuidev/cli
 
+## 0.6.1
+
+### Patch Changes
+
+- [#1499](https://github.com/thesysdev/openui/pull/1499) [`6fbaf91`](https://github.com/thesysdev/openui/commit/6fbaf91fb31fa3ad4008718540ca2fe24eb4d60c) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - The CLI and lang-core now read and write the shared `~/.config/openui/telemetry.json` through one module. The file is written atomically and only when something in it changed, so the two packages no longer overwrite each other's fields ([#1475](https://github.com/thesysdev/openui/pull/1475)).
+
 ## 0.6.0
 
 ### Minor Changes

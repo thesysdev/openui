@@ -19,14 +19,13 @@ pnpm --filter @openuidev/docs build
 
 ### Chat and comparison demo configuration
 
-`/chat` remains the standalone OpenUI OSS and Cloud chat and starts in **OpenUI OSS** mode. Its
-selected mode is not stored across reloads.
+`/chat` is the standalone OpenUI Cloud chat.
 
 `/compare` compares two visible response modes at a time and defaults to **Rendered Markdown vs
 OpenUI Cloud**. Use its page-level switcher to show **Markdown vs OSS** or **OSS vs Cloud**. The
 selected pair is stored in the `pair` query parameter. All three comparison providers remain
 mounted and receive each shared prompt; switching the visible pair resets the demo. Markdown and
-OSS generation use the existing server-side `OPENROUTER_API_KEY`.
+OSS generation use the server-side `THESYS_API_KEY`.
 
 OpenUI Cloud requires the following server-side variables. If either is missing, Cloud requests
 show the unavailable state at runtime:
@@ -44,6 +43,24 @@ The Cloud feature flag is intentionally fail-closed. Keep it disabled on public 
 a shared, cross-instance session-and-IP rate limiter, Cloud organization budgets/token scopes, and
 an approved conversation retention/deletion process are in place. Same-origin validation is an
 additional browser safeguard, not a substitute for those cost controls.
+
+### Taking the hosted demos offline
+
+Set this variable and redeploy to take the hosted demos offline:
+
+```bash
+NEXT_PUBLIC_DEMOS_DISABLED=1
+```
+
+- `/chat`, `/compare`, `/demo/github` and `/openui-vs-json` still load, but a send opens the
+  "Hosted demos are temporarily offline" dialog instead of calling the model.
+- The proxied demos (`/demo/f1-dashboard`, `/demo/trip-planner`, `/demo/intelligent-ui`) show an
+  offline page with the command to run them locally.
+- `proxy.ts` answers the demos' model API routes with a 402 for anyone calling them directly.
+
+The flag is inlined at build time, so switching it needs a redeploy. The proxied demo slugs are
+listed both in `lib/demos-offline.ts` and in `proxiedDemos` in `next.config.mjs`, so keep the two
+lists in sync.
 
 ## Project structure
 
