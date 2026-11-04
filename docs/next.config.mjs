@@ -428,6 +428,13 @@ const config = {
         destination: "/benchmarks/language",
         permanent: true,
       },
+      // The old token benchmark docs page was retired in favor of the
+      // Generative UI benchmark.
+      {
+        source: "/docs/openui-lang/benchmarks",
+        destination: "/benchmarks",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

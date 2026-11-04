@@ -875,83 +875,7 @@ export const CONFOUNDS = {
 };
 
 /* ------------------------------------------------------------------ */
-/* 7. Generation speed — the older token benchmark                     */
-/* ------------------------------------------------------------------ */
-
-/**
- * A SEPARATE, EARLIER benchmark (benchmarks/README.md). Do not splice its
- * numbers into the 46-brief run above: different scenarios, one model, and a
- * different set of competitors — YAML and Thesys C1 JSON instead of A2UI.
- *
- * Method, stated plainly because it is not a timing benchmark: one OpenUI
- * generation per scenario from GPT-5.2 at temperature 0, parsed to an AST, then
- * projected losslessly into the other three encodings of the SAME screen.
- * Tokens counted with tiktoken (gpt-5 encoder). "Decode time" is arithmetic on
- * those token counts at a fixed 60 tokens/second — a model-independent way to
- * read the size difference as time, NOT a wall-clock measurement.
- */
-export const DECODE_TOKENS_PER_SECOND = 60;
-
-export const SPEED_FORMATS = [
-  { id: "openuiLang", label: "OpenUI", slot: 1 },
-  { id: "c1Json", label: "Thesys C1 JSON", slot: 3 },
-  { id: "jsonRenderPatch", label: "json-render", slot: 3 },
-  { id: "yamlSpec", label: "YAML", slot: 3 },
-] as const;
-
-export type SpeedFormatId = (typeof SPEED_FORMATS)[number]["id"];
-
-export const speedScenarios: Array<{ scenario: string } & Record<SpeedFormatId, number>> = [
-  { scenario: "simple-table", openuiLang: 148, c1Json: 357, jsonRenderPatch: 340, yamlSpec: 316 },
-  {
-    scenario: "chart-with-data",
-    openuiLang: 231,
-    c1Json: 516,
-    jsonRenderPatch: 520,
-    yamlSpec: 464,
-  },
-  { scenario: "contact-form", openuiLang: 294, c1Json: 849, jsonRenderPatch: 893, yamlSpec: 762 },
-  {
-    scenario: "dashboard",
-    openuiLang: 1_226,
-    c1Json: 2_261,
-    jsonRenderPatch: 2_247,
-    yamlSpec: 2_128,
-  },
-  {
-    scenario: "pricing-page",
-    openuiLang: 1_195,
-    c1Json: 2_379,
-    jsonRenderPatch: 2_487,
-    yamlSpec: 2_230,
-  },
-  {
-    scenario: "settings-panel",
-    openuiLang: 540,
-    c1Json: 1_205,
-    jsonRenderPatch: 1_244,
-    yamlSpec: 1_077,
-  },
-  {
-    scenario: "e-commerce-product",
-    openuiLang: 1_166,
-    c1Json: 2_381,
-    jsonRenderPatch: 2_449,
-    yamlSpec: 2_145,
-  },
-];
-
-export const speedTotal = (id: SpeedFormatId) => speedScenarios.reduce((n, r) => n + r[id], 0);
-
-/** Seconds to decode all seven screens at the fixed rate. */
-export const speedSeconds = (id: SpeedFormatId) => speedTotal(id) / DECODE_TOKENS_PER_SECOND;
-
-/** How much smaller OpenUI is than `id`, as a percentage. */
-export const speedSavingVs = (id: SpeedFormatId) =>
-  (1 - speedTotal("openuiLang") / speedTotal(id)) * 100;
-
-/* ------------------------------------------------------------------ */
-/* 8. The frontier — cost against reliability, one point per pairing    */
+/* 7. The frontier — cost against reliability, one point per pairing    */
 /* ------------------------------------------------------------------ */
 
 /**
@@ -1020,7 +944,7 @@ export const frontierLine = (...args: Parameters<typeof frontierPoints>) =>
     .sort((a, b) => a.cost - b.cost);
 
 /* ------------------------------------------------------------------ */
-/* 9. Page metadata and changelog                                      */
+/* 8. Page metadata and changelog                                      */
 /* ------------------------------------------------------------------ */
 
 export const BENCHMARK_VERSION = "v1";

@@ -13,7 +13,7 @@ We learnt this the hard way. Thesys V1 shipped a JSON-based Generative UI SDK. F
 
 Then we tried to make the UI interactive (state, live data, conditional rendering, form submissions) and JSON started fighting us at every step.
 
-This is the story of why we abandoned JSON, what we replaced it with, and why the up to 67% token savings everyone keeps asking is the receipt, not the reason.
+This is the story of why we abandoned JSON, what we replaced it with, and why the token savings everyone keeps asking about are the receipt, not the reason.
 
 ## We started with JSON (because of course we did)
 
@@ -317,7 +317,7 @@ Generate, render, lint, fix. It's `eslint --fix` for generated UI.
 
 ## Token savings are the receipt, not the reason
 
-Our [benchmarks](/docs/openui-lang/benchmarks) show OpenUI Lang uses up to 67% fewer tokens than JSON formats across seven real-world UI scenarios. Fewer tokens means faster streaming means the user sees their UI sooner. But we didn't design the format to save tokens. We designed it so LLMs could express interactive UIs without drowning in structural noise. The efficiency is what falls out when you stop fighting the format.
+OpenUI is up to 2.6x cheaper than JSON formats in the [Generative UI benchmark](/benchmarks). Fewer tokens means faster streaming means the user sees their UI sooner. But we didn't design the format to save tokens. We designed it so LLMs could express interactive UIs without drowning in structural noise. The efficiency is what falls out when you stop fighting the format.
 
 ## So just use JavaScript?
 
@@ -397,6 +397,6 @@ When you bolt language features onto a data format, you end up reinventing progr
 
 OpenUI Lang sits in the gap. It looks like code because LLMs are trained on code and generate it naturally. But it's constrained like a data format: one assignment per line, positional args mapped from your component schemas, a fixed set of primitives, no escape hatches. The LLM builds with your design system, not whatever it feels like importing. It can't go off-script because there is no off-script.
 
-The token savings (up to 67%) are real, and they matter for latency. But they're a receipt, not the reason. The reason is that `$title` is a better way for an LLM to bind state than `{ "$bindState": "/newTodo/title" }`, and a safer one than `const [title, setTitle] = useState("")`.
+The savings are real, and they matter for latency too. But they're a receipt, not the reason. The reason is that `$title` is a better way for an LLM to bind state than `{ "$bindState": "/newTodo/title" }`, and a safer one than `const [title, setTitle] = useState("")`.
 
 [Try it yourself](/demo/github) and see if you agree.

@@ -3,7 +3,6 @@
 import {
   ArrowsClockwise,
   ArrowsLeftRight,
-  ArrowUpRight,
   Broadcast,
   ChartLineUp,
   CloudArrowUp,
@@ -23,12 +22,9 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { BevelButton } from "../../components/Button/BevelButton";
 import { ExpandChevron } from "../../components/ExpandChevron";
 import { useSingleOpenAccordion } from "../../components/MobileAccordion/useSingleOpenAccordion";
-import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
 import { CompatibilitySection } from "../CompatibilitySection/CompatibilitySection";
-import { TokenRace } from "../TokenRace/TokenRace";
 import styles from "./FeatureGridSection.module.css";
 
 export type GridFeature = {
@@ -99,8 +95,6 @@ export type GridFeatureIcon = keyof typeof FEATURE_ICONS;
 export function FeatureGridSection({
   features = FEATURES,
   lead,
-  showHeader = true,
-  showHeaderSeparator = true,
   showCompatSeparator = true,
   showCompat = true,
   compatFirst = false,
@@ -118,17 +112,13 @@ export function FeatureGridSection({
   features?: GridFeature[];
   /** Optional content rendered as the first cell in the feature grid. */
   lead?: ReactNode;
-  /** The benchmark header + CTA (OpenUI-specific). Off for sub-product pages. */
-  showHeader?: boolean;
-  /** The rule under that header. Off when there is no grid for it to divide. */
-  showHeaderSeparator?: boolean;
   /** The rule above the compatibility band when it follows the grid. */
   showCompatSeparator?: boolean;
   /** The "Works with your stack" compatibility band (OpenUI-specific). */
   showCompat?: boolean;
   /** Put that band above the header instead of below the grid. */
   compatFirst?: boolean;
-  /** Render the feature grid above the benchmark header instead of below it. */
+  /** Render the feature grid above the custom header instead of below it. */
   gridFirst?: boolean;
   /** Custom headline above the grid (with a separator below it), e.g. a page tagline. */
   header?: ReactNode;
@@ -159,8 +149,7 @@ export function FeatureGridSection({
     </div>
   ) : null;
 
-  /* An empty feature list drops the grid, leaving only the benchmark header
-     (the home page keeps the speed proof without the six-feature grid). */
+  /* An empty feature list with no lead drops the grid. */
   const gridBlock =
     features.length === 0 && !lead ? null : (
       <div
@@ -206,37 +195,6 @@ export function FeatureGridSection({
         /* No rule here: the space below the band separates it from the header,
            which reads quieter than a line across the page. */
         <div className={styles.compatLead}>{compatBand}</div>
-      )}
-      {showHeader && (
-        <>
-          <div className={styles.header}>
-            {/* Plain words first, numbers second. The figures are the speed
-                benchmark's contact-form screen against json-render
-                (lib/benchmark-data.ts), which TokenRace draws. */}
-            <SectionHeader
-              title="Screens appear 3x faster"
-              subtitle="with 67% fewer tokens."
-              caption={
-                /* Narrow and quiet, like the captions under the fold headlines. */
-                <span className={styles.speedCaption}>
-                  Fewer tokens means screens show up sooner and cost less to generate.
-                </span>
-              }
-            >
-              <TokenRace />
-              <div className={styles.ctaWrap}>
-                <BevelButton
-                  /* The format view, not the model board: this claim is about how OpenUI
-                     compares with other formats, and the chart reads that param on load. */
-                  href="/benchmarks?view=formats"
-                  label="See the benchmark"
-                  badge={<ArrowUpRight size={16} weight="bold" />}
-                />
-              </div>
-            </SectionHeader>
-          </div>
-          {showHeaderSeparator && <div className={styles.separator} />}
-        </>
       )}
       {header && (
         <>

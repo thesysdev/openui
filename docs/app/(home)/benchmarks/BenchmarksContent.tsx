@@ -175,7 +175,6 @@ export function BenchmarksContent() {
           </h2>
           <FeatureGridSection
             features={HEADLINE_FEATURES}
-            showHeader={false}
             showCompat={false}
             showBottomSeparator={false}
             showTopSeparator

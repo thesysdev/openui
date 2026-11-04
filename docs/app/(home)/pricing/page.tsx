@@ -176,7 +176,6 @@ export default function PricingPage() {
           <div className={styles.billingDetails}>
             <FeatureGridSection
               features={BILLING_DETAILS}
-              showHeader={false}
               showCompat={false}
               showBottomSeparator={false}
               flushOuterCards

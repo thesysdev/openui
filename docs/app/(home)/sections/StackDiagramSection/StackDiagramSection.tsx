@@ -191,7 +191,7 @@ const DESCRIPTIONS: Record<
   lang: {
     title: "Connect models to UI",
     description:
-      "A streaming protocol between your model and the UI runtime. 3x faster and consumes 67% fewer tokens.",
+      "A streaming protocol between your model and the UI runtime. Up to 2.6x cheaper than JSON.",
     cloud: ["Output validation", "Automatic correction"],
     docsHref: "/docs/openui-lang",
   },

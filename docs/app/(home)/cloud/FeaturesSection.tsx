@@ -228,7 +228,6 @@ export function FeaturesSection() {
       <div className={styles.supportingFeatures}>
         <FeatureGridSection
           features={SUPPORTING_FEATURES}
-          showHeader={false}
           showCompat={false}
           showTopSeparator
           showBottomSeparator={false}

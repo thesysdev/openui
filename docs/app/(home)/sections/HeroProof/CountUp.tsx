@@ -7,12 +7,15 @@ import { useEffect, useRef, useState } from "react";
    value sits invisibly in the same grid cell so the width never shifts. */
 export function CountUp({
   value,
+  decimals = 0,
   suffix = "",
   delay = 0,
   duration = 1300,
   className,
 }: {
   value: number;
+  /** Digits after the decimal point, so 2.6 counts 0.0, 0.1, ... 2.6. */
+  decimals?: number;
   suffix?: string;
   delay?: number;
   duration?: number;
@@ -20,6 +23,7 @@ export function CountUp({
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState(value);
+  const format = (n: number) => n.toFixed(decimals);
 
   useEffect(() => {
     const el = ref.current;
@@ -40,7 +44,8 @@ export function CountUp({
           const tick = (now: number) => {
             const t = Math.min((now - start) / duration, 1);
             const eased = 1 - Math.pow(1 - t, 3);
-            setShown(Math.round(eased * value));
+            const step = 10 ** decimals;
+            setShown(Math.round(eased * value * step) / step);
             if (t < 1) frame = requestAnimationFrame(tick);
           };
           frame = requestAnimationFrame(tick);
@@ -54,7 +59,7 @@ export function CountUp({
       window.clearTimeout(timer);
       cancelAnimationFrame(frame);
     };
-  }, [value, delay, duration]);
+  }, [value, decimals, delay, duration]);
 
   return (
     <span
@@ -63,11 +68,11 @@ export function CountUp({
       style={{ display: "inline-grid", fontVariantNumeric: "tabular-nums" }}
     >
       <span aria-hidden style={{ gridArea: "1 / 1", visibility: "hidden" }}>
-        {value}
+        {format(value)}
         {suffix}
       </span>
       <span aria-hidden style={{ gridArea: "1 / 1" }}>
-        {shown}
+        {format(shown)}
         {suffix}
       </span>
       <span
@@ -80,7 +85,7 @@ export function CountUp({
           whiteSpace: "nowrap",
         }}
       >
-        {value}
+        {format(value)}
         {suffix}
       </span>
     </span>
