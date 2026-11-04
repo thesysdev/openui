@@ -79,6 +79,11 @@ export interface RendererProps<L extends Library = Library> {
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
+  /**
+   * What the children were rendered from (the evaluated element). A failed
+   * render is always retried when this changes.
+   */
+  resetKey: unknown;
   componentName?: string;
   onError?: (error: OpenUIError) => void;
 }
@@ -91,10 +96,30 @@ interface ErrorBoundaryState {
  * Error boundary that intentionally shows the last successfully rendered
  * children when a render error occurs. This "show last good state" behavior
  * prevents the UI from going blank during streaming or transient evaluation
- * errors, and auto-recovers when new valid children arrive.
+ * errors, and auto-recovers:
+ *
+ * - whenever the element it renders changes (new streamed props, store or
+ *   query data), and
+ * - on a parent re-render, so a cause outside openui (a host context becoming
+ *   ready) still clears. The first such retry is immediate; after each failed
+ *   one the next waits twice as long (up to {@link RETRY_MAX_MS}), and a
+ *   parent render during the wait retries once the wait is over.
+ *
+ * `children` is a new element on every parent render, so retrying on every
+ * change of it re-rendered a broken component each time anything above it
+ * re-rendered, without end when something kept re-rendering (or when the host
+ * re-rendered because of the error itself).
  */
+const RETRY_BASE_MS = 50;
+const RETRY_MAX_MS = 5000;
+
 class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private lastValidChildren: React.ReactNode = null;
+  /** Wait before the next parent-render retry; 0 until a retry has failed. */
+  private retryDelay = 0;
+  /** Earliest time (ms) a parent render may retry the failed render. */
+  private retryAt = 0;
+  private retryTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -111,16 +136,49 @@ class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   }
 
-  componentDidUpdate(prevProps: ErrorBoundaryProps): void {
+  componentDidUpdate(prevProps: ErrorBoundaryProps, prevState: ErrorBoundaryState): void {
     if (!this.state.hasError) {
       this.lastValidChildren = this.props.children;
+      this.resetRetries();
+      return;
     }
-    if (this.state.hasError && prevProps.children !== this.props.children) {
+    // This update is the failure itself: the new props were just tried.
+    if (!prevState.hasError) return;
+    if (prevProps.resetKey !== this.props.resetKey) {
+      this.resetRetries();
       this.setState({ hasError: false });
+    } else if (prevProps.children !== this.props.children) {
+      this.retryWhenDue();
     }
   }
 
+  componentWillUnmount(): void {
+    clearTimeout(this.retryTimer);
+  }
+
+  private resetRetries(): void {
+    clearTimeout(this.retryTimer);
+    this.retryTimer = undefined;
+    this.retryDelay = 0;
+    this.retryAt = 0;
+  }
+
+  private retryWhenDue(): void {
+    if (this.retryTimer !== undefined) return;
+    const wait = this.retryAt - Date.now();
+    if (wait <= 0) {
+      this.setState({ hasError: false });
+      return;
+    }
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = undefined;
+      this.setState({ hasError: false });
+    }, wait);
+  }
+
   componentDidCatch(error: Error): void {
+    this.retryAt = Date.now() + this.retryDelay;
+    this.retryDelay = Math.min(Math.max(this.retryDelay * 2, RETRY_BASE_MS), RETRY_MAX_MS);
     const name = this.props.componentName ?? "Unknown";
     this.props.onError?.({
       source: "runtime",
@@ -174,7 +232,7 @@ function RenderNode({ node }: { node: ElementNode }) {
   if (!Comp) return null;
 
   return (
-    <ElementErrorBoundary componentName={node.typeName} onError={reportError}>
+    <ElementErrorBoundary resetKey={node} componentName={node.typeName} onError={reportError}>
       <RenderNodeInner el={node} Comp={Comp} />
     </ElementErrorBoundary>
   );
