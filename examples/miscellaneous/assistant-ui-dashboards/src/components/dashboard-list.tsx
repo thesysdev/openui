@@ -1,6 +1,26 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   useArtifactDelete,
@@ -11,7 +31,7 @@ import {
   type ArtifactSummary,
 } from "@openuidev/react-ui/cloud";
 import { LayoutDashboard, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useOpenDashboard } from "./dashboard";
 
 /**
@@ -28,6 +48,10 @@ export function DashboardList() {
   const { update } = useArtifactUpdate();
   const { deleteArtifact } = useArtifactDelete();
   const { open, setOpen, openId, saved } = useOpenDashboard();
+  // The dashboard a dialog is about. It stays set while the dialog animates closed, so the
+  // dialog keeps showing its name.
+  const [renaming, setRenaming] = useState<DialogTarget>(null);
+  const [deleting, setDeleting] = useState<DialogTarget>(null);
 
   // A dashboard joins the list, or shows its new title, once it's generated and saved.
   const refreshPinned = pinned.refresh;
@@ -38,12 +62,17 @@ export function DashboardList() {
     refreshRecent();
   }, [saved, refreshPinned, refreshRecent]);
 
-  const rename = (artifact: ArtifactSummary) => {
-    const title = window.prompt("Rename this dashboard", artifact.title)?.trim();
-    if (title && title !== artifact.title) void update(artifact.id, { title });
+  const rename = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const title = String(new FormData(event.currentTarget).get("title") ?? "").trim();
+    if (renaming && title && title !== renaming.artifact.title) {
+      void update(renaming.artifact.id, { title });
+    }
+    setRenaming(close);
   };
-  const remove = (id: string) => {
-    if (!window.confirm("Delete this dashboard? This can't be undone.")) return;
+  const remove = () => {
+    if (!deleting) return;
+    const { id } = deleting.artifact;
     if (openId === id) setOpen(null);
     void deleteArtifact(id);
   };
@@ -71,14 +100,19 @@ export function DashboardList() {
         >
           {artifact.pinned ? <PinOff /> : <Pin />}
         </Button>
-        <Button variant="ghost" size="icon-xs" aria-label="Rename" onClick={() => rename(artifact)}>
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label="Rename"
+          onClick={() => setRenaming({ artifact, open: true })}
+        >
           <Pencil />
         </Button>
         <Button
           variant="ghost"
           size="icon-xs"
           aria-label="Delete"
-          onClick={() => remove(artifact.id)}
+          onClick={() => setDeleting({ artifact, open: true })}
         >
           <Trash2 />
         </Button>
@@ -111,6 +145,71 @@ export function DashboardList() {
           </Button>
         )}
       </section>
+
+      <Dialog
+        open={renaming?.open ?? false}
+        onOpenChange={(isOpen) => !isOpen && setRenaming(close)}
+      >
+        <DialogContent>
+          <form onSubmit={rename} className="grid gap-4">
+            <DialogHeader>
+              <DialogTitle>Rename dashboard</DialogTitle>
+              <DialogDescription>
+                The new name shows in your list and on the dashboard.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              key={renaming?.artifact.id}
+              name="title"
+              defaultValue={renaming?.artifact.title}
+              placeholder="Untitled dashboard"
+              aria-label="Dashboard name"
+              required
+              autoFocus
+              onFocus={(event) => event.currentTarget.select()}
+            />
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={deleting?.open ?? false}
+        onOpenChange={(isOpen) => !isOpen && setDeleting(close)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {deleting?.artifact.title ? `"${deleting.artifact.title}"` : "this dashboard"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              It's removed from OpenUI Cloud for good. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={remove}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </nav>
   );
 }
+
+/** A dashboard a dialog acts on, and whether the dialog is open. */
+type DialogTarget = { artifact: ArtifactSummary; open: boolean } | null;
+
+/** Closes a dialog but keeps its dashboard, for the closing animation. */
+const close = (target: DialogTarget): DialogTarget => target && { ...target, open: false };
