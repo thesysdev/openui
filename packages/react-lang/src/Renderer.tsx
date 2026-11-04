@@ -7,7 +7,7 @@ import type {
   ParseResult,
   ToolProvider,
 } from "@openuidev/lang-core";
-import { ToolNotFoundError, extractToolResult } from "@openuidev/lang-core";
+import { ToolNotFoundError, extractToolResult, isElementNode } from "@openuidev/lang-core";
 import React, {
   Component,
   Fragment,
@@ -165,20 +165,72 @@ function renderDeep(value: unknown): React.ReactNode {
 }
 
 /**
- * Renders a single ElementNode.
+ * True when two values render the same: equal plain data, with elements compared on what
+ * RenderNodeInner reads (typeName, statementId, props). `partial` is skipped: the parser sets
+ * it on every element of a pass, so it flips for finished elements while later ones stream.
  */
-function RenderNode({ node }: { node: ElementNode }) {
-  const { library, reportError } = useOpenUI();
-  const Comp = library.components[node.typeName]?.component;
-
-  if (!Comp) return null;
-
-  return (
-    <ElementErrorBoundary componentName={node.typeName} onError={reportError}>
-      <RenderNodeInner el={node} Comp={Comp} />
-    </ElementErrorBoundary>
-  );
+function rendersSame(a: unknown, b: unknown, depth = 0): boolean {
+  if (Object.is(a, b)) return true;
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  // Deeper than any program builds, e.g. a cyclic value from a library function: re-render
+  if (depth > 64) return false;
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (!rendersSame(a[i], b[i], depth + 1)) return false;
+    return true;
+  }
+  if (Array.isArray(b)) return false;
+  // Only real elements: plain data may have `type: "element"` too
+  if (isElementNode(a) || isElementNode(b)) {
+    return (
+      isElementNode(a) &&
+      isElementNode(b) &&
+      a.typeName === b.typeName &&
+      a.statementId === b.statementId &&
+      rendersSame(a.props, b.props, depth + 1)
+    );
+  }
+  // Class instances (dates, maps, values from library functions) compare by identity
+  const proto = Object.getPrototypeOf(a);
+  if (proto !== Object.getPrototypeOf(b) || (proto !== Object.prototype && proto !== null)) {
+    return false;
+  }
+  // Same keys in the same order: components may iterate an object's keys
+  const keys = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keys.length !== keysB.length) return false;
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i]!;
+    if (k !== keysB[i]) return false;
+    if (
+      !rendersSame((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], depth + 1)
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
+
+/**
+ * Renders a single ElementNode. Memoized: an element a chunk leaves unchanged renders the
+ * same (rendersSame), so it skips rendering; a store, query or context change re-renders
+ * every node.
+ */
+const RenderNode = React.memo(
+  function RenderNode({ node }: { node: ElementNode }) {
+    const { library, reportError } = useOpenUI();
+    const Comp = library.components[node.typeName]?.component;
+
+    if (!Comp) return null;
+
+    return (
+      <ElementErrorBoundary componentName={node.typeName} onError={reportError}>
+        <RenderNodeInner el={node} Comp={Comp} />
+      </ElementErrorBoundary>
+    );
+  },
+  (prev, next) => rendersSame(prev.node, next.node),
+);
 
 /**
  * Renders a resolved element using its renderer.
