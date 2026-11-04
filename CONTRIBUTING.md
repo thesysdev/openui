@@ -96,7 +96,7 @@ Use GitHub Issues for feature requests. Please include:
 
 Two workflows label issues and pull requests.
 
-[`auto-label.yml`](./.github/workflows/auto-label.yml) adds `type:` and `component:` labels when an issue or PR is opened or edited. The type comes from a conventional-commit title (`fix(react-lang): ...` gets `type: bug` and `component: react-lang`) or from the issue template. PRs get `component:` labels from the files they change, and issues from the package names they mention. It only adds labels, so fix any wrong ones by hand.
+[`auto-label.yml`](./.github/workflows/auto-label.yml) adds `type:` and `component:` labels when an issue or PR is opened or edited. The type comes from a conventional-commit title (`fix(react-lang): ...` gets `type: bug` and `component: react-lang`) or from the issue template. PRs get `component:` labels from the files they change, and issues from the package names they mention. It also adds `community: lab project` to project submissions and changes to `docs/lib/lab-projects.ts`, `community: adopters` to `ADOPTERS.md` changes, and `community: collab request` to partnership and integration requests. It only adds labels, so fix any wrong ones by hand.
 
 [`triage.yml`](./.github/workflows/triage.yml) keeps `status: needs-triage` on the items that need a maintainer and takes it off the rest. It runs on issue, comment and review events, and once a day for every open item. An external contributor is anyone who isn't an owner, member or collaborator.
 

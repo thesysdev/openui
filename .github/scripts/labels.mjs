@@ -29,6 +29,8 @@ export const PACKAGES = [
   { dir: "libraries/dashboard", name: "dashboard-library", bare: true, aliases: ["dashboard-kit"] },
 ];
 
+const COMMUNITY = "7057ff";
+
 export const LABELS = {
   "type: bug": { color: "a15765", description: "Something isn't working" },
   "type: feature/enhancement": { color: TYPE, description: "New feature or request" },
@@ -49,6 +51,19 @@ export const LABELS = {
   "component: spec": { color: "10fc43", description: "OpenUI Lang specification" },
   "component: benchmarks": { color: "c2e0c6", description: "Benchmarks" },
   "component: openui.com site": { color: "0075ca", description: "The docs site under docs/" },
+
+  "community: lab project": {
+    color: COMMUNITY,
+    description: "A project built with OpenUI, for the OpenUI Lab (docs/lib/lab-projects.ts)",
+  },
+  "community: adopters": {
+    color: COMMUNITY,
+    description: "Adds or updates an entry in ADOPTERS.md",
+  },
+  "community: collab request": {
+    color: COMMUNITY,
+    description: "Partnership, integration or collaboration request",
+  },
 
   P0: { color: PRIORITY, description: "Urgent. Should always have an assignee." },
   P1: { color: PRIORITY, description: "Priority. Being worked on now or soon." },

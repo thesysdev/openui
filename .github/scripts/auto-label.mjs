@@ -1,4 +1,4 @@
-// Adds `type:` and `component:` labels to issues and PRs from their title,
+// Adds `type:`, `component:` and `community:` labels to issues and PRs from their title,
 // body and (for PRs) changed files. Labels are only ever added, never removed,
 // so manual triage sticks. Priority and status labels are left to people and
 // to triage.mjs.
@@ -62,6 +62,38 @@ const PATH_TYPES = [
   { label: "type: ci", paths: [".github/", "scripts/"] },
 ];
 
+// Labels for people sharing what they built with OpenUI or asking to work with us.
+const COMMUNITY = [
+  {
+    label: "community: lab project",
+    paths: ["docs/lib/lab-projects.ts"],
+    scopes: ["lab"],
+    prefixes: ["project"],
+    title:
+      /\b(add|submit|list|feature)\b.*\b(to|in|on) (the )?(openui )?(lab|projects|showcase)\b/i,
+  },
+  {
+    label: "community: adopters",
+    paths: ["ADOPTERS.md"],
+    scopes: ["adopters"],
+    prefixes: ["adopter", "adopters"],
+    title: /\badopters?\b/i,
+    body: /\bADOPTERS\.md\b/,
+  },
+  {
+    label: "community: collab request",
+    paths: [],
+    scopes: [],
+    prefixes: ["collab"],
+    title:
+      /\b(collab\w*|partner(ship)?s?|rev ?share|sponsor\w*|co-?marketing|integration (inquiry|request|proposal))\b/i,
+  },
+];
+
+// Other files a project submission PR may touch: the other community lists and images.
+const isSubmissionFile = (f) =>
+  COMMUNITY.some((c) => matchesPath(f, c.paths)) || /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(f);
+
 // An issue body naming more packages than this says nothing about which one
 // the issue is about, so its package mentions are ignored.
 const MAX_BODY_COMPONENTS = 2;
@@ -97,7 +129,7 @@ const matchesPath = (file, paths) =>
 
 export function labelsFor({ title, body = "", files = [], isPr }) {
   const labels = new Set();
-  const { scopes } = parseTitle(title);
+  const { type: prefix, scopes } = parseTitle(title);
 
   const type = typeFromTitle(title) || (isPr ? null : typeFromIssueBody(body));
   if (type) labels.add(type);
@@ -118,6 +150,20 @@ export function labelsFor({ title, body = "", files = [], isPr }) {
     }
     const fromBody = COMPONENTS.filter((c) => c.body?.test(prose)).map((c) => c.label);
     if (fromBody.length <= MAX_BODY_COMPONENTS) fromBody.forEach((l) => labels.add(l));
+  }
+
+  for (const c of COMMUNITY) {
+    if (scopes.some((s) => c.scopes.includes(s)) || c.prefixes.includes(prefix)) {
+      labels.add(c.label);
+    } else if (isPr) {
+      // Only when the PR is just the submission, not a wider change that touches the file.
+      const own = files.filter((f) => matchesPath(f, c.paths));
+      if (own.length && files.every((f) => own.includes(f) || isSubmissionFile(f))) {
+        labels.add(c.label);
+      }
+    } else if (c.title?.test(title) || c.body?.test(body)) {
+      labels.add(c.label);
+    }
   }
 
   for (const c of COMPONENTS) {
