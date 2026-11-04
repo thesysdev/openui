@@ -77,6 +77,30 @@ export interface RendererProps<L extends Library = Library> {
 
 // ─── Error boundary ───
 
+/**
+ * Fires after each parse is rendered. An element that failed to render retries on it, even when
+ * a memoized ancestor skips rendering because its own props did not change.
+ */
+interface RetrySignal {
+  subscribe(listener: () => void): () => void;
+  emit(): void;
+}
+
+function createRetrySignal(): RetrySignal {
+  const listeners = new Set<() => void>();
+  return {
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    emit() {
+      for (const listener of [...listeners]) listener();
+    },
+  };
+}
+
+const RetryContext = createContext<RetrySignal | null>(null);
+
 interface ErrorBoundaryProps {
   children: React.ReactNode;
   componentName?: string;
@@ -94,7 +118,10 @@ interface ErrorBoundaryState {
  * errors, and auto-recovers when new valid children arrive.
  */
 class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  static contextType = RetryContext;
+  declare context: React.ContextType<typeof RetryContext>;
   private lastValidChildren: React.ReactNode = null;
+  private stopRetry?: () => void;
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -120,7 +147,16 @@ class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   }
 
+  componentWillUnmount(): void {
+    this.stopRetry?.();
+  }
+
   componentDidCatch(error: Error): void {
+    this.stopRetry ??= this.context?.subscribe(() => {
+      this.stopRetry?.();
+      this.stopRetry = undefined;
+      this.setState({ hasError: false });
+    });
     const name = this.props.componentName ?? "Unknown";
     this.props.onError?.({
       source: "runtime",
@@ -305,6 +341,12 @@ function RendererRoot<L extends Library = Library>({
       renderDeep,
     );
 
+  const retrySignal = useRef<RetrySignal | null>(null);
+  retrySignal.current ??= createRetrySignal();
+  useEffect(() => {
+    retrySignal.current?.emit();
+  }, [result, isStreaming]);
+
   // Fire onParseResult with the RAW parse result (not evaluated),
   // so hosts only see changes when the parser output actually changes.
   useEffect(() => {
@@ -325,7 +367,9 @@ function RendererRoot<L extends Library = Library>({
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
+      <RetryContext.Provider value={retrySignal.current}>
+        <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
+      </RetryContext.Provider>
     </OpenUIContext.Provider>
   );
 }
