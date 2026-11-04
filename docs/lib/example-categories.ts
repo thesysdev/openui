@@ -9,6 +9,7 @@ export type ExampleCategoryId =
   | "app-frameworks"
   | "backend-frameworks"
   | "design-systems"
+  | "frontend-platforms"
   | "harnesses"
   | "miscellaneous";
 
@@ -26,14 +27,20 @@ export const EXAMPLE_CATEGORIES: ExampleCategory[] = [
       "Agent runtimes and orchestration frameworks that produce or stream OpenUI output.",
   },
   {
+    id: "frontend-platforms",
+    title: "Chat frontends",
+    description:
+      "Chat UI frameworks that own the conversation and tool lifecycle and render OpenUI inside it.",
+  },
+  {
     id: "app-frameworks",
     title: "Renderers",
     description:
-      "Parsers and renderers that bring OpenUI Lang to other UI frameworks, platforms, and languages.",
+      "Renderers that bring OpenUI Lang to other UI frameworks, platforms, and languages.",
   },
   {
     id: "backend-frameworks",
-    title: "Backend frameworks",
+    title: "Backend languages and frameworks",
     description:
       "Server-side libraries and examples that bring OpenUI Lang to other backend languages and frameworks.",
   },

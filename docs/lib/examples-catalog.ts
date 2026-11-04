@@ -213,7 +213,7 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     title: "Rust",
     description:
       "An engine-agnostic Rust runtime for OpenUI Lang on docs.rs, whose output any renderer can draw: a game engine, a native toolkit, a terminal, or a web page.",
-    category: "app-frameworks",
+    category: "miscellaneous",
     sourceUrl: "https://github.com/voxell-tech/openui-rs",
     logo: "https://cdn.simpleicons.org/rust",
     logoIsDark: true,
@@ -225,7 +225,7 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     title: "Elixir (openui_lang)",
     description:
       "A zero-dependency Elixir parser, streaming engine, evaluator, schema validator, and prompt generator for OpenUI Lang 1.0.",
-    category: "app-frameworks",
+    category: "backend-frameworks",
     sourceUrl: "https://github.com/boxxxie/openui_lang",
     logo: "https://cdn.simpleicons.org/elixir",
     logoIsDark: false,
@@ -240,18 +240,6 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     category: "backend-frameworks",
     sourceUrl: "https://github.com/OverskillDev/openui-rails",
     logo: "https://cdn.simpleicons.org/rubyonrails",
-    logoIsDark: false,
-    runnable: false,
-    firstParty: false,
-  },
-  {
-    name: "openui-moonbit",
-    title: "MoonBit",
-    description:
-      "An OpenUI Lang parser written in MoonBit and compiled to Wasm-GC, published on mooncakes and npm.",
-    category: "app-frameworks",
-    sourceUrl: "https://github.com/heyq02/openui.mbt",
-    logo: "https://github.com/moonbitlang.png",
     logoIsDark: false,
     runnable: false,
     firstParty: false,
@@ -358,7 +346,7 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     title: "Volcengine ChatKit",
     description:
       "ChatKit, Volcengine's chat UI and headless runtime for agent apps, renders OpenUI messages through its optional @volcengine/chatkit/openui entry point.",
-    category: "app-frameworks",
+    category: "frontend-platforms",
     sourceUrl: "https://www.npmjs.com/package/@volcengine/chatkit",
     logo: "https://github.com/volcengine.png",
     logoIsDark: false,
@@ -519,9 +507,9 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     title: "assistant-ui",
     description:
       "Renders streaming OpenUI programs as assistant-ui Tool UI while assistant-ui keeps control of the conversation and tool lifecycle.",
-    category: "app-frameworks",
+    category: "frontend-platforms",
     sourceUrl: "https://github.com/thesysdev/openui/tree/main/packages/assistant-ui",
-    guideUrl: "https://www.assistant-ui.com/docs/tools/openui",
+    guideUrl: "/docs/build-agents/assistant-ui",
     logo: "/integration-logos/assistant-ui.svg",
     logoIsDark: true,
     runnable: false,
