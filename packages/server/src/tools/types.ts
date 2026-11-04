@@ -1,3 +1,5 @@
+import type { McpServers } from "./mcp";
+
 /** Provider-neutral metadata passed to generation, without server handlers. */
 export interface ToolDefinition {
   name: string;
@@ -7,45 +9,75 @@ export interface ToolDefinition {
   output?: unknown;
 }
 
-/** Registered customer tools execute on the host server with trusted context. */
-export type ToolHandler<Context = undefined> = (
+/**
+ * Runs a data tool on your server. `context` is whatever you pass to
+ * `interpreter.execute`, untouched, such as the signed-in user.
+ */
+/**
+ * Who a call is for: the signed-in user, from your session. Add anything else
+ * your tools need; they get the whole object.
+ */
+export interface ExecutionContext {
+  userId: string;
+}
+
+/** Every call needs `context.userId`. The types require it; this catches callers they don't check. */
+export function assertUserIdRequired(context: unknown): asserts context is ExecutionContext {
+  const userId = (context as { userId?: unknown } | undefined)?.userId;
+  if (typeof userId !== "string" || !userId.trim()) {
+    throw new ToolExecutionError(
+      "context.userId is required: the signed-in user, from your session",
+      "invalid_input",
+      400,
+    );
+  }
+}
+
+export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (
   args: Record<string, unknown>,
-  options: { context: Context; signal: AbortSignal },
+  context: Context,
+  options: { signal: AbortSignal },
 ) => unknown | Promise<unknown>;
 
-export type ToolRegistration<Context = undefined> = Omit<ToolDefinition, "name"> & {
+/** A data tool: what generation sees, plus the handler that runs it. */
+export type DataTool<Context extends ExecutionContext = ExecutionContext> = Omit<
+  ToolDefinition,
+  "name"
+> & {
   execute: ToolHandler<Context>;
 };
 
-export interface ToolExecutionRequest {
+/** What the renderer sends your interpreter for each data tool call. */
+export interface InterpreterRequest {
+  /** The query or tool to run. */
   name: string;
   arguments?: Record<string, unknown>;
-  /** Complete generated response. Required for script names, optional for direct tools. */
-  response?: string;
+  /** The artifact the call is for. Generated scripts run from its stored content. */
+  id?: string;
+  /** The version the renderer shows. A script run against an older one is refused (409). */
+  version?: string;
 }
 
-export type ToolExecutionOptions<Context = undefined> = {
+export interface InterpreterExecuteOptions {
   signal?: AbortSignal;
-  /** Total execution budget, including customer tools. Default: 60 seconds. */
+  /** Total execution budget, including your tools. Default: 60 seconds. */
   timeoutMs?: number;
-} & (undefined extends Context ? { context?: Context } : { context: Context });
-
-export interface ToolExecutorOptions<Context = undefined> {
-  tools: Record<string, ToolRegistration<Context>>;
-  /** Required for generated scripts. Direct registered tools do not need a Gateway key. */
-  apiKey?: string;
-  /** Gateway origin, without /v1. Defaults to https://api.thesys.dev. */
-  apiBaseUrl?: string;
-  fetch?: typeof globalThis.fetch;
 }
 
-export interface RegisteredTools<Context = undefined> {
-  definitions: ToolDefinition[];
+/** A dashboard's data tools: yours, an MCP server's, or both. */
+export type InterpreterOptions<Context extends ExecutionContext = ExecutionContext> =
+  | { tools: Record<string, DataTool<Context>>; mcp?: McpServers<Context> }
+  | { tools?: Record<string, DataTool<Context>>; mcp: McpServers<Context> };
+
+export interface Interpreter<Context extends ExecutionContext = ExecutionContext> {
+  /**
+   * `context` reaches your tools as is. Generated scripts run only for the
+   * user who owns the artifact, `context.userId`.
+   */
   execute(
-    input: ToolExecutionRequest,
-    ...options: undefined extends Context
-      ? [options?: ToolExecutionOptions<Context>]
-      : [options: ToolExecutionOptions<Context>]
+    request: InterpreterRequest,
+    context: Context,
+    options?: InterpreterExecuteOptions,
   ): Promise<unknown>;
 }
 
