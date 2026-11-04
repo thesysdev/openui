@@ -552,6 +552,21 @@ export function getExamplesInCategory(category: ExampleCategoryId): RepoExample[
     }));
 }
 
+/**
+ * A section's cards in page order: official first, then featured, then the rest of the community.
+ * Within each group, first-party cards lead, then the longest description, so cards sharing a row
+ * have similar heights.
+ */
+export function getSortedExamplesInCategory(category: ExampleCategoryId): RepoExample[] {
+  const rank = (example: RepoExample) => (!example.community ? 0 : example.featured ? 1 : 2);
+  return getExamplesInCategory(category).sort(
+    (a, b) =>
+      rank(a) - rank(b) ||
+      Number(b.firstParty) - Number(a.firstParty) ||
+      b.description.length - a.description.length,
+  );
+}
+
 /** Whether a link points at a card on the Integrations page, so the Demos page can skip it. */
 export function isIntegrationUrl(href: string): boolean {
   return [...REPO_EXAMPLES, ...EXTERNAL_INTEGRATIONS].some(

@@ -10,6 +10,7 @@ import {
   Wrench,
 } from "lucide-react";
 import type { ComponentType } from "react";
+import { isIntegrationUrl } from "./examples-catalog";
 
 /** Official and community projects built around OpenUI, shown on /lab and /docs/examples. */
 
@@ -386,3 +387,17 @@ export const labProjects: ProjectItem[] = [
     ],
   },
 ];
+
+/** Community projects on the Demos page, featured first. Ones with an Integrations card are listed there instead. */
+export function getCommunityProjects(): ProjectItem[] {
+  return (
+    labProjects
+      .filter(
+        (project) =>
+          project.status === "Community" &&
+          !project.links.some((link) => isIntegrationUrl(link.href)),
+      )
+      // The sort is stable, so the rest keep their order.
+      .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
+  );
+}
