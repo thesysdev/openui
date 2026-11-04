@@ -84,7 +84,7 @@ export function RadialBars<T>({
         );
         return (
           <path
-            key={bar.label}
+            key={`${bar.label}-${i}`}
             d={bar.path}
             fill={bar.color}
             className={clsx(styles.bar, names.bar, className)}
