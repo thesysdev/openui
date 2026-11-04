@@ -21,7 +21,7 @@
 
 </div>
 
-OpenUI is a full-stack, framework-agnostic Generative UI framework built around a compact, streaming-first language. A framework-agnostic core powers first-party runtimes for React, Vue, Svelte, and Angular, and React additionally ships built-in component libraries and ready-to-use chat interfaces. OpenUI Lang uses up to 67% fewer tokens than JSON.
+OpenUI is a full-stack, framework-agnostic Generative UI framework built around a compact, streaming-first language. A framework-agnostic core powers first-party runtimes for React, Vue, Svelte, and Angular, and React additionally ships built-in component libraries and ready-to-use chat interfaces.
 
 <div align="center">
 
@@ -133,26 +133,9 @@ npm install @openuidev/a2ui zod
 OpenUI Lang is designed for model-generated UI that needs to be both structured and streamable.
 
 - **Streaming output** - Emit UI incrementally as tokens arrive.
-- **Token efficiency** - Up to 67% fewer tokens than equivalent JSON (see [benchmarks](./benchmarks)).
+- **Compact output** - Positional arguments and short names keep programs smaller than the same UI in JSON (see the [Generative UI benchmark](https://www.openui.com/benchmarks)).
 - **Controlled rendering** - Restrict output to the components you define and register.
 - **Typed component contracts** - Define component props and structure up front with Zod schemas.
-
-### Token efficiency benchmarks
-
-Measured with `tiktoken` (GPT-5 encoder). OpenUI Lang vs two JSON-based streaming formats across seven UI scenarios:
-
-| Scenario           | Vercel JSON-Render | Thesys C1 JSON | OpenUI Lang |  vs Vercel |      vs C1 |
-| ------------------ | -----------------: | -------------: | ----------: | ---------: | ---------: |
-| simple-table       |                340 |            357 |         148 |     -56.5% |     -58.5% |
-| chart-with-data    |                520 |            516 |         231 |     -55.6% |     -55.2% |
-| contact-form       |                893 |            849 |         294 |     -67.1% |     -65.4% |
-| dashboard          |               2247 |           2261 |        1226 |     -45.4% |     -45.8% |
-| pricing-page       |               2487 |           2379 |        1195 |     -52.0% |     -49.8% |
-| settings-panel     |               1244 |           1205 |         540 |     -56.6% |     -55.2% |
-| e-commerce-product |               2449 |           2381 |        1166 |     -52.4% |     -51.0% |
-| **TOTAL**          |          **10180** |       **9948** |    **4800** | **-52.8%** | **-51.7%** |
-
-Full methodology and reproduction steps in [`benchmarks/`](./benchmarks).
 
 ## Documentation
 
@@ -187,8 +170,7 @@ openui/
 │   ├── design-systems/
 │   ├── harnesses/
 │   └── miscellaneous/
-├── docs/                 # Documentation site (openui.com)
-└── benchmarks/           # Token efficiency benchmarks
+└── docs/                 # Documentation site (openui.com)
 ```
 
 Good places to start:

@@ -15,9 +15,9 @@ Include these sections in order:
 6. EmailButton "Get Started — npx @openuidev/cli create" linking to https://www.openui.com with color #50D4E2
 7. EmailDivider
 8. EmailHeading "Why developers choose OpenUI" (level 2)
-9. EmailText "OpenUI is up to 3x faster rendering than JSON-based approaches, uses up to 67% fewer tokens, and works with any LLM provider."
+9. EmailText "OpenUI streams UI as the model writes it, keeps output compact, and works with any LLM provider."
 10. EmailDivider
-11. EmailStats with 3 items: ("3x", "Faster Rendering"), ("67%", "Fewer Tokens"), ("0", "Arbitrary Code Execution")
+11. EmailStats with 3 items: ("4", "First-Party Runtimes"), ("MIT", "License"), ("0", "Arbitrary Code Execution")
 12. EmailDivider
 13. EmailFeatureGrid titled "Built for the modern AI stack" with description "Everything you need to ship generative UI experiences." and 4 items:
     - (https://react.dev/favicon-32x32.png, "React", "React Components", "40+ production-ready components with defineComponent and Zod-powered type safety.")

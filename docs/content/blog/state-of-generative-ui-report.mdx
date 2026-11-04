@@ -1,7 +1,7 @@
 ---
 title: "The State of Generative UI in 2026: Transports, Formats, and Tradeoffs"
 seoTitle: "State of Generative UI 2026: A2UI, AG-UI, MCP Apps compared"
-description: "Generative UI in 2026 comes down to two choices: the transport (AG-UI for your own app, MCP Apps for hosts like ChatGPT and Claude) and the generation format (OpenUI, A2UI, json-render or raw HTML). This report compares them, with token benchmarks and a guide to choosing a stack."
+description: "Generative UI in 2026 comes down to two choices: the transport (AG-UI for your own app, MCP Apps for hosts like ChatGPT and Claude) and the generation format (OpenUI, A2UI, json-render or raw HTML). This report compares them and gives a guide to choosing a stack."
 author: Thesys Engineering Team
 date: 2026-06-10
 featured: false
@@ -168,26 +168,11 @@ OpenUI ships a working implementation of this pattern: [`examples/miscellaneous/
 
 ![A rendered page built from catalog primitives (Heading, Card, BarChart, Button) with one demarcated GeneratedView region in a sandboxed iframe: catalog primitives by default, Open-Ended only where the catalog doesn't reach](./images/generative-ui-catalog.png)
 
-## Token efficiency benchmarks: format choice is a latency and cost choice
+## Token efficiency: format choice is a latency and cost choice
 
 Within the Declarative bucket the entrants are functionally similar: catalogs, streaming, typed props. The measurable differentiator is wire-format efficiency, because for generated UI, token count translates directly into two things. The first is time-to-first-render: the model emits the spec token by token, and every token of format syntax extends the period the user spends looking at a skeleton. The second is cost: every UI response is billed as output tokens, typically the most expensive tokens a model produces.
 
-We publish a reproducible benchmark in the OpenUI repository ([`benchmarks/`](https://github.com/thesysdev/openui/tree/main/benchmarks), tiktoken with the GPT-5 encoder, seven scenarios ranging from a simple table to an e-commerce product page):
-
-| Format | Total tokens | Δ vs OpenUI Lang |
-|---|---:|---:|
-| OpenUI Lang | 4,800 | — |
-| YAML | 9,122 | +90% |
-| Thesys C1 JSON (legacy) | 9,948 | +107% |
-| Vercel json-render | 10,180 | +112% |
-
-At 60 tokens/sec, the e-commerce scenario completes in 19.4s as OpenUI Lang versus 40.8s as json-render patches and 39.7s as legacy C1 JSON. The widest gap is the contact-form scenario: 4.9s versus 14.9s, a 3.04x difference. The mechanism is straightforward: JSON pays for keys, quotes, and brackets on every field, while a line-oriented DSL does not.
-
-The same arithmetic applies to cost. On the published totals, emitting the seven scenarios as json-render patches (10,180 tokens) or legacy C1 JSON (9,948) costs slightly more than twice as much as OpenUI Lang (4,800) at any output-token price. Format syntax is pure overhead: the user never sees a bracket or a quoted key, but you pay for every one of them, on every response. For a product serving millions of generated UIs a month, the format choice is a line item.
-
-![Token-efficiency benchmark bar chart: seconds to full render at 60 tokens per second across seven scenarios, comparing OpenUI Lang, json-render, and legacy C1 JSON; OpenUI Lang renders the contact form 3.04x faster](./images/token-efficiency.png)
-
-The benchmark is fully reproducible; see the [benchmark documentation](/docs/openui-lang/benchmarks) to rerun it against your own component catalog.
+Our [Generative UI benchmark](/benchmarks) compares OpenUI, A2UI and json-render on the same screens across many models, covering output tokens, cost and reliability. The [methodology](/benchmarks/methodology) and data are published with the results.
 
 The comparison applies only to Declarative formats. Static has no meaningful wire format. Open-Ended sits at the other extreme of the cost scale: emitting a full HTML/CSS/JS page per request runs 5-10x the tokens of an equivalent Declarative spec, paid at output-token prices on every response. That cost profile is a large part of why Open-Ended works best as a sandboxed escape hatch inside a Declarative catalog rather than as the default path.
 
@@ -230,8 +215,8 @@ The last combination is worth watching. Nothing in the MCP-Apps spec requires th
 **Research and data**
 
 - [*Generative UI: LLMs are Effective UI Generators*](https://generativeui.github.io/): Leviathan et al., Google Research, November 2025; includes the PAGEN dataset
-- [OpenUI token-efficiency benchmark](https://github.com/thesysdev/openui/tree/main/benchmarks): methodology, scenarios, and raw data for the figures in this post
+- [Generative UI benchmark](/benchmarks): methodology and data for OpenUI, A2UI and json-render across models
 
 ---
 
-*Adoption status and benchmark figures as of June 2026. Benchmark methodology and data are available in the OpenUI repository.*
+*Adoption status as of June 2026.*

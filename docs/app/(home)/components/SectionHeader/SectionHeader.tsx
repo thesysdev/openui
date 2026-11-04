@@ -9,8 +9,7 @@ export interface SectionHeaderProps {
   title: ReactNode;
   /**
    * Optional second line, rendered as <p class={styles.subtitle}>.
-   * Used by FeatureGrid ("with 67% fewer tokens") and Cloud
-   * ("Production-ready Generative UI").
+   * Used by Cloud ("Production-ready Generative UI").
    */
   subtitle?: ReactNode;
   /**

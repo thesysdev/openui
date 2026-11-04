@@ -250,8 +250,6 @@ export function ProductSection({
                 title,
                 description: cardCopy,
               }))}
-              showHeader={false}
-              showHeaderSeparator={false}
               showCompat={false}
               showBottomSeparator={false}
               flushSectionPadding

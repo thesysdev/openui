@@ -1,7 +1,7 @@
 ---
 title: Introduction
 seoTitle: "OpenUI Lang: a compact language for Generative UI"
-description: A streaming-first language that models use to build interfaces from your components, in up to 67% fewer tokens than JSON.
+description: A streaming-first language that models use to build interfaces from your components.
 ---
 
 import { StreamingComparison } from "@/app/docs/openui-lang/streaming-comparison";
@@ -34,7 +34,7 @@ While JSON is a common data interchange format, it has significant drawbacks whe
 
 OpenUI Lang was created to solve these core issues:
 
-- **Token Efficiency:** JSON repeats keys like `"component"`, `"props"`, and `"children"` for every element. Each repeated key costs tokens, which adds cost and latency. OpenUI Lang uses positional arguments instead. In our [benchmarks](/docs/openui-lang/benchmarks) it uses up to 67% fewer tokens than JSON.
+- **Token Efficiency:** JSON repeats keys like `"component"`, `"props"`, and `"children"` for every element. Each repeated key costs tokens, which adds cost and latency. OpenUI Lang uses positional arguments instead.
 
 - **Streaming-First Design:** The language is line-oriented (`identifier = Expression`). The renderer can show each line as it arrives from the model. With JSON, the UI often waits until the object is complete enough to parse.
 

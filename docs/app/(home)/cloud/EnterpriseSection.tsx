@@ -66,7 +66,6 @@ export function EnterpriseSection({
       </div>
       <FeatureGridSection
         features={features}
-        showHeader={false}
         showCompat={false}
         showBottomSeparator={false}
         flushOuterCards

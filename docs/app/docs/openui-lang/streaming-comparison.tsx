@@ -371,7 +371,10 @@ export function StreamingComparison() {
         Same UI component, both streaming at {TOKEN_RATE} tokens/sec. OpenUI Lang finishes in{" "}
         <strong>{OPENUI_DURATION.toFixed(1)}s</strong> vs JSON&apos;s{" "}
         <strong>{JSON_DURATION.toFixed(1)}s</strong> &mdash;{" "}
-        <strong>{Math.round((1 - OPENUI_TOKENS / JSON_TOKENS) * 100)}% fewer tokens</strong>.
+        <strong>
+          {OPENUI_TOKENS} tokens vs {JSON_TOKENS}
+        </strong>{" "}
+        for this example.
       </p>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
