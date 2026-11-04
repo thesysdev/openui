@@ -1,3 +1,5 @@
+import { openDemosOfflineDialog } from "@/components/DemosOfflineDialog";
+import { DEMOS_DISABLED } from "@/lib/demos-offline";
 import { DEFAULT_MODEL } from "@/lib/openui-cloud/models";
 import type { ChatLLM } from "@openuidev/react-headless";
 import {
@@ -29,6 +31,13 @@ export function createCloudChatLLM(options: CloudChatLLMOptions = {}): CloudChat
     streamAdapter: openAIResponsesAdapter(),
     messageFormat: openAIConversationMessageFormat,
     fetch: async (input, init) => {
+      // /chat has no submit handler of its own, so the send is stopped here.
+      if (DEMOS_DISABLED) {
+        openDemosOfflineDialog();
+        return new Response("data: [DONE]\n\n", {
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      }
       const payload = JSON.parse(String(init?.body)) as {
         threadId: string;
         messages: unknown[];

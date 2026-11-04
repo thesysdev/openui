@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   advanceStreamingObservability,
   createStreamingObservabilityState,
+  unmountStreamingObservability,
 } from "./useStreamingObservability";
 
 describe("streaming observability lifecycle", () => {
@@ -123,5 +124,21 @@ describe("streaming observability lifecycle", () => {
         idFactory,
       ),
     ).toEqual({ id: "stream-1", phase: "settled", updateIndex: 4 });
+  });
+
+  it("ends an unsettled stream when its Renderer unmounts", () => {
+    const state = createStreamingObservabilityState();
+    const idFactory = () => "stream-1";
+
+    expect(unmountStreamingObservability(state)).toBeNull();
+    advanceStreamingObservability(state, true, "root = Car", null, idFactory);
+    expect(unmountStreamingObservability(state)).toEqual({
+      id: "stream-1",
+      phase: "unmounted",
+      updateIndex: 2,
+    });
+
+    advanceStreamingObservability(state, false, "root = Car", "[]", idFactory);
+    expect(unmountStreamingObservability(state)).toBeNull();
   });
 });

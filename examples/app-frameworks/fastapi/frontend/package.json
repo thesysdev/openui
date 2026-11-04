@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@openuidev/react-headless": "0.18.1",
-    "@openuidev/react-lang": "1.0.1",
+    "@openuidev/react-lang": "1.0.2",
     "@openuidev/react-ui": "0.18.1",
     "ai": "^7.0.85",
     "react": "^19.0.0",
@@ -24,7 +24,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.0",
+    "@openuidev/cli": "0.6.1",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "rollup": "4.62.5",

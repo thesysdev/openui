@@ -1,5 +1,15 @@
 # @openuidev/devtools
 
+## 0.3.1
+
+### Patch Changes
+
+- [#1497](https://github.com/thesysdev/openui/pull/1497) [`e2ae4f1`](https://github.com/thesysdev/openui/commit/e2ae4f1de01cf1a48c40cf1a6d8042f7c0d50f2f) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Add a Position setting to the Inspect settings menu to move the launcher and the Inspect and Debug panels to any corner of the screen. The launcher can also be dragged: a short drag toward another corner snaps it there. The choice is saved, and the `position` prop sets the default.
+
+- [#1500](https://github.com/thesysdev/openui/pull/1500) [`d4711b2`](https://github.com/thesysdev/openui/commit/d4711b2b5c53fefe870dba10112b8d13e5b70929) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Settle the devtools stream row when a Renderer unmounts mid-stream. It used to stay on "Streaming" forever; react-lang now publishes an `unmounted` stream event and devtools shows an "Interrupted" badge with the final duration.
+- Updated dependencies [[`d4711b2`](https://github.com/thesysdev/openui/commit/d4711b2b5c53fefe870dba10112b8d13e5b70929), [`c9f93b6`](https://github.com/thesysdev/openui/commit/c9f93b6e57d05b19b9781846769da530c6741dc4)]:
+  - @openuidev/react-lang@1.0.2
+
 ## 0.3.0
 
 ### Minor Changes

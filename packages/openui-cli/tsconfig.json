@@ -10,6 +10,9 @@
     "moduleResolution": "node16",
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "#openui-telemetry-state": ["../../shared/telemetry/telemetry-state.d.cts"]
+    }
   }
 }

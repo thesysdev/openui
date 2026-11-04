@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/lang-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Framework-agnostic core for OpenUI Lang: parser, prompt generation, validation, and type definitions",
   "license": "MIT",
   "type": "module",

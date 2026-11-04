@@ -46,7 +46,7 @@ export function IntegrateSection() {
         code={GATEWAY_EXAMPLE}
         highlightLines={[2, 6, 8]}
         codeLabel="OpenUI Gateway client configuration"
-        action={{ label: "Read integration guide", href: "/docs/openui-cloud/get-started" }}
+        action={{ label: "Read integration guide", href: "/docs/gateway/generate-openui-lang" }}
         titleSize="medium"
       />
     </section>

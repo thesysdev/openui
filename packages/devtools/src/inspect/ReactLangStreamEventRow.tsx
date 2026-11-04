@@ -6,7 +6,7 @@ import { FONT, MONO, useStyles, type ThemeTokens } from "../theme";
 import { LevelIcon } from "./LevelIcon";
 
 export interface ReactLangStreamDetail {
-  phase: "streaming" | "settled";
+  phase: "streaming" | "settled" | "unmounted";
   response?: string;
   errors: Record<string, unknown>[];
   parser?: {
@@ -25,7 +25,9 @@ export function getReactLangStreamDetail(event: ObservabilityEvent): ReactLangSt
   const detail = asRecord(event.detail);
   if (
     detail["kind"] !== "react-lang:stream" ||
-    (detail["phase"] !== "streaming" && detail["phase"] !== "settled")
+    (detail["phase"] !== "streaming" &&
+      detail["phase"] !== "settled" &&
+      detail["phase"] !== "unmounted")
   ) {
     return null;
   }
@@ -80,6 +82,7 @@ export function ReactLangStreamEventRow({
     [expanded, stream.response],
   );
   const isStreaming = stream.phase === "streaming";
+  const isUnmounted = stream.phase === "unmounted";
   const elapsedMs = useStreamElapsedMs(stream, isStreaming);
   const visibleErrors = isStreaming ? [] : stream.errors;
   const statementCount = stream.parser?.statementCount;
@@ -126,6 +129,14 @@ export function ReactLangStreamEventRow({
             <span style={styles.kind}>OpenUI Lang stream</span>
             {isStreaming ? (
               <span style={{ ...styles.badge, ...styles.badgeStreaming }}>Streaming</span>
+            ) : null}
+            {isUnmounted ? (
+              <span
+                style={{ ...styles.badge, ...styles.badgeUnmounted }}
+                title="The Renderer unmounted before the stream settled"
+              >
+                Interrupted
+              </span>
             ) : null}
           </div>
           <div style={styles.rowHeaderRight}>
@@ -422,6 +433,11 @@ function streamRowStyles(t: ThemeTokens) {
       background: t.successBg,
       color: t.success,
       borderColor: t.successBorder,
+    },
+    badgeUnmounted: {
+      background: t.warningBg,
+      color: t.warning,
+      borderColor: t.warningBorder,
     },
     time: {
       color: t.fgFaint,

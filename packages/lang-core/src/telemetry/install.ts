@@ -16,10 +16,16 @@
  */
 import { id as ciInfoId, isCI as ciInfoIsCI } from "ci-info";
 import { execFileSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync, type WriteFileOptions } from "node:fs";
-import { homedir, release } from "node:os";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { release } from "node:os";
 import path from "node:path";
+import {
+  createTelemetryStateIO,
+  loadTelemetryState,
+  saveTelemetryState,
+  type TelemetryStateIO,
+} from "../../../../shared/telemetry/telemetry-state.cjs";
 import {
   getPostHogConfig,
   isTelemetryDisabled,
@@ -59,17 +65,12 @@ export interface InstallTelemetryPayload {
   properties: InstallTelemetryProperties;
 }
 
-export interface InstallTelemetryIO {
+export interface InstallTelemetryIO extends TelemetryStateIO {
   cwd(): string;
-  homedir(): string;
-  readFile(file: string): string;
-  writeFile(file: string, contents: string, options?: WriteFileOptions): void;
-  mkdir(directory: string): void;
   getGitOrigin(projectRoot: string): string | undefined;
   platform: string;
   architecture: string;
   release(): string;
-  randomUUID(): string;
   isDocker(): boolean;
   stdout(message: string): void;
   stderr(message: string): void;
@@ -91,11 +92,6 @@ export type RunInstallTelemetryResult =
   | { status: "debug"; payload: InstallTelemetryPayload }
   | { status: "sent"; payload: InstallTelemetryPayload }
   | { status: "failed"; payload?: InstallTelemetryPayload };
-
-interface StoredTelemetryState extends Record<string, unknown> {
-  distinctId: string;
-  langCorePostinstallNoticeShown?: boolean;
-}
 
 interface ProjectIdentity {
   value: string;
@@ -134,8 +130,18 @@ export async function runInstallTelemetry(
   let payload: InstallTelemetryPayload | undefined;
   try {
     const io = createInstallTelemetryIO(options.io);
-    const stateFile = getTelemetryStateFile(env, io);
-    const state = loadOrCreateState(stateFile, io);
+    let telemetryState = loadTelemetryState({ env, io });
+    let { state, changed } = telemetryState;
+    if (state["langCorePostinstallNoticeShown"] !== true) {
+      io.stderr(INSTALL_NOTICE);
+      state = { ...state, langCorePostinstallNoticeShown: true };
+      changed = true;
+    }
+    if (changed) {
+      telemetryState = saveTelemetryState(telemetryState, state, io);
+      state = telemetryState.state;
+    }
+
     const projectRoot = path.resolve(env["INIT_CWD"] || io.cwd());
     const projectIdentity = resolveProjectIdentity(projectRoot, env, io);
     const packageManager = detectPackageManager(env);
@@ -161,12 +167,6 @@ export async function runInstallTelemetry(
       },
     };
 
-    if (!state.langCorePostinstallNoticeShown) {
-      io.stderr(INSTALL_NOTICE);
-      state.langCorePostinstallNoticeShown = true;
-    }
-    persistState(stateFile, state, io);
-
     if (isTruthyEnv(env["OPENUI_TELEMETRY_DEBUG"])) {
       io.stdout(`[OpenUI telemetry debug]\n${JSON.stringify(payload, null, 2)}\n`);
       return { status: "debug", payload };
@@ -181,58 +181,17 @@ export async function runInstallTelemetry(
 
 function createInstallTelemetryIO(overrides: Partial<InstallTelemetryIO> = {}): InstallTelemetryIO {
   return {
+    ...createTelemetryStateIO(),
     cwd: () => process.cwd(),
-    homedir,
-    readFile: (file) => readFileSync(file, "utf8"),
-    writeFile: (file, contents, options) => writeFileSync(file, contents, options),
-    mkdir: (directory) => mkdirSync(directory, { recursive: true, mode: 0o700 }),
     getGitOrigin: defaultGetGitOrigin,
     platform: process.platform,
     architecture: process.arch,
     release,
-    randomUUID,
     isDocker: defaultIsDocker,
     stdout: (message) => process.stdout.write(message),
     stderr: (message) => process.stderr.write(message),
     ...overrides,
   };
-}
-
-function getTelemetryStateFile(env: NodeJS.ProcessEnv, io: InstallTelemetryIO): string {
-  const configRoot = env["XDG_CONFIG_HOME"] || path.join(io.homedir(), ".config");
-  return path.join(configRoot, "openui", "telemetry.json");
-}
-
-function loadOrCreateState(stateFile: string, io: InstallTelemetryIO): StoredTelemetryState {
-  let stored: Record<string, unknown> = {};
-  try {
-    const parsed = JSON.parse(io.readFile(stateFile)) as unknown;
-    if (isRecord(parsed)) stored = parsed;
-  } catch {
-    // Missing or corrupt state is replaced with a new best-effort state.
-  }
-
-  return {
-    ...stored,
-    distinctId:
-      typeof stored["distinctId"] === "string" && stored["distinctId"]
-        ? stored["distinctId"]
-        : io.randomUUID(),
-    langCorePostinstallNoticeShown: stored["langCorePostinstallNoticeShown"] === true,
-  };
-}
-
-function persistState(
-  stateFile: string,
-  state: StoredTelemetryState,
-  io: InstallTelemetryIO,
-): void {
-  try {
-    io.mkdir(path.dirname(stateFile));
-    io.writeFile(stateFile, JSON.stringify(state), { mode: 0o600 });
-  } catch {
-    // Read-only or ephemeral environments use the in-memory state for this run.
-  }
 }
 
 function resolveProjectIdentity(
@@ -275,10 +234,6 @@ function defaultIsDocker(): boolean {
   } catch {
     return false;
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function sendToPostHog(

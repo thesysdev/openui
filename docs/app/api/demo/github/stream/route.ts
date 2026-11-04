@@ -2,7 +2,6 @@ import {
   createDemoCreditsExhaustedResponse,
   isDemoCreditsExhaustedError,
 } from "@/lib/demo-credits";
-import { BASE_URL } from "@/lib/source";
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
@@ -62,21 +61,16 @@ export async function POST(req: NextRequest) {
   }
   chatMessages.push({ role: "user", content: prompt });
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey) {
-    return Response.json(
-      { error: { message: "OPENROUTER_API_KEY not configured" } },
-      { status: 500 },
-    );
+    return Response.json({ error: { message: "THESYS_API_KEY not configured" } }, { status: 500 });
   }
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const res = await fetch("https://api.thesys.dev/v1/embed/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": `${BASE_URL}/demo/github`,
-      "X-Title": "OpenUI GitHub Demo",
     },
     body: JSON.stringify({
       model: GITHUB_DEMO_MODEL,
@@ -95,7 +89,7 @@ export async function POST(req: NextRequest) {
     return Response.json(
       {
         error: (err as { error?: { message?: string } }).error ?? {
-          message: `OpenRouter error ${res.status}`,
+          message: `Gateway error ${res.status}`,
         },
       },
       { status: res.status },
@@ -104,7 +98,7 @@ export async function POST(req: NextRequest) {
 
   // Keep credit handling to provider 4xx responses. Provider-specific mid-stream
   // error chunks are intentionally passed through because they are harder to
-  // maintain across OpenRouter/OpenAI streaming shape changes.
+  // maintain across streaming shape changes.
   return new Response(res.body, {
     headers: {
       "Content-Type": "text/event-stream",

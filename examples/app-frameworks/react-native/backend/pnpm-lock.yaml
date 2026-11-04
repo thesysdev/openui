@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       '@openuidev/lang-core':
-        specifier: 1.0.1
-        version: 1.0.1(zod@4.4.3)
+        specifier: 1.0.2
+        version: 1.0.2(zod@4.4.3)
       next:
         specifier: ^15.5.27
         version: 15.5.28(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -31,8 +31,8 @@ importers:
         version: 4.4.3
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.6.0
-        version: 0.6.0(@types/node@22.20.1)
+        specifier: 0.6.1
+        version: 0.6.1(@types/node@22.20.1)
       '@types/node':
         specifier: ^22.15.32
         version: 22.20.1
@@ -567,12 +567,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@openuidev/cli@0.6.0':
-    resolution: {integrity: sha512-26jCH6hFohj0iBL/Li26SFLfMWOLxVnDgxrVS6F9nRvSWCROdJDlN/3RFj3q7+q8fI6r+IPHv0D3InImZRaTOQ==}
+  '@openuidev/cli@0.6.1':
+    resolution: {integrity: sha512-JhJSdPB+ubycQpW8v0hWQmTs7WcH65RE3pDGHZqSkGJRVVsFPls6S8p2VU8DuDdwpih/iM3AdaRu+yWAu1EqyA==}
     hasBin: true
 
-  '@openuidev/lang-core@1.0.1':
-    resolution: {integrity: sha512-4vBa7FRM6C4v4aCvBAmAtTgFWiEQiNTazG9h4Xy9fC6P/p6+9kZu4RdTyLToBEvdxrYn/gDy/PakEH8PU3lUcw==}
+  '@openuidev/lang-core@1.0.2':
+    resolution: {integrity: sha512-mxrWXgSmGx9N8ZHFiRgvqCmCH8j3x0PTHJVRvtRPlucxDAihthgMR4W6RXJN5KnCl/5fk1SzcT9JHrvGTKcBFw==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -1212,7 +1212,7 @@ snapshots:
   '@next/swc-win32-x64-msvc@15.5.28':
     optional: true
 
-  '@openuidev/cli@0.6.0(@types/node@22.20.1)':
+  '@openuidev/cli@0.6.1(@types/node@22.20.1)':
     dependencies:
       '@inquirer/core': 11.2.1(@types/node@22.20.1)
       '@inquirer/prompts': 8.7.0(@types/node@22.20.1)
@@ -1229,7 +1229,7 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/lang-core@1.0.1(zod@4.4.3)':
+  '@openuidev/lang-core@1.0.2(zod@4.4.3)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.4.3

@@ -58,8 +58,8 @@ importers:
         specifier: ^22.1.5
         version: 22.1.7(@angular/compiler@22.1.7)(typescript@6.0.3)
       '@openuidev/cli':
-        specifier: 0.6.0
-        version: 0.6.0(rxjs@7.8.2)
+        specifier: 0.6.1
+        version: 0.6.1(rxjs@7.8.2)
       prettier:
         specifier: ^3.8.1
         version: 3.9.8
@@ -1036,8 +1036,8 @@ packages:
       rxjs: ^7.8.2
       zod: ^3.25.0 || ^4.0.0
 
-  '@openuidev/cli@0.6.0':
-    resolution: {integrity: sha512-26jCH6hFohj0iBL/Li26SFLfMWOLxVnDgxrVS6F9nRvSWCROdJDlN/3RFj3q7+q8fI6r+IPHv0D3InImZRaTOQ==}
+  '@openuidev/cli@0.6.1':
+    resolution: {integrity: sha512-JhJSdPB+ubycQpW8v0hWQmTs7WcH65RE3pDGHZqSkGJRVVsFPls6S8p2VU8DuDdwpih/iM3AdaRu+yWAu1EqyA==}
     hasBin: true
 
   '@openuidev/lang-core@0.4.1':
@@ -3337,7 +3337,7 @@ snapshots:
     transitivePeerDependencies:
       - '@modelcontextprotocol/sdk'
 
-  '@openuidev/cli@0.6.0(rxjs@7.8.2)':
+  '@openuidev/cli@0.6.1(rxjs@7.8.2)':
     dependencies:
       '@inquirer/core': 11.2.1
       '@inquirer/prompts': 8.5.2

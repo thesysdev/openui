@@ -1,4 +1,5 @@
 import {
+  BookOpenCheck,
   Bot,
   Code2,
   MonitorSmartphone,
@@ -251,7 +252,7 @@ export const labProjects: ProjectItem[] = [
       },
       {
         label: "Docs",
-        href: "/docs/openui-lang/examples/app-frameworks/react-native",
+        href: "/integrations/react-native",
         external: true,
       },
     ],
@@ -282,6 +283,19 @@ export const labProjects: ProjectItem[] = [
     icon: Sparkles,
     links: [
       { label: "GitHub", href: "https://github.com/jaibhasin/AI-Native-Dashboard", external: true },
+    ],
+  },
+  {
+    name: "Learnify",
+    description:
+      "Pause any NPTEL lecture and ask in your own language; OpenUI renders answers, quizzes, flashcards, and notes from the lecture.",
+    type: "App",
+    status: "Community",
+    accent: "blue",
+    icon: BookOpenCheck,
+    links: [
+      { label: "GitHub", href: "https://github.com/ahmedfahim21/Learnify", external: true },
+      { label: "Website", href: "https://learnify.ahmedfahim.dev/", external: true },
     ],
   },
 ];
