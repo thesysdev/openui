@@ -150,7 +150,8 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
           )
             invalidResponse();
           // Never replay tools after a failed snapshot: a prior call may have mutated data.
-          throw new ToolExecutionError(error["message"], error["code"]);
+          // The script failed upstream, not the caller's request: a bad gateway.
+          throw new ToolExecutionError(error["message"], error["code"], 502);
         }
         const calls = response["calls"];
         if (
