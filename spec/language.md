@@ -24,7 +24,7 @@ The client accepts text with or without the host's `]]>openui:` marker lines ([p
    - Code may follow the tag on the opening line (```` ```openui root = Stack([ ````).
    - A block tagged `openui-js` is a script, not the program, and is skipped.
    - If a block's first code line, after comment lines, starts a statement, the program is every block joined with newlines, and text outside the blocks is ignored. Otherwise, if the text outside the blocks holds a statement, that text is the program. This covers a stray closing fence or `js` helper blocks after the program.
-   - A fence line inside a double-quoted string on a statement line is part of the string. Nothing else shields a fence: not quotes in prose, not single-quoted strings, and not comments, which are stripped after extraction.
+   - A fence line inside a double-quoted string is part of the string. Inside a block, a string may open on any line; outside blocks, only on a statement line, so a quote in prose does not count. Single-quoted strings and comments do not shield a fence; comments are stripped after extraction.
 2. **Comment stripping.** `//` and `#` start a comment that runs to the end of the line. Comment markers inside strings, even multi-line ones, are not comments.
 3. **Trimming.** Leading and trailing whitespace is removed.
 
@@ -354,7 +354,7 @@ openCount = @Count(tickets.rows)
 The state store is a flat map from `$name` to value, scoped to one rendered program.
 
 - A state declaration gives the default. An undeclared `$name` is declared automatically with the default null.
-- An expression default (`$total = 1 + 2`, `$tax = $price * 0.18`), including one inside a list or object default, is evaluated once, when the program is parsed, with the built-in functions. It reads the defaults of states declared before it. A state declared after it, a query result, and a reference read as null. It does not update afterwards: a value that should follow other values is a plain statement (`tax = $price * 0.18`). A default that calls a library function, an action, or a component is null, since those run only in the client.
+- An expression default (`$total = 1 + 2`, `$tax = $price * 0.18`), including one inside a list or object default, is evaluated once, when the program is parsed, with the built-in functions. It reads the defaults of states declared before it, and plain statements it references. A state declared after it and a query result read as null. It does not update afterwards: a value that should follow other values is a plain statement (`tax = $price * 0.18`). A default that calls a library function or an action is null, since those run only in the client.
 - Defaults apply only when the variable has no value yet. Parsing again, while streaming or after an edit, MUST NOT overwrite a value the user produced.
 - Persisted state from the host is applied over the defaults at initialization.
 - Parsing again never deletes a key.
@@ -404,7 +404,7 @@ Fixtures: `state/*-validation-*`
 
 - A query runs when streaming ends, and again when a `$variable` its `args` read changes, whether written literally or reached through a referenced statement.
 - A query whose tool name or `args` read another query's result, directly or through a referenced statement, waits until that query has a result, then runs. It runs again whenever that result changes. Queries that read no other query run without waiting for each other. A query whose fetch failed keeps the queries that read it waiting until it is retried.
-- Queries that read each other's results, including a query that reads its own, can never run first. The client reports `query-cycle` and does not run them.
+- Queries that read each other's results, including a query that reads its own, can never run first. The client reports `query-cycle` and does not run them. A query that reads one of them waits too, and does not run.
 - While a fetch for changed arguments is in flight, the previous result stays visible. A result for stale arguments is discarded.
 - References resolve to the latest result, or to the defaults before the first one. The reserved keys `__openui_loading`, `__openui_refetching`, and `__openui_errors` expose fetch state to the host. Expressions cannot read them.
 - A refresh interval runs the query again on a timer.
