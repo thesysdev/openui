@@ -204,7 +204,7 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
             title: "Integrations",
             description:
               "How OpenUI integrates easily with your AI frameworks, UI libraries, SDKs etc.",
-            ...SITE_NAV_LINKS.integrations,
+            href: "/docs/integrations",
             icon: PlugsConnected,
           },
         ],
