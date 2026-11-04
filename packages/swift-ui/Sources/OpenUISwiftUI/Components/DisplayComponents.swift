@@ -197,7 +197,7 @@ struct NativeDataTable: View {
     }
     private var loadedTable: some View {
         VStack(alignment: .leading, spacing: context.theme.spacing("s")) {
-            ScrollView(.horizontal) { tableContent }
+            NativeTableViewport { tableContent }
             if pageCount > 1 {
                 NativePageControls(page: safePage, count: pageCount, enabled: true, identifier: "openui.table") { currentPage = $0 }
             }
@@ -254,6 +254,60 @@ struct NativeDataTable: View {
             Text(flag ? "true" : "false")
         } else {
             context.renderTableCell(value, policy: cellPolicy)
+        }
+    }
+}
+
+/// Read-only and editable tables share the same overflow affordance. Measure
+/// actual content, including custom cells, rather than guessing from columns.
+struct NativeTableViewport<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+    @Environment(\.openUITheme) private var theme
+    @Namespace private var scope
+    @State private var overflows = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: theme.spaceS) {
+            ScrollView(.horizontal) {
+                content().background(GeometryReader { geometry in
+                    Color.clear.preference(key: NativeTableExtentKey.self,
+                        value: [scope: .init(content: geometry.size.width)])
+                })
+            }
+            .background(GeometryReader { geometry in
+                Color.clear.preference(key: NativeTableExtentKey.self,
+                    value: [scope: .init(viewport: geometry.size.width)])
+            })
+            if overflows {
+                Label {
+                    Text("Scroll horizontally to see all columns", bundle: NativeControlResources.bundle)
+                } icon: {
+                    Image(systemName: "arrow.left.and.right").accessibilityHidden(true)
+                }
+                .openUIFont(theme.textBodyXs)
+                .foregroundStyle(theme.textNeutralSecondary)
+                .accessibilityIdentifier("openui.table.overflow-hint")
+            }
+        }
+        .onPreferenceChange(NativeTableExtentKey.self) { measurements in
+            guard let extent = measurements[scope], let content = extent.content,
+                  let viewport = extent.viewport, content.isFinite, viewport.isFinite,
+                  viewport > 0 else { return }
+            overflows = content > viewport + 1
+        }
+    }
+}
+
+private struct NativeTableExtent: Equatable {
+    var content: CGFloat? = nil
+    var viewport: CGFloat? = nil
+}
+
+private struct NativeTableExtentKey: PreferenceKey {
+    static let defaultValue: [Namespace.ID: NativeTableExtent] = [:]
+    static func reduce(value: inout [Namespace.ID: NativeTableExtent], nextValue: () -> [Namespace.ID: NativeTableExtent]) {
+        value.merge(nextValue()) { first, next in
+            .init(content: next.content ?? first.content, viewport: next.viewport ?? first.viewport)
         }
     }
 }

@@ -209,10 +209,10 @@ private struct NativePagerLayout: Layout {
   func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
     let layout = geometry(proposal, count: subviews.count)
     if let grid {
-      let columns = grid.columnCount(width: layout.width, count: subviews.count)
-      let width = grid.columnWidth(width: layout.width, columns: columns)
-      let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)).height }
-      return CGSize(width: layout.width, height: grid.height(heights, columns: columns))
+      let frames = grid.frames(width: layout.width, count: subviews.count) { index, width in
+        subviews[index].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
+      }
+      return CGSize(width: layout.width, height: frames.map(\.maxY).max() ?? 0)
     }
     let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: layout.pageWidth, height: nil)).height }
     let height = NativePagerContentHeight.measure(heights, selected: selected,
@@ -222,20 +222,13 @@ private struct NativePagerLayout: Layout {
   func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
     let layout = geometry(ProposedViewSize(width: bounds.width, height: nil), count: subviews.count)
     if let grid {
-      let columns = grid.columnCount(width: layout.width, count: subviews.count)
-      let width = grid.columnWidth(width: layout.width, columns: columns)
-      let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)).height }
-      var y = bounds.minY
-      for start in stride(from: 0, to: subviews.count, by: columns) {
-        let end = min(start + columns, subviews.count)
-        let height = heights[start..<end].filter { $0.isFinite }.max() ?? 0
-        for index in start..<end {
-          let column = index - start
-          let x = CGFloat(column) * (width + grid.spacing)
-          subviews[index].place(at: CGPoint(x: bounds.minX + (rightToLeft ? bounds.width - width - x : x), y: y),
-            anchor: .topLeading, proposal: ProposedViewSize(width: width, height: height))
-        }
-        y += height + grid.spacing
+      let frames = grid.frames(width: layout.width, count: subviews.count) { index, width in
+        subviews[index].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
+      }
+      for (view, frame) in zip(subviews, frames) {
+        let x = rightToLeft ? bounds.width - frame.maxX : frame.minX
+        view.place(at: CGPoint(x: bounds.minX + x, y: bounds.minY + frame.minY),
+          anchor: .topLeading, proposal: ProposedViewSize(frame.size))
       }
       return
     }
@@ -250,23 +243,44 @@ private struct NativePagerLayout: Layout {
   }
 }
 
-/// Grid and pager are placement modes of one stable collection subtree.
+/// The reference CardBlockLayout row distribution and 30rem/48rem container
+/// queries, expressed in native points. Heights come from the mounted content.
+/// Grid and pager remain placement modes of one stable collection subtree.
 struct NativeCardGrid {
-  var fixedColumns: Int? = nil
-  let minimumWidth: CGFloat
+  let maxPerRow: Int
+  var responsive = true
+  var singleColumn = false
   let spacing: CGFloat
-  func columnCount(width: CGFloat, count: Int) -> Int {
-    if let fixedColumns { return max(1, fixedColumns) }
-    return max(1, min(count, Int((max(1, width) + spacing) / max(1, minimumWidth + spacing))))
-  }
-  func columnWidth(width: CGFloat, columns: Int) -> CGFloat {
-    max(1, (width - CGFloat(columns - 1) * spacing) / CGFloat(columns))
-  }
-  func height(_ heights: [CGFloat], columns: Int) -> CGFloat {
-    let rows = stride(from: 0, to: heights.count, by: columns).map { start in
-      heights[start..<min(start + columns, heights.count)].filter { $0.isFinite }.max() ?? 0
+  func rows(width: CGFloat, count: Int) -> [Int] {
+    guard count > 0 else { return [] }
+    if singleColumn || responsive && width <= 480 { return Array(repeating: 1, count: count) }
+    if responsive && width <= 768 || maxPerRow == 2 {
+      return Array(repeating: 2, count: count / 2) + (count % 2 == 1 ? [1] : [])
     }
-    return rows.reduce(0, +) + CGFloat(max(0, rows.count - 1)) * spacing
+    if count == 1 { return [1] }
+    switch count % 3 {
+    case 0: return Array(repeating: 3, count: count / 3)
+    case 2:
+      var result = Array(repeating: 3, count: count / 3)
+      result.insert(2, at: (result.count + 1) / 2)
+      return result
+    default: return Array(repeating: 3, count: (count - 4) / 3) + [2, 2]
+    }
+  }
+  func frames(width: CGFloat, count: Int, height: (Int, CGFloat) -> CGFloat) -> [CGRect] {
+    var result: [CGRect] = []
+    var y: CGFloat = 0
+    for columns in rows(width: width, count: count) {
+      let cellWidth = max(1, (width - CGFloat(columns - 1) * spacing) / CGFloat(columns))
+      let rowHeight = (result.count..<(result.count + columns)).map { height($0, cellWidth) }
+        .filter(\.isFinite).max() ?? 0
+      for column in 0..<columns {
+        result.append(CGRect(x: CGFloat(column) * (cellWidth + spacing), y: y,
+          width: cellWidth, height: max(0, rowHeight)))
+      }
+      y += max(0, rowHeight) + spacing
+    }
+    return result
   }
 }
 

@@ -185,10 +185,10 @@ struct NativeMediaText: View {
       } else {
         NativeMediaRow(axis: context.string("layout") == "vertical" ? .vertical : .horizontal,
           gap: media == .icon ? context.theme.spaceM * iconScale : context.theme.spaceM,
-          centered: true,
+          centered: media == .thumbnail && context.string("layout") != "vertical",
           media: { leadingMedia }, copy: {
-            words.frame(maxWidth: .infinity, alignment: context.string("layout") == "vertical" ? .center : .leading)
-              .multilineTextAlignment(context.string("layout") == "vertical" ? .center : .leading)
+            words.frame(maxWidth: .infinity, alignment: .leading)
+              .multilineTextAlignment(.leading)
           })
       }
     }
@@ -672,7 +672,7 @@ struct NativeCardItem: View {
     .layoutValue(key: OpenUIFlexGrowKey.self, value: true)
   }
   private var copy: some View {
-    VStack(alignment: .leading, spacing: context.theme.spaceM) {
+    VStack(alignment: .leading, spacing: kind == "Overview" ? context.theme.spaceL : context.theme.spaceM) {
       switch kind {
       case "Snippet":
         HStack(alignment: .center, spacing: context.theme.spacing("s")) {
@@ -693,6 +693,7 @@ struct NativeCardItem: View {
             actionIndicator
           }
         }
+        .frame(maxHeight: .infinity, alignment: .topLeading)
         context.slot("bottom").multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
       case "Context":
         context.slot("title").openUIFont(context.theme.textBodyXs)
@@ -770,10 +771,6 @@ struct NativeCardBlock: View {
     Binding(get: { children.contains(where: { $0.id == selectedID }) ? selectedID : children.first?.id ?? "" },
       set: { selectedID = $0 })
   }
-  private var minimumWidth: CGFloat {
-    kind == "Overview"
-      ? context.presentation.minimumCompactCardWidth : context.presentation.minimumCardWidth
-  }
   private var gap: CGFloat {
     CGFloat(
       min(
@@ -786,9 +783,9 @@ struct NativeCardBlock: View {
     // expanding every item into a temporary vertical document.
     let pending = !context.element.isSourceComplete && !["grid", "carousel"].contains(layout ?? "")
     guard layout != "carousel", !pending else { return nil }
-    return NativeCardGrid(fixedColumns: context.flag("responsive") == false ? 2
-      : typeSize.isAccessibilitySize || children.count == 1 ? 1 : nil,
-      minimumWidth: minimumWidth, spacing: gap)
+    return NativeCardGrid(maxPerRow: ["Overview", "Context", "Visual"].contains(kind) ? 3 : 2,
+      responsive: context.flag("responsive") != false,
+      singleColumn: typeSize.isAccessibilitySize, spacing: gap)
   }
   var body: some View {
     Group {

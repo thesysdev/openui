@@ -6,6 +6,67 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class ReadingRhythmTests: XCTestCase {
+  @MainActor func testIconTextKeepsItsIconAtTheTopWhenTheDescriptionWraps() throws {
+    _ = NSApplication.shared
+    let frames = OverviewSlotFrames()
+    let standard = try OpenUIStandardComponents.library()
+    let definition = try XCTUnwrap(standard.library.components.first { $0.name == "Icon" })
+    let library = try standard.extending(overriding: [OpenUIComponent(definition) { context in
+      NativeIcon(context: context).background(GeometryReader { geometry in
+        Color.clear.onAppear { frames.values["icon"] = geometry.frame(in: .named("icon-row")) }
+          .onChange(of: geometry.frame(in: .named("icon-row"))) { frames.values["icon"] = $0 }
+      })
+    }])
+    let state = OpenUIState(schema: library.library.toSchema())
+    let host = NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
+      .frame(width: 200).coordinateSpace(name: "icon-row"))
+    let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 200, height: 400),
+      styleMask: [.borderless], backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false; window.contentView = host
+    window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
+    defer { window.close() }
+    func iconY(_ description: String) throws -> CGFloat {
+      state.setSource("root=IconText(Icon(\"calendar\"),\"soft\",\"m\",\"Duration\",\(jsonStringLiteral(description)))")
+      XCTAssertTrue(state.errors.isEmpty)
+      host.layoutSubtreeIfNeeded(); RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+      return try XCTUnwrap(frames.values["icon"]).minY
+    }
+    let short = try iconY("One day")
+    XCTAssertEqual(try iconY(String(repeating: "A longer description with natural wrapping. ", count: 5)),
+      short, accuracy: 1, "An icon badge must not drift down beside a taller paragraph")
+  }
+
+  @MainActor func testOverviewMetricsUseTheBottomEdgeOfTheSameGridRow() throws {
+    _ = NSApplication.shared
+    let frames = OverviewSlotFrames()
+    let standard = try OpenUIStandardComponents.library()
+    let definition = try XCTUnwrap(standard.library.components.first { $0.name == "MetricIndicatorInline" })
+    let library = try standard.extending(overriding: [OpenUIComponent(definition) { context in
+      NativeMetric(context: context, inline: true).background(GeometryReader { geometry in
+        Color.clear.onAppear { frames.values[context.string("value") ?? ""] = geometry.frame(in: .named("metrics")) }
+          .onChange(of: geometry.frame(in: .named("metrics"))) { frames.values[context.string("value") ?? ""] = $0 }
+      })
+    }])
+    let state = OpenUIState(schema: library.library.toSchema())
+    state.setSource("""
+      root=OverviewCardBlock([
+        OverviewCardItem("a",IconText(Icon("calendar-days"),"soft","md","2 天 1 晚","中轴线与郊野各一天，沿着老城慢慢散步。"),MetricIndicatorInline("48 h","含往返")),
+        OverviewCardItem("b",IconText(Icon("footprints"),"soft","md","步行强度","长城线略高"),MetricIndicatorInline("18 km","每日"))],"grid",true)
+      """)
+    XCTAssertTrue(state.errors.isEmpty)
+    let host = NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
+      .frame(width: 600).coordinateSpace(name: "metrics"))
+    let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 400),
+      styleMask: [.borderless], backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false; window.contentView = host
+    window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
+    defer { window.close() }
+    host.layoutSubtreeIfNeeded(); RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+    let first = try XCTUnwrap(frames.values["48 h"]), second = try XCTUnwrap(frames.values["18 km"])
+    XCTAssertEqual(first.maxY, second.maxY, accuracy: 1,
+      "Different heading heights cannot leave a metric floating above its peer")
+  }
+
   @MainActor func testOverviewMediaAndMetricShareTheContentLeadingEdge() throws {
     _ = NSApplication.shared
     let standard = try OpenUIStandardComponents.library()

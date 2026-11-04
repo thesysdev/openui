@@ -3,6 +3,9 @@ import OpenUILang
 import SwiftUI
 import XCTest
 @testable import OpenUISwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 final class ResourcePresentationTests: XCTestCase {
     func testOneContextResolvesRelativeResourcesWithoutRewritingTheirPayload() throws {
@@ -47,6 +50,36 @@ final class ResourcePresentationTests: XCTestCase {
         XCTAssertGreaterThan(wide.reduce(0, +) + 64, 335)
         XCTAssertEqual(NativeTableColumnPlacement.widths(ideal: [], minimum: 88, available: 0, gap: 16), [])
     }
+
+    #if os(macOS)
+    @MainActor func testOverflowHintTracksChangesToContentAndViewport() {
+        _ = NSApplication.shared
+        func view(_ viewport: CGFloat, _ content: CGFloat) -> some View {
+            NativeTableViewport { Color.clear.frame(width: content, height: 40) }
+                .frame(width: viewport)
+        }
+        let host = NSHostingView(rootView: view(300, 600))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 300, height: 180),
+            styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false; window.contentView = host
+        window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
+        defer { window.close() }
+        func height(_ viewport: CGFloat, _ content: CGFloat) -> CGFloat {
+            host.rootView = view(viewport, content)
+            host.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+            return host.fittingSize.height
+        }
+        let fitting = height(300, 200)
+        XCTAssertGreaterThan(height(300, 600), fitting + 8,
+            "A wide table needs a persistent, readable overflow affordance")
+        XCTAssertEqual(height(700, 600), fitting, accuracy: 1,
+            "Widening the viewport must remove an obsolete hint")
+        XCTAssertGreaterThan(height(300, 600), fitting + 8)
+        XCTAssertEqual(height(300, 200), fitting, accuracy: 1,
+            "Streaming or state changes that shorten content must also remove the hint")
+    }
+    #endif
 
     func testChartTooltipsRemainInsideThePlotViewportAtEveryEdge() {
         let bounds = CGSize(width: 240, height: 130)

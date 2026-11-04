@@ -100,7 +100,7 @@ struct NativeEditableTable: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: context.theme.spacing("m")) {
-      ScrollView(.horizontal) {
+      NativeTableViewport {
         VStack(spacing: 0) {
           HStack(spacing: 0) {
             ForEach(Array(columns.enumerated()), id: \.offset) { index, column in
@@ -120,7 +120,6 @@ struct NativeEditableTable: View {
             }
           }
         }
-      }.disabled(!context.canInteract || saving)
         .background(
           context.theme.foreground,
           in: RoundedRectangle(cornerRadius: context.theme.radiusL)
@@ -128,6 +127,7 @@ struct NativeEditableTable: View {
         .overlay(
           RoundedRectangle(cornerRadius: context.theme.radiusL).strokeBorder(
             context.theme.borderDefault, lineWidth: context.presentation.borderWidth))
+      }.disabled(!context.canInteract || saving)
       if changed > 0 {
         NativeLabelValueLayout(gap: context.theme.spaceM,
           minimumLabelWidth: .greatestFiniteMagnitude, centerVertically: true) {
