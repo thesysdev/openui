@@ -1,4 +1,4 @@
-import { EXAMPLES_REPO_URL } from "@/lib/examples-catalog";
+import { isIntegrationUrl } from "@/lib/examples-catalog";
 import { labProjects } from "@/lib/lab-projects";
 import { SITE_NAV_LINKS } from "@/lib/site-nav-links";
 import { LinkCardGrid, ShowcaseGrid, type ShowcaseItem } from "./cards";
@@ -98,12 +98,15 @@ export function FeaturedProjects() {
 }
 
 export function CommunityProjects() {
-  // Community work that was merged into `examples/` already has a card on the Integrations page.
-  const projects = labProjects.filter(
-    (project) =>
-      project.status === "Community" &&
-      !project.links.some((link) => link.href.startsWith(EXAMPLES_REPO_URL)),
-  );
+  // Community work with a card on the Integrations page is listed there instead.
+  const projects = labProjects
+    .filter(
+      (project) =>
+        project.status === "Community" &&
+        !project.links.some((link) => isIntegrationUrl(link.href)),
+    )
+    // Featured first; the sort is stable, so the rest keep their order.
+    .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
 
   return (
     <LinkCardGrid
@@ -111,7 +114,8 @@ export function CommunityProjects() {
       items={projects.map((project) => ({
         name: project.name,
         description: project.description,
-        tag: project.type,
+        tag: project.type === "App" ? undefined : project.type,
+        featured: project.featured,
         links: project.links.map((link) => ({ ...link, external: true })),
       }))}
     />

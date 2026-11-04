@@ -1,10 +1,16 @@
 /**
- * Sections of the Examples tab, matching the top-level folders in `examples/`. Cookbook apps are
- * left out because they have their own tab.
+ * Sections of the Integrations page. Most match a top-level folder in `examples/`; backend
+ * frameworks collect external integrations and the FastAPI example. Cookbook apps are left out
+ * because they have their own tab.
  */
 
 export type ExampleCategoryId =
-  "agent-frameworks" | "app-frameworks" | "design-systems" | "harnesses" | "miscellaneous";
+  | "agent-frameworks"
+  | "app-frameworks"
+  | "backend-frameworks"
+  | "design-systems"
+  | "harnesses"
+  | "miscellaneous";
 
 export type ExampleCategory = {
   id: ExampleCategoryId;
@@ -21,13 +27,20 @@ export const EXAMPLE_CATEGORIES: ExampleCategory[] = [
   },
   {
     id: "app-frameworks",
-    title: "App frameworks",
-    description: "Application frameworks and platforms that host an OpenUI client or server.",
+    title: "Renderers",
+    description:
+      "Parsers and renderers that bring OpenUI Lang to other UI frameworks, platforms, and languages.",
+  },
+  {
+    id: "backend-frameworks",
+    title: "Backend frameworks",
+    description:
+      "Server-side libraries and examples that bring OpenUI Lang to other backend languages and frameworks.",
   },
   {
     id: "design-systems",
-    title: "Design systems",
-    description: "Component systems adapted into an OpenUI component library.",
+    title: "Component libraries",
+    description: "Existing UI component libraries adapted into an OpenUI component library.",
   },
   {
     id: "harnesses",
@@ -37,6 +50,6 @@ export const EXAMPLE_CATEGORIES: ExampleCategory[] = [
   {
     id: "miscellaneous",
     title: "Miscellaneous",
-    description: "Specialized libraries, capabilities, and backend services.",
+    description: "Plugins, developer tools, specialized libraries, and backend services.",
   },
 ];
