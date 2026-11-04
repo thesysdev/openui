@@ -78,7 +78,7 @@ struct NativeTabsView: View {
     private var selector: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: context.theme.spacing("l")) {
+                HStack(spacing: context.theme.space2xs) {
                     ForEach(panels) { panel in
                         Button { nativeSelection.wrappedValue = panel.id } label: {
                             NativeBoundedLabelLayout(maximumWidth: width > 0 ? min(width, 232) : 232) {
@@ -88,21 +88,17 @@ struct NativeTabsView: View {
                                 .lineLimit(textSize.isAccessibilitySize ? nil : 1)
                                 .truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
                             }
-                                .padding(.vertical, context.theme.spacing("s"))
+                                .padding(.horizontal, context.theme.spaceM)
+                                .padding(.vertical, context.theme.spaceS)
+                                .background(active?.id == panel.id ? context.theme.sunk : .clear,
+                                  in: Capsule(style: .continuous))
                                 .openUIControlTarget()
-                                .overlay(alignment: .bottom) {
-                                    Rectangle().fill(active?.id == panel.id ? context.theme.textNeutralPrimary : .clear)
-                                        .frame(height: 1.5).allowsHitTesting(false)
-                                }
                         }
                         .buttonStyle(.plain)
                         .accessibilityAddTraits(active?.id == panel.id ? .isSelected : [])
                         .accessibilityIdentifier("openui.tab." + panel.id.displayString)
                         .id(panel.id)
                     }
-                }.overlay(alignment: .bottom) {
-                    Rectangle().fill(context.theme.borderDefault).frame(height: context.presentation.borderWidth)
-                        .allowsHitTesting(false)
                 }
             }
             .onChange(of: selected) { value in

@@ -12,7 +12,8 @@ struct NativeHeading: View {
           .isHeader)
       }
       if let detail = context.string(compact ? "description" : "subtitle") {
-        Text(detail).openUIFont(context.theme.textBodyDefault).foregroundStyle(context.theme.textNeutralSecondary)
+        Text(detail).openUIFont(compact ? context.theme.textBodySm : context.theme.textBodyDefault)
+          .foregroundStyle(context.theme.textNeutralSecondary)
       }
     }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
   }
@@ -166,10 +167,16 @@ extension EnvironmentValues {
 
 struct NativeMediaText: View {
   @Environment(\.openUICardHeaderInset) private var cardHeaderInset
+  @Environment(\.multilineTextAlignment) private var textAlignment
   @ScaledMetric(relativeTo: .body) private var iconScale: CGFloat = 1
   enum Media { case icon, thumbnail, banner }
   let context: OpenUIComponentContext
   let media: Media
+  private var vertical: Bool { context.string("layout") == "vertical" }
+  private var centered: Bool { vertical && textAlignment == .center }
+  private var iconInset: CGFloat {
+    context.string("iconVariant") == nil || context.string("iconVariant") == "neutral" ? 0 : context.theme.space2xs
+  }
   var body: some View {
     Group {
       if media == .banner {
@@ -183,12 +190,12 @@ struct NativeMediaText: View {
           words
         }.frame(maxWidth: .infinity, alignment: .leading)
       } else {
-        NativeMediaRow(axis: context.string("layout") == "vertical" ? .vertical : .horizontal,
-          gap: media == .icon ? context.theme.spaceM * iconScale : context.theme.spaceM,
-          centered: media == .thumbnail && context.string("layout") != "vertical",
+        NativeMediaRow(axis: vertical ? .vertical : .horizontal,
+          gap: media == .icon ? context.theme.spaceS * iconScale : context.theme.spaceM,
+          centered: centered || media == .thumbnail && !vertical,
           media: { leadingMedia }, copy: {
-            words.frame(maxWidth: .infinity, alignment: .leading)
-              .multilineTextAlignment(.leading)
+            words.frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
+              .multilineTextAlignment(centered ? .center : .leading)
           })
       }
     }
@@ -196,11 +203,13 @@ struct NativeMediaText: View {
   @ViewBuilder private var leadingMedia: some View {
     if media == .icon {
       let colors = NativeBadgeColors(variant: context.string("iconVariant"), theme: context.theme)
-      // Neutral/filled/soft variants share the same badge geometry.
+      // Neutral is a quiet glyph. Explicit colored/soft variants retain their
+      // background and the caller's declared icon size.
       context.slot("icon").environment(\.openUIIconSize, glyphSize)
-        .foregroundStyle(colors.foreground)
-        .frame(width: (glyphSize + 20) * iconScale, height: (glyphSize + 20) * iconScale)
-        .background(colors.background, in: RoundedRectangle(cornerRadius: context.theme.radiusM))
+        .foregroundStyle(iconInset == 0 ? context.theme.textNeutralSecondary : colors.foreground)
+        .frame(width: (glyphSize + iconInset * 2) * iconScale, height: (glyphSize + iconInset * 2) * iconScale)
+        .background(iconInset > 0 ? colors.background : .clear,
+          in: RoundedRectangle(cornerRadius: context.theme.radiusM))
         .accessibilityIdentifier("openui.icon-text.badge")
     } else {
       NativeRemoteImage(
@@ -217,7 +226,7 @@ struct NativeMediaText: View {
     return context.presentation.inlineThumbnailSize
   }
   private var words: some View {
-    VStack(alignment: .leading, spacing: 0) {
+    VStack(alignment: centered ? .center : .leading, spacing: 0) {
       NativeMarkdownText(text: context.string("title") ?? "", mode: .inline,
         style: .init(font: media == .banner ? context.theme.textBodyDefaultHeavy
           : context.theme.inlineFont(context.string("layout") == "vertical" ? "sm" : "xs",
@@ -428,7 +437,7 @@ struct NativeListItem: View {
     HStack(alignment: .center, spacing: context.theme.spaceM) {
       VStack(alignment: .leading, spacing: context.theme.spacing("xs")) {
         Text(context.string("title") ?? "").openUIFont(presentation.compact
-          ? context.theme.textBodySm : context.theme.textBodyDefault)
+          ? context.theme.textBodySmHeavy : context.theme.textBodyDefaultHeavy)
         if let detail = context.string("subtitle") {
           Text(detail).openUIFont(presentation.compact ? context.theme.textBodySm : context.theme.textBodyDefault).foregroundStyle(context.theme.textNeutralSecondary)
         }
@@ -598,6 +607,12 @@ extension EnvironmentValues {
 struct NativeCardItem: View {
   let context: OpenUIComponentContext
   let kind: String
+  private var summary: Bool { kind == "Overview" || kind == "Snippet" }
+  private var centeredOverview: Bool {
+    guard kind == "Overview", case .element(let top) = context.value("top") else { return false }
+    return ["IconText", "ImageText"].contains(top.typeName) && PropValue.string(top, "layout") == "vertical"
+  }
+  private var copyAlignment: Alignment { centeredOverview ? .center : .leading }
   private var itemTheme: OpenUIThemeValues {
     var theme = context.theme
     // The official families share tokens, not an identical outline: Context
@@ -640,6 +655,25 @@ struct NativeCardItem: View {
   }
   var body: some View {
     Group {
+      if summary { content }
+      else { content.clipShape(RoundedRectangle(cornerRadius: itemTheme.radius3xl, style: .continuous)) }
+    }
+    .environment(\.openUITheme, contentTheme)
+    .foregroundStyle(contentTheme.textNeutralPrimary)
+    .modifier(NativeCardSurface(
+      theme: itemTheme,
+      // Facts stay in the reading flow; independent offers keep their surface.
+      // Explicit gray and artwork treatments remain properties of those items.
+      fill: summary || artworkSource != nil ? .clear
+        : context.string("bgColor") == "gray" ? context.theme.sunk : context.theme.foreground,
+      bordered: !summary && artworkSource == nil && kind != "Context"))
+    .environment(\.openUIActionDensity, .compact)
+    .environment(\.colorScheme, artworkSource == nil ? colorScheme : .dark)
+    .accessibilityElement(children: .contain)
+    .accessibilityIdentifier("openui.card-item." + kind.lowercased())
+    .layoutValue(key: OpenUIFlexGrowKey.self, value: true)
+  }
+  @ViewBuilder private var content: some View {
       if let source = artworkSource {
         NativeArtworkCardLayout(aspectRatio: context.presentation.coverAspectRatio,
           fallbackWidth: context.presentation.minimumCardWidth, accessibility: typeSize.isAccessibilitySize) {
@@ -654,25 +688,10 @@ struct NativeCardItem: View {
       } else {
         copy
       }
-    }
-    .environment(\.openUITheme, contentTheme)
-    .foregroundStyle(contentTheme.textNeutralPrimary)
-    .clipShape(RoundedRectangle(cornerRadius: itemTheme.radius3xl, style: .continuous))
-    .modifier(NativeCardSurface(
-      theme: itemTheme,
-      // Object surfaces do not change when an action is added or removed.
-      // Artwork owns its background; an explicit gray variant remains recessed.
-      fill: artworkSource != nil ? .clear
-        : context.string("bgColor") == "gray" ? context.theme.sunk : context.theme.foreground,
-      bordered: artworkSource == nil && kind != "Context"))
-    .environment(\.openUIActionDensity, .compact)
-    .environment(\.colorScheme, artworkSource == nil ? colorScheme : .dark)
-    .accessibilityElement(children: .contain)
-    .accessibilityIdentifier("openui.card-item." + kind.lowercased())
-    .layoutValue(key: OpenUIFlexGrowKey.self, value: true)
   }
   private var copy: some View {
-    VStack(alignment: .leading, spacing: kind == "Overview" ? context.theme.spaceL : context.theme.spaceM) {
+    VStack(alignment: centeredOverview ? .center : .leading,
+      spacing: kind == "Overview" ? context.theme.spaceS : context.theme.spaceM) {
       switch kind {
       case "Snippet":
         HStack(alignment: .center, spacing: context.theme.spacing("s")) {
@@ -687,14 +706,16 @@ struct NativeCardItem: View {
         }
       case "Overview":
         HStack(alignment: .top, spacing: context.theme.spacing("s")) {
-          context.slot("top").multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
+          context.slot("top").multilineTextAlignment(centeredOverview ? .center : .leading)
+            .frame(maxWidth: .infinity, alignment: copyAlignment)
           if isAction {
             Spacer(minLength: 0)
             actionIndicator
           }
         }
         .frame(maxHeight: .infinity, alignment: .topLeading)
-        context.slot("bottom").multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
+        context.slot("bottom").multilineTextAlignment(centeredOverview ? .center : .leading)
+          .frame(maxWidth: .infinity, alignment: copyAlignment)
       case "Context":
         context.slot("title").openUIFont(context.theme.textBodyXs)
           .foregroundStyle(contentTheme.textNeutralSecondary)
@@ -723,8 +744,8 @@ struct NativeCardItem: View {
       groupEntry
     }
       .environment(\.openUICardGroupAction, nil)
-      .padding(itemTheme.spaceM)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .padding(summary ? context.theme.spaceS : itemTheme.spaceM)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: centeredOverview ? .top : .topLeading)
   }
   @ViewBuilder private var groupEntry: some View {
     if let groupAction {

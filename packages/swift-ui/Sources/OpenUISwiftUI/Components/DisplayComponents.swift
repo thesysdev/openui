@@ -18,6 +18,7 @@ struct NativeSeparator: View {
 struct NativeMetric: View {
     let context: OpenUIComponentContext
     var inline: Bool
+    @Environment(\.multilineTextAlignment) private var textAlignment
     var body: some View {
         Group {
             if inline {
@@ -26,7 +27,8 @@ struct NativeMetric: View {
                         value.fixedSize(horizontal: true, vertical: true)
                         details
                     }
-                    VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
+                    VStack(alignment: textAlignment == .center ? .center : .leading,
+                      spacing: context.theme.spacing("2xs")) {
                         value; details
                     }
                 }

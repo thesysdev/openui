@@ -6,6 +6,25 @@ import OpenUILang
 @testable import OpenUISwiftUI
 
 final class ThemeOverrideTests: XCTestCase {
+  @MainActor func testListTitlesAndCompactDescriptionsUseTheirIndependentThemeFonts() throws {
+    _ = NSApplication.shared
+    let library = try OpenUIStandardComponents.library()
+    func height(_ source: String, _ theme: OpenUIThemeValues) -> CGFloat {
+      let state = OpenUIState(schema: library.library.toSchema()); state.setSource(source)
+      XCTAssertTrue(state.errors.isEmpty)
+      return NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
+        .openUITheme(theme).frame(width: 320)).fittingSize.height
+    }
+    let list = "root=ListBlock([ListItem(\"A clear place name\",\"A supporting explanation\")],\"number\")"
+    let heading = "root=InlineHeader(\"A section\",\"A supporting explanation\")"
+    let base = OpenUIThemeValues()
+    var titles = base; titles.textBodyDefaultHeavy = OpenUIFont(size: 32, weight: .light)
+    XCTAssertGreaterThan(height(list, titles), height(list, base) + 8)
+    XCTAssertEqual(height(heading, titles), height(heading, base), accuracy: 1)
+    var descriptions = base; descriptions.textBodySm = OpenUIFont(size: 28)
+    XCTAssertGreaterThan(height(heading, descriptions), height(heading, base) + 8)
+  }
+
   func testResolvingUnchangedOverridesPreservesColorIdentity() {
     let first = OpenUITheme().resolved()
     let second = OpenUITheme().resolved()

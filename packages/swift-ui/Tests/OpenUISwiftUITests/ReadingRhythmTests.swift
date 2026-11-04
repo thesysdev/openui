@@ -6,6 +6,37 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class ReadingRhythmTests: XCTestCase {
+  @MainActor func testVerticalSummaryCentersItsIcon() throws {
+    _ = NSApplication.shared
+    let frames = OverviewSlotFrames()
+    let standard = try OpenUIStandardComponents.library()
+    let icon = try XCTUnwrap(standard.library.components.first { $0.name == "Icon" })
+    let library = try standard.extending(overriding: [OpenUIComponent(icon) { context in
+      NativeIcon(context: context).background(GeometryReader { geometry in
+        Color.clear.onAppear { frames.values["icon"] = geometry.frame(in: .named("summary")) }
+          .onChange(of: geometry.frame(in: .named("summary"))) { frames.values["icon"] = $0 }
+      })
+    }])
+    let state = OpenUIState(schema: library.library.toSchema())
+    state.setSource("""
+      root=OverviewCardBlock([
+        OverviewCardItem("a",IconText(Icon("calendar"),"neutral","m","2 天","行程",true,"vertical")),
+        OverviewCardItem("b",IconText(Icon("map-pin"),"neutral","m","11 站","文化景点",true,"vertical"))],"grid",false)
+      """)
+    XCTAssertTrue(state.errors.isEmpty)
+    let element = try XCTUnwrap(PropValue.children(try XCTUnwrap(state.root), "items").first)
+    let host = NSHostingView(rootView: NativeCardItem(context: .init(element: element,
+      registry: library.registry, state: state), kind: "Overview")
+      .environmentObject(state).frame(width: 150).coordinateSpace(name: "summary"))
+    let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 150, height: 180),
+      styleMask: [.borderless], backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false; window.contentView = host
+    window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
+    defer { window.close() }
+    host.layoutSubtreeIfNeeded(); RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+    XCTAssertEqual(try XCTUnwrap(frames.values["icon"]).midX, 75, accuracy: 1)
+  }
+
   @MainActor func testIconTextKeepsItsIconAtTheTopWhenTheDescriptionWraps() throws {
     _ = NSApplication.shared
     let frames = OverviewSlotFrames()
@@ -112,10 +143,10 @@ final class ReadingRhythmTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(0.08))
         let top = try XCTUnwrap(frames.values[name])
         let bottom = try XCTUnwrap(frames.values["MetricIndicatorInline"])
-        XCTAssertEqual(top.minX, OpenUIThemeValues().spaceSM, accuracy: 1)
+        XCTAssertEqual(top.minX, OpenUIThemeValues().spaceS, accuracy: 1)
         XCTAssertEqual(bottom.minX, top.minX, accuracy: 1,
           "An intrinsic-width metric must align with the top slot at \(width)pt")
-        XCTAssertLessThanOrEqual(bottom.maxX, width - OpenUIThemeValues().spaceSM + 1)
+        XCTAssertLessThanOrEqual(bottom.maxX, width - OpenUIThemeValues().spaceS + 1)
       }
     }
   }
