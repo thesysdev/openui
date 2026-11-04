@@ -9,7 +9,7 @@ import { isASTNode, walkAST } from "./ast";
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeExpr, materializeValue, withStatement } from "./materialize";
+import { materializeExpr, materializeValue, withStatement, withStatementId } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -331,8 +331,7 @@ function buildResult(
   if (entry) {
     const materialized = materializeValue(syms.get(entry.id)!, ctx);
     if (isElementNode(materialized)) {
-      root = materialized;
-      root.statementId = entry.id;
+      root = withStatementId(materialized, entry.id);
     } else if (isASTNode(materialized) && containsComponent(materialized)) {
       rootExpression = materialized;
     }
@@ -409,6 +408,7 @@ function startsProgram(block: string): boolean {
 
 /** Extract the program from markdown code fences, or return the input when no fence holds one. */
 export function stripFences(input: string): string {
+  if (!input.includes("```")) return input; // no fence anywhere: nothing to extract
   const blocks: string[] = [];
   const outside: string[] = [];
   let body: string[] | null = null;

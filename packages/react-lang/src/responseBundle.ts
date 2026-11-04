@@ -20,6 +20,7 @@ interface Scripts {
 
 // Markers inside DSL/JSON strings are ordinary content.
 function markerIndex(text: string): number {
+  if (!text.includes("]]>")) return -1; // plain DSL: skip the character walk
   let quote = "";
   let escaped = false;
   for (let i = 0; i < text.length; i++) {
