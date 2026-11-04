@@ -136,6 +136,18 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     firstParty: true,
   },
   {
+    name: "telegram-mini-app",
+    title: "Telegram Mini App",
+    description:
+      "A reference Telegram Mini App that validates Telegram's signed launch data and renders OpenUI Cloud responses, charts, reports, and presentations in the OpenUI Agent Interface.",
+    category: "app-frameworks",
+    sourceUrl: "https://github.com/thesysdev/telegram-mini-app",
+    logo: "https://cdn.simpleicons.org/telegram",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: true,
+  },
+  {
     name: "openui-dotnet",
     title: ".NET",
     description:
