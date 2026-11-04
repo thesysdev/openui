@@ -95,9 +95,19 @@ final class StreamingPresentationTests: XCTestCase {
         XCTAssertEqual(selection.selected, "b", "Equal JSON length does not count as growth")
         selection.reconcile([panel("a", "🙂🙂"), panel("b", "Two")])
         XCTAssertEqual(selection.selected, "a", "JSON length counts UTF-16, not Swift graphemes")
-        selection.choose("a") // Clicking an already active value does not emit Radix onValueChange.
-        selection.reconcile([panel("a", "🙂🙂"), panel("b", "Longer")])
-        XCTAssertEqual(selection.selected, "b")
+    }
+
+    func testTappingTheSelectedNativeTabKeepsItAsLaterPanelsArrive() {
+        let first = NativeTabPanel(id: "a", label: "First", content: .string("First"))
+        var selection = NativeTabsSelection()
+        selection.reconcile([first])
+        XCTAssertEqual(selection.selected, "a")
+        selection.choose("a")
+        let second = NativeTabPanel(id: "b", label: "Second", content: .string("Later streamed content"))
+        selection.reconcile([first, second])
+        XCTAssertEqual(selection.selected, "a", "A native tap is an explicit choice even if its value was already active")
+        selection.reconcile([first, NativeTabPanel(id: "b", label: "Second", content: .string("Later content grows again"))])
+        XCTAssertEqual(selection.selected, "a")
     }
 
     func testTabsMeasureTheSerializedComponentContentRatherThanOnlyItsText() {

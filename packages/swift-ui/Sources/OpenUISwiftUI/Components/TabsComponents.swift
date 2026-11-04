@@ -20,17 +20,17 @@ struct NativeTabPanel: Identifiable, Equatable {
     }
 }
 
-/// Matches react-ui's TabsRenderer: follow the last item whose JSON content
-/// grows until onValueChange records a manual selection. This also applies to a
-/// complete initial render, not only to streaming. Removing a manually selected
-/// value does not invent a fallback absent from the upstream controlled Tabs.
+/// Follow the reference's last-growing-content rule until a native button tap
+/// records user intent, including a tap on the currently selected tab. Initial
+/// complete renders follow growth too. Removing a manually selected value does
+/// not invent a fallback absent from the upstream controlled Tabs.
 struct NativeTabsSelection {
     private(set) var selected: OpenUIString?
     private var userHasInteracted = false
     private var previousContentSizes: [OpenUIString: Int] = [:]
     mutating func choose(_ value: OpenUIString) {
-        guard value != selected else { return }
         userHasInteracted = true
+        guard value != selected else { return }
         selected = value
     }
     mutating func reconcile(_ panels: [NativeTabPanel]) {
