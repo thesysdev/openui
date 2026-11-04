@@ -41,6 +41,9 @@ export function ExampleCategory({ id }: { id: ExampleCategoryId }) {
                 <RunLocally title={example.title} name={example.name} env={example.env} />
               ) : null}
               <CardLink label="Source" href={example.sourceUrl} external />
+              {example.packageUrl ? (
+                <CardLink label="Package" href={example.packageUrl} external />
+              ) : null}
               {example.guideUrl ? (
                 <Link className={styles.cardLink} href={example.guideUrl}>
                   <BookOpen aria-hidden className={styles.cardLinkIcon} />

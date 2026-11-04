@@ -69,6 +69,8 @@ export type RepoExample = {
   category: ExampleCategoryId;
   sourceUrl: string;
   guideUrl?: string;
+  /** Package registry page (npm, NuGet, and so on), shown as a "Package" link. */
+  packageUrl?: string;
   logo: string;
   logoIsDark: boolean;
   /** Environment setup used by the CLI while scaffolding. */
@@ -154,6 +156,7 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
       "OpenUI Lang for .NET: a streaming parser, validator, evaluator, and prompt builder, plus an ASP.NET Core endpoint for the stock React chat.",
     category: "backend-frameworks",
     sourceUrl: "https://github.com/DeepForgeTech/openui-dotnet",
+    packageUrl: "https://www.nuget.org/packages/OpenUI.Lang.Core",
     logo: "https://cdn.simpleicons.org/dotnet",
     logoIsDark: false,
     runnable: false,

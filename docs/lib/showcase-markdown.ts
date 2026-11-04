@@ -34,6 +34,7 @@ function exampleCategoryMarkdown(id: ExampleCategoryId): string {
       .join(", ");
     const links = linkList([
       { label: "Source", href: example.sourceUrl },
+      ...(example.packageUrl ? [{ label: "Package", href: example.packageUrl }] : []),
       ...(example.guideUrl ? [{ label: "Guide", href: example.guideUrl }] : []),
     ]);
     const run = example.runnable
