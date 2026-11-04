@@ -6,8 +6,8 @@ const program = '```openui-lang\nroot = Text("Hello")\n```\n';
 const body = program.trimEnd();
 const script = { name: "sales_total", code: "async ({ tools }) => tools.get_sales({})" };
 
-function scriptsSection(values: unknown, count: unknown = 1) {
-  return `]]>openui:scripts ${JSON.stringify({ count })}\n${JSON.stringify(values)}\n`;
+function scriptsSection(values: { name: string; code: string }[]) {
+  return values.map(({ name, code }) => `\`\`\`openui-js ${name}\n${code}\n\`\`\`\n`).join("");
 }
 
 // While streaming, a last line that may still open a fence is held back.
@@ -103,69 +103,34 @@ describe("parseResponseBundle", () => {
       });
     });
 
-    it("accepts an explicitly empty scripts section", () => {
-      const response = `]]>openui:content\n${program}${scriptsSection([], 0)}]]>openui:end`;
+    it.each(["", "]]>openui:end"])(
+      "accepts fenced scripts without a content line, end marker %j",
+      (end) => {
+        const response = `${program}${scriptsSection([script])}${end}`;
 
-      expect(parseResponseBundle(response, false)).toMatchObject({
-        scripts: new Set(),
-        complete: true,
-        error: undefined,
-      });
-    });
-
-    it.each(["", "]]>openui:end"])("accepts a legacy script bundle with end marker %j", (end) => {
-      const response = `${program}${scriptsSection([script])}${end}`;
-
-      expect(parseResponseBundle(response, false)).toMatchObject({
-        program: body,
-        isBundle: true,
-        scripts: new Set(["sales_total"]),
-        complete: true,
-        error: undefined,
-      });
-    });
+        expect(parseResponseBundle(response, false)).toMatchObject({
+          program: body,
+          isBundle: true,
+          scripts: new Set(["sales_total"]),
+          complete: true,
+          error: undefined,
+        });
+      },
+    );
 
     it.each([
-      ["non-array payload", {}, 1],
-      ["null payload", null, 1],
-      ["mismatched count", [script], 2],
-      ["string count", [script], "1"],
-      ["fractional count", [script], 1.5],
-      ["negative count", [], -1],
-      ["null entry", [null], 1],
-      ["missing name", [{ code: "async () => null" }], 1],
-      ["empty name", [{ ...script, name: "" }], 1],
-      ["non-string name", [{ ...script, name: 42 }], 1],
-      ["missing code", [{ name: "sales_total" }], 1],
-      ["non-string code", [{ ...script, code: 42 }], 1],
-      ["duplicate names", [script, script], 2],
-    ])("rejects %s after streaming finishes", (_label, values, count) => {
-      const response = `]]>openui:content\n${program}${scriptsSection(values, count)}]]>openui:end`;
+      ["a script without a name", "```openui-js\nasync () => null\n```\n"],
+      ["duplicate names", scriptsSection([script, script])],
+      ["an unclosed fence", "```openui-js sales_total\nasync () => null\n"],
+    ])("rejects %s after streaming finishes", (_label, section) => {
+      const response = `]]>openui:content\n${program}${section}]]>openui:end`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
         program: body,
         complete: false,
         error: "Invalid scripts bundle",
       });
-      expect(parseResponseBundle(response, true)).toMatchObject({
-        program: body,
-        complete: false,
-        error: undefined,
-      });
     });
-
-    it.each(["]]>openui:scripts {invalid}\n[]\n", ']]>openui:scripts {"count":1}\n[{"name":\n'])(
-      "rejects malformed script JSON: %j",
-      (section) => {
-        const response = `]]>openui:content\n${program}${section}]]>openui:end`;
-
-        expect(parseResponseBundle(response, false)).toMatchObject({
-          program: body,
-          complete: false,
-          error: "Invalid scripts bundle",
-        });
-      },
-    );
   });
 
   describe("streaming and incomplete responses", () => {
@@ -221,16 +186,6 @@ describe("parseResponseBundle", () => {
         expect(parseResponseBundle(response, true)).toMatchObject({ complete: false });
       },
     );
-
-    it("rejects a scripts line without its JSON", () => {
-      const response = `]]>openui:content\n${program}]]>openui:scripts`;
-
-      expect(parseResponseBundle(response, false)).toMatchObject({
-        program: body,
-        complete: false,
-        error: "Invalid scripts bundle",
-      });
-    });
   });
 
   describe("markers inside content", () => {
