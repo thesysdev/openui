@@ -1,5 +1,35 @@
 # @openuidev/lang-core
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - A Query that reads another query's result waits for it and reruns when it changes (react-lang; other renderers call `queryManager.evaluateStatements`).
+
+  - `QueryManager` implementations must add `evaluateStatements`.
+  - Queries that read each other report the new `query-cycle` error and do not run.
+  - A failed fetch is retried only by `@Run`, a refresh interval or `invalidate`, not on every evaluation.
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - `@Round`, `@Abs`, `@Floor` and `@Ceil` apply to each element of a list. Upgrade clients before the server: a 1.0 client renders `@Round(list)` as 0.
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Query and Mutation arguments can read other statements (`filters = {region: $region}` then `Query("sales", filters)`), and a `$state` read that way refetches on change.
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - An expression state default (`$total = 1 + 2`) is evaluated once at parse time instead of storing the expression. Calls to library functions or actions give null.
+
+### Patch Changes
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Faster streaming: each statement is built once per parse, and react-lang skips elements whose props did not change. Treat parse results as immutable. A component that reads values outside its props, `$state`, queries or context no longer re-renders on every chunk.
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Code fences are matched by line: inline ` ```openui``` ` mentions, code on the opener line, a stray closing fence and ` ```js ` helper blocks no longer lose the program. ` ```openui-js ` blocks are skipped.
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - `isLoading` is true while a query waits for a loading query.
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - `mergeStatements` keeps multi-line statements, such as ternaries, intact.
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Inputs bound with `$note = $value` inside a ternary root stay editable and keep their values.
+
+- [#1554](https://github.com/thesysdev/openui/pull/1554) [`70efb10`](https://github.com/thesysdev/openui/commit/70efb107a505351dd1bede0de8eab477fcf1a6df) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - A ` ``` ` line inside a multi-line string of an unfenced program no longer cuts the string.
+
 ## 1.0.2
 
 ### Patch Changes
