@@ -6,15 +6,9 @@
  *
  *   ]]>openui:content?artifact_id=art_…&type=dashboard&name=…&version=…
  *
- * Older responses carry a header line instead,
- *
- *   ]]>openui:artifact {"artifact_id":"art_…","type":"dashboard","name":"…","version":"…"}
- *
  * Renderers pass it here unchanged; nothing else parses it.
  */
 import { parseMessage } from "@openuidev/react-lang";
-
-const ARTIFACT_MARKER = "]]>openui:artifact";
 
 /** The artifact a tool response points at. */
 export interface ArtifactReference {
@@ -47,17 +41,7 @@ function toReference(header: ArtifactHeader): ArtifactReference | null {
 }
 
 function parseHeader(text: string): ArtifactReference | null {
-  const reference = toReference(parseMessage(text).attributes);
-  if (reference) return reference;
-  const at = text.indexOf(ARTIFACT_MARKER);
-  if (at === -1) return null;
-  const lineEnd = text.indexOf("\n", at);
-  const json = text.slice(at + ARTIFACT_MARKER.length, lineEnd === -1 ? undefined : lineEnd);
-  try {
-    return toReference(JSON.parse(json.trim()) as ArtifactHeader);
-  } catch {
-    return null;
-  }
+  return toReference(parseMessage(text).attributes);
 }
 
 /**
