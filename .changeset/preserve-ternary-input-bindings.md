@@ -2,4 +2,4 @@
 "@openuidev/lang-core": patch
 ---
 
-Preserve reactive input binding expressions when evaluating ternary roots. Inputs using `$note = $value` or a computed binding remain editable and retain their values when switching panels.
+Inputs bound with `$note = $value` inside a ternary root stay editable and keep their values.

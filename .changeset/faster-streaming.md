@@ -3,7 +3,4 @@
 "@openuidev/react-lang": patch
 ---
 
-Faster parsing and streaming:
-
-- Each referenced statement is materialized once per parse instead of once per use, so parsing programs that reuse a statement many times is no longer exponential. A statement used more than once is now the same object at every use: treat parse results and element props as immutable. A validation error inside such a statement is reported once, unless the statement still contains unresolved references.
-- react-lang skips rendering an element whose type and props did not change since the last render; it still re-renders when `$state`, query results or context change. Components reading `useOpenUI()` now also re-render on every `$state` write and query result change.
+Faster streaming: each statement is built once per parse, and react-lang skips elements whose props did not change. Treat parse results as immutable. A component that reads values outside its props, `$state`, queries or context no longer re-renders on every chunk.
