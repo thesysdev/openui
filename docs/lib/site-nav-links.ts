@@ -27,5 +27,5 @@ export const SITE_NAV_LINKS = {
   benchmarks: { href: "/benchmarks" },
   pricing: { href: "/pricing" },
   blog: { href: "/blog" },
-  integrations: { href: "/integrations" },
+  integrations: { href: "/docs/integrations" },
 } as const;
