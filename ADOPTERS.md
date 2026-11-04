@@ -1,6 +1,6 @@
 # OpenUI Adopters
 
-This list captures the organizations, teams, and frameworks that are using or integrating with OpenUI. If you are an adopter of OpenUI and not yet on this list, we encourage you to add your organization or integration here as well.
+This list captures the organizations and teams that are using OpenUI. If you are an adopter of OpenUI and not yet on this list, we encourage you to add your organization here as well.
 
 The goal for this list is to be a complete and authoritative source for the entire community of OpenUI adopters, and to give inspiration to others that are earlier in their OpenUI journey.
 
@@ -10,7 +10,7 @@ Contributing to this list is a small effort that has a **big impact** on the pro
 
 ## Updating this list
 
-To add your organization or integration to this list, [open a PR](https://github.com/thesysdev/openui/pulls) updating this file, or [edit it directly on GitHub](https://github.com/thesysdev/openui/edit/main/ADOPTERS.md).
+To add your organization to this list, [open a PR](https://github.com/thesysdev/openui/pulls) updating this file, or [edit it directly on GitHub](https://github.com/thesysdev/openui/edit/main/ADOPTERS.md).
 
 ## Companies and teams
 
@@ -47,125 +47,6 @@ Example row, copy and edit:
 | [Acme Inc.](https://acme.example.com) | [@acme-eng](https://github.com/acme-eng) | Customer-facing AI copilot built on OpenUI Lang. |
 -->
 
-## Framework ecosystem
-
-Frameworks that integrate with, support, or generate OpenUI interfaces.
-
-- **assistant-ui** — Renders streaming OpenUI programs as assistant-ui Tool UI while assistant-ui retains control of the conversation and tool lifecycle.
-
-  - Status: `Official integration`
-  - [Documentation](https://www.assistant-ui.com/docs/tools/openui) · [Example](https://github.com/assistant-ui/assistant-ui/tree/main/examples/with-openui)
-
-- **Lynx** — Renders OpenUI Lang as cross-platform interfaces through the OpenUI renderer and component library in `@lynx-js/genui`.
-
-  - Status: `Official integration`
-  - [Documentation](https://lynxjs.org/next/api/genui/index.html)
-
-- **LangChain** — Generates and renders interactive OpenUI dashboards and reports in LangChain and LangGraph applications.
-
-  - Status: `Official integration`
-  - [Documentation](https://docs.langchain.com/oss/python/langchain/frontend/integrations/openui) · [Example](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/langgraph-platform)
-
-- **Mastra** — Connects Mastra agent backends to OpenUI's Agent Interface over AG-UI for streaming tool-powered generative interfaces.
-  - Status: `Official integration`
-  - [Documentation](https://mastra.ai/docs) · [Example](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra)
-
-- **Sage** — Uses the official OpenUI Lang parser with a native Flutter renderer for streaming interactive interfaces in Sage Desktop.
-  - Status: `Community integration`
-  - [Repository](https://github.com/ZHangZHengEric/Sage) · [Documentation](https://github.com/ZHangZHengEric/Sage/blob/v2.1.0/docs/en/applications/DESKTOP.md) · [Parser bridge](https://github.com/ZHangZHengEric/Sage/blob/v2.1.0/app/v2/desktop/backend/openui_runtime/worker.mjs)
-
-- **Agno** — Streams an Agno AgentOS agent over AG-UI into OpenUI's AgentInterface, with charts, follow-up actions, and forms that submit back to the same conversation.
-  - Status: `Community integration`
-  - [Example](https://github.com/agno-agi/agno/tree/main/cookbook/05_agent_os/16_agui/openui) · [Documentation](https://docs.agno.com)
-
-- **Skybridge** — Builds MCP Apps for ChatGPT and Claude that stream the model's OpenUI Lang into a Skybridge view and render it with OpenUI's React components.
-  - Status: `Community integration`
-  - [Example](https://github.com/alpic-ai/skybridge/tree/main/examples/openui-generative-ui) · [Documentation](https://docs.skybridge.tech/home)
-
-- **Awaken** — Renders OpenUI from the Awaken Rust agent runtime over AG-UI, as a full-screen chat, a copilot sidebar, or a bottom tray.
-  - Status: `Community integration`
-  - [Example](https://github.com/awakenworks/awaken/tree/main/examples/openui-chat) · [Documentation](https://awakenworks.github.io/awaken/how-to/use-generative-ui/)
-
-- **Everruns** — Ships OpenUI as a built-in capability of the Everruns durable agent harness, so agents can render charts, tables, forms, and cards in chat.
-  - Status: `Community integration`
-  - [Repository](https://github.com/everruns/everruns) · [Specification](https://github.com/everruns/everruns/blob/main/knowledge/ui/openui.md)
-
-### Renderers
-
-Parsers and renderers that bring OpenUI Lang to other UI frameworks, platforms, and languages.
-
-- **Stream Chat iOS** — `StreamChatOpenUI`, an OpenUI Lang 1.0 renderer in Stream's iOS chat SDK that shows AI replies as native SwiftUI components (unreleased, on `develop`).
-  - Status: `Community integration`
-  - [Source](https://github.com/GetStream/stream-chat-swift/tree/develop/Sources/StreamChatOpenUI)
-
-- **SwiftUI** — A native SwiftUI renderer for iOS and macOS with the parser, evaluator, reactive state, and prompt generator ported from lang-core.
-  - Status: `Community integration`
-  - [Repository](https://github.com/martinmitrevski/OpenUI)
-
-- **Flutter** — Two Flutter renderers: `openui_lang` on pub.dev, aligned with `@openuidev/react-ui`, and `openui_flutter`, a Flutter port with Dart component libraries.
-  - Status: `Community integration`
-  - [openui_lang](https://github.com/titanseason/openui-flutter) · [openui_flutter](https://github.com/mtwichel/openui_flutter)
-
-- **HarmonyOS** — Renders OpenUI Lang as native ArkUI interfaces with the official OpenUI parser.
-  - Status: `Community integration`
-  - [Repository](https://github.com/hreyulog/harmony-openui)
-
-- **Rust** — An engine-agnostic OpenUI Lang runtime whose output any renderer can draw.
-  - Status: `Community integration`
-  - [Repository](https://github.com/voxell-tech/openui-rs) · [Documentation](https://docs.rs/openui)
-
-- **Elixir** — Two Elixir implementations of OpenUI Lang 1.0: `openui` on Hex, with a Phoenix LiveView renderer, and `openui_lang`, a zero-dependency parser, streaming engine, and prompt generator.
-  - Status: `Community integration`
-  - [openui](https://github.com/ideia4it/openui) · [openui_lang](https://github.com/boxxxie/openui_lang)
-
-- **Inglorious Web** — `@inglorious/openui` renders OpenUI Lang from a model with Inglorious UI components in an Inglorious Web app.
-  - Status: `Community integration`
-  - [Repository](https://github.com/IngloriousCoderz/inglorious-forge)
-
-- **MoonBit** — An OpenUI Lang parser in MoonBit, compiled to Wasm-GC and published on mooncakes and npm.
-  - Status: `Community integration`
-  - [Repository](https://github.com/heyq02/openui.mbt) · [Documentation](https://mooncakes.io/docs/heyq02/openui/)
-
-- **Terminal (pi)** — Draws interactive dashboards, charts, diagrams, and maps in the terminal for the pi coding agent.
-  - Status: `Community integration`
-  - [Repository](https://github.com/newtonapple/pi-openui)
-
-### Backend frameworks
-
-Server libraries that build the prompt, validate, and stream OpenUI Lang from other backend languages and frameworks.
-
-- **.NET** — A streaming parser, validator, evaluator, and prompt builder for OpenUI Lang, plus an ASP.NET Core endpoint for the stock React chat.
-  - Status: `Community integration`
-  - [Repository](https://github.com/DeepForgeTech/openui-dotnet)
-
-- **Rails** — Parses OpenUI Lang against a Ruby component library and renders it with ERB partials and Hotwire.
-  - Status: `Community integration`
-  - [Repository](https://github.com/OverskillDev/openui-rails)
-
-- **Python** — `genui-py` on PyPI generates the prompt, validates, and streams OpenUI Lang from any Python agent to a React app.
-  - Status: `Community integration`
-  - [Repository](https://github.com/AD1TYA03/genui) · [PyPI](https://pypi.org/project/genui-py/)
-
-- **Laravel** — Connects OpenUI to the Laravel AI SDK with system prompt injection, component library management, and streamed responses.
-  - Status: `Community integration`
-  - [Repository](https://github.com/RanaMoizHaider/laravel-openui)
-
-- **Convex** — Durable, reactive state for OpenUI interfaces on Convex, kept across reloads and in sync across clients.
-  - Status: `Community integration`
-  - [Repository](https://github.com/aayush962/openui-convex)
-
-### Component libraries
-
-Component libraries that ship an OpenUI adapter.
-
-- **Kamod UI** — `@kamod-ch/openui` lets a model compose only approved Kamod UI components in Preact.
-  - Status: `Community integration`
-  - [Repository](https://github.com/kamod-ch/kamod-ui/tree/main/packages/openui)
-
-- **k8ordo** — `@k8ordo/ui` includes adapters that let a model generate UI from its React components with OpenUI.
-  - Status: `Community integration`
-  - [Repository](https://github.com/k35o/k8ordo)
-
 ## How to add an entry
 
 For a company or team, open a pull request that adds a row to the table above with:
@@ -174,8 +55,6 @@ For a company or team, open a pull request that adds a row to the table above wi
 - **Contact** — a GitHub handle, email, or link to a blog post / case study / talk. Useful for other adopters reaching out.
 - **Description of Use** — one sentence on what you're building with OpenUI.
 
-For a framework integration, add an entry to the framework ecosystem with:
+## Integrations
 
-- **Framework** — name and a brief description of the OpenUI integration.
-- **Status** — use exactly `Official integration` or `Community integration`.
-- **Links** — repository, documentation, and a working example where available.
+The full list of renderers, frameworks, and other integrations is on the [Integrations](https://www.openui.com/docs/integrations) page.

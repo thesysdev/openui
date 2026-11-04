@@ -514,6 +514,45 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     runnable: false,
     firstParty: false,
   },
+  {
+    name: "assistant-ui",
+    title: "assistant-ui",
+    description:
+      "Renders streaming OpenUI programs as assistant-ui Tool UI while assistant-ui keeps control of the conversation and tool lifecycle.",
+    category: "app-frameworks",
+    sourceUrl: "https://github.com/thesysdev/openui/tree/main/packages/assistant-ui",
+    guideUrl: "https://www.assistant-ui.com/docs/tools/openui",
+    logo: "/integration-logos/assistant-ui.svg",
+    logoIsDark: true,
+    runnable: false,
+    firstParty: true,
+  },
+  {
+    name: "sage",
+    title: "Sage",
+    description:
+      "Sage Desktop parses OpenUI Lang with the official parser and renders it with a native Flutter renderer for streaming interactive interfaces.",
+    category: "agent-frameworks",
+    sourceUrl: "https://github.com/ZHangZHengEric/Sage",
+    guideUrl: "https://github.com/ZHangZHengEric/Sage/blob/v2.1.0/docs/en/applications/DESKTOP.md",
+    logo: "https://raw.githubusercontent.com/ZHangZHengEric/Sage/main/assets/logo.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
+    name: "everruns",
+    title: "Everruns",
+    description:
+      "The Everruns durable agent harness ships OpenUI as a built-in capability, so agents can render charts, tables, forms, and cards in chat.",
+    category: "agent-frameworks",
+    sourceUrl: "https://github.com/everruns/everruns",
+    guideUrl: "https://github.com/everruns/everruns/blob/main/knowledge/ui/openui.md",
+    logo: "https://github.com/everruns.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
 ];
 
 export function getExamplesInCategory(category: ExampleCategoryId): RepoExample[] {
