@@ -419,8 +419,11 @@ export function stripFences(input: string): string {
     if (!fence) {
       if (script) continue;
       (body ?? outside).push(line);
-      // Only statement lines open strings, so a prose quote like `5"` is harmless.
-      if (inString || STATEMENT_START.test(line)) inString = quoteOpenAfter(line, inString);
+      // Inside a fence every line is code, so a string can open on an argument line. Outside,
+      // only statement lines open strings, so a prose quote like `5"` is harmless.
+      if (inString || body !== null || STATEMENT_START.test(line)) {
+        inString = quoteOpenAfter(line, inString);
+      }
       continue;
     }
     const [, tag = "", rest = ""] = fence;
