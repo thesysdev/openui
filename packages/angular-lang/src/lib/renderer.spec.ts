@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, input } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod/v4";
@@ -10,10 +10,10 @@ import { OpenUiRendererComponent } from "./renderer.component";
 @Component({
   selector: "test-title",
   standalone: true,
-  template: `<p class="title">{{ props?.text }}</p>`,
+  template: `<p class="title">{{ props()?.text }}</p>`,
 })
 class TestTitleComponent {
-  @Input() props: { text: string } | null = null;
+  readonly props = input<{ text: string } | null>(null);
   @Input() renderNode: ((value: unknown) => unknown) | null = null;
   @Input() statementId: string | undefined = undefined;
 }

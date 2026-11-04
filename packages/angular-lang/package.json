@@ -22,7 +22,7 @@
     "build": "ng-packagr -p ng-package.json",
     "watch": "ng-packagr -p ng-package.json -w",
     "typecheck": "tsc --project tsconfig.lib.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "ngc -p tsconfig.test.json --noEmit false --outDir dist/test && vitest run dist/test --passWithNoTests",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format:fix": "prettier --write ./src",
