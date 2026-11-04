@@ -290,6 +290,12 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
+/** Each parse result's statements as parsed, by name, and its library, for `dataSources`. Not public. */
+export const parsedStatements = new WeakMap<
+  ParseResult,
+  { statements: ReadonlyMap<string, ASTNode>; cat: ParamMap | undefined }
+>();
+
 function buildResult(
   stmtMap: Map<string, Statement>,
   typedStmts: Statement[],
@@ -360,7 +366,7 @@ function buildResult(
   // With no entry nothing is reachable; `no-root` alone describes the problem.
   const orphaned = entry ? [...unreached] : [];
 
-  return {
+  const result: ParseResult = {
     root,
     ...(rootExpression ? { rootExpression } : {}),
     meta: {
@@ -374,6 +380,8 @@ function buildResult(
     queryStatements,
     mutationStatements,
   };
+  parsedStatements.set(result, { statements: syms, cat });
+  return result;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

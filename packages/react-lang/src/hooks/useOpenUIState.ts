@@ -250,6 +250,7 @@ export function useOpenUIState(
 
   const resultRef = useRef(result);
   resultRef.current = result;
+  const getParseResult = useCallback(() => resultRef.current, []);
 
   // ─── Fire onStateUpdate when Store changes ───
   const lastInitSnapshotRef = useRef<Record<string, unknown> | null>(null);
@@ -487,6 +488,8 @@ export function useOpenUIState(
       evaluationContext,
       reportError,
       isQueryLoading,
+      getParseResult,
+      queryManager,
     }),
     [
       library,
@@ -499,6 +502,8 @@ export function useOpenUIState(
       store,
       evaluationContext,
       reportError,
+      getParseResult,
+      queryManager,
       // A store write or new query results give a new value, so memoized components re-render
       storeSnapshot,
       querySnapshot,
