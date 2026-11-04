@@ -392,13 +392,17 @@ function openerCode(tag: string, rest: string): string | null {
   return null;
 }
 
-/** Whether a "..." string is open after this line (escapes honored). */
-function quoteOpenAfter(line: string, open: boolean): boolean {
+/** String and bracket state after a line of code: an open "..." string, and the bracket depth. */
+function scanCode(line: string, state: { open: boolean; depth: number }): void {
   for (let i = 0; i < line.length; i++) {
-    if (open && line[i] === "\\") i++;
-    else if (line[i] === '"') open = !open;
+    const c = line[i];
+    if (state.open) {
+      if (c === "\\") i++;
+      else if (c === '"') state.open = false;
+    } else if (c === '"') state.open = true;
+    else if (c === "(" || c === "[" || c === "{") state.depth++;
+    else if ((c === ")" || c === "]" || c === "}") && state.depth > 0) state.depth--;
   }
-  return open;
 }
 
 /** Whether a block's first code line (after blank and comment lines) starts a statement. */
@@ -413,19 +417,20 @@ export function stripFences(input: string): string {
   const outside: string[] = [];
   let body: string[] | null = null;
   let script = false;
-  let inString = false;
+  const scan = { open: false, depth: 0 };
   for (const line of input.split("\n")) {
-    const fence = inString ? null : FENCE_LINE.exec(line);
+    const fence = scan.open ? null : FENCE_LINE.exec(line);
     if (!fence) {
       if (script) continue;
       (body ?? outside).push(line);
-      // Inside a fence every line is code, so a string can open on an argument line. Outside,
-      // only statement lines open strings, so a prose quote like `5"` is harmless.
-      if (inString || body !== null || STATEMENT_START.test(line)) {
-        inString = quoteOpenAfter(line, inString);
+      // Code lines are scanned for strings: every line inside a fence, and outside one a
+      // statement and its continuation lines, so a quote in prose like `5"` is harmless.
+      if (scan.open || scan.depth > 0 || body !== null || STATEMENT_START.test(line)) {
+        scanCode(line, scan);
       }
       continue;
     }
+    scan.depth = 0; // a fence line ends any statement
     const [, tag = "", rest = ""] = fence;
     if (body !== null) {
       // Any fence line closes an open fence; what follows it on that line is ignored.
