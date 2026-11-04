@@ -93,7 +93,7 @@ describe("parseResponseBundle", () => {
   describe("scripts", () => {
     it("extracts script names without including script definitions in the program", () => {
       const values = [script, { name: "save_sales", code: "async () => null" }];
-      const response = `]]>openui:content\n${program}${scriptsSection(values, 2)}]]>openui:end`;
+      const response = `]]>openui:content\n${program}${scriptsSection(values)}]]>openui:end`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
         program: body,
