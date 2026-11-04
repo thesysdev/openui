@@ -22,7 +22,6 @@ const HOME_LOGOS: Logo[] = [
   { src: "/logos/oodle.svg", alt: "Oodle AI", href: "https://www.oodle.ai/" },
   { src: "/logos/ebay.svg", alt: "eBay", href: "https://www.ebay.com/" },
   { src: "/logos/accenture.svg", alt: "Accenture", href: "https://www.accenture.com/" },
-  { src: "/logos/vendo.svg", alt: "Vendo", href: "https://vendo.run/", yc: true },
   {
     src: "/logos/palo-alto-networks.svg",
     alt: "Palo Alto Networks",

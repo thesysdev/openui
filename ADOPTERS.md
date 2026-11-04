@@ -1,6 +1,6 @@
 # OpenUI Adopters
 
-This list captures the organizations, teams, and frameworks that are using or integrating with OpenUI. If you are an adopter of OpenUI and not yet on this list, we encourage you to add your organization or integration here as well.
+This list captures the organizations and teams that are using OpenUI. If you are an adopter of OpenUI and not yet on this list, we encourage you to add your organization here as well.
 
 The goal for this list is to be a complete and authoritative source for the entire community of OpenUI adopters, and to give inspiration to others that are earlier in their OpenUI journey.
 
@@ -10,7 +10,7 @@ Contributing to this list is a small effort that has a **big impact** on the pro
 
 ## Updating this list
 
-To add your organization or integration to this list, [open a PR](https://github.com/thesysdev/openui/pulls) updating this file, or [edit it directly on GitHub](https://github.com/thesysdev/openui/edit/main/ADOPTERS.md).
+To add your organization to this list, [open a PR](https://github.com/thesysdev/openui/pulls) updating this file, or [edit it directly on GitHub](https://github.com/thesysdev/openui/edit/main/ADOPTERS.md).
 
 ## Companies and teams
 
@@ -34,33 +34,6 @@ Example row, copy and edit:
 | [Acme Inc.](https://acme.example.com) | [@acme-eng](https://github.com/acme-eng) | Customer-facing AI copilot built on OpenUI Lang. |
 -->
 
-## Framework ecosystem
-
-Frameworks that integrate with, support, or generate OpenUI interfaces.
-
-- **assistant-ui** — Renders streaming OpenUI programs as assistant-ui Tool UI while assistant-ui retains control of the conversation and tool lifecycle.
-
-  - Status: `Official integration`
-  - [Documentation](https://www.assistant-ui.com/docs/tools/openui) · [Example](https://github.com/assistant-ui/assistant-ui/tree/main/examples/with-openui)
-
-- **Lynx** — Renders OpenUI Lang as cross-platform interfaces through the OpenUI renderer and component library in `@lynx-js/genui`.
-
-  - Status: `Official integration`
-  - [Documentation](https://lynxjs.org/next/api/genui/index.html)
-
-- **LangChain** — Generates and renders interactive OpenUI dashboards and reports in LangChain and LangGraph applications.
-
-  - Status: `Official integration`
-  - [Documentation](https://docs.langchain.com/oss/python/langchain/frontend/integrations/openui) · [Example](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/langgraph-platform)
-
-- **Mastra** — Connects Mastra agent backends to OpenUI's Agent Interface over AG-UI for streaming tool-powered generative interfaces.
-  - Status: `Official integration`
-  - [Documentation](https://mastra.ai/docs) · [Example](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra)
-
-- **Sage** — Uses the official OpenUI Lang parser with a native Flutter renderer for streaming interactive interfaces in Sage Desktop.
-  - Status: `Community integration`
-  - [Repository](https://github.com/ZHangZHengEric/Sage) · [Documentation](https://github.com/ZHangZHengEric/Sage/blob/v2.1.0/docs/en/applications/DESKTOP.md) · [Parser bridge](https://github.com/ZHangZHengEric/Sage/blob/v2.1.0/app/v2/desktop/backend/openui_runtime/worker.mjs)
-
 ## How to add an entry
 
 For a company or team, open a pull request that adds a row to the table above with:
@@ -69,8 +42,6 @@ For a company or team, open a pull request that adds a row to the table above wi
 - **Contact** — a GitHub handle, email, or link to a blog post / case study / talk. Useful for other adopters reaching out.
 - **Description of Use** — one sentence on what you're building with OpenUI.
 
-For a framework integration, add an entry to the framework ecosystem with:
+## Integrations
 
-- **Framework** — name and a brief description of the OpenUI integration.
-- **Status** — use exactly `Official integration` or `Community integration`.
-- **Links** — repository, documentation, and a working example where available.
+The full list of renderers, frameworks, and other integrations is on the [Integrations](https://www.openui.com/docs/integrations) page.
