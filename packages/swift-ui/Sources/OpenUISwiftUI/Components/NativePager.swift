@@ -253,7 +253,7 @@ struct NativeCardGrid {
   let spacing: CGFloat
   func rows(width: CGFloat, count: Int) -> [Int] {
     guard count > 0 else { return [] }
-    if singleColumn || responsive && width <= 480 { return Array(repeating: 1, count: count) }
+    if responsive && (singleColumn || width <= 480) { return Array(repeating: 1, count: count) }
     if responsive && width <= 768 || maxPerRow == 2 {
       return Array(repeating: 2, count: count / 2) + (count % 2 == 1 ? [1] : [])
     }

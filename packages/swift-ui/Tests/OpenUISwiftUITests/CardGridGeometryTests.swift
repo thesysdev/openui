@@ -26,6 +26,9 @@ final class CardGridGeometryTests: XCTestCase {
     XCTAssertEqual(three.rows(width: 344, count: 3), [3])
     let accessible = NativeCardGrid(maxPerRow: 3, singleColumn: true, spacing: 12)
     XCTAssertEqual(accessible.rows(width: 1040, count: 3), [1, 1, 1])
+    let explicit = NativeCardGrid(maxPerRow: 3, responsive: false, singleColumn: true, spacing: 12)
+    XCTAssertEqual(explicit.rows(width: 344, count: 3), [3],
+      "An explicit responsive=false must retain the declared layout")
   }
 
   func testRowsMeasureTheirContentAndStretchAnOddTrailingItem() {
