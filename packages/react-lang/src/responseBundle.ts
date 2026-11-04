@@ -11,38 +11,12 @@ export interface ResponseMetadata {
 const FENCE_OPEN = /^(`{3,})(openui-[\w-]+)(?: (.*))?$/;
 const PROGRAM_FENCE = "openui-lang";
 const JS_FENCE = "openui-js";
-// Older responses wrote them as a section: `]]>openui:scripts {"count":1}`, then
-// `[{"name":"sales_total","code":"async ({ tools }) => …"}]`. This file cuts the scripts out;
-// parseMessage reads the rest (content, attributes, end).
-const SCRIPTS = "]]>openui:scripts";
+// This file cuts the scripts out; parseMessage reads the rest (content, attributes, end).
 const CONTENT_LINE = /^\]\]>openui:content(?:\?.*)?\r?$(\n?)/m;
-// A scripts line without its JSON would read as a message marker; keep it in the content.
-const BARE_SCRIPTS = /^\]\]>openui:scripts(?=\?|\r?$)/gm;
 
 interface Scripts {
   names: Set<string>;
   revision: string;
-}
-
-// Markers inside DSL/JSON strings are ordinary content.
-function markerIndex(text: string): number {
-  if (!text.includes("]]>")) return -1; // plain DSL: skip the character walk
-  let quote = "";
-  let escaped = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quote) {
-      if (escaped) escaped = false;
-      else if (c === "\\") escaped = true;
-      else if (c === quote) quote = "";
-    } else if (c === "#" || (c === "/" && text[i + 1] === "/")) {
-      const newline = text.indexOf("\n", i);
-      if (newline < 0) return -1;
-      i = newline;
-    } else if (c === '"' || c === "'") quote = c;
-    else if (text.startsWith("]]>", i)) return i;
-  }
-  return -1;
 }
 
 // Script names must be unique; the revision changes with any script's name or code.
@@ -65,18 +39,6 @@ function toScripts(values: unknown[]): Scripts | null {
       .sort((a, b) => a.name.localeCompare(b.name)),
   );
   return { names, revision };
-}
-
-function readScripts(header: string, payload: string): Scripts | null {
-  try {
-    const { count } = JSON.parse(header);
-    const values: unknown = JSON.parse(payload);
-    if (!Array.isArray(values) || !Number.isSafeInteger(count) || count !== values.length)
-      return null;
-    return toScripts(values);
-  } catch {
-    return null;
-  }
 }
 
 // While streaming, a last line like "``" or "```openui-" may still become a fence opener.
@@ -132,34 +94,13 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
   // Framed once a content line is in. A line still streaming does not count yet.
   const line = CONTENT_LINE.exec(text);
   const framed = !!line && (!streaming || line[1] === "\n");
-  const { content, attributes, end } = parseMessage(text.replace(BARE_SCRIPTS, "$& "), {
-    streaming,
-  });
+  const { content, attributes, end } = parseMessage(text, { streaming });
   const last = text.slice(text.lastIndexOf("\n") + 1);
-  const fences = readFences(content, streaming, streaming && !!last && content.endsWith(last));
-  let program = fences.program;
-  let section = fences.fenced;
-  let scripts: Scripts | null = fences.scripts;
-  // An older scripts section is the first marker in the winning content, as Cloud wrote it.
-  const at = section ? -1 : markerIndex(content);
-  if (at >= 0 && content.startsWith(SCRIPTS, at)) {
-    section = true;
-    scripts = null;
-    const newline = content.indexOf("\n", at);
-    let to = content.length;
-    if (newline >= 0) {
-      const next = markerIndex(content.slice(newline + 1));
-      if (next >= 0) to = newline + 1 + next;
-      scripts = readScripts(
-        content.slice(at + SCRIPTS.length, newline),
-        content.slice(newline + 1, to),
-      );
-    }
-    // The newline before the section belongs to its marker (spec 7.2), unless the program is empty.
-    const before = at > 0 ? content.slice(0, at).replace(/\r?\n$/, "") : "";
-    const after = content.slice(to);
-    program = after ? `${before}\n${after}` : before;
-  }
+  const {
+    program,
+    fenced: section,
+    scripts,
+  } = readFences(content, streaming, streaming && !!last && content.endsWith(last));
 
   const metadata: ResponseMetadata = {};
   if (!framed && !section && !end) {
