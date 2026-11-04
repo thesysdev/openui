@@ -1,4 +1,4 @@
-import { completionOver } from "@/lib/benchmark-data";
+import { completionOver, MODELS } from "@/lib/benchmark-data";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { BevelButton } from "../../components/Button/BevelButton";
 import productStyles from "../ProductSection/ProductSection.module.css";
@@ -22,7 +22,7 @@ export function HeroProof() {
             <h3 id="benchmark-title" className={`${productStyles.headline} ${styles.title}`}>
               Up to 2.6x cheaper than JSON.
               <br />
-              Same reliability.
+              Matched or better reliability.
             </h3>
             <div className={`${productStyles.ctas} ${styles.ctas}`}>
               <BevelButton
@@ -48,7 +48,9 @@ export function HeroProof() {
                   suffix="%"
                   delay={200}
                 />
-                <span className={styles.statLabel}>valid screens</span>
+                <span className={styles.statLabel}>
+                  valid screens across {MODELS.length} models
+                </span>
               </div>
             </div>
             <p className={styles.sideNote}>

@@ -21,7 +21,7 @@
 
 </div>
 
-OpenUI is a full-stack, framework-agnostic Generative UI framework built around a compact, streaming-first language. A framework-agnostic core powers first-party runtimes for React, Vue, Svelte, and Angular, and React additionally ships built-in component libraries and ready-to-use chat interfaces. OpenUI Lang is up to 2.6x cheaper than JSON, with the same reliability.
+OpenUI is a full-stack, framework-agnostic Generative UI framework built around a compact, streaming-first language. A framework-agnostic core powers first-party runtimes for React, Vue, Svelte, and Angular, and React additionally ships built-in component libraries and ready-to-use chat interfaces. OpenUI Lang is up to 2.6x cheaper than JSON.
 
 <div align="center">
 
@@ -134,6 +134,7 @@ OpenUI Lang is designed for model-generated UI that needs to be both structured 
 
 - **Streaming output** - Emit UI incrementally as tokens arrive.
 - **Few tokens** - In the [Generative UI benchmark](https://www.openui.com/benchmarks), OpenUI was up to 2.6x cheaper than JSON formats with similar or better validity (96.9%).
+  - Output tokens per screen: OpenUI 1,362, A2UI 2,823, json-render 3,258 ([benchmark data](https://www.openui.com/benchmarks)).
 - **Controlled rendering** - Restrict output to the components you define and register.
 - **Typed component contracts** - Define component props and structure up front with Zod schemas.
 
