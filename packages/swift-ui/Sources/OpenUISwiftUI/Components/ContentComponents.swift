@@ -678,6 +678,8 @@ struct NativeCardItem: View {
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier("openui.card-item." + kind.lowercased())
     .layoutValue(key: OpenUIFlexGrowKey.self, value: true)
+    .layoutValue(key: NativeOverviewMetricKey.self,
+      value: kind == "Overview" && context.value("bottom") != nil && context.value("bottom") != .null)
   }
   @ViewBuilder private var content: some View {
       if let source = artworkSource {
@@ -722,6 +724,7 @@ struct NativeCardItem: View {
         .frame(maxHeight: .infinity, alignment: .topLeading)
         context.slot("bottom").multilineTextAlignment(centeredOverview ? .center : .leading)
           .frame(maxWidth: .infinity, alignment: copyAlignment)
+          .alignmentGuide(.nativeOverviewMetricTop) { _ in 0 }
       case "Context":
         context.slot("title").openUIFont(context.theme.textBodyDefaultHeavy)
         if artworkSource != nil { Spacer(minLength: context.theme.spaceM) }

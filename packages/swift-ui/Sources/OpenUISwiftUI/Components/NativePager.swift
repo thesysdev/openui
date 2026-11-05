@@ -1,6 +1,14 @@
 import SwiftUI
 import Foundation
 
+private enum NativeOverviewMetricTopID: AlignmentID {
+  static func defaultValue(in dimensions: ViewDimensions) -> CGFloat { dimensions[.top] }
+}
+extension VerticalAlignment {
+  static let nativeOverviewMetricTop = VerticalAlignment(NativeOverviewMetricTopID.self)
+}
+struct NativeOverviewMetricKey: LayoutValueKey { static let defaultValue = false }
+
 /// A reading drag must not also activate a child button/link. This metadata
 /// never disables scrolling or continuous bindings, and observes the pager's
 /// existing gesture instead of installing a competing zero-distance drag.
@@ -79,6 +87,7 @@ struct NativePager<ID: Hashable, Content: View>: View {
     }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier(identifier + ".pager")
+    .accessibilityValue(grid == nil && !ids.isEmpty ? "\(index + 1) / \(ids.count)" : "")
     .onChange(of: trackingDrag) { if !$0 { activationIntent.ended() } }
     .modifier(NativePagerAdjustment(enabled: supportsAdjustment) { action in
       switch action {
@@ -203,12 +212,19 @@ private struct NativePagerLayout: Layout {
       width: width, count: count, selected: selected,
       maximumPageWidth: maximumPageWidth, minimumPageWidth: minimumPageWidth, peek: peek, spacing: spacing)
   }
+  private func gridFrames(_ grid: NativeCardGrid, width: CGFloat, subviews: Subviews) -> [CGRect] {
+    grid.frames(width: width, count: subviews.count, metricTop: { index, width in
+      guard subviews[index][NativeOverviewMetricKey.self] else { return nil }
+      return subviews[index].dimensions(in: ProposedViewSize(width: width, height: nil))[
+        explicit: .nativeOverviewMetricTop]
+    }) { index, width in
+      subviews[index].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
+    }
+  }
   func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
     let layout = geometry(proposal, count: subviews.count)
     if let grid {
-      let frames = grid.frames(width: layout.width, count: subviews.count) { index, width in
-        subviews[index].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
-      }
+      let frames = gridFrames(grid, width: layout.width, subviews: subviews)
       return CGSize(width: layout.width, height: frames.map(\.maxY).max() ?? 0)
     }
     let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: layout.pageWidth, height: nil)).height }
@@ -219,9 +235,7 @@ private struct NativePagerLayout: Layout {
   func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
     let layout = geometry(ProposedViewSize(width: bounds.width, height: nil), count: subviews.count)
     if let grid {
-      let frames = grid.frames(width: layout.width, count: subviews.count) { index, width in
-        subviews[index].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
-      }
+      let frames = gridFrames(grid, width: layout.width, subviews: subviews)
       for (view, frame) in zip(subviews, frames) {
         let x = rightToLeft ? bounds.width - frame.maxX : frame.minX
         view.place(at: CGPoint(x: bounds.minX + x, y: bounds.minY + frame.minY),
@@ -271,16 +285,24 @@ struct NativeCardGrid {
     default: return Array(repeating: 3, count: (count - 4) / 3) + [2, 2]
     }
   }
-  func frames(width: CGFloat, count: Int, height: (Int, CGFloat) -> CGFloat) -> [CGRect] {
+  func frames(width: CGFloat, count: Int, metricTop: ((Int, CGFloat) -> CGFloat?)? = nil,
+              height: (Int, CGFloat) -> CGFloat) -> [CGRect] {
     var result: [CGRect] = []
     var y: CGFloat = 0
     for columns in rows(width: width, count: count) {
       let cellWidth = max(1, (width - CGFloat(columns - 1) * spacing) / CGFloat(columns))
-      let rowHeight = (result.count..<(result.count + columns)).map { height($0, cellWidth) }
-        .filter(\.isFinite).max() ?? 0
+      let indices = result.count..<(result.count + columns)
+      let heights = indices.map { height($0, cellWidth) }
+      let anchors = indices.map { metricTop?($0, cellWidth) }
+      let sharedTop = anchors.compactMap { $0 }.filter(\.isFinite).max()
+      let itemHeights = heights.enumerated().map { offset, natural -> CGFloat in
+        guard let sharedTop, let anchor = anchors[offset], anchor.isFinite else { return natural }
+        return natural + max(0, sharedTop - anchor)
+      }
+      let rowHeight = itemHeights.filter(\.isFinite).max() ?? 0
       for column in 0..<columns {
         result.append(CGRect(x: CGFloat(column) * (cellWidth + spacing), y: y,
-          width: cellWidth, height: max(0, rowHeight)))
+          width: cellWidth, height: max(0, anchors[column] == nil ? rowHeight : itemHeights[column])))
       }
       y += max(0, rowHeight) + spacing
     }

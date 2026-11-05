@@ -6,6 +6,48 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class ReadingRhythmTests: XCTestCase {
+  @MainActor func testOverviewMetricStartsAlignWhenOnlyOneDescriptionWraps() throws {
+    _ = NSApplication.shared
+    let frames = OverviewSlotFrames()
+    let standard = try OpenUIStandardComponents.library()
+    let names = ["IconText", "MetricIndicatorInline"]
+    let overrides = try names.map { name -> OpenUIComponent in
+      let definition = try XCTUnwrap(standard.library.components.first { $0.name == name })
+      return OpenUIComponent(definition) { context in
+        Group {
+          if name == "IconText" { NativeMediaText(context: context, media: .icon) }
+          else { NativeMetric(context: context, inline: true) }
+        }.background(GeometryReader { geometry in
+          let key = context.string(name == "IconText" ? "title" : "value") ?? ""
+          Color.clear.onAppear { frames.values[key] = geometry.frame(in: .named("metric-starts")) }
+            .onChange(of: geometry.frame(in: .named("metric-starts"))) { frames.values[key] = $0 }
+        })
+      }
+    }
+    let library = try standard.extending(overriding: overrides)
+    let state = OpenUIState(schema: library.library.toSchema())
+    state.setSource("""
+      root=OverviewCardBlock([
+        OverviewCardItem("a",IconText(Icon("footprints"),"soft","m","步行强度","长城线略高"),MetricIndicatorInline("18 km","每日")),
+        OverviewCardItem("b",IconText(Icon("leaf"),"soft","m","当季看点","银杏、红叶、清透天"),MetricIndicatorInline("17:05","景山最佳拍照位置"))],"grid",true)
+      """)
+    XCTAssertTrue(state.errors.isEmpty)
+    let host = NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
+      .frame(width: 350).coordinateSpace(name: "metric-starts"))
+    let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 350, height: 500),
+      styleMask: [.borderless], backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false; window.contentView = host
+    window.setFrameOrigin(NSPoint(x: -10000, y: -10000)); window.orderFront(nil)
+    defer { window.close() }
+    host.layoutSubtreeIfNeeded(); RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+    let short = try XCTUnwrap(frames.values["18 km"]), long = try XCTUnwrap(frames.values["17:05"])
+    XCTAssertGreaterThan(long.height, short.height + 5, "Only the long description should use another line")
+    XCTAssertEqual(short.minY, long.minY, accuracy: 1,
+      "The propagated metric-top guide must align the value rows without adding a fake text line")
+    XCTAssertEqual(try XCTUnwrap(frames.values["步行强度"]).minY,
+      try XCTUnwrap(frames.values["当季看点"]).minY, accuracy: 1)
+  }
+
   @MainActor func testVerticalSummaryCentersItsIcon() throws {
     _ = NSApplication.shared
     let frames = OverviewSlotFrames()
