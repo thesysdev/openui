@@ -2,7 +2,9 @@
    the faded dither, one dark device running off the bottom edge with its
    label in a notch, and on its screen the dashboard where it lives in the
    product. The scene is drawn at 1584x820 and scaled to the stage. */
-.stage {
+/* The class is doubled so the stage's own frame beats heroArtSpace's
+   generic aspect whatever order the build emits the two modules in. */
+.stage.stage {
   --k: tan(atan2(100cqw, 1584px));
 
   position: relative;
@@ -328,7 +330,7 @@
    device keeps one edge in view: the left for chat and the page, the right
    for the copilot, so the chat stays on screen. */
 @media (max-width: 767px) {
-  .stage {
+  .stage.stage {
     /* Scaled to the stage's width and zoomed 30% past it, in a short stage
        that clips every device at its right and bottom edges. */
     --k: calc(tan(atan2(100cqw, 1280px)) * 1.3);

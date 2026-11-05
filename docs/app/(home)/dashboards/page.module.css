@@ -575,8 +575,9 @@
   }
 
   /* On a phone the comparison is grouped by column instead: all of HTML
-     first, then all of OpenUI, so the table itself stays desktop-only. */
-  .compareTable {
+     first, then all of OpenUI, so the table itself stays desktop-only. The
+     doubled class beats the viz module's display whatever the file order. */
+  .compareTable.compareTable {
     display: none;
   }
 
