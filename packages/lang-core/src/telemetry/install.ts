@@ -45,7 +45,7 @@ export type PackageManagerName = "npm" | "pnpm" | "yarn" | "bun" | "unknown";
 
 export interface InstallTelemetryProperties extends Record<string, unknown> {
   telemetry_schema_version: number;
-  project_id: string;
+  project_id?: string;
   project_id_source: ProjectIdSource;
   lang_core_version: string;
   node_version: string;
@@ -145,13 +145,16 @@ export async function runInstallTelemetry(
     const projectRoot = path.resolve(env["INIT_CWD"] || io.cwd());
     const projectIdentity = resolveProjectIdentity(projectRoot, env, io);
     const packageManager = detectPackageManager(env);
+    const isDocker = io.isDocker();
 
     payload = {
       distinctId: state.distinctId,
       event: INSTALL_EVENT,
       properties: {
         telemetry_schema_version: TELEMETRY_SCHEMA_VERSION,
-        project_id: hashProjectIdentity(PROJECT_ID_SALT, projectIdentity.value),
+        ...(projectIdentity.source === "install_root" && isDocker
+          ? {}
+          : { project_id: hashProjectIdentity(PROJECT_ID_SALT, projectIdentity.value) }),
         project_id_source: projectIdentity.source,
         lang_core_version:
           env["OPENUI_LANG_CORE_PACKAGE_VERSION"] || env["npm_package_version"] || "unknown",
@@ -163,7 +166,7 @@ export async function runInstallTelemetry(
         ...(packageManager.version ? { package_manager_version: packageManager.version } : {}),
         ci: ciInfoIsCI,
         ...(ciInfoId ? { ci_name: ciInfoId } : {}),
-        is_docker: io.isDocker(),
+        is_docker: isDocker,
       },
     };
 
