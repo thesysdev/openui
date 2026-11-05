@@ -13,8 +13,8 @@ importers:
   .:
     dependencies:
       '@openuidev/react-lang':
-        specifier: 1.0.2
-        version: 1.0.2(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4)
+        specifier: 1.1.0
+        version: 1.1.0(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4)
       expo:
         specifier: ~54.0.6
         version: 54.0.37(@babel/core@7.29.7)(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
@@ -746,8 +746,8 @@ packages:
       '@openuidev/react-lang':
         optional: true
 
-  '@openuidev/lang-core@1.0.2':
-    resolution: {integrity: sha512-mxrWXgSmGx9N8ZHFiRgvqCmCH8j3x0PTHJVRvtRPlucxDAihthgMR4W6RXJN5KnCl/5fk1SzcT9JHrvGTKcBFw==}
+  '@openuidev/lang-core@1.1.0':
+    resolution: {integrity: sha512-aeiAmOr3TEWXEaEyUpJtUuz/+l2WUZap07zpn3RpZbUaYHpqB9YPAx23Fgd5UElcZlbg+wrrS4GyWSGcJ7fgyg==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -758,8 +758,8 @@ packages:
   '@openuidev/observability@0.0.4':
     resolution: {integrity: sha512-4fjIrWu3TqTlfDE/m7cG10CH1vV7wQk5GPwMOmXeF9vJtkg92dg4Bdk3AjKgud7H7Xypwwjgt52VcLGZCE2CJQ==}
 
-  '@openuidev/react-lang@1.0.2':
-    resolution: {integrity: sha512-nCNALKj71GmKo5x0dR10hr3LKf88MHxlkVgnsbYQdJTxBd3TbD9wqlgJkBcAZNFD4kPHINJ0iTdUAbR871XWBw==}
+  '@openuidev/react-lang@1.1.0':
+    resolution: {integrity: sha512-Winq28Li/anC6VhY3NhKPFkRudag9fwFlf5IzIysWJ1GkwuTX3jPAEzhYPScBplcVUNngAzkB8QHppWFymb50A==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       react: '*'
@@ -3814,26 +3814,26 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@openuidev/devtools@0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.0.2(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@openuidev/devtools@0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.1.0(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       '@openuidev/observability': 0.0.4
       lucide-react: 0.575.0(react@19.2.0)
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
     optionalDependencies:
-      '@openuidev/react-lang': 1.0.2(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4)
+      '@openuidev/react-lang': 1.1.0(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4)
 
-  '@openuidev/lang-core@1.0.2(zod@4.5.4)':
+  '@openuidev/lang-core@1.1.0(zod@4.5.4)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.5.4
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-lang@1.0.2(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4)':
+  '@openuidev/react-lang@1.1.0(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4)':
     dependencies:
-      '@openuidev/devtools': 0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.0.2(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@openuidev/lang-core': 1.0.2(zod@4.5.4)
+      '@openuidev/devtools': 0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.1.0(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.0))(react@19.2.0)(zod@4.5.4))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@openuidev/lang-core': 1.1.0(zod@4.5.4)
       '@openuidev/observability': 0.0.4
       react: 19.2.0
       zod: 4.5.4
