@@ -1,5 +1,11 @@
 # @openuidev/react-headless
 
+## 0.18.2
+
+### Patch Changes
+
+- [#1487](https://github.com/thesysdev/openui/pull/1487) [`da5ea77`](https://github.com/thesysdev/openui/commit/da5ea770eb4284d8d1a08471d46f5bf6fe6a8b0f) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Stream OpenUI Cloud artifacts by id. The cloud artifact storage can now stream, pin, unpin, delete and rename artifacts, and `OpenUICloudProvider` connects renderers outside `ChatProvider`.
+
 ## 0.18.1
 
 ### Patch Changes
