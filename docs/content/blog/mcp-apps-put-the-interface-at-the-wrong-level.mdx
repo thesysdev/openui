@@ -70,7 +70,20 @@ With separate MCP Apps for each service, the user could see Booking.com's view a
 
 Now suppose you shortlist two hotels and ask to compare them. If the listing interface doesn't support that comparison, the agent may fall back to a Markdown table to bring the information together. The agent can compose the results, but the available interfaces don't give it the same freedom.
 
-![Separate hotel and map interfaces leave the combined recommendation—reviews, distance, policy, and preference—without one owner.](/images/blog/mcp-apps/03-who-owns-ui.svg)
+<figure>
+
+<Image
+  src="/images/blog/mcp-apps/03-who-owns-ui.webp"
+  alt="A Claude conversation recommending Hotel Niwa Tokyo, with a Booking.com MCP App listing hotels and a Google Maps MCP App showing an 18-minute route to the venue side by side. The rating, policy limit, and quiet-stay preference are highlighted in the text because neither app shows them."
+  width={2200}
+  height={1224}
+  className="rounded-lg"
+  unoptimized
+/>
+
+<figcaption>Two MCP Apps, one recommendation: Booking.com shows prices and Google Maps shows the route, but the reasons for the choice appear only in the agent's text.</figcaption>
+
+</figure>
 
 ## Sometimes the tool is the right place
 
