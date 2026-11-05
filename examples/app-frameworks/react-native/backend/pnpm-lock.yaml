@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       '@openuidev/lang-core':
-        specifier: 1.0.2
-        version: 1.0.2(zod@4.4.3)
+        specifier: 1.1.0
+        version: 1.1.0(zod@4.4.3)
       next:
         specifier: ^15.5.27
         version: 15.5.28(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -571,8 +571,8 @@ packages:
     resolution: {integrity: sha512-JhJSdPB+ubycQpW8v0hWQmTs7WcH65RE3pDGHZqSkGJRVVsFPls6S8p2VU8DuDdwpih/iM3AdaRu+yWAu1EqyA==}
     hasBin: true
 
-  '@openuidev/lang-core@1.0.2':
-    resolution: {integrity: sha512-mxrWXgSmGx9N8ZHFiRgvqCmCH8j3x0PTHJVRvtRPlucxDAihthgMR4W6RXJN5KnCl/5fk1SzcT9JHrvGTKcBFw==}
+  '@openuidev/lang-core@1.1.0':
+    resolution: {integrity: sha512-aeiAmOr3TEWXEaEyUpJtUuz/+l2WUZap07zpn3RpZbUaYHpqB9YPAx23Fgd5UElcZlbg+wrrS4GyWSGcJ7fgyg==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -1229,7 +1229,7 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/lang-core@1.0.2(zod@4.4.3)':
+  '@openuidev/lang-core@1.1.0(zod@4.4.3)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.4.3

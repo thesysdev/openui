@@ -12,17 +12,17 @@ importers:
   .:
     dependencies:
       '@openuidev/lang-core':
-        specifier: 1.0.2
-        version: 1.0.2(zod@4.5.4)
+        specifier: 1.1.0
+        version: 1.1.0(zod@4.5.4)
       '@openuidev/react-email':
         specifier: 0.4.0
-        version: 0.4.0(@openuidev/react-lang@1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
+        version: 0.4.0(@openuidev/react-lang@1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@openuidev/react-headless':
-        specifier: 0.18.1
-        version: 0.18.1(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.18.4
+        version: 0.18.4(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang':
-        specifier: 1.0.2
-        version: 1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
+        specifier: 1.1.0
+        version: 1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@react-email/components':
         specifier: ^0.0.41
         version: 0.0.41(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -804,8 +804,8 @@ packages:
       '@openuidev/react-lang':
         optional: true
 
-  '@openuidev/lang-core@1.0.2':
-    resolution: {integrity: sha512-mxrWXgSmGx9N8ZHFiRgvqCmCH8j3x0PTHJVRvtRPlucxDAihthgMR4W6RXJN5KnCl/5fk1SzcT9JHrvGTKcBFw==}
+  '@openuidev/lang-core@1.1.0':
+    resolution: {integrity: sha512-aeiAmOr3TEWXEaEyUpJtUuz/+l2WUZap07zpn3RpZbUaYHpqB9YPAx23Fgd5UElcZlbg+wrrS4GyWSGcJ7fgyg==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -824,8 +824,8 @@ packages:
       react-dom: ^18.0.0 || ^19.0.0
       zod: ^3.25.0 || ^4.0.0
 
-  '@openuidev/react-headless@0.18.1':
-    resolution: {integrity: sha512-JG1mZwltU6O/AoV61FLy3SpnURK0y5ZTRqZ7jgCsHakwLQ9QzN/GZ6sY6Yvkc96VP2qLyoMlae0HIyJzcRad/w==}
+  '@openuidev/react-headless@0.18.4':
+    resolution: {integrity: sha512-wykyVp86KpbGcHeZvIbDAeIUuvcblTYB18x4nJbnY67sf6Ku546umZQqiBsu5yMLtwilzCOssow7neaVpt+JVw==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -834,8 +834,8 @@ packages:
       ai:
         optional: true
 
-  '@openuidev/react-lang@1.0.2':
-    resolution: {integrity: sha512-nCNALKj71GmKo5x0dR10hr3LKf88MHxlkVgnsbYQdJTxBd3TbD9wqlgJkBcAZNFD4kPHINJ0iTdUAbR871XWBw==}
+  '@openuidev/react-lang@1.1.0':
+    resolution: {integrity: sha512-Winq28Li/anC6VhY3NhKPFkRudag9fwFlf5IzIysWJ1GkwuTX3jPAEzhYPScBplcVUNngAzkB8QHppWFymb50A==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       react: '*'
@@ -3404,41 +3404,41 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/devtools@0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@openuidev/devtools@0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
       '@openuidev/observability': 0.0.4
       lucide-react: 0.575.0(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     optionalDependencies:
-      '@openuidev/react-lang': 1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
+      '@openuidev/react-lang': 1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
 
-  '@openuidev/lang-core@1.0.2(zod@4.5.4)':
+  '@openuidev/lang-core@1.1.0(zod@4.5.4)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.5.4
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-email@0.4.0(@openuidev/react-lang@1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)':
+  '@openuidev/react-email@0.4.0(@openuidev/react-lang@1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)':
     dependencies:
-      '@openuidev/react-lang': 1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
+      '@openuidev/react-lang': 1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@react-email/components': 0.0.41(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       zod: 4.5.4
 
-  '@openuidev/react-headless@0.18.1(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-headless@0.18.4(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4
       react: 19.2.3
       zustand: 4.5.7(@types/react@19.2.18)(react@19.2.3)
 
-  '@openuidev/react-lang@1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)':
+  '@openuidev/react-lang@1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)':
     dependencies:
-      '@openuidev/devtools': 0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.0.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@openuidev/lang-core': 1.0.2(zod@4.5.4)
+      '@openuidev/devtools': 0.3.1(@openuidev/observability@0.0.4)(@openuidev/react-lang@1.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@openuidev/lang-core': 1.1.0(zod@4.5.4)
       '@openuidev/observability': 0.0.4
       react: 19.2.3
       zod: 4.5.4
