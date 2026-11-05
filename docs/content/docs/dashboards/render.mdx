@@ -1,0 +1,171 @@
+---
+title: Render a dashboard
+description: Show a dashboard with LiveArtifactRenderer, from a tool response or an id.
+---
+
+`LiveArtifactRenderer` shows a dashboard in the browser. It sends the dashboard's data requests to your interpreter route, and switches to the new version after an edit.
+
+```tsx title="components/dashboard.tsx"
+"use client";
+
+import { library } from "@openuidev/dashboard-library";
+import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
+
+export function Dashboard({ response }: { response: string }) {
+  return (
+    <LiveArtifactRenderer
+      response={response}
+      library={library}
+      interpreter={{ url: "/api/interpreter" }}
+    />
+  );
+}
+```
+
+The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser), which supplies the user's frontend token.
+
+## Props
+
+| Prop                                    | Description                                                                                             |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `response`                              | The response from `create` or `edit`, unchanged.                                                        |
+| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list. |
+| `library`                               | The component library. Use the same library the spec on the server came from.                           |
+| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.        |
+| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.             |
+| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                      |
+| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                    |
+| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                          |
+| `onError`                               | Receives rendering, query, and loading errors.                                                          |
+| `className`                             | Added to the root element.                                                                              |
+
+## Layouts
+
+### Card in the chat
+
+By default, the renderer shows a card with the dashboard's title and status. Clicking it opens the dashboard under the card.
+
+```tsx
+<LiveArtifactRenderer response={response} library={library} interpreter={interpreter} />
+```
+
+### Side panel
+
+Pass the panel's element as `renderInHtmlElement`. The card stays in the chat, and the dashboard opens in the panel:
+
+```tsx
+const [panel, setPanel] = useState<HTMLElement | null>(null);
+
+<>
+  <Chat>
+    <LiveArtifactRenderer
+      response={response}
+      library={library}
+      interpreter={interpreter}
+      renderInHtmlElement={panel}
+    />
+  </Chat>
+  <aside ref={setPanel} />
+</>;
+```
+
+### In place
+
+With `preview={false}`, the dashboard renders where the renderer is, without a card. Use it for a full page or a panel the app manages itself:
+
+```tsx
+<LiveArtifactRenderer id={id} library={library} interpreter={interpreter} preview={false} />
+```
+
+In this mode the renderer draws no frame unless a `Chrome` slot is passed. See [Slots](#slots).
+
+## Slots
+
+Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
+
+| Slot                                                          | Region  | What it is                                                                         |
+| ------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `Preview`                                                     | Preview | The card that opens the dashboard.                                                 |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`         | Preview | The card's parts.                                                                  |
+| `Chrome`                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                      |
+| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                   |
+| `Content`                                                     | Chrome  | The dashboard itself.                                                              |
+| `Loading`, `Error`                                            | Content | Shown only while the dashboard loads or after it fails, even with custom children. |
+
+For example, a full-height panel with its own header:
+
+```tsx
+<LiveArtifactRenderer id={id} library={library} interpreter={interpreter} preview={false}>
+  <LiveArtifactRenderer.Chrome>
+    <header className="panel-header">
+      <LiveArtifactRenderer.ChromeTitle />
+      <StatusBadge />
+    </header>
+    <LiveArtifactRenderer.Content className="panel-body">
+      <LiveArtifactRenderer.Loading label="Loading live data…" />
+      <LiveArtifactRenderer.Error>
+        <DashboardError />
+      </LiveArtifactRenderer.Error>
+    </LiveArtifactRenderer.Content>
+  </LiveArtifactRenderer.Chrome>
+</LiveArtifactRenderer>
+```
+
+Slots render only in their region: `ChromeTitle` outside `Chrome` renders nothing.
+
+## Renderer state
+
+`useArtifactRenderer()` returns the renderer's state inside any slot:
+
+```tsx
+import { useArtifactRenderer } from "@openuidev/react-ui/cloud";
+
+function StatusBadge() {
+  const { isStreaming, isFetching, error } = useArtifactRenderer();
+  if (error) return <span>Couldn't load</span>;
+  if (isStreaming) return <span>Generating</span>;
+  if (isFetching) return <span>Loading data</span>;
+  return <span>Live</span>;
+}
+
+function DashboardError() {
+  const { error, retry } = useArtifactRenderer();
+  return (
+    <div role="alert">
+      <p>
+        {error?.source === "query" ? "Some data didn't load." : "This dashboard couldn't be shown."}
+      </p>
+      {retry && <button onClick={retry}>Try again</button>}
+    </div>
+  );
+}
+```
+
+| Field                     | Description                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `id`, `title`             | The dashboard's id and title.                                                |
+| `isStreaming`             | The dashboard is being generated.                                            |
+| `isFetching`              | Its queries are running.                                                     |
+| `isLoading`               | Either of the two.                                                           |
+| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`). |
+| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                |
+| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                               |
+| `preview`                 | Whether the renderer has a card.                                             |
+
+## Theme
+
+`ThemeProvider` from `@openuidev/dashboard-library` sets the components' mode, `"light"` (default) or `"dark"`, and takes `lightTheme` and `darkTheme` overrides. It's optional.
+
+## Interpreter as a function
+
+`interpreter` also takes an async function, such as a server action. It receives the request and returns the result:
+
+```tsx
+<LiveArtifactRenderer
+  response={response}
+  library={library}
+  interpreter={(request) => runQuery(request)}
+/>
+```
+
+The request has `id`, `version`, `name`, and `arguments`. Pass it to `dashboards.interpreter.execute()` on the server, as in the [interpreter route](/docs/dashboards/connect-data#add-the-interpreter-route).

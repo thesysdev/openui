@@ -1,0 +1,160 @@
+---
+title: Connect data
+description: Define the data tools dashboards call, connect MCP servers, and run queries through an interpreter route.
+---
+
+A dashboard loads its data through data tools: functions on your server that return JSON. The model sees each tool's description, arguments, and an example output when it builds the dashboard. The browser runs the tools through an interpreter route on your server every time the dashboard opens.
+
+To derive data, the model can also write a script that calls several tools and combines their results. Scripts run in the OpenUI interpreter for safe execution, and can only call the tools passed to `defineDashboard`.
+
+## Define a data tool
+
+A data tool has four fields:
+
+| Field         | Description                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| `description` | What the tool returns and when to use it.                                                            |
+| `parameters`  | A JSON Schema for the arguments.                                                                     |
+| `output`      | An example result. The model reads its shape to bind components to fields. It's never shown as data. |
+| `execute`     | `(args, context, { signal })`, which returns the result. Runs on your server.                        |
+
+For example, a tool that returns orders per day:
+
+```ts title="lib/data.ts"
+import type { DataTool } from "@openuidev/server";
+import { z } from "zod";
+
+const ordersByDay = z.object({
+  days: z.number().int().min(1).max(365).describe("How many days back to include."),
+  status: z.enum(["paid", "refunded", "all"]).optional(),
+});
+
+export const dataTools: Record<string, DataTool> = {
+  get_orders_by_day: {
+    description: "Order count and revenue per day, newest last. Revenue is in USD cents.",
+    parameters: z.toJSONSchema(ordersByDay),
+    output: {
+      days: [
+        { date: "2026-10-30", orders: 412, revenue: 3_840_500 },
+        { date: "2026-10-31", orders: 398, revenue: 3_712_000 },
+      ],
+    },
+    execute: async (args, context, { signal }) => {
+      const { days, status = "all" } = ordersByDay.parse(args);
+      return { days: await db.ordersByDay({ days, status, signal }) };
+    },
+  },
+};
+```
+
+Pass the tools to `defineDashboard`:
+
+```ts title="lib/openui.ts"
+export const dashboards = openui.defineDashboard({
+  library: spec,
+  model: "anthropic/claude-sonnet-4.6",
+  tools: dataTools,
+});
+```
+
+### Guidelines
+
+- **Keep `output` static:** Defining the dashboard never calls a tool, so the example has to be written out. Match the real shape exactly, including nesting and field names.
+- **Read arguments leniently:** A filter nobody has picked yet arrives as `""` or `null`. Treat those as unset, and clamp limits instead of rejecting them.
+- **Return only what the dashboard needs:** Results go to the browser as is.
+- **Honor `signal`:** It aborts when the dashboard's request ends or the time budget runs out.
+- **Prefer read-only tools:** A dashboard runs its queries on every view, and scripts can call any tool in the list.
+
+## Use the context
+
+`execute` receives the `context` passed to the interpreter, unchanged. Use it to return only the data the signed-in user may see:
+
+```ts
+execute: async (args, context, { signal }) => {
+  const { days } = ordersByDay.parse(args);
+  return { days: await db.ordersByDay({ days, accountId: context.accountId, signal }) };
+},
+```
+
+Type the context with a generic so the fields are checked:
+
+```ts
+type Context = { userId: string; accountId: string };
+
+export const dataTools: Record<string, DataTool<Context>> = {/* … */};
+
+export const dashboards = openui.defineDashboard<Context>({/* … */});
+```
+
+## MCP servers
+
+`mcp` offers an MCP server's tools to dashboards alongside, or instead of, your own. Pass a connected client, such as `Client` from `@modelcontextprotocol/sdk`:
+
+```ts title="lib/openui.ts"
+export const dashboards = openui.defineDashboard({
+  library: spec,
+  model: "anthropic/claude-sonnet-4.6",
+  tools: dataTools,
+  mcp: {
+    client: mcpClient,
+    outputs: {
+      list_invoices: { invoices: [{ id: "in_1", amount_due: 12000, status: "open" }] },
+    },
+  },
+});
+```
+
+The server's tools are listed on first use. By default, only the tools it marks read-only (`readOnlyHint`) are offered.
+
+| Option    | Description                                                                                   |
+| --------- | --------------------------------------------------------------------------------------------- |
+| `client`  | The MCP client.                                                                               |
+| `include` | Tool names, or a filter function, to offer instead of the read-only default.                  |
+| `outputs` | Example outputs by tool name, so the model knows the shape of each result.                    |
+| `connect` | `(context) => client`, for a client with the signed-in user's credentials. Default: `client`. |
+
+Pass an array to connect several servers. Optional arguments that arrive as `""` or `null` are left out before the call, since MCP servers validate strictly.
+
+## Add the interpreter route
+
+The renderer sends each of the dashboard's data requests to an interpreter route as a POST request. The route passes the request to `dashboards.interpreter.execute()` with the signed-in user, and returns `{ result }`:
+
+```ts title="app/api/interpreter/route.ts"
+import { OpenUIApiError, ToolExecutionError } from "@openuidev/server";
+import { dashboards } from "@/lib/openui";
+import { getSession } from "@/lib/auth"; // your session lookup
+
+export async function POST(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  try {
+    const result = await dashboards.interpreter.execute(
+      await request.json(),
+      { userId: session.user.id },
+      { signal: request.signal },
+    );
+    return Response.json({ result });
+  } catch (error) {
+    const known = error instanceof ToolExecutionError || error instanceof OpenUIApiError;
+    return Response.json(
+      {
+        error: {
+          code: known ? error.code : "internal_error",
+          message: error instanceof Error ? error.message : String(error),
+        },
+      },
+      { status: known ? (error.status ?? 500) : 500 },
+    );
+  }
+}
+```
+
+`execute` runs the named data tool directly. When the name is a generated script, it runs the script in the OpenUI interpreter for safe execution. The script calls your tools on this server through the same handlers. Scripts run only for the dashboard's owner.
+
+| Option      | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| `signal`    | Cancels the call.                                            |
+| `timeoutMs` | The total time budget, including your tools. Default: 60000. |
+
+Errors keep a stable `code`, such as `tool_not_found` or `tool_timeout`, and an HTTP `status`. The renderer shows the message in the dashboard's error slot.

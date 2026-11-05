@@ -1,0 +1,347 @@
+---
+title: Add to your agent
+description: Give an agent create_dashboard and edit_dashboard tools, and render their results in the chat.
+---
+
+An agent creates and edits dashboards through two tools: `create_dashboard` calls [`dashboards.create()`](/docs/dashboards/generate), and `edit_dashboard` calls [`dashboards.edit()`](/docs/dashboards/edit). Each tool returns the response unchanged. The chat renders the tool result with `LiveArtifactRenderer`.
+
+The agent keeps its existing tools and model. The data tools stay with the dashboard definition: the agent never calls them.
+
+This page assumes [Authentication](/docs/dashboards/authentication), [Define dashboards](/docs/dashboards/define-dashboards), and [Connect data](/docs/dashboards/connect-data) are set up.
+
+## Add the create tool
+
+The tool takes a title and a prompt, and passes them to `dashboards.create()` with the signed-in user.
+
+<Tabs items={["OpenAI SDK", "Vercel AI SDK"]}>
+  <Tab value="OpenAI SDK">
+
+```ts title="lib/dashboard-tools.ts"
+import type OpenAI from "openai";
+import { dashboards } from "./openui";
+
+export const createDashboardTool: OpenAI.ChatCompletionTool = {
+  type: "function",
+  function: {
+    name: "create_dashboard",
+    description:
+      "Create a live dashboard. It loads its data every time it opens, so describe which data to show and how, without numbers. Returns as soon as the dashboard has an id.",
+    parameters: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: 'A short title, such as "Orders, last 30 days".' },
+        prompt: {
+          type: "string",
+          description:
+            "What to build: the sections, metrics, charts, tables, and filters, and which data each shows.",
+        },
+      },
+      required: ["title", "prompt"],
+    },
+  },
+};
+```
+
+  </Tab>
+  <Tab value="Vercel AI SDK">
+
+```ts title="lib/dashboard-tools.ts"
+import { tool } from "ai";
+import { z } from "zod";
+import { dashboards } from "./openui";
+
+export function dashboardTools(context: { userId: string }) {
+  return {
+    create_dashboard: tool({
+      description:
+        "Create a live dashboard. It loads its data every time it opens, so describe which data to show and how, without numbers. Returns as soon as the dashboard has an id.",
+      inputSchema: z.object({
+        title: z.string().min(1).describe('A short title, such as "Orders, last 30 days".'),
+        prompt: z
+          .string()
+          .min(1)
+          .describe(
+            "What to build: the sections, metrics, charts, tables, and filters, and which data each shows.",
+          ),
+      }),
+      execute: ({ title, prompt }, { abortSignal }) =>
+        dashboards.create({ title, prompt }, context, { signal: abortSignal }),
+    }),
+    // edit_dashboard: see below
+  };
+}
+```
+
+  </Tab>
+</Tabs>
+
+## Add the edit tool
+
+The tool takes the dashboard's id and the change. The model reads the id from the earlier `create_dashboard` result.
+
+<Tabs items={["OpenAI SDK", "Vercel AI SDK"]}>
+  <Tab value="OpenAI SDK">
+
+```ts title="lib/dashboard-tools.ts"
+export const editDashboardTool: OpenAI.ChatCompletionTool = {
+  type: "function",
+  function: {
+    name: "edit_dashboard",
+    description:
+      "Change a dashboard in place, such as adding a chart or a section. Returns as soon as the change has started.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "The dashboard's id, art_…, from its tool result." },
+        prompt: { type: "string", description: "The change to make." },
+      },
+      required: ["id", "prompt"],
+    },
+  },
+};
+
+export const dashboardTools = [createDashboardTool, editDashboardTool];
+
+/** Runs a dashboard tool call and returns its result for the tool message. */
+export function runDashboardTool(
+  call: OpenAI.ChatCompletionMessageFunctionToolCall,
+  context: { userId: string },
+  signal?: AbortSignal,
+): Promise<string> {
+  const args = JSON.parse(call.function.arguments);
+  switch (call.function.name) {
+    case "create_dashboard":
+      return dashboards.create({ title: args.title, prompt: args.prompt }, context, { signal });
+    case "edit_dashboard":
+      return dashboards.edit({ id: args.id, prompt: args.prompt }, context, { signal });
+    default:
+      throw new Error(`Unknown tool: ${call.function.name}`);
+  }
+}
+```
+
+  </Tab>
+  <Tab value="Vercel AI SDK">
+
+```ts title="lib/dashboard-tools.ts"
+export function dashboardTools(context: { userId: string }) {
+  return {
+    create_dashboard: tool({/* … */}),
+    edit_dashboard: tool({
+      description:
+        "Change a dashboard in place, such as adding a chart or a section. Returns as soon as the change has started.",
+      inputSchema: z.object({
+        id: z.string().min(1).describe("The dashboard's id, art_…, from its tool result."),
+        prompt: z.string().min(1).describe("The change to make."),
+      }),
+      execute: ({ id, prompt }, { abortSignal }) =>
+        dashboards.edit({ id, prompt }, context, { signal: abortSignal }),
+    }),
+  };
+}
+```
+
+  </Tab>
+</Tabs>
+
+## Call the tools from the chat route
+
+Pass the tools to the model with the signed-in user, and return each tool's response as its result.
+
+<Tabs items={["OpenAI SDK", "Vercel AI SDK"]}>
+  <Tab value="OpenAI SDK">
+
+```ts title="app/api/chat/route.ts"
+import OpenAI from "openai";
+import { dashboardTools, runDashboardTool } from "@/lib/dashboard-tools";
+import { getSession } from "@/lib/auth"; // your session lookup
+import { systemPrompt } from "@/lib/prompt";
+
+const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+export async function POST(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+  const context = { userId: session.user.id };
+
+  const { messages } = (await request.json()) as {
+    messages: OpenAI.ChatCompletionMessageParam[];
+  };
+  const history: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+    ...messages,
+  ];
+
+  for (let step = 0; step < 4; step++) {
+    const completion = await gateway.chat.completions.create({
+      model: "openai/gpt-5.5",
+      messages: history,
+      tools: dashboardTools,
+    });
+    const message = completion.choices[0].message;
+    history.push(message);
+    if (!message.tool_calls?.length) break;
+
+    for (const call of message.tool_calls) {
+      if (call.type !== "function") continue;
+      history.push({
+        role: "tool",
+        tool_call_id: call.id,
+        content: await runDashboardTool(call, context, request.signal),
+      });
+    }
+  }
+
+  return Response.json({ messages: history.slice(1) });
+}
+```
+
+  </Tab>
+  <Tab value="Vercel AI SDK">
+
+```ts title="app/api/chat/route.ts"
+import { createOpenAI } from "@ai-sdk/openai";
+import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
+import { dashboardTools } from "@/lib/dashboard-tools";
+import { getSession } from "@/lib/auth"; // your session lookup
+import { systemPrompt } from "@/lib/prompt";
+
+const gateway = createOpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+export async function POST(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const { messages } = (await request.json()) as { messages: UIMessage[] };
+  const tools = dashboardTools({ userId: session.user.id });
+
+  const result = streamText({
+    model: gateway.chat("openai/gpt-5.5"),
+    system: systemPrompt,
+    messages: await convertToModelMessages(messages, { tools }),
+    tools,
+    stopWhen: stepCountIs(4),
+    abortSignal: request.signal,
+  });
+  return result.toUIMessageStreamResponse();
+}
+```
+
+  </Tab>
+</Tabs>
+
+The tools return as soon as the dashboard has an id, so the model replies right away while the dashboard is generated in the browser.
+
+## Instruct the agent
+
+Add guidance for the dashboard tools to the agent's system prompt:
+
+```ts title="lib/prompt.ts"
+export const systemPrompt = `You help the team understand the store's orders, customers, and refunds.
+
+Dashboards load their own data from these tools every time they open:
+- get_orders_by_day: order count and revenue per day
+- get_top_customers: customers ranked by revenue
+
+- When the user asks for a dashboard, call create_dashboard with a short title and a prompt describing the sections, metrics, charts, tables, and filters, and which data each shows. Don't put numbers in the prompt.
+- To change a dashboard, call edit_dashboard with the id from the tool result that created it. "It" means the latest dashboard. Create a new one only when asked.
+- The user watches the dashboard being built. Don't repeat the tool result.
+- After a tool call, reply in one or two sentences: what the dashboard shows and one change they could ask for.
+- You can't see the data, so don't state numbers.`;
+```
+
+Listing the data tools tells the agent what dashboards can show, so it can turn down requests outside that data.
+
+## Render the tool result
+
+Render each dashboard tool result with `LiveArtifactRenderer`, passing the result as `response`. See [Render a dashboard](/docs/dashboards/render) for layouts and slots.
+
+<Tabs items={["OpenAI SDK", "Vercel AI SDK"]}>
+  <Tab value="OpenAI SDK">
+
+```tsx title="components/message.tsx"
+"use client";
+
+import { library } from "@openuidev/dashboard-library";
+import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
+import type OpenAI from "openai";
+
+const DASHBOARD_TOOLS = new Set(["create_dashboard", "edit_dashboard"]);
+
+export function Messages({ messages }: { messages: OpenAI.ChatCompletionMessageParam[] }) {
+  // Which tool each tool message answers.
+  const toolNames = new Map<string, string>();
+  for (const message of messages) {
+    if (message.role !== "assistant") continue;
+    for (const call of message.tool_calls ?? []) {
+      if (call.type === "function") toolNames.set(call.id, call.function.name);
+    }
+  }
+
+  return messages.map((message, index) => {
+    if (message.role === "tool" && DASHBOARD_TOOLS.has(toolNames.get(message.tool_call_id) ?? "")) {
+      return (
+        <LiveArtifactRenderer
+          key={message.tool_call_id}
+          response={message.content as string}
+          library={library}
+          interpreter={{ url: "/api/interpreter" }}
+        />
+      );
+    }
+    if (message.role === "user" || message.role === "assistant") {
+      return message.content ? <p key={index}>{String(message.content)}</p> : null;
+    }
+    return null;
+  });
+}
+```
+
+  </Tab>
+  <Tab value="Vercel AI SDK">
+
+```tsx title="components/message.tsx"
+"use client";
+
+import { library } from "@openuidev/dashboard-library";
+import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
+import type { UIMessage } from "ai";
+
+export function Message({ message }: { message: UIMessage }) {
+  return message.parts.map((part, index) => {
+    if (part.type === "text") return <p key={index}>{part.text}</p>;
+
+    if (part.type === "tool-create_dashboard" || part.type === "tool-edit_dashboard") {
+      if (part.state === "output-available") {
+        return (
+          <LiveArtifactRenderer
+            key={part.toolCallId}
+            response={part.output as string}
+            library={library}
+            interpreter={{ url: "/api/interpreter" }}
+          />
+        );
+      }
+      if (part.state === "output-error") return <p key={index}>Couldn't start the dashboard.</p>;
+      return <p key={index}>Starting the dashboard…</p>;
+    }
+
+    return null;
+  });
+}
+```
+
+  </Tab>
+</Tabs>
+
+An edit's result renders as a second card for the same dashboard. Both cards show the new version once it's ready.
+
+## Reload the chat
+
+The tool result holds the dashboard's reference. Save it with the rest of the message, and the card renders again when the chat loads, showing the dashboard's latest version.
