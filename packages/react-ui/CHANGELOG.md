@@ -1,5 +1,13 @@
 # @openuidev/react-ui
 
+## 0.18.4
+
+### Patch Changes
+
+- [#1565](https://github.com/thesysdev/openui/pull/1565) [`18af788`](https://github.com/thesysdev/openui/commit/18af78876e0f49813b4089cc09be6ce16d1c7666) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Cloud artifact renderers read the artifact reference from OpenUI Cloud's content line (`]]>openui:content?artifact_id=…`) in a tool response.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.18.4
+
 ## 0.18.3
 
 ### Patch Changes
