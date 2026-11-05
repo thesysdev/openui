@@ -2,6 +2,10 @@
    Studio from the Marketing dashboard, Vivid from Support Analytics, Grid
    from the overview, in light. */
 .look {
+  /* The scene's ground: a subtle grey under the white cards and boards.
+     Dark mode folds it back into the page colour. */
+  --ground: #fafafa;
+  --ground-phone: #f7f7f8;
   --sunk: #f7f7f9;
   --chip: #fff;
   --segment: #e7e9ed;
@@ -85,6 +89,8 @@
 
 /* Dark pages get the dark version of each look. */
 :global([data-theme="dark"]) .look {
+  --ground: var(--page);
+  --ground-phone: var(--page);
   --sunk: #1d1e22;
   --chip: #26272c;
   --segment: #26272c;
@@ -162,7 +168,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 46px 28px 0;
-  background: var(--page);
+  background: var(--ground);
 }
 
 .left {
@@ -1176,7 +1182,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 64px 18px 0;
-  background: var(--page);
+  background: var(--ground-phone);
 }
 
 .bar {

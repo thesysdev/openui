@@ -1007,11 +1007,6 @@
   animation-play-state: var(--tab-fill-play, running);
 }
 
-.tabs:hover .tabActive::before,
-.tabs:focus-within .tabActive::before {
-  animation-play-state: paused;
-}
-
 @keyframes tabFill {
   to {
     transform: scaleX(1);
@@ -1823,7 +1818,7 @@
     .root {
       font-size: 0.5625rem;
       --sc-small-height: 28em;
-      --sc-height: 37em;
+      --sc-height: 39em;
     }
 
     /* The "Without" sits a touch lower and the big panel pulls up higher
@@ -1844,21 +1839,6 @@
       margin-top: 2.5em;
     }
 
-    /* A wash of the page colour over the top edge, dissolving downwards. */
-    .root:not(.rootSingle) {
-      position: relative;
-    }
-
-    .root:not(.rootSingle)::before {
-      content: "";
-      position: absolute;
-      z-index: 2;
-      inset: 0 0 auto;
-      height: 7em;
-      pointer-events: none;
-      background: linear-gradient(to bottom, var(--openui-background, #fff), transparent);
-    }
-
     .root:not(.rootSingle) .panel:first-child .response {
       background: transparent;
     }
@@ -1871,7 +1851,7 @@
     /* A single-panel example takes the same total height as the stacked
        pair, so switching tabs never shifts the page. */
     .root.rootSingle {
-      --sc-height: calc(37em + var(--sc-small-height) * var(--sc-small-scale) - 6em);
+      --sc-height: calc(39em + var(--sc-small-height) * var(--sc-small-scale) - 6em);
     }
 
     /* More room inside the single-panel preview (Dashboards): a wider inset

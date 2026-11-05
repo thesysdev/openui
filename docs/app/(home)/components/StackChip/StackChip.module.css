@@ -267,7 +267,7 @@
 /* One stroke only: the plain border, nothing layered on top of it. */
 .badgePlainFine {
   border-width: 0.5px;
-  border-color: rgb(0 0 0 / 0.06);
+  border-color: rgb(0 0 0 / 0.12);
 }
 
 [data-theme="dark"] .badgePlainFine {

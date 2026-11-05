@@ -217,11 +217,13 @@
   border-radius: 10px;
   /* White in light mode; dark keeps the tint. */
   background: #fff;
+  border: 1px solid rgb(0 0 0 / 0.06);
   color: var(--feat-muted);
 }
 
 :global([data-theme="dark"]) .layer {
   background: var(--tint);
+  border-color: rgb(255 255 255 / 0.08);
 }
 
 .layerHero {
@@ -387,11 +389,13 @@
   border-radius: 8px;
   /* White in light mode; dark keeps the tint. */
   background: #fff;
+  border: 1px solid rgb(0 0 0 / 0.06);
   color: var(--feat-ink);
 }
 
 :global([data-theme="dark"]) .sievePill {
   background: var(--tint);
+  border-color: rgb(255 255 255 / 0.08);
 }
 
 /* The AppLess caret run, sweeping toward the tile. */

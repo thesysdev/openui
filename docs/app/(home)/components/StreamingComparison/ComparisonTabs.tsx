@@ -28,8 +28,6 @@ export function ComparisonTabs({
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [active, setActive] = useState(initial);
   const [visible, setVisible] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
   const tab = tabs[active];
 
   useEffect(() => {
@@ -46,21 +44,13 @@ export function ComparisonTabs({
     <div
       ref={hostRef}
       className={styles.tabsHost}
-      // The active tab's fill drives rotation; hold it while the comparison is
-      // off screen or being read. The bar's own hover and focus pause in CSS.
+      // The active tab's fill drives rotation. It only ever rests while the
+      // comparison is off screen; on screen the loop always advances.
       style={
         {
-          "--tab-fill-play": !visible || hovered || focused ? "paused" : "running",
+          "--tab-fill-play": visible ? "running" : "paused",
         } as CSSProperties
       }
-      onPointerEnter={(event) => {
-        if (event.pointerType !== "touch") setHovered(true);
-      }}
-      onPointerLeave={() => setHovered(false)}
-      onFocusCapture={() => setFocused(true)}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
-      }}
     >
       <div
         role="tabpanel"
