@@ -11,7 +11,7 @@ public struct OpenUIPresentation {
     #endif
     public var thumbnailSize: CGFloat = 112
     public var compactThumbnailSize: CGFloat = 80
-    public var inlineThumbnailSize: CGFloat = 80
+    public var inlineThumbnailSize: CGFloat = 112
     public var minimumTextColumnWidth: CGFloat = 160
     public var coverAspectRatio: CGFloat = 3 / 2
     public var maximumCarouselCardWidth: CGFloat = 320

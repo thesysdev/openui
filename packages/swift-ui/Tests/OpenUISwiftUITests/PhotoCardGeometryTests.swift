@@ -17,7 +17,7 @@ final class PhotoCardGeometryTests: XCTestCase {
         .dynamicTypeSize(.large).frame(width: 320)).fittingSize.height
     }
     XCTAssertEqual(height(""), OpenUIPresentation().inlineThumbnailSize, accuracy: 1)
-    XCTAssertGreaterThanOrEqual(height(""), 80)
+    XCTAssertEqual(height(""), 112, accuracy: 1)
     XCTAssertEqual(height(",null,false,\"horizontal\",40"), 40, accuracy: 1)
   }
 
