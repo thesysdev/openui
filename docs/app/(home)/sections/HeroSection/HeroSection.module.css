@@ -1331,9 +1331,3 @@
 .commandFade .npmTicker {
   animation: none;
 }
-
-.commandFade ~ .copyToast {
-  top: auto;
-  bottom: calc(100% + 6px);
-  margin-top: 0;
-}

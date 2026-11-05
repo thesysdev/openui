@@ -101,7 +101,7 @@
 }
 
 .installDropdown {
-  --cmd-width: 25rem;
+  --cmd-width: 17.5rem;
 }
 
 .installMobile {
@@ -455,7 +455,7 @@
   .installMobile {
     display: block;
     width: 100%;
-    max-width: 320px;
+    max-width: 280px;
   }
   .installMobile > div {
     width: 100%;

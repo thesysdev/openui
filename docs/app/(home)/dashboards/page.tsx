@@ -73,6 +73,13 @@ export default function DashboardsPage() {
           commandSlot={
             <div className={styles.heroActions}>
               <div className={styles.heroCtas}>
+                <BevelButton
+                  href="https://zcal.co/t/thesys/demo"
+                  external
+                  variant="primary"
+                  label="Book meeting"
+                  badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
+                />
                 <div className={styles.installDesktop}>
                   <CommandDropdownButton
                     command="npx @openuidev/cli@latest create --example assistant-ui-dashboards"
@@ -89,13 +96,6 @@ export default function DashboardsPage() {
                     className={styles.installButton}
                   />
                 </div>
-                <BevelButton
-                  href="https://zcal.co/t/thesys/demo"
-                  external
-                  variant="secondary"
-                  label="Book meeting"
-                  badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
-                />
               </div>
               <ModelProof />
             </div>
