@@ -58,7 +58,7 @@ export function DashboardNumbers() {
           ))}
         </dl>
         <Link href="/benchmarks" className={styles.numbersLink}>
-          See the benchmarks
+          View benchmarks
           <ArrowRight aria-hidden="true" />
         </Link>
       </div>

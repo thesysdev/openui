@@ -86,7 +86,7 @@ export function DashboardIntegration() {
           <BevelButton
             href="/docs/dashboards/quickstart"
             variant="secondary"
-            label="Read the setup guide"
+            label="Read setup docs"
             badge={<ArrowRight size={16} strokeWidth={2.25} />}
           />
         </div>
