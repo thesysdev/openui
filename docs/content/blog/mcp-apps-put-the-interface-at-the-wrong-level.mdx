@@ -101,19 +101,20 @@ We built an internal Generative UI MCP Server with one tool: take the results ga
 
 ## The host is the natural destination
 
-The experiment points toward making interface composition a native capability of the host. MCP Servers could supply **UI atoms**: pieces of interface that the host can combine with those from other tools. A hotel tool might contribute a room selector, while a maps tool contributes a location view.
+The experiment's problems all came from generating the interface outside the host. The host already holds what the Generative UI MCP lacked: the whole conversation, its own model, and the results of every tool call. Interface composition belongs there, as a native capability of the host rather than a tool the agent has to remember to call.
 
-Each MCP Server would define its UI atoms and describe how they can be used. The host's agent would use the context of the task to compose them into an interface. But this direction raises more questions than it solves:
+That leaves the question of what MCP Servers should contribute. One answer is **UI atoms**: smaller pieces of interface, such as a room selector or a location view, that the host arranges into one screen. We don't think they compose cleanly. Each atom needs its own sandbox, yet a composed screen needs its pieces to share selection, layout, and focus. Atoms from different vendors would have to agree on what a hotel or a date range is, and even then they'd look stitched together. Vendors would also have to give up their branded experience to become parts of someone else's.
 
-- **Isolation.** Each atom would still need its own sandbox. How could atoms exchange data without exposing one MCP Server's information to another?
-- **State.** The host would need to own shared state, such as the current hotel selection. How would changes reach the relevant atoms and keep them in sync?
-- **Genericity.** Atoms need to carry an MCP Server's functionality while remaining compatible with other atoms. We expect a small shared vocabulary of data types rather than a shared set of widgets. What should that vocabulary contain?
-- **Incentives.** Vendors may want to retain their branded interfaces. Could atoms be optional, with the full app still available when it fits the task?
+What composes well is what already composes in MCP: **data, actions, and instructions**. So instead of shipping a full interface, an MCP Server could ship **presentation guidelines**, much like a skill: which fields matter, what must always be shown, how its actions should be offered. The host's agent reads the guidelines from every tool in the task and generates one interface with its own components. The hotel comparison shows Booking.com's prices the way Booking.com asks, Tripadvisor's ratings with attribution, and a "View rooms" button that calls back to Booking.com.
 
-These are open questions we haven't solved. They would need to be worked through before UI atoms could compose as readily as tool results do today.
+Some interactions can't be generated from guidelines, like a seat map or a room tour. For these, a server could also provide **specialised components** that the host places in its generated screen, each in its own sandbox. Because they are the exception rather than the building blocks, they only need a narrow contract with the host, with data in and events out, rather than a shared vocabulary with every other tool. Choosing a seat becomes an event the host can act on, like any other result.
+
+MCP Apps already gives the host a way to pass its [theme, colours, typography, and fonts](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) into an app's sandbox. Specialised components would use the same **design tokens** wherever they can: their buttons, labels, and panels match the generated screen around them, while the parts that are their own, like the seat layout, keep their own look. The spec deliberately leaves out spacing because layouts break when it varies, which is also why tokens alone can't make arbitrary components compose.
+
+Guidelines are advisory, though. A host can ignore them, and anything that must render exactly, such as a regulated disclosure, may still need a real component. When the whole task lives inside one tool, like a design in a Figma canvas, the full MCP App is still the right interface.
 
 ## Where we see this going
 
-The person choosing a hotel needs to compare options and make a booking. The interface should bring together what they need for that decision, even when it comes from several tools. For MCP App authors, composable UI atoms could let their interfaces participate in workflows they didn't have to anticipate or build themselves.
+For MCP Server authors, this changes what's worth investing in. Well-described results, actions, and presentation guidelines let a server take part in interfaces it never had to anticipate. Specialised components cover what only that server can render, and the full MCP App remains for tasks it owns end to end.
 
-MCP let agents compose tools. The next step is letting them compose the screen you act on. For now, having the host build an interface from the tools' data and actions seems the most viable starting point. Composable UI atoms remain a direction to explore, with the same goal: letting the interface follow the task across tools.
+MCP let agents compose tools. The next step is letting them compose the screen you act on, and the host is the layer that can.
