@@ -1,20 +1,17 @@
 ---
-title: Search API
-description: Web search and image search endpoints you can use as tools in your own agent.
+title: Web Search API
+description: A web search endpoint you can use as a tool in your own agent.
 ---
 
-The Search API gives you two endpoints: web search and image search. Use them to implement search tools in your agent. When the model calls your search tool, your server calls the endpoint and returns the results to the model. You can also call them anywhere else on your server.
+The Web Search API returns web pages for a query, with their text. Use it to implement a web search tool in your agent. When the model calls your tool, your server calls the endpoint and returns the results to the model. You can also call it anywhere else on your server.
 
-**Endpoints:**
-
-- `POST https://api.thesys.dev/v1/search/web`
-- `POST https://api.thesys.dev/v1/search/images`
+**Endpoint:** `POST https://api.thesys.dev/v1/search/web`
 
 Send your Thesys API key as a bearer token. Create one in the [Thesys Console](https://console.thesys.dev/keys) and keep it on your server. See [Authentication](/docs/gateway/authentication).
 
-These endpoints take plain JSON over HTTP. They are not part of the OpenAI-compatible API, so call them with `fetch` or any HTTP client.
+The endpoint takes plain JSON over HTTP. It is not part of the OpenAI-compatible API, so call it with `fetch` or any HTTP client.
 
-## Search the web
+## Make a request
 
 ```bash
 curl https://api.thesys.dev/v1/search/web \
@@ -39,7 +36,7 @@ curl https://api.thesys.dev/v1/search/web \
 }
 ```
 
-### Request
+## Request
 
 | Field             | Type     | Required | Purpose                                                                                                  |
 | ----------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------- |
@@ -48,7 +45,9 @@ curl https://api.thesys.dev/v1/search/web \
 | `include_domains` | string[] | No       | Only return results from these domains, for example `["nestjs.com"]`.                                    |
 | `user_location`   | string   | No       | The searcher's country as a two-letter code, for example `"FR"`. Results are localized for that country. |
 
-### Result
+## Result
+
+Each entry in `results` has these fields:
 
 | Field            | Type   | Always present | Content                           |
 | ---------------- | ------ | -------------- | --------------------------------- |
@@ -60,59 +59,11 @@ curl https://api.thesys.dev/v1/search/web \
 | `image`          | string | No             | The URL of the page's main image. |
 | `favicon`        | string | No             | The URL of the site's favicon.    |
 
-## Search images
-
-```bash
-curl https://api.thesys.dev/v1/search/images \
-  -H "Authorization: Bearer $THESYS_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{ "query": "golden gate bridge at night", "num_results": 3 }'
-```
-
-```json
-{
-  "query": "golden gate bridge at night",
-  "results": [
-    {
-      "title": "Golden Gate Bridge at night",
-      "image_url": "https://images.example.com/ggb-night.jpg",
-      "page_url": "https://example.com/san-francisco-at-night",
-      "source": "example.com",
-      "width": 1200,
-      "height": 800,
-      "thumbnail_url": "https://thumbs.example.com/ggb-night.jpg",
-      "mime_type": "image/jpeg"
-    }
-  ],
-  "usage": { "search_units": 1 }
-}
-```
-
-### Request
-
-| Field         | Type    | Required | Purpose                                                    |
-| ------------- | ------- | -------- | ---------------------------------------------------------- |
-| `query`       | string  | Yes      | What to search images for. 1 to 2,048 characters.          |
-| `num_results` | integer | No       | How many images to return, from 1 to 10. The default is 5. |
-
-### Result
-
-| Field           | Type    | Always present | Content                                   |
-| --------------- | ------- | -------------- | ----------------------------------------- |
-| `title`         | string  | Yes            | The title of the image or its page.       |
-| `image_url`     | string  | Yes            | The URL of the image file.                |
-| `page_url`      | string  | Yes            | The URL of the page that shows it.        |
-| `source`        | string  | Yes            | The domain of that page.                  |
-| `width`         | integer | No             | The image width in pixels.                |
-| `height`        | integer | No             | The image height in pixels.               |
-| `thumbnail_url` | string  | No             | The URL of a smaller copy.                |
-| `mime_type`     | string  | No             | The image type, for example `image/jpeg`. |
-
-Both answers also carry `usage.search_units`, the number of searches you are charged for. It is always 1.
+The answer also carries `usage.search_units`, the number of searches you are charged for. It is always 1.
 
 ## Use as a tool
 
-Define a search tool for your model, and call the Search API when the model uses it:
+Define a web search tool for your model, and call the endpoint when the model uses it:
 
 ```ts title="tools/search-web.ts"
 // The tool your model sees.
@@ -151,9 +102,9 @@ export async function runSearchWeb({ query }: { query: string }) {
 }
 ```
 
-Add `searchWebTool` to the `tools` of your model request. When the model calls `search_web`, run `runSearchWeb` with its arguments and send the returned string back as the tool result. An image search tool works the same way with `/v1/search/images`. Return `image_url`, `page_url`, and `title` so the model can show the images and link to their source.
+Add `searchWebTool` to the `tools` of your model request. When the model calls `search_web`, run `runSearchWeb` with its arguments and send the returned string back as the tool result.
 
-If your app uses the Gateway [Responses API](/docs/gateway/api/responses), you can instead declare Gateway's built-in [web search and image search tools](/docs/gateway/api/responses/hosted-tools), and Gateway runs the searches for you.
+If your app uses the Gateway [Responses API](/docs/gateway/api/responses), you can instead declare Gateway's built-in [web search tool](/docs/gateway/api/responses/hosted-tools), and Gateway runs the searches for you.
 
 ## Data
 
@@ -161,10 +112,7 @@ We send your query to a third-party search provider to run the search. We don't 
 
 ## Pricing
 
-Each search that returns `200` is charged once from your [Gateway Credits](/docs/gateway/pricing-credits), even if it finds no results:
-
-- **Web search:** the search provider's price, with no markup. Currently $0.007 per search.
-- **Image search:** $0.005 per search.
+Each search that returns `200` is charged once from your [Gateway Credits](/docs/gateway/pricing-credits), even if it finds no results. The price is the search provider's price, with no markup. It is currently $0.007 per search.
 
 A search that fails costs nothing. Searches don't count toward the API calls included in your plan. If your credits can't cover one search, the call fails with `429` and no search runs.
 
@@ -184,7 +132,7 @@ An error answer looks like this. For a `400`, `message` lists every problem foun
 
 | Status | Type                    | When                                                                                                                                                      |
 | ------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10, or `user_location` is not a two-letter country code.            |
+| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10; or `user_location` is not a two-letter country code.            |
 | `401`  | `invalid_api_key`       | The API key is missing or invalid.                                                                                                                        |
 | `429`  | `rate_limit_error`      | Your organization is out of credits, has reached its spend limit, or has billing suspended. Retrying won't help until you add credits or raise the limit. |
 | `500`  | `internal_server_error` | The search provider failed. Nothing is charged. You can retry.                                                                                            |

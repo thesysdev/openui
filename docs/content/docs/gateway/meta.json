@@ -15,6 +15,7 @@
     "api/chat-completions",
     "api/responses",
     "api/conversations",
-    "api/search"
+    "api/web-search",
+    "api/image-search"
   ]
 }

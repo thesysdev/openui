@@ -1,0 +1,142 @@
+---
+title: Image Search API
+description: An image search endpoint you can use as a tool in your own agent.
+---
+
+The Image Search API returns images for a query, with the pages that show them. Use it to implement an image search tool in your agent. When the model calls your tool, your server calls the endpoint and returns the results to the model. You can also call it anywhere else on your server.
+
+**Endpoint:** `POST https://api.thesys.dev/v1/search/images`
+
+Send your Thesys API key as a bearer token. Create one in the [Thesys Console](https://console.thesys.dev/keys) and keep it on your server. See [Authentication](/docs/gateway/authentication).
+
+The endpoint takes plain JSON over HTTP. It is not part of the OpenAI-compatible API, so call it with `fetch` or any HTTP client.
+
+## Make a request
+
+```bash
+curl https://api.thesys.dev/v1/search/images \
+  -H "Authorization: Bearer $THESYS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "query": "golden gate bridge at night", "num_results": 3 }'
+```
+
+```json
+{
+  "query": "golden gate bridge at night",
+  "results": [
+    {
+      "title": "Golden Gate Bridge at night",
+      "image_url": "https://images.example.com/ggb-night.jpg",
+      "page_url": "https://example.com/san-francisco-at-night",
+      "source": "example.com",
+      "width": 1200,
+      "height": 800,
+      "thumbnail_url": "https://thumbs.example.com/ggb-night.jpg",
+      "mime_type": "image/jpeg"
+    }
+  ],
+  "usage": { "search_units": 1 }
+}
+```
+
+## Request
+
+| Field         | Type    | Required | Purpose                                                    |
+| ------------- | ------- | -------- | ---------------------------------------------------------- |
+| `query`       | string  | Yes      | What to search images for. 1 to 2,048 characters.          |
+| `num_results` | integer | No       | How many images to return, from 1 to 10. The default is 5. |
+
+## Result
+
+Each entry in `results` has these fields:
+
+| Field           | Type    | Always present | Content                                   |
+| --------------- | ------- | -------------- | ----------------------------------------- |
+| `title`         | string  | Yes            | The title of the image or its page.       |
+| `image_url`     | string  | Yes            | The URL of the image file.                |
+| `page_url`      | string  | Yes            | The URL of the page that shows it.        |
+| `source`        | string  | Yes            | The domain of that page.                  |
+| `width`         | integer | No             | The image width in pixels.                |
+| `height`        | integer | No             | The image height in pixels.               |
+| `thumbnail_url` | string  | No             | The URL of a smaller copy.                |
+| `mime_type`     | string  | No             | The image type, for example `image/jpeg`. |
+
+The answer also carries `usage.search_units`, the number of searches you are charged for. It is always 1.
+
+## Use as a tool
+
+Define an image search tool for your model, and call the endpoint when the model uses it:
+
+```ts title="tools/search-images.ts"
+// The tool your model sees.
+export const searchImagesTool = {
+  type: "function",
+  function: {
+    name: "search_images",
+    description: "Find images on the web.",
+    parameters: {
+      type: "object",
+      properties: { query: { type: "string", description: "What to search for" } },
+      required: ["query"],
+    },
+  },
+} as const;
+
+// Run it when the model calls search_images.
+export async function runSearchImages({ query }: { query: string }) {
+  const response = await fetch("https://api.thesys.dev/v1/search/images", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query, num_results: 5 }),
+  });
+  if (!response.ok) {
+    const { error } = await response.json();
+    throw new Error(`${response.status} ${error.type}: ${error.message}`);
+  }
+  const { results } = await response.json();
+  // Give the model what it needs to show each image and link to its source.
+  return JSON.stringify(
+    results.map(({ title, image_url, page_url }) => ({ title, image_url, page_url })),
+  );
+}
+```
+
+Add `searchImagesTool` to the `tools` of your model request. When the model calls `search_images`, run `runSearchImages` with its arguments and send the returned string back as the tool result.
+
+If your app uses the Gateway [Responses API](/docs/gateway/api/responses), you can instead declare Gateway's built-in [image search tool](/docs/gateway/api/responses/hosted-tools), and Gateway runs the searches for you.
+
+## Data
+
+We send your query to a third-party search provider to run the search. We don't store the query or the results, apart from standard request logs.
+
+## Pricing
+
+Each search that returns `200` is charged once from your [Gateway Credits](/docs/gateway/pricing-credits), even if it finds no results. An image search costs $0.005.
+
+A search that fails costs nothing. Searches don't count toward the API calls included in your plan. If your credits can't cover one search, the call fails with `429` and no search runs.
+
+## Errors
+
+An error answer looks like this. For a `400`, `message` lists every problem found.
+
+```json
+{
+  "error": {
+    "message": ["num_results must not be greater than 10"],
+    "type": "invalid_request_error",
+    "param": null
+  }
+}
+```
+
+| Status | Type                    | When                                                                                                                                                      |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters, or `num_results` is not 1 to 10.                                                              |
+| `401`  | `invalid_api_key`       | The API key is missing or invalid.                                                                                                                        |
+| `429`  | `rate_limit_error`      | Your organization is out of credits, has reached its spend limit, or has billing suspended. Retrying won't help until you add credits or raise the limit. |
+| `500`  | `internal_server_error` | The search provider failed. Nothing is charged. You can retry.                                                                                            |
+
+On some older accounts, the `type` of a `429` is `ERR_QUOTA_EXCEEDED` or `ERR_BILLING_THRESHOLD_EXCEEDED` instead.
