@@ -12,9 +12,7 @@ The endpoint is not OpenAI compatible, so call it with `fetch` or another HTTP c
 ## Make a request
 
 ```ts title="lib/search-images.ts"
-type ImageResult = { title: string; image_url: string; page_url: string };
-
-export async function searchImages(query: string): Promise<{ results: ImageResult[] }> {
+export async function searchImages(query: string) {
   const response = await fetch("https://api.thesys.dev/v1/search/images", {
     method: "POST",
     headers: {
@@ -77,11 +75,9 @@ A search with one result:
 
 ## Use as a function tool
 
-Declare the tool in your model request. This example uses the Chat Completions format. When the model calls the tool, run the search in your backend and return the output as the tool result. The loop is the same as for any other function tool. See [Function tools](/docs/gateway/api/chat-completions#function-tools).
+Declare the tool in your model request. This example uses the Chat Completions format. When the model calls the tool, call `searchImages` in your backend and return the results as the tool result. The loop is the same as for any other function tool. See [Function tools](/docs/gateway/api/chat-completions#function-tools).
 
 ```ts title="lib/search-images-tool.ts"
-import { searchImages } from "./search-images";
-
 export const searchImagesTool = {
   type: "function",
   function: {
@@ -94,17 +90,7 @@ export const searchImagesTool = {
     },
   },
 } as const;
-
-export async function runSearchImages({ query }: { query: string }) {
-  const { results } = await searchImages(query);
-
-  return JSON.stringify(
-    results.map(({ title, image_url, page_url }) => ({ title, image_url, page_url })),
-  );
-}
 ```
-
-The output keeps the title, image URL, and page URL, so that the model can show each image and link to its page.
 
 The Responses API can also run image search inside the Gateway, with no function tool. See [Hosted Tools](/docs/gateway/api/responses/hosted-tools).
 
