@@ -26,6 +26,8 @@ The agent may already know your preferences from the conversation. To find the r
 
 The agent combines these results with your preferences to recommend a hotel that fits your stay, commute, and company policy. That's the power of composition: tools built independently can work together around your task.
 
+<figure>
+
 <Image
   src="/images/blog/mcp-apps/01-composed-recommendation.webp"
   alt="An agent's text recommendation for Hotel Niwa Tokyo, with each fact highlighted by its source: price from Booking.com, travel time from Google Maps, policy limit from SAP Concur, rating from Tripadvisor, and the quiet-stay preference from the conversation."
@@ -35,20 +37,30 @@ The agent combines these results with your preferences to recommend a hotel that
   unoptimized
 />
 
+<figcaption>One recommendation, five sources: each fact in the agent's answer comes from a different MCP Server or from the conversation itself.</figcaption>
+
+</figure>
+
 ## Now tools can bring their own interfaces
 
 [MCP Apps](https://apps.extensions.modelcontextprotocol.io/api/documents/overview.html) extends MCP so tools can present interactive interfaces alongside their results. A hotel search tool could show photos, prices, and room-selection controls; a maps tool could let you explore the neighbourhood.
 
 The mechanism is straightforward: an MCP Server associates a tool with a UI resource, which the host displays in a sandboxed iframe. The MCP Server authors the interface, while the host supplies the environment in which it runs. That interface can use a predefined template or be generated dynamically, including with a framework like [OpenUI](https://www.openui.com/).
 
+<figure>
+
 <Image
   src="/images/blog/mcp-apps/02-tool-owned-ui.webp"
-  alt="Illustrative Rakuten hotel-search interface from the Japan talk, with prices, filters, and room-selection actions."
-  width={2880}
-  height={1880}
+  alt="A Claude conversation where the Booking.com search_hotels tool returns an embedded Booking.com interface listing three Tokyo hotels with photos, nightly prices, room-type selectors, and Select room buttons."
+  width={2200}
+  height={1580}
   className="rounded-lg"
   unoptimized
 />
+
+<figcaption>An illustrative MCP App inside Claude: the Booking.com tool returns its own interface, with photos, prices, and room selection, rendered in the conversation.</figcaption>
+
+</figure>
 
 ## But who owns the UI?
 
