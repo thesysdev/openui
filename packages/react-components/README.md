@@ -1,7 +1,8 @@
 # @openuidev/react-components
 
-A React component library for OpenUI: components, charts and themes, styled with Goober. It sits
-beside `@openuidev/react-ui`, which is unchanged. Version `0.0.1`.
+React components for OpenUI: inputs, layout, text and Markdown, media, tables, cards, loading
+states and charts, with light and dark themes. Styled with Goober, so there is no stylesheet to
+import.
 
 ## Install
 
@@ -9,9 +10,11 @@ beside `@openuidev/react-ui`, which is unchanged. Version `0.0.1`.
 pnpm add @openuidev/react-components react react-dom zod zustand
 ```
 
-Peer dependencies: React 19, `zod` 3.25 or 4, and `zustand` 4.5.
+Peer dependencies: React 18.3 or 19, `zod` 3.25 or 4, and `zustand` 4.5.
 
 ## Usage
+
+Wrap your app in `ThemeProvider`, then use any component:
 
 ```tsx
 import { Button, Input, ThemeProvider } from "@openuidev/react-components";
@@ -26,40 +29,53 @@ export function ContactForm() {
 }
 ```
 
-Every component, supporting part and type comes from the package root; there are no subpath
-exports.
+Every component, its parts and its types come from the package root.
+
+## Theming
+
+`ThemeProvider` sets the theme's colour, type and spacing variables:
+
+- `mode` is `"light"` (the default) or `"dark"`.
+- `lightTheme` and `darkTheme` override any tokens. Without `darkTheme`, the `lightTheme` overrides
+  apply to both modes.
+- `cssSelector` is where the variables go: `body` by default. A nested provider scopes its own
+  theme to its children.
+
+```tsx
+import { ThemeProvider, createTheme } from "@openuidev/react-components";
+
+<ThemeProvider mode="dark" lightTheme={createTheme({ interactiveAccentDefault: "#7c3aed" })}>
+  <App />
+</ThemeProvider>;
+```
+
+`ThemeProvider` doesn't paint the page. Give it the theme's background so dark text never sits on
+a white page:
+
+```css
+body {
+  background: var(--openui-background);
+}
+```
+
+`useTheme()` reads the current theme and mode, and `useSystemThemeMode()` follows the user's
+system setting.
 
 ## Styling
 
-Component rules go into one `<style id="openui-styles">` tag in the browser. The root also
-exports `css` and `keyframes` for your own rules.
+Component styles are added to the page in the browser, in one `<style id="openui-styles">` tag.
 
-```ts
-import { configureStyles } from "@openuidev/react-components";
+- **Cascade layer:** call `configureStyles({ layer: "openui" })` once, before rendering, to put
+  every component rule in that layer.
+- **Your own rules:** the package exports `css` and `keyframes`.
+- **Content Security Policy:** set `window.__nonce__` before the components load, and the style tag
+  carries that nonce.
+- **Server rendering:** server-rendered HTML doesn't include the component styles yet; they're added
+  when the page loads in the browser.
 
-// Optional: put every component rule in a cascade layer. Call once, before rendering.
-configureStyles({ layer: "openui" });
-```
+## Overriding styles
 
-Styles are written in the browser; server-rendered HTML does not include them yet. Under a CSP
-nonce, set `window.__nonce__` before the component library loads.
-
-## Site map
-
-```text
-packages/react-components/
-├── src/
-│   ├── index.ts           # the public entry: every component, part and type
-│   ├── components/        # inputs and controls, layout, text and Markdown, images and citations,
-│   │                      # tables and lists, cards, loading, charts
-│   ├── components/ThemeProvider/   # light and dark themes, token variables
-│   └── styles/            # the component sheet, style tags and token defaults
-└── README.md              # install, usage, styling and a site map
-```
-
-## Stable selectors
-
-Each component exposes stable `openui-*` classes and data attributes for overrides:
+Each component has stable `openui-*` class names and data attributes to target:
 
 ```css
 .openui-callout--variant-warning {
@@ -70,11 +86,6 @@ Each component exposes stable `openui-*` classes and data attributes for overrid
 }
 ```
 
-## Development
+## License
 
-```sh
-pnpm --filter @openuidev/react-components run build
-pnpm --filter @openuidev/react-components run typecheck
-```
-
-The build writes ESM and CJS bundles with declarations and source maps to `dist/`.
+MIT
