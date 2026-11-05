@@ -75,41 +75,36 @@ A search with one result:
 
 ## Use as a function tool
 
-Add the tool to an OpenAI client call with `runTools`. `runTools` calls `search_web` whenever the model asks for it and sends the result back, until the model answers. `gateway` is the client from [Configure the client](/docs/gateway/api/chat-completions#configure-the-client).
+Declare the tool in your model request. This example uses the Chat Completions format. When the model calls the tool, run the search in your backend and return the output as the tool result. The loop is the same as for any other function tool. See [Function tools](/docs/gateway/api/chat-completions#function-tools).
 
-```ts title="server.ts"
-import { gateway } from "./lib/gateway";
-import { searchWeb } from "./lib/search-web";
+```ts title="lib/search-web-tool.ts"
+import { searchWeb } from "./search-web";
 
-const runner = gateway.chat.completions.runTools({
-  model: "openai/gpt-5",
-  messages: [{ role: "user", content: "What changed in NestJS 11?" }],
-  tools: [
-    {
-      type: "function",
-      function: {
-        name: "search_web",
-        description: "Search the web for current information.",
-        parameters: {
-          type: "object",
-          properties: { query: { type: "string", description: "What to search for" } },
-          required: ["query"],
-        },
-        function: async (args: string) => {
-          const { results } = await searchWeb(JSON.parse(args).query);
-          return JSON.stringify(results.map((r) => ({ ...r, text: r.text?.slice(0, 1500) })));
-        },
-      },
+export const searchWebTool = {
+  type: "function",
+  function: {
+    name: "search_web",
+    description: "Search the web for current information.",
+    parameters: {
+      type: "object",
+      properties: { query: { type: "string", description: "What to search for" } },
+      required: ["query"],
     },
-  ],
-});
+  },
+} as const;
 
-const answer = await runner.finalContent();
+export async function runSearchWeb({ query }: { query: string }) {
+  const { results } = await searchWeb(query);
+
+  return JSON.stringify(
+    results.map(({ title, url, text }) => ({ title, url, text: text?.slice(0, 1500) })),
+  );
+}
 ```
 
-`text` holds the full page, so the example trims it before the model reads it.
+The output keeps the title, URL, and trimmed text, so that the model can cite its sources.
 
-To run the loop yourself, see [Function tools](/docs/gateway/api/chat-completions#function-tools). The Responses API can also run web search inside the Gateway, with no function tool. See [Hosted Tools](/docs/gateway/api/responses/hosted-tools).
+The Responses API can also run web search inside the Gateway, with no function tool. See [Hosted Tools](/docs/gateway/api/responses/hosted-tools).
 
 ## Data
 
