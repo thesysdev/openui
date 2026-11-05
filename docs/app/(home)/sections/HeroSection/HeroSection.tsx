@@ -88,7 +88,9 @@ export function NpmButton({
   className = "",
   command,
   analyticsSource = "homepage_hero",
+  fade = false,
 }: {
+  fade?: boolean;
   className?: string;
   command: string;
   analyticsSource?: string;
@@ -122,7 +124,7 @@ export function NpmButton({
         onCopySuccess={(value) =>
           captureCreateCliCommandCopied(value, { source: analyticsSource, interaction: "primary" })
         }
-        className={`${styles.npmButton} ${className}`.trim()}
+        className={`${styles.npmButton} ${fade ? styles.commandFade : ""} ${className}`.trim()}
         iconContainerClassName={styles.npmIconBadge}
         copyIconColor="currentColor"
         onCopyChange={handleCopyChange}
@@ -156,7 +158,9 @@ export function CommandDropdownButton({
   variants = commandVariants(command),
   analyticsSource = "homepage_hero",
   className = "",
+  fade = false,
 }: {
+  fade?: boolean;
   command: string;
   variants?: CommandVariant[];
   analyticsSource?: string;
@@ -168,7 +172,7 @@ export function CommandDropdownButton({
 
   return (
     <div
-      className={`${styles.commandDropdown} ${open ? styles.commandDropdownOpen : ""} ${className}`.trim()}
+      className={`${styles.commandDropdown} ${open ? styles.commandDropdownOpen : ""} ${fade ? styles.commandFade : ""} ${className}`.trim()}
       // Hover-controlled only: copying can briefly move focus, so a focus/blur
       // close would shut the menu on click. Mouse-leave is the sole close.
       onMouseEnter={() => setOpen(true)}

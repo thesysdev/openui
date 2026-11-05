@@ -77,6 +77,7 @@ export default function DashboardsPage() {
                   <CommandDropdownButton
                     command="npx @openuidev/cli@latest create --example assistant-ui-dashboards"
                     analyticsSource="dashboards_hero"
+                    fade
                     className={styles.installDropdown}
                   />
                 </div>
@@ -84,6 +85,7 @@ export default function DashboardsPage() {
                   <NpmButton
                     command="npx @openuidev/cli@latest create --example assistant-ui-dashboards"
                     analyticsSource="dashboards_hero"
+                    fade
                     className={styles.installButton}
                   />
                 </div>
@@ -91,7 +93,7 @@ export default function DashboardsPage() {
                   href="https://zcal.co/t/thesys/demo"
                   external
                   variant="secondary"
-                  label="Book a meeting"
+                  label="Book meeting"
                   badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
                 />
               </div>

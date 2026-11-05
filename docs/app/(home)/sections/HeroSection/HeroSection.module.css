@@ -1311,3 +1311,29 @@
 .section .mobileHero:has(.mobileProof) .mobileCtaStack {
   padding-bottom: 0;
 }
+
+/* Opt-in truncation for longer example commands. The full command still copies. */
+.commandFade .commandTrigger {
+  width: var(--cmd-width);
+}
+
+.commandFade .commandTriggerLabel,
+.commandFade .commandMenuItemLabel,
+.commandFade .npmMobileLabel {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: clip;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+}
+
+.commandFade .npmTicker {
+  animation: none;
+}
+
+.commandFade ~ .copyToast {
+  top: auto;
+  bottom: calc(100% + 6px);
+  margin-top: 0;
+}
