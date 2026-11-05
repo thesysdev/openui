@@ -141,7 +141,22 @@ What composes well is what already composes in MCP: **data, actions, and instruc
 
 Some interactions can't be generated from guidelines, like a seat map or a room tour. For these, a server could also provide **specialised components** that the host places in its generated screen, each in its own sandbox. Because they are the exception rather than the building blocks, they only need a narrow contract with the host, with data in and events out, rather than a shared vocabulary with every other tool. Choosing a seat becomes an event the host can act on, like any other result.
 
-MCP Apps already gives the host a way to pass its [theme, colours, typography, and fonts](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) into an app's sandbox. Specialised components would use the same **design tokens** wherever they can: their buttons, labels, and panels match the generated screen around them, while the parts that are their own, like the seat layout, keep their own look.
+MCP Apps already gives the host a way to pass its [theme, colours, typography, and fonts](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) into an app's sandbox. Specialised components would use the same **design tokens** wherever they can: their buttons, labels, and panels match the generated screen around them, while the parts that are their own, like a room tour's photos, keep their own look.
+
+<figure>
+
+<Image
+  src="/images/blog/mcp-apps/05-host-composed.webp"
+  alt="A Claude conversation where the host reads guidelines from Booking.com, Tripadvisor, Google Maps, and SAP Concur and generates its own view of Hotel Niwa Tokyo, with each fact attributed to its source. A sandboxed Booking.com room tour sits inside the view, using the host's button style, and selecting a room sends a room_selected event back to the host."
+  width={2200}
+  height={1400}
+  className="rounded-lg"
+  unoptimized
+/>
+
+<figcaption>An illustrative host-composed screen: the host generates most of the interface from each server's guidelines, embeds one specialised component in its own sandbox, and receives its events.</figcaption>
+
+</figure>
 
 Guidelines are advisory, though. A host can ignore them, and anything that must render exactly, such as a regulated disclosure, may still need a real component. When the whole task lives inside one tool, like a design in a Figma canvas, the full MCP App is still the right interface.
 
