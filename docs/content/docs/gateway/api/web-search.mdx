@@ -34,26 +34,26 @@ export async function searchWeb(query: string): Promise<{ results: WebResult[] }
 
 ## Request
 
-| Field             | Type     | Required | Purpose                                                                                                  |
-| ----------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------- |
-| `query`           | string   | Yes      | What to search for. 1 to 2,048 characters.                                                               |
-| `num_results`     | integer  | No       | How many results to return, from 1 to 10. The default is 5.                                              |
-| `include_domains` | string[] | No       | Only return results from these domains, for example `["nestjs.com"]`.                                    |
-| `user_location`   | string   | No       | The searcher's country as a two-letter code, for example `"FR"`. Results are localized for that country. |
+| Field             | Type     | Required | Purpose                                                                                   |
+| ----------------- | -------- | -------- | ----------------------------------------------------------------------------------------- |
+| `query`           | string   | Yes      | What to search for, 1 to 2,048 characters                                                 |
+| `num_results`     | integer  | No       | How many results to return, from 1 to 10, default 5                                       |
+| `include_domains` | string[] | No       | Only return results from these domains, for example `["nestjs.com"]`                      |
+| `user_location`   | string   | No       | The searcher's country as a two-letter code, for example `"FR"`, used to localize results |
 
 ## Read the result
 
 `results` holds the matches, and can hold fewer than `num_results`. `usage.search_units` reports the searches charged, and is always 1.
 
-| Field            | Type   | Always present | Content                           |
-| ---------------- | ------ | -------------- | --------------------------------- |
-| `title`          | string | Yes            | The page title.                   |
-| `url`            | string | Yes            | The page URL.                     |
-| `text`           | string | No             | Text extracted from the page.     |
-| `published_date` | string | No             | When the page was published.      |
-| `author`         | string | No             | The page author.                  |
-| `image`          | string | No             | The URL of the page's main image. |
-| `favicon`        | string | No             | The URL of the site's favicon.    |
+| Field            | Type   | Always present | Content                          |
+| ---------------- | ------ | -------------- | -------------------------------- |
+| `title`          | string | Yes            | The page title                   |
+| `url`            | string | Yes            | The page URL                     |
+| `text`           | string | No             | Text extracted from the page     |
+| `published_date` | string | No             | When the page was published      |
+| `author`         | string | No             | The page author                  |
+| `image`          | string | No             | The URL of the page's main image |
+| `favicon`        | string | No             | The URL of the site's favicon    |
 
 A search with one result:
 
@@ -118,9 +118,9 @@ Each successful call is charged the search provider's price from your credits, w
 
 The endpoint returns the same error shape as the Chat Completions and Responses APIs. For a `400`, `message` is a list of every problem.
 
-| Status | Type                    | When                                                                                                                                           |
-| ------ | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10; or `user_location` is not a two-letter country code. |
-| `401`  | `invalid_api_key`       | The API key is missing or invalid.                                                                                                             |
-| `429`  | `rate_limit_error`      | The organization has no credits, has reached its spend limit, or billing is suspended.                                                         |
-| `500`  | `internal_server_error` | The search provider failed. Nothing is charged.                                                                                                |
+| Status | Type                    | When                                                                                                                                          |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10; or `user_location` is not a two-letter country code |
+| `401`  | `invalid_api_key`       | The API key is missing or invalid                                                                                                             |
+| `429`  | `rate_limit_error`      | The organization has no credits, has reached its spend limit, or billing is suspended                                                         |
+| `500`  | `internal_server_error` | The search provider failed, and nothing is charged                                                                                            |
