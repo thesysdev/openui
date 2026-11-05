@@ -1,5 +1,11 @@
 # @openuidev/cli
 
+## 0.6.2
+
+### Patch Changes
+
+- [#1569](https://github.com/thesysdev/openui/pull/1569) [`c67cfc7`](https://github.com/thesysdev/openui/commit/c67cfc71a09ecc5bf0a0f34edb21eb4d428eed47) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `openui create --example` now installs dependencies and, in a terminal with an API key set, starts the development server, like the default template. Examples with several apps still print per-app steps.
+
 ## 0.6.1
 
 ### Patch Changes
