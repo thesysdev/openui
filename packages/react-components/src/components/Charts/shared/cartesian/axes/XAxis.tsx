@@ -122,7 +122,7 @@ export const XAxis: React.FC<XAxisProps> = ({
         );
 
         return (
-          <LabelTooltip key={category} content={label} disabled={!truncated}>
+          <LabelTooltip key={`${category}-${i}`} content={label} disabled={!truncated}>
             <g className={classes?.group ?? partClassNames?.group}>
               {truncated && (
                 <rect

@@ -90,11 +90,11 @@ const DefaultLegend = memo(
             className={clsx(styles.list, names.list)}
             data-state={isExpanded ? "expanded" : showToggleButton ? "collapsed" : undefined}
           >
-            {displayItems.map((item) => {
+            {displayItems.map((item, index) => {
               const isHidden = hiddenSeries?.has(item.key);
               return (
                 <div
-                  key={item.key}
+                  key={`${item.key}-${index}`}
                   className={clsx(styles.item, names.item)}
                   data-clickable={onItemClick ? "" : undefined}
                   style={

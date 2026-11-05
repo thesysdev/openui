@@ -1,5 +1,20 @@
 # @openuidev/react-ui
 
+## 0.18.3
+
+### Patch Changes
+
+- [#1493](https://github.com/thesysdev/openui/pull/1493) [`f5ff998`](https://github.com/thesysdev/openui/commit/f5ff998d0ae139cdafa3508436a2c91284f28fd1) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - New `@openuidev/react-ui/cloud` entry: `LiveArtifactRenderer` and `StaticArtifactRenderer` for OpenUI Cloud artifacts, plus `useArtifactList`, `useArtifactPin`, `useArtifactUnpin`, `useArtifactDelete` and `useArtifactUpdate`. The `@openuidev/react-headless` peer window moves to `>=0.18.2`.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.18.3
+
+## 0.18.2
+
+### Patch Changes
+
+- Updated dependencies [[`da5ea77`](https://github.com/thesysdev/openui/commit/da5ea770eb4284d8d1a08471d46f5bf6fe6a8b0f)]:
+  - @openuidev/react-headless@0.18.2
+
 ## 0.18.1
 
 ### Patch Changes

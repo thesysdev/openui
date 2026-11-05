@@ -135,7 +135,7 @@ export function StackChip({
   return (
     <div className={chipClassName} aria-hidden={item.isBlurred || undefined}>
       <div className={badgeClassName}>
-        <ChipIcon item={item} plain={plain} />
+        <ChipIcon item={item} plain={Boolean(plain)} />
       </div>
       <span className={styles.chipLabel}>{item.name}</span>
     </div>

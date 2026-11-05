@@ -1,5 +1,11 @@
 # @openuidev/server
 
+## 0.4.0
+
+### Minor Changes
+
+- [#1488](https://github.com/thesysdev/openui/pull/1488) [`afb41d5`](https://github.com/thesysdev/openui/commit/afb41d5cf252842b9a54cf8d512acfd928428d79) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add `OpenUIClient`: define a dashboard once with `defineDashboard`, create and edit dashboards from your agent, run their data tools with `interpreter.execute`, and mint frontend tokens.
+
 ## 0.3.0
 
 ### Minor Changes

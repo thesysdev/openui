@@ -91,7 +91,7 @@ export function PieSlices<T>({
             onClick: () => handleClick(i),
           };
           return (
-            <React.Fragment key={slice.label}>
+            <React.Fragment key={`${slice.label}-${i}`}>
               {trackD && (
                 <path d={trackD} className={clsx(styles.track, names.track)} {...staticProps} />
               )}
@@ -107,7 +107,8 @@ export function PieSlices<T>({
 
         return (
           <Slice
-            key={slice.label}
+            // Labels can repeat (or be empty while a query loads), so the index keeps keys unique.
+            key={`${slice.label}-${i}`}
             pathD={pathD}
             trackD={trackD}
             hitD={hitArcGenerator?.(arc) ?? pathD}

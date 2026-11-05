@@ -93,7 +93,7 @@ export const HorizontalBarSeries: React.FC<HorizontalBarSeriesProps> = React.mem
             : undefined;
 
           return (
-            <g key={row.key} className={names.row}>
+            <g key={`${row.key}-${rowIndex}`} className={names.row}>
               {/* Category label, once per row, above the bar group. A
                   foreignObject spans the full row width so the `-category-label`
                   div can ellipsis-truncate in CSS (openui does the same). It is

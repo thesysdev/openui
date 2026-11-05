@@ -78,7 +78,7 @@ export const CondensedXAxis: React.FC<CondensedXAxisProps> = ({
           const textWidth = ctx.measureText(text).width;
           const transform = `rotate(${angle}, ${cx}, ${y})`;
           return (
-            <LabelTooltip key={category} content={label} disabled={text === label}>
+            <LabelTooltip key={`${category}-${i}`} content={label} disabled={text === label}>
               <g className={classes?.group}>
                 {text !== label && (
                   <rect
@@ -119,7 +119,7 @@ export const CondensedXAxis: React.FC<CondensedXAxisProps> = ({
         const half = Math.max(...lines.map((line) => ctx.measureText(line).width)) / 2;
         const x = Math.min(Math.max(cx, left + half), right - half);
         return (
-          <LabelTooltip key={category} content={label} disabled={!truncated}>
+          <LabelTooltip key={`${category}-${i}`} content={label} disabled={!truncated}>
             <g className={classes?.group}>
               {truncated && (
                 <rect

@@ -196,7 +196,7 @@ export const BarSeries: React.FC<BarSeriesProps> = ({
         const groupX = xScale(category) ?? 0;
         const { animationDelay } = entranceProps(isAnimationActive, names.barAnimated.true, i * 30);
         return (
-          <g className={names.group} key={category}>
+          <g className={names.group} key={`${category}-${i}`}>
             {dataKeys.map((key) => {
               const value = Number(row[key]) || 0;
               const innerBandX = innerScale?.(key) ?? 0;
