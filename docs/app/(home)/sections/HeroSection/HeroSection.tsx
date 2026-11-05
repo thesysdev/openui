@@ -399,6 +399,8 @@ function DesktopHero({
           </p>
         </div>
 
+        {proofSlot && <div className={styles.desktopProof}>{proofSlot}</div>}
+
         <div
           className={`${styles.desktopCtaStack} ${
             !hasSecondaryCta ? styles.desktopCtaStackShadowRoom : ""
@@ -428,7 +430,6 @@ function DesktopHero({
             <DesktopGithubButton href={githubRepoUrl} label={githubButtonLabel} />
           )}
         </div>
-        {proofSlot && <div className={styles.desktopProof}>{proofSlot}</div>}
       </div>
     </div>
   );

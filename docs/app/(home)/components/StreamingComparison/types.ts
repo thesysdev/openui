@@ -8,6 +8,8 @@ export interface ComparisonExample {
   prompt: string;
   /* Leave out for a single, full-width "With OpenUI" panel. */
   left?: ComparisonSide;
+  /* Show the "Without" side on phones only; desktop keeps the single panel. */
+  leftOnPhonesOnly?: true;
   right: ComparisonSide;
 }
 

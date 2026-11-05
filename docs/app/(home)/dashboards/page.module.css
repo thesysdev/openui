@@ -124,7 +124,6 @@
   display: flex;
   margin-left: -4px;
   border-radius: 999px;
-  box-shadow: 0 0 0 2px var(--openui-foreground);
 }
 
 .modelText {
@@ -217,6 +216,11 @@
   margin-top: 10px;
 }
 
+/* The graph tile is a phone-only cue. */
+.numberIcon {
+  display: none;
+}
+
 /* The benefit in ink, right under the figure, so it reads with it. */
 .numberBenefit {
   font-family: var(--home-font-display);
@@ -287,28 +291,86 @@
   font-weight: 500;
 }
 
-.dash {
-  color: var(--ink-muted);
+/* Same marks as the observability trace-gap diagram: one shape for both
+   sides, only the colour separates them. */
+.mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  color: #fff;
 }
 
-.check {
-  color: var(--c1);
+.markPass {
+  background: #049156;
 }
 
-.dash,
-.check {
-  flex-shrink: 0;
+.markFail {
+  background: #b91c1c;
+}
+
+/* The cell block is centred in its column while its own text stays
+   left-aligned, so the rows and the column titles share one left edge. */
+.compareTable td,
+.compareTable thead th {
+  text-align: center;
+}
+
+/* The OpenUI chip a step bigger in the header (the mascot fills its tile).
+   Three classes, to outrank the viz module's own chip sizing. */
+.compare .compareTable thead .cell > span {
+  width: 32px;
+  height: 32px;
+}
+
+/* No zebra fill and no hover tint: the hairlines alone separate the rows. */
+.compareTable tbody tr:nth-child(even),
+.compare .compareTable tbody tr:hover,
+.compare .compareTable tbody tr:hover th,
+.compare .compareTable tbody tr:hover td {
+  background-color: transparent;
+}
+
+/* Row separators are drawn on the row as a gradient line that dissolves
+   before it reaches the table's side edges, instead of cell borders. */
+.compare .compareTable th,
+.compare .compareTable td {
+  border-bottom: 0;
+}
+
+.compare .compareTable thead tr,
+.compare .compareTable tbody tr:not(:last-child) {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--openui-border-default) 10%,
+    var(--openui-border-default) 90%,
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: bottom;
 }
 
 .cell {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  width: 13.5em;
+  text-align: left;
 }
 
 /* The losing column reads quieter than the OpenUI one. */
 .compareTable td.worse {
   color: var(--openui-text-neutral-secondary);
+}
+
+/* The phones-only, column-grouped comparison; the media query below shows it. */
+.compareStacked {
+  display: none;
 }
 
 /* ---------- FAQ ---------- */
@@ -372,11 +434,33 @@
   }
 }
 
+/* Phone-only copy swaps: both variants render, the viewport picks one. */
+.phoneOnly {
+  display: none;
+}
+
+/* A line break that exists only on phones. */
+.phoneBreak {
+  display: none;
+}
+
 @media (max-width: 767px) {
   .page {
     --dash-space: 72px;
     --dash-space-wide: 104px;
     --dash-gutter: var(--home-section-padding-inline);
+  }
+
+  .phoneHidden {
+    display: none;
+  }
+
+  .phoneOnly {
+    display: inline;
+  }
+
+  .phoneBreak {
+    display: inline;
   }
 
   .lockup {
@@ -388,11 +472,13 @@
     max-width: none;
   }
 
-  /* Logos and text side by side; the text wraps beside the stack. */
+  /* Logos above, the text below them. */
   .modelProof {
     max-width: 320px;
-    gap: 12px;
-    text-align: left;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
   }
 
   .modelMarks {
@@ -413,8 +499,8 @@
     margin-top: 40px;
   }
 
-  /* On a phone each figure sits beside its label, left-aligned, so the three
-     read as a short list instead of three tall centred blocks. */
+  /* On a phone each stat reads as one line, "75% fewer tokens", with its
+     grey detail on its own line below. */
   .numbersSection {
     padding-block: 56px;
     text-align: left;
@@ -425,11 +511,26 @@
   }
 
   .number {
-    display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
-    align-items: center;
-    column-gap: 16px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
     padding: 16px 0;
+  }
+
+  .numberLabel {
+    display: contents;
+  }
+
+  .numberValue {
+    order: -1;
+  }
+
+  .numberDetail {
+    flex-basis: 100%;
+    margin-top: 4px;
+    color: var(--openui-text-neutral-secondary);
   }
 
   .number + .number {
@@ -437,72 +538,104 @@
     border-left: 0;
   }
 
-  .numberValue {
-    font-size: 2rem;
+  /* A small graph tile on its own line above the figure. */
+  .numberIcon {
+    display: block;
+    order: -2;
+    flex-basis: 100%;
+    margin-bottom: 12px;
   }
 
-  .numberLabel {
-    margin-top: 0;
+  .numberIcon svg {
+    display: block;
+    box-sizing: content-box;
+    width: 15px;
+    height: 15px;
+    padding: 6px;
+    border: 1px solid var(--home-hairline);
+    border-radius: 8px;
+    color: var(--openui-text-neutral-secondary);
+  }
+
+  /* The figure and its benefit read in the section headings' voice. */
+  .numberValue {
+    font-size: var(--home-title-size);
+    font-weight: var(--home-title-weight);
+    letter-spacing: var(--home-title-tracking);
+  }
+
+  .numberBenefit {
+    font-size: var(--home-title-size);
+    font-weight: var(--home-title-weight);
+    letter-spacing: var(--home-title-tracking);
   }
 
   .numbersLink {
     margin-top: 20px;
   }
 
-  /* On a phone each row is the capability as a small label, then the two
-     answers side by side at full width, so nothing wraps into a third column. */
-  .compareTable.compareTable table {
-    display: block;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .compareTable.compareTable.compareTable colgroup {
+  /* On a phone the comparison is grouped by column instead: all of HTML
+     first, then all of OpenUI, so the table itself stays desktop-only. */
+  .compareTable {
     display: none;
   }
 
-  .compareTable.compareTable.compareTable thead,
-  .compareTable.compareTable.compareTable tbody {
-    display: block;
-  }
-
-  .compareTable.compareTable.compareTable tr {
+  .compareStacked {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
   }
 
-  .compareTable.compareTable.compareTable th,
-  .compareTable.compareTable.compareTable td {
-    width: auto;
-    padding: 6px 14px 14px;
-    white-space: normal;
-    text-align: left;
+  .compareGroupHead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+    font-size: 0.9375rem;
+    font-weight: 500;
   }
 
-  .compareTable.compareTable.compareTable thead th {
-    padding-block: 14px;
-    font-size: 0.875rem;
+  /* The shiro mark plain here: no tile, no outline. */
+  .compareGroupHead > span:first-child {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
-  .compareTable.compareTable.compareTable thead th:first-child {
-    display: none;
+  .compareRow {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    align-items: center;
+    column-gap: 16px;
+    padding: 12px 0;
   }
 
-  .compareTable.compareTable.compareTable tbody th {
-    grid-column: 1 / -1;
-    padding: 14px 14px 0;
-    border-right: 0;
-    border-bottom: 0;
+  /* The hairline between rows dissolves towards both edges. */
+  .compareRow + .compareRow {
+    background:
+      linear-gradient(to right, transparent, var(--home-hairline) 18%, var(--home-hairline) 82%, transparent)
+      top / 100% 1px no-repeat;
+  }
+
+  .compareRowLabel {
+    position: relative;
     font-size: 0.8125rem;
     color: var(--openui-text-neutral-secondary);
   }
 
-  .cell {
-    align-items: flex-start;
-    gap: 6px;
+  /* The separator between the label and the answer. */
+  .compareRowLabel::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -8px;
+    height: 1.5em;
+    translate: 0 -50%;
+    border-left: 1px solid var(--home-hairline);
   }
 
-  .cell svg {
-    margin-top: 3px;
+  .cell {
+    width: auto;
+    align-items: center;
+    gap: 8px;
   }
 }

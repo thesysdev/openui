@@ -1,6 +1,16 @@
 "use client";
 
-import { Blocks, Database, Pause, PencilLine, Play, RefreshCw, SquareFunction } from "lucide-react";
+import {
+  Blocks,
+  ChevronLeft,
+  ChevronRight,
+  Database,
+  Pause,
+  PencilLine,
+  Play,
+  RefreshCw,
+  SquareFunction,
+} from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import styles from "./DashboardStory.module.css";
 import page from "./page.module.css";
@@ -132,7 +142,8 @@ export function DashboardStory() {
       <div className={page.container}>
         <div className={page.lockup}>
           <h2 id="dashboard-story-title" className={page.heading}>
-            Ask once. The dashboard keeps up.
+            Ask once.
+            <br className={page.phoneBreak} /> The dashboard keeps up.
           </h2>
           <p className={page.lead}>
             Dashboards query your APIs, compute what’s missing, and render with your own components.
@@ -174,6 +185,24 @@ export function DashboardStory() {
           </button>
         </div>
 
+        {/* Phones: the film's progress as one segment per step. */}
+        <span className={styles.stepSegs} aria-hidden="true">
+          {POINTS.map(({ id }, index) => {
+            const step = FILM_STEPS[index];
+            const seg =
+              index < active
+                ? 1
+                : index > active
+                  ? 0
+                  : Math.min(1, Math.max(0, (T - step.start) / step.length));
+            return (
+              <span key={id} className={styles.stepSeg}>
+                <span style={{ transform: `scaleX(${seg})` }} />
+              </span>
+            );
+          })}
+        </span>
+
         <ol
           className={styles.points}
           ref={rail}
@@ -209,6 +238,26 @@ export function DashboardStory() {
             );
           })}
         </ol>
+
+        {/* Phones show one point at a time; these step through them. */}
+        <div className={styles.stepNav}>
+          <button
+            type="button"
+            className={styles.stepNavButton}
+            aria-label="Previous step"
+            onClick={() => goTo((active + POINTS.length - 1) % POINTS.length)}
+          >
+            <ChevronLeft size={16} strokeWidth={2.25} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className={styles.stepNavButton}
+            aria-label="Next step"
+            onClick={() => goTo((active + 1) % POINTS.length)}
+          >
+            <ChevronRight size={16} strokeWidth={2.25} aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </section>
   );

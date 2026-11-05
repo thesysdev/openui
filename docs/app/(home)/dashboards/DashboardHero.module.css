@@ -5,8 +5,32 @@
 .stage {
   --k: tan(atan2(100cqw, 1584px));
 
+  position: relative;
   container-type: size;
   aspect-ratio: 1584 / 820;
+  /* A subtle grey ground so the white device reads against the stage. */
+  background: #f4f4f5;
+}
+
+[data-theme="dark"] .stage {
+  background: #121214;
+}
+
+/* A subtle grey wash rising from the stage's bottom edge, settling the
+   device where it runs off. */
+.stage::after {
+  content: "";
+  position: absolute;
+  /* In front of the device, under the tab pills (they sit at z-index 2). */
+  z-index: 1;
+  inset: auto 0 0 0;
+  height: 22%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(10, 10, 11, 0.05));
+}
+
+[data-theme="dark"] .stage::after {
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.04));
 }
 
 .scene {
@@ -19,6 +43,8 @@
   transform: scale(var(--k));
 }
 
+/* Bezels in the homepage device's language: the page colour (white in
+   light, black in dark) with its hairline edge and soft natural shadow. */
 .device {
   position: absolute;
   top: 64px;
@@ -27,12 +53,18 @@
   height: 800px;
   padding: 11px 11px 0;
   border-radius: 30px 30px 0 0;
-  background: #050506;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 1px 2px 1px rgba(0, 0, 0, 0.04),
+    0 16px 40px -14px rgba(0, 0, 0, 0.12);
 }
 
-/* On the dark stage the bezel needs an edge to read as a device. */
 [data-theme="dark"] .device {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 16px 40px -14px rgba(0, 0, 0, 0.55);
 }
 
 .screen {
@@ -40,8 +72,7 @@
   height: 100%;
   overflow: hidden;
   border-radius: 19px 19px 0 0;
-  background: #fff;
-  box-shadow: inset 0 0 0 1.5px #000;
+  background: #fafafa;
   color: #0a0a0b;
   text-align: left;
   color-scheme: light;
@@ -55,14 +86,52 @@
   height: 30px;
   padding: 0 20px;
   translate: -50% 0;
-  border-radius: 0 0 15px 15px;
-  background: #050506;
+  border-radius: 0 0 var(--notch-r) var(--notch-r);
+  /* The notch matches the rim and hangs like the homepage device's labels:
+     bottom corners rounded, top corners curving out into the edge. */
+  --notch-bg: #fff;
+  --notch-r: 15px;
+
+  background: var(--notch-bg);
   font-size: 13.5px;
   font-weight: 600;
   line-height: 29px;
   letter-spacing: -0.005em;
-  color: #fff;
+  color: #0a0a0b;
   white-space: nowrap;
+}
+
+.notch::before,
+.notch::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: var(--notch-r);
+  height: var(--notch-r);
+}
+
+.notch::before {
+  right: 100%;
+  background: radial-gradient(
+    circle at 0 100%,
+    transparent calc(var(--notch-r) - 0.5px),
+    var(--notch-bg) var(--notch-r)
+  );
+}
+
+.notch::after {
+  left: 100%;
+  background: radial-gradient(
+    circle at 100% 100%,
+    transparent calc(var(--notch-r) - 0.5px),
+    var(--notch-bg) var(--notch-r)
+  );
+}
+
+[data-theme="dark"] .notch {
+  --notch-bg: #000;
+
+  color: #f2f2f4;
 }
 
 /* ---------- In chat ---------- */
@@ -149,11 +218,18 @@
   height: 900px;
   padding: 12px;
   border-radius: 60px;
-  background: #050506;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 1px 2px 1px rgba(0, 0, 0, 0.04),
+    0 16px 40px -14px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="dark"] .phone {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 16px 40px -14px rgba(0, 0, 0, 0.55);
 }
 
 .phoneScreen {
@@ -162,7 +238,6 @@
   overflow: hidden;
   border-radius: 48px;
   background: #f7f7f8;
-  box-shadow: inset 0 0 0 1.5px #000;
   color: #0a0a0b;
   color-scheme: light;
 }
@@ -187,8 +262,7 @@
   display: flex;
   flex-direction: column;
   padding: 44px 20px 0;
-  border-left: 1px solid rgba(10, 10, 11, 0.08);
-  background: #fafafa;
+  background: #fff;
   font-size: 15px;
   line-height: 1.35;
 }
@@ -255,32 +329,22 @@
    for the copilot, so the chat stays on screen. */
 @media (max-width: 767px) {
   .stage {
-    --k: tan(atan2(100cqh, 620px));
+    /* Scaled to the stage's width and zoomed 30% past it, in a short stage
+       that clips every device at its right and bottom edges. */
+    --k: calc(tan(atan2(100cqw, 1280px)) * 1.3);
 
-    aspect-ratio: 358 / 420;
+    aspect-ratio: 358 / 275;
   }
 
-  .scene {
-    transform: scale(var(--k)) translateX(calc(16px / var(--k) - 202px));
-  }
-
+  /* The devices hold the left gutter and run off the right and bottom. */
+  .scene,
   .scene[data-form="copilot"] {
-    transform: scale(var(--k)) translateX(calc((100cqw - 16px) / var(--k) - 1382px));
+    transform: scale(var(--k)) translateX(calc(16px / var(--k) - 202px));
   }
 
   /* The phone is narrow enough to sit whole in the middle. */
   .scene[data-form="mobile"] {
     transform: scale(var(--k)) translateX(calc(50cqw / var(--k) - 792px));
-  }
-
-  .screen .notch {
-    left: 300px;
-  }
-
-  .scene[data-form="copilot"] .screen .notch {
-    left: auto;
-    right: 120px;
-    translate: none;
   }
 }
 
@@ -304,9 +368,23 @@
   background: #17181b;
 }
 
+/* The split's separator, dissolving towards the top. */
+.copilot::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(to top, rgba(10, 10, 11, 0.08) 70%, transparent);
+}
+
 :global([data-theme="dark"]) .copilot {
-  border-left-color: rgba(255, 255, 255, 0.08);
   background: #141518;
+}
+
+:global([data-theme="dark"]) .copilot::before {
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.08) 70%, transparent);
 }
 
 :global([data-theme="dark"]) .copilotHead svg {

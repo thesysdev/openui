@@ -45,14 +45,6 @@ const HOME_LOGOS: Logo[] = [
     href: "https://www.accenture.com/",
   },
   {
-    src: "/logos/vendo.svg",
-    bounds: [25, 135],
-    scale: 0.94,
-    alt: "Vendo",
-    href: "https://vendo.run/",
-    yc: true,
-  },
-  {
     src: "/logos/palo-alto-networks.svg",
     bounds: [10, 150],
     scale: 0.92,
@@ -186,9 +178,9 @@ export function LogoStrip({
   title?: string;
 }) {
   const logos = variant === "cloud" ? CLOUD_LOGOS : HOME_LOGOS;
-  /* Home splits its list across two rows that drift in opposite directions,
-     the second shifted half a logo so the marks sit staggered like a
-     honeycomb. Alternating picks keep big brands and startups mixed in both. */
+  /* Home splits its list across two rows that drift the same way, the second
+     shifted half a logo so the marks sit staggered like a honeycomb.
+     Alternating picks keep big brands and startups mixed in both. */
   const rows =
     variant === "cloud"
       ? [logos]
@@ -208,7 +200,11 @@ export function LogoStrip({
           >
             <div
               className={styles.track}
-              style={{ animationDuration: `${row.length * SECONDS_PER_LOGO}s` }}
+              // The second row runs a touch slower, so the rows drift apart
+              // instead of moving in lockstep.
+              style={{
+                animationDuration: `${row.length * SECONDS_PER_LOGO * (rowIndex % 2 ? 1.12 : 1)}s`,
+              }}
             >
               {Array.from({ length: SETS }, (_, set) =>
                 row.map((logo) => {

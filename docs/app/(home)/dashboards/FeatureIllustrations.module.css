@@ -215,8 +215,13 @@
   height: 44px;
   padding: 0 10px 0 14px;
   border-radius: 10px;
-  background: var(--tint);
+  /* White in light mode; dark keeps the tint. */
+  background: #fff;
   color: var(--feat-muted);
+}
+
+:global([data-theme="dark"]) .layer {
+  background: var(--tint);
 }
 
 .layerHero {
@@ -224,6 +229,12 @@
   color: var(--feat-panel);
   font-weight: 500;
   animation: ring 2.4s ease-out infinite;
+}
+
+/* In dark the hero layer flips to white, on web and phones alike. */
+:global([data-theme="dark"]) .layerHero {
+  background: #fff;
+  color: #111317;
 }
 
 /* A few examples of each kept layer, as an overlapping stack. */
@@ -239,7 +250,6 @@
   display: flex;
   margin-left: -5px;
   border-radius: 999px;
-  box-shadow: 0 0 0 2px var(--stage-stroke);
 }
 
 .layerIcon {
@@ -375,8 +385,13 @@
   height: 32px;
   padding: 0 12px;
   border-radius: 8px;
-  background: var(--tint);
+  /* White in light mode; dark keeps the tint. */
+  background: #fff;
   color: var(--feat-ink);
+}
+
+:global([data-theme="dark"]) .sievePill {
+  background: var(--tint);
 }
 
 /* The AppLess caret run, sweeping toward the tile. */

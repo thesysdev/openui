@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { StreamingComparison } from "./StreamingComparison";
 import styles from "./StreamingComparison.module.css";
 import type { ComparisonExample } from "./types";
@@ -11,18 +11,18 @@ export interface ComparisonTab {
   example: ComparisonExample;
 }
 
-const ROTATE_MS = 12_000;
-const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
-const readReducedMotion = () => window.matchMedia(REDUCED_MOTION).matches;
-const subscribeReducedMotion = (onChange: () => void) => {
-  const query = window.matchMedia(REDUCED_MOTION);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-};
-
 /* The comparison with the homepage pill tabs floating over its bottom edge; picking a
    tab swaps in that example and streams it from the start. */
-export function ComparisonTabs({ tabs, initial = 0 }: { tabs: ComparisonTab[]; initial?: number }) {
+export function ComparisonTabs({
+  tabs,
+  initial = 0,
+  leftStatic = false,
+}: {
+  tabs: ComparisonTab[];
+  initial?: number;
+  /* Forwarded: the "Without" answer rests finished instead of streaming. */
+  leftStatic?: boolean;
+}) {
   const instanceId = useId();
   const hostRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -30,7 +30,6 @@ export function ComparisonTabs({ tabs, initial = 0 }: { tabs: ComparisonTab[]; i
   const [visible, setVisible] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, () => true);
   const tab = tabs[active];
 
   useEffect(() => {
@@ -43,27 +42,17 @@ export function ComparisonTabs({ tabs, initial = 0 }: { tabs: ComparisonTab[]; i
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!visible || hovered || focused || reducedMotion || tabs.length < 2) return;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const schedule = () => {
-      clearTimeout(timer);
-      if (!document.hidden) {
-        timer = setTimeout(() => setActive((index) => (index + 1) % tabs.length), ROTATE_MS);
-      }
-    };
-    schedule();
-    document.addEventListener("visibilitychange", schedule);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("visibilitychange", schedule);
-    };
-  }, [active, visible, hovered, focused, reducedMotion, tabs.length]);
-
   return (
     <div
       ref={hostRef}
       className={styles.tabsHost}
+      // The active tab's fill drives rotation; hold it while the comparison is
+      // off screen or being read. The bar's own hover and focus pause in CSS.
+      style={
+        {
+          "--tab-fill-play": !visible || hovered || focused ? "paused" : "running",
+        } as CSSProperties
+      }
       onPointerEnter={(event) => {
         if (event.pointerType !== "touch") setHovered(true);
       }}
@@ -80,7 +69,7 @@ export function ComparisonTabs({ tabs, initial = 0 }: { tabs: ComparisonTab[]; i
         tabIndex={0}
       >
         {/* Keyed by tab, so switching remounts it and the stream restarts. */}
-        <StreamingComparison key={tab.id} example={tab.example} />
+        <StreamingComparison key={tab.id} example={tab.example} leftStatic={leftStatic} />
       </div>
       <div className={styles.tabsBar}>
         <div
@@ -103,6 +92,8 @@ export function ComparisonTabs({ tabs, initial = 0 }: { tabs: ComparisonTab[]; i
               tabIndex={index === active ? 0 : -1}
               className={`${styles.tab} ${index === active ? styles.tabActive : ""}`.trim()}
               onClick={() => setActive(index)}
+              // The active tab's fill (the only animation on these buttons) ran out.
+              onAnimationEnd={() => setActive((index + 1) % tabs.length)}
               onKeyDown={(event) => {
                 let nextIndex: number;
                 switch (event.key) {

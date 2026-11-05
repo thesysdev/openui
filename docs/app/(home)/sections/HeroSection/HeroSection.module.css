@@ -832,6 +832,9 @@
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
+  /* The pill's rounded end reads as indented against the flush text block;
+     pull it back a step so the command aligns optically. */
+  margin-left: -0.5rem;
 }
 
 /* Secondary hero CTA — white pill mirroring the primary button's bevel, subtler. */
@@ -1282,13 +1285,19 @@
 .mobileProof {
   display: flex;
   justify-content: center;
-  margin-block: 3.5rem 2rem;
+  margin-block: 3.5rem 3rem;
   padding-inline: 1rem;
 }
 
 /* The renderer proof introduces the preview, separately from the CTA group. */
+/* Between the subtitle and the command, tucked to the subtitle: with the
+   stack's own 24px gap, the gap above it is half the gap below it. */
 .desktopProof {
-  margin-top: 4.5rem;
+  margin-top: 0;
+}
+
+.desktopProof + .desktopCtaStack {
+  margin-top: 1.5rem;
 }
 
 .desktopHeroInner:has(.desktopProof) {
@@ -1296,7 +1305,7 @@
 }
 
 .section:has(.desktopProof) .previewSection {
-  margin-top: 2rem;
+  margin-top: 3rem;
 }
 
 .section .mobileHero:has(.mobileProof) .mobileCtaStack {

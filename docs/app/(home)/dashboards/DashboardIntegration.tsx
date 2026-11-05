@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Braces, Database, Globe, type LucideIcon } from "lucide-react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
 import { BevelButton } from "../components/Button/BevelButton";
 import landing from "../components/ProductLanding.module.css";
 import { StackChip, type StackChipItem } from "../components/StackChip/StackChip";
@@ -40,14 +40,8 @@ const STEPS: Step[] = [
   },
   {
     id: "data",
-    title: "Connect your data",
-    description: "Your APIs, databases, and JSON sources.",
-    marks: { icons: [Database, Globe, Braces], names: "Databases, REST APIs, JSON" },
-  },
-  {
-    id: "tools",
-    title: "Add your tools",
-    description: "Reuse your agent’s tools or an MCP server.",
+    title: "Connect data and tools",
+    description: "Your APIs and databases, your agent’s tools, or an MCP server.",
     marks: logos(STACK_ROWS[1].items),
   },
   {
@@ -62,9 +56,10 @@ function Marks({ marks }: { marks: Step["marks"] }) {
   return (
     <span className={styles.marks}>
       <span className={styles.markStack} aria-hidden="true">
+        {/* Same rendering as the homepage compatibility clusters. */}
         {marks.logos?.map((item) => (
           <span key={item.name} className={styles.mark}>
-            <StackChip item={item} iconOnly />
+            <StackChip item={item} iconOnly plain="fine" />
           </span>
         ))}
         {marks.icons?.map((Icon, index) => (

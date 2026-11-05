@@ -1,7 +1,8 @@
 import { Chip } from "@/components/charts/primitives";
 import viz from "@/components/charts/viz.module.css";
 import { MarketingTable } from "@/components/marketing-table";
-import { ArrowUpRight, Check, X } from "lucide-react";
+import { Check, X } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import gatewayStyles from "../cloud/gateway/page.module.css";
 import { BevelButton } from "../components/Button/BevelButton";
@@ -31,15 +32,13 @@ export const metadata: Metadata = {
 };
 
 /* Kept to what the product verifiably includes. The comparison is with
-   model-written UI code that has no runtime around it. */
+   model-written HTML that has no runtime around it. */
 const COMPARISON = [
-  { label: "Speed", without: "Waits for full code", with: "Streams live" },
-  { label: "Reliability", without: "Breaks on errors", with: "Self-repairs" },
-  { label: "Live data", without: "Fetched once", with: "Always current" },
-  { label: "Calculated fields", without: "New endpoint", with: "Safe script" },
-  { label: "Targeted edits", without: "Full rewrite", with: "Only that part" },
-  { label: "Design", without: "Generic UI", with: "Your components" },
-  { label: "Safety", without: "Arbitrary code", with: "Your tools only" },
+  { label: "Safety", without: "Arbitrary scripts", with: "Your tools only" },
+  { label: "Speed", without: "Waits for full markup", with: "Streams live" },
+  { label: "Reliability", without: "Breaks on bad markup", with: "Self-repairs" },
+  { label: "Live data", without: "A frozen snapshot", with: "Always current" },
+  { label: "Design", without: "Inline styles", with: "Your components" },
 ];
 
 export default function DashboardsPage() {
@@ -58,7 +57,10 @@ export default function DashboardsPage() {
               <span className={gatewayStyles.eyebrow}>
                 OpenUI <span className={gatewayStyles.cloudTag}>Dashboards</span>
               </span>
-              <span className={gatewayStyles.title}>Live AI dashboards, inside your product</span>
+              <span className={gatewayStyles.title}>
+                <span className={styles.phoneHidden}>Live AI dashboards, inside your product</span>
+                <span className={styles.phoneOnly}>AI Dashboards in your product</span>
+              </span>
             </span>
           }
           subtitle={
@@ -110,16 +112,17 @@ export default function DashboardsPage() {
           <div className={`${styles.container} ${styles.compare}`}>
             <div className={styles.compareIntro}>
               <h2 id="dashboard-compare-title" className={styles.heading}>
-                Why not just generate the code?
+                Why not just generate HTML?
               </h2>
               <p className={styles.lead}>
-                Generated code gives you a screen. OpenUI gives you a dashboard that keeps up.
+                Generated HTML is a frozen page: it can&apos;t stream, refresh, or be trusted with
+                your data. OpenUI gives you a dashboard that keeps up.
               </p>
             </div>
             <div className={`${viz.viz} ${viz.vivid} ${styles.compareTable}`}>
               <MarketingTable compact edgeToEdgeMobile className={viz.benchmarkTable}>
                 <caption className="sr-only">
-                  OpenUI Dashboards compared with LLM-written code
+                  OpenUI Dashboards compared with LLM-written HTML
                 </caption>
                 <colgroup>
                   <col className={styles.capabilityColumn} />
@@ -131,9 +134,13 @@ export default function DashboardsPage() {
                     <th scope="col">
                       <span className="sr-only">Capability</span>
                     </th>
-                    <th scope="col">LLM-written code</th>
+                    {/* Same fixed block as the cells below, so the titles
+                        share the marks' left edge. */}
+                    <th scope="col">
+                      <span className={styles.cell}>LLM-written HTML</span>
+                    </th>
                     <th scope="col" className={viz.s1}>
-                      <span className={viz.colHead}>
+                      <span className={`${viz.colHead} ${styles.cell}`}>
                         <Chip mark="openui" />
                         OpenUI Dashboards
                       </span>
@@ -146,13 +153,17 @@ export default function DashboardsPage() {
                       <th scope="row">{row.label}</th>
                       <td className={styles.worse}>
                         <span className={styles.cell}>
-                          <X className={styles.dash} size={14} aria-hidden="true" />
+                          <span aria-hidden="true" className={`${styles.mark} ${styles.markFail}`}>
+                            <X size={13} weight="bold" />
+                          </span>
                           {row.without}
                         </span>
                       </td>
                       <td className={viz.s1}>
                         <span className={styles.cell}>
-                          <Check className={styles.check} size={16} aria-hidden="true" />
+                          <span aria-hidden="true" className={`${styles.mark} ${styles.markPass}`}>
+                            <Check size={13} weight="bold" />
+                          </span>
                           {row.with}
                         </span>
                       </td>
@@ -160,6 +171,42 @@ export default function DashboardsPage() {
                   ))}
                 </tbody>
               </MarketingTable>
+            </div>
+
+            {/* Phones: the same comparison grouped by column — all of HTML
+                first, then all of OpenUI — as label/answer rows. */}
+            <div className={styles.compareStacked}>
+              <div>
+                <span className={styles.compareGroupHead}>LLM-written HTML</span>
+                {COMPARISON.map((row) => (
+                  <div key={row.label} className={styles.compareRow}>
+                    <span className={styles.compareRowLabel}>{row.label}</span>
+                    <span className={styles.cell}>
+                      <span aria-hidden="true" className={`${styles.mark} ${styles.markFail}`}>
+                        <X size={13} weight="bold" />
+                      </span>
+                      {row.without}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <span className={styles.compareGroupHead}>
+                  <Chip mark="openui" />
+                  OpenUI Dashboards
+                </span>
+                {COMPARISON.map((row) => (
+                  <div key={row.label} className={styles.compareRow}>
+                    <span className={styles.compareRowLabel}>{row.label}</span>
+                    <span className={styles.cell}>
+                      <span aria-hidden="true" className={`${styles.mark} ${styles.markPass}`}>
+                        <Check size={13} weight="bold" />
+                      </span>
+                      {row.with}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

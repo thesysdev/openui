@@ -158,6 +158,12 @@
   }
 }
 
+/* Hidden everywhere but phones. */
+.stepNav,
+.stepSegs {
+  display: none;
+}
+
 @media (max-width: 767px) {
   /* Phones: edge to edge, and a narrower frame (the film's central 900px),
      so everything in it is about half as large again. */
@@ -178,11 +184,66 @@
   .points {
     gap: 16px;
     margin-top: 24px;
+    overflow-x: hidden;
   }
 
-  /* Most of the screen, with the next card peeking in to show it scrolls. */
+  /* The film's progress as five segments, one per step; the card's own
+     single track steps aside for it. */
+  .stepSegs {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 6px;
+    margin-top: 24px;
+  }
+
+  .stepSeg {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    border-radius: 1px;
+    background: rgba(127, 127, 132, 0.25);
+  }
+
+  .stepSeg > span {
+    position: absolute;
+    inset: 0;
+    transform-origin: left;
+    background: var(--openui-text-neutral-primary);
+  }
+
+  .point .track {
+    display: none;
+  }
+
+  /* One point at a time: only the active card shows; the chevrons below
+     step through them. */
   .point {
-    flex-basis: 78%;
+    display: none;
+    flex-basis: 100%;
+  }
+
+  .point[data-active] {
+    display: block;
+  }
+
+  .stepNav {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .stepNavButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--home-hairline);
+    border-radius: 999px;
+    background: var(--openui-foreground, #fff);
+    color: var(--openui-text-neutral-primary);
+    cursor: pointer;
   }
 
   .pointIcon {
@@ -191,6 +252,10 @@
 
   .pointTitle {
     margin-top: 10px;
+  }
+
+  .pointDescription {
+    max-width: 32ch;
   }
 }
 

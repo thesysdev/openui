@@ -64,7 +64,8 @@ export function DashboardFeatures() {
       <div className={styles.container}>
         {/* The OUI-1 and AppLess feature lockup: a centered line and its lead. */}
         <h2 id="dashboard-features-title" className={landing.statement}>
-          Fits your stack, holds up in production{" "}
+          Fits your stack,
+          <br className={styles.phoneBreak} /> holds up in production{" "}
           <span>
             Use any model and your existing agent. Bad output gets repaired, and only your
             components and tools run.

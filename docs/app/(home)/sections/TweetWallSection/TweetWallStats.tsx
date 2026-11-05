@@ -26,7 +26,7 @@ export function TweetWallStats() {
       <span className={styles.statChip}>
         <NpmMark />
         <span className={styles.statText}>
-          <span className={styles.statNumber}>7M+</span>{" "}
+          <span className={styles.statNumber}>13M+</span>{" "}
           <span className={styles.statLabel}>downloads across all packages</span>
         </span>
       </span>

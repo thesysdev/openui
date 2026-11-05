@@ -226,6 +226,16 @@ const linePath = (vals: number[], W: number, H: number, max: number, x0 = 0) =>
     })
     .join(" ");
 
+/* The closed region between two series, for distinct bands under each line. */
+const bandPath = (top: number[], bottom: number[], W: number, H: number, max: number) =>
+  `${linePath(top, W, H, max)} ${bottom
+    .map((_, idx) => {
+      const i = bottom.length - 1 - idx;
+      const x = (i / (bottom.length - 1)) * W;
+      return `L${x.toFixed(1)} ${(H - (bottom[i] / max) * H).toFixed(1)}`;
+    })
+    .join(" ")} Z`;
+
 /* ---------- Sales: a dashboard page, in Studio ---------- */
 
 const SALES_KPIS: {
@@ -272,12 +282,6 @@ const BOOKINGS = [
   [96, 104, 99, 112, 118, 109, 121, 127, 124, 131, 140, 156],
   [96, 104, 99, 112, 118, 109, 121, 127, 124, 131, 141, 153],
 ];
-const FORECAST = [
-  [101, 103, 106, 108, 111, 113, 116, 119, 121, 124, 127, 131],
-  [101, 103, 106, 108, 111, 113, 116, 119, 121, 124, 128, 135],
-  [101, 103, 106, 108, 111, 113, 116, 119, 121, 124, 129, 140],
-  [101, 103, 106, 108, 111, 113, 116, 119, 121, 124, 129, 138],
-];
 const REPS = [
   { name: "Maya Chen", share: ["24%", "25%", "25%", "24%"] },
   { name: "Leo Park", share: ["19%", "19%", "20%", "21%"] },
@@ -304,7 +308,6 @@ function SalesPage({ T }: { T: number }) {
   const k = clockAt(T);
   const shares = series(k, SHARES);
   const bookings = series(k, BOOKINGS);
-  const forecast = series(k, FORECAST);
   const FW = 386;
   const FH = 124;
   return (
@@ -394,13 +397,6 @@ function SalesPage({ T }: { T: number }) {
                 />
               );
             })}
-            <path
-              className={styles.forecast}
-              d={linePath(forecast, 316, 156, 170, 0)}
-              transform="translate(13.5 0)"
-              pathLength={1}
-              strokeDasharray={`${drawn(T, 6)} 1`}
-            />
             {MONTHS.map((m, i) => (
               <text key={i} className={styles.axis} x={13.5 + i * 27.5} y={173} textAnchor="middle">
                 {m}
@@ -420,13 +416,13 @@ function SalesPage({ T }: { T: number }) {
               return (
                 <li key={r.name} style={pop(T, at(7) + 0.12 + i * 0.06)}>
                   <i style={{ width: `${(share / 26) * 82 * grow(T, 7, i)}%` }} />
+                  {/* Initials only; the full names stay out of the chart. */}
                   <span className={styles.avatar}>
                     {r.name
                       .split(" ")
                       .map((p) => p[0])
                       .join("")}
                   </span>
-                  <span className={styles.repName}>{r.name}</span>
                   <Roll k={k} states={r.share} className={styles.repShare} />
                 </li>
               );
@@ -474,7 +470,13 @@ const SUPPORT_KPIS: {
     delta: "2.1%",
     tone: "blue",
   },
-  { icon: Smile, label: "CSAT", values: ["4.6", "4.7", "4.7", "4.8"], delta: "0.2", tone: "white" },
+  {
+    icon: Smile,
+    label: "CSAT",
+    values: ["4.6", "4.7", "4.7", "4.8"],
+    delta: "0.2",
+    tone: "purple",
+  },
   {
     icon: Hourglass,
     label: "First reply",
@@ -584,10 +586,22 @@ function SupportDesk({ T }: { T: number }) {
               </text>
             ))}
             <g transform="translate(34 18)">
+              {/* Three distinct bands: overall over AI, AI over handoff, and
+                  handoff down to the axis, each in its line's colour. */}
               <path
-                className={styles.area}
-                d={`${linePath(resolved, 396, 150, 100)} L396 150 L0 150 Z`}
-                style={{ opacity: 0.12 * drawn(T, 4) }}
+                className={`${styles.area} ${styles.areaGreen}`}
+                d={bandPath(resolved, ai, 396, 150, 100)}
+                style={{ opacity: 0.07 * drawn(T, 4) }}
+              />
+              <path
+                className={`${styles.area} ${styles.areaBlue}`}
+                d={bandPath(ai, handoff, 396, 150, 100)}
+                style={{ opacity: 0.07 * drawn(T, 4) }}
+              />
+              <path
+                className={`${styles.area} ${styles.areaInk}`}
+                d={`${linePath(handoff, 396, 150, 100)} L396 150 L0 150 Z`}
+                style={{ opacity: 0.05 * drawn(T, 4) }}
               />
               {(
                 [
@@ -692,7 +706,7 @@ const FIN_KPIS: {
     values: ["$1.24M", "$1.25M", "$1.27M", "$1.26M"],
     delta: "+8.1%",
     note: "Quarter to date",
-    color: "#8050e8",
+    color: "#fb923c",
   },
   {
     icon: Receipt,
@@ -700,7 +714,7 @@ const FIN_KPIS: {
     values: ["$812K", "$815K", "$819K", "$822K"],
     delta: "4.0% under",
     note: "Against budget",
-    color: "#eba542",
+    color: "#f97316",
   },
   {
     icon: PiggyBank,
@@ -708,7 +722,7 @@ const FIN_KPIS: {
     values: ["62.4%", "62.6%", "62.9%", "62.7%"],
     delta: "+1.2 pt",
     note: "Up from Q3",
-    color: "#6097eb",
+    color: "#ea580c",
   },
   {
     icon: Wallet,
@@ -716,7 +730,7 @@ const FIN_KPIS: {
     values: ["22 mo", "22 mo", "23 mo", "23 mo"],
     delta: "+2 mo",
     note: "At current burn",
-    color: "#79c840",
+    color: "#c2410c",
   },
 ];
 const WEEKS = 26;
@@ -728,9 +742,9 @@ const cash = (seed: number) =>
 const CASH_IN = [cash(0), cash(0.3), cash(0.6), cash(0.9)];
 const CASH_OUT = CASH_IN.map((a) => a.map((v, w) => v * 0.55 + Math.sin(w * 1.3) * 0.4));
 const DEPTS = [
-  { label: "Engineering", actual: [412, 413, 415, 414], budget: 430, color: "#b5e47d" },
-  { label: "Sales", actual: [238, 240, 243, 245], budget: 252, color: "#eba542" },
-  { label: "Marketing", actual: [162, 162, 161, 163], budget: 176, color: "#6097eb" },
+  { label: "Engineering", actual: [412, 413, 415, 414], budget: 430, color: "#fb923c" },
+  { label: "Sales", actual: [238, 240, 243, 245], budget: 252, color: "#f97316" },
+  { label: "Marketing", actual: [162, 162, 161, 163], budget: 176, color: "#dc2626" },
 ];
 const usdK = (n: number) => `$${Math.round(n)}K`;
 

@@ -5,11 +5,11 @@
   background: var(--openui-background);
 }
 
-/* Five steps as in the OUI-1 and AppLess how-to rows: no rule above them,
+/* Four steps as in the OUI-1 and AppLess how-to rows: no rule above them,
    hairlines between the columns. */
 .row {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 56px 0 0;
   padding: 0;
   list-style: none;
@@ -72,7 +72,6 @@
   display: flex;
   margin-left: -4px;
   border-radius: 999px;
-  box-shadow: 0 0 0 2px var(--openui-background);
 }
 
 .markIcon {
@@ -137,56 +136,12 @@
   }
 }
 
-/* Phones: the five steps sit in one row you swipe through, like the How it
-   works steps, each card snapping into place. */
+/* Phones: the steps stack one below the other with their number rail, as
+   the observability page lays its steps out on a phone. The stacked rows
+   themselves come from the tablet rules above. */
 @media (max-width: 767px) {
   .row {
-    display: flex;
-    gap: 12px;
-    margin-inline: calc(-1 * var(--dash-gutter, 1rem));
-    padding-inline: var(--dash-gutter, 1rem);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--dash-gutter, 1rem);
-    scrollbar-width: none;
-  }
-
-  .row::-webkit-scrollbar {
-    display: none;
-  }
-
-  .rowStep,
-  .rowStep:first-child,
-  .rowStep:last-child {
-    display: flex;
-    flex: 0 0 78%;
-    flex-direction: column;
-    gap: 0;
-    padding: 18px;
-    border: 1px solid var(--home-hairline);
-    border-radius: 14px;
-    background: var(--openui-foreground, #fff);
-    scroll-snap-align: start;
-  }
-
-  .rowStep + .rowStep {
-    border-top: 1px solid var(--home-hairline);
-  }
-
-  .rowStep > :first-child {
-    margin-bottom: 14px;
-  }
-
-  .stepTitle {
-    margin-top: 0;
-  }
-
-  .marks {
-    margin-top: auto;
-  }
-
-  .marks {
-    padding-top: 10px;
+    margin-top: 32px;
   }
 
   .mark {

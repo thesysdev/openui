@@ -22,7 +22,7 @@ export function ModelProof() {
       <span className={page.modelMarks} aria-hidden="true">
         {MODEL_MARKS.map((item) => (
           <span className={page.modelMark} key={item.name}>
-            <StackChip item={item} iconOnly />
+            <StackChip item={item} iconOnly plain="fine" />
           </span>
         ))}
       </span>
@@ -85,8 +85,20 @@ function Reply({ text, style }: { text: string; style?: CSSProperties }) {
 
 export function DashboardHeroStage() {
   const host = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [active, setActive] = useState(0);
   const item = CASES[active];
+  const go = (index: number) => {
+    setActive(index);
+    // On narrow screens the tab row scrolls; bring the opened tab to the middle.
+    const tab = tabRefs.current[index];
+    const row = tab?.parentElement;
+    if (tab && row && row.scrollWidth > row.clientWidth)
+      row.scrollTo({
+        left: tab.offsetLeft - (row.clientWidth - tab.offsetWidth) / 2,
+        behavior: "smooth",
+      });
+  };
   const T = useLoop(item.id, host);
   const Scene = SCENES[item.id];
   const notch = <span className={styles.notch}>{item.notch}</span>;
@@ -169,18 +181,13 @@ export function DashboardHeroStage() {
               type="button"
               role="tab"
               aria-selected={i === active}
-              className={`${tabStyles.tab} ${i === active ? tabStyles.tabActive : ""}`.trim()}
-              onClick={(e) => {
-                setActive(i);
-                // On narrow screens the tab row scrolls; bring the picked tab to the middle.
-                const tab = e.currentTarget;
-                const row = tab.parentElement;
-                if (row && row.scrollWidth > row.clientWidth)
-                  row.scrollTo({
-                    left: tab.offsetLeft - (row.clientWidth - tab.offsetWidth) / 2,
-                    behavior: "smooth",
-                  });
+              ref={(node) => {
+                tabRefs.current[i] = node;
               }}
+              className={`${tabStyles.tab} ${i === active ? tabStyles.tabActive : ""}`.trim()}
+              onClick={() => go(i)}
+              // The active tab's fill (the only animation on these buttons) ran out.
+              onAnimationEnd={() => go((i + 1) % CASES.length)}
             >
               {c.label}
             </button>

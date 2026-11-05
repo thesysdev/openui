@@ -1,38 +1,37 @@
-import { COST_MODELS, costPerPass, tokens } from "@/lib/benchmark-data";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChartColumnDecreasing, ChartLine, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import styles from "./page.module.css";
 
-/* Derived from the benchmark data, never typed. The baseline is json-render,
-   the JSON format that writes the most tokens per screen: fewer output tokens
-   is where both the lower cost and the shorter stream come from. */
-const { openui, jsonRender } = tokens.outputPerScreen;
-const FEWER_TOKENS = Math.round((1 - openui / jsonRender) * 100);
-const LOWER_COST = Math.round(
-  (COST_MODELS.reduce(
-    (sum, id) => sum + (1 - costPerPass[id]!.openui / costPerPass[id]!.jsonRender),
-    0,
-  ) /
-    COST_MODELS.length) *
-    100,
-);
-const LESS_TO_STREAM = (jsonRender / openui).toFixed(1);
+/* From the OpenUI Lang comparison (docs/openui-lang/comparison): free-form
+   HTML (CopilotKit OpenGenUI) writes ~4x the output tokens per screen, so
+   each screen costs ~4x to generate, and streams in ~20s against OpenUI's
+   4.9s at 60 tok/s. */
+const FEWER_TOKENS = Math.round((1 - 1 / 4) * 100);
+const LOWER_COST = FEWER_TOKENS;
+const LESS_TO_STREAM = (20 / 4.9).toFixed(1);
 
 /* The benefit leads, in two or three words, so each figure reads as good news
    at a glance; the detail underneath says against what. "Faster to stream"
-   is the output-token ratio: the same model streams a shorter response in
+   is the latency ratio: the same model streams a shorter response in
    proportionally less time. */
 const NUMBERS = [
   {
     value: `${FEWER_TOKENS}%`,
     benefit: "fewer tokens",
-    detail: "Than JSON UI formats, per screen",
+    detail: "Than LLM-written HTML, per screen",
+    Icon: ChartColumnDecreasing,
   },
-  { value: `${LOWER_COST}%`, benefit: "cheaper", detail: "To generate each screen" },
+  {
+    value: `${LOWER_COST}%`,
+    benefit: "cheaper",
+    detail: "To generate each screen",
+    Icon: TrendingDown,
+  },
   {
     value: `${LESS_TO_STREAM}×`,
     benefit: "faster to stream",
     detail: "So dashboards render sooner",
+    Icon: ChartLine,
   },
 ];
 
@@ -46,6 +45,10 @@ export function DashboardNumbers() {
         <dl className={styles.numbers}>
           {NUMBERS.map((item) => (
             <div key={item.benefit} className={styles.number}>
+              {/* Phones only: a small graph tile above the figure. */}
+              <span className={styles.numberIcon} aria-hidden="true">
+                <item.Icon size={15} strokeWidth={1.75} />
+              </span>
               <dt className={styles.numberLabel}>
                 <span className={styles.numberBenefit}>{item.benefit}</span>
                 <span className={styles.numberDetail}>{item.detail}</span>

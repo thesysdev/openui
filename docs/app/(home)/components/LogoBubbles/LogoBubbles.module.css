@@ -34,7 +34,6 @@
 .face {
   display: flex;
   border-radius: 999px;
-  box-shadow: 0 0 0 2px var(--openui-foreground);
   transition: transform 150ms ease;
 }
 

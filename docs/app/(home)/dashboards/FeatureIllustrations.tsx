@@ -64,7 +64,7 @@ export function ModelsIllustration() {
             <span
               style={{ "--stack-logo-size": "36px", "--stack-logo-glyph": "18px" } as CSSProperties}
             >
-              <StackChip item={model} iconOnly />
+              <StackChip item={model} iconOnly plain="fine" />
             </span>
             <span>
               <b>{model.name}</b>
@@ -300,7 +300,7 @@ export function AgentIllustration() {
           <span className={styles.layerMarks}>
             {AGENT_MARKS.map((item) => (
               <span key={item.name} className={styles.layerMark}>
-                <StackChip item={item} iconOnly />
+                <StackChip item={item} iconOnly plain="fine" />
               </span>
             ))}
           </span>
