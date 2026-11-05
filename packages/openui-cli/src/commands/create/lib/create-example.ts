@@ -172,7 +172,13 @@ export async function runCreateExample(params: {
     dependency_installed: dependencyInstalled,
   });
   const agentReadme = agent ? readmePath(targetDir) : undefined;
-  const envNote = exampleEnvNote(example.env, envResult.envWritten, dir, packageManager.dlxCmd);
+  const envNote = exampleEnvNote(
+    example.env,
+    envResult.envWritten,
+    apiKeyAvailable,
+    dir,
+    packageManager.dlxCmd,
+  );
   const devCmd = `${packageManager.runCmd} run dev`;
   const nextStep = nested
     ? nestedExampleNextSteps({ name: dir, targetDir, layout, packageManager })
@@ -267,11 +273,14 @@ async function promptForProviderKey(envKey: string): Promise<string | null> {
 function exampleEnvNote(
   env: ExampleProject["env"],
   envWritten: boolean,
+  /** The key is in the env file or already exported in the shell. */
+  apiKeyAvailable: boolean,
   name: string,
   dlxCmd: string,
 ): string {
   if (!env.key) return `Add your API keys to ${env.file} (see the example README).`;
   if (envWritten) return `✅ ${env.file} updated with ${env.key}.`;
+  if (apiKeyAvailable) return "";
   if (env.key === "THESYS_API_KEY") return missingCloudKeyNote(name, dlxCmd, env.file);
   return `Add ${env.key}=… to ${env.file} (see the example README).`;
 }
