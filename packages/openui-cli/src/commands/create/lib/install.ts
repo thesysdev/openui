@@ -7,11 +7,9 @@ import { CliCancelledError, cliErrorProperties, throwCommandFailure } from "../.
 import { mutedNpmEnv, runCommand } from "../../../lib/process-runner";
 import { withRetry } from "../../../lib/retry";
 import { withSpinner } from "../../../lib/spinner";
-import type { OverlayName, TemplateName } from "./create-types";
-import type { CreateTelemetryClient } from "./telemetry";
+import type { CreateTelemetryClient, ScaffoldTelemetryProps } from "./telemetry";
 
 export function resolveInstallInvocation(params: {
-  backendFramework: OverlayName;
   packageManager: PackageManager;
   targetDir: string;
 }): { installCmd: string; installArgs: string[] } {
@@ -41,8 +39,7 @@ export async function installProjectDependencies(params: {
   tel: CreateTelemetryClient;
   verbose?: boolean;
   targetDir: string;
-  template: TemplateName;
-  aiSetup: string;
+  scaffold: ScaffoldTelemetryProps;
   packageManager: PackageManager;
   installCmd: string;
   installArgs: string[];
@@ -52,8 +49,7 @@ export async function installProjectDependencies(params: {
     tel,
     verbose,
     targetDir,
-    template,
-    aiSetup,
+    scaffold,
     packageManager,
     installCmd,
     installArgs,
@@ -68,7 +64,7 @@ export async function installProjectDependencies(params: {
     return false;
   }
 
-  tel.trackDependencyInstallStarted({ template, ai_setup: aiSetup });
+  tel.trackDependencyInstallStarted(scaffold);
   const runInstall = () =>
     verbose
       ? runCommand(packageManager.runCmd, installArgs, targetDir)
@@ -103,8 +99,7 @@ export async function installProjectDependencies(params: {
     await (verbose ? runWithRetry() : withSpinner("Installing dependencies...", runWithRetry));
   } catch (err) {
     const properties = {
-      template,
-      ai_setup: aiSetup,
+      ...scaffold,
       dependency_installed: false,
       ...cliErrorProperties(err),
     };
@@ -119,10 +114,6 @@ export async function installProjectDependencies(params: {
   if (!verbose) {
     console.info("✓ Dependencies installed");
   }
-  tel.trackDependencyInstallSucceeded({
-    template,
-    ai_setup: aiSetup,
-    dependency_installed: true,
-  });
+  tel.trackDependencyInstallSucceeded({ ...scaffold, dependency_installed: true });
   return true;
 }
