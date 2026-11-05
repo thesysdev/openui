@@ -42,16 +42,17 @@ Model usage is billed at the provider's rates without markup. The Gateway API an
 
 An [Autofix API](/docs/autofix) call that runs a fix costs a flat $0.02, deducted from your Gateway Credits. It does not use a plan API call. A generation that is already valid is free.
 
-### Search
+### Web Search API
 
-Each search is deducted from your Gateway Credits. Searches don't count toward the API calls included in your plan, and a search that fails costs nothing.
+A [Web Search API](/docs/gateway/api/web-search) call costs the search provider's price without markup, currently $0.007, deducted from your Gateway Credits. It does not use a plan API call. A failed call is free.
 
-| Search       | Price                                                                     |
-| ------------ | ------------------------------------------------------------------------- |
-| Web search   | The search provider's price, with no markup. Currently $0.007 per search. |
-| Image search | $0.005 per search.                                                        |
+### Image Search API
 
-These prices apply to every search, whether your own search tools call the [Web Search API](/docs/gateway/api/web-search) and [Image Search API](/docs/gateway/api/image-search) or Gateway runs its built-in [web search and image search tools](/docs/gateway/api/responses/hosted-tools) in a Responses request. A model can run several searches while it answers, and each one is charged.
+An [Image Search API](/docs/gateway/api/image-search) call costs a flat $0.005, deducted from your Gateway Credits. It does not use a plan API call. A failed call is free.
+
+### Hosted Tools
+
+Web search and image search in [Hosted Tools](/docs/gateway/api/responses/hosted-tools) cost the same per search. A model can run several searches in one response, and each search is charged.
 
 ### Finding model pricing
 
