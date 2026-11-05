@@ -3,7 +3,6 @@ import { BASE_URL } from "@/lib/source";
 import type { Metadata } from "next";
 import { AGENT_SETUP_PROMPT, AgentPicker } from "./components/AgentPicker/AgentPicker";
 import { LangShowcase } from "./components/LangShowcase/LangShowcase";
-import { RendererProofLine } from "./components/RendererProofLine/RendererProofLine";
 import {
   type ComparisonTab,
   ComparisonTabs,
@@ -126,7 +125,6 @@ export default function HomePage() {
           showPlaygroundButton={false}
           showTagline={false}
           commandTrailing={<AgentPicker command={AGENT_SETUP_PROMPT} />}
-          proofSlot={<RendererProofLine lead="One spec, rendered in" />}
           /* No GitHub CTA in the hero on either breakpoint: the header carries
              the star count already. Dropping githubRepoUrl takes the desktop
              button; the mobile banner defaults on, so it is turned off here. */

@@ -1,0 +1,26 @@
+/* Inline chips inside a sentence: sit on the text baseline with a little air
+   between lines when the sentence wraps. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.2rem 0.125rem;
+  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-primary);
+  font-size: 0.9em;
+  line-height: 1.25;
+  vertical-align: middle;
+}
+
+.logo {
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+}
+
+:global([data-theme="dark"]) .logoInvertDark {
+  filter: invert(1);
+}

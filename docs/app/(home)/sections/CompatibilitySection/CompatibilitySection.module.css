@@ -163,3 +163,12 @@
     margin-bottom: 1rem;
   }
 }
+
+
+/* The integrations CTA, centred under the subtitle. */
+.headerCta {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 1.75rem;
+}
