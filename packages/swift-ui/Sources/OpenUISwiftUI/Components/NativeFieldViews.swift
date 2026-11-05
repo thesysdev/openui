@@ -155,7 +155,7 @@ struct OpenUINativeField: View {
                         VStack(alignment: .leading, spacing: context.theme.spacing("3xs")) {
                             Text(option.label).openUIFont(context.theme.textBodyDefault).foregroundStyle(context.theme.textNeutralPrimary)
                             if !option.description.isEmpty {
-                                Text(option.description).openUIFont(context.theme.textBodyXs).foregroundStyle(
+                                Text(option.description).openUIFont(context.theme.textBodySm).foregroundStyle(
                                     context.theme.textNeutralSecondary)
                             }
                         }.fixedSize(horizontal: false, vertical: true)
@@ -175,7 +175,7 @@ struct OpenUINativeField: View {
         VStack(alignment: .leading, spacing: context.theme.spacing("3xs")) {
             Text(option.label).openUIFont(context.theme.textBodyDefault).foregroundStyle(context.theme.textNeutralPrimary)
             if !option.description.isEmpty {
-                Text(option.description).openUIFont(context.theme.textBodyXs).foregroundStyle(context.theme.textNeutralSecondary)
+                Text(option.description).openUIFont(context.theme.textBodySm).foregroundStyle(context.theme.textNeutralSecondary)
             }
         }.fixedSize(horizontal: false, vertical: true)
     }
@@ -245,6 +245,8 @@ struct NativeFieldOption: Identifiable {
 
 private struct NativeCheckboxStyle: ToggleStyle {
     let theme: OpenUIThemeValues
+    @Environment(\.isEnabled) private var enabled
+    @Environment(\.isFocused) private var focused
     func makeBody(configuration: Configuration) -> some View {
         Button {
             configuration.isOn.toggle()
@@ -254,7 +256,11 @@ private struct NativeCheckboxStyle: ToggleStyle {
                     .openUIFont(theme.textBodyDefault).foregroundStyle(configuration.isOn ? theme.interactiveAccentDefault : theme.textNeutralSecondary).padding(
                         .top, 2)
                 configuration.label.frame(maxWidth: .infinity, alignment: .leading)
-            }.frame(minHeight: 44).modifier(NativeFieldSurface(theme: theme))
+            }.openUIControlTarget(alignment: .leading)
+                .opacity(enabled ? 1 : 0.45)
+                .overlay(RoundedRectangle(cornerRadius: theme.radiusM)
+                    .strokeBorder(theme.interactiveAccentDefault, lineWidth: 2)
+                    .opacity(focused && enabled ? 1 : 0).allowsHitTesting(false))
         }.buttonStyle(.plain)
             .accessibilityValue(
                 configuration.isOn ? Text("On", bundle: NativeControlResources.bundle) : Text("Off", bundle: NativeControlResources.bundle)

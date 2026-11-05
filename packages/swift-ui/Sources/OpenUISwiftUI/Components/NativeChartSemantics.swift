@@ -1,8 +1,7 @@
 @_spi(RuntimeInspection) import OpenUILang
 import SwiftUI
 
-/// Drawing and inspection use the same radar projection. Radial slots carry
-/// short axis numbers; the native key preserves complete category labels.
+/// Drawing, category annotations and inspection use the same radar projection.
 struct NativeRadarGeometry {
   let center: CGPoint
   let radius: CGFloat

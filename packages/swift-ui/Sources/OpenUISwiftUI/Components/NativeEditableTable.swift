@@ -105,7 +105,8 @@ struct NativeEditableTable: View {
           HStack(spacing: 0) {
             ForEach(Array(columns.enumerated()), id: \.offset) { index, column in
               Text(NativeValue.string(column, "header") ?? "").openUIFont(context.theme.textBodySmHeavy)
-                .frame(width: width(index), alignment: .leading).padding(context.theme.spaceM)
+                .multilineTextAlignment(NativeValue.string(column, "type") == "number" ? .trailing : .leading)
+                .frame(width: width(index), alignment: alignment(column)).padding(context.theme.spaceM)
             }
           }.background(context.theme.sunk)
           ForEach(Array(draft.rows.enumerated()), id: \.offset) { row, item in
@@ -113,7 +114,7 @@ struct NativeEditableTable: View {
             HStack(alignment: .center, spacing: 0) {
               ForEach(Array(columns.enumerated()), id: \.offset) { column, definition in
                 cell(definition, row: row, column: column)
-                  .frame(width: width(column), alignment: .leading).padding(context.theme.spaceM)
+                  .frame(width: width(column), alignment: alignment(definition)).padding(context.theme.spaceM)
                   .accessibilityIdentifier(
                     "openui.table.\(name.displayString).\(item.id.displayString).\(column)")
               }
@@ -156,7 +157,10 @@ struct NativeEditableTable: View {
     .onChange(of: state.sourceRevision) { revision in editing.receive(source, revision: revision) }
   }
   private func width(_ index: Int) -> CGFloat {
-    CGFloat(min(600, max(100, NativeValue.number(columns[index], "width") ?? 160)))
+    NativeEditableColumn.width(NativeValue.number(columns[index], "width"))
+  }
+  private func alignment(_ definition: Value) -> Alignment {
+    NativeValue.string(definition, "type") == "number" ? .trailing : .leading
   }
   private func binding(_ row: Int, _ column: Int) -> Binding<String> {
     Binding(
@@ -204,6 +208,13 @@ struct NativeEditableTable: View {
     Task { @MainActor in
       await editing.save(context: context, name: name, columns: columns.count)
     }
+  }
+}
+
+enum NativeEditableColumn {
+  static func width(_ declared: Double?) -> CGFloat {
+    guard let declared, declared.isFinite, declared > 0 else { return 160 }
+    return CGFloat(declared)
   }
 }
 

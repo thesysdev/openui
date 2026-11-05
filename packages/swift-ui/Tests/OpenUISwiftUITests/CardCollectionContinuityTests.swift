@@ -52,7 +52,8 @@ final class CardCollectionContinuityTests: XCTestCase {
       XCTAssertGreaterThan(hosting.fittingSize.height, oneCardHeight * 1.5,
         "A resolved narrow grid still presents all cards vertically")
     } else {
-      XCTAssertLessThanOrEqual(hosting.fittingSize.height, oneCardHeight + 1)
+      XCTAssertLessThan(hosting.fittingSize.height, oneCardHeight * 1.5,
+        "Browsing controls may add their natural height, but pages must remain a single track")
     }
     XCTAssertTrue(state.errors.isEmpty)
   }

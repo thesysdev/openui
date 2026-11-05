@@ -104,7 +104,7 @@ final class ThemeOverrideTests: XCTestCase {
     let library = try OpenUIStandardComponents.library()
     func height(bold: Bool, theme: OpenUIThemeValues) -> CGFloat {
       let state = OpenUIState(schema: library.library.toSchema())
-      state.setSource("root=ImageText(\"\",\"\",\"Product name\",\"Description\",\(bold))")
+      state.setSource("root=ImageText(\"\",\"\",\"Product name\",\"Description\",\(bold),\"horizontal\",20)")
       return NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
         .openUITheme(theme).frame(width: 320)).fittingSize.height
     }

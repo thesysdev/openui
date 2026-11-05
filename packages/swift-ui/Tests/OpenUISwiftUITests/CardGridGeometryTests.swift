@@ -2,6 +2,17 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class CardGridGeometryTests: XCTestCase {
+  func testCompactSummaryUsesTheExistingMinimumColumnPolicy() {
+    let grid = NativeCardGrid(maxPerRow: 3, minimumColumnWidth: 160, spacing: 12)
+    XCTAssertEqual(grid.rows(width: 350, count: 4), [2, 2])
+    XCTAssertEqual(grid.rows(width: 530, count: 3), [3])
+    XCTAssertEqual(grid.rows(width: 240, count: 3), [1, 1, 1])
+    let explicit = NativeCardGrid(maxPerRow: 3, responsive: false, minimumColumnWidth: 160, spacing: 12)
+    XCTAssertEqual(explicit.rows(width: 240, count: 3), [3])
+    let accessible = NativeCardGrid(maxPerRow: 3, singleColumn: true, minimumColumnWidth: 160, spacing: 12)
+    XCTAssertEqual(accessible.rows(width: 1040, count: 3), [1, 1, 1])
+  }
+
   func testContainerQueriesApplyToSmallAndMediumCardFamilies() {
     for maximum in [2, 3] {
       let grid = NativeCardGrid(maxPerRow: maximum, spacing: 12)

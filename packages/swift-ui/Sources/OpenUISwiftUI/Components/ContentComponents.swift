@@ -8,7 +8,7 @@ struct NativeHeading: View {
   var body: some View {
     VStack(alignment: .leading, spacing: context.theme.spacing(compact ? "3xs" : "xs")) {
       if let title = context.string(compact ? "heading" : "title") {
-        Text(title).openUIFont(compact ? context.theme.textHeadingXs : context.theme.textHeadingSm).accessibilityAddTraits(
+        Text(title).openUIFont(compact ? context.theme.textHeadingSm : context.theme.textHeadingMd).accessibilityAddTraits(
           .isHeader)
       }
       if let detail = context.string(compact ? "description" : "subtitle") {
@@ -63,9 +63,7 @@ struct NativeCallout: View {
     Group {
       if visible {
         HStack(alignment: .top, spacing: context.theme.spacing("sm")) {
-          Image(
-            systemName: context.string("variant") == "success" ? "checkmark.circle" : "info.circle"
-          )
+          Image(systemName: symbol)
           .foregroundStyle(semanticColor(context.string("variant"), theme: context.theme))
           VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
             if let title = context.string("title") { Text(title).openUIFont(context.theme.textHeadingXs) }
@@ -74,13 +72,21 @@ struct NativeCallout: View {
             }
           }
           Spacer(minLength: 0)
-        }.padding(context.theme.spaceM)
+        }.padding(context.theme.spaceM).accessibilityElement(children: .combine)
       }
     }.task(id: "\(state.sourceRevision):\(visible):\(context.canInteract)") {
       guard visible, context.canInteract, binding != nil else { return }
       do { try await Task.sleep(nanoseconds: 3_000_000_000) } catch { return }
       guard !Task.isCancelled else { return }
       binding?.wrappedValue = .boolean(false)
+    }
+  }
+  private var symbol: String {
+    switch context.string("variant") {
+    case "success": return "checkmark.circle"
+    case "warning": return "exclamationmark.triangle"
+    case "error", "danger": return "xmark.circle"
+    default: return "info.circle"
     }
   }
 }
@@ -717,11 +723,10 @@ struct NativeCardItem: View {
         context.slot("bottom").multilineTextAlignment(centeredOverview ? .center : .leading)
           .frame(maxWidth: .infinity, alignment: copyAlignment)
       case "Context":
-        context.slot("title").openUIFont(context.theme.textBodyXs)
-          .foregroundStyle(contentTheme.textNeutralSecondary)
+        context.slot("title").openUIFont(context.theme.textBodyDefaultHeavy)
         if artworkSource != nil { Spacer(minLength: context.theme.spaceM) }
         if let body = context.string("body") {
-          NativeMarkdownText(text: body, mode: .inline, style: .init(font: context.theme.textBodySmHeavy))
+          NativeMarkdownText(text: body, mode: .inline, style: .init(font: context.theme.textBodySm))
         }
       case "Visual":
         context.slot("tag")
@@ -806,7 +811,18 @@ struct NativeCardBlock: View {
     guard layout != "carousel", !pending else { return nil }
     return NativeCardGrid(maxPerRow: ["Overview", "Context", "Visual"].contains(kind) ? 3 : 2,
       responsive: context.flag("responsive") != false,
-      singleColumn: typeSize.isAccessibilitySize, spacing: gap)
+      singleColumn: typeSize.isAccessibilitySize,
+      minimumColumnWidth: kind == "Overview" ? overviewMinimumWidth : nil, spacing: gap)
+  }
+  private var overviewMinimumWidth: CGFloat {
+    // Horizontal media needs a real reading column next to the thumbnail;
+    // compact text/icon metrics can share the row. This follows declared
+    // component/layout roles, never the wording or length of a particular case.
+    let hasHorizontalMedia = children.contains { child in
+      guard case .element(let top) = NativeValue.prop(child.value, "top") else { return false }
+      return top.typeName == "ImageText" && PropValue.string(top, "layout") != "vertical"
+    }
+    return hasHorizontalMedia ? context.presentation.minimumCardWidth : context.presentation.minimumCompactCardWidth
   }
   var body: some View {
     Group {
@@ -814,7 +830,8 @@ struct NativeCardBlock: View {
         EmptyView()
       } else {
         NativePager(ids: children.map(\.id), selection: selection, enabled: true,
-          identifier: "openui.card-block.\(kind.lowercased())", showsControls: false,
+          identifier: "openui.card-block.\(kind.lowercased())",
+          showsControls: context.string("layout") == "carousel",
           maximumPageWidth: context.presentation.maximumCarouselCardWidth,
           trailingPeek: context.presentation.carouselPeek, pageSpacing: gap, grid: grid, supportsAdjustment: false) { id in
           if let index = children.firstIndex(where: { $0.id == id }) {
@@ -822,7 +839,7 @@ struct NativeCardBlock: View {
           }
         }
       }
-    }
+    }.padding(.vertical, !children.isEmpty && ["Overview", "Snippet"].contains(kind) ? context.theme.spaceS : 0)
   }
   @ViewBuilder private func item(_ item: OpenUIRenderChild, index: Int) -> some View {
     if let value = context.value("action"), value != .null {

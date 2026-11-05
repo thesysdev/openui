@@ -6,6 +6,21 @@ import XCTest
 @testable import OpenUISwiftUI
 
 final class PhotoCardGeometryTests: XCTestCase {
+  @MainActor func testInlineImageDefaultIsReadableAndExplicitImageSizeStillWins() throws {
+    _ = NSApplication.shared
+    let library = try OpenUIStandardComponents.library()
+    func height(_ suffix: String) -> CGFloat {
+      let state = OpenUIState(schema: library.library.toSchema())
+      state.setSource("root=ImageText(\"photo.jpg\",\"Room\",\"A room\"\(suffix))")
+      XCTAssertTrue(state.errors.isEmpty)
+      return NSHostingView(rootView: OpenUIRenderer(state: state, registry: library.registry)
+        .dynamicTypeSize(.large).frame(width: 320)).fittingSize.height
+    }
+    XCTAssertEqual(height(""), OpenUIPresentation().inlineThumbnailSize, accuracy: 1)
+    XCTAssertGreaterThanOrEqual(height(""), 80)
+    XCTAssertEqual(height(",null,false,\"horizontal\",40"), 40, accuracy: 1)
+  }
+
   @MainActor private func withStreamingImage(
     _ inspect: (OpenUIState, () -> Void, PhotoCardWidth) throws -> Void
   ) throws {

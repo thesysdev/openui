@@ -150,7 +150,7 @@ struct NativeChart: View {
       semi: context.string("appearance") == "semiCircular", palette: palette,
       secondary: context.theme.textNeutralSecondary, border: context.theme.borderDefault,
       gridColor: context.presentation.chartGrid, axisColor: context.presentation.chartAxis,
-      canvasColor: context.theme.background, labelFont: context.theme.textBodyXs.nativeFont(scale: axisScale),
+      canvasColor: context.theme.background, labelFont: context.theme.textBodySm.nativeFont(scale: axisScale),
       inspected: inspected, axisScale: axisScale,
       singleStackedBarThickness: context.presentation.singleStackedBarThickness * axisScale,
       axisMeasurements: axisMeasurements,
@@ -160,7 +160,7 @@ struct NativeChart: View {
     let labels = drawing.axisLabels
     return HStack(spacing: 0) {
       ForEach(Array((labels.left + labels.bottom).enumerated()), id: \.offset) { index, label in
-        Text(label).openUIFont(context.theme.textBodyXs).monospacedDigit()
+        Text(label).openUIFont(context.theme.textBodySm).monospacedDigit()
           .lineLimit(1).fixedSize()
           .background(GeometryReader { geometry in
             Color.clear.preference(key: NativeChartAxisMeasurementKey.self, value: [measurementScope:
@@ -221,6 +221,11 @@ struct NativeChart: View {
               .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
               .allowsHitTesting(false).accessibilityHidden(true)
           }
+          if name == "RadarChart" {
+            NativeRadarLabels(labels: data.labels, theme: context.theme, scale: axisScale)
+              .frame(width: geometry.size.width, height: geometry.size.height)
+              .allowsHitTesting(false).accessibilityHidden(true)
+          }
         }
         .overlay(alignment: .topLeading) {
           if let inspected, let details = data.inspection(at: inspected, locale: locale) {
@@ -231,18 +236,6 @@ struct NativeChart: View {
       }.frame(height: NativeChartHeight.value(explicit: context.number("height"),
         defaultHeight: defaultHeight, scale: axisScale,
         minimumHeight: name == "SingleStackedBarChart" ? 0 : 100))
-      if name == "RadarChart" {
-        // Numbered axes keep complete category names out of competing radial
-        // slots. The key uses native wrapping and the same reading role.
-        VStack(alignment: .leading, spacing: context.theme.spacing("2xs")) {
-          ForEach(Array(data.labels.enumerated()), id: \.offset) { index, label in
-            HStack(alignment: .top, spacing: context.theme.spacing("xs")) {
-              Text("\(index + 1)").monospacedDigit()
-              Text(label).fixedSize(horizontal: false, vertical: true)
-            }
-          }
-        }.openUIFont(context.theme.textBodyXs).foregroundStyle(context.presentation.chartAxis)
-      }
       if showsLegend {
         // Legend items already own vertical padding and their full control target.
         NativeChartLegendLayout(rightToLeft: direction == .rightToLeft) {
@@ -300,7 +293,97 @@ struct NativeChart: View {
 
 enum NativeChartHeight {
   static func value(explicit: Double?, defaultHeight: Double, scale: CGFloat, minimumHeight: Double = 100) -> CGFloat {
-    CGFloat(min(1200, max(minimumHeight, explicit ?? defaultHeight * Double(max(1, scale)))))
+    if let explicit, explicit.isFinite, explicit > 0 { return CGFloat(explicit) }
+    return CGFloat(max(minimumHeight, defaultHeight * Double(max(1, scale))))
+  }
+}
+
+/// Full category names stay beside their axes. Native text supplies wrapped
+/// heights; side labels can spread vertically without changing plotted values.
+enum NativeRadarLabelPlacement {
+  static func frames(size: CGSize, count: Int, heights: [Int: CGFloat], scale: CGFloat,
+                     lineHeight: CGFloat) -> [CGRect] {
+    guard count > 0 else { return [] }
+    let geometry = NativeRadarGeometry(size: size, scale: scale)
+    var result: [CGRect] = []
+    var sides: [Int: [Int]] = [:]
+    for index in 0..<count {
+      let point = geometry.point(index: index, count: count, fraction: 1.12)
+      let side = side(index: index, count: count)
+      let room = side < 0 ? point.x : side > 0 ? size.width - point.x : size.width
+      let width = max(1, side == 0 ? size.width : min(size.width / 3, room))
+      let height = max(lineHeight, heights[index] ?? lineHeight)
+      let x = side < 0 ? max(0, point.x - width)
+        : side > 0 ? min(size.width - width, point.x) : (size.width - width) / 2
+      result.append(CGRect(x: x, y: min(max(0, point.y - height / 2), max(0, size.height - height)),
+        width: width, height: height))
+      if side != 0 { sides[side, default: []].append(index) }
+    }
+    let gap = max(1, 4 * scale)
+    for indices in sides.values {
+      let sorted = indices.sorted { result[$0].midY < result[$1].midY }
+      var end: CGFloat = -gap
+      for index in sorted {
+        result[index].origin.y = max(result[index].minY, end + gap)
+        end = result[index].maxY
+      }
+      if end > size.height {
+        var ceiling = size.height
+        for index in sorted.reversed() {
+          result[index].origin.y = max(0, min(result[index].minY, ceiling - result[index].height))
+          ceiling = result[index].minY - gap
+        }
+      }
+    }
+    return result
+  }
+  static func side(index: Int, count: Int) -> Int {
+    let cosine = cos(Double(index) * 2 * .pi / Double(max(1, count)) - .pi / 2)
+    return abs(cosine) < 0.001 ? 0 : cosine < 0 ? -1 : 1
+  }
+}
+
+private struct NativeRadarLabelSizes: PreferenceKey {
+  static let defaultValue: [Int: CGSize] = [:]
+  static func reduce(value: inout [Int: CGSize], nextValue: () -> [Int: CGSize]) {
+    value.merge(nextValue(), uniquingKeysWith: { _, next in next })
+  }
+}
+
+private struct NativeRadarLabels: View {
+  let labels: [String]
+  let theme: OpenUIThemeValues
+  let scale: CGFloat
+  @State private var sizes: [Int: CGSize] = [:]
+  var body: some View {
+    GeometryReader { geometry in
+      let projection = NativeRadarGeometry(size: geometry.size, scale: scale)
+      let frames = NativeRadarLabelPlacement.frames(size: geometry.size, count: labels.count,
+        heights: sizes.mapValues(\.height), scale: scale,
+        lineHeight: (theme.textBodySm.size * 1.2 + theme.textBodySm.additionalLineSpacing()) * scale)
+      ZStack(alignment: .topLeading) {
+        ForEach(Array(labels.enumerated()), id: \.offset) { index, label in
+          let frame = frames[index]
+          let side = NativeRadarLabelPlacement.side(index: index, count: labels.count)
+          Path { path in
+            let start = projection.point(index: index, count: labels.count, fraction: 1.02)
+            path.move(to: start)
+            path.addLine(to: CGPoint(x: side < 0 ? frame.maxX : side > 0 ? frame.minX : frame.midX,
+              y: frame.midY))
+          }.stroke(theme.borderDefault, lineWidth: 0.5)
+          Text(label).openUIFont(theme.textBodySm).foregroundStyle(theme.textNeutralPrimary)
+            .multilineTextAlignment(side < 0 ? .trailing : side > 0 ? .leading : .center)
+            .lineLimit(nil).frame(width: frame.width,
+              alignment: side < 0 ? .trailing : side > 0 ? .leading : .center)
+            .fixedSize(horizontal: false, vertical: true)
+            .background(GeometryReader { measured in
+              Color.clear.preference(key: NativeRadarLabelSizes.self, value: [index: measured.size])
+            })
+            .position(x: frame.midX, y: frame.midY)
+        }
+      }
+    }
+    .onPreferenceChange(NativeRadarLabelSizes.self) { if $0 != sizes { sizes = $0 } }
   }
 }
 
@@ -315,7 +398,7 @@ struct NativeChartCategoryAxis: View {
   var body: some View {
     ZStack(alignment: .topLeading) {
       ForEach(layout.categoryLabels(count: labels.count), id: \.index) { label in
-        Text(labels[label.index]).openUIFont(theme.textBodyXs).monospacedDigit()
+        Text(labels[label.index]).openUIFont(theme.textBodySm).monospacedDigit()
           .foregroundStyle(nativePresentation.chartAxis).lineLimit(layout.categoryLabelLines).truncationMode(.tail)
           .multilineTextAlignment(label.anchor.x == 0 ? .leading : label.anchor.x == 1 ? .trailing : .center)
           .frame(width: label.width, alignment: Alignment(horizontal:
@@ -513,7 +596,7 @@ struct NativeChartDrawing {
   var gridColor: Color? = nil
   var axisColor: Color? = nil
   var canvasColor: Color = .white
-  var labelFont: Font = OpenUIThemeValues().textBodyXs.nativeFont()
+  var labelFont: Font = OpenUIThemeValues().textBodySm.nativeFont()
   var inspected: Int? = nil
   var axisScale: CGFloat = 1
   var singleStackedBarThickness: CGFloat = OpenUIPresentation.defaults.singleStackedBarThickness
@@ -874,13 +957,11 @@ struct NativeChartDrawing {
       polygon.closeSubpath()
       canvas.stroke(polygon, with: .color(gridColorValue), lineWidth: 0.5)
     }
-    let labeledAxes = Set(geometry.labelIndices(count: count))
     for i in 0..<count {
       var axis = Path()
       axis.move(to: geometry.center)
       axis.addLine(to: point(i, high))
       canvas.stroke(axis, with: .color(gridColorValue), lineWidth: 0.5)
-      if labeledAxes.contains(i) { text("\(i + 1)", at: point(i, high * 1.12), canvas: &canvas) }
     }
     for s in data.series.indices {
       var polygon = Path()

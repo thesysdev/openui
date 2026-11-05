@@ -1,8 +1,51 @@
 import SwiftUI
 import XCTest
 @testable import OpenUISwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 final class NativeLayoutSemanticsTests: XCTestCase {
+  func testWrappedFlexChildrenShareAvailableRowsWithoutResizingIntrinsicControls() {
+    let cards = OpenUIWrappedFlexRows.allocate(ideal: [80, 260], minimums: [32, 32],
+      growing: [true, true], width: 350, gap: 12)
+    XCTAssertEqual(cards.count, 1)
+    XCTAssertEqual(cards[0].map(\.width), [169, 169])
+    let mixed = OpenUIWrappedFlexRows.allocate(ideal: [80, 260, 280], minimums: [80, 32, 280],
+      growing: [false, true, false], width: 350, gap: 12)
+    XCTAssertEqual(mixed.count, 2)
+    XCTAssertEqual(mixed[0].map(\.width), [80, 258])
+    XCTAssertEqual(mixed[1].map(\.width), [280])
+    let bounded = OpenUIWrappedFlexRows.allocate(ideal: [240, 90], minimums: [220, 32],
+      growing: [true, true], width: 350, gap: 12)
+    XCTAssertEqual(bounded[0].map(\.width), [220, 118])
+  }
+
+  func testPagerHeightDoesNotDependOnSelectionOrDragDirection() {
+    for selected in 0..<3 {
+      for drag in [CGFloat(-200), 0, 200] {
+        XCTAssertEqual(NativePagerContentHeight.measure([40, 240, 80], selected: selected,
+          translation: drag, stride: 300), 240)
+      }
+    }
+    XCTAssertEqual(NativePagerContentHeight.measure([.nan, -2, .infinity], selected: 0), 0)
+  }
+
+  #if os(macOS)
+  @MainActor func testMountedPagerReservesTheSameTrackInBothReadingDirections() {
+    _ = NSApplication.shared
+    for direction in [LayoutDirection.leftToRight, .rightToLeft] {
+      for selected in [0, 1] {
+        let pager = NativePager(ids: [0, 1], selection: .constant(selected), enabled: true,
+          identifier: "track", showsControls: false) { index in
+            Color.clear.frame(height: index == 0 ? 40 : 200)
+          }
+          .environment(\.layoutDirection, direction).frame(width: 300)
+        XCTAssertEqual(NSHostingView(rootView: pager).fittingSize.height, 200, accuracy: 1)
+      }
+    }
+  }
+  #endif
   func testAroundAndEvenlyHaveDifferentEdgeSpaceWithoutChangingContentSize() {
     let sizes = [CGSize(width: 40, height: 20), CGSize(width: 40, height: 20)]
     let around = OpenUIFlowPlacement.frames(sizes: sizes, width: 200, gap: 8, align: "start", justify: "around", wrap: false)

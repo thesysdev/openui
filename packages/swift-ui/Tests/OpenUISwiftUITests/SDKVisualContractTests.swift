@@ -28,7 +28,7 @@ final class SDKVisualContractTests: XCTestCase {
     }
   }
 
-  @MainActor func testOffscreenLongCardCannotStretchTheSelectedShortCard() throws {
+  @MainActor func testCarouselTrackReservesTheNaturalHeightOfItsTallestMountedCard() throws {
     let text = String(repeating: "A complete longer explanation remains readable. ", count: 16)
     let literal = String(decoding: try JSONEncoder().encode(text), as: UTF8.self)
     func source(_ copy: String) -> String {
@@ -36,8 +36,8 @@ final class SDKVisualContractTests: XCTestCase {
     }
     let shortPeer = try height(source("\"One line\""))
     let longPeer = try height(source(literal))
-    XCTAssertEqual(shortPeer, longPeer, accuracy: 1,
-      "Appending content to a different page must not increase this page's whitespace or move subsequent document content")
+    XCTAssertGreaterThan(longPeer, shortPeer + 40,
+      "The track reserves its tallest mounted content once, so selecting another page cannot move following prose")
   }
 
   @MainActor func testGroupActionIsPartOfTheNativeItemSurface() throws {

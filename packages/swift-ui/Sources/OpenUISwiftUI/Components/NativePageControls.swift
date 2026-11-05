@@ -6,6 +6,7 @@ struct NativePageControls: View {
   let count: Int
   let enabled: Bool
   let identifier: String
+  var showsCount = true
   let select: (Int) -> Void
   var body: some View {
     HStack(spacing: theme.spacing("s")) {
@@ -16,8 +17,10 @@ struct NativePageControls: View {
       .accessibilityLabel(Text("Previous page", bundle: NativeControlResources.bundle))
       .accessibilityIdentifier(identifier + ".previous")
       .disabled(!enabled || page <= 0)
-      Text("\(page + 1) / \(count)").openUIFont(theme.textBodyXs).monospacedDigit()
-        .accessibilityIdentifier(identifier + ".page")
+      if showsCount {
+        Text("\(page + 1) / \(count)").openUIFont(theme.textBodyXs).monospacedDigit()
+          .accessibilityIdentifier(identifier + ".page")
+      }
       Button { select(page + 1) } label: {
         Image(systemName: "chevron.right").openUIFont(theme.textLabelDefaultHeavy).openUIControlTarget()
       }

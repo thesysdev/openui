@@ -62,7 +62,8 @@ struct NativePager<ID: Hashable, Content: View>: View {
     VStack(alignment: .leading, spacing: 0) {
       strip
       if showsControls && ids.count > 1 {
-        NativePageControls(page: index, count: ids.count, enabled: enabled, identifier: identifier, select: select)
+        NativePageControls(page: index, count: ids.count, enabled: enabled, identifier: identifier,
+          showsCount: false, select: select)
       }
     }
     .frame(idealWidth: fallbackWidth, maxWidth: .infinity, alignment: .leading)
@@ -179,13 +180,9 @@ struct NativePagerGeometry {
 
 enum NativePagerContentHeight {
   static func measure(_ heights: [CGFloat], selected: Int, translation: CGFloat = 0, stride: CGFloat = 1) -> CGFloat {
-    guard !heights.isEmpty else { return 0 }
-    let index = min(max(0, selected), heights.count - 1)
-    let current = heights[index].isFinite ? max(0, heights[index]) : 0
-    let next = index + (translation < 0 ? 1 : -1)
-    guard translation != 0, heights.indices.contains(next), stride.isFinite, stride > 0 else { return current }
-    let other = heights[next].isFinite ? max(0, heights[next]) : current
-    return current + (other - current) * min(1, abs(translation) / stride)
+    // One natural cross-axis extent for the mounted track. Selection and drag
+    // affect horizontal placement, never the following document's position.
+    heights.filter(\.isFinite).map { max(0, $0) }.max() ?? 0
   }
 }
 
@@ -238,7 +235,8 @@ private struct NativePagerLayout: Layout {
       let x = rightToLeft ? bounds.width - layout.pageWidth - position : position
       view.place(
         at: CGPoint(x: bounds.minX + x, y: bounds.minY), anchor: .topLeading,
-        proposal: ProposedViewSize(width: layout.pageWidth, height: heights[index]))
+        proposal: ProposedViewSize(width: layout.pageWidth,
+          height: NativePagerContentHeight.measure(heights, selected: selected)))
     }
   }
 }
@@ -250,10 +248,16 @@ struct NativeCardGrid {
   let maxPerRow: Int
   var responsive = true
   var singleColumn = false
+  var minimumColumnWidth: CGFloat? = nil
   let spacing: CGFloat
   func rows(width: CGFloat, count: Int) -> [Int] {
     guard count > 0 else { return [] }
-    if responsive && (singleColumn || width <= 480) { return Array(repeating: 1, count: count) }
+    if responsive && singleColumn { return Array(repeating: 1, count: count) }
+    if responsive, let minimumColumnWidth, minimumColumnWidth.isFinite, minimumColumnWidth > 0 {
+      let columns = max(1, min(maxPerRow, Int((max(1, width) + spacing) / (minimumColumnWidth + spacing))))
+      return Array(repeating: columns, count: count / columns) + (count % columns > 0 ? [count % columns] : [])
+    }
+    if responsive && width <= 480 { return Array(repeating: 1, count: count) }
     if responsive && width <= 768 || maxPerRow == 2 {
       return Array(repeating: 2, count: count / 2) + (count % 2 == 1 ? [1] : [])
     }
