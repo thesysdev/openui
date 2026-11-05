@@ -87,6 +87,10 @@ export default defineConfig([
     entry: { index: "src/genui-lib/index.ts" },
     plugins: [fixEsmExternalPaths],
   },
-  // Individual components — CJS only
+  // Individual components — CJS
   { ...shared, format: ["cjs"], entry: componentEntries },
+  // Individual components — ESM. Bundled like the root entry so relative
+  // imports are fully specified; the tsc output beside it (index.js) has
+  // extensionless imports that Node's ESM loader cannot resolve.
+  { ...shared, format: ["esm"], entry: componentEntries, plugins: [fixEsmExternalPaths] },
 ]);
