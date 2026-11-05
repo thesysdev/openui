@@ -84,7 +84,7 @@ export function DashboardIntegration() {
             Add dashboards to your product
           </h2>
           <BevelButton
-            href="/docs/build-agents/ui-generation"
+            href="/docs/dashboards/quickstart"
             variant="secondary"
             label="Read the setup guide"
             badge={<ArrowRight size={16} strokeWidth={2.25} />}

@@ -81,7 +81,7 @@ export default function DashboardsPage() {
                   badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
                 />
                 <BevelButton
-                  href="/docs/build-agents/ui-generation"
+                  href="/docs/dashboards"
                   variant="secondary"
                   label="Docs"
                   badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
