@@ -1,6 +1,10 @@
 import * as http from "node:http";
 
+import type { PackageManager } from "../../../lib/detect-package-manager";
+import { processErrorProperties } from "../../../lib/errors";
 import { runCommand, type CommandResult } from "../../../lib/process-runner";
+import { cdStep } from "./messages";
+import type { CreateTelemetryClient } from "./telemetry";
 
 function isServerReady(url: string): Promise<boolean> {
   return new Promise((resolve) => {
@@ -44,4 +48,51 @@ export async function runDevCommand(command: string, cwd: string): Promise<Comma
   const result = await resultPromise;
   exited = true;
   return result;
+}
+
+/** Runs `<pm> run dev` in the project until the user stops it, and reports how it ended. */
+export async function runDevServer(params: {
+  tel: CreateTelemetryClient;
+  packageManager: PackageManager;
+  targetDir: string;
+  /** What to `cd` into in the retry hint: the project folder, or `.` when created in place. */
+  dir: string;
+}): Promise<void> {
+  const { tel, packageManager, targetDir, dir } = params;
+  const devCmd = packageManager.runCmd;
+  tel.trackDevCommandStarted({
+    package_manager: packageManager.name,
+  });
+  const devResult = await runDevCommand(devCmd, targetDir);
+  const stoppedNormally =
+    devResult.status === 0 ||
+    devResult.status === 130 ||
+    devResult.status === 143 ||
+    devResult.signal === "SIGINT" ||
+    devResult.signal === "SIGTERM";
+
+  if (stoppedNormally) {
+    tel.trackDevCommandStopped({
+      package_manager: packageManager.name,
+      duration_ms: devResult.durationMs,
+      exit_code: devResult.status,
+      failure_signal: devResult.signal,
+    });
+    return;
+  }
+
+  const exitCode = devResult.status ?? 1;
+  const properties = processErrorProperties(devResult, "dev_server", {
+    error_class: "process",
+    error_code: "NONZERO_EXIT",
+  });
+  tel.trackDevCommandFailed({
+    package_manager: packageManager.name,
+    failure_reason: devResult.error ? "spawn_error" : "nonzero_exit",
+    ...properties,
+  });
+  console.error(
+    `\nDevelopment server exited. Retry with:\n\n${[...cdStep(dir), `> ${devCmd} run dev`].join("\n")}\n`,
+  );
+  process.exitCode = exitCode;
 }

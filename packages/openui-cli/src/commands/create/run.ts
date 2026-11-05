@@ -3,13 +3,13 @@ import * as fs from "node:fs";
 import { localSourceDir } from "../../lib/checkout";
 import type { CliContext } from "../../lib/context";
 import { resolveInstallPackageManager } from "../../lib/detect-package-manager";
-import { cliErrorProperties, CreateError, processErrorProperties } from "../../lib/errors";
+import { cliErrorProperties, CreateError } from "../../lib/errors";
 import { ensureGitAvailable } from "../../lib/git-preflight";
 import { applyScaffoldFiles, resolveTemplateSource, writeAgentsGuide } from "../../lib/scaffold";
 import { withSpinner } from "../../lib/spinner";
 import { runCreateExample } from "./lib/create-example";
 import type { CreateAppOptions } from "./lib/create-types";
-import { runDevCommand } from "./lib/dev-server";
+import { runDevServer } from "./lib/dev-server";
 import { buildAppId, resolveCloudEnv, writeEnv } from "./lib/env";
 import { installProjectDependencies, resolveInstallInvocation } from "./lib/install";
 import { getStartedMessage, readmePath } from "./lib/messages";
@@ -162,17 +162,12 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     auth_succeeded: envResult.authSucceeded,
   });
 
-  const { installCmd, installArgs } = resolveInstallInvocation({
-    backendFramework,
-    packageManager,
-    targetDir,
-  });
+  const { installCmd, installArgs } = resolveInstallInvocation({ packageManager, targetDir });
   const dependencyInstalled = await installProjectDependencies({
     tel,
     verbose: ctx.verbose,
     targetDir,
-    template,
-    aiSetup,
+    scaffold: { template, ai_setup: aiSetup },
     packageManager,
     installCmd,
     installArgs,
@@ -222,38 +217,5 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     return;
   }
 
-  tel.trackDevCommandStarted({
-    package_manager: packageManager.name,
-  });
-  const devResult = await runDevCommand(devCmd, targetDir);
-  const stoppedNormally =
-    devResult.status === 0 ||
-    devResult.status === 130 ||
-    devResult.status === 143 ||
-    devResult.signal === "SIGINT" ||
-    devResult.signal === "SIGTERM";
-
-  if (stoppedNormally) {
-    tel.trackDevCommandStopped({
-      package_manager: packageManager.name,
-      duration_ms: devResult.durationMs,
-      exit_code: devResult.status,
-      failure_signal: devResult.signal,
-    });
-  } else {
-    const exitCode = devResult.status ?? 1;
-    const properties = processErrorProperties(devResult, "dev_server", {
-      error_class: "process",
-      error_code: "NONZERO_EXIT",
-    });
-    tel.trackDevCommandFailed({
-      package_manager: packageManager.name,
-      failure_reason: devResult.error ? "spawn_error" : "nonzero_exit",
-      ...properties,
-    });
-    console.error(
-      `\nDevelopment server exited. Retry with:\n\n> cd ${name}\n> ${devCmd} run dev\n`,
-    );
-    process.exitCode = exitCode;
-  }
+  await runDevServer({ tel, packageManager, targetDir, dir });
 }

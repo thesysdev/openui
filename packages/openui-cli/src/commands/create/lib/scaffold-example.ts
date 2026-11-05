@@ -45,8 +45,9 @@ export function exampleLayout(projectDir: string): ExampleLayout {
   };
 }
 
+/** No root `package.json` (e.g. a Python backend + JS frontend): each app is set up on its own. */
 export function isNestedExample(layout: ExampleLayout): boolean {
-  return layout.jsPackages.length > 0 && !layout.jsPackages.includes(".");
+  return !layout.jsPackages.includes(".");
 }
 
 export function exampleDevCommand(pkgDir: string, runCmd: string): string {
