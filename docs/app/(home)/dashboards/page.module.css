@@ -83,14 +83,33 @@
 
 /* ---------- Hero ---------- */
 
-/* The CTA row spans the lockup, so the model proof sits in the subtitle's
-   400px column and starts on its left edge. */
+/* Preserve the subtitle-aligned model proof beside the install and meeting CTAs. */
 .heroActions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 400px;
   align-items: center;
-  gap: 32px;
+  gap: 24px;
   width: 100%;
+}
+
+.heroCtas {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.installDropdown {
+  --cmd-width: 44rem;
+}
+
+.installMobile {
+  display: none;
+}
+
+@media (min-width: 900px) and (max-width: 1279px) {
+  .heroActions { grid-template-columns: minmax(0, 1fr); }
 }
 
 .page div:has(> .heroActions),
@@ -423,6 +442,27 @@
     flex-direction: column;
     align-items: center;
     gap: 28px;
+  }
+
+  .heroCtas {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .installDesktop {
+    display: none;
+  }
+  .installMobile {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+  }
+  .installMobile > div {
+    width: 100%;
+  }
+  .installButton {
+    width: 100%;
+    min-width: 0;
   }
 
   .modelProof {

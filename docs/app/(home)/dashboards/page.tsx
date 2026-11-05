@@ -9,7 +9,7 @@ import { BevelButton } from "../components/Button/BevelButton";
 import landing from "../components/ProductLanding.module.css";
 import homeStyles from "../page.module.css";
 import { Footer } from "../sections/Footer/Footer";
-import { HeroSection } from "../sections/HeroSection/HeroSection";
+import { CommandDropdownButton, HeroSection, NpmButton } from "../sections/HeroSection/HeroSection";
 import { LogoStrip } from "../sections/LogoStrip/LogoStrip";
 import { DashboardFeatures } from "./DashboardFeatures";
 import { DashboardHeroStage, ModelProof } from "./DashboardHero";
@@ -72,18 +72,26 @@ export default function DashboardsPage() {
           }
           commandSlot={
             <div className={styles.heroActions}>
-              <div className={gatewayStyles.ctaGroup}>
+              <div className={styles.heroCtas}>
+                <div className={styles.installDesktop}>
+                  <CommandDropdownButton
+                    command="npx @openuidev/cli@latest create --example assistant-ui-dashboards"
+                    analyticsSource="dashboards_hero"
+                    className={styles.installDropdown}
+                  />
+                </div>
+                <div className={styles.installMobile}>
+                  <NpmButton
+                    command="npx @openuidev/cli@latest create --example assistant-ui-dashboards"
+                    analyticsSource="dashboards_hero"
+                    className={styles.installButton}
+                  />
+                </div>
                 <BevelButton
-                  href="https://console.thesys.dev/keys"
+                  href="https://zcal.co/t/thesys/demo"
                   external
-                  variant="primary"
-                  label="Get API key"
-                  badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
-                />
-                <BevelButton
-                  href="/docs/dashboards"
                   variant="secondary"
-                  label="Docs"
+                  label="Book a meeting"
                   badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
                 />
               </div>
