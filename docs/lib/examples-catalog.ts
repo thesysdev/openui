@@ -34,6 +34,7 @@ const EXAMPLE_LOGOS: Record<string, string> = {
     "https://raw.githubusercontent.com/vercel/eve/main/.github/assets/eve.svg",
   "app-frameworks/angular": "/integration-logos/angular.svg",
   "app-frameworks/fastapi": "/integration-logos/fastapi.svg",
+  "app-frameworks/lynx": "/integration-logos/lynx.svg",
   "app-frameworks/react-native": "/integration-logos/react.svg",
   "app-frameworks/svelte": "/integration-logos/svelte.svg",
   "app-frameworks/vue": "/integration-logos/vue.svg",
@@ -55,6 +56,7 @@ const DARK_LOGOS = new Set([
   "agent-frameworks/vercel-ai-sdk",
   "agent-frameworks/vercel-eve",
   "app-frameworks/angular",
+  "app-frameworks/lynx",
   "design-systems/shadcn",
   "harnesses/grok-build",
   "harnesses/pi",
@@ -112,19 +114,6 @@ export const REPO_EXAMPLES: RepoExample[] = catalog.examples.flatMap((example) =
 
 /** Integrations listed on the integrations page that have no example in this repo. */
 const EXTERNAL_INTEGRATIONS: RepoExample[] = [
-  {
-    name: "lynx",
-    title: "Lynx",
-    description:
-      "Streaming OpenUI Lang rendered as cross-platform ReactLynx interfaces with @lynx-js/genui.",
-    category: "app-frameworks",
-    sourceUrl: "https://github.com/lynx-family/lynx-stack/tree/main/packages/genui/openui",
-    logo: "/integration-logos/lynx.svg",
-    logoIsDark: true,
-    runnable: false,
-    firstParty: true,
-    featured: true,
-  },
   {
     name: "openui-channels",
     title: "Slack, Teams, Telegram & WhatsApp",

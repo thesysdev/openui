@@ -1,0 +1,12 @@
+# Standalone install unit: this example app is not part of the repo workspace.
+# Allow native build scripts so `pnpm install` never stops at (or nags about)
+# approve-builds. pnpm reads this from a different place per major version, so
+# the same list appears three times: package.json "pnpm" field (<=10.13),
+# onlyBuiltDependencies here (10.14-10.x), allowBuilds here (>=11).
+onlyBuiltDependencies:
+  - esbuild
+  - unrs-resolver
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+packages: ["."]
