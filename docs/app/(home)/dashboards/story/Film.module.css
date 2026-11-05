@@ -2,6 +2,7 @@
    stage like an image. Plain stage, white surfaces, near-black ink, one blue
    accent, green once something resolves. One subject on screen at a time. */
 .viewport {
+  --illustration-width: 100cqw;
   --ink: #0a0a0b;
   --text: #1d1d1f;
   --gray: #6e6e73;
@@ -34,7 +35,7 @@
   text-align: left;
   transform-origin: 0 0;
   /* stage width / 1200px as a unitless ratio */
-  scale: tan(atan2(100cqw, 1200px));
+  scale: tan(atan2(var(--illustration-width), 1200px));
 }
 
 /* On a dark page the film inverts: dark surfaces and light ink, and the
@@ -571,6 +572,6 @@
 @media (max-width: 767px) {
   .viewport {
     scale: none;
-    transform: scale(tan(atan2(100cqw, 900px))) translateX(-150px);
+    transform: scale(tan(atan2(var(--illustration-width), 900px))) translateX(-150px);
   }
 }

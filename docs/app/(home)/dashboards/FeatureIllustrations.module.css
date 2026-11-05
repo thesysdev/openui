@@ -178,6 +178,7 @@
 
 /* A fixed 384x280 composition scaled to the stage, as the AppLess scenes are. */
 .third {
+  --illustration-width: 100cqw;
   --tint: color-mix(in srgb, var(--feat-ink) 8%, transparent);
   --tint-strong: color-mix(in srgb, var(--feat-ink) 28%, transparent);
 
@@ -189,7 +190,7 @@
   width: 384px;
   height: 280px;
   transform-origin: 0 0;
-  transform: scale(tan(atan2(100cqw, 384px)));
+  transform: scale(tan(atan2(var(--illustration-width), 384px)));
   font-family: var(--home-font-mono);
   font-size: 12px;
   line-height: 1;

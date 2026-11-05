@@ -24,6 +24,8 @@
   overflow: hidden;
   /* Same radius as the compatibility module's frame. */
   border-radius: 20px;
+  /* Keep composited dither and animated cards inside the rounded frame in Safari. */
+  clip-path: inset(0 round 20px);
   isolation: isolate;
   transition: flex 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -271,12 +273,12 @@
   }
 }
 
-/* ── Phones: the panels stack, the closed two as short rows. The stack
-   bleeds a little into the band's side padding (16px gutters, matching the
-   hero demo), and everything in it is smaller, so the open answer reads like a zoomed-out page. ── */
+/* ── Phones: the panels stack, the closed two as short rows. Keep the same
+   gutters as the product CTAs above. Everything inside is smaller, so the
+   open answer reads like a zoomed-out page. ── */
 @media (max-width: 767px) {
   .showcase {
-    inset: 0 -0.25rem;
+    inset: 0;
     flex-direction: column;
     gap: 0.375rem;
   }
@@ -284,6 +286,7 @@
   .panel {
     flex: 0 0 3rem;
     border-radius: 16px;
+    clip-path: inset(0 round 16px);
   }
 
   /* No dither on phones: just the flat tint. */

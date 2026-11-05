@@ -5,8 +5,6 @@
 /* The class is doubled so the stage's own frame beats heroArtSpace's
    generic aspect whatever order the build emits the two modules in. */
 .stage.stage {
-  --k: tan(atan2(100cqw, 1584px));
-
   position: relative;
   container-type: size;
   aspect-ratio: 1584 / 820;
@@ -36,6 +34,9 @@
 }
 
 .scene {
+  --illustration-width: 100cqw;
+  --k: tan(atan2(var(--illustration-width), 1584px));
+
   position: absolute;
   top: 0;
   left: 0;
@@ -333,20 +334,20 @@
   .stage.stage {
     /* Scaled to the stage's width and zoomed 30% past it, in a short stage
        that clips every device at its right and bottom edges. */
-    --k: calc(tan(atan2(100cqw, 1280px)) * 1.3);
-
     aspect-ratio: 358 / 275;
   }
 
   /* The devices hold the left gutter and run off the right and bottom. */
   .scene,
   .scene[data-form="copilot"] {
+    --k: calc(tan(atan2(var(--illustration-width), 1280px)) * 1.3);
+
     transform: scale(var(--k)) translateX(calc(16px / var(--k) - 202px));
   }
 
   /* The phone is narrow enough to sit whole in the middle. */
   .scene[data-form="mobile"] {
-    transform: scale(var(--k)) translateX(calc(50cqw / var(--k) - 792px));
+    transform: scale(var(--k)) translateX(calc(var(--illustration-width) / 2 / var(--k) - 792px));
   }
 }
 
