@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+
 import spawn from "cross-spawn";
 
 import { QUIET_COMMAND_CAPTURE_LIMIT } from "./command-output";
@@ -32,7 +34,42 @@ export type RunCommandOptions = {
   inheritOutput?: boolean;
   /** Max bytes retained in `diagnosticTail` when output is piped. Default 16KiB. */
   captureLimit?: number;
+  /** Stop the child and its descendants (SIGTERM, then SIGKILL) when this signal aborts. */
+  signal?: AbortSignal;
 };
+
+/** `pid` plus every descendant, so grandchildren (e.g. `npm run` → `next dev`) are not orphaned. */
+function processTree(pid: number): number[] {
+  const children = new Map<number, number[]>();
+  try {
+    const out = execFileSync("ps", ["-A", "-o", "pid=,ppid="], { encoding: "utf8" });
+    for (const line of out.split("\n")) {
+      const [childPid, parentPid] = line.trim().split(/\s+/).map(Number);
+      if (!childPid || parentPid === undefined) continue;
+      children.set(parentPid, [...(children.get(parentPid) ?? []), childPid]);
+    }
+  } catch {
+    /* ps unavailable; fall back to the direct child only */
+  }
+  const tree: number[] = [];
+  const queue = [pid];
+  while (queue.length) {
+    const next = queue.shift()!;
+    tree.push(next);
+    queue.push(...(children.get(next) ?? []));
+  }
+  return tree;
+}
+
+function killTree(pids: number[], signal: NodeJS.Signals): void {
+  for (const pid of pids) {
+    try {
+      process.kill(pid, signal);
+    } catch {
+      /* already exited */
+    }
+  }
+}
 
 /**
  * `spawn.sync(..., { stdio: "inherit" })` exposes exit status but not the output
@@ -87,6 +124,7 @@ export function runCommand(
       settled = true;
       process.off("SIGINT", onSigint);
       process.off("SIGTERM", onSigterm);
+      options.signal?.removeEventListener("abort", onAbort);
       if (forceKillTimer) clearTimeout(forceKillTimer);
       resolve({
         ...result,
@@ -109,9 +147,23 @@ export function runCommand(
     };
     const onSigint = () => forwardSignal("SIGINT");
     const onSigterm = () => forwardSignal("SIGTERM");
+    const onAbort = () => {
+      if (forwardedSignal || child.pid === undefined) return;
+      forwardedSignal = "SIGTERM";
+      if (process.platform === "win32") {
+        spawn.sync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+        return;
+      }
+      const tree = processTree(child.pid);
+      killTree(tree, "SIGTERM");
+      forceKillTimer = setTimeout(() => killTree(tree, "SIGKILL"), 5000);
+      forceKillTimer.unref();
+    };
 
     process.on("SIGINT", onSigint);
     process.on("SIGTERM", onSigterm);
+    if (options.signal?.aborted) onAbort();
+    else options.signal?.addEventListener("abort", onAbort, { once: true });
     child.once("error", (error) => finish({ status: null, signal: forwardedSignal, error }));
     child.once("close", (status, signal) => finish({ status, signal: forwardedSignal ?? signal }));
   });

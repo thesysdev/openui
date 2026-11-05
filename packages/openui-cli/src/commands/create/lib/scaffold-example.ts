@@ -5,6 +5,7 @@ import * as path from "node:path";
 import { checkoutSource } from "../../../lib/checkout";
 import type { PackageManagerName } from "../../../lib/detect-package-manager";
 import { CreateError } from "../../../lib/errors";
+import { readPackageJson } from "../../../lib/package-json";
 import type { RetryAttemptInfo } from "../../../lib/retry";
 import type { ExampleProject } from "./examples-catalog";
 
@@ -50,9 +51,7 @@ export function isNestedExample(layout: ExampleLayout): boolean {
 }
 
 export function exampleDevCommand(pkgDir: string, runCmd: string): string {
-  const pkg = JSON.parse(fs.readFileSync(path.join(pkgDir, "package.json"), "utf8")) as {
-    scripts?: Record<string, string>;
-  };
+  const pkg = readPackageJson(pkgDir);
   if (pkg.scripts?.["dev"]) return `${runCmd} run dev`;
   if (pkg.scripts?.["start"]) return `${runCmd} start`;
   return `${runCmd} run dev`;
@@ -80,13 +79,7 @@ function rewriteExamplePackageJson(
   packageManager: PackageManagerName,
   name?: string,
 ): void {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
-    name?: string;
-    scripts?: Record<string, string>;
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-    pnpm?: unknown;
-  };
+  const pkg = readPackageJson(path.dirname(pkgPath));
   if (name) pkg.name = name;
   if (packageManager !== "pnpm") delete pkg.pnpm;
 

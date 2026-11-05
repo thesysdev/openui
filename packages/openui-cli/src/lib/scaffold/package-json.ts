@@ -4,6 +4,7 @@ import * as path from "node:path";
 
 import type { OverlayManifest } from "../../commands/create/lib/overlays";
 import type { PackageManagerName } from "../detect-package-manager";
+import { readPackageJson } from "../package-json";
 
 /** Match npm/pnpm install: keep dependency keys alphabetically sorted. */
 function sortPackageRecord<T>(record: Record<string, T>): Record<string, T> {
@@ -23,13 +24,7 @@ export function rewritePackageJson(
   // package manager — npm rejects link:, and ~ isn't expanded. Temporary, until
   // these packages are published.
   const pkgPath = path.join(projectDir, "package.json");
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
-    name: string;
-    scripts?: Record<string, string>;
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-    pnpm?: unknown;
-  };
+  const pkg = readPackageJson(projectDir);
   pkg.name = name;
   if (packageManager !== "pnpm") delete pkg.pnpm;
 
