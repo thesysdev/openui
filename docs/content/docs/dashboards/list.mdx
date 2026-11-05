@@ -1,9 +1,9 @@
 ---
 title: List dashboards
-description: Show the user's saved dashboards with useArtifactList, and pin, unpin, delete, and open them.
+description: Show the user's saved dashboards with useArtifactList, and pin, unpin, rename, delete, and open them.
 ---
 
-`useArtifactList()` returns the signed-in user's saved dashboards, newest first, page by page. It also pins, unpins, and deletes them. Every list and renderer in the app shares one cache, so a change shows everywhere at once.
+`useArtifactList()` returns the signed-in user's saved dashboards, newest first, page by page. Separate hooks pin, unpin, rename, and delete them. Every list and renderer in the app shares one cache, so a change shows everywhere at once.
 
 ```tsx title="components/dashboard-list.tsx"
 "use client";
@@ -44,16 +44,47 @@ The hook must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication
 
 ## Returns
 
-| Field                  | Description                                                                 |
-| ---------------------- | --------------------------------------------------------------------------- |
-| `artifacts`            | The dashboards loaded so far: `id`, `title`, `type`, `updatedAt`, `pinned`. |
-| `isLoading`, `error`   | The load state.                                                             |
-| `hasMore`, `loadMore`  | Load the next page.                                                         |
-| `refresh`              | Load the list again from the first page.                                    |
-| `pin(id)`, `unpin(id)` | Pin or unpin a dashboard.                                                   |
-| `deleteArtifact(id)`   | Delete a dashboard.                                                         |
+| Field                 | Description                                                                 |
+| --------------------- | --------------------------------------------------------------------------- |
+| `artifacts`           | The dashboards loaded so far: `id`, `title`, `type`, `updatedAt`, `pinned`. |
+| `isLoading`, `error`  | The load state.                                                             |
+| `hasMore`, `loadMore` | Load the next page.                                                         |
+| `refresh`             | Load the list again from the first page.                                    |
 
-`pin`, `unpin`, and `deleteArtifact` update every list and renderer right away, and revert if the request fails. A deleted dashboard can't be restored.
+## Pin, rename, and delete
+
+Each action has its own hook:
+
+| Hook                  | Returns                                              |
+| --------------------- | ---------------------------------------------------- |
+| `useArtifactPin()`    | `pin(id)`                                            |
+| `useArtifactUnpin()`  | `unpin(id)`                                          |
+| `useArtifactUpdate()` | `update(id, { title })`, which renames the dashboard |
+| `useArtifactDelete()` | `deleteArtifact(id)`                                 |
+
+Each also returns `isPending` and `error` for its last call. The actions update every list and renderer right away, and revert if the request fails. A deleted dashboard can't be restored.
+
+```tsx
+import { useArtifactDelete, useArtifactPin, useArtifactUpdate } from "@openuidev/react-ui/cloud";
+
+function DashboardActions({ id, title }: { id: string; title: string }) {
+  const { pin } = useArtifactPin();
+  const { update } = useArtifactUpdate();
+  const { deleteArtifact, isPending } = useArtifactDelete();
+
+  return (
+    <>
+      <button onClick={() => pin(id)}>Pin</button>
+      <button onClick={() => update(id, { title: `${title} (copy)` })}>Rename</button>
+      <button disabled={isPending} onClick={() => deleteArtifact(id)}>
+        Delete
+      </button>
+    </>
+  );
+}
+```
+
+The hooks must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser), like the list.
 
 ## Open a dashboard
 
@@ -77,9 +108,11 @@ Use two lists to show pinned dashboards above the rest:
 ```tsx
 const pinned = useArtifactList({ filter: { type: "dashboard", pinned: true } });
 const recent = useArtifactList({ filter: { type: "dashboard", pinned: false, limit: 20 } });
+const { pin } = useArtifactPin();
+const { unpin } = useArtifactUnpin();
 
 async function setPinned(id: string, next: boolean) {
-  await (next ? recent.pin(id) : pinned.unpin(id));
+  await (next ? pin(id) : unpin(id));
   pinned.refresh();
   recent.refresh();
 }
