@@ -117,4 +117,6 @@ Guidelines are advisory, though. A host can ignore them, and anything that must 
 
 For MCP Server authors, this changes what's worth investing in. Well-described results, actions, and presentation guidelines let a server take part in interfaces it never had to anticipate. Specialised components cover what only that server can render, and the full MCP App remains for tasks it owns end to end.
 
+None of this is simple. Composing interfaces across tools is a much harder problem than it looks on the surface, and every approach here comes with corner cases to work through: guidelines a host misreads, components that need more context than their contract allows, tokens that fit one host and clash with another. But a single tool running its own iframe isn't the answer either. It hands the screen to one tool when the task belongs to the user.
+
 MCP let agents compose tools. The next step is letting them compose the screen you act on, and the host is the layer that can.
