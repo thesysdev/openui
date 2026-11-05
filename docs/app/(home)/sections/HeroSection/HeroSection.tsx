@@ -9,14 +9,6 @@ import { DEFAULT_GITHUB_REPO_URL, GitHubButton } from "../../components/GitHubBu
 import { PLATFORMS } from "../../components/PlatformLogos";
 import styles from "./HeroSection.module.css";
 
-function capturePrimaryHeroCliCopy(command: string) {
-  captureCreateCliCommandCopied(command, { source: "homepage_hero", interaction: "primary" });
-}
-
-function captureDropdownHeroCliCopy(command: string) {
-  captureCreateCliCommandCopied(command, { source: "homepage_hero", interaction: "dropdown" });
-}
-
 export const heroStyles = styles;
 
 // CTAs
@@ -43,7 +35,9 @@ function commandVariants(command: string): CommandVariant[] {
   const runner = COMMAND_RUNNERS.find(({ prefix }) => command.startsWith(`${prefix} `));
   if (!runner) return [];
   const spec = command.slice(runner.prefix.length + 1);
-  return COMMAND_RUNNERS.map(({ id, prefix }) => ({
+  // The first menu row overlays the trigger, so it must copy the same runner.
+  const orderedRunners = [runner, ...COMMAND_RUNNERS.filter((item) => item.id !== runner.id)];
+  return orderedRunners.map(({ id, prefix }) => ({
     id,
     command: `${prefix} ${spec}`,
     runner: prefix,
@@ -90,7 +84,17 @@ function TrailingArrow() {
 
 const COPY_TOAST_MS = 1800;
 
-export function NpmButton({ className = "", command }: { className?: string; command: string }) {
+export function NpmButton({
+  className = "",
+  command,
+  analyticsSource = "homepage_hero",
+  fade = false,
+}: {
+  fade?: boolean;
+  className?: string;
+  command: string;
+  analyticsSource?: string;
+}) {
   const [showToast, setShowToast] = useState(false);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -117,8 +121,10 @@ export function NpmButton({ className = "", command }: { className?: string; com
     <div className={styles.npmButtonWrapper}>
       <ClipboardCommandButton
         command={command}
-        onCopySuccess={capturePrimaryHeroCliCopy}
-        className={`${styles.npmButton} ${className}`.trim()}
+        onCopySuccess={(value) =>
+          captureCreateCliCommandCopied(value, { source: analyticsSource, interaction: "primary" })
+        }
+        className={`${styles.npmButton} ${fade ? styles.commandFade : ""} ${className}`.trim()}
         iconContainerClassName={styles.npmIconBadge}
         copyIconColor="currentColor"
         onCopyChange={handleCopyChange}
@@ -147,12 +153,18 @@ export function NpmButton({ className = "", command }: { className?: string; com
 // A command pill that reveals a dropdown of package-manager variants on hover or
 // focus. Clicking the trigger or any row copies that command and closes the
 // menu. Fully isolated (`.command*` classes), so it affects no other button.
-function CommandDropdownButton({
+export function CommandDropdownButton({
   command,
-  variants,
+  variants = commandVariants(command),
+  analyticsSource = "homepage_hero",
+  className = "",
+  fade = false,
 }: {
+  fade?: boolean;
   command: string;
-  variants: CommandVariant[];
+  variants?: CommandVariant[];
+  analyticsSource?: string;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const runner =
@@ -160,7 +172,7 @@ function CommandDropdownButton({
 
   return (
     <div
-      className={`${styles.commandDropdown} ${open ? styles.commandDropdownOpen : ""}`.trim()}
+      className={`${styles.commandDropdown} ${open ? styles.commandDropdownOpen : ""} ${fade ? styles.commandFade : ""} ${className}`.trim()}
       // Hover-controlled only: copying can briefly move focus, so a focus/blur
       // close would shut the menu on click. Mouse-leave is the sole close.
       onMouseEnter={() => setOpen(true)}
@@ -168,7 +180,9 @@ function CommandDropdownButton({
     >
       <ClipboardCommandButton
         command={command}
-        onCopySuccess={capturePrimaryHeroCliCopy}
+        onCopySuccess={(value) =>
+          captureCreateCliCommandCopied(value, { source: analyticsSource, interaction: "primary" })
+        }
         className={styles.commandTrigger}
         iconContainerClassName={styles.commandTriggerBadge}
         copyIconColor="currentColor"
@@ -189,7 +203,12 @@ function CommandDropdownButton({
             <ClipboardCommandButton
               key={variant.id}
               command={variant.command}
-              onCopySuccess={captureDropdownHeroCliCopy}
+              onCopySuccess={(value) =>
+                captureCreateCliCommandCopied(value, {
+                  source: analyticsSource,
+                  interaction: "dropdown",
+                })
+              }
               className={styles.commandMenuItem}
               iconContainerClassName={styles.commandMenuItemIcon}
               copyIconColor="currentColor"
@@ -399,6 +418,8 @@ function DesktopHero({
           </p>
         </div>
 
+        {proofSlot && <div className={styles.desktopProof}>{proofSlot}</div>}
+
         <div
           className={`${styles.desktopCtaStack} ${
             !hasSecondaryCta ? styles.desktopCtaStackShadowRoom : ""
@@ -428,7 +449,6 @@ function DesktopHero({
             <DesktopGithubButton href={githubRepoUrl} label={githubButtonLabel} />
           )}
         </div>
-        {proofSlot}
       </div>
     </div>
   );

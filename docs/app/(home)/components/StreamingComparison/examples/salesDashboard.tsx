@@ -1,11 +1,45 @@
 import { Globe, Landmark, MountainSnow } from "lucide-react";
 import type { ComparisonExample } from "../types";
 
-/* Dashboards: a single "With OpenUI" panel, no plain-text side. A yearly
-   performance overview with KPIs, a spend-vs-sales scatter and a campaign
-   table. Sample data. */
+/* Dashboards: the plain-text answer against a yearly performance overview
+   with KPIs, a spend-vs-sales scatter and a campaign table. Sample data. */
 export const SALES_DASHBOARD: ComparisonExample = {
   prompt: "Make a performance overview dashboard for this year",
+  leftOnPhonesOnly: true,
+  left: {
+    label: "Without",
+    follow: true,
+    blocks: [
+      { type: "heading", text: "Performance overview, 2025" },
+      {
+        type: "paragraph",
+        text: "Here is a performance overview for the year so far. Across all regions in 2025 (YTD), total advertising spend reached $110.4M, generating $425.5M in sales at an average ROI of 342% across 12 active campaigns.",
+      },
+      {
+        type: "bullets",
+        items: [
+          "Total ad spends: $110.42M",
+          "Total sales: $425.5M",
+          "Average ROI: 342%",
+          "Active campaigns: 12",
+        ],
+      },
+      { type: "subheading", text: "Spend vs sales" },
+      {
+        type: "paragraph",
+        text: "Sales track spend closely across markets. North America shows the tightest clustering, Europe delivers steady mid-range returns, and Asia trails on volume but leads on efficiency for campaigns under $5M.",
+      },
+      { type: "subheading", text: "Regional snapshot" },
+      {
+        type: "bullets",
+        items: [
+          "NA-01 · North America: $48.0M spend, $299.0M sales, 523% ROI",
+          "EU-02 · Europe: $36.5M spend, $172.4M sales, 372% ROI",
+          "AS-03 · Asia: $25.9M spend, $98.1M sales, 279% ROI",
+        ],
+      },
+    ],
+  },
   right: {
     label: "With OpenUI",
     sectioned: true,

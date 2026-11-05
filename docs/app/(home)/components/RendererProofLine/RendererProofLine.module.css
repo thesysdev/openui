@@ -28,22 +28,53 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
-  border: 1px solid var(--openui-border-default);
-  border-radius: var(--openui-radius-full);
-  background: var(--openui-foreground);
-  color: var(--openui-text-neutral-primary);
-  transition: border-color 150ms ease;
+  color: var(--openui-text-neutral-secondary);
 }
 
+/* Plain names in a sentence: a comma after each but the last, pulled back
+   against the name across the flex gap. */
+.item:not(:last-child)::after {
+  content: ",";
+  margin-left: -0.375rem;
+}
+
+/* The mark is a mask over a paint: black (white in dark), slowly fading to
+   the brand's colour and back. */
 .logo {
+  flex-shrink: 0;
   width: 1rem;
   height: 1rem;
-  object-fit: contain;
+  background: var(--logo-base, #000);
+  -webkit-mask: var(--logo-url) center / contain no-repeat;
+  mask: var(--logo-url) center / contain no-repeat;
+  animation: logoFade 6s ease-in-out infinite;
 }
 
-:global([data-theme="dark"]) .logoInvertDark {
-  filter: invert(1);
+/* React's atom is fine line work; four hard shadow copies fatten it. */
+.logoBold {
+  filter: drop-shadow(0.4px 0 0 var(--logo-base, #000)) drop-shadow(-0.4px 0 0 var(--logo-base, #000))
+    drop-shadow(0 0.4px 0 var(--logo-base, #000)) drop-shadow(0 -0.4px 0 var(--logo-base, #000));
+}
+
+:global([data-theme="dark"]) .logo {
+  --logo-base: #fff;
+}
+
+@keyframes logoFade {
+  0%,
+  100% {
+    background-color: var(--logo-base, #000);
+  }
+
+  50% {
+    background-color: var(--shimmer, currentColor);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo {
+    animation: none;
+  }
 }
 
 .more {
@@ -56,6 +87,7 @@
 .arrow {
   width: 0.875rem;
   height: 0.875rem;
+  stroke-width: 2.5;
   transition: transform 150ms ease;
 }
 
@@ -65,10 +97,6 @@
 
 .line:hover .arrow {
   transform: translateX(2px);
-}
-
-.line:hover .item {
-  border-color: var(--openui-border-interactive, var(--openui-border-default));
 }
 
 .line:focus-visible {
@@ -89,8 +117,8 @@
     text-align: center;
   }
 
-  .item {
-    padding: 0.375rem;
+  .item:not(:last-child)::after {
+    content: none;
   }
 
   .name {

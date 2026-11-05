@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { StreamingComparison } from "./StreamingComparison";
 import styles from "./StreamingComparison.module.css";
 import type { ComparisonExample } from "./types";
@@ -13,28 +13,99 @@ export interface ComparisonTab {
 
 /* The comparison with the homepage pill tabs floating over its bottom edge; picking a
    tab swaps in that example and streams it from the start. */
-export function ComparisonTabs({ tabs, initial = 0 }: { tabs: ComparisonTab[]; initial?: number }) {
+export function ComparisonTabs({
+  tabs,
+  initial = 0,
+  leftStatic = false,
+}: {
+  tabs: ComparisonTab[];
+  initial?: number;
+  /* Forwarded: the "Without" answer rests finished instead of streaming. */
+  leftStatic?: boolean;
+}) {
+  const instanceId = useId();
+  const hostRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [active, setActive] = useState(initial);
+  const [visible, setVisible] = useState(false);
   const tab = tabs[active];
 
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
+      threshold: 0.15,
+    });
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className={styles.tabsHost}>
-      <div role="tabpanel" id={`comparison-${tab.id}`} aria-labelledby={`comparison-tab-${tab.id}`}>
+    <div
+      ref={hostRef}
+      className={styles.tabsHost}
+      // The active tab's fill drives rotation. It only ever rests while the
+      // comparison is off screen; on screen the loop always advances.
+      style={
+        {
+          "--tab-fill-play": visible ? "running" : "paused",
+        } as CSSProperties
+      }
+    >
+      <div
+        role="tabpanel"
+        id={`${instanceId}-comparison-${tab.id}`}
+        aria-labelledby={`${instanceId}-comparison-tab-${tab.id}`}
+        tabIndex={0}
+      >
         {/* Keyed by tab, so switching remounts it and the stream restarts. */}
-        <StreamingComparison key={tab.id} example={tab.example} />
+        <StreamingComparison key={tab.id} example={tab.example} leftStatic={leftStatic} />
       </div>
       <div className={styles.tabsBar}>
-        <div className={styles.tabs} role="tablist" aria-label="Examples">
+        <div
+          className={styles.tabs}
+          role="tablist"
+          aria-label="Examples"
+          aria-orientation="horizontal"
+        >
           {tabs.map((item, index) => (
             <button
               key={item.id}
-              id={`comparison-tab-${item.id}`}
+              id={`${instanceId}-comparison-tab-${item.id}`}
+              ref={(node) => {
+                tabRefs.current[index] = node;
+              }}
               type="button"
               role="tab"
               aria-selected={index === active}
-              aria-controls={`comparison-${item.id}`}
+              aria-controls={`${instanceId}-comparison-${item.id}`}
+              tabIndex={index === active ? 0 : -1}
               className={`${styles.tab} ${index === active ? styles.tabActive : ""}`.trim()}
               onClick={() => setActive(index)}
+              // The active tab's fill (the only animation on these buttons) ran out.
+              onAnimationEnd={() => setActive((index + 1) % tabs.length)}
+              onKeyDown={(event) => {
+                let nextIndex: number;
+                switch (event.key) {
+                  case "ArrowLeft":
+                    nextIndex = (index - 1 + tabs.length) % tabs.length;
+                    break;
+                  case "ArrowRight":
+                    nextIndex = (index + 1) % tabs.length;
+                    break;
+                  case "Home":
+                    nextIndex = 0;
+                    break;
+                  case "End":
+                    nextIndex = tabs.length - 1;
+                    break;
+                  default:
+                    return;
+                }
+                event.preventDefault();
+                setActive(nextIndex);
+                tabRefs.current[nextIndex]?.focus();
+              }}
             >
               {item.label}
             </button>

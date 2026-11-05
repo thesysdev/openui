@@ -248,6 +248,67 @@
   color: var(--openui-text-white);
 }
 
+/* Plain badge, for the compatibility clusters: a page-coloured circle (white
+   in light, black in dark) with a subtle stroke, and the mark in its own
+   brand colour. Declared after the brand badges so it wins the tie. */
+.badgePlain {
+  background: #fff;
+  border: 1px solid var(--openui-border-default);
+}
+
+[data-theme="dark"] .badgePlain {
+  background: #262626;
+  border: 1px solid rgb(255 255 255 / 0.14);
+}
+
+/* Plain chips drawn at their small size: the compatibility clusters draw at
+   50px and scale to 0.64, so their stroke renders ~0.64px and their shadow
+   softer. These are those rendered values, for chips that don't scale. */
+/* One stroke only: the plain border, nothing layered on top of it. */
+.badgePlainFine {
+  border-width: 0.5px;
+  border-color: rgb(0 0 0 / 0.12);
+}
+
+[data-theme="dark"] .badgePlainFine {
+  border-color: rgb(255 255 255 / 0.14);
+}
+
+/* Local marks paint black; on the plain badge they stay black in light
+   (no invert) and flip to white in dark. */
+.badgePlain .badgeImage {
+  filter: none;
+}
+
+[data-theme="dark"] .badgePlain .badgeImage[src^="/brand-icons/"] {
+  filter: invert(1);
+}
+
+/* Marks whose brand colour is near-black would vanish on the dark badge;
+   flip their lightness while keeping the hue. */
+[data-theme="dark"] .badgePlain .badgeImage[src$="/anthropic"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/ollama"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/vercel"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/shadcnui"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/radixui"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/nextdotjs"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/remix"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/langchain"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/langgraph"],
+[data-theme="dark"] .badgePlain .badgeImage[src$="/angular"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* The other direction: daisyUI's bright mark washes out on the white badge,
+   so it darkens in light mode and keeps its brand colour in dark. */
+.badgePlain .badgeImage[src$="/daisyui"] {
+  filter: brightness(0.72);
+}
+
+[data-theme="dark"] .badgePlain .badgeImage[src$="/daisyui"] {
+  filter: none;
+}
+
 .chipIconOnly .chipLabel {
   position: absolute;
   width: 1px;

@@ -63,14 +63,19 @@
   background: var(--sc-panel-bg);
 }
 
-/* Phones: a small, scaled-down "Without" panel up top, with the full-size
-   "With OpenUI" panel overlapping its lower half, as the old hero art did. */
+/* Phones: the web-size "Without" panel scaled down (not reflowed), centred
+   and tucked behind the full-size "With OpenUI" panel. Both sizes are
+   fixed, and each panel clips its screen inside its own device. */
 @container sc (max-width: 719px) {
   .root {
     --sc-small-height: 30em;
     --sc-small-scale: 0.62;
-    --sc-height: 61em;
+    --sc-height: 56em;
     gap: 0;
+  }
+
+  .panel {
+    overflow: hidden;
   }
 
   .root:not(.rootSingle) .panel:first-child {
@@ -79,15 +84,14 @@
     justify-self: center;
     transform: scale(var(--sc-small-scale));
     transform-origin: top center;
-    /* Give back the space the scale-down frees, then tuck the big panel up
-       over the bottom of the small one. */
-    margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 7em);
+    /* Collapse the space the scale frees, then tuck the big panel up over
+       the small one. */
+    margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 9em);
   }
 
   .root:not(.rootSingle) .panel:last-child {
     position: relative;
     z-index: 1;
-    box-shadow: 0 -12px 40px -16px rgba(0, 0, 0, 0.25);
   }
 }
 
@@ -941,7 +945,7 @@
   width: fit-content;
   max-width: 100%;
   margin: 1.25rem auto 0;
-  padding: 0.25rem;
+  padding: 0.375rem;
   overflow-x: auto;
   border: 1px solid var(--openui-border-default, rgba(0, 0, 0, 0.08));
   border-radius: 999px;
@@ -950,14 +954,16 @@
 }
 
 .tab {
+  position: relative;
   flex-shrink: 0;
-  padding: 0.5rem 1.125rem;
+  overflow: hidden;
+  padding: 0.25rem 0.875rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--openui-text-neutral-secondary, rgba(0, 0, 0, 0.5));
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -972,11 +978,45 @@
 .tabActive {
   background: var(--openui-background, #f4f4f4);
   color: var(--openui-text-neutral-primary, #111);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] .tabActive {
   background: #1f1f22;
+}
+
+/* The active tab fills left to right while its example plays: a white layer
+   on difference blend, so the covered part reads black in light mode and
+   white in dark without a second set of colours. animationend on the button
+   then opens the next tab, so this duration is the cycle's one source of
+   truth. Hovering or tabbing into the bar holds it; hosts can also hold it
+   through --tab-fill-play. */
+.tabActive {
+  isolation: isolate;
+}
+
+.tabActive::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  animation: tabFill 8s linear forwards;
+  animation-play-state: var(--tab-fill-play, running);
+}
+
+@keyframes tabFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabActive::before {
+    animation: none;
+  }
 }
 
 @media (max-width: 767px) {
@@ -1324,18 +1364,41 @@
   }
 }
 
-/* The example tabs float over the bottom edge of the visual, on its fade. */
+/* The selector straddles the visual's bottom edge: half in, half out. */
 .tabsHost {
   position: relative;
 }
 
-/* A full-width strip pinned to the bottom edge that centres the tab bar with
-   flexbox, so no transform can push it off centre. */
+/* The tabbed comparison sits in one device wrapped around both panels, with
+   a hairline edge and a soft natural shadow. Rim, the seam between the
+   panels, and the notch labels all share the page colour (white in light,
+   black in dark), so the bezel reads as one piece. */
+.tabsHost .root {
+  border-radius: 1.5em;
+  background: var(--sc-page);
+  box-shadow:
+    0 0 0 0.5em var(--sc-page),
+    0 0 0 calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+    0 1px 2px calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+    0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] .tabsHost .root {
+  box-shadow:
+    0 0 0 0.5em var(--sc-page),
+    0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.1),
+    0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.55);
+}
+
+/* A full-width strip that centres the tab bar with flexbox, so no transform
+   can push it off centre. Dropped 7px below the content edge so the bar's
+   midline sits on the device rim's hairline (0.5em rim + the stroke). */
 .tabsBar {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 1.25rem;
+  bottom: -7px;
+  transform: translateY(50%);
   z-index: 2;
   display: flex;
   justify-content: center;
@@ -1346,9 +1409,21 @@
 .tabsBar > .tabs {
   margin: 0;
   pointer-events: auto;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 8px 24px -6px rgba(0, 0, 0, 0.16);
+}
+
+/* A lone example needs no picker: the bar only draws with tabs to choose. */
+.tabsBar:has(.tab:only-child) {
+  display: none;
+}
+
+/* Above the bar, a wash of the device colour, so the pills sit in the bezel
+   rather than on the streamed content behind them. */
+.tabsHost:has(.root) .tabsBar > .tabs {
+  box-shadow: 0 -12px 36px 10px #fff;
+}
+
+[data-theme="dark"] .tabsHost:has(.root) .tabsBar > .tabs {
+  box-shadow: 0 -12px 36px 10px rgba(0, 0, 0, 0.6);
 }
 
 /* Metrics in ValueLayout style: flush cells, dashed rules between them. */
@@ -1733,10 +1808,6 @@
     padding-inline: 0;
   }
 
-  .tabsBar {
-    bottom: 0.75rem;
-  }
-
   .tab {
     padding: 0.375rem 0.75rem;
     font-size: 0.8125rem;
@@ -1745,21 +1816,42 @@
   /* Phones only, so tablets keep the stacked layout at its full size. */
   @container sc (max-width: 719px) {
     .root {
-      font-size: 0.625rem;
+      font-size: 0.5625rem;
       --sc-small-height: 28em;
-      --sc-height: 34em;
+      --sc-height: 39em;
     }
 
-    /* Tuck the big panel further up over the small one, so less of the
-       "Without" side's empty lower half shows. */
+    /* The "Without" sits a touch lower and the big panel pulls up higher
+       over it, so only the small device's top peeks out. */
     .root:not(.rootSingle) .panel:first-child {
-      margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 9em);
+      margin-top: 1.5em;
+      margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 6em);
     }
 
-    /* A single-panel example (no "Without" side) takes the same total height
-       as the stacked pair, so switching tabs never shifts the page. */
+    /* The small device's notch reads at full size despite its scale, and
+       its answer rests directly on the panel, with no card behind it. */
+    .root:not(.rootSingle) .panel:first-child .label {
+      font-size: 1.5em;
+    }
+
+    /* Its bubble and answer start lower, clear of the bigger notch. */
+    .root:not(.rootSingle) .panel:first-child .prompt {
+      margin-top: 2.5em;
+    }
+
+    .root:not(.rootSingle) .panel:first-child .response {
+      background: transparent;
+    }
+
+    /* A static "Without" shows its finished answer with no blur-in. */
+    .root[data-left-static] .panel:first-child .blurIn {
+      animation: none;
+    }
+
+    /* A single-panel example takes the same total height as the stacked
+       pair, so switching tabs never shifts the page. */
     .root.rootSingle {
-      --sc-height: calc(34em + var(--sc-small-height) * var(--sc-small-scale) - 9em);
+      --sc-height: calc(39em + var(--sc-small-height) * var(--sc-small-scale) - 6em);
     }
 
     /* More room inside the single-panel preview (Dashboards): a wider inset
@@ -1806,4 +1898,43 @@
 
 [data-theme="dark"] .dayEdge small {
   color: rgba(0, 0, 0, 0.6);
+}
+
+/* On phones each panel is its own device: the rim moves from the shared
+   root to the panels. The dark reset repeats the light one at the dark
+   rule's own specificity, so no squared-off stroke survives there. */
+@container sc (max-width: 719px) {
+  .tabsHost .root,
+  [data-theme="dark"] .tabsHost .root {
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tabsHost .panel {
+    box-shadow:
+      0 0 0 0.5em var(--sc-page),
+      0 0 0 calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+      0 1px 2px calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+      0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.12);
+  }
+
+  [data-theme="dark"] .tabsHost .panel {
+    box-shadow:
+      0 0 0 0.5em var(--sc-page),
+      0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.1),
+      0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* Examples whose "Without" side exists for phones only: desktop keeps the
+   single full-width panel. */
+@container sc (min-width: 720px) {
+  .root[data-left-phones] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .root[data-left-phones] .panel:first-child {
+    display: none;
+  }
 }

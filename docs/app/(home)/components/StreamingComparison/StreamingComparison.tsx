@@ -131,7 +131,14 @@ function partProgress(segment: Segment, progress: number) {
 /* Plays one example: the prompt, then both answers streaming in at once.
    Plays once when scrolled into view (pausing off screen) and then rests on
    the finished answers, which reduced motion shows straight away. */
-export function StreamingComparison({ example }: { example: ComparisonExample }) {
+export function StreamingComparison({
+  example,
+  leftStatic = false,
+}: {
+  example: ComparisonExample;
+  /* Shows the "Without" answer finished from the start instead of streaming. */
+  leftStatic?: boolean;
+}) {
   const left = useMemo(() => (example.left ? timeline(example.left) : null), [example.left]);
   const right = useMemo(() => timeline(example.right), [example.right]);
   // The plain-text side says more, so it would trail far behind. It starts at
@@ -203,14 +210,18 @@ export function StreamingComparison({ example }: { example: ComparisonExample })
 
   return (
     <div ref={rootRef} className={styles.frame}>
-      <div className={`${styles.root} ${example.left ? "" : styles.rootSingle}`.trim()}>
+      <div
+        className={`${styles.root} ${example.left ? "" : styles.rootSingle}`.trim()}
+        data-left-phones={example.leftOnPhonesOnly || undefined}
+        data-left-static={leftStatic || undefined}
+      >
         {example.left && left ? (
           <Panel
             side={example.left}
             prompt={example.prompt}
             segments={left.segments}
-            progress={leftProgressAt(progress)}
-            done={leftProgressAt(progress) >= left.total}
+            progress={leftStatic ? left.total : leftProgressAt(progress)}
+            done={leftStatic || leftProgressAt(progress) >= left.total}
           />
         ) : null}
         <Panel

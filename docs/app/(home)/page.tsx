@@ -134,7 +134,11 @@ export default function HomePage() {
           /* The Without / With OpenUI demo, streamed live in HTML. Swap the
              example for any config in components/StreamingComparison/examples. */
           desktopPreviewSlot={<ComparisonTabs tabs={COMPARISON_TABS} initial={1} />}
-          mobilePreviewSlot={<ComparisonTabs tabs={COMPARISON_TABS} initial={1} />}
+          /* Phones get the one Cards example, a single tab draws no bar, and
+             the Without answer rests finished instead of streaming. */
+          mobilePreviewSlot={
+            <ComparisonTabs tabs={COMPARISON_TABS.filter((tab) => tab.id === "cards")} leftStatic />
+          }
           /* TEMP: the live compare demo is back in the hero, as on main.
              To return to the screenshot showcase, set showPreview={false},
              move <LogoStrip /> back down by the tweet wall, restore

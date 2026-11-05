@@ -4,6 +4,7 @@ export const SITE_NAV_LINKS = {
   openui: { href: "/" },
   gateway: { href: "/cloud/gateway" },
   observability: { href: "/cloud/observability" },
+  dashboards: { href: "/dashboards" },
   gettingStarted: { href: "/docs/getting-started" },
   cookbooks: { href: "/cookbooks/conversational-analytics" },
   apiReference: { href: "/docs/api-reference" },

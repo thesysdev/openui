@@ -91,8 +91,12 @@ export function FaqSection({
   return (
     <section className={styles.section} aria-labelledby={titleId}>
       <div className={styles.lead}>
+        {/* Phones get the short form; both render, the viewport picks one. */}
         <h2 id={titleId} className={styles.title}>
-          {title}
+          <span className={styles.titleFull}>{title}</span>
+          <span className={styles.titleShort}>
+            {title === "Frequently asked questions" ? "FAQs" : title}
+          </span>
         </h2>
         <p className={styles.note}>
           {contact ?? (

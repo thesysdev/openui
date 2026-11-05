@@ -137,6 +137,7 @@ const FOOTER_GROUPS: { title: string; links: FooterLink[] }[] = [
       { title: "OpenUI", ...SITE_NAV_LINKS.openui },
       { title: "Gateway", ...SITE_NAV_LINKS.gateway },
       { title: "Observability", ...SITE_NAV_LINKS.observability },
+      { title: "Dashboards", ...SITE_NAV_LINKS.dashboards },
       { title: "Pricing", ...SITE_NAV_LINKS.pricing },
     ],
   },

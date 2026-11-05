@@ -107,8 +107,48 @@ function dropdownColumns(item: NavDropdown): NavGroup[][] {
 }
 
 export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
+  {
+    title: "Products",
+    /* Narrower than the default track: four text-only cards read better
+       tight, and the panel stays compact. */
+    cardTrack: 168,
+    groups: [
+      {
+        label: "Open source",
+        children: [
+          {
+            title: "OpenUI",
+            description: "The open standard for generative UI.",
+            ...SITE_NAV_LINKS.openui,
+          },
+        ],
+      },
+      {
+        label: "Managed",
+        children: [
+          {
+            title: "Gateway",
+            description: "One endpoint for generative UI across every model.",
+            ...SITE_NAV_LINKS.gateway,
+          },
+          {
+            title: "Observability",
+            description: "Product analytics and user insights for AI agents.",
+            ...SITE_NAV_LINKS.observability,
+          },
+          {
+            title: "Dashboards",
+            description: "Live dashboards, built by your agent.",
+            ...SITE_NAV_LINKS.dashboards,
+            tag: "New",
+          },
+        ],
+      },
+    ],
+  },
   { title: "Demos", ...SITE_NAV_LINKS.demos },
   { title: "Documentation", ...SITE_NAV_LINKS.documentation },
+  { title: "Dashboards", ...SITE_NAV_LINKS.dashboards, badge: "New" },
   {
     title: "Resources",
     layout: "list",

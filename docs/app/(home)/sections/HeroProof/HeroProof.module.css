@@ -157,6 +157,11 @@
     text-align: center;
   }
 
+  /* Phones keep the first sentence only; the stats already say the rest. */
+  .sideNotePhoneHidden {
+    display: none;
+  }
+
   .header .ctas {
     order: 4;
     align-self: center;

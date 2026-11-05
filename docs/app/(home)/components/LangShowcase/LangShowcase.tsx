@@ -30,7 +30,7 @@ type Agent = {
 const AGENTS: Agent[] = [
   {
     id: "f1",
-    label: "F1",
+    label: "F1 AI Insights",
     mascot: "/homepage/shiro/shiro-f1.svg",
     mascotAlt: "Shiro in a racing helmet",
     demo: SITE_NAV_LINKS.f1Dashboard.href,
@@ -44,7 +44,7 @@ const AGENTS: Agent[] = [
   },
   {
     id: "travel",
-    label: "Travel",
+    label: "Travel Concierge",
     mascot: "/homepage/shiro/shiro-travel.svg",
     mascotAlt: "Shiro in a bucket hat",
     demo: SITE_NAV_LINKS.tripPlanner.href,
@@ -194,8 +194,9 @@ export function LangShowcase() {
             </div>
             {isOpen && (
               <div className={styles.demo}>
+                {/* Inverts with the theme: black on light pages, white on dark. */}
                 <BevelButton
-                  variant="secondary"
+                  variant="primary"
                   href={agent.demo}
                   label={agent.cta ?? "View demo"}
                   external
