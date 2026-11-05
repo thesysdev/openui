@@ -54,6 +54,9 @@ catalogs:
     eslint-plugin-unused-imports:
       specifier: ^4.4.1
       version: 4.4.1
+    goober:
+      specifier: 2.1.19
+      version: 2.1.19
     jsdom:
       specifier: ^26.1.0
       version: 26.1.0
@@ -906,6 +909,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.4.0
+      goober:
+        specifier: 'catalog:'
+        version: 2.1.19(csstype@3.2.3)
       lodash-es:
         specifier: ^4.17.21
         version: 4.18.1
