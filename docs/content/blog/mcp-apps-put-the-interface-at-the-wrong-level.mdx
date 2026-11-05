@@ -107,18 +107,22 @@ Hosts can already generate interfaces using connected services, as [Claude Artif
 
 We built an internal Generative UI MCP Server with one tool: take the results gathered by the agent and generate an interface using OpenUI. Since we didn't control the host, we instructed its agent to call this tool last whenever an answer needed a visual interface.
 
-![The host gathers results, calls visualize with selected context, OpenUI generates the screen, and an MCP App renders it.](/images/blog/mcp-apps/06-generative-ui-mcp-flow.svg)
-
-**What worked:** The combined hotel view brought prices, travel times, reviews, and policy constraints into one place, so the user could compare options across tools.
+<figure>
 
 <Image
-  src="/images/blog/mcp-apps/07-combined-hotel-view.webp"
-  alt="Illustrative OpenUI hotel comparison from the Japan talk, combining reviews, travel time, policy, and a quiet-stay preference."
-  width={2880}
-  height={1960}
+  src="/images/blog/mcp-apps/04-generative-ui-mcp.webp"
+  alt="A Claude conversation where the agent calls Booking.com, Tripadvisor, Google Maps, and SAP Concur, then calls the Generative UI MCP's visualize tool. The result is one generated comparison of three Tokyo hotels showing ratings, travel time, neighbourhood, policy fit, and price, with Hotel Niwa Tokyo marked as the best fit."
+  width={2200}
+  height={1576}
   className="rounded-lg"
   unoptimized
 />
+
+<figcaption>An illustrative run of the Generative UI MCP: after gathering results from four MCP Servers, the agent calls visualize last, and OpenUI turns those results into one comparison rendered as an MCP App.</figcaption>
+
+</figure>
+
+**What worked:** The combined hotel view brought prices, travel times, reviews, and policy constraints into one place, so the user could compare options across tools.
 
 **What didn't:**
 
