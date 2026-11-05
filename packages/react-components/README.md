@@ -68,8 +68,6 @@ Component styles are added to the page in the browser, in one `<style id="openui
 - **Cascade layer:** call `configureStyles({ layer: "openui" })` once, before rendering, to put
   every component rule in that layer.
 - **Your own rules:** the package exports `css` and `keyframes`.
-- **Content Security Policy:** set `window.__nonce__` before the components load, and the style tag
-  carries that nonce.
 - **Server rendering:** server-rendered HTML doesn't include the component styles yet; they're added
   when the page loads in the browser.
 
