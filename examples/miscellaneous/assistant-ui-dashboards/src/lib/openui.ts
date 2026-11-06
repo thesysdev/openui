@@ -24,7 +24,7 @@ export const dashboards = openui.defineDashboard({
   // The specification `npm run generate` writes from src/library.ts, so the server never loads
   // the React components the browser renders with.
   library: spec,
-  model: process.env.OPENUI_DASHBOARD_MODEL || "anthropic/claude-sonnet-4.6",
+  model: process.env.OPENUI_DASHBOARD_MODEL || "anthropic/claude-sonnet-5.5",
   tools: dataTools,
   mcp: osv,
   // The kit's examples and rules, with our own preamble.
