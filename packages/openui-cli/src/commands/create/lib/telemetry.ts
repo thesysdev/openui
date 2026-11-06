@@ -53,7 +53,8 @@ export class CreateTelemetryClient extends Telemetry {
   }
 
   authClient(): AuthTelemetryClient {
-    return new AuthTelemetryClient(this);
+    // Same labels cli_cloud_oidc_started has always carried in the create funnel.
+    return new AuthTelemetryClient(this, createFunnelProps("cloud_auth_started"));
   }
 
   registerContext(props: Record<string, unknown>) {
