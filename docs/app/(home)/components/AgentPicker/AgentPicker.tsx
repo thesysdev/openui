@@ -1,5 +1,6 @@
 "use client";
 
+import { captureCreateCliCommandCopied } from "@/lib/analytics";
 import { copyText } from "@/lib/copy-text";
 import { Check, CheckCheck, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -83,12 +84,15 @@ export function AgentPicker({
   className = "",
   onCopy,
   runner = true,
+  analyticsSource = "homepage_hero",
 }: {
   command: string;
   className?: string;
   onCopy?: (command: string) => void;
   /* The "Build with pnpx" pairing; product pages show the agent button alone. */
   runner?: boolean;
+  /* The `source` sent with the create command copy event. */
+  analyticsSource?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const [copiedRunner, setCopiedRunner] = useState<string | null>(null);
@@ -117,8 +121,10 @@ export function AgentPicker({
     resetTimeoutRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
   };
 
-  const handleRunnerCopy = async (runner: string) => {
-    if (!(await copyText(`${runner} ${CLI_SPEC}`))) return;
+  const handleRunnerCopy = async (runner: string, interaction: "primary" | "dropdown") => {
+    const cliCommand = `${runner} ${CLI_SPEC}`;
+    if (!(await copyText(cliCommand))) return;
+    captureCreateCliCommandCopied(cliCommand, { source: analyticsSource, interaction });
     setCopiedRunner(runner);
     if (runnerResetTimeoutRef.current) {
       clearTimeout(runnerResetTimeoutRef.current);
@@ -174,7 +180,7 @@ export function AgentPicker({
             type="button"
             className={styles.alt}
             aria-haspopup="menu"
-            onClick={() => handleRunnerCopy("pnpx")}
+            onClick={() => handleRunnerCopy("pnpx", "primary")}
           >
             <span className={styles.label}>Build with</span>
             <span className={styles.runnerPill}>
@@ -184,6 +190,9 @@ export function AgentPicker({
               </span>
             </span>
           </button>
+          <span className={styles.srOnly} role="status">
+            {copiedRunner ? `Copied ${copiedRunner} ${CLI_SPEC}` : ""}
+          </span>
           <div className={styles.runnerMenu} onMouseLeave={() => setHoveredRunner(null)}>
             <div className={styles.runnerCard} role="menu" aria-label="Copy the create command">
               {CLI_RUNNERS.map((runner) => (
@@ -192,20 +201,22 @@ export function AgentPicker({
                   type="button"
                   role="menuitem"
                   className={styles.runnerItem}
-                  onClick={() => handleRunnerCopy(runner)}
+                  onClick={() => handleRunnerCopy(runner, "dropdown")}
                   onMouseEnter={() => setHoveredRunner(runner)}
                 >
                   <span>
                     <strong>{runner}</strong> {CLI_SPEC}
                   </span>
-                  <Check
-                    className={`${styles.runnerCheck} ${
-                      copiedRunner === runner ? styles.runnerCheckShown : ""
+                  {/* The copied row's chip; the others keep its space empty. */}
+                  <span
+                    className={`${styles.runnerCopied} ${
+                      copiedRunner === runner ? styles.runnerCopiedShown : ""
                     }`.trim()}
-                    size={14}
-                    strokeWidth={2.5}
                     aria-hidden="true"
-                  />
+                  >
+                    <Check size={12} strokeWidth={2.75} />
+                    Copied
+                  </span>
                 </button>
               ))}
             </div>
