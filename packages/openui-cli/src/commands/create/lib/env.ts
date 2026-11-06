@@ -86,7 +86,8 @@ export async function resolveCloudEnv(
     tel.trackCloudAuthMethod({
       auth_method: resolved.method,
       auth_succeeded: apiKey != null,
-      skip_reason: skipReason,
+      // A skip that wasn't decided up front came from Esc at the prompt.
+      skip_reason: skipReason ?? (resolved.method === "skip" ? "declined" : undefined),
     });
   } catch (err) {
     if (err instanceof CliCancelledError) {

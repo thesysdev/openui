@@ -176,7 +176,10 @@ export class CreateTelemetryClient extends Telemetry {
   trackCloudAuthMethod(props: {
     auth_method: string;
     auth_succeeded: boolean;
-    /** Why sign-in was skipped: `non_interactive`, `key_in_env` or `cancelled` (Ctrl+C). */
+    /**
+     * Why sign-in was skipped: `non_interactive`, `key_in_env`, `declined` (Esc)
+     * or `cancelled` (Ctrl+C).
+     */
     skip_reason?: string;
   }) {
     this.capture("cli_cloud_auth_method", {
