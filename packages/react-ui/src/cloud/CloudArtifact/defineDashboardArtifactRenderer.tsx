@@ -7,38 +7,42 @@ import {
 } from "@openuidev/react-headless";
 import type { Library } from "@openuidev/react-lang";
 import clsx from "clsx";
+import { LayoutDashboard } from "lucide-react";
 import type { ReactNode } from "react";
 import { parseArtifactReference } from "./artifactReference";
 import { LiveArtifactRenderer } from "./ArtifactRenderer";
 import { names, styles } from "./cloudArtifact.styles";
 
-export interface DashboardRendererOptions<L extends Library = Library> {
-  /** The tool or tools that create and edit dashboards, such as `["create_dashboard", "edit_dashboard"]`. */
-  toolName: string | string[];
+/** OpenUI Cloud's dashboards are stored with this type: the join key for `artifactCategories`. */
+export const DASHBOARD_ARTIFACT_TYPE = "dashboard";
+
+/** The tools that create and edit dashboards, unless you pass your own `toolName`. */
+export const DASHBOARD_TOOL_NAMES = ["create_dashboard", "edit_dashboard"] as const;
+
+export interface DashboardArtifactRendererOptions<L extends Library = Library> {
   /** The component library the dashboards are built from. */
   library: L;
   /** Where the dashboards' data tools run: your endpoint (`{ url }`) or an async function. */
   interpreter: Interpreter;
+  /** The tool or tools that create and edit dashboards. Defaults to {@link DASHBOARD_TOOL_NAMES}. */
+  toolName?: string | string[];
   /** Shown on the artifact browser's cards and in the workspace. Defaults to `"Dashboard"`. */
   label?: string;
-  /** The icon for dashboards in the artifact nav. */
+  /** The icon for dashboards in the artifact nav. Defaults to a dashboard icon. */
   icon?: ReactNode;
 }
 
 /** What the renderer streams: a tool's result, or a saved dashboard's id. */
-export interface DashboardRendererProps {
+interface DashboardArtifactProps {
   response?: string;
   id?: string;
 }
-
-/** OpenUI Cloud's dashboards are stored with this type. */
-const DASHBOARD_TYPE = "dashboard";
 
 /**
  * A version is `<epoch ms>-<suffix>`, so its number grows with every edit: AgentInterface
  * moves an open panel to the newer one.
  */
-const versionNumber = (version: string | undefined) => Number.parseInt(version ?? "", 10) || 0;
+const versionNumber = (version: string | undefined) => Number.parseInt(version ?? "", 10) || 1;
 
 /**
  * An artifact renderer for OpenUI Cloud dashboards, for `AgentInterface`'s `artifactRenderers`.
@@ -50,32 +54,31 @@ const versionNumber = (version: string | undefined) => Number.parseInt(version ?
  *
  * @example
  * ```tsx
- * const dashboards = defineDashboardRenderer({
- *   toolName: ["create_dashboard", "edit_dashboard"],
+ * const dashboardArtifactRenderer = defineDashboardArtifactRenderer({
  *   library,
  *   interpreter: { url: "/api/interpreter" },
  * });
  *
  * <OpenUICloudProvider token="/api/frontend-token">
- *   <AgentInterface artifactRenderers={[dashboards]} … />
+ *   <AgentInterface artifactRenderers={[dashboardArtifactRenderer]} … />
  * </OpenUICloudProvider>
  * ```
  */
-export function defineDashboardRenderer<L extends Library>({
-  toolName,
+export function defineDashboardArtifactRenderer<L extends Library>({
   library,
   interpreter,
+  toolName = [...DASHBOARD_TOOL_NAMES],
   label = "Dashboard",
-  icon,
-}: DashboardRendererOptions<L>): ArtifactRendererConfig<DashboardRendererProps> {
-  return defineArtifactRenderer<DashboardRendererProps>({
-    type: DASHBOARD_TYPE,
+  icon = <LayoutDashboard size={16} />,
+}: DashboardArtifactRendererOptions<L>): ArtifactRendererConfig<DashboardArtifactProps> {
+  return defineArtifactRenderer<DashboardArtifactProps>({
+    type: DASHBOARD_ARTIFACT_TYPE,
     toolName,
     label,
     icon,
     parser: ({ response, id }) => {
       // The artifact browser opens a saved dashboard by its id; its content isn't a tool result.
-      if (id) return { props: { id }, meta: { id, version: 0, heading: label } };
+      if (id) return { props: { id }, meta: { id, version: 1, heading: label } };
       // Nothing until the tool returns. A result without a dashboard (the tool failed) still
       // renders, so the renderer can say why.
       if (typeof response !== "string" || !response) return null;
