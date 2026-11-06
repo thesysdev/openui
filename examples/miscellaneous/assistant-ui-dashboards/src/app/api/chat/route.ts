@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const tools = await dashboardTools.tools();
 
   const result = streamText({
-    model: gateway.chat(process.env.OPENUI_MODEL || "anthropic/claude-sonnet-5.5"),
+    model: gateway.chat(process.env.OPENUI_MODEL || "openai/gpt-5.5"),
     system: chatPrompt,
     messages: await convertToModelMessages(messages, { tools }),
     tools,

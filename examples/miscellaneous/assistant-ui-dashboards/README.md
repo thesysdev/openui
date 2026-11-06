@@ -21,8 +21,8 @@ npm run generate:apiKey
 Optional settings, also in `.env.local` (see `.env.example`):
 
 - `GITHUB_TOKEN` raises GitHub's rate limit from 60 to 5,000 requests an hour. Any token works; public repositories need no scopes. Without it, a few GitHub dashboards an hour are fine.
-- `OPENUI_MODEL` selects the chat model, as a Gateway `provider/model` identifier; the default is `anthropic/claude-sonnet-5.5`.
-- `OPENUI_DASHBOARD_MODEL` selects the model that builds dashboards; the default is `anthropic/claude-sonnet-4.6`.
+- `OPENUI_MODEL` selects the chat model, as a Gateway `provider/model` identifier; the default is `openai/gpt-5.5`.
+- `OPENUI_DASHBOARD_MODEL` selects the model that builds dashboards; the default is `anthropic/claude-sonnet-5.5`.
 - `THESYS_BASE_URL` points the app at another OpenUI Cloud deployment, such as a local stack at `http://localhost:3102`; the default is `https://api.thesys.dev`. The browser then reaches it through this app's origin, so set it before `npm run dev` or `npm run build`.
 
 ```bash
