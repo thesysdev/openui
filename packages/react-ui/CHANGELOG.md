@@ -1,5 +1,13 @@
 # @openuidev/react-ui
 
+## 0.18.5
+
+### Patch Changes
+
+- [#1575](https://github.com/thesysdev/openui/pull/1575) [`adec1c1`](https://github.com/thesysdev/openui/commit/adec1c1525800729d60a9975e183b3fa82eba726) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `defineLiveArtifactRenderer` (`@openuidev/react-ui/cloud/agent-interface`) shows OpenUI Cloud dashboards in `AgentInterface`: the dashboard tools' results become a card in the chat that opens the live dashboard in the side panel, and saved dashboards open in the artifact browser.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.18.5
+
 ## 0.18.4
 
 ### Patch Changes
