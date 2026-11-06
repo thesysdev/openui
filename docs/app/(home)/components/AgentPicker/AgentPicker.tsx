@@ -15,27 +15,23 @@ export const AGENT_SETUP_PROMPT = `Set up my first Generative UI agent using the
 3. First message: start the app, open its local URL, send one message, and tell me what the server log actually returned.`;
 
 /* The Gateway page's prompt: the same scaffold, pointed at the Gateway docs. */
-export const GATEWAY_SETUP_PROMPT = `Set up my first Generative UI agent using OpenUI gateway  ([openui.com/docs/gateway](http://openui.com/docs/gateway)).
+export const GATEWAY_SETUP_PROMPT = `Set up my first Generative UI agent using OpenUI Gateway ([openui.com/docs/gateway](https://openui.com/docs/gateway)).
 
 1. Scaffold: run \`npx @openuidev/cli@latest create\`. It runs without prompts, creates the project folder, and installs dependencies.
-2. Tell me if there are any steps required for me to complete the setup.
-3. Then run the dev server
+2. Tell me if there are any steps required of me to complete the setup.
+3. Run the dev server.
 
-
-
-Read the AGENTS.md for the instructions to work with OpenUI`;
+Read AGENTS.md for instructions on working with OpenUI.`;
 
 /* The Dashboards page's prompt: the dashboards example, and its docs. */
-export const DASHBOARDS_SETUP_PROMPT = `Set up agent with Generative UI dashboards using the OpenUI ([openui.com/docs/dashboards](http://openui.com/docs/dashboards)).
+export const DASHBOARDS_SETUP_PROMPT = `Set up an agent with Generative UI dashboards using OpenUI ([openui.com/docs/dashboards](https://openui.com/docs/dashboards)).
 
 1. Scaffold: run \`npx @openuidev/cli@latest create --example assistant-ui-dashboards\`. It runs without prompts, creates the project folder, and installs dependencies.
-2. Go through the Readme of the scaffold.
-3. Tell me if there are any steps required for me to complete the setup.
-4. ensure to run the dev server
+2. Read the scaffold's README.
+3. Tell me if there are any steps required of me to complete the setup.
+4. Run the dev server.
 
-
-
-Read the AGENTS.md for the instructions to work with OpenUI`;
+Read AGENTS.md for instructions on working with OpenUI.`;
 
 // The coding agents the prompt is written for; their marks ride along after
 // the label. `wideMark` is for marks drawn small in their own box, which need
