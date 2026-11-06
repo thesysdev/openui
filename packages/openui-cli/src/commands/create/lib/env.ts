@@ -55,8 +55,8 @@ export async function resolveCloudEnv(
   tel: CreateTelemetryClient,
 ): Promise<EnvResult> {
   const envFile = options.envFile ?? DEFAULT_ENV_FILE;
-  // Sign-in can't be skipped from the prompt, so a key already exported in the
-  // shell (which the dev server inherits) is the one way past it besides Ctrl+C.
+  // A key already exported in the shell (which the dev server inherits) makes
+  // sign-in pointless, so don't even show the prompt.
   const skipReason = !interactive
     ? agent
       ? "Coding agent detected"

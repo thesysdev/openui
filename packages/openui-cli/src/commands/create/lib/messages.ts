@@ -68,6 +68,8 @@ export function getStartedMessage(o: {
         ...(o.dependencyInstalled ? [] : [`> ${o.installCmd}`]),
         `> ${o.dlxCmd} @openuidev/cli@latest generate-api-key`,
         `> ${o.devCmd} run dev`,
+        "",
+        `(or create one at ${THESYS_KEYS_URL} and set THESYS_API_KEY in .env yourself)`,
       ].join("\n")
     : o.startDev
       ? `Starting the development server in "${o.name}"...\n\n> ${o.devCmd} run dev`

@@ -155,11 +155,14 @@ export async function mintCloudApiKey(
   return data.apiKey;
 }
 
-/** Wait for any key. Ctrl+C rejects with ExitPromptError, like every other prompt. */
-async function pressAnyKey(message: string): Promise<void> {
+/**
+ * Wait for a key: true for any key, false for Esc. Ctrl+C rejects with
+ * ExitPromptError, like every other prompt.
+ */
+async function pressAnyKeyOrEsc(): Promise<boolean> {
   const { createPrompt, makeTheme, useKeypress, usePrefix, useState } =
     await import("@inquirer/core");
-  const prompt = createPrompt<void, { message: string }>((config, done) => {
+  const prompt = createPrompt<boolean, object>((_config, done) => {
     const [status, setStatus] = useState<"idle" | "done">("idle");
     const theme = makeTheme();
     const prefix = usePrefix({ status, theme });
@@ -167,17 +170,22 @@ async function pressAnyKey(message: string): Promise<void> {
       // readline already turned Ctrl+C into SIGINT; don't also treat it as "any key".
       if (status !== "idle" || (key.ctrl && key.name === "c")) return;
       setStatus("done");
-      done();
+      done(key.name !== "escape");
     });
-    return `${prefix} ${theme.style.message(config.message, status)}`;
+    const message = `${prefix} ${theme.style.message("Press any key to generate an API Key to run this project.", status)}`;
+    if (status === "done") return message;
+    return [
+      message,
+      theme.style.help(`Press ${theme.style.key("Esc")} to quit and append it yourself`),
+    ];
   });
-  await prompt({ message });
+  return prompt({});
 }
 
 /**
  * Resolve a cloud API key: a browser OAuth mint, or skip (null → leave the
- * .env slot empty) when nobody is there to sign in. There's no skip choice in a
- * terminal: Ctrl+C is the way out.
+ * .env slot empty) when nobody is there to sign in or they press Esc. The
+ * closing message then shows how to add the key with `generate-api-key`.
  */
 export async function resolveCloudApiKey(opts: {
   projectName: string;
@@ -187,8 +195,9 @@ export async function resolveCloudApiKey(opts: {
   // Nobody is there to sign in: leave the .env slot empty and let the
   // closing message point at `generate-api-key`.
   if (!opts.interactive) return { key: null, method: "skip" };
-  await cloudAuthPrompt("method_resolution", "AUTH_METHOD_PROMPT_FAILED", () =>
-    pressAnyKey("Press any key to sign in and generate your API key (opens a browser)"),
+  const signIn = await cloudAuthPrompt("method_resolution", "AUTH_METHOD_PROMPT_FAILED", () =>
+    pressAnyKeyOrEsc(),
   );
+  if (!signIn) return { key: null, method: "skip" };
   return { key: await mintCloudApiKey(opts.projectName, opts.tel), method: "oauth" };
 }
