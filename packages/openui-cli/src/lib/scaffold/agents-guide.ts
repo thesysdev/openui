@@ -47,8 +47,6 @@ export function skillToAgentsGuide(skill: string, skillUrl = SKILL_URL): string 
 
 const BLOCK_START = "<!-- openui:start -->";
 const BLOCK_END = "<!-- openui:end -->";
-const BLOCK_NOTE =
-  "<!-- OpenUI instructions for coding agents. Run `npx @openuidev/cli@latest setup-agent` to refresh. -->";
 const BLOCK = new RegExp(`${BLOCK_START}[\\s\\S]*?${BLOCK_END}`);
 
 export type AgentsGuideResult = "created" | "appended" | "updated";
@@ -67,7 +65,7 @@ export async function fetchAgentsGuide(
 /** Adds the guide to AGENTS.md inside OpenUI markers: replaces an earlier block, else appends or creates. */
 export function upsertAgentsGuide(projectDir: string, guide: string): AgentsGuideResult {
   const file = path.join(projectDir, "AGENTS.md");
-  const block = `${BLOCK_START}\n${BLOCK_NOTE}\n\n${guide.trim()}\n${BLOCK_END}\n`;
+  const block = `${BLOCK_START}\n${guide.trim()}\n${BLOCK_END}\n`;
   if (!fs.existsSync(file)) {
     fs.writeFileSync(file, block);
     return "created";
