@@ -31,7 +31,7 @@ export function DashboardList({ onOpen }: { onOpen: (id: string) => void }) {
 }
 ```
 
-The hook must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser).
+The hook must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser). Import it from `@openuidev/react-ui/cloud`: `@openuidev/react-ui` exports a different `useArtifactList`, for the artifacts in the current chat thread. Inside `AgentInterface`, pass it `storage` as well. See [Add to your agent](/docs/dashboards/add-to-your-agent#agentinterface).
 
 ## Filter
 
@@ -125,6 +125,9 @@ Pinning moves a dashboard from one list to the other, so refresh both.
 A new dashboard joins the list when it finishes generating and is saved. To show it right away, call `refresh` when a renderer stops streaming:
 
 ```tsx
+import { useArtifactRenderer } from "@openuidev/react-ui/cloud";
+import { useEffect, useRef } from "react";
+
 function RefreshWhenSaved({ onSaved }: { onSaved: () => void }) {
   const { isStreaming } = useArtifactRenderer();
   const wasStreaming = useRef(isStreaming);

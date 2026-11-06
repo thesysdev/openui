@@ -45,10 +45,11 @@ The server builds dashboards from the library's spec, a JSON description of its 
 
 ### Generate the spec
 
-Install the library:
+Install the library, and the CLI that generates its spec:
 
 ```bash
 npm install @openuidev/dashboard-library
+npm install --save-dev @openuidev/cli
 ```
 
 Re-export it from a file in your app:
@@ -63,7 +64,7 @@ Generate the spec from that file:
 npx @openuidev/cli generate lib/dashboard-library.ts --spec --out generated/spec.json
 ```
 
-Run this before `dev` and `build`, for example as a `predev` and `prebuild` script, so the spec matches the installed library:
+Run this before `dev` and `build`, for example as a `predev` and `prebuild` script, so the spec matches the installed library. The scripts run with `npm run dev` and `npm run build`, not when `next dev` is called directly:
 
 ```json title="package.json"
 {
