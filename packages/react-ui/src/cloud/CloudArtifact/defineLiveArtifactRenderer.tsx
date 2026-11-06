@@ -17,9 +17,9 @@ export const DASHBOARD_ARTIFACT_TYPE = "dashboard";
 
 export const DASHBOARD_TOOL_NAMES = ["create_dashboard", "edit_dashboard"] as const;
 
-export interface LiveArtifactRendererOptions<L extends Library = Library> {
+export interface LiveArtifactRendererOptions {
   /** The component library the dashboards are built from. */
-  library: L;
+  library: Library;
   /** Where the dashboards' data tools run: your endpoint (`{ url }`) or an async function. */
   interpreter: Interpreter;
   /** The tool or tools that create and edit dashboards. Defaults to {@link DASHBOARD_TOOL_NAMES}. */
@@ -55,13 +55,13 @@ const versionNumber = (version: string | undefined) => Number.parseInt(version ?
  * </OpenUICloudProvider>
  * ```
  */
-export function defineLiveArtifactRenderer<L extends Library>({
+export function defineLiveArtifactRenderer({
   library,
   interpreter,
   toolName = [...DASHBOARD_TOOL_NAMES],
   label = "Dashboard",
   icon = <LayoutDashboard size={16} />,
-}: LiveArtifactRendererOptions<L>): ArtifactRendererConfig<DashboardArtifactProps> {
+}: LiveArtifactRendererOptions): ArtifactRendererConfig<DashboardArtifactProps> {
   return defineArtifactRenderer<DashboardArtifactProps>({
     type: DASHBOARD_ARTIFACT_TYPE,
     toolName,
