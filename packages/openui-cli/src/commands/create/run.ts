@@ -40,6 +40,7 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
   });
 
   const sourceRetryReporter = tel.reportNetworkRetry("source_checkout");
+  const catalogStartedAt = Date.now();
   const catalog = await cancelOnInterrupt("source_checkout", async () => {
     if (!localSourceDir()) await ensureGitAvailable();
     return loadCreateCatalog({
@@ -49,6 +50,7 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
       onRetry: sourceRetryReporter,
     });
   });
+  tel.trackCatalogLoaded({ duration_ms: Date.now() - catalogStartedAt });
   const { name, targetDir, dir } = await resolveProjectIdentity(options.name, interactive, tel);
   tel.trackProjectNameSelected({
     name_source:

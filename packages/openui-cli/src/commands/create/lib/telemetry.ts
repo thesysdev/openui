@@ -11,6 +11,7 @@ const createFunnel = {
 
 const createFunnelSteps = {
   create_started: "0100",
+  catalog_loaded: "0120",
   project_name_selected: "0150",
   ai_setup_selected: "0200",
   backend_framework_selected: "0250",
@@ -24,6 +25,7 @@ const createFunnelSteps = {
   dependency_install_cancelled: "0625",
   env_resolution_started: "0650",
   cloud_auth_started: "0660",
+  cloud_oidc_started: "0665",
   cloud_auth_resolved: "0670",
   cloud_auth_failed: "0675",
   cloud_auth_cancelled: "0676",
@@ -56,7 +58,7 @@ export class CreateTelemetryClient extends Telemetry {
   }
 
   authClient(): AuthTelemetryClient {
-    return new AuthTelemetryClient(this);
+    return new AuthTelemetryClient(this, createFunnelProps("cloud_oidc_started"));
   }
 
   registerContext(props: Record<string, unknown>) {
@@ -71,6 +73,11 @@ export class CreateTelemetryClient extends Telemetry {
     immediate_arg: boolean | undefined;
   }) {
     this.capture("cli_create_started", { ...createFunnelProps("create_started"), ...props });
+  }
+
+  /** Template + example catalogs downloaded; `duration_ms` is the wait before the first prompt. */
+  trackCatalogLoaded(props: { duration_ms: number }) {
+    this.capture("cli_catalog_loaded", { ...createFunnelProps("catalog_loaded"), ...props });
   }
 
   trackProjectNameSelected(props: { name_source: "arg" | "prompt" | "default" | "current_dir" }) {
