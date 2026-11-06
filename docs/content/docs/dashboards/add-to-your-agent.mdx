@@ -177,7 +177,7 @@ export async function POST(request: Request) {
 
   for (let step = 0; step < 4; step++) {
     const completion = await gateway.chat.completions.create({
-      model: "openai/gpt-5.5",
+      model: "anthropic/claude-sonnet-5.5",
       messages: history,
       tools: dashboardTools,
     });
@@ -222,7 +222,7 @@ export async function POST(request: Request) {
   const tools = dashboardTools({ userId: session.user.id });
 
   const result = streamText({
-    model: gateway.chat("openai/gpt-5.5"),
+    model: gateway.chat("anthropic/claude-sonnet-5.5"),
     system: systemPrompt,
     messages: await convertToModelMessages(messages, { tools }),
     tools,

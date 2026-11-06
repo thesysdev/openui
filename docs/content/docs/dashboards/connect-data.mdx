@@ -52,7 +52,7 @@ Pass the tools to `defineDashboard`:
 ```ts title="lib/openui.ts"
 export const dashboards = openui.defineDashboard({
   library: spec,
-  model: "anthropic/claude-sonnet-4.6",
+  model: "anthropic/claude-sonnet-5.5",
   tools: dataTools,
 });
 ```
@@ -93,7 +93,7 @@ export const dashboards = openui.defineDashboard<Context>({/* … */});
 ```ts title="lib/openui.ts"
 export const dashboards = openui.defineDashboard({
   library: spec,
-  model: "anthropic/claude-sonnet-4.6",
+  model: "anthropic/claude-sonnet-5.5",
   tools: dataTools,
   mcp: {
     client: mcpClient,

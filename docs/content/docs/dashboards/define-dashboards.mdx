@@ -15,7 +15,7 @@ export const openui = new OpenUIClient();
 
 export const dashboards = openui.defineDashboard({
   library: spec,
-  model: "anthropic/claude-sonnet-4.6",
+  model: "anthropic/claude-sonnet-5.5",
   tools: dataTools,
   promptOptions: {
     preamble: "You build dashboards about the store's orders, customers, and refunds.",
@@ -27,13 +27,13 @@ export const dashboards = openui.defineDashboard({
 
 Define it once and import `dashboards` wherever the app creates, edits, or loads dashboards.
 
-| Option          | Description                                                                                                             |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `library`       | The component library's spec. See [Component library](#component-library).                                              |
-| `model`         | The model that builds and edits dashboards, as `provider/model`. See [Models](/docs/gateway/models).                    |
-| `tools`         | Your data tools. See [Connect data](/docs/dashboards/connect-data).                                                     |
-| `mcp`           | One or more MCP servers whose tools dashboards can call. See [Connect data](/docs/dashboards/connect-data#mcp-servers). |
-| `promptOptions` | `preamble`, `examples`, and `additionalRules` added to the prompt the model builds dashboards from.                     |
+| Option          | Description                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `library`       | The component library's spec. See [Component library](#component-library).                                                                       |
+| `model`         | The model that builds and edits dashboards, as `provider/model`. Recommended: `anthropic/claude-sonnet-5.5`. See [Models](/docs/gateway/models). |
+| `tools`         | Your data tools. See [Connect data](/docs/dashboards/connect-data).                                                                              |
+| `mcp`           | One or more MCP servers whose tools dashboards can call. See [Connect data](/docs/dashboards/connect-data#mcp-servers).                          |
+| `promptOptions` | `preamble`, `examples`, and `additionalRules` added to the prompt the model builds dashboards from.                                              |
 
 `tools`, `mcp`, or both are required.
 

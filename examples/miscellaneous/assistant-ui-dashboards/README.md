@@ -18,11 +18,13 @@ Mint a `THESYS_API_KEY` into `.env.local`, or create one in the [Thesys Console]
 npm run generate:apiKey
 ```
 
+The default models are paid, so running the example uses [credits](https://www.openui.com/docs/gateway/pricing-credits). To run it without credits, use your own provider key with [BYOK](https://www.openui.com/docs/gateway/byok), or set `OPENUI_MODEL` and `OPENUI_DASHBOARD_MODEL` to one of the [free models](https://www.openui.com/cloud/gateway/models). Free models build lower-quality dashboards than `anthropic/claude-sonnet-5.5`.
+
 Optional settings, also in `.env.local` (see `.env.example`):
 
 - `GITHUB_TOKEN` raises GitHub's rate limit from 60 to 5,000 requests an hour. Any token works; public repositories need no scopes. Without it, a few GitHub dashboards an hour are fine.
 - `OPENUI_MODEL` selects the chat model, as a Gateway `provider/model` identifier; the default is `anthropic/claude-sonnet-5.5`.
-- `OPENUI_DASHBOARD_MODEL` selects the model that builds dashboards; the default is `anthropic/claude-sonnet-5.5`.
+- `OPENUI_DASHBOARD_MODEL` selects the model that builds dashboards; the default, and the recommended model, is `anthropic/claude-sonnet-5.5`.
 - `THESYS_BASE_URL` points the app at another OpenUI Cloud deployment, such as a local stack at `http://localhost:3102`; the default is `https://api.thesys.dev`. The browser then reaches it through this app's origin, so set it before `npm run dev` or `npm run build`.
 
 ```bash
