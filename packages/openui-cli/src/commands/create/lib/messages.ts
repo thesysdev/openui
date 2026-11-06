@@ -1,7 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { THESYS_KEYS_URL } from "../../../lib/auth/mint";
 import { DEFAULT_ENV_FILE } from "../../../lib/env";
 
 /** `cd` into the project, or nothing when it was created in the current folder. */
@@ -19,7 +18,6 @@ export function missingCloudKeyNote(
     `[!] No OpenUI Cloud API key added. Sign in and write one to ${envFile} with:`,
     ...cdStep(projectDir),
     `> ${dlxCmd} @openuidev/cli@latest generate-api-key${fileArg}`,
-    `(or create one at ${THESYS_KEYS_URL} and set THESYS_API_KEY yourself)`,
   ].join("\n");
 }
 
