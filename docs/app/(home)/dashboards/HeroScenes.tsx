@@ -304,7 +304,11 @@ function funnelBand(i: number, shares: number[], W: number, H: number) {
   return `M${x0} ${mid - a} L${xc} ${mid - a} C${xc + w * 0.3} ${mid - a} ${x1 - w * 0.24} ${mid - b} ${x1} ${mid - b} L${x1} ${mid + b} C${x1 - w * 0.24} ${mid + b} ${xc + w * 0.3} ${mid + a} ${xc} ${mid + a} L${x0} ${mid + a} Z`;
 }
 
-function SalesPage({ T }: { T: number }) {
+/* What every scene takes: the loop's clock, and optionally the user's
+   question, which the phone scene sets above its content. */
+type SceneProps = { T: number; ask?: ReactNode };
+
+function SalesPage({ T }: SceneProps) {
   const k = clockAt(T);
   const shares = series(k, SHARES);
   const bookings = series(k, BOOKINGS);
@@ -698,7 +702,6 @@ const FIN_KPIS: {
   values: string[];
   delta: string;
   note: string;
-  color: string;
 }[] = [
   {
     icon: Landmark,
@@ -706,7 +709,6 @@ const FIN_KPIS: {
     values: ["$1.24M", "$1.25M", "$1.27M", "$1.26M"],
     delta: "+8.1%",
     note: "Quarter to date",
-    color: "#fb923c",
   },
   {
     icon: Receipt,
@@ -714,7 +716,6 @@ const FIN_KPIS: {
     values: ["$812K", "$815K", "$819K", "$822K"],
     delta: "4.0% under",
     note: "Against budget",
-    color: "#f97316",
   },
   {
     icon: PiggyBank,
@@ -722,7 +723,6 @@ const FIN_KPIS: {
     values: ["62.4%", "62.6%", "62.9%", "62.7%"],
     delta: "+1.2 pt",
     note: "Up from Q3",
-    color: "#ea580c",
   },
   {
     icon: Wallet,
@@ -730,7 +730,6 @@ const FIN_KPIS: {
     values: ["22 mo", "22 mo", "23 mo", "23 mo"],
     delta: "+2 mo",
     note: "At current burn",
-    color: "#c2410c",
   },
 ];
 const WEEKS = 26;
@@ -741,24 +740,104 @@ const cash = (seed: number) =>
   );
 const CASH_IN = [cash(0), cash(0.3), cash(0.6), cash(0.9)];
 const CASH_OUT = CASH_IN.map((a) => a.map((v, w) => v * 0.55 + Math.sin(w * 1.3) * 0.4));
-const DEPTS = [
-  { label: "Engineering", actual: [412, 413, 415, 414], budget: 430, color: "#fb923c" },
-  { label: "Sales", actual: [238, 240, 243, 245], budget: 252, color: "#f97316" },
-  { label: "Marketing", actual: [162, 162, 161, 163], budget: 176, color: "#dc2626" },
-];
 const usdK = (n: number) => `$${Math.round(n)}K`;
 
-function FinanceBoard({ T }: { T: number }) {
+/* The board's teams, in $K: they split the same $822K operating
+   spend as the hero's three departments, each 41-68% of the way through
+   its quarterly budget ($1.45M in all). The spend states roll with the
+   operating spend figure. */
+const TEAMS = [
+  { label: "Engineering", actual: 320, budget: 516 },
+  { label: "Sales", actual: 186, budget: 321 },
+  { label: "Marketing", actual: 118, budget: 251 },
+  { label: "Support", actual: 70, budget: 106 },
+  { label: "Operations", actual: 50, budget: 93 },
+  { label: "Finance", actual: 32, budget: 78 },
+  { label: "People", actual: 26, budget: 38 },
+  { label: "Legal", actual: 20, budget: 45 },
+];
+const TEAM_SPEND_STATES = [812, 815, 819, 822];
+const INVOICES = [
+  {
+    vendor: "Vercel",
+    logo: "/brand-icons/vercel.svg",
+    category: "Infrastructure",
+    number: "INV-24081",
+    due: "Nov 14",
+    amount: "$84.2K",
+    status: "Paid",
+  },
+  {
+    vendor: "Snowflake",
+    logo: "https://cdn.simpleicons.org/snowflake",
+    category: "Data",
+    number: "INV-24093",
+    due: "Nov 18",
+    amount: "$36.8K",
+    status: "Scheduled",
+  },
+  {
+    vendor: "Figma",
+    logo: "https://cdn.simpleicons.org/figma",
+    category: "Design",
+    number: "INV-24102",
+    due: "Nov 21",
+    amount: "$9.4K",
+    status: "Overdue",
+  },
+  {
+    vendor: "Datadog",
+    logo: "https://cdn.simpleicons.org/datadog",
+    category: "Monitoring",
+    number: "INV-24117",
+    due: "Nov 28",
+    amount: "$21.6K",
+    status: "Paid",
+  },
+];
+
+/* The cash grid, 640 wide: 64 weeks by 10 rows of small squares. `base` is
+   the grid's bottom edge, `height` the viewBox height, with the month labels
+   under the base. */
+const CASH_GRID = {
+  cols: 64,
+  rows: 10,
+  pitch: 10,
+  w: 8,
+  rowPitch: 10,
+  h: 8,
+  rx: 1.6,
+  sweep: 0.012,
+  base: 110,
+  height: 122,
+};
+
+/* A 26-week series, on a 9-row scale, stretched over `cols` columns and
+   `rows` rows. */
+function resample(values: number[], cols: number, rows: number) {
+  return Array.from({ length: cols }, (_, i) => {
+    const pos = (i * (values.length - 1)) / (cols - 1);
+    const lo = Math.floor(pos);
+    const hi = Math.min(values.length - 1, lo + 1);
+    return (values[lo] + (values[hi] - values[lo]) * (pos - lo)) * (rows / 9);
+  });
+}
+
+/* The Finance board, as the Dashboards hero and the homepage both show it:
+   the summary, cash flow over the invoices three summary columns wide, and
+   beside them a full-height budget column of horizontal bars, one per team. */
+export function FinanceBoard({ T }: { T: number }) {
   const k = clockAt(T);
-  const inn = series(k, CASH_IN);
-  const out = series(k, CASH_OUT);
-  const actual = series(
+  const grid = CASH_GRID;
+  const ROWS = grid.rows;
+  const inn = resample(series(k, CASH_IN), grid.cols, ROWS);
+  const out = resample(series(k, CASH_OUT), grid.cols, ROWS);
+  const teamSpend = series(
     k,
-    [0, 1, 2, 3].map((s) => DEPTS.map((d) => d.actual[s])),
+    TEAM_SPEND_STATES.map((total) => TEAMS.map((team) => (team.actual * total) / 822)),
   );
-  const ROWS = 9;
   return (
-    <div className={`${styles.look} ${styles.board}`} data-look="grid">
+    <div className={`${styles.look} ${styles.board}`} data-look="grid" data-palette="blue">
       <Head title="Q4 budget" k={k}>
         <Select label="This quarter" />
         <Button icon={Download} label="Export" ghost />
@@ -769,7 +848,7 @@ function FinanceBoard({ T }: { T: number }) {
           return (
             <div key={kpi.label} className={styles.gridKpi} style={arrive(T, 1 + i)}>
               <span className={styles.gridTop}>
-                <span className={styles.square} style={{ background: kpi.color }}>
+                <span className={styles.square}>
                   <Icon />
                 </span>
                 <span className={styles.gridLabel}>{kpi.label}</span>
@@ -784,39 +863,98 @@ function FinanceBoard({ T }: { T: number }) {
           );
         })}
       </div>
-      <div className={styles.gridRow}>
-        <div className={styles.gridCell} style={arrive(T, 5)}>
-          <span className={styles.cardTop}>
-            <span className={styles.cardTitle}>Cash flow</span>
-            <span className={styles.legend}>
-              <i data-c="in" /> Cash in <i data-c="out" /> Cash out
+      <div className={styles.denseBody}>
+        <div className={styles.denseMain}>
+          <div className={styles.gridCell} style={arrive(T, 5)}>
+            <span className={styles.cardTop}>
+              <span className={styles.cardTitle}>Cash flow</span>
+              <span className={styles.legend}>
+                <i data-c="in" /> Cash in <i data-c="out" /> Cash out
+              </span>
             </span>
-          </span>
-          <svg className={styles.cells} viewBox="0 0 640 178" aria-hidden="true">
-            {inn.map((v, w) =>
-              Array.from(
-                { length: T >= at(5) + 0.12 + w * 0.03 ? Math.min(ROWS, Math.round(v + 1)) : 0 },
-                (_, r) => (
-                  <rect
-                    key={`${w}-${r}`}
-                    x={w * 24.6}
-                    y={158 - (r + 1) * 17.4}
-                    width={20.6}
-                    height={14}
-                    rx={2.5}
-                    data-c={r < Math.round(out[w]) ? "out" : r < Math.round(v) ? "in" : undefined}
-                  />
+            <svg className={styles.cells} viewBox={`0 0 640 ${grid.height}`} aria-hidden="true">
+              {inn.map((v, w) =>
+                Array.from(
+                  {
+                    length:
+                      T >= at(5) + 0.12 + w * grid.sweep ? Math.min(ROWS, Math.round(v + 1)) : 0,
+                  },
+                  (_, r) => (
+                    <rect
+                      key={`${w}-${r}`}
+                      x={w * grid.pitch}
+                      y={grid.base - (r + 1) * grid.rowPitch}
+                      width={grid.w}
+                      height={grid.h}
+                      rx={grid.rx}
+                      data-c={r < Math.round(out[w]) ? "out" : r < Math.round(v) ? "in" : undefined}
+                    />
+                  ),
                 ),
-              ),
-            )}
-            {["Aug", "Sep", "Oct", "Nov"].map((m, i) => (
-              <text key={m} className={styles.axis} x={i * 172 + 40} y={176} textAnchor="middle">
-                {m}
-              </text>
+              )}
+              {["Aug", "Sep", "Oct", "Nov"].map((m, i) => (
+                <text
+                  key={m}
+                  className={styles.axis}
+                  x={i * 172 + 40}
+                  y={grid.height - 2}
+                  textAnchor="middle"
+                >
+                  {m}
+                </text>
+              ))}
+            </svg>
+          </div>
+          <div className={styles.invoices} style={arrive(T, 7)}>
+            <span className={styles.cardTitle}>Recent invoices</span>
+            <span className={`${styles.th} ${styles.invoiceGrid}`}>
+              <span>Vendor</span>
+              <span>Category</span>
+              <span>Invoice</span>
+              <span>Due</span>
+              <span>Amount</span>
+              <span>Status</span>
+              <span className={styles.invoiceActionsHead}>Actions</span>
+            </span>
+            {INVOICES.map((row, i) => (
+              <span
+                key={row.vendor}
+                className={`${styles.invoiceRow} ${styles.invoiceGrid}`}
+                style={pop(T, at(7) + 0.12 + i * 0.06)}
+              >
+                <span className={styles.vendor}>
+                  <span className={styles.vendorLogo}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={row.logo} alt="" width={14} height={14} />
+                  </span>
+                  <b>{row.vendor}</b>
+                </span>
+                <span className={styles.invoiceMuted}>{row.category}</span>
+                <span className={styles.invoiceMono}>{row.number}</span>
+                <span>{row.due}</span>
+                <span>{row.amount}</span>
+                <span>
+                  <span
+                    className={styles.badge}
+                    data-late={row.status === "Overdue" || undefined}
+                    data-pending={row.status === "Scheduled" || undefined}
+                  >
+                    {row.status}
+                  </span>
+                </span>
+                <span className={styles.invoiceActions}>
+                  <i>
+                    <Download />
+                  </i>
+                  <i>
+                    <Ellipsis />
+                  </i>
+                </span>
+              </span>
             ))}
-          </svg>
+          </div>
         </div>
-        <div className={styles.gridCell} style={arrive(T, 6)}>
+        <div className={`${styles.gridCell} ${styles.teamCell}`} style={arrive(T, 6)}>
           <span className={styles.cardTop}>
             <span className={styles.cardTitle}>Budget vs actual</span>
             <span className={styles.trend}>
@@ -824,45 +962,35 @@ function FinanceBoard({ T }: { T: number }) {
               4.0%
             </span>
           </span>
-          <span className={styles.hatched}>
-            {DEPTS.map((d, i) => (
-              <span key={d.label}>
+          {/* One progress bar per team: the track is its budget, the fill
+              what it has spent so far. */}
+          <ul className={styles.teamBars}>
+            {TEAMS.map((team, i) => (
+              <li key={team.label}>
+                <span>{team.label}</span>
+                <span className={styles.teamFigure}>
+                  <Roll
+                    k={k}
+                    states={TEAM_SPEND_STATES.map((total) => usdK((team.actual * total) / 822))}
+                    className={styles.listValue}
+                  />{" "}
+                  of {usdK(team.budget)}
+                </span>
                 <i>
                   <b
                     style={{
-                      height: `${(actual[i] / 460) * 100 * grow(T, 6, i * 2)}%`,
-                      background: d.color,
+                      width: `${(teamSpend[i] / team.budget) * 100 * grow(T, 6, i)}%`,
                     }}
                   />
                 </i>
-                <i>
-                  <b
-                    data-budget
-                    style={{ height: `${(d.budget / 460) * 100 * grow(T, 6, i * 2 + 1)}%` }}
-                  />
-                </i>
-              </span>
-            ))}
-          </span>
-          <ul className={styles.list}>
-            {DEPTS.map((d) => (
-              <li key={d.label}>
-                <i style={{ background: d.color }} />
-                <span>{d.label}</span>
-                <Roll k={k} states={d.actual.map(usdK)} className={styles.listValue} />
               </li>
             ))}
           </ul>
+          <span className={styles.teamTotal}>
+            <span>Total</span>
+            <b>$822K of $1.45M</b>
+          </span>
         </div>
-      </div>
-      <div className={styles.invoices} style={arrive(T, 7)}>
-        <span className={styles.cardTitle}>Recent invoices</span>
-        <span className={styles.th}>
-          <span>Vendor</span>
-          <span>Due</span>
-          <span>Amount</span>
-          <span>Status</span>
-        </span>
       </div>
     </div>
   );
@@ -904,7 +1032,7 @@ const SHIPMENTS = [
   { route: "Fresno to San Jose", eta: "3:15 pm", late: true },
 ];
 
-function DeliveriesApp({ T }: { T: number }) {
+function DeliveriesApp({ T, ask }: SceneProps) {
   const k = clockAt(T);
   const step = k.c + (k.t >= ROLL ? 1 : 0);
   return (
@@ -917,10 +1045,12 @@ function DeliveriesApp({ T }: { T: number }) {
           <BatteryFull />
         </span>
       </span>
-      <div className={styles.mobileHead} style={arrive(T, 0)}>
-        <span className={styles.title}>Deliveries</span>
-        <Status k={k} />
-      </div>
+      {ask}
+      {/* The answer in a sentence, in place of a title. It names no figures,
+          so it holds while the numbers below roll. */}
+      <p className={styles.mobileLead} style={arrive(T, 0)}>
+        Mostly on time, with the West running behind.
+      </p>
       <div className={styles.kpis2}>
         {LOG_KPIS.map((kpi, i) => {
           const Icon = kpi.icon;
@@ -976,7 +1106,10 @@ function DeliveriesApp({ T }: { T: number }) {
   );
 }
 
-export const SCENES = {
+export const SCENES: Record<
+  "sales" | "support" | "finance" | "logistics",
+  (props: SceneProps) => ReactNode
+> = {
   sales: SalesPage,
   support: SupportDesk,
   finance: FinanceBoard,

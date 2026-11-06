@@ -1,42 +1,48 @@
 "use client";
 
-import { ArrowRight, ArrowUp, Sparkles, User, X } from "lucide-react";
-import Link from "next/link";
-import { type CSSProperties, useRef, useState } from "react";
+import { ArrowUp, Pause, Play, User, X } from "lucide-react";
+import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 import gatewayStyles from "../cloud/gateway/page.module.css";
 import { FadedDither } from "../components/FadedDither/FadedDither";
-import { StackChip } from "../components/StackChip/StackChip";
+import {
+  type ProofItem,
+  RendererProofLine,
+} from "../components/RendererProofLine/RendererProofLine";
 import tabStyles from "../components/StreamingComparison/StreamingComparison.module.css";
-import { STACK_ROWS } from "../sections/CompatibilitySection/CompatibilitySection";
 import styles from "./DashboardHero.module.css";
 import { SCENES, useLoop } from "./HeroScenes";
-import page from "./page.module.css";
 import { focus, pop } from "./story/motion";
 
-/* The model marks beside the hero CTAs, from the homepage compatibility data. */
-const MODEL_MARKS = STACK_ROWS[0].items.slice(0, 4);
+/* The models beside the hero CTAs, in the homepage's "rendered in" line. */
+const MODELS: ProofItem[] = [
+  { name: "Anthropic", logo: "/brand-icons/anthropic.svg", shimmer: "#d97757" },
+  { name: "Gemini", logo: "/brand-icons/gemini.svg", shimmer: "#4285f4" },
+  { name: "OpenAI", logo: "/brand-icons/openai.svg", shimmer: "#10a37f", large: true },
+  { name: "DeepSeek", logo: "/brand-icons/deepseek.svg", shimmer: "#4d6bfe" },
+];
 
 export function ModelProof() {
   return (
-    <Link className={page.modelProof} href="/cloud/gateway/models">
-      <span className={page.modelMarks} aria-hidden="true">
-        {MODEL_MARKS.map((item) => (
-          <span className={page.modelMark} key={item.name}>
-            <StackChip item={item} iconOnly plain="fine" />
-          </span>
-        ))}
-      </span>
-      <span className={page.modelText}>
-        Generate with hundreds of models
-        <ArrowRight className={page.modelArrow} aria-hidden="true" />
-      </span>
-    </Link>
+    <RendererProofLine
+      lead="Generate with"
+      items={MODELS}
+      href="/cloud/gateway/models"
+      more="and hundreds more"
+      logosOnly
+    />
   );
 }
 
 /* ---------- Hero: four use cases, each where it lives in a product ---------- */
 
 const CASES = [
+  {
+    id: "finance",
+    label: "Finance",
+    form: "chat",
+    notch: "Your agent",
+    where: "as an answer in chat",
+  },
   { id: "sales", label: "Sales", form: "page", notch: "Your app", where: "as a dashboard page" },
   {
     id: "support",
@@ -44,13 +50,6 @@ const CASES = [
     form: "copilot",
     notch: "Your copilot",
     where: "beside a copilot",
-  },
-  {
-    id: "finance",
-    label: "Finance",
-    form: "chat",
-    notch: "Your agent",
-    where: "as an answer in chat",
   },
   {
     id: "logistics",
@@ -61,32 +60,63 @@ const CASES = [
   },
 ] as const;
 
-function Ask({ text, style }: { text: string; style?: CSSProperties }) {
+/* A turn in the copilot thread: who is speaking, in small caps above the
+   bubble, in place of an avatar. */
+function Said({
+  who,
+  style,
+  children,
+}: {
+  who: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
   return (
-    <span className={styles.ask} style={style}>
-      <i>
-        <User />
-      </i>
-      <span>{text}</span>
+    <span className={styles.said} style={style}>
+      <span className={styles.saidWho}>{who}</span>
+      {children}
     </span>
   );
 }
 
-function Reply({ text, style }: { text: string; style?: CSSProperties }) {
+/* The user's question, drawn like the homepage comparison's prompt: a plain
+   tinted bubble. */
+function Ask({
+  text,
+  style,
+  avatar = false,
+}: {
+  text: string;
+  style?: CSSProperties;
+  /* A user avatar to the bubble's left. */
+  avatar?: boolean;
+}) {
+  if (!avatar)
+    return (
+      <span className={styles.ask} style={style}>
+        {text}
+      </span>
+    );
   return (
-    <span className={styles.reply} style={style}>
+    <span className={styles.askRow} style={style}>
       <i>
-        <Sparkles />
+        <User />
       </i>
-      <span>{text}</span>
+      <span className={styles.ask}>{text}</span>
     </span>
   );
+}
+
+/* The assistant's answer: a white bubble on a hairline. */
+function Reply({ text }: { text: string }) {
+  return <span className={styles.reply}>{text}</span>;
 }
 
 export function DashboardHeroStage() {
   const host = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
   const item = CASES[active];
   const go = (index: number) => {
     setActive(index);
@@ -103,7 +133,12 @@ export function DashboardHeroStage() {
   const Scene = SCENES[item.id];
   const notch = <span className={styles.notch}>{item.notch}</span>;
   return (
-    <div ref={host} className={tabStyles.tabsHost}>
+    <div
+      ref={host}
+      className={tabStyles.tabsHost}
+      // The active tab's fill drives rotation; pausing holds it.
+      style={{ "--tab-fill-play": paused ? "paused" : "running" } as CSSProperties}
+    >
       <div
         className={`${gatewayStyles.heroArtSpace} ${styles.stage}`}
         role="img"
@@ -116,7 +151,10 @@ export function DashboardHeroStage() {
               <div className={styles.phone}>
                 <div className={styles.phoneScreen}>
                   {notch}
-                  <Scene T={T} />
+                  <Scene
+                    T={T}
+                    ask={<Ask text="How are deliveries doing today?" style={pop(T, 0.05)} avatar />}
+                  />
                 </div>
               </div>
             ) : (
@@ -135,11 +173,12 @@ export function DashboardHeroStage() {
                           <X />
                         </span>
                         <div className={styles.thread}>
-                          <Ask text="Where are we missing SLA this week?" style={pop(T, 0.2)} />
-                          <Reply
-                            text="Mostly urgent billing tickets after 6 pm. I added them to your board."
-                            style={focus(T, 0.55)}
-                          />
+                          <Said who="User" style={pop(T, 0.2)}>
+                            <Ask text="Where are we missing SLA?" />
+                          </Said>
+                          <Said who="Assistant" style={focus(T, 0.55)}>
+                            <Reply text="Mostly urgent billing tickets after 6 pm. I added them to your board." />
+                          </Said>
                         </div>
                         <span className={styles.composer}>
                           Ask for a change
@@ -156,10 +195,7 @@ export function DashboardHeroStage() {
                         <Ask
                           text="How are we tracking against budget this quarter?"
                           style={pop(T, 0.05)}
-                        />
-                        <Reply
-                          text="Spend is 4% under budget, and revenue is ahead of plan."
-                          style={focus(T, 0.3)}
+                          avatar
                         />
                       </div>
                       <div className={styles.answer}>
@@ -173,6 +209,20 @@ export function DashboardHeroStage() {
           </div>
         </div>
       </div>
+      {/* The homepage comparison's toggle: stops the tabs rotating, while the
+          open scene keeps playing. */}
+      <button
+        type="button"
+        className={`${tabStyles.playToggle} ${styles.playToggle}`}
+        aria-label={paused ? "Resume rotating the use cases" : "Stop rotating the use cases"}
+        onClick={() => setPaused((value) => !value)}
+      >
+        {paused ? (
+          <Play size={12} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+        ) : (
+          <Pause size={12} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+        )}
+      </button>
       <div className={`${tabStyles.tabsBar} ${styles.tabsBar}`}>
         <div className={tabStyles.tabs} role="tablist" aria-label="Use cases">
           {CASES.map((c, i) => (

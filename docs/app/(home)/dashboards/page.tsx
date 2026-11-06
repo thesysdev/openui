@@ -5,11 +5,12 @@ import { Check, X } from "@phosphor-icons/react/dist/ssr";
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import gatewayStyles from "../cloud/gateway/page.module.css";
+import { AgentPicker, DASHBOARDS_SETUP_PROMPT } from "../components/AgentPicker/AgentPicker";
 import { BevelButton } from "../components/Button/BevelButton";
 import landing from "../components/ProductLanding.module.css";
 import homeStyles from "../page.module.css";
 import { Footer } from "../sections/Footer/Footer";
-import { CommandDropdownButton, HeroSection, NpmButton } from "../sections/HeroSection/HeroSection";
+import { HeroSection } from "../sections/HeroSection/HeroSection";
 import { LogoStrip } from "../sections/LogoStrip/LogoStrip";
 import { DashboardFeatures } from "./DashboardFeatures";
 import { DashboardHeroStage, ModelProof } from "./DashboardHero";
@@ -73,22 +74,7 @@ export default function DashboardsPage() {
           commandSlot={
             <div className={styles.heroActions}>
               <div className={styles.heroCtas}>
-                <div className={styles.installDesktop}>
-                  <CommandDropdownButton
-                    command="npx @openuidev/cli@latest create --example assistant-ui-dashboards"
-                    analyticsSource="dashboards_hero"
-                    fade
-                    className={styles.installDropdown}
-                  />
-                </div>
-                <div className={styles.installMobile}>
-                  <NpmButton
-                    command="npx @openuidev/cli@latest create --example assistant-ui-dashboards"
-                    analyticsSource="dashboards_hero"
-                    fade
-                    className={styles.installButton}
-                  />
-                </div>
+                <AgentPicker command={DASHBOARDS_SETUP_PROMPT} runner={false} />
                 <BevelButton
                   href="https://zcal.co/t/thesys/demo"
                   external
@@ -97,9 +83,10 @@ export default function DashboardsPage() {
                   badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
                 />
               </div>
-              <ModelProof />
             </div>
           }
+          /* The homepage's proof line, in the same slot, naming the models. */
+          proofSlot={<ModelProof />}
           showPlaygroundButton={false}
           showGitHubBanner={false}
           showTagline={false}

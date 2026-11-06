@@ -14,7 +14,6 @@
   --ring: #d5d7dc;
   --cell: #eeeef2;
   --hatch: #e4e4e9;
-  --budget: #ececf1;
   /* KPI chip tones, from the reference palette: malachite, cornflower,
      lemon, and bellflower. */
   --pastel-green: #00a699;
@@ -99,7 +98,6 @@
   --ring: #3a3d44;
   --cell: #24262b;
   --hatch: #33353b;
-  --budget: #2c2e34;
 }
 
 :global([data-theme="dark"]) .look[data-look="studio"] {
@@ -770,6 +768,12 @@
   margin-top: 14px;
 }
 
+/* The cash grid is drawn wide, so its labels are set in fewer viewBox
+   units to match the board's other small text. */
+.cells .axis {
+  font-size: 7px;
+}
+
 .panel {
   fill: none;
 }
@@ -1052,12 +1056,6 @@
   right: 12px;
 }
 
-.gridRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  border-bottom: 1px solid var(--edge);
-}
-
 .gridCell {
   display: flex;
   flex-direction: column;
@@ -1066,14 +1064,6 @@
 
 .cells rect {
   fill: var(--cell);
-}
-
-.cells rect[data-c="in"] {
-  fill: #fb923c;
-}
-
-.cells rect[data-c="out"] {
-  fill: #ef4444;
 }
 
 .trend {
@@ -1088,62 +1078,6 @@
 .trend svg {
   width: 14px;
   height: 14px;
-}
-
-.hatched {
-  display: flex;
-  gap: 22px;
-  height: 112px;
-  margin-top: 16px;
-}
-
-.hatched > span {
-  display: flex;
-  flex: 1;
-  gap: 5px;
-}
-
-.hatched i {
-  position: relative;
-  flex: 1;
-  border-radius: 3px;
-  background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 6px);
-}
-
-.hatched b {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: 3px;
-}
-
-.hatched b[data-budget] {
-  background: var(--budget);
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.list li {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  height: 28px;
-  font-size: 14px;
-  color: var(--strong);
-}
-
-.list i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
 }
 
 .listValue {
@@ -1171,6 +1105,254 @@
   margin: 0 -22px;
   padding: 10px 22px;
   background: var(--sunk);
+}
+
+/* Invoice rows, shown only on the dense board. */
+.invoiceRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--edge);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.invoiceRow:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.invoiceRow b {
+  font-weight: 500;
+}
+
+.invoiceRow .badge {
+  display: inline-block;
+}
+
+.badge[data-pending] {
+  background: var(--sunk);
+  color: var(--muted);
+}
+
+/* The dense board's body: cash flow over the invoices, spanning the first
+   three summary columns, beside the budget column spanning the fourth and
+   running the full height. 3fr to 1fr lands on the summary's 4-column
+   grid exactly. */
+.denseBody {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+}
+
+.denseMain {
+  min-width: 0;
+  border-right: 1px solid var(--edge);
+}
+
+.denseMain > .gridCell {
+  border-bottom: 1px solid var(--edge);
+}
+
+.teamCell {
+  min-width: 0;
+}
+
+/* One row per team: name and spend over a bar. The hatched track is the
+   team's budget on a shared scale; the fill is what it has spent. */
+/* The rows spread over the column's full height. */
+.teamBars {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.teamBars li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: 7px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* A progress bar per team: the full track is its budget, the fill what
+   it has spent. */
+.teamBars i {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--hatch);
+}
+
+.teamBars b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: #fb923c;
+}
+
+/* Spent, then "of" the budget, quieter. */
+.teamFigure {
+  color: var(--muted);
+}
+
+.teamFigure .listValue {
+  color: var(--text);
+}
+
+.teamTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--edge);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.teamTotal b {
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ---------- The dense board's blue palette ----------
+   Taken from one reference: a sky-blue gradient for the main fills, pale
+   blue for tracks and quiet chips, green chips for good news and pink for
+   bad, on white with grey text. */
+.look[data-palette="blue"] {
+  --blue: #2b8cf6;
+  --blue-light: #8cc4fb;
+  --blue-pale: #dcecfe;
+  --accent: var(--blue);
+  --good: #dcf5e3;
+  --good-text: #1f9d45;
+  --bad: #fde2ec;
+  --bad-text: #e8337a;
+  --cell: #eef3f9;
+}
+
+/* Dark: the board's surfaces and hairlines in neutral greys, with no blue
+   cast, so the only colour on it is the palette's own. */
+:global([data-theme="dark"]) .look[data-palette="blue"] {
+  --page: #1a1a1a;
+  --card: #1a1a1a;
+  --edge: #2a2a2a;
+  --line: #242424;
+  --sunk: #222222;
+  --chip: #262626;
+  --segment: #262626;
+  --hatch: #2e2e2e;
+  --blue-pale: #1b2a3b;
+  --good: rgba(47, 168, 79, 0.16);
+  --bad: rgba(224, 69, 123, 0.16);
+  --cell: #262626;
+}
+
+.look[data-palette="blue"] .square {
+  background: linear-gradient(135deg, var(--blue), var(--blue-light));
+}
+
+.look[data-palette="blue"] .cells rect[data-c="in"],
+.look[data-palette="blue"] .legend i[data-c="in"] {
+  fill: var(--blue-light);
+  background: var(--blue-light);
+}
+
+.look[data-palette="blue"] .cells rect[data-c="out"],
+.look[data-palette="blue"] .legend i[data-c="out"] {
+  fill: var(--blue);
+  background: var(--blue);
+}
+
+/* Budget tracks in the reference's pale striped blue; spend fills in its
+   gradient; over budget in its pink. */
+/* The track in the reference's pale blue, the fill in its gradient. */
+.look[data-palette="blue"] .teamBars i {
+  background: var(--blue-pale);
+}
+
+.look[data-palette="blue"] .teamBars b {
+  background: linear-gradient(90deg, var(--blue), var(--blue-light));
+}
+
+.look[data-palette="blue"] .badge[data-pending] {
+  background: var(--blue-pale);
+  color: var(--blue);
+}
+
+/* The dense board's wider invoice table: vendor, category, invoice, due,
+   amount, status, and the row actions at the right end. */
+.invoices .invoiceGrid {
+  grid-template-columns: 1.5fr 1.1fr 1fr 0.8fr 0.8fr 0.9fr 64px;
+  column-gap: 12px;
+}
+
+.invoiceActionsHead {
+  text-align: right;
+}
+
+.vendor {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Each vendor's logo on a white tile, so marks of any colour sit evenly. */
+.vendorLogo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.vendorLogo img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.invoiceMuted {
+  color: var(--muted);
+}
+
+.invoiceMono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.invoiceActions {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.invoiceActions i {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  color: var(--muted);
+}
+
+.invoiceActions svg {
+  width: 15px;
+  height: 15px;
 }
 
 /* ---------- Logistics (Studio, on a phone) ---------- */
@@ -1212,22 +1394,12 @@
 
 /* The title and the refresh line share a row; the status sits at the right
    edge, its icon outermost, so changing text never moves anything. */
-.mobileHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.mobileHead .status {
-  flex-direction: row-reverse;
-  width: 150px;
-  margin-right: 0;
-  text-align: right;
-}
-
-.mobileHead .title {
-  font-size: 26px;
+/* The assistant's one-sentence answer, under the question. */
+.mobileLead {
+  margin: 8px 0 4px;
+  padding-left: 2px;
+  font-size: 16px;
+  line-height: 1.4;
 }
 
 .kpis2 {

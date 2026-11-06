@@ -1268,7 +1268,7 @@
 
   .mobileHero:has(.mobileIllustrationViewportSlot [role="tablist"]) .mobileHeroStack {
     gap: 0.5rem;
-    padding-block: 0.5rem 0;
+    padding-block: 1.5rem 0;
   }
 
   .mobileHero:has(.mobileIllustrationViewportSlot [role="tablist"]) .mobileCtaStack {

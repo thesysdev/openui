@@ -38,6 +38,25 @@
   margin-left: -0.375rem;
 }
 
+/* Marks alone: the names drop out of view (they stay for screen readers),
+   and with them the commas. */
+.listLogos {
+  gap: 0.5rem;
+}
+
+.listLogos .name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.listLogos .item::after {
+  content: none;
+}
+
 /* The mark is a mask over a paint: black (white in dark), slowly fading to
    the brand's colour and back. */
 .logo {
@@ -50,10 +69,17 @@
   animation: logoFade 6s ease-in-out infinite;
 }
 
+/* Some marks fill less of their box than the rest; a size up evens them out. */
+.logoLarge {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
 /* React's atom is fine line work; four hard shadow copies fatten it. */
 .logoBold {
-  filter: drop-shadow(0.4px 0 0 var(--logo-base, #000)) drop-shadow(-0.4px 0 0 var(--logo-base, #000))
-    drop-shadow(0 0.4px 0 var(--logo-base, #000)) drop-shadow(0 -0.4px 0 var(--logo-base, #000));
+  filter: drop-shadow(0.4px 0 0 var(--logo-base, #000))
+    drop-shadow(-0.4px 0 0 var(--logo-base, #000)) drop-shadow(0 0.4px 0 var(--logo-base, #000))
+    drop-shadow(0 -0.4px 0 var(--logo-base, #000));
 }
 
 :global([data-theme="dark"]) .logo {
