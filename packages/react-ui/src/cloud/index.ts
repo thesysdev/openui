@@ -27,12 +27,6 @@ export type {
 export type { ArtifactRendererBaseProps } from "./CloudArtifact/ArtifactRendererRoot";
 export { useArtifactRenderer } from "./CloudArtifact/contexts";
 export type { ArtifactRendererState } from "./CloudArtifact/contexts";
-export {
-  DASHBOARD_ARTIFACT_TYPE,
-  DASHBOARD_TOOL_NAMES,
-  defineLiveArtifactRenderer,
-} from "./CloudArtifact/defineLiveArtifactRenderer";
-export type { LiveArtifactRendererOptions } from "./CloudArtifact/defineLiveArtifactRenderer";
 export type { ArtifactError, ArtifactErrorCode } from "./CloudArtifact/errors";
 export type {
   ChromeProps,

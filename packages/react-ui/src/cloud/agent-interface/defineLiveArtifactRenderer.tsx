@@ -9,9 +9,9 @@ import type { Library } from "@openuidev/react-lang";
 import clsx from "clsx";
 import { LayoutDashboard } from "lucide-react";
 import type { ReactNode } from "react";
-import { parseArtifactReference } from "./artifactReference";
-import { LiveArtifactRenderer } from "./ArtifactRenderer";
-import { names, styles } from "./cloudArtifact.styles";
+import { parseArtifactReference } from "../CloudArtifact/artifactReference";
+import { LiveArtifactRenderer } from "../CloudArtifact/ArtifactRenderer";
+import { names, styles } from "../CloudArtifact/cloudArtifact.styles";
 
 export const DASHBOARD_ARTIFACT_TYPE = "dashboard";
 
