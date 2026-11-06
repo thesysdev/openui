@@ -1394,7 +1394,7 @@
 
 [data-theme="dark"] .tabs {
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.18),
     0 8px 20px -6px rgba(0, 0, 0, 0.55);
 }
 
@@ -2297,7 +2297,7 @@
 [data-theme="dark"] .tabsHost .root {
   box-shadow:
     0 0 0 0.5em var(--sc-page),
-    0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.1),
+    0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.18),
     0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.55);
 }
 
@@ -2810,7 +2810,7 @@
   [data-theme="dark"] .tabsHost .panel {
     box-shadow:
       0 0 0 0.5em var(--sc-page),
-      0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.1),
+      0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.18),
       0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.55);
   }
 }
