@@ -1,18 +1,13 @@
 import { Telemetry } from "../telemetry";
 
 export class AuthTelemetryClient extends Telemetry {
-  /**
-   * `funnelProps`: the calling command's funnel labels for the browser sign-in.
-   * `create` passes its own; `generate-api-key` isn't in a funnel and passes none.
-   */
-  constructor(
-    source: Telemetry,
-    private readonly funnelProps: Record<string, string> = {},
-  ) {
-    super(source);
-  }
-
   trackOidcStarted() {
-    this.capture("cli_cloud_oidc_started", { ...this.funnelProps, auth_method: "oauth" });
+    this.capture("cli_cloud_oidc_started", {
+      funnel: "cli_create",
+      funnel_version: "frontloaded_cloud_setup_v1",
+      step_rank: "0410",
+      step_key: "cloud_auth_started",
+      auth_method: "oauth",
+    });
   }
 }
