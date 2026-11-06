@@ -60,9 +60,6 @@ export async function runCreateExample(params: {
     example_source: options.example ? "flag" : interactive ? "prompt" : "default",
   });
 
-  tel.trackEnvResolutionStarted({ example: example.name });
-  const envResult = await resolveExampleEnv(example, name, options, interactive, agent, tel);
-
   const immediateResolution = resolveImmediate(options.immediate, options.noInstall, interactive);
   tel.trackImmediateSelected({
     immediate: immediateResolution.immediate,
@@ -109,6 +106,30 @@ export async function runCreateExample(params: {
   }
   tel.trackScaffoldSucceeded({ example: example.name });
 
+  layout ??= exampleLayout(targetDir);
+  // Nested examples run several apps (often in different languages), so they
+  // keep the printed per-app steps instead of one install + `run dev`.
+  const nested = isNestedExample(layout);
+  const { installCmd, installArgs } = resolveInstallInvocation({ packageManager, targetDir });
+  let dependencyInstalled = false;
+  if (nested) {
+    tel.trackDependencyInstallSkipped({ skip_reason: "nested_example" });
+  } else {
+    dependencyInstalled = await installProjectDependencies({
+      tel,
+      verbose,
+      targetDir,
+      scaffold: { example: example.name },
+      packageManager,
+      installCmd,
+      installArgs,
+      installDependencies: immediateResolution.installDependencies,
+    });
+  }
+
+  // Keys (Thesys sign-in or a provider key) come last, like the template flow.
+  tel.trackEnvResolutionStarted({ example: example.name });
+  const envResult = await resolveExampleEnv(example, name, options, interactive, agent, tel);
   try {
     if (envResult.envKeyValue && example.env.key) {
       writeEnvVar(path.join(targetDir, example.env.file), example.env.key, envResult.envKeyValue);
@@ -132,27 +153,6 @@ export async function runCreateExample(params: {
     auth_method: envResult.authMethod,
     auth_succeeded: envResult.authSucceeded,
   });
-
-  layout ??= exampleLayout(targetDir);
-  // Nested examples run several apps (often in different languages), so they
-  // keep the printed per-app steps instead of one install + `run dev`.
-  const nested = isNestedExample(layout);
-  const { installCmd, installArgs } = resolveInstallInvocation({ packageManager, targetDir });
-  let dependencyInstalled = false;
-  if (nested) {
-    tel.trackDependencyInstallSkipped({ skip_reason: "nested_example" });
-  } else {
-    dependencyInstalled = await installProjectDependencies({
-      tel,
-      verbose,
-      targetDir,
-      scaffold: { example: example.name },
-      packageManager,
-      installCmd,
-      installArgs,
-      installDependencies: immediateResolution.installDependencies,
-    });
-  }
 
   // Examples without a primary key (several keys to fill in) never auto-start.
   const apiKeyAvailable = Boolean(
@@ -180,13 +180,17 @@ export async function runCreateExample(params: {
     packageManager.dlxCmd,
   );
   const devCmd = `${packageManager.runCmd} run dev`;
+  // The missing-key note already cd's into the project, so the run steps carry on from there.
+  const alreadyInProject = example.env.key === "THESYS_API_KEY" && !apiKeyAvailable;
   const nextStep = nested
     ? nestedExampleNextSteps({ name: dir, targetDir, layout, packageManager })
     : startDev
       ? `Starting the development server in "${name}"...\n\n> ${devCmd}`
-      : [...cdStep(dir), ...(dependencyInstalled ? [] : [`> ${installCmd}`]), `> ${devCmd}`].join(
-          "\n",
-        );
+      : [
+          ...(alreadyInProject ? [] : cdStep(dir)),
+          ...(dependencyInstalled ? [] : [`> ${installCmd}`]),
+          `> ${devCmd}`,
+        ].join("\n");
 
   console.info(
     `\n${[

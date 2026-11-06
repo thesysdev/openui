@@ -42,6 +42,11 @@ export async function writeEnv(
   }
 }
 
+/** `.env` values for an OpenUI Cloud app; the key stays empty until sign-in fills it. */
+export function cloudEnvVars(apiKey = ""): Record<string, string> {
+  return { THESYS_API_KEY: apiKey, DEMO_USER_ID: "demo-user" };
+}
+
 export async function resolveCloudEnv(
   name: string,
   options: CreateAppOptions,
@@ -50,19 +55,24 @@ export async function resolveCloudEnv(
   tel: CreateTelemetryClient,
 ): Promise<EnvResult> {
   const envFile = options.envFile ?? DEFAULT_ENV_FILE;
-  if (!interactive) {
-    console.info(
-      `${agent ? "Coding agent detected" : "Non-interactive run"} — skipping OpenUI Cloud sign-in.`,
-    );
-  }
+  // A key already exported in the shell (which the dev server inherits) makes
+  // sign-in pointless, so don't even show the prompt.
+  const skipReason = !interactive
+    ? agent
+      ? "Coding agent detected"
+      : "Non-interactive run"
+    : process.env["THESYS_API_KEY"]?.trim()
+      ? "THESYS_API_KEY is already set"
+      : undefined;
+  console.info();
+  if (skipReason) console.info(`${skipReason} — skipping OpenUI Cloud sign-in.`);
   let apiKey: string | null = null;
   let authMethod: EnvResult["authMethod"];
   try {
     tel.trackCloudAuthStarted();
     const resolved = await resolveCloudApiKey({
       projectName: name,
-      envFile,
-      interactive,
+      interactive: !skipReason,
       tel: tel.authClient(),
     });
     apiKey = resolved.key;
@@ -94,10 +104,7 @@ export async function resolveCloudEnv(
   }
   return {
     envWritten: apiKey != null,
-    envVars: {
-      THESYS_API_KEY: apiKey ?? "",
-      DEMO_USER_ID: "demo-user",
-    },
+    envVars: cloudEnvVars(apiKey ?? undefined),
     authMethod,
     authSucceeded: apiKey != null,
   };

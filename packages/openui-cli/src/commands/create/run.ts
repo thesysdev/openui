@@ -10,7 +10,7 @@ import { withSpinner } from "../../lib/spinner";
 import { runCreateExample } from "./lib/create-example";
 import type { CreateAppOptions } from "./lib/create-types";
 import { runDevServer } from "./lib/dev-server";
-import { buildAppId, resolveCloudEnv, writeEnv } from "./lib/env";
+import { buildAppId, cloudEnvVars, resolveCloudEnv, writeEnv } from "./lib/env";
 import { installProjectDependencies, resolveInstallInvocation } from "./lib/install";
 import { getStartedMessage, readmePath } from "./lib/messages";
 import type { TemplateOverlay } from "./lib/overlays";
@@ -98,13 +98,7 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
         : "default",
   });
 
-  tel.trackEnvResolutionStarted({ template, ai_setup: aiSetup });
-  const envResult = await resolveCloudEnv(name, options, interactive, agent, tel);
-
   const immediateResolution = resolveImmediate(options.immediate, options.noInstall, interactive);
-  const apiKeyEnv = "THESYS_API_KEY";
-  const apiKeyAvailable = envResult.envWritten || Boolean(process.env[apiKeyEnv]?.trim());
-  const devStartBlockedByMissingApiKey = immediateResolution.immediate && !apiKeyAvailable;
   tel.trackImmediateSelected({
     immediate: immediateResolution.immediate,
     dependency_install_requested: immediateResolution.installDependencies,
@@ -125,7 +119,10 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
         packageManager: packageManager.name,
         backendFramework,
       });
-      await writeEnv(targetDir, envResult, buildAppId(name));
+      // Write APP_ID and DEMO_USER_ID now, with THESYS_API_KEY left empty.
+      // Sign-in at the end only fills in the key, so a run that stops before
+      // it still leaves both in .env for `generate-api-key` to complete.
+      await writeEnv(targetDir, { envWritten: false, envVars: cloudEnvVars() }, buildAppId(name));
       if (!options.noSkill) await writeAgentsGuide(targetDir, { onRetry: sourceRetryReporter });
     } catch (err) {
       const properties = cliErrorProperties(err, {
@@ -154,13 +151,6 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     console.info("✓ Scaffolded");
   }
   tel.trackScaffoldSucceeded({ template, ai_setup: aiSetup });
-  tel.trackEnvResolved({
-    template,
-    ai_setup: aiSetup,
-    env_written: envResult.envWritten,
-    auth_method: envResult.authMethod,
-    auth_succeeded: envResult.authSucceeded,
-  });
 
   const { installCmd, installArgs } = resolveInstallInvocation({ packageManager, targetDir });
   const dependencyInstalled = await installProjectDependencies({
@@ -174,6 +164,22 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     installDependencies: immediateResolution.installDependencies,
   });
 
+  // Sign-in is the last step: the project is ready by now, and it's the only
+  // thing left before the dev server can start.
+  tel.trackEnvResolutionStarted({ template, ai_setup: aiSetup });
+  const envResult = await resolveCloudEnv(name, options, interactive, agent, tel);
+  if (envResult.envWritten) await writeEnv(targetDir, envResult);
+  tel.trackEnvResolved({
+    template,
+    ai_setup: aiSetup,
+    env_written: envResult.envWritten,
+    auth_method: envResult.authMethod,
+    auth_succeeded: envResult.authSucceeded,
+  });
+
+  const apiKeyEnv = "THESYS_API_KEY";
+  const apiKeyAvailable = envResult.envWritten || Boolean(process.env[apiKeyEnv]?.trim());
+  const devStartBlockedByMissingApiKey = immediateResolution.immediate && !apiKeyAvailable;
   const devCmd = packageManager.runCmd;
   const startDev =
     immediateResolution.immediate && dependencyInstalled && !devStartBlockedByMissingApiKey;
