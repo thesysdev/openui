@@ -58,7 +58,7 @@ export async function resolveArgs<T extends Record<string, ArgDef<unknown>>>(
     } catch (err) {
       const { ExitPromptError } = await import("@inquirer/core");
       if (err instanceof ExitPromptError) {
-        throw new CliCancelledError("args_resolution", 0, { prompt_name: key });
+        throw new CliCancelledError("args_resolution", 0, { step_name: key });
       }
       throw err;
     }
