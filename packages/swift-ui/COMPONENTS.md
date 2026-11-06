@@ -100,8 +100,8 @@ setting in em (0.20 when omitted); an explicit `lineHeight` takes precedence.
 These native font values replace CSS font strings, not the Lang contract.
 
 Spacing uses the official `space*` tokens. `gap="none"` is always zero.
-Card families consume their own tokens directly: normal card padding uses
-`spaceM`, compact fact-card padding uses `spaceSM`, and the corresponding
+Card families consume their own tokens directly: card padding, including
+outlined compact fact cards, uses `spaceM`, and the corresponding
 radii are `radius3xl`, `radius2xl` or `radiusXl`. There are no competing
 `cardPadding`, `contentSpacing` or `cornerRadius` overrides.
 

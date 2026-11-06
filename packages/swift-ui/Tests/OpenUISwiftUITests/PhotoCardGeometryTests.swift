@@ -112,7 +112,7 @@ final class PhotoCardGeometryTests: XCTestCase {
     ]
     for (kind, source) in cases {
       for width in [CGFloat(240), 320, 600] {
-        XCTAssertEqual(try card(source, kind: kind, width: width), width / 1.5, accuracy: 1,
+        XCTAssertEqual(try card(source, kind: kind, width: width), width / OpenUIPresentation().coverAspectRatio, accuracy: 1,
           "\(kind) at \(width): the container width defines the photo card")
       }
     }
@@ -137,8 +137,8 @@ final class PhotoCardGeometryTests: XCTestCase {
     state.push("root=Image(\"photo\",\"photo.jpg\")\nother=TextContent(\"still arriving")
     let view = OpenUIRenderer(state: state, registry: library.registry).frame(width: 300)
     XCTAssertFalse(state.isComplete)
-    XCTAssertEqual(NSHostingView(rootView: view).fittingSize.height, 200, accuracy: 1,
-      "The public Image default reserves its 3:2 frame without waiting for original pixels or unrelated text")
+    XCTAssertEqual(NSHostingView(rootView: view).fittingSize.height, 300 / OpenUIPresentation().coverAspectRatio, accuracy: 1,
+      "The public Image default reserves its cover frame without waiting for original pixels or unrelated text")
   }
 
   @MainActor func testSingleResponsiveCardUsesTheFullAvailableColumn() throws {

@@ -185,10 +185,10 @@ final class ReadingRhythmTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(0.08))
         let top = try XCTUnwrap(frames.values[name])
         let bottom = try XCTUnwrap(frames.values["MetricIndicatorInline"])
-        XCTAssertEqual(top.minX, OpenUIThemeValues().spaceS, accuracy: 1)
+        XCTAssertEqual(top.minX, OpenUIThemeValues().spaceM, accuracy: 1)
         XCTAssertEqual(bottom.minX, top.minX, accuracy: 1,
           "An intrinsic-width metric must align with the top slot at \(width)pt")
-        XCTAssertLessThanOrEqual(bottom.maxX, width - OpenUIThemeValues().spaceS + 1)
+        XCTAssertLessThanOrEqual(bottom.maxX, width - OpenUIThemeValues().spaceM + 1)
       }
     }
   }

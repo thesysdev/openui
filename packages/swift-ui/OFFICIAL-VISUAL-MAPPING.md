@@ -46,7 +46,7 @@ mapping, not a claim that a CSS pixel equals a physical display pixel.
 | Accent | official brand and control-state colors are configurable | native neutral brand / host override | OpenUITheme.interactiveAccentDefault |
 | Surface border | 1 | 1 pt | OpenUIPresentation.borderWidth |
 | Composite padding / radius | 12 / 16 | 12 / 16 pt | NativeCardItem |
-| Overview, Snippet padding / radius | 10 / 14 | 10 / 14 pt | NativeCardItem |
+| Overview, Snippet padding / radius | 10 / 14 | 12 / 14 pt, border only, no default fill | NativeCardItem |
 | Context padding / radius | 12 / 12 | 12 / 12 pt | NativeCardItem |
 | Media corner | radius-m 8 | 8 pt | OpenUITheme.radiusM |
 
@@ -63,13 +63,13 @@ semantic color must not silently become the chart series palette.
 | Stack, Card | declared direction/alignment/wrap and existing variants | native Card defaults to a padded foreground panel with a light border; clear remains transparent and sunk recessed; rounded backgrounds do not mask text |
 | TextContent, Markdown, Text, BoldText | shared type hierarchy, small does not imply gray, emphasis does not change reading size | system font metrics, MarkdownUI block layout |
 | CardHeader, InlineHeader, Label | role-specific typography, description priority and spacing | full text may grow at larger type |
-| Image, ImageBlock, ImageGallery, ImageTextLarge | shared media radius and stable slots | user-approved 3:2 photo covers instead of fixed 180px banner |
+| Image, ImageBlock, ImageGallery, ImageTextLarge | shared media radius and stable slots | user-approved 16:9 photo covers instead of fixed 180px banner |
 | ImageText, IconText, Icon | reference compact type and neutral/semantic badge treatment; pinned Lucide artwork | icon-size parameters and nearest-view scaling retained |
 | Tag, TagBlock | informational tint, primary neutral ink, label-small across sizes | complete long labels can wrap instead of being ellipsized |
 | Button, IconButton, Buttons | primary/secondary/tertiary hierarchy; transparent bordered secondary, shared native button corner and density | native hit target, focus, press/Reduce Motion; flat neutral assistant treatment |
 | EntityList | shared body roles, header/total priority and tabular numeric values | native text values stay regular and lead when stacked; number values remain emphasized; read-only body rows use spaceS |
 | ListBlock, ListItem, Steps | common reading roles, media/text gap, number and action hierarchy | width-derived photo previews, complete text and scalable step marker |
-| CompositeCardItem/Block | 12pt inset, 16pt corner, quiet surface, measured amount/action relationship | full-bleed 3:2 cover; amount/action share a row when they fit, otherwise stack; one mounted action remains inside card |
+| CompositeCardItem/Block | 12pt inset, 16pt corner, quiet surface, measured amount/action relationship | full-bleed 16:9 cover; amount/action share a row when they fit, otherwise stack; one mounted action remains inside card |
 | Overview, Snippet, Context, Visual cards | family-specific radius/inset from the same scale | photo cards use width-derived extent; native collection measurement retained; compact facts stack before splitting values |
 | Tabs | open labels with selected underline and neutral divider | native horizontal scrolling and focus; long accessibility labels wrap within the viewport |
 | Accordion | continuous clear disclosure list, no separate card per item | native DisclosureGroup affordance; streaming open-selection behavior retained |

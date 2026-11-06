@@ -146,7 +146,7 @@ API. A fixed row should therefore not be described as automatic column reflow.
 The standard 82 registration names and their parameter contracts stay intact.
 Visual design belongs to the SDK's shared theme and native presentation; it can
 improve on upstream styling without renaming components or dropping capabilities.
-Image follows the reference's 3:2/fill default; ImageBlock and ImageTextLarge use
+Image uses a 16:9/fill cover default; ImageBlock and ImageTextLarge use
 that same theme cover role. Document illustrations in Markdown and original-image
 viewing retain complete source proportions. ImageText accepts an explicit imageSize in both
 orientations, and Table paginates at ten rows. Design defaults
@@ -312,7 +312,7 @@ Image loading and failure use the same declared slot as successful images:
 thumbnail dimensions, cover aspect ratios and background bounds are preserved.
 The standard Image reserves its cover before decoding, without a separate 4:5
 row mode or shared resource-level thumbnail cap. A local container with an
-unresolved positional direction can still reserve a compact 3:2 proposal until
+unresolved positional direction can still reserve a compact 16:9 proposal until
 its direction arrives. Markdown document illustrations can still
 use intrinsic source proportions; their unresolved placeholder ratio is not
 inferred from URLs. Original-image viewing uses fit rather than the cover crop.

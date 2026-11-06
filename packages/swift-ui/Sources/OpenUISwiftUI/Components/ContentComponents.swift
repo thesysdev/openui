@@ -668,11 +668,13 @@ struct NativeCardItem: View {
     .foregroundStyle(contentTheme.textNeutralPrimary)
     .modifier(NativeCardSurface(
       theme: itemTheme,
-      // Facts stay in the reading flow; independent offers keep their surface.
-      // Explicit gray and artwork treatments remain properties of those items.
-      fill: summary || artworkSource != nil ? .clear
-        : context.string("bgColor") == "gray" ? context.theme.sunk : context.theme.foreground,
-      bordered: !summary && artworkSource == nil && kind != "Context"))
+      // Facts are outlined without a fill so they stay part of the reply;
+      // independent offers keep the raised surface. Explicit gray and artwork
+      // treatments remain item properties.
+      fill: artworkSource != nil ? .clear
+        : context.string("bgColor") == "gray" ? context.theme.sunk
+        : summary ? .clear : context.theme.foreground,
+      bordered: artworkSource == nil && kind != "Context"))
     .environment(\.openUIActionDensity, .compact)
     .environment(\.colorScheme, artworkSource == nil ? colorScheme : .dark)
     .accessibilityElement(children: .contain)
@@ -752,7 +754,7 @@ struct NativeCardItem: View {
       groupEntry
     }
       .environment(\.openUICardGroupAction, nil)
-      .padding(summary ? context.theme.spaceS : itemTheme.spaceM)
+      .padding(summary ? context.theme.spaceM : itemTheme.spaceM)
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: centeredOverview ? .top : .topLeading)
   }
   @ViewBuilder private var groupEntry: some View {

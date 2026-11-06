@@ -57,9 +57,9 @@ Grid peers align within measured rows, while carousel items retain their own
 natural content extent. Explicit text-size variants remain intact.
 
 Photo covers and gallery preview tiles use the native `OpenUIPresentation.coverAspectRatio`
-(3:2 by default), calculated from their available width before the resource loads.
-The standard `Image` component also follows the pinned reference's 3:2/fill
-default. Loading, loaded and unavailable states occupy that same frame. Photos fill the
+(16:9 by default), calculated from their available width before the resource loads.
+The standard `Image` component also uses the same 16:9/fill
+cover default. Loading, loaded and unavailable states occupy that same frame. Photos fill the
 frame proportionally and are clipped at its boundary; their source dimensions
 do not resize the frame. Original-image viewing and document illustrations in
 Markdown retain their complete source proportions. Photo navigation thumbnails
@@ -200,10 +200,11 @@ unchanged. Composite object cards remain independent surfaces.
 The baseline typeface remains the platform system face with nearest-view Dynamic
 Type. CSS line-box height, variable Inter axes, inset shadows and hover are not
 claimed as exact native equivalents. Fixed photo-height rules are intentionally
-replaced by the user-approved width-derived 3:2 cover contract.
+replaced by the user-approved width-derived 16:9 cover contract.
 
 
-Compact fact cards reflow their complete value below the description before
+Overview and Snippet facts are outlined cards without a default fill, with
+12pt insets; an explicit gray background still applies. Compact fact cards reflow their complete value below the description before
 compressing digits. MetricIndicator keeps oversized amounts on one horizontally
 scrollable line. Long accessibility tab labels wrap within the viewport. Radar axes use
 short numbers and a native full-label key, sharing drawing/inspection geometry.
