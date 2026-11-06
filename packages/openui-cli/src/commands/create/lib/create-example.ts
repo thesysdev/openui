@@ -180,13 +180,17 @@ export async function runCreateExample(params: {
     packageManager.dlxCmd,
   );
   const devCmd = `${packageManager.runCmd} run dev`;
+  // The missing-key note already cd's into the project, so the run steps carry on from there.
+  const alreadyInProject = example.env.key === "THESYS_API_KEY" && !apiKeyAvailable;
   const nextStep = nested
     ? nestedExampleNextSteps({ name: dir, targetDir, layout, packageManager })
     : startDev
       ? `Starting the development server in "${name}"...\n\n> ${devCmd}`
-      : [...cdStep(dir), ...(dependencyInstalled ? [] : [`> ${installCmd}`]), `> ${devCmd}`].join(
-          "\n",
-        );
+      : [
+          ...(alreadyInProject ? [] : cdStep(dir)),
+          ...(dependencyInstalled ? [] : [`> ${installCmd}`]),
+          `> ${devCmd}`,
+        ].join("\n");
 
   console.info(
     `\n${[
