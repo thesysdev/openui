@@ -2,7 +2,6 @@ import * as path from "node:path";
 
 import type { PackageManager } from "../../../lib/detect-package-manager";
 import { CliCancelledError, cliErrorProperties, CreateError } from "../../../lib/errors";
-import { cancelOnInterrupt } from "../../../lib/interrupt";
 import { writeAgentsGuide } from "../../../lib/scaffold";
 import { withSpinner } from "../../../lib/spinner";
 import type { CreateAppOptions, EnvResult } from "./create-types";
@@ -73,24 +72,22 @@ export async function runCreateExample(params: {
   let layout: ExampleLayout | undefined;
   try {
     const onRetry = tel.reportNetworkRetry("source_checkout");
-    const runScaffold = () =>
-      cancelOnInterrupt("scaffold", async () => {
-        const scaffolded = await scaffoldExample({
-          example,
-          targetDir,
-          name,
-          packageManager: packageManager.name,
-          onRetry,
-        });
-        if (!options.noSkill) await writeAgentsGuide(targetDir, { onRetry });
-        return scaffolded;
+    const runScaffold = async () => {
+      const scaffolded = await scaffoldExample({
+        example,
+        targetDir,
+        name,
+        packageManager: packageManager.name,
+        onRetry,
       });
+      if (!options.noSkill) await writeAgentsGuide(targetDir, { onRetry });
+      return scaffolded;
+    };
     layout = verbose ? await runScaffold() : await withSpinner("Scaffolding...", runScaffold);
     if (!verbose) {
       console.info("✓ Scaffolded");
     }
   } catch (err) {
-    if (err instanceof CliCancelledError) throw err;
     const properties = cliErrorProperties(err, {
       failure_stage: "scaffold",
       error_class: "filesystem",
