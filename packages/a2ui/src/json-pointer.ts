@@ -4,14 +4,34 @@ function decodeToken(token: string): string {
   return token.replace(/~1/g, "/").replace(/~0/g, "~");
 }
 
+// Keys that would walk onto the shared prototype chain instead of the data model
+const RESERVED_TOKENS = new Set(["__proto__", "constructor", "prototype"]);
+
 function tokensFor(path: string | undefined): string[] {
   if (path == null || path === "" || path === "/") return [];
   if (!path.startsWith("/")) throw new Error(`JSON Pointer must start with "/": ${path}`);
-  return path.slice(1).split("/").map(decodeToken);
+  const tokens = path.slice(1).split("/").map(decodeToken);
+  for (const token of tokens) {
+    if (RESERVED_TOKENS.has(token)) {
+      throw new Error(`Reserved key in JSON Pointer: ${token}`);
+    }
+  }
+  return tokens;
 }
+
+const hasOwn = (object: object, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(object, key);
 
 function isArrayIndex(value: string): boolean {
   return /^(0|[1-9]\d*)$/.test(value);
+}
+
+// RFC 6902: an index may address an existing item or append right after the last one
+function arrayIndexFor(array: JsonValue[], token: string): number {
+  if (!isArrayIndex(token)) throw new Error(`Invalid array index in JSON Pointer: ${token}`);
+  const index = Number(token);
+  if (index > array.length) throw new Error(`Array index out of range in JSON Pointer: ${token}`);
+  return index;
 }
 
 function containerFor(nextToken: string): JsonObject | JsonValue[] {
@@ -39,8 +59,7 @@ export function applyDataModelUpdate(
     const token = tokens[i]!;
     const nextToken = tokens[i + 1]!;
     if (Array.isArray(cursor)) {
-      if (!isArrayIndex(token)) throw new Error(`Invalid array index in JSON Pointer: ${token}`);
-      const index = Number(token);
+      const index = arrayIndexFor(cursor, token);
       const existing = cursor[index];
       if (existing == null || typeof existing !== "object") {
         cursor[index] = containerFor(nextToken);
@@ -51,7 +70,7 @@ export function applyDataModelUpdate(
       }
       cursor = child as JsonObject | JsonValue[];
     } else {
-      const existing = cursor[token];
+      const existing = hasOwn(cursor, token) ? cursor[token] : undefined;
       if (existing == null || typeof existing !== "object") {
         cursor[token] = containerFor(nextToken);
       }
@@ -65,8 +84,7 @@ export function applyDataModelUpdate(
 
   const leaf = tokens[tokens.length - 1]!;
   if (Array.isArray(cursor)) {
-    if (!isArrayIndex(leaf)) throw new Error(`Invalid array index in JSON Pointer: ${leaf}`);
-    const index = Number(leaf);
+    const index = arrayIndexFor(cursor, leaf);
     if (value === null) cursor.splice(index, 1);
     else cursor[index] = value;
   } else if (value === null) {
@@ -131,6 +149,7 @@ export function mergeOpenUIStateIntoDataModel(
     ...Object.keys(state).map((key) => (key.startsWith("$") ? key.slice(1) : key)),
   ]);
   for (const key of keys) {
+    if (RESERVED_TOKENS.has(key)) continue;
     const hasFormState = Object.prototype.hasOwnProperty.call(state, key);
     const hasBindingState = Object.prototype.hasOwnProperty.call(state, `$${key}`);
     const formValue = hasFormState ? unwrapFormValue(state[key]) : undefined;
