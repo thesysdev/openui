@@ -1,5 +1,6 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { StreamingComparison } from "./StreamingComparison";
 import styles from "./StreamingComparison.module.css";
@@ -28,6 +29,7 @@ export function ComparisonTabs({
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [active, setActive] = useState(initial);
   const [visible, setVisible] = useState(false);
+  const [paused, setPaused] = useState(false);
   const tab = tabs[active];
 
   useEffect(() => {
@@ -44,11 +46,11 @@ export function ComparisonTabs({
     <div
       ref={hostRef}
       className={styles.tabsHost}
-      // The active tab's fill drives rotation. It only ever rests while the
-      // comparison is off screen; on screen the loop always advances.
+      // The active tab's fill drives rotation. It rests while the comparison
+      // is off screen or the reader has paused it; otherwise it advances.
       style={
         {
-          "--tab-fill-play": visible ? "running" : "paused",
+          "--tab-fill-play": visible && !paused ? "running" : "paused",
         } as CSSProperties
       }
     >
@@ -61,6 +63,21 @@ export function ComparisonTabs({
         {/* Keyed by tab, so switching remounts it and the stream restarts. */}
         <StreamingComparison key={tab.id} example={tab.example} leftStatic={leftStatic} />
       </div>
+      {/* Stops the tabs rotating; the open example still streams to its end. */}
+      <button
+        type="button"
+        className={styles.playToggle}
+        aria-label={paused ? "Resume rotating the examples" : "Stop rotating the examples"}
+        onClick={() => setPaused((value) => !value)}
+      >
+        {/* Fill only: the gray is translucent, so a stroke over the fill
+            would double up into a darker outline. */}
+        {paused ? (
+          <Play size={12} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+        ) : (
+          <Pause size={12} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+        )}
+      </button>
       <div className={styles.tabsBar}>
         <div
           className={styles.tabs}

@@ -83,7 +83,7 @@
 
 /* ---------- Hero ---------- */
 
-/* Preserve the subtitle-aligned model proof beside the install and meeting CTAs. */
+/* Preserve the subtitle-aligned model proof beside the agent and meeting CTAs. */
 .heroActions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 400px;
@@ -100,69 +100,16 @@
   min-width: 0;
 }
 
-.installDropdown {
-  --cmd-width: 25rem;
-}
-
-.installMobile {
-  display: none;
-}
-
 @media (min-width: 900px) and (max-width: 1279px) {
-  .heroActions { grid-template-columns: minmax(0, 1fr); }
+  .heroActions {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .page div:has(> .heroActions),
 .page div:has(> div > .heroActions) {
   align-self: stretch;
   width: 100%;
-}
-
-.modelProof {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  justify-self: start;
-  color: var(--openui-text-neutral-secondary);
-  font-size: var(--home-body-size);
-  line-height: 1.4;
-  text-decoration: none;
-  transition: color 150ms ease;
-}
-
-.modelMarks {
-  display: flex;
-  padding-left: 4px;
-}
-
-/* Overlapping marks ringed in the page colour, like the homepage stacks. */
-.modelMark {
-  --stack-logo-size: 30px;
-  --stack-logo-glyph: 16px;
-
-  display: flex;
-  margin-left: -4px;
-  border-radius: 999px;
-}
-
-.modelText {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.modelArrow {
-  width: 14px;
-  height: 14px;
-  transition: transform 150ms ease;
-}
-
-.modelProof:hover {
-  color: var(--openui-text-neutral-primary);
-}
-
-.modelProof:hover .modelArrow {
-  transform: translateX(2px);
 }
 
 .heroStage {
@@ -449,26 +396,6 @@
     width: 100%;
   }
 
-  .installDesktop {
-    display: none;
-  }
-  .installMobile {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-  }
-  .installMobile > div {
-    width: 100%;
-  }
-  .installButton {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .modelProof {
-    justify-self: auto;
-  }
-
   .heroArt.heroArt {
     aspect-ratio: 358 / 440;
   }
@@ -513,27 +440,6 @@
   }
 
   /* Logos above, the text below them. */
-  .modelProof {
-    max-width: 320px;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    text-align: center;
-  }
-
-  .modelMarks {
-    flex-shrink: 0;
-  }
-
-  .modelText {
-    display: inline;
-  }
-
-  .modelArrow {
-    display: inline-block;
-    margin-left: 4px;
-    vertical-align: -2px;
-  }
 
   .features {
     margin-top: 40px;
@@ -652,8 +558,13 @@
 
   /* The hairline between rows dissolves towards both edges. */
   .compareRow + .compareRow {
-    background:
-      linear-gradient(to right, transparent, var(--home-hairline) 18%, var(--home-hairline) 82%, transparent)
+    background: linear-gradient(
+        to right,
+        transparent,
+        var(--home-hairline) 18%,
+        var(--home-hairline) 82%,
+        transparent
+      )
       top / 100% 1px no-repeat;
   }
 

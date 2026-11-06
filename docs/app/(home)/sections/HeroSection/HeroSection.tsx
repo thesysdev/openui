@@ -428,6 +428,10 @@ function DesktopHero({
           {isLeft && githubRepoUrl && <DesktopGithubStarButton href={githubRepoUrl} />}
           {showCommand && (
             <div className={styles.commandGroup}>
+              {/* Sits inside the command group so it lines up with the command
+                  rather than with the CTA stack around it; the primary CTA
+                  leads, the command follows. */}
+              {commandTrailing}
               {commandSlot ? (
                 commandSlot
               ) : (
@@ -439,9 +443,6 @@ function DesktopHero({
                   )}
                 </div>
               )}
-              {/* Sits inside the command group so it lines up with the command
-                  rather than with the CTA stack around it. */}
-              {commandTrailing}
             </div>
           )}
           {showPlaygroundButton && <DesktopPlaygroundButton />}

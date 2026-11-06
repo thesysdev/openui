@@ -1,16 +1,10 @@
-/* A row of circular agent buttons carrying the site's bevel. Only the first is
-   visible at rest; the rest sit under it, out of flow, so revealing them never
-   reflows the row around it. */
-.picker {
-  --agent-size: 3rem;
-  --agent-gap: 0.5rem;
-  --agent-stride: calc(var(--agent-size) + var(--agent-gap));
-
-  /* The bevel tokens live on the home page's theme, so they are undefined in the
-     site header and the buttons there would come out flat and transparent. Pinned
-     locally, the same way GitHubButton does it, so the circles carry the bevel
-     wherever they are used. */
-  --home-surface-ink: #0a0a0a;
+/* The hero's agent CTA: one primary pill in BevelButton's language — the
+   label first, then the marks of the agents the prompt is written for.
+   Primary is theme-inverted: black on the light page, white on the dark. */
+.build {
+  /* The bevel tokens live on the home page's theme, so they are undefined in
+     the site header and the pill there would come out flat and transparent.
+     Pinned locally, the same way GitHubButton does it. */
   --home-surface-raised: #f7f7f8;
   --home-bevel:
     inset 0 2px 1px -0.5px rgba(255, 255, 255, 1), inset 0 -3px 6px -1px rgba(0, 0, 0, 0.1);
@@ -18,238 +12,353 @@
     inset 0 7px 12px -6px rgba(255, 255, 255, 0.16), inset 0 -5px 8px -2px rgba(0, 0, 0, 0.6);
 
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--agent-gap);
+  gap: 0.75rem;
   flex-shrink: 0;
-}
-
-/* Matches the compact GitHub button in the header. */
-.pickerCompact {
-  --agent-size: 2.5rem;
-}
-
-.option {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: var(--agent-size);
-  height: var(--agent-size);
-  padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: var(--openui-radius-full);
-  background: var(--home-surface-raised);
-  box-shadow: var(--home-bevel);
-  color: var(--openui-text-neutral-primary);
-  cursor: pointer;
-}
-
-[data-theme="dark"] .option {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: var(--home-surface-ink);
+  height: 3rem;
+  /* The circles sit 8px off the pill's top and bottom, so the right edge
+     holds the same 8px and the facepile nests concentrically. */
+  padding: 0 calc(0.5rem - 1px) 0 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  background: #0a0a0a;
   box-shadow: var(--home-bevel-on-dark);
+  color: #fff;
+  font-family: "Inter Display", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
 }
 
-/* Sized as a fraction of the circle rather than in rem, so the compact variant
-   is an exact scale-down of the full-size one rather than its own proportions.
-   20/48 and 26/48 are the full-size measurements. */
-/* Tooltip. Held back behind a delay, so sweeping the pointer across the row on
-   the way somewhere else never leaves a trail of labels. It goes away at once on
-   leaving: the delay is only on the way in. */
-.option::after {
-  content: attr(data-tip);
+[data-theme="dark"] .build {
+  background: var(--home-surface-raised);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: var(--home-bevel);
+  color: #0a0a0a;
+}
+
+/* The black pill tooltip under the button, held back behind a short delay
+   so sweeping past never flashes it. Inverted in dark so it stays visible. */
+.tip {
   position: absolute;
   top: calc(100% + 0.5rem);
   left: 50%;
-  z-index: 3;
-  padding: 0.25rem 0.5rem;
-  /* Sits with the page rather than against it: light on light, dark on dark. The
-     colours are pinned rather than taken from --openui-text-neutral-primary,
-     which the home theme holds at near-black on both themes. */
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 0.375rem;
-  background: #ffffff;
-  box-shadow:
-    0 4px 10px -6px rgba(10, 10, 10, 0.24),
-    0 1px 3px -2px rgba(10, 10, 10, 0.12);
-  color: #17171b;
-  font-family: var(--home-font-text, "Inter", sans-serif);
-  font-size: 0.75rem;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--openui-text-neutral-secondary);
+  font-family: "Inter Display", sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
   line-height: 1.4;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
   transform: translate(-50%, -0.25rem);
   transition:
-    opacity 0.12s ease,
-    transform 0.12s ease;
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
-[data-theme="dark"] .option::after {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: #1c1c1f;
-  box-shadow:
-    0 4px 10px -6px rgba(0, 0, 0, 0.8),
-    0 1px 3px -2px rgba(0, 0, 0, 0.6);
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.option:hover::after,
-.option:focus-visible::after {
+.build:hover .tip,
+.build:focus-visible .tip {
   opacity: 1;
   transform: translate(-50%, 0);
-  transition-delay: 0.5s;
+  transition-delay: 0.3s;
+}
+
+/* Just copied: the tooltip turns into the next step and holds, with no
+   delay; the button itself never changes. */
+.build[data-copied] .tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 0s;
+}
+
+/* The tooltip's icon: the copy glyph hands over to a green double check
+   that pops in once the prompt is on the clipboard. */
+.tipIcon {
+  display: grid;
+  place-items: center;
+}
+
+.tipIcon > svg {
+  grid-area: 1 / 1;
+}
+
+.tipCopy {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.tipCheck {
+  color: #22c55e;
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.build[data-copied] .tipCopy {
+  opacity: 0;
+}
+
+.build[data-copied] .tipCheck {
+  opacity: 1;
+  transform: scale(1);
+  animation: tip-pop 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes tip-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  60% {
+    transform: scale(1.15);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.label {
+  line-height: 1.5rem;
+  white-space: nowrap;
+}
+
+.marks {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* A facepile: each mark in its own circle, a step above the pill, with a
+   ring in the pill's colour so the overlaps cut cleanly. */
+.markRing {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid #0a0a0a;
+  border-radius: 50%;
+  background: #2e2e33;
+  /* A hairline stroke inside the ring, so each circle keeps its own edge. */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.markRing + .markRing {
+  margin-left: -8px;
+}
+
+[data-theme="dark"] .markRing {
+  border-color: var(--home-surface-raised);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
 .mark {
-  width: calc(var(--agent-size) * 0.4167);
-  height: calc(var(--agent-size) * 0.4167);
+  width: 14px;
+  height: 14px;
   object-fit: contain;
-  transition: transform 0.15s ease;
 }
 
-/* Scaled rather than resized, so the mark grows without nudging the circle. */
-.option:hover .mark {
-  transform: scale(1.15);
-}
-
-/* OpenAI's mark is drawn small inside its own box, so it needs a nudge to carry
-   the same weight as Claude's and Cursor's. */
+/* OpenAI's mark is drawn small inside its own box, so it needs a nudge to
+   carry the same weight as Claude's and Cursor's. */
 .markWide {
-  width: calc(var(--agent-size) * 0.5417);
-  height: calc(var(--agent-size) * 0.5417);
+  width: 22px;
+  height: 22px;
 }
 
-/* Cursor's and Codex's marks are drawn in near-black and would disappear on the
-   dark page, so those are knocked out to white. Claude's carries its own colour,
-   so it is left alone on both themes. */
-[data-theme="dark"] .markInvert {
+/* Cursor's and Codex's marks are drawn in near-black and would disappear on
+   the black pill, so on the light page they are knocked out to white. On the
+   dark page the pill is light and they keep their own ink. Claude's carries
+   its own colour on both. */
+.markInk {
   filter: brightness(0) invert(1);
 }
 
-/* Reveal. Only where there is a pointer to hover with: without one the extras
-   would be unreachable, so they simply stay out. */
-@media (hover: hover) {
-  /* Bridges the gaps between the circles once they are out. Without it the
-     pointer leaves the picker's box the moment it crosses a gap, and the row
-     collapses before it can be reached. Left unpositioned in the stacking order
-     so it sits, and hit-tests, below the buttons and never swallows a click. */
-  .picker::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: var(--agent-size);
-    height: 100%;
-    transition: width 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-  }
+[data-theme="dark"] .markInk {
+  filter: none;
+}
 
-  .pickerLeft::after {
-    left: auto;
-    right: 0;
-  }
+.runnerWrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
 
-  .picker:hover::after,
-  .picker:focus-within::after {
-    width: calc(2 * var(--agent-stride) + var(--agent-size));
-  }
+/* The hand-run twin of the agent button: the same pill, on the surface
+   instead of inverted, with the runner chip where the facepile sits. */
+.alt {
+  /* Pinned like .build's, since the tokens live on the home page theme. */
+  --home-surface-raised: #f7f7f8;
+  --home-bevel:
+    inset 0 2px 1px -0.5px rgba(255, 255, 255, 1), inset 0 -3px 6px -1px rgba(0, 0, 0, 0.1);
+  --home-bevel-on-dark:
+    inset 0 7px 12px -6px rgba(255, 255, 255, 0.16), inset 0 -5px 8px -2px rgba(0, 0, 0, 0.6);
 
-  /* The anchor stays above the two that slide out from under it, and both stay
-     above the bridge. */
-  .picker > .option {
-    position: relative;
-    z-index: 2;
-  }
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 3rem;
+  padding: 0 calc(0.5rem - 1px) 0 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  background: var(--home-surface-raised, #f7f7f8);
+  box-shadow: var(--home-bevel);
+  color: #0a0a0a;
+  font-family: "Inter Display", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
 
-  .picker > .option:nth-child(2),
-  .picker > .option:nth-child(3) {
-    position: absolute;
-    top: 0;
-    z-index: 1;
+[data-theme="dark"] .alt {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--home-surface-ink, #0a0a0a);
+  box-shadow: var(--home-bevel-on-dark);
+  color: #f2f2f4;
+}
+
+/* The runner's own chip, the same height as the logo circles. */
+.runnerPill {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  height: 32px;
+  padding: 0 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  background: #fff;
+  font-family: var(--font-geist-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0a0a0a;
+}
+
+[data-theme="dark"] .runnerPill {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #1d1d1d;
+  color: #f2f2f4;
+}
+
+/* A hovered row's runner takes the chip, sliding in swiftly from below. */
+.runnerName {
+  display: inline-block;
+  animation: runner-rise 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes runner-rise {
+  from {
     opacity: 0;
-    pointer-events: none;
-    /* Swift: they start tucked under the anchor and travel out to their own
-       place. */
-    transition:
-      transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.12s ease;
+    transform: translateY(0.625em);
   }
 
-  .picker > .option:nth-child(2) {
-    left: var(--agent-stride);
-    transform: translateX(calc(-1 * var(--agent-stride)));
-  }
-
-  .picker > .option:nth-child(3) {
-    left: calc(2 * var(--agent-stride));
-    transform: translateX(calc(-2 * var(--agent-stride)));
-  }
-
-  /* Mirrored: the row grows back towards the left instead. */
-  .pickerLeft > .option:nth-child(2) {
-    left: auto;
-    right: var(--agent-stride);
-    transform: translateX(var(--agent-stride));
-  }
-
-  .pickerLeft > .option:nth-child(3) {
-    left: auto;
-    right: calc(2 * var(--agent-stride));
-    transform: translateX(calc(2 * var(--agent-stride)));
-  }
-
-  .picker:hover > .option:nth-child(2),
-  .picker:focus-within > .option:nth-child(2),
-  .picker:hover > .option:nth-child(3),
-  .picker:focus-within > .option:nth-child(3) {
+  to {
     opacity: 1;
-    pointer-events: auto;
-    transform: translateX(0);
-  }
-
-  /* The outer one trails the inner one, so they cascade rather than move as a
-     block. */
-  .picker:hover > .option:nth-child(3),
-  .picker:focus-within > .option:nth-child(3) {
-    transition-delay: 0.04s;
+    transform: none;
   }
 }
 
-/* Mobile is a persistent choice row. Some hybrid devices and responsive
-   desktop previews still report hover support, so viewport width wins here:
-   every agent remains visible and tappable without a reveal interaction. */
+/* The other runners, under the pill. The gap is padding inside the hover
+   target, so the pointer never falls off on the way down. */
+/* Left-aligned, not centred: the chip swap changes the button's width, and
+   a centred menu would slide around with it. */
+.runnerMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  padding-top: 0.375rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    visibility 0s linear 0.15s;
+}
+
+.runnerWrap:hover .runnerMenu,
+.runnerWrap:focus-within .runnerMenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.15s ease,
+    visibility 0s;
+}
+
+.runnerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.375rem;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 1rem;
+  background: var(--openui-foreground);
+  box-shadow: var(--openui-shadow-l);
+}
+
+.runnerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  font-family: var(--font-geist-mono);
+  font-size: 0.8125rem;
+  color: var(--openui-text-neutral-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.runnerItem:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .runnerItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.runnerItem strong {
+  font-weight: 600;
+}
+
+.runnerCheck {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.runnerCheckShown {
+  opacity: 1;
+}
+
+/* Mobile: full-width pill, one footprint with the hero CTAs. The connector
+   goes: the stack orders the command above the button there. */
 @media (max-width: 767px) {
-  .picker::after {
-    display: none;
+  .build {
+    width: 100%;
+    max-width: 320px;
+    justify-content: space-between;
   }
 
-  .picker > .option:nth-child(2),
-  .picker > .option:nth-child(3),
-  .pickerLeft > .option:nth-child(2),
-  .pickerLeft > .option:nth-child(3) {
-    position: relative;
-    top: auto;
-    right: auto;
-    left: auto;
-    z-index: auto;
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-    transition: none;
-  }
-
-  .option::after {
+  .runnerWrap {
     display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .picker > .option {
-    transition: opacity 0.12s ease;
-  }
-
-  .option:hover .mark {
-    transform: none;
+  .runnerName,
+  .build[data-copied] .tipCheck {
+    animation: none;
   }
 }
