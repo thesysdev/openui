@@ -40,13 +40,19 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
 
   if (!localSourceDir()) await ensureGitAvailable();
   const sourceRetryReporter = tel.reportNetworkRetry("source_checkout");
+  const catalogStartedAt = Date.now();
   const catalog = await loadCreateCatalog({
     example: options.example,
     backendFramework: options.backendFramework,
     interactive,
     onRetry: sourceRetryReporter,
   });
+  tel.trackCatalogLoaded({ duration_ms: Date.now() - catalogStartedAt });
   const { name, targetDir, dir } = await resolveProjectIdentity(options.name, interactive, tel);
+  tel.trackProjectNameSelected({
+    name_source:
+      dir === "." ? "current_dir" : options.name ? "arg" : interactive ? "prompt" : "default",
+  });
 
   const selected = await resolveCreateSelection({
     backendFramework: options.backendFramework,
@@ -107,9 +113,11 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
 
   let overlay: TemplateOverlay | undefined;
   const runScaffold = async () => {
+    const cloneStartedAt = Date.now();
     const { dir: templateDir } = await resolveTemplateSource(template, {
       onRetry: sourceRetryReporter,
     });
+    tel.trackTemplateCloned({ template, duration_ms: Date.now() - cloneStartedAt });
     tel.trackScaffoldStarted({ template, ai_setup: aiSetup });
     try {
       overlay = applyScaffoldFiles({

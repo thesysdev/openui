@@ -58,14 +58,20 @@ export async function resolveCloudEnv(
   // A key already exported in the shell (which the dev server inherits) makes
   // sign-in pointless, so don't even show the prompt.
   const skipReason = !interactive
-    ? agent
-      ? "Coding agent detected"
-      : "Non-interactive run"
+    ? "non_interactive"
     : process.env["THESYS_API_KEY"]?.trim()
-      ? "THESYS_API_KEY is already set"
+      ? "key_in_env"
       : undefined;
   console.info();
-  if (skipReason) console.info(`${skipReason} — skipping OpenUI Cloud sign-in.`);
+  if (skipReason) {
+    const why =
+      skipReason === "key_in_env"
+        ? "THESYS_API_KEY is already set"
+        : agent
+          ? "Coding agent detected"
+          : "Non-interactive run";
+    console.info(`${why} — skipping OpenUI Cloud sign-in.`);
+  }
   let apiKey: string | null = null;
   let authMethod: EnvResult["authMethod"];
   try {
@@ -80,9 +86,18 @@ export async function resolveCloudEnv(
     tel.trackCloudAuthMethod({
       auth_method: resolved.method,
       auth_succeeded: apiKey != null,
+      // A skip that wasn't decided up front came from Esc at the prompt.
+      skip_reason: skipReason ?? (resolved.method === "skip" ? "declined" : undefined),
     });
   } catch (err) {
     if (err instanceof CliCancelledError) {
+      // Ctrl+C at sign-in is how you skip now, so count it as a skip like the
+      // old "Skip" choice did, then report the cancel itself.
+      tel.trackCloudAuthMethod({
+        auth_method: "skip",
+        auth_succeeded: false,
+        skip_reason: "cancelled",
+      });
       tel.trackCloudAuthCancelled({
         auth_succeeded: false,
         ...cliErrorProperties(err),
