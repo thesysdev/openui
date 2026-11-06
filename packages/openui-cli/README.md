@@ -71,7 +71,7 @@ Backend frameworks:
 
 Examples are loaded from [OpenUI Examples](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` with any catalog folder name; it can't be combined with `--backend-framework`.
 
-In a terminal, `create` prompts for anything you didn't pass, installs dependencies, and starts the development server once an API key is set. Examples work the same way, except ones with several apps (such as `fastapi` or `react-native`), which print the steps for each app instead.
+In a terminal, `create` prompts for anything you didn't pass and installs dependencies. As the last step, it asks you to press any key to sign in with Thesys, mints an API key into `.env`, and starts the development server. A `THESYS_API_KEY` already exported in your shell skips sign-in. Examples work the same way, except ones with several apps (such as `fastapi` or `react-native`), which print the steps for each app instead.
 
 When nobody can answer prompts (`--no-interactive`, no terminal attached, or a coding agent running the CLI), it takes the defaults instead: `langgraph` and `openui-agent` (or the next free `openui-agent-<n>`). It installs dependencies without starting the server, skips Cloud sign-in, and ends with the `generate-api-key` command to run next. An explicit `--name` that already exists is an error.
 

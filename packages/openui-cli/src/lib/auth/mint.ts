@@ -23,10 +23,8 @@ export function assertValidApiKeyName(name: string): void {
   }
 }
 
-export type CloudAuthMethod = "oauth" | "skip";
-
 /** How the cloud key was obtained (for telemetry). */
-export type ResolvedAuthMethod = CloudAuthMethod;
+export type ResolvedAuthMethod = "oauth" | "skip";
 
 type CloudAuthFailureStage =
   | "method_resolution"
@@ -157,37 +155,40 @@ export async function mintCloudApiKey(
   return data.apiKey;
 }
 
+/** Wait for any key. Ctrl+C rejects with ExitPromptError, like every other prompt. */
+async function pressAnyKey(message: string): Promise<void> {
+  const { createPrompt, makeTheme, useKeypress, usePrefix, useState } =
+    await import("@inquirer/core");
+  const prompt = createPrompt<void, { message: string }>((config, done) => {
+    const [status, setStatus] = useState<"idle" | "done">("idle");
+    const theme = makeTheme();
+    const prefix = usePrefix({ status, theme });
+    useKeypress((key) => {
+      // readline already turned Ctrl+C into SIGINT; don't also treat it as "any key".
+      if (status !== "idle" || (key.ctrl && key.name === "c")) return;
+      setStatus("done");
+      done();
+    });
+    return `${prefix} ${theme.style.message(config.message, status)}`;
+  });
+  await prompt({ message });
+}
+
 /**
  * Resolve a cloud API key: a browser OAuth mint, or skip (null → leave the
- * .env slot empty).
+ * .env slot empty) when nobody is there to sign in. There's no skip choice in a
+ * terminal: Ctrl+C is the way out.
  */
 export async function resolveCloudApiKey(opts: {
   projectName: string;
-  envFile?: string;
   interactive: boolean;
   tel: AuthTelemetryClient;
 }): Promise<{ key: string | null; method: ResolvedAuthMethod }> {
   // Nobody is there to sign in: leave the .env slot empty and let the
   // closing message point at `generate-api-key`.
   if (!opts.interactive) return { key: null, method: "skip" };
-  const { select } = await import("@inquirer/prompts");
-  const method = await cloudAuthPrompt(
-    "method_resolution",
-    "AUTH_METHOD_PROMPT_FAILED",
-    () =>
-      select({
-        message: "Connect to OpenUI Cloud:",
-        choices: [
-          { name: "Sign in with Thesys (opens a browser, mints a key)", value: "oauth" },
-          {
-            name: `Skip — add THESYS_API_KEY to ${opts.envFile ?? ".env"} later`,
-            value: "skip",
-          },
-        ],
-      }) as Promise<CloudAuthMethod>,
+  await cloudAuthPrompt("method_resolution", "AUTH_METHOD_PROMPT_FAILED", () =>
+    pressAnyKey("Press any key to sign in and generate your API key (opens a browser)"),
   );
-
-  if (method === "skip") return { key: null, method: "skip" };
-
   return { key: await mintCloudApiKey(opts.projectName, opts.tel), method: "oauth" };
 }
