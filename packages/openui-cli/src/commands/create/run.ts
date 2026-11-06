@@ -119,8 +119,9 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
         packageManager: packageManager.name,
         backendFramework,
       });
-      // The key comes from sign-in at the very end; until then the slot is
-      // empty, so a Ctrl+C there still leaves a complete .env.
+      // Write APP_ID and DEMO_USER_ID now, with THESYS_API_KEY left empty.
+      // Sign-in at the end only fills in the key, so a run that stops before
+      // it still leaves both in .env for `generate-api-key` to complete.
       await writeEnv(targetDir, { envWritten: false, envVars: cloudEnvVars() }, buildAppId(name));
       if (!options.noSkill) await writeAgentsGuide(targetDir, { onRetry: sourceRetryReporter });
     } catch (err) {
