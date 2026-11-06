@@ -17,26 +17,42 @@ function isServerReady(url: string): Promise<boolean> {
   });
 }
 
-async function openWhenReady(url: string, didExit: () => boolean): Promise<void> {
+/** Called once the dev server first answers, with how long that took. */
+export type DevServerReadyHandler = (timeToReadyMs: number, browserOpened: boolean) => void;
+
+async function openWhenReady(
+  url: string,
+  didExit: () => boolean,
+  onReady?: DevServerReadyHandler,
+): Promise<void> {
   // A free port is not necessarily accepting connections yet. Wait for the dev
   // server to respond so the browser does not open to a connection-refused page.
-  const timeoutAt = Date.now() + 60_000;
+  const startedAt = Date.now();
+  const timeoutAt = startedAt + 60_000;
   while (!didExit() && Date.now() < timeoutAt) {
     if (await isServerReady(url)) {
+      const timeToReadyMs = Date.now() - startedAt;
       console.info(`\n\ud83c\udf10 Opening ${url} in your browser...`);
+      let browserOpened = true;
       try {
         const { default: open } = await import("open");
         await open(url);
       } catch {
+        browserOpened = false;
         console.info(`Could not open a browser automatically. Visit ${url}`);
       }
+      onReady?.(timeToReadyMs, browserOpened);
       return;
     }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
 }
 
-export async function runDevCommand(command: string, cwd: string): Promise<CommandResult> {
+export async function runDevCommand(
+  command: string,
+  cwd: string,
+  onReady?: DevServerReadyHandler,
+): Promise<CommandResult> {
   const { default: getPort, portNumbers } = await import("get-port");
   const port = await getPort({ port: portNumbers(3000, 3100) });
   const url = `http://localhost:${port}`;
@@ -44,7 +60,7 @@ export async function runDevCommand(command: string, cwd: string): Promise<Comma
   const resultPromise = runCommand(command, ["run", "dev"], cwd, {
     env: { ...process.env, PORT: String(port) },
   });
-  void openWhenReady(url, () => exited);
+  void openWhenReady(url, () => exited, onReady);
   const result = await resultPromise;
   exited = true;
   return result;
@@ -63,7 +79,9 @@ export async function runDevServer(params: {
   tel.trackDevCommandStarted({
     package_manager: packageManager.name,
   });
-  const devResult = await runDevCommand(devCmd, targetDir);
+  const devResult = await runDevCommand(devCmd, targetDir, (timeToReadyMs, browserOpened) =>
+    tel.trackDevServerReady({ time_to_ready_ms: timeToReadyMs, browser_opened: browserOpened }),
+  );
   const stoppedNormally =
     devResult.status === 0 ||
     devResult.status === 130 ||

@@ -170,6 +170,9 @@ export class Telemetry {
   async shutdown() {
     const { enabled, client } = this.session;
     if (!enabled || !client) return;
+    // Anything captured from here on isn't part of the run, e.g. a retry fired by
+    // a git fetch that Ctrl+C killed while we flush.
+    this.session.enabled = false;
     try {
       await Promise.race([
         client.shutdown(),

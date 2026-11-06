@@ -84,10 +84,12 @@ function handleCliError(e: unknown, event: string, extra?: Record<string, unknow
 
 export async function runProgram(): Promise<void> {
   const program = buildProgram();
+  let interrupted = false;
   try {
     await program.parseAsync(process.argv);
   } catch (e) {
     const cancelled = e instanceof CliCancelledError;
+    interrupted = cancelled && e.exitCode === 130;
     const event = `cli_${activeCommand.replace(/-/g, "_")}_failed`;
     const extra =
       activeCommand === "create" ? CreateTelemetryClient.failedProperties(cancelled) : undefined;
@@ -95,4 +97,7 @@ export async function runProgram(): Promise<void> {
   } finally {
     await ctx.telemetry.shutdown();
   }
+  // Work cut short by Ctrl+C (a git fetch, the sign-in callback server) can
+  // still hold the event loop open, so exit once telemetry is flushed.
+  if (interrupted) process.exit();
 }

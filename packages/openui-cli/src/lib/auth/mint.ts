@@ -1,4 +1,5 @@
 import { CliCancelledError, CreateError } from "../errors";
+import { cancelOnInterrupt } from "../interrupt";
 import { Authenticator } from "./authenticator";
 import type { AuthTelemetryClient } from "./telemetry";
 
@@ -87,7 +88,12 @@ async function cloudAuthPrompt<T>(
 }
 
 /** Sign in via the browser and mint an OpenUI Cloud API key for the user's org. */
-export async function mintCloudApiKey(
+export function mintCloudApiKey(projectName: string, tel: AuthTelemetryClient): Promise<string> {
+  // Waiting on the browser can take minutes; make a Ctrl+C there a tracked cancel.
+  return cancelOnInterrupt("cloud_auth", () => mintWithBrowserSignIn(projectName, tel));
+}
+
+async function mintWithBrowserSignIn(
   projectName: string,
   tel: AuthTelemetryClient,
 ): Promise<string> {

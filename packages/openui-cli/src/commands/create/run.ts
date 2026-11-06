@@ -5,6 +5,7 @@ import type { CliContext } from "../../lib/context";
 import { resolveInstallPackageManager } from "../../lib/detect-package-manager";
 import { cliErrorProperties, CreateError } from "../../lib/errors";
 import { ensureGitAvailable } from "../../lib/git-preflight";
+import { cancelOnInterrupt } from "../../lib/interrupt";
 import { applyScaffoldFiles, resolveTemplateSource, writeAgentsGuide } from "../../lib/scaffold";
 import { withSpinner } from "../../lib/spinner";
 import { runCreateExample } from "./lib/create-example";
@@ -38,15 +39,21 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     immediate_arg: options.immediate,
   });
 
-  if (!localSourceDir()) await ensureGitAvailable();
   const sourceRetryReporter = tel.reportNetworkRetry("source_checkout");
-  const catalog = await loadCreateCatalog({
-    example: options.example,
-    backendFramework: options.backendFramework,
-    interactive,
-    onRetry: sourceRetryReporter,
+  const catalog = await cancelOnInterrupt("source_checkout", async () => {
+    if (!localSourceDir()) await ensureGitAvailable();
+    return loadCreateCatalog({
+      example: options.example,
+      backendFramework: options.backendFramework,
+      interactive,
+      onRetry: sourceRetryReporter,
+    });
   });
   const { name, targetDir, dir } = await resolveProjectIdentity(options.name, interactive, tel);
+  tel.trackProjectNameSelected({
+    name_source:
+      dir === "." ? "current_dir" : options.name ? "arg" : interactive ? "prompt" : "default",
+  });
 
   const selected = await resolveCreateSelection({
     backendFramework: options.backendFramework,
@@ -107,11 +114,13 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
 
   let overlay: TemplateOverlay | undefined;
   const runScaffold = async () => {
-    const { dir: templateDir } = await resolveTemplateSource(template, {
-      onRetry: sourceRetryReporter,
-    });
+    // Started before the template download, so a slow or failed download shows up here.
     tel.trackScaffoldStarted({ template, ai_setup: aiSetup });
+    let templateDir: string | undefined;
     try {
+      ({ dir: templateDir } = await resolveTemplateSource(template, {
+        onRetry: sourceRetryReporter,
+      }));
       overlay = applyScaffoldFiles({
         templateDir,
         targetDir,
@@ -138,16 +147,17 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
         properties.error_code,
       );
     } finally {
-      fs.rmSync(templateDir, { recursive: true, force: true });
+      if (templateDir) fs.rmSync(templateDir, { recursive: true, force: true });
     }
   };
+  const scaffold = () => cancelOnInterrupt("scaffold", runScaffold);
 
   console.info();
   if (ctx.verbose) {
     console.info(`Scaffolding ${template} into "${name}"...\n`);
-    await runScaffold();
+    await scaffold();
   } else {
-    await withSpinner("Scaffolding...", runScaffold);
+    await withSpinner("Scaffolding...", scaffold);
     console.info("✓ Scaffolded");
   }
   tel.trackScaffoldSucceeded({ template, ai_setup: aiSetup });
