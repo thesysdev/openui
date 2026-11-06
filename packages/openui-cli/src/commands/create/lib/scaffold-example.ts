@@ -7,6 +7,7 @@ import type { PackageManagerName } from "../../../lib/detect-package-manager";
 import { CreateError } from "../../../lib/errors";
 import type { RetryAttemptInfo } from "../../../lib/retry";
 import type { ExampleProject } from "./examples-catalog";
+import type { CreateTelemetryClient } from "./telemetry";
 
 const ARTIFACT_DIRS = new Set(["node_modules", ".next", ".turbo", "dist", ".nuxt", ".svelte-kit"]);
 
@@ -161,10 +162,12 @@ export async function scaffoldExample(params: {
   targetDir: string;
   name: string;
   packageManager: PackageManagerName;
+  tel: CreateTelemetryClient;
   onRetry?: (info: RetryAttemptInfo) => void;
 }): Promise<ExampleLayout> {
-  const { example, targetDir, name, packageManager, onRetry } = params;
+  const { example, targetDir, name, packageManager, tel, onRetry } = params;
 
+  const cloneStartedAt = Date.now();
   try {
     await checkoutSource(example.path, { dest: targetDir, repo: example.repo, onRetry });
   } catch (err) {
@@ -176,6 +179,7 @@ export async function scaffoldExample(params: {
       "EXAMPLE_SCAFFOLD_FAILED",
     );
   }
+  tel.trackExampleCloned({ example: example.name, duration_ms: Date.now() - cloneStartedAt });
 
   const layout = exampleLayout(targetDir);
   if (layout.jsPackages.length === 0 && layout.pythonPackages.length === 0) {

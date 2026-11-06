@@ -113,13 +113,13 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
 
   let overlay: TemplateOverlay | undefined;
   const runScaffold = async () => {
-    // Started before the template download, so a slow or failed download shows up here.
+    const cloneStartedAt = Date.now();
+    const { dir: templateDir } = await resolveTemplateSource(template, {
+      onRetry: sourceRetryReporter,
+    });
+    tel.trackTemplateCloned({ template, duration_ms: Date.now() - cloneStartedAt });
     tel.trackScaffoldStarted({ template, ai_setup: aiSetup });
-    let templateDir: string | undefined;
     try {
-      ({ dir: templateDir } = await resolveTemplateSource(template, {
-        onRetry: sourceRetryReporter,
-      }));
       overlay = applyScaffoldFiles({
         templateDir,
         targetDir,
@@ -146,7 +146,7 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
         properties.error_code,
       );
     } finally {
-      if (templateDir) fs.rmSync(templateDir, { recursive: true, force: true });
+      fs.rmSync(templateDir, { recursive: true, force: true });
     }
   };
 

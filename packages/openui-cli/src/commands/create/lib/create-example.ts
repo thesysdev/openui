@@ -78,6 +78,7 @@ export async function runCreateExample(params: {
         targetDir,
         name,
         packageManager: packageManager.name,
+        tel,
         onRetry,
       });
       if (!options.noSkill) await writeAgentsGuide(targetDir, { onRetry });

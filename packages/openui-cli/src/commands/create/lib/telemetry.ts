@@ -81,6 +81,16 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_project_name_selected", props);
   }
 
+  /** The selected template finished cloning; `duration_ms` is the wait inside "Scaffolding...". */
+  trackTemplateCloned(props: { template: string; duration_ms: number }) {
+    this.capture("cli_template_cloned", props);
+  }
+
+  /** Same as `cli_template_cloned`, for an example's source. */
+  trackExampleCloned(props: { example: string; duration_ms: number }) {
+    this.capture("cli_example_cloned", props);
+  }
+
   trackAiSetupSelected(props: { template: string; ai_setup: string }) {
     this.capture("cli_ai_setup_selected", { ...createFunnelProps("ai_setup_selected"), ...props });
   }
