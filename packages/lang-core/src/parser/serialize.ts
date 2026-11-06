@@ -112,18 +112,18 @@ function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): s
   }
 }
 
-/** Wrap a BinOp child in parens if its precedence is lower than the parent's. */
+/** Wrap a BinOp child in parens if its precedence is lower than the parent's, or equal on the right (left-assoc). */
 function serializeBinOpChild(
   child: ASTNode,
   parentOp: string,
-  _side: "left" | "right",
+  side: "left" | "right",
   calls: ReadonlyMap<string, CallDef>,
 ): string {
   const inner = serializeASTNode(child, calls);
   if (child.k !== "BinOp") return inner;
   const parentPrec = PRECEDENCE[parentOp] ?? 0;
   const childPrec = PRECEDENCE[child.op] ?? 0;
-  if (childPrec < parentPrec) return `(${inner})`;
+  if (childPrec < parentPrec || (side === "right" && childPrec === parentPrec)) return `(${inner})`;
   return inner;
 }
 
