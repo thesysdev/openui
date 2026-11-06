@@ -2,6 +2,7 @@
 // Schema-aware materialization — single-pass lowering
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { own } from "../own";
 import type { ASTNode } from "./ast";
 import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
@@ -432,7 +433,7 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
       }
 
       const hasDynamicProps = Object.values(props).some((v) => containsDynamicValue(v));
-      return { type: "element", typeName: name, props, partial: ctx.partial, hasDynamicProps };
+      return own({ type: "element", typeName: name, props, partial: ctx.partial, hasDynamicProps });
     }
 
     // ── Runtime expression nodes → preserve as ASTNode, normalize children ─

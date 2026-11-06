@@ -11,6 +11,7 @@
  * passed through plain object recursion.
  */
 
+import { own } from "../own";
 import { isASTNode } from "../parser/ast";
 import type { ElementNode } from "../parser/types";
 import { isElementNode } from "../parser/types";
@@ -63,11 +64,11 @@ function evaluatePropValue(
   if (isASTNode(value)) {
     // StateRef on reactive prop → ReactiveAssign marker
     if (value.k === "StateRef" && reactiveSchema && isReactiveSchema(reactiveSchema)) {
-      return {
+      return own({
         __reactive: "assign" as const,
         target: value.n,
         expr: { k: "StateRef" as const, n: "$value" },
-      };
+      });
     }
     const result = evaluate(value, context, schemaCtx);
     // ElementNode result (from ternary/Comp) → recurse into its props

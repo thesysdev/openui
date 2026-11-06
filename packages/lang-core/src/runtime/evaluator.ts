@@ -3,6 +3,7 @@
 // Framework-agnostic. No React imports.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { isOwn, own } from "../own";
 import type { ASTNode } from "../parser/ast";
 import { isASTNode, toLiteralAST } from "../parser/ast";
 import {
@@ -61,7 +62,12 @@ export interface ReactiveAssign {
 }
 
 export function isReactiveAssign(value: unknown): value is ReactiveAssign {
-  return typeof value === "object" && value !== null && (value as any).__reactive === "assign";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as any).__reactive === "assign" &&
+    isOwn(value)
+  );
 }
 
 /**
@@ -128,7 +134,7 @@ export function evaluate(
           name: node.name,
           params: params as Record<string, unknown>,
         };
-        customSteps.add(step);
+        madeSteps.add(step);
         return { steps: [step] };
       }
       // If parser already mapped args→props (via materializeExpr), use named props.
@@ -141,11 +147,11 @@ export function evaluate(
           const propSchema = def?.props?.shape?.[key];
           if (val.k === "StateRef" && propSchema && isReactiveSchema(propSchema)) {
             // Reactive schema + StateRef → emit ReactiveAssign marker
-            props[key] = {
+            props[key] = own({
               __reactive: "assign" as const,
               target: val.n,
               expr: { k: "StateRef" as const, n: "$value" },
-            };
+            });
           } else if (val.k === "StateRef") {
             // Non-reactive StateRef or no schema context → preserve for evaluate-tree
             props[key] = schemaCtx ? context.getState(val.n) : val;
@@ -153,13 +159,13 @@ export function evaluate(
             props[key] = evaluate(val, context, schemaCtx);
           }
         }
-        const result: ElementNode = {
+        const result: ElementNode = own({
           type: "element",
           typeName: node.name,
           props,
           partial: false,
           hasDynamicProps: true,
-        };
+        });
         // If we have schema context, recursively evaluate nested ElementNodes in props
         if (schemaCtx) {
           for (const [key, val] of Object.entries(props)) {
@@ -272,11 +278,11 @@ export function evaluate(
 
     // ── Assignment ────────────────────────────────────────────────────────
     case "Assign":
-      return {
+      return own({
         __reactive: "assign" as const,
         target: node.target,
         expr: node.value,
-      };
+      });
   }
 }
 
@@ -423,12 +429,15 @@ function flattenPlans(values: unknown[]): ActionPlan {
   });
 }
 
-/** The custom steps made by real calls; a custom step read from data is not among them. */
-const customSteps = new WeakSet<ActionStep>();
+/** The steps made by real step calls; a step read from data is not among them. */
+const madeSteps = new WeakSet<ActionStep>();
 
-/** Drops the custom steps no real call made, so data cannot pose as a custom action. */
+/** Steps that run code or mutations in the viewer's context; only a real call may make them. */
+const GUARDED_STEPS = new Set<string>(["custom_action", ACTION_STEPS.Set, ACTION_STEPS.Run]);
+
+/** Drops the guarded steps no real call made, so data cannot pose as one. */
 export function ownSteps(plan: ActionPlan): ActionPlan {
-  const own = (s: ActionStep | null) => s?.type !== "custom_action" || customSteps.has(s);
+  const own = (s: ActionStep | null) => !GUARDED_STEPS.has(s?.type as string) || madeSteps.has(s!);
   return plan.steps.every(own) ? plan : { ...plan, steps: plan.steps.filter(own) };
 }
 
@@ -441,6 +450,7 @@ function evaluateActionCall(node: ASTNode & { k: "Comp" }, context: EvaluationCo
   }
   const def = BUILTIN_STEPS[name]!;
   const step = def.step ? def.step(evaluateArgs(node, context)) : evaluateLazyStep(name, args);
+  if (step) madeSteps.add(step);
   return { steps: step ? [step] : [] };
 }
 

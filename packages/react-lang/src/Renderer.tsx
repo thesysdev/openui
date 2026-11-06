@@ -155,10 +155,8 @@ function renderDeep(value: unknown): React.ReactNode {
   }
 
   if (typeof value === "object" && value !== null) {
-    const obj = value as Record<string, unknown>;
-    if (obj.type === "element") {
-      return <RenderNode node={obj as unknown as ElementNode} />;
-    }
+    // Only parser-built elements render; element-shaped data (e.g. a tool result) does not
+    if (isElementNode(value)) return <RenderNode node={value} />;
   }
 
   return null;
