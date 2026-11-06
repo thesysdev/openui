@@ -176,7 +176,7 @@ async function pressAnyKeyOrEsc(): Promise<boolean> {
     if (status === "done") return message;
     return [
       message,
-      theme.style.help(`Press ${theme.style.key("Esc")} to quit and append it yourself`),
+      theme.style.help(`Press ${theme.style.key("Esc")} to skip and add a key later`),
     ];
   });
   return prompt({});
