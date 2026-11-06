@@ -33,6 +33,7 @@ export const names = {
   loading: "openui-artifact-loading",
   loadingEmpty: "openui-artifact-loading-empty",
   error: "openui-artifact-error",
+  panel: "openui-artifact-panel",
 } as const;
 
 export const styles = {
@@ -157,5 +158,9 @@ export const styles = {
     border-radius: var(--openui-radius-m);
     background: var(--openui-danger-background);
     ${bodySmall}
+  `,
+  /** An artifact opened in a host's side panel, such as AgentInterface's: room off its edges. */
+  panel: css`
+    padding: var(--openui-space-l) var(--openui-space-xl);
   `,
 };
