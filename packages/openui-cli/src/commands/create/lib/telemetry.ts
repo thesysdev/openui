@@ -4,32 +4,27 @@ import type { AiSetup, TemplateName } from "./create-types";
 
 const createFunnel = {
   funnel: "cli_create",
-  // Sign-in moved from before scaffolding to after install (was
-  // `frontloaded_cloud_setup_v1`), so the steps below are ranked in that order.
-  funnel_version: "deferred_cloud_setup_v1",
+  funnel_version: "frontloaded_cloud_setup_v1",
 } as const;
 
 const createFunnelSteps = {
   create_started: "0100",
-  catalog_loaded: "0120",
-  project_name_selected: "0150",
   ai_setup_selected: "0200",
   backend_framework_selected: "0250",
   example_selected: "0260",
   scaffold_started: "0300",
   scaffold_succeeded: "0310",
   scaffold_failed: "0320",
+  env_resolution_started: "0400",
+  cloud_auth_started: "0410",
+  cloud_auth_resolved: "0420",
+  cloud_auth_failed: "0425",
+  cloud_auth_cancelled: "0426",
+  env_written: "0430",
   dependency_install_started: "0600",
   dependency_install_succeeded: "0610",
   dependency_install_failed: "0620",
   dependency_install_cancelled: "0625",
-  env_resolution_started: "0650",
-  cloud_auth_started: "0660",
-  cloud_oidc_started: "0665",
-  cloud_auth_resolved: "0670",
-  cloud_auth_failed: "0675",
-  cloud_auth_cancelled: "0676",
-  env_written: "0680",
   create_succeeded: "0700",
   create_failed: "9000",
   create_cancelled: "9010",
@@ -58,7 +53,7 @@ export class CreateTelemetryClient extends Telemetry {
   }
 
   authClient(): AuthTelemetryClient {
-    return new AuthTelemetryClient(this, createFunnelProps("cloud_oidc_started"));
+    return new AuthTelemetryClient(this);
   }
 
   registerContext(props: Record<string, unknown>) {
@@ -75,16 +70,15 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_create_started", { ...createFunnelProps("create_started"), ...props });
   }
 
+  // Plain events, not funnel steps, so the create funnel stays as dashboards define it.
+
   /** Template + example catalogs downloaded; `duration_ms` is the wait before the first prompt. */
   trackCatalogLoaded(props: { duration_ms: number }) {
-    this.capture("cli_catalog_loaded", { ...createFunnelProps("catalog_loaded"), ...props });
+    this.capture("cli_catalog_loaded", props);
   }
 
   trackProjectNameSelected(props: { name_source: "arg" | "prompt" | "default" | "current_dir" }) {
-    this.capture("cli_project_name_selected", {
-      ...createFunnelProps("project_name_selected"),
-      ...props,
-    });
+    this.capture("cli_project_name_selected", props);
   }
 
   trackAiSetupSelected(props: { template: string; ai_setup: string }) {
