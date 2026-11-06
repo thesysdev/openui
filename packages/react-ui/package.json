@@ -66,6 +66,16 @@
         "default": "./dist/cloud/index.cjs"
       }
     },
+    "./cloud/agent-interface": {
+      "import": {
+        "types": "./dist/cloud/agent-interface/index.d.mts",
+        "default": "./dist/cloud/agent-interface/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cloud/agent-interface/index.d.cts",
+        "default": "./dist/cloud/agent-interface/index.cjs"
+      }
+    },
     "./scssUtils": {
       "default": "./dist/styles/cssUtils.scss"
     },

@@ -1,6 +1,6 @@
 import { css, keyframes } from "goober";
 
-const typography = (token: string, variation: "regular" | "medium") => `
+export const typography = (token: string, variation: "regular" | "medium") => `
   font: var(--${token});
   letter-spacing: var(--${token}-letter-spacing);
   font-variation-settings: var(--openui-font-variation-${variation});
@@ -33,6 +33,7 @@ export const names = {
   loading: "openui-artifact-loading",
   loadingEmpty: "openui-artifact-loading-empty",
   error: "openui-artifact-error",
+  panel: "openui-artifact-panel",
 } as const;
 
 export const styles = {
@@ -157,5 +158,8 @@ export const styles = {
     border-radius: var(--openui-radius-m);
     background: var(--openui-danger-background);
     ${bodySmall}
+  `,
+  panel: css`
+    padding: var(--openui-space-l) var(--openui-space-xl);
   `,
 };

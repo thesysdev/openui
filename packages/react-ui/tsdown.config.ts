@@ -104,6 +104,23 @@ export default defineConfig([
     entry: { index: "src/cloud/index.ts" },
     plugins: [fixEsmExternalPaths],
   },
+  // cloud/agent-interface — CJS + .d.cts
+  {
+    ...shared,
+    format: ["cjs"],
+    dts: true,
+    outDir: "dist/cloud/agent-interface",
+    entry: { index: "src/cloud/agent-interface/index.ts" },
+  },
+  // cloud/agent-interface — ESM + .d.mts
+  {
+    ...shared,
+    format: ["esm"],
+    dts: true,
+    outDir: "dist/cloud/agent-interface",
+    entry: { index: "src/cloud/agent-interface/index.ts" },
+    plugins: [fixEsmExternalPaths],
+  },
   // Individual components — CJS only
   { ...shared, format: ["cjs"], entry: componentEntries },
 ]);
