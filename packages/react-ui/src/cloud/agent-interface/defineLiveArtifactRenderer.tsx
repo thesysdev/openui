@@ -7,11 +7,11 @@ import {
 } from "@openuidev/react-headless";
 import type { Library } from "@openuidev/react-lang";
 import clsx from "clsx";
-import { LayoutDashboard } from "lucide-react";
 import type { ReactNode } from "react";
 import { parseArtifactReference } from "../CloudArtifact/artifactReference";
 import { LiveArtifactRenderer } from "../CloudArtifact/ArtifactRenderer";
 import { names, styles } from "../CloudArtifact/cloudArtifact.styles";
+import { DashboardCard, DashboardIllustration } from "./DashboardCard";
 
 export const DASHBOARD_ARTIFACT_TYPE = "dashboard";
 
@@ -26,7 +26,7 @@ export interface LiveArtifactRendererOptions {
   toolName?: string | string[];
   /** Shown on the artifact browser's cards and in the workspace. Defaults to `"Dashboard"`. */
   label?: string;
-  /** The icon for dashboards in the artifact nav. Defaults to a dashboard icon. */
+  /** The thumbnail on the artifact browser's cards. Defaults to a dashboard illustration. */
   icon?: ReactNode;
 }
 
@@ -60,7 +60,7 @@ export function defineLiveArtifactRenderer({
   interpreter,
   toolName = [...DASHBOARD_TOOL_NAMES],
   label = "Dashboard",
-  icon = <LayoutDashboard size={16} />,
+  icon = <DashboardIllustration />,
 }: LiveArtifactRendererOptions): ArtifactRendererConfig<DashboardArtifactProps> {
   return defineArtifactRenderer<DashboardArtifactProps>({
     type: DASHBOARD_ARTIFACT_TYPE,
@@ -88,7 +88,11 @@ export function defineLiveArtifactRenderer({
         isOpen={controls.isActive}
         onOpenChange={(open) => (open ? controls.open() : controls.close())}
         renderInHtmlElement={null}
-      />
+      >
+        <LiveArtifactRenderer.Preview>
+          <DashboardCard label={label} />
+        </LiveArtifactRenderer.Preview>
+      </LiveArtifactRenderer>
     ),
     actual: (props) => (
       <LiveArtifactRenderer

@@ -1,6 +1,6 @@
 import { css, keyframes } from "goober";
 
-const typography = (token: string, variation: "regular" | "medium") => `
+export const typography = (token: string, variation: "regular" | "medium") => `
   font: var(--${token});
   letter-spacing: var(--${token}-letter-spacing);
   font-variation-settings: var(--openui-font-variation-${variation});
