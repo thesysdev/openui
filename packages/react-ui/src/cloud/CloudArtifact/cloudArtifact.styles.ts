@@ -159,7 +159,6 @@ export const styles = {
     background: var(--openui-danger-background);
     ${bodySmall}
   `,
-  /** An artifact opened in a host's side panel, such as AgentInterface's: room off its edges. */
   panel: css`
     padding: var(--openui-space-l) var(--openui-space-xl);
   `,

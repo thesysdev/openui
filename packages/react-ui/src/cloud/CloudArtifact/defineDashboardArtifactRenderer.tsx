@@ -13,10 +13,8 @@ import { parseArtifactReference } from "./artifactReference";
 import { LiveArtifactRenderer } from "./ArtifactRenderer";
 import { names, styles } from "./cloudArtifact.styles";
 
-/** OpenUI Cloud's dashboards are stored with this type: the join key for `artifactCategories`. */
 export const DASHBOARD_ARTIFACT_TYPE = "dashboard";
 
-/** The tools that create and edit dashboards, unless you pass your own `toolName`. */
 export const DASHBOARD_TOOL_NAMES = ["create_dashboard", "edit_dashboard"] as const;
 
 export interface DashboardArtifactRendererOptions<L extends Library = Library> {
@@ -32,23 +30,16 @@ export interface DashboardArtifactRendererOptions<L extends Library = Library> {
   icon?: ReactNode;
 }
 
-/** What the renderer streams: a tool's result, or a saved dashboard's id. */
 interface DashboardArtifactProps {
   response?: string;
   id?: string;
 }
 
-/**
- * A version is `<epoch ms>-<suffix>`, so its number grows with every edit: AgentInterface
- * moves an open panel to the newer one.
- */
+// `<epoch ms>-<suffix>`: grows with every edit, so an open panel follows it.
 const versionNumber = (version: string | undefined) => Number.parseInt(version ?? "", 10) || 1;
 
 /**
- * An artifact renderer for OpenUI Cloud dashboards, for `AgentInterface`'s `artifactRenderers`.
- * The dashboard tools' results show as a card in the chat that opens the dashboard in the side
- * panel, streaming as it's generated, with live data through `interpreter`. Saved dashboards open
- * in the artifact browser by their id. Needs an `OpenUICloudProvider` above it.
+ * An `AgentInterface` artifact renderer for OpenUI Cloud dashboards. Needs an `OpenUICloudProvider`.
  *
  * @category Functions
  *
@@ -77,10 +68,7 @@ export function defineDashboardArtifactRenderer<L extends Library>({
     label,
     icon,
     parser: ({ response, id }) => {
-      // The artifact browser opens a saved dashboard by its id; its content isn't a tool result.
       if (id) return { props: { id }, meta: { id, version: 1, heading: label } };
-      // Nothing until the tool returns. A result without a dashboard (the tool failed) still
-      // renders, so the renderer can say why.
       if (typeof response !== "string" || !response) return null;
       const reference = parseArtifactReference(response);
       return {
@@ -92,7 +80,6 @@ export function defineDashboardArtifactRenderer<L extends Library>({
         },
       };
     },
-    // The card only: the dashboard opens in AgentInterface's side panel, not under it.
     preview: (props, controls) => (
       <LiveArtifactRenderer
         {...props}
