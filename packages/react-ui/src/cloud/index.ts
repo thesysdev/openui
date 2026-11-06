@@ -30,9 +30,9 @@ export type { ArtifactRendererState } from "./CloudArtifact/contexts";
 export {
   DASHBOARD_ARTIFACT_TYPE,
   DASHBOARD_TOOL_NAMES,
-  defineDashboardArtifactRenderer,
-} from "./CloudArtifact/defineDashboardArtifactRenderer";
-export type { DashboardArtifactRendererOptions } from "./CloudArtifact/defineDashboardArtifactRenderer";
+  defineLiveArtifactRenderer,
+} from "./CloudArtifact/defineLiveArtifactRenderer";
+export type { LiveArtifactRendererOptions } from "./CloudArtifact/defineLiveArtifactRenderer";
 export type { ArtifactError, ArtifactErrorCode } from "./CloudArtifact/errors";
 export type {
   ChromeProps,
