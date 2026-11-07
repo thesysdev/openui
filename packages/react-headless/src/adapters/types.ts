@@ -9,6 +9,8 @@ export interface ThreadStorage {
   listThreads(cursor?: string): Promise<{ threads: Thread[]; nextCursor?: string }>;
   createThread(firstMessage: UserMessage): Promise<Thread>;
   getMessages(threadId: string): Promise<Message[]>;
+  /** Optional — cache current messages for a thread. Not all storages support it. */
+  cacheMessages?(threadId: string, messages: Message[]): Promise<void>;
   updateThread(thread: Thread): Promise<Thread>;
   deleteThread(id: string): Promise<void>;
 }
