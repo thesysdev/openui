@@ -9,6 +9,27 @@ The agent keeps its existing tools and model. The data tools stay with the dashb
 
 This page assumes [Authentication](/docs/dashboards/authentication), [Define dashboards](/docs/dashboards/define-dashboards), and [Connect data](/docs/dashboards/connect-data) are set up.
 
+The code below has a tab for each agent SDK. To connect a chat UI, such as AgentInterface, assistant-ui, or CopilotKit, see [Chat frontends](#chat-frontends).
+
+## Install
+
+<Tabs items={["OpenAI SDK", "Vercel AI SDK"]}>
+  <Tab value="OpenAI SDK">
+
+```bash
+npm install openai
+```
+
+  </Tab>
+  <Tab value="Vercel AI SDK">
+
+```bash
+npm install ai @ai-sdk/openai zod
+```
+
+  </Tab>
+</Tabs>
+
 ## Add the create tool
 
 The tool takes a title and a prompt, and passes them to `dashboards.create()` with the signed-in user.
@@ -187,11 +208,14 @@ export async function POST(request: Request) {
 
     for (const call of message.tool_calls) {
       if (call.type !== "function") continue;
-      history.push({
-        role: "tool",
-        tool_call_id: call.id,
-        content: await runDashboardTool(call, context, request.signal),
-      });
+      let content: string;
+      try {
+        content = await runDashboardTool(call, context, request.signal);
+      } catch (error) {
+        // Such as an edit while the dashboard is still generating: let the model tell the user.
+        content = `Error: ${error instanceof Error ? error.message : String(error)}`;
+      }
+      history.push({ role: "tool", tool_call_id: call.id, content });
     }
   }
 
@@ -238,6 +262,10 @@ export async function POST(request: Request) {
 
 The tools return as soon as the dashboard has an id, so the model replies right away while the dashboard is generated in the browser.
 
+A tool that fails, such as an edit while the dashboard is [still generating](/docs/dashboards/edit#one-change-at-a-time), becomes an error result for the model, and the turn continues. The Vercel AI SDK does this for a tool whose `execute` throws.
+
+The OpenAI SDK route returns the whole conversation as JSON once the turn ends, for a chat UI that keeps the messages itself. To stream the turn into a chat UI, use the Vercel AI SDK route. See [Chat frontends](#chat-frontends).
+
 ## Instruct the agent
 
 Add guidance for the dashboard tools to the agent's system prompt:
@@ -251,7 +279,8 @@ Dashboards load their own data from these tools every time they open:
 
 - When the user asks for a dashboard, call create_dashboard with a short title and a prompt describing the sections, metrics, charts, tables, and filters, and which data each shows. Don't put numbers in the prompt.
 - To change a dashboard, call edit_dashboard with the id from the tool result that created it. "It" means the latest dashboard. Create a new one only when asked.
-- The user watches the dashboard being built. Don't repeat the tool result.
+- The user watches the dashboard being built. Don't repeat the tool result, and don't say it's finished: the tool returns when it starts.
+- If a tool result starts with "Error:", or edit_dashboard says the dashboard is still generating, tell the user in one sentence and offer to try again.
 - After a tool call, reply in one or two sentences: what the dashboard shows and one change they could ask for.
 - You can't see the data, so don't state numbers.`;
 ```
@@ -286,6 +315,9 @@ export function Messages({ messages }: { messages: OpenAI.ChatCompletionMessageP
 
   return messages.map((message, index) => {
     if (message.role === "tool" && DASHBOARD_TOOLS.has(toolNames.get(message.tool_call_id) ?? "")) {
+      if (String(message.content).startsWith("Error: ")) {
+        return <p key={message.tool_call_id}>{String(message.content)}</p>;
+      }
       return (
         <LiveArtifactRenderer
           key={message.tool_call_id}
@@ -328,7 +360,7 @@ export function Message({ message }: { message: UIMessage }) {
           />
         );
       }
-      if (part.state === "output-error") return <p key={index}>Couldn't start the dashboard.</p>;
+      if (part.state === "output-error") return <p key={index}>{part.errorText}</p>;
       return <p key={index}>Starting the dashboard…</p>;
     }
 
@@ -345,3 +377,267 @@ An edit's result renders as a second card for the same dashboard. Both cards sho
 ## Reload the chat
 
 The tool result holds the dashboard's reference. Save it with the rest of the message, and the card renders again when the chat loads, showing the dashboard's latest version.
+
+## Chat frontends
+
+Each chat UI shows the dashboard card in its own place for tool results. All of them render the result with `LiveArtifactRenderer`, inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser).
+
+### AI SDK useChat
+
+The Vercel AI SDK tab's `Message` component renders the parts that `useChat` returns:
+
+```bash
+npm install @ai-sdk/react
+```
+
+```tsx title="components/chat.tsx"
+"use client";
+
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { useState } from "react";
+import { Message } from "./message";
+
+export function Chat() {
+  const { messages, sendMessage } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
+  });
+  const [input, setInput] = useState("");
+
+  return (
+    <div>
+      {messages.map((message) => (
+        <Message key={message.id} message={message} />
+      ))}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          sendMessage({ text: input });
+          setInput("");
+        }}
+      >
+        <input value={input} onChange={(event) => setInput(event.target.value)} />
+      </form>
+    </div>
+  );
+}
+```
+
+To [reload the chat](#reload-the-chat), save `messages` and pass them back with `setMessages`.
+
+### AgentInterface
+
+`AgentInterface` reads the Vercel AI SDK route with `vercelAIAdapter()`, and renders the tool results through an [artifact renderer](/docs/agent/reference/define-artifact-renderer). The OpenAI SDK route doesn't work here: it doesn't stream, and the Chat Completions stream that `openAIAdapter()` reads carries no tool results.
+
+```tsx title="components/chat.tsx"
+"use client";
+
+import { library } from "@openuidev/dashboard-library";
+import {
+  AgentInterface,
+  defineArtifactRenderer,
+  fetchLLM,
+  useOpenuiCloudStorage,
+  vercelAIAdapter,
+  vercelAIMessageFormat,
+} from "@openuidev/react-ui";
+import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
+
+const interpreter = { url: "/api/interpreter" };
+
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: vercelAIAdapter(),
+  messageFormat: vercelAIMessageFormat,
+});
+
+const dashboardRenderer = defineArtifactRenderer({
+  type: "dashboard",
+  toolName: ["create_dashboard", "edit_dashboard"],
+  // The result is the dashboard's reference: pass it through unchanged.
+  parser: ({ response }) =>
+    typeof response === "string" && response ? { props: { response }, meta: null } : null,
+  preview: ({ response }) => (
+    <LiveArtifactRenderer response={response} library={library} interpreter={interpreter} />
+  ),
+  actual: ({ response }) => (
+    <LiveArtifactRenderer
+      response={response}
+      library={library}
+      interpreter={interpreter}
+      preview={false}
+    />
+  ),
+});
+
+const artifactRenderers = [dashboardRenderer];
+
+export function Chat() {
+  const storage = useOpenuiCloudStorage({ token: "/api/frontend-token" });
+  return <AgentInterface llm={llm} storage={storage} artifactRenderers={artifactRenderers} />;
+}
+```
+
+Pass `storage` from `useOpenuiCloudStorage`. `AgentInterface` provides its own storage context, which otherwise hides `OpenUICloudProvider`'s from the components inside it, and [`useArtifactList`](/docs/dashboards/list) then throws "No artifact storage is configured".
+
+### assistant-ui
+
+Connect assistant-ui to the Vercel AI SDK route, and register a tool UI for the two dashboard tools:
+
+```bash
+npm install @assistant-ui/react @assistant-ui/react-ai-sdk
+```
+
+```tsx title="components/dashboard-tool-ui.tsx"
+"use client";
+
+import type { ToolCallMessagePartProps } from "@assistant-ui/react";
+import { library } from "@openuidev/dashboard-library";
+import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
+
+export function DashboardToolUI({ result, status }: ToolCallMessagePartProps) {
+  if (status.type === "running") return <p>Starting the dashboard…</p>;
+  if (typeof result !== "string") return <p>Couldn't start the dashboard.</p>;
+  return (
+    <LiveArtifactRenderer
+      response={result}
+      library={library}
+      interpreter={{ url: "/api/interpreter" }}
+    />
+  );
+}
+```
+
+```tsx title="components/chat.tsx"
+"use client";
+
+import { AssistantRuntimeProvider, MessagePrimitive } from "@assistant-ui/react";
+import { AssistantChatTransport, useChatRuntime } from "@assistant-ui/react-ai-sdk";
+import { DashboardToolUI } from "./dashboard-tool-ui";
+
+export function AssistantMessage() {
+  return (
+    <MessagePrimitive.Root>
+      <MessagePrimitive.Parts
+        components={{
+          tools: {
+            by_name: { create_dashboard: DashboardToolUI, edit_dashboard: DashboardToolUI },
+          },
+        }}
+      />
+    </MessagePrimitive.Root>
+  );
+}
+
+export function Chat({ children }: { children: React.ReactNode }) {
+  const runtime = useChatRuntime({ transport: new AssistantChatTransport({ api: "/api/chat" }) });
+  return <AssistantRuntimeProvider runtime={runtime}>{children}</AssistantRuntimeProvider>;
+}
+```
+
+Use `AssistantMessage` as the thread's assistant message. The [assistant-ui dashboards example](https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/assistant-ui-dashboards) is a complete app.
+
+### CopilotKit
+
+CopilotKit's agent runs the tools on your server. Create the agent per request, so the tools get the signed-in user:
+
+```bash
+npm install @copilotkit/react-core @copilotkit/runtime ai@6 @ai-sdk/openai@3 zod
+```
+
+The CopilotKit runtime uses AI SDK 6, so pin `ai` and `@ai-sdk/openai` to those majors.
+
+```ts title="app/api/copilotkit/[[...slug]]/route.ts"
+import { createOpenAI } from "@ai-sdk/openai";
+import {
+  BuiltInAgent,
+  CopilotRuntime,
+  createCopilotRuntimeHandler,
+  defineTool,
+} from "@copilotkit/runtime/v2";
+import { z } from "zod";
+import { getSession } from "@/lib/auth"; // your session lookup
+import { dashboards } from "@/lib/openui";
+import { systemPrompt } from "@/lib/prompt";
+
+const gateway = createOpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+function dashboardTools(context: { userId: string }) {
+  return [
+    defineTool({
+      name: "create_dashboard",
+      description:
+        "Create a live dashboard. It loads its data every time it opens, so describe which data to show and how, without numbers. Returns as soon as the dashboard has an id.",
+      parameters: z.object({ title: z.string().min(1), prompt: z.string().min(1) }),
+      execute: ({ title, prompt }) => dashboards.create({ title, prompt }, context),
+    }),
+    defineTool({
+      name: "edit_dashboard",
+      description:
+        "Change a dashboard in place, such as adding a chart or a section. Returns as soon as the change has started.",
+      parameters: z.object({
+        id: z.string().min(1).describe("The dashboard's id, art_…, from its tool result."),
+        prompt: z.string().min(1),
+      }),
+      execute: ({ id, prompt }) => dashboards.edit({ id, prompt }, context),
+    }),
+  ];
+}
+
+async function handler(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const agent = new BuiltInAgent({
+    model: gateway.chat("openai/gpt-5.5"),
+    prompt: systemPrompt,
+    tools: dashboardTools({ userId: session.user.id }),
+    maxSteps: 4,
+  });
+  const runtime = new CopilotRuntime({ agents: { default: agent } });
+  return createCopilotRuntimeHandler({ runtime, basePath: "/api/copilotkit" })(request);
+}
+
+export { handler as GET, handler as POST };
+```
+
+The route is a catch-all, because the CopilotKit client calls several paths under `/api/copilotkit`. Render the results with `useRenderTool`, inside `<CopilotKit runtimeUrl="/api/copilotkit">`:
+
+```tsx title="components/dashboard-tool-cards.tsx"
+"use client";
+
+import { useRenderTool } from "@copilotkit/react-core/v2";
+import { library } from "@openuidev/dashboard-library";
+import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
+import { z } from "zod";
+
+function Card({ status, result }: { status: string; result?: string }) {
+  if (status !== "complete" || !result) return <p>Starting the dashboard…</p>;
+  return (
+    <LiveArtifactRenderer
+      response={result}
+      library={library}
+      interpreter={{ url: "/api/interpreter" }}
+    />
+  );
+}
+
+export function DashboardToolCards() {
+  useRenderTool({
+    name: "create_dashboard",
+    parameters: z.object({ title: z.string(), prompt: z.string() }),
+    render: ({ status, result }) => <Card status={status} result={result} />,
+  });
+  useRenderTool({
+    name: "edit_dashboard",
+    parameters: z.object({ id: z.string(), prompt: z.string() }),
+    render: ({ status, result }) => <Card status={status} result={result} />,
+  });
+  return null;
+}
+```
+
+Render `<DashboardToolCards />` next to `<CopilotChat />`.

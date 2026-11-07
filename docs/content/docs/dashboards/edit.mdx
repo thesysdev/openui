@@ -27,6 +27,10 @@ Only the dashboard's owner can edit it: `context.userId` must match the user who
 
 `edit` resolves with a response, like [`create`](/docs/dashboards/generate#the-response). Return it as the tool result, or pass it to the renderer.
 
+## One change at a time
+
+A dashboard takes one generation at a time. While a create or an earlier edit is still generating, `edit` rejects with "This dashboard is still generating; edit it once it finishes". In a chat, return the message as the tool result instead of failing the turn, so the model can tell the user to try again in a moment. See [Add to your agent](/docs/dashboards/add-to-your-agent#call-the-tools-from-the-chat-route).
+
 ## Get the id
 
 The id comes from one of two places:
