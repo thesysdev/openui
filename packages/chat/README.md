@@ -1,6 +1,6 @@
 # @openuidev/chat
 
-Generative UI for chat platforms. The model writes [OpenUI Lang](https://openui.com), and this package turns it into native [Chat SDK](https://chat-sdk.dev) cards, which become Block Kit on Slack, Adaptive Cards on Teams, and the equivalent on Google Chat and Discord. Cards stream: the first one is posted as soon as the root component arrives and is edited as the rest of the response comes in.
+Generative UI for chat platforms. The model writes [OpenUI Lang](https://openui.com), and this package turns it into native [Chat SDK](https://chat-sdk.dev) cards, which become Block Kit on Slack, Adaptive Cards on Teams, and the equivalent on Google Chat and Discord. Cards stream: the card is posted as soon as the root component arrives, then edited (every 300 ms by default, `updateIntervalMs`) as each text block, field, table row, chart and button finishes.
 
 ```bash
 npm install @openuidev/chat chat zod

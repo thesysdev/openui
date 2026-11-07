@@ -73,8 +73,8 @@ export const Field = chatComponent({
     value: z.union([z.string(), z.number()]),
   }),
   description: "One label/value pair, shown in a compact grid with its siblings.",
-  component: (props, ctx) => {
-    if (ctx.partial || props["label"] == null || props["value"] == null) return null;
+  component: (props) => {
+    if (props["label"] == null || props["value"] == null) return null;
     return ChatField({ label: str(props["label"]), value: str(props["value"]) });
   },
 });
@@ -100,10 +100,11 @@ export const Table = chatComponent({
   }),
   description: "Row data. Each row has one cell per header. Keep it under ~20 rows.",
   component: (props, ctx) => {
-    if (ctx.partial) return null;
     const headers = list(props["headers"]).map(str);
     if (!headers.length) return null;
-    const rows = list(props["rows"]).map((row) => list(row).map(str));
+    let rows = list(props["rows"]).map((row) => list(row).map(str));
+    // While streaming, show only rows that are fully written
+    if (ctx.partial) rows = rows.slice(0, -1).filter((row) => row.length === headers.length);
     return ChatTable({ headers, rows, caption: str(props["title"]) || undefined });
   },
 });

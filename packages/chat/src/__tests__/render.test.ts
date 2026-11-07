@@ -151,6 +151,19 @@ describe("renderCard", () => {
     expect(partialChart.card?.children).toEqual([]);
   });
 
+  it("shows finished fields and table rows while streaming", () => {
+    const { card } = render(`root = Card("Live", [Fields([Field("Tickets", 314), Field("CSAT", "9`);
+    expect(card?.children[0]).toMatchObject({
+      type: "fields",
+      children: [
+        { label: "Tickets", value: "314" },
+        { label: "CSAT", value: "9" },
+      ],
+    });
+    const table = render(`root = Card("Live", [Table(["Issue", "Count"], [["Login", 54], ["Pay`);
+    expect(table.card?.children[0]).toMatchObject({ type: "table", rows: [["Login", "54"]] });
+  });
+
   it("returns null without a root", () => {
     expect(render("").card).toBeNull();
   });
@@ -194,6 +207,20 @@ describe("streamCard", () => {
     expect(edits.at(-1)).toEqual(result.card);
     expect(result.card?.children).toHaveLength(6);
     expect(result.text).toBe(EXAMPLE);
+  });
+
+  it("throttles edits and still ends on the full card when the stream finishes mid-wait", async () => {
+    const { t, posts, edits } = target();
+    async function* slow() {
+      for await (const chunk of chunks(EXAMPLE, 20)) {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        yield chunk;
+      }
+    }
+    const result = await streamCard(t, slow(), { updateIntervalMs: 40 });
+    expect(posts).toHaveLength(1);
+    expect(edits.at(-1)).toEqual(result.card);
+    expect(edits.length).toBeLessThan(EXAMPLE.length / 20);
   });
 
   it("posts the text when the model writes no UI", async () => {

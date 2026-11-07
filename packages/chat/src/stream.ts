@@ -18,7 +18,7 @@ export interface CardTarget {
 export interface StreamCardOptions {
   /** Defaults to `chatLibrary`. */
   library?: ChatLibrary;
-  /** Minimum time between edits while streaming. Slack rate-limits edits, so keep it at 500ms or more. Default 750. */
+  /** Minimum time between edits while streaming. Raise it if the platform rate-limits edits. Default 300. */
   updateIntervalMs?: number;
 }
 
@@ -50,13 +50,14 @@ export async function streamCard(
   options: StreamCardOptions = {},
 ): Promise<StreamCardResult> {
   const library = options.library ?? chatLibrary;
-  const interval = options.updateIntervalMs ?? 750;
+  const interval = options.updateIntervalMs ?? 300;
   const parser = createStreamingParser(library.toJSONSchema(), library.root);
 
   let message: EditableMessage | undefined;
   let lastSent = "";
   let lastUpdate = 0;
   let pending: Promise<void> | undefined;
+  let latest: ParseResult | undefined;
 
   const send = async (content: CardElement | string) => {
     const serialized = JSON.stringify(content);
@@ -67,19 +68,28 @@ export async function streamCard(
     else message = await target.post(content);
   };
 
+  // One edit in flight at a time, always sending the newest parse
+  const pump = async () => {
+    while (latest) {
+      const wait = interval - (Date.now() - lastUpdate);
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      const next = latest;
+      latest = undefined;
+      if (!next) break;
+      const { card } = renderCard(next, library);
+      if (card && hasContent(card)) await send(card);
+    }
+  };
+
   let text = "";
   for await (const chunk of textStream) {
     text += chunk;
-    const result = parser.push(chunk);
-    // One edit in flight at a time; the final send below catches up
-    if (pending || Date.now() - lastUpdate < interval) continue;
-    const { card } = renderCard(result, library);
-    if (card && hasContent(card)) {
-      pending = send(card).finally(() => {
-        pending = undefined;
-      });
-    }
+    latest = parser.push(chunk);
+    pending ??= pump().finally(() => {
+      pending = undefined;
+    });
   }
+  latest = undefined;
   await pending;
 
   const result = parser.push("", true);
