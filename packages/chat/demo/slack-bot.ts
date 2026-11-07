@@ -7,7 +7,7 @@ import { createSlackAdapter } from "@chat-adapter/slack";
 import { createMemoryState } from "@chat-adapter/state-memory";
 import type { ModelMessage } from "ai";
 import { streamText } from "ai";
-import type { Thread } from "chat";
+import type { Channel, Thread } from "chat";
 import { Chat } from "chat";
 import { chatLibrary, chatPromptOptions, parseChatAction, streamCard } from "../src/index";
 import { model } from "./model";
@@ -29,16 +29,22 @@ const bot = new Chat<typeof adapters, ThreadState>({
   state: createMemoryState(),
 });
 
+// In DMs, keep the conversation at the top level instead of opening a thread per card
+function conversation(thread: Thread<ThreadState>): Thread<ThreadState> | Channel<ThreadState> {
+  return thread.isDM ? thread.channel : thread;
+}
+
 async function reply(thread: Thread<ThreadState>, text: string) {
+  const target = conversation(thread);
   const history: ModelMessage[] = [
-    ...((await thread.state)?.history ?? []),
+    ...((await target.state)?.history ?? []),
     { role: "user", content: text },
   ];
-  await thread.startTyping("Thinking...");
+  await target.startTyping("Thinking...");
   const result = streamText({ model, system, messages: history });
-  const { text: answer, errors } = await streamCard(thread, result.textStream);
+  const { text: answer, errors } = await streamCard(target, result.textStream);
   if (errors.length) console.warn("[openui]", errors.map((e) => e.message).join("\n"));
-  await thread.setState({ history: [...history, { role: "assistant", content: answer }] });
+  await target.setState({ history: [...history, { role: "assistant", content: answer }] });
 }
 
 bot.onNewMention(async (thread, message) => {

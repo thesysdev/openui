@@ -96,6 +96,7 @@ export const Table = chatComponent({
   props: z.object({
     headers: z.array(z.string()),
     rows: z.array(z.array(z.union([z.string(), z.number()]))),
+    title: z.string().optional(),
   }),
   description: "Row data. Each row has one cell per header. Keep it under ~20 rows.",
   component: (props, ctx) => {
@@ -103,7 +104,7 @@ export const Table = chatComponent({
     const headers = list(props["headers"]).map(str);
     if (!headers.length) return null;
     const rows = list(props["rows"]).map((row) => list(row).map(str));
-    return ChatTable({ headers, rows });
+    return ChatTable({ headers, rows, caption: str(props["title"]) || undefined });
   },
 });
 
