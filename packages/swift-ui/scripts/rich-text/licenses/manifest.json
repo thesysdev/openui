@@ -1,0 +1,9 @@
+{
+  "remark-math": {
+    "version": "6.0.0",
+    "revision": "d5d0660b150810a535bbb07eac6cc96a4510aa24",
+    "url": "https://raw.githubusercontent.com/remarkjs/remark-math/d5d0660b150810a535bbb07eac6cc96a4510aa24/license",
+    "file": "remark-math-6.0.0.txt",
+    "reason": "The npm tarball omits the repository license."
+  }
+}

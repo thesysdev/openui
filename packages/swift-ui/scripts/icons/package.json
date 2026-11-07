@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": { "generate": "node generate.mjs" },
+  "dependencies": { "lucide-react": "0.562.0", "svgpath": "2.6.0" }
+}

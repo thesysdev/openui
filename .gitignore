@@ -66,3 +66,8 @@ draft/
 
 # Accidental CLI template checkouts
 packages/openui-cli/src/templates/
+
+# Root SwiftPM consumer/development artifacts
+/.build/
+/.swiftpm/
+/Package.resolved

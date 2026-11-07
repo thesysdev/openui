@@ -1,0 +1,12 @@
+{
+  "name": "swift-ui-code-highlighting-build",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "refractor": "5.0.0"
+  }
+}

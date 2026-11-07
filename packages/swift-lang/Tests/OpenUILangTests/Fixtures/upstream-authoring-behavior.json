@@ -1,0 +1,225 @@
+{
+  "upstream": "9823ec05d4b29bc78d101676dc16b44fe17f1830",
+  "cases": [
+    {
+      "id": "optional-before-required",
+      "input": {
+        "functions": [],
+        "actions": [],
+        "components": [
+          {
+            "name": "Flexible",
+            "description": "",
+            "params": [
+              {
+                "name": "optional",
+                "required": false,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              {
+                "name": "required",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "components": [
+          {
+            "name": "Flexible",
+            "description": ""
+          }
+        ],
+        "root": null,
+        "componentGroups": null
+      }
+    },
+    {
+      "id": "duplicate-components",
+      "input": {
+        "functions": [],
+        "actions": [],
+        "components": [
+          {
+            "name": "Note",
+            "description": "first",
+            "params": []
+          },
+          {
+            "name": "Note",
+            "description": "last",
+            "params": []
+          }
+        ]
+      },
+      "expected": {
+        "components": [
+          {
+            "name": "Note",
+            "description": "last"
+          }
+        ],
+        "root": null,
+        "componentGroups": null
+      }
+    },
+    {
+      "id": "unicode-name",
+      "input": {
+        "functions": [],
+        "actions": [],
+        "components": [
+          {
+            "name": "Éxample",
+            "description": "",
+            "params": []
+          }
+        ]
+      },
+      "expected": {
+        "components": [
+          {
+            "name": "Éxample",
+            "description": ""
+          }
+        ],
+        "root": null,
+        "componentGroups": null
+      }
+    },
+    {
+      "id": "unvalidated-group-metadata",
+      "input": {
+        "functions": [],
+        "actions": [],
+        "components": [
+          {
+            "name": "Note",
+            "description": "",
+            "params": []
+          }
+        ],
+        "componentGroups": [
+          {
+            "name": "Group",
+            "components": [
+              "Ghost"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "components": [
+          {
+            "name": "Note",
+            "description": ""
+          }
+        ],
+        "root": null,
+        "componentGroups": [
+          {
+            "name": "Group",
+            "components": [
+              "Ghost"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "unknown-root",
+      "input": {
+        "functions": [],
+        "actions": [],
+        "components": [
+          {
+            "name": "Note",
+            "description": "",
+            "params": []
+          }
+        ],
+        "root": "Missing"
+      },
+      "expected": {
+        "error": "[createLibrary] Root component \"Missing\" was not found in components. Available components: Note"
+      }
+    },
+    {
+      "id": "function-collision",
+      "input": {
+        "functions": [
+          {
+            "name": "Echo",
+            "description": "",
+            "params": []
+          }
+        ],
+        "actions": [],
+        "components": [
+          {
+            "name": "Echo",
+            "description": "",
+            "params": []
+          }
+        ]
+      },
+      "expected": {
+        "error": "[createLibrary] Function \"Echo\" collides with a built-in, component, function, or action of the same name. Rename it."
+      }
+    },
+    {
+      "id": "builtin-call-collision",
+      "input": {
+        "functions": [
+          {
+            "name": "Count",
+            "description": "",
+            "params": []
+          }
+        ],
+        "actions": [],
+        "components": [
+          {
+            "name": "Note",
+            "description": "",
+            "params": []
+          }
+        ]
+      },
+      "expected": {
+        "error": "[createLibrary] Function \"Count\" collides with a built-in, component, function, or action of the same name. Rename it."
+      }
+    },
+    {
+      "id": "root-found",
+      "input": {
+        "functions": [],
+        "actions": [],
+        "components": [
+          {
+            "name": "Note",
+            "description": "",
+            "params": []
+          }
+        ],
+        "root": "Note"
+      },
+      "expected": {
+        "components": [
+          {
+            "name": "Note",
+            "description": ""
+          }
+        ],
+        "root": "Note",
+        "componentGroups": null
+      }
+    }
+  ]
+}
