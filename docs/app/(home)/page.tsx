@@ -66,7 +66,7 @@ const structuredData = {
       "@type": "SoftwareApplication",
       "@id": `${BASE_URL}/#software`,
       name: "OpenUI",
-      alternateName: "OpenUI by Thesys",
+      alternateName: ["Open UI", "OpenUI by Thesys"],
       url: BASE_URL,
       description:
         "Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular.",
@@ -87,7 +87,7 @@ const structuredData = {
       "@type": "WebSite",
       "@id": `${BASE_URL}/#website`,
       name: "OpenUI",
-      alternateName: "OpenUI by Thesys",
+      alternateName: ["Open UI", "OpenUI by Thesys"],
       url: BASE_URL,
       publisher: { "@id": "https://www.thesys.dev/#organization" },
     },
