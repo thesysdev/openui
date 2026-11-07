@@ -235,6 +235,8 @@ interface RendererProps<L extends Library = Library> {
   queryLoader?: React.ReactNode;
   children?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
+  /** Custom form validators keyed by rule name. See Interactivity → Validation. */
+  validators?: Record<string, ValidatorFn>;
 }
 ```
 
