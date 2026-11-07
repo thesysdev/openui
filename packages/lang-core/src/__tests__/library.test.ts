@@ -3,9 +3,109 @@ import { z } from "zod/v4";
 import { createLibrary, defineComponent, tagSchemaId, type Library } from "../library";
 import { createParser } from "../parser";
 import { action, steps } from "../parser/builtins";
-import type { LibrarySpec } from "../parser/prompt";
+import { generateSystemPrompt, type LibrarySpec } from "../parser/prompt";
+import { calculateSystemPromptConfigHash } from "../telemetry/runtime";
 
 const Dummy = null as any;
+
+describe("component property descriptions", () => {
+  it("includes property guidance in the local config hash with stable key ordering", async () => {
+    const spec = (propDescriptions: Record<string, string>): LibrarySpec => ({
+      components: { Card: { signature: "Card(title: string, note: string)", propDescriptions } },
+    });
+    const original = await calculateSystemPromptConfigHash(
+      spec({ title: "Title.", note: "Note." }),
+    );
+    const reordered = await calculateSystemPromptConfigHash(
+      spec({ note: "Note.", title: "Title." }),
+    );
+    const changed = await calculateSystemPromptConfigHash(
+      spec({ title: "Heading.", note: "Note." }),
+    );
+
+    expect(reordered).toBe(original);
+    expect(changed).not.toBe(original);
+  });
+
+  it.each([false, true])("includes property descriptions with groups=%s", (grouped) => {
+    const SpecialCard = defineComponent({
+      name: "SpecialCard",
+      description: "A special card.",
+      props: z.object({
+        myProp: z.string().describe("Use this property for the headline."),
+        subtitle: z.string().optional().describe("An optional subtitle."),
+        count: z.number(),
+      }),
+      component: Dummy,
+    });
+    const lib = createLibrary({
+      components: [SpecialCard],
+      componentGroups: grouped ? [{ name: "Cards", components: ["SpecialCard"] }] : undefined,
+    });
+
+    expect(lib.prompt()).toContain(
+      "SpecialCard(myProp: string, subtitle?: string, count: number) — A special card.\n" +
+        "  - myProp: Use this property for the headline.\n" +
+        "  - subtitle: An optional subtitle.",
+    );
+    expect(lib.toSpec().components.SpecialCard?.signature).toBe(
+      "SpecialCard(myProp: string, subtitle?: string, count: number)",
+    );
+    expect(lib.toSpec().components.SpecialCard?.description).toBe("A special card.");
+    const serialized = JSON.parse(JSON.stringify(lib.toSpec())) as LibrarySpec;
+    expect(generateSystemPrompt({ library: serialized })).toBe(lib.prompt());
+  });
+
+  it("finds descriptions inside wrappers and prefers outer descriptions", () => {
+    const Card = defineComponent({
+      name: "Card",
+      description: "A card.",
+      props: z.object({
+        title: z.string().describe("Card title.").optional(),
+        count: z.number().describe("Item count.").default(0),
+        note: z.string().describe("Card note.").nullable().optional(),
+        label: z.string().describe("Inner label.").optional().describe("Outer label."),
+      }),
+      component: Dummy,
+    });
+    const prompt = createLibrary({ components: [Card] }).prompt();
+
+    expect(prompt).toContain("  - title: Card title.");
+    expect(prompt).toContain("  - count: Item count.");
+    expect(prompt).toContain("  - note: Card note.");
+    expect(prompt).toContain("  - label: Outer label.");
+    expect(prompt).not.toContain("Inner label.");
+  });
+
+  it("leaves components without property descriptions unchanged", () => {
+    const Card = defineComponent({
+      name: "Card",
+      description: "A card.",
+      props: z.object({ title: z.string() }),
+      component: Dummy,
+    });
+
+    const lib = createLibrary({ components: [Card] });
+    expect(lib.toSpec().components.Card).toEqual({
+      signature: "Card(title: string)",
+      description: "A card.",
+    });
+    expect(lib.prompt()).toContain("Card(title: string) — A card.\n\n");
+  });
+
+  it("indents multiline prop guidance when the component description is empty", () => {
+    const Card = defineComponent({
+      name: "Card",
+      description: "",
+      props: z.object({ title: z.string().describe("Card title.\nKeep it short.") }),
+      component: Dummy,
+    });
+
+    expect(createLibrary({ components: [Card] }).prompt()).toContain(
+      "Card(title: string)\n  - title: Card title.\n    Keep it short.",
+    );
+  });
+});
 
 // ─── tagSchemaId + registry integration ─────────────────────────────────────
 

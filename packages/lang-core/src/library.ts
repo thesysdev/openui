@@ -12,7 +12,13 @@ import type {
   JSONSchemaDef,
   LibraryJSONSchema,
 } from "./parser/types";
-import { assertV4Schema, schemaSignature, tagSchemaId, type SchemaRegistry } from "./signature";
+import {
+  assertV4Schema,
+  getZodDef,
+  schemaSignature,
+  tagSchemaId,
+  type SchemaRegistry,
+} from "./signature";
 
 export {
   defineAction,
@@ -122,15 +128,31 @@ export interface PromptOptions {
   builtinFunctions?: boolean;
 }
 
+function propertyDescription(schema: z.$ZodType): string | undefined {
+  const description = z.globalRegistry.get(schema)?.description;
+  if (description !== undefined) return description;
+  const def = getZodDef(schema);
+  if (def?.type === "optional" || def?.type === "default" || def?.type === "nullable") {
+    return propertyDescription(def.innerType);
+  }
+  return undefined;
+}
+
 function buildComponentSpecs(
   components: Record<string, DefinedComponent<any, any>>,
   reg: SchemaRegistry,
 ): Record<string, ComponentPromptSpec> {
   const specs: Record<string, ComponentPromptSpec> = {};
   for (const [name, def] of Object.entries(components)) {
+    const propDescriptions: Record<string, string> = {};
+    for (const [prop, schema] of Object.entries(def.props._zod.def.shape)) {
+      const description = propertyDescription(schema as z.$ZodType);
+      if (description) propDescriptions[prop] = description;
+    }
     specs[name] = {
       signature: schemaSignature(name, def.props, undefined, reg),
       description: def.description,
+      ...(Object.keys(propDescriptions).length ? { propDescriptions } : {}),
     };
   }
   return specs;
