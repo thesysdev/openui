@@ -17,7 +17,7 @@
   "dependencies": {
     "@openuidev/lang-core": "1.1.0",
     "@openuidev/react-email": "0.4.0",
-    "@openuidev/react-headless": "0.18.4",
+    "@openuidev/react-headless": "0.18.5",
     "@openuidev/react-lang": "1.1.0",
     "@react-email/components": "^0.0.41",
     "@react-email/render": "^1.0.6",
@@ -30,7 +30,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.1",
+    "@openuidev/cli": "0.6.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",

@@ -21,11 +21,11 @@
     "@assistant-ui/react": "^0.15.32",
     "@assistant-ui/react-markdown": "^0.14.24",
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "@openuidev/dashboard-library": "0.0.1",
+    "@openuidev/dashboard-library": "0.0.2",
     "@openuidev/lang-core": "1.1.0",
-    "@openuidev/react-headless": "0.18.4",
+    "@openuidev/react-headless": "0.18.5",
     "@openuidev/react-lang": "1.1.0",
-    "@openuidev/react-ui": "0.18.4",
+    "@openuidev/react-ui": "0.18.5",
     "@openuidev/server": "0.4.0",
     "ai": "^7.0.162",
     "assistant-stream": "^0.3.55",
@@ -43,7 +43,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.1",
+    "@openuidev/cli": "0.6.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
