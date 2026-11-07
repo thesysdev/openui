@@ -1,0 +1,7 @@
+/*
+ * Luna provides the design tokens the OpenUI Chat library reads, so it must
+ * load before the OpenUI token adapter. Keeping both in one file preserves
+ * that order: the import organizer would sort them by package name.
+ */
+@import "@lynx-js/luna-styles/index.css";
+@import "@lynx-js/genui/openui/styles/theme.css";

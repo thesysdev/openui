@@ -84,6 +84,15 @@
       }
     },
     {
+      "title": "Lynx",
+      "description": "A ReactLynx chat app rendering streamed OpenUI Lang with the official Lynx runtime.",
+      "path": "app-frameworks/lynx",
+      "env": {
+        "file": "backend/.env.local",
+        "key": "THESYS_API_KEY"
+      }
+    },
+    {
       "title": "Svelte",
       "description": "OpenUI Lang parsing and rendering in SvelteKit.",
       "path": "app-frameworks/svelte",
