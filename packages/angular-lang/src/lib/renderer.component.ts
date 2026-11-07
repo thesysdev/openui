@@ -3,12 +3,11 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   inject,
-  Input,
+  input,
   OnChanges,
   OnDestroy,
-  Output,
+  output,
   signal,
   SimpleChanges,
   Type,
@@ -65,8 +64,8 @@ function isActionPlan(action: ActionPlan | ActionConfig | undefined): action is 
     <div class="openui-renderer-shell">
       @if (context.isQueryLoading) {
         <div class="openui-query-loader" aria-live="polite">
-          @if (queryLoader) {
-            <ng-container *ngComponentOutlet="queryLoader" />
+          @if (queryLoader()) {
+            <ng-container *ngComponentOutlet="queryLoader()" />
           } @else {
             <div class="openui-default-loader" aria-label="Loading query results"></div>
           }
@@ -75,7 +74,7 @@ function isActionPlan(action: ActionPlan | ActionConfig | undefined): action is 
 
       <div class="openui-renderer-content" [class.openui-renderer-loading]="context.isQueryLoading">
         @if (rootNode) {
-          <openui-render-node [value]="rootNode" [library]="library" [context]="context" />
+          <openui-render-node [value]="rootNode" [library]="library()" [context]="context" />
         }
       </div>
     </div>
@@ -129,17 +128,17 @@ function isActionPlan(action: ActionPlan | ActionConfig | undefined): action is 
 export class OpenUiRendererComponent implements OnChanges, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
 
-  @Input() response: string | null = null;
-  @Input() library: Library | null = null;
-  @Input() isStreaming = false;
-  @Input() initialState: Record<string, unknown> | undefined = undefined;
-  @Input() toolProvider: OpenUiToolProvider = null;
-  @Input() queryLoader: Type<unknown> | null = null;
+  readonly response = input<string | null>(null);
+  readonly library = input<Library | null>(null);
+  readonly isStreaming = input(false);
+  readonly initialState = input<Record<string, unknown> | undefined>(undefined);
+  readonly toolProvider = input<OpenUiToolProvider>(null);
+  readonly queryLoader = input<Type<unknown> | null>(null);
 
-  @Output() readonly action = new EventEmitter<ActionEvent>();
-  @Output() readonly stateUpdate = new EventEmitter<Record<string, unknown>>();
-  @Output() readonly parseResult = new EventEmitter<ParseResult | null>();
-  @Output() readonly error = new EventEmitter<OpenUIError[]>();
+  readonly action = output<ActionEvent>();
+  readonly stateUpdate = output<Record<string, unknown>>();
+  readonly parseResult = output<ParseResult | null>();
+  readonly error = output<OpenUIError[]>();
 
   rootNode: unknown = null;
 
@@ -231,18 +230,20 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
     this.attachQueryManagerSubscription();
     this.unsubscribeStore = this.store.subscribe(() => {
       this.storeSnapshot.set(this.store.getSnapshot());
-      if (!this.latestParseResult || !this.library) return;
+      if (!this.latestParseResult || !this.library()) return;
       this.evaluateQueryAndMutationNodes();
       this.refreshEvaluatedState();
     });
   }
 
   ngOnChanges(_changes: SimpleChanges): void {
-    this.context.library = this.library;
-    this.streamingState.set(this.isStreaming);
+    const library = this.library();
+    const response = this.response();
+    this.context.library = library;
+    this.streamingState.set(this.isStreaming());
     this.updateToolProviderIfNeeded();
 
-    if (!this.library || !this.response) {
+    if (!library || !response) {
       this.latestParseResult = null;
       this.latestRuntimeErrors = [];
       this.renderErrors.clear();
@@ -257,10 +258,10 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    this.ensureParser(this.library);
+    this.ensureParser(library);
 
     try {
-      const parseResult = this.parser?.set(this.response) ?? null;
+      const parseResult = this.parser?.set(response) ?? null;
       this.latestParseResult = parseResult;
       this.initializeStore(parseResult);
       this.evaluateQueryAndMutationNodes();
@@ -297,11 +298,12 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
   }
 
   private updateToolProviderIfNeeded(): void {
-    if (this.currentToolProviderInput === this.toolProvider) {
+    const toolProvider = this.toolProvider();
+    if (this.currentToolProviderInput === toolProvider) {
       return;
     }
 
-    this.currentToolProviderInput = this.toolProvider;
+    this.currentToolProviderInput = toolProvider;
     this.queryManager.invalidate();
     this.querySnapshot = this.queryManager.getSnapshot();
     this.queryLoadingState.set(this.querySnapshot.__openui_loading.length > 0);
@@ -326,7 +328,8 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
 
   private initializeStore(parseResult: ParseResult | null): void {
     const defaults = parseResult?.stateDeclarations ?? {};
-    const key = `${JSON.stringify(defaults)}::${JSON.stringify(this.initialState ?? {})}`;
+    const initialState = this.initialState();
+    const key = `${JSON.stringify(defaults)}::${JSON.stringify(initialState ?? {})}`;
     if (this.lastStoreInitKey === key) {
       return;
     }
@@ -334,8 +337,8 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
     this.lastStoreInitKey = key;
 
     const bindingDefaults: Record<string, unknown> = {};
-    if (this.initialState) {
-      for (const [stateKey, value] of Object.entries(this.initialState)) {
+    if (initialState) {
+      for (const [stateKey, value] of Object.entries(initialState)) {
         if (stateKey.startsWith("$")) {
           bindingDefaults[stateKey] = value;
         } else {
@@ -348,7 +351,8 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
   }
 
   private refreshEvaluatedState(): void {
-    if (!this.library || !this.latestParseResult) {
+    const library = this.library();
+    if (!library || !this.latestParseResult) {
       this.rootNode = null;
       this.latestRuntimeErrors = [];
       this.emitCurrentErrors();
@@ -362,7 +366,7 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
     this.rootNode = this.latestParseResult.root
       ? evaluateElementProps(this.latestParseResult.root, {
           ctx: this.evaluationContext,
-          library: this.library,
+          library,
           store: this.store,
           errors: runtimeErrors,
         })
@@ -405,7 +409,7 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    if (!this.isStreaming) {
+    if (!this.isStreaming()) {
       const queryNodes = this.latestParseResult.queryStatements.map((statement) => {
         const relevantDeps: Record<string, unknown> = {};
         if (statement.deps) {

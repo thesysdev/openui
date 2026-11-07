@@ -3,19 +3,19 @@ import {
   ChangeDetectionStrategy,
   Component,
   ComponentRef,
+  createComponent,
   DestroyableInjector,
   ElementRef,
   EnvironmentInjector,
   ErrorHandler,
+  inject,
   Injector,
-  Input,
+  input,
   OnChanges,
   OnDestroy,
   Renderer2,
   SimpleChanges,
   Type,
-  createComponent,
-  inject,
 } from "@angular/core";
 import type { ElementNode } from "@openuidev/lang-core";
 import type { OpenUiContextValue } from "./context";
@@ -80,10 +80,10 @@ interface RenderValue {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OpenUiRenderNodeComponent implements OnChanges, OnDestroy {
-  @Input() value: unknown = null;
-  @Input() library: Library | null = null;
-  @Input() context: OpenUiContextValue | null = null;
-  @Input() formName: string | undefined = undefined;
+  readonly value = input<unknown>(null);
+  readonly library = input<Library | null>(null);
+  readonly context = input<OpenUiContextValue | null>(null);
+  readonly formName = input<string | undefined>(undefined);
 
   private readonly applicationRef = inject(ApplicationRef);
   private readonly environmentInjector = inject(EnvironmentInjector);
@@ -138,7 +138,7 @@ export class OpenUiRenderNodeComponent implements OnChanges, OnDestroy {
     const textUpdates = new Map<RenderedEntry, string>();
 
     try {
-      for (const { key, value } of this.flattenValue(this.value)) {
+      for (const { key, value } of this.flattenValue(this.value())) {
         const old = previous.get(key);
         if (typeof value === "string") {
           const entry =
@@ -148,23 +148,24 @@ export class OpenUiRenderNodeComponent implements OnChanges, OnDestroy {
           continue;
         }
 
-        const type = this.library?.components[value.typeName]?.component as
+        const type = this.library()?.components[value.typeName]?.component as
           Type<unknown> | undefined;
-        if (!type || !this.context) continue;
+        const context = this.context();
+        if (!type || !context) continue;
 
         let entry: RenderedEntry;
         if (
           old?.component &&
           old.component.type === type &&
           old.component.node.typeName === value.typeName &&
-          old.component.context === this.context &&
-          old.component.formName === this.formName
+          old.component.context === context &&
+          old.component.formName === this.formName()
         ) {
           entry = old;
           // Record before updating: even a failed detectChanges must be rolled back.
           updated.push(entry);
         } else {
-          entry = this.createEntry(key, value, type, this.context);
+          entry = this.createEntry(key, value, type, context);
           created.push(entry);
         }
         this.updateEntry(entry, value);
@@ -183,7 +184,7 @@ export class OpenUiRenderNodeComponent implements OnChanges, OnDestroy {
         }
       }
       const renderError = error instanceof RenderNodeError ? error : null;
-      this.context?.reportError?.({
+      this.context()?.reportError?.({
         source: "runtime",
         code: "render-error",
         component: renderError?.componentName,
@@ -214,7 +215,7 @@ export class OpenUiRenderNodeComponent implements OnChanges, OnDestroy {
       const node = nodeUpdates.get(entry);
       if (node && entry.component) {
         entry.component.node = node;
-        this.context?.clearError?.(node.typeName, node.statementId);
+        this.context()?.clearError?.(node.typeName, node.statementId);
       }
     }
     this.entries = next;
@@ -231,7 +232,7 @@ export class OpenUiRenderNodeComponent implements OnChanges, OnDestroy {
     const injector = Injector.create({
       providers: [
         { provide: OPENUI_CONTEXT, useValue: context },
-        { provide: OPENUI_FORM_NAME, useValue: this.formName },
+        { provide: OPENUI_FORM_NAME, useValue: this.formName() },
         {
           provide: ErrorHandler,
           useValue: {
@@ -254,7 +255,7 @@ export class OpenUiRenderNodeComponent implements OnChanges, OnDestroy {
       return {
         key,
         host,
-        component: { ref, injector, type, node, context, formName: this.formName },
+        component: { ref, injector, type, node, context, formName: this.formName() },
       };
     } catch (error) {
       if (ref) {

@@ -22,7 +22,7 @@
     "build": "ng-packagr -p ng-package.json",
     "watch": "ng-packagr -p ng-package.json -w",
     "typecheck": "tsc --project tsconfig.lib.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "ng test --watch=false",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format:fix": "prettier --write ./src",
@@ -67,6 +67,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@angular/build": "~22.1.7",
+    "@angular/cli": "~22.1.7",
     "@angular/common": "catalog:",
     "@angular/compiler": "catalog:",
     "@angular/compiler-cli": "catalog:",
