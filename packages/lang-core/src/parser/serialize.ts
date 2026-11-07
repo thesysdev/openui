@@ -8,7 +8,7 @@ import type { ASTNode } from "./ast";
 import { isASTNode } from "./ast";
 import { getCallDefs } from "./builtins";
 import { compileSchema } from "./parser";
-import { isElementNode, type CallDef, type ElementNode, type ParamMap } from "./types";
+import { isElementShaped, type CallDef, type ElementNode, type ParamMap } from "./types";
 
 // ─── Operator precedence (mirrors expressions.ts) ────────────────────────────
 
@@ -135,8 +135,8 @@ function serializeValue(value: unknown, paramMap: ParamMap, collector: Statement
   if (typeof value === "number") return String(value);
   if (typeof value === "boolean") return value ? "true" : "false";
 
-  // ElementNode — check before isASTNode (they don't overlap, but order is clear)
-  if (isElementNode(value)) {
+  // ElementNode (parsed or hand-written JSON) — check before isASTNode
+  if (isElementShaped(value)) {
     return serializeElementValue(value, paramMap, collector);
   }
 

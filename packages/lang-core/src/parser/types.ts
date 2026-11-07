@@ -1,3 +1,4 @@
+import { isOwn } from "../own";
 import type { ASTNode } from "./ast";
 
 export type JSONSchemaProperty = Record<string, unknown>;
@@ -89,7 +90,8 @@ export interface ElementNode {
   hasDynamicProps?: boolean;
 }
 
-export function isElementNode(value: unknown): value is ElementNode {
+/** Has the fields of an ElementNode, whether built by the parser or hand-written as JSON. */
+export function isElementShaped(value: unknown): value is ElementNode {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const node = value as Record<string, unknown>;
   return (
@@ -99,6 +101,11 @@ export function isElementNode(value: unknown): value is ElementNode {
     node.props !== null &&
     typeof node.partial === "boolean"
   );
+}
+
+/** An element the parser or evaluator built; element-shaped data (e.g. a tool result) is not one. */
+export function isElementNode(value: unknown): value is ElementNode {
+  return isElementShaped(value) && isOwn(value);
 }
 
 /**
