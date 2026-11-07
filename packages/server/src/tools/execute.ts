@@ -17,8 +17,10 @@ import {
   type ToolHandler,
 } from "./types";
 
+// The sandbox's limits per script run (sandbox-runner MAX_TOOL_CALLS / max rounds):
+// tool calls in total across rounds, and rounds of calls the script waits on.
 const MAX_ROUNDS = 8;
-const MAX_TOOL_CALLS = 16;
+const MAX_TOOL_CALLS = 48;
 const DEFAULT_TIMEOUT_MS = 60_000;
 
 function invalidResponse(): never {
