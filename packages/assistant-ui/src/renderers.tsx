@@ -13,7 +13,12 @@ import {
   type OpenUIError,
   type RendererProps,
 } from "@openuidev/react-lang";
-import { openuiChatLibrary, ThemeProvider, type ThemeProps } from "@openuidev/react-ui";
+import {
+  openuiChatLibrary,
+  safeOpenUrl,
+  ThemeProvider,
+  type ThemeProps,
+} from "@openuidev/react-ui";
 import { useCallback, useRef, useState, type ComponentType } from "react";
 
 export interface OpenUIToolArgs extends Record<string, unknown> {
@@ -121,9 +126,7 @@ export function OpenUIPresent({ args, status, ...options }: OpenUIPresentProps) 
         });
       } else if (event.type === BuiltinActionType.OpenUrl) {
         const url = event.params?.["url"];
-        if (typeof window !== "undefined" && typeof url === "string") {
-          window.open(url, "_blank", "noopener,noreferrer");
-        }
+        if (typeof url === "string") safeOpenUrl(url);
       }
     },
     [aui],

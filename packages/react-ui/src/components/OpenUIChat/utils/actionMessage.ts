@@ -1,4 +1,5 @@
 import { BuiltinActionType, buildMessage, type ActionEvent } from "@openuidev/react-lang";
+import { safeOpenUrl } from "../../_shared/utils/safeUrl";
 
 /** The stored user turn for a continue_conversation event; context is `["User clicked: msg", formState, context?]`. */
 export function buildActionUserMessage(event: ActionEvent): string {
@@ -24,8 +25,7 @@ export function runChatAction(
   if (event.type === BuiltinActionType.ContinueConversation) {
     send(buildActionUserMessage(event));
   } else if (event.type === BuiltinActionType.OpenUrl) {
-    const url = event.params?.["url"] as string | undefined;
-    if (typeof window !== "undefined" && url) window.open(url, "_blank");
+    safeOpenUrl(event.params?.["url"] as string | undefined);
   } else {
     onAction?.(event);
   }
