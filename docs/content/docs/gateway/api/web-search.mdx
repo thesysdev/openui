@@ -1,0 +1,114 @@
+---
+title: Web Search API
+description: Implement a web search tool for any model or agent framework.
+---
+
+The Web Search API returns web pages for a query, including the text of each page. Use it to implement a web search tool for any model or agent framework. The model calls your tool, your backend calls this endpoint, and the results go back to the model.
+
+**Endpoint:** `POST https://api.thesys.dev/v1/search/web`
+
+The endpoint is not OpenAI compatible, so call it with `fetch` or another HTTP client. Server calls use the API key described in [Authentication](/docs/gateway/authentication).
+
+## Make a request
+
+```ts title="lib/search-web.ts"
+export async function searchWeb(query: string) {
+  const response = await fetch("https://api.thesys.dev/v1/search/web", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query, num_results: 5 }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Web search failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+```
+
+## Request
+
+| Field             | Type     | Required | Purpose                                                                                   |
+| ----------------- | -------- | -------- | ----------------------------------------------------------------------------------------- |
+| `query`           | string   | Yes      | What to search for, 1 to 2,048 characters                                                 |
+| `num_results`     | integer  | No       | How many results to return, from 1 to 10, default 5                                       |
+| `include_domains` | string[] | No       | Only return results from these domains, for example `["nestjs.com"]`                      |
+| `user_location`   | string   | No       | The searcher's country as a two-letter code, for example `"FR"`, used to localize results |
+
+## Read the result
+
+`results` holds the matches, and can hold fewer than `num_results`. `usage.search_units` reports the searches charged, and is always 1.
+
+| Field            | Type   | Always present | Content                          |
+| ---------------- | ------ | -------------- | -------------------------------- |
+| `title`          | string | Yes            | The page title                   |
+| `url`            | string | Yes            | The page URL                     |
+| `text`           | string | No             | Text extracted from the page     |
+| `published_date` | string | No             | When the page was published      |
+| `author`         | string | No             | The page author                  |
+| `image`          | string | No             | The URL of the page's main image |
+| `favicon`        | string | No             | The URL of the site's favicon    |
+
+A search with one result:
+
+```json
+{
+  "query": "nestjs 11 release notes",
+  "results": [
+    {
+      "title": "NestJS 11 is now available",
+      "url": "https://example.com/nestjs-11",
+      "text": "NestJS 11 brings ...",
+      "published_date": "2026-01-15",
+      "favicon": "https://example.com/favicon.ico"
+    }
+  ],
+  "usage": { "search_units": 1 }
+}
+```
+
+## Use as a function tool
+
+Declare the tool in your model request. This example uses the Chat Completions format. When the model calls the tool, call `searchWeb` in your backend and return the results as the tool result. The loop is the same as for any other function tool. See [Function tools](/docs/gateway/api/chat-completions#function-tools).
+
+```ts title="lib/search-web-tool.ts"
+export const searchWebTool = {
+  type: "function",
+  function: {
+    name: "search_web",
+    description: "Search the web for current information.",
+    parameters: {
+      type: "object",
+      properties: { query: { type: "string", description: "What to search for" } },
+      required: ["query"],
+    },
+  },
+} as const;
+```
+
+`text` holds the full page, so trim it before the results go back to the model.
+
+The Responses API can also run web search inside the Gateway, with no function tool. See [Hosted Tools](/docs/gateway/api/responses/hosted-tools).
+
+## Data
+
+The query you send is passed to a third-party search provider. The query and the results are not stored beyond the request logs.
+
+## Pricing
+
+Each successful call is charged the search provider's price from your credits, with no markup, and does not use a plan API call. A call that finds no results is still charged. A failed call is free. See [Pricing](/docs/gateway/pricing-credits) for the current rate.
+
+## Errors
+
+The endpoint returns the same error shape as the Chat Completions and Responses APIs. For a `400`, `message` is a list of every problem.
+
+| Status | Type                    | When                                                                                                                                          |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | `invalid_request_error` | `query` is missing, empty, or longer than 2,048 characters; `num_results` is not 1 to 10; or `user_location` is not a two-letter country code |
+| `401`  | `invalid_api_key`       | The API key is missing or invalid                                                                                                             |
+| `429`  | `rate_limit_error`      | The organization has no credits, has reached its spend limit, or billing is suspended                                                         |
+| `500`  | `internal_server_error` | The search provider failed, and nothing is charged                                                                                            |
