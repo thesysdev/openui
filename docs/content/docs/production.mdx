@@ -46,6 +46,7 @@ Integrate OpenUI Gateway with your existing backend stack, including LangGraph, 
       messages: [
         { role: "user", content: "Compare quarterly revenue by region." },
       ],
+      safety_identifier: userId, // stable ID of the end user making this request
       stream: true,
     });
     ```
@@ -62,11 +63,14 @@ Integrate OpenUI Gateway with your existing backend stack, including LangGraph, 
     const response = await gateway.responses.create({
       model: "openai/gpt-5",
       input: "Compare quarterly revenue by region.",
+      safety_identifier: userId, // stable ID of the end user making this request
       stream: true,
     });
     ```
   </Tab>
 </Tabs>
+
+Send a [`safety_identifier`](/docs/gateway/safety-identifier) with every request you make for an end user. Model providers use it to attribute policy violations to one user. Without it, every flagged request counts against your whole organization.
 
 Learn more in the [OpenUI Gateway docs](/docs/gateway).
 

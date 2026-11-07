@@ -21,6 +21,7 @@ const response = await gateway.responses.create({
   model: "openai/gpt-5",
   input: "Research the market and summarize the most important changes.",
   instructions: generateSystemPrompt({ cloud: true, library }),
+  safety_identifier: userId, // stable ID of the end user making this request
   tools: [
     { type: "web_search" },
     { type: "image_search" } as unknown as Tool,

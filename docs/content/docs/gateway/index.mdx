@@ -40,6 +40,7 @@ full: true
         messages: [
           { role: "user", content: "Compare quarterly revenue by region." },
         ],
+        safety_identifier: userId, // your end user's ID
         stream: true,
       });
       ```
@@ -56,6 +57,7 @@ full: true
       const response = await gateway.responses.create({
         model: "openai/gpt-5",
         input: "Compare quarterly revenue by region.",
+        safety_identifier: userId, // your end user's ID
         stream: true,
       });
       ```
