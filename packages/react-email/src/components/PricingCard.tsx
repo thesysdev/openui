@@ -3,6 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { Button, Hr, Text } from "@react-email/components";
 import { z } from "zod/v4";
+import { safeColor } from "../safeColor";
 import { EmailPricingFeature } from "./PricingFeature";
 
 export const EmailPricingCard = defineComponent({
@@ -24,7 +25,7 @@ export const EmailPricingCard = defineComponent({
   component: ({ props }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const features = (props.features ?? []) as any[];
-    const bg = (props.buttonColor as string) ?? "#4F46E5";
+    const bg = safeColor(props.buttonColor, "#4F46E5");
     const period = (props.period as string) ?? "/ month";
 
     return (

@@ -47,12 +47,15 @@ export const safeOpenUrl = (
 
 /**
  * Turn an LLM-controlled image URL into a `url("...")` CSS value, or `undefined`
- * when the URL is unsafe. Quotes, backslashes and newlines are escaped so the
- * value cannot break out of the declaration.
+ * when the URL is unsafe. Quotes, backslashes and control characters are escaped
+ * so the value cannot break out of the declaration.
  */
 export const toCssUrl = (url: string | null | undefined): string | undefined => {
   const safe = safeUrl(url);
   if (!safe) return undefined;
-  const escaped = safe.replace(/[\\"\n\r]/g, (c) => `\\${c.charCodeAt(0).toString(16)} `);
+  const escaped = safe.replace(
+    /[\\"\u0000-\u001F\u007F]/g,
+    (c) => `\\${c.charCodeAt(0).toString(16)} `,
+  );
   return `url("${escaped}")`;
 };

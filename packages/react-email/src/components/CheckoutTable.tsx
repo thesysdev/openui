@@ -3,6 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { Button, Column, Heading, Img, Row, Section, Text } from "@react-email/components";
 import { z } from "zod/v4";
+import { safeColor } from "../safeColor";
 import { EmailCheckoutItem } from "./CheckoutItem";
 
 export const EmailCheckoutTable = defineComponent({
@@ -19,7 +20,7 @@ export const EmailCheckoutTable = defineComponent({
   component: ({ props }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const items = (props.items ?? []) as any[];
-    const bg = (props.buttonColor as string) ?? "#4F46E5";
+    const bg = safeColor(props.buttonColor, "#4F46E5");
     const title = (props.title as string) ?? "You left something in your cart";
 
     return (
