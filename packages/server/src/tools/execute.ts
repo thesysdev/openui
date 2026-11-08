@@ -17,10 +17,12 @@ import {
   type ToolHandler,
 } from "./types";
 
-// The sandbox's limits per script run (sandbox-runner MAX_TOOL_CALLS / max rounds):
-// tool calls in total across rounds, and rounds of calls the script waits on.
+// Rounds of calls a script run may wait on. Only this package counts them.
 const MAX_ROUNDS = 8;
-const MAX_TOOL_CALLS = 48;
+// A backstop only: OpenUI Cloud's sandbox enforces the real tool-call limit per
+// script run (48) and fails the run itself, so raising it needs no new release of
+// this package. This stops a runaway loop if the server misbehaves.
+const MAX_TOOL_CALLS = 256;
 const DEFAULT_TIMEOUT_MS = 60_000;
 
 function invalidResponse(): never {
