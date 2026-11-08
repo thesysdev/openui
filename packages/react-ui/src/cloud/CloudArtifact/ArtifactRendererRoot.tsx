@@ -181,7 +181,12 @@ export function ArtifactRendererRoot({
   const staleVersionRef = useRef<string | null>(null);
   /** Refusals held back while the re-read runs; `null` once it's back. */
   const heldErrorsRef = useRef<Record<string, string> | null>(null);
-  const rerunQueries = useCallback(() => {
+  // Once per version on screen: refusals for an older version can keep
+  // landing after the queries ran again, and each re-run re-sends them all.
+  const rerunForVersionRef = useRef<string | undefined>(undefined);
+  const rerunQueries = useCallback((version: string | undefined) => {
+    if (version !== undefined && rerunForVersionRef.current === version) return;
+    rerunForVersionRef.current = version;
     setToolErrors({});
     setRendererKey((key) => key + 1);
   }, []);
@@ -192,7 +197,7 @@ export function ArtifactRendererRoot({
     heldErrorsRef.current = null;
     if (stream.version !== staleVersion) {
       staleVersionRef.current = null;
-      rerunQueries();
+      rerunQueries(stream.version);
     } else if (held) {
       setToolErrors((current) => ({ ...current, ...held }));
     }
@@ -208,7 +213,7 @@ export function ArtifactRendererRoot({
           setInFlight((count) => Math.max(0, count - 1));
           if (detail?.code === "ARTIFACT_VERSION_MISMATCH" && detail.version !== undefined) {
             if (detail.version !== requestRef.current.version) {
-              rerunQueries();
+              rerunQueries(requestRef.current.version);
               return;
             }
             const refresh = refreshRef.current;
