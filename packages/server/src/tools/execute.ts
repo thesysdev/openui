@@ -20,7 +20,7 @@ import {
 // Rounds of calls a script run may wait on. Only this package counts them.
 const MAX_ROUNDS = 8;
 // A backstop only: OpenUI Cloud's sandbox enforces the real tool-call limit per
-// script run (48) and fails the run itself, so raising it needs no new release of
+// script run and fails the run itself, so changing it needs no new release of
 // this package. This stops a runaway loop if the server misbehaves.
 const MAX_TOOL_CALLS = 256;
 const DEFAULT_TIMEOUT_MS = 60_000;
