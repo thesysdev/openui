@@ -171,14 +171,57 @@ export function ArtifactRendererRoot({
   const requestRef = useRef<{ id: typeof id; version?: string }>({ id });
   requestRef.current = { id, version: stream.version };
 
+  // A data call OpenUI Cloud refused because the artifact moved on
+  // (`ARTIFACT_VERSION_MISMATCH`): if the newer version is already on screen,
+  // the queries just run again; otherwise the artifact is read again, once per
+  // version, and they run once it's shown. The refusals wait out the re-read
+  // and show only if it comes back on the same version, a real mismatch.
+  const refreshRef = useRef(stream.refresh);
+  refreshRef.current = stream.refresh;
+  const staleVersionRef = useRef<string | null>(null);
+  /** Refusals held back while the re-read runs; `null` once it's back. */
+  const heldErrorsRef = useRef<Record<string, string> | null>(null);
+  const rerunQueries = useCallback(() => {
+    setToolErrors({});
+    setRendererKey((key) => key + 1);
+  }, []);
+  useEffect(() => {
+    const staleVersion = staleVersionRef.current;
+    if (staleVersion === null || stream.isStreaming) return;
+    const held = heldErrorsRef.current;
+    heldErrorsRef.current = null;
+    if (stream.version !== staleVersion) {
+      staleVersionRef.current = null;
+      rerunQueries();
+    } else if (held) {
+      setToolErrors((current) => ({ ...current, ...held }));
+    }
+  }, [stream.version, stream.isStreaming, rerunQueries]);
+
   const toolProvider = useMemo(
     () =>
       createInterpreterToolProvider({
         getInterpreter: () => interpreterRef.current,
         getRequest: () => requestRef.current,
         onStart: () => setInFlight((count) => count + 1),
-        onSettle: (toolName, message) => {
+        onSettle: (toolName, message, detail) => {
           setInFlight((count) => Math.max(0, count - 1));
+          if (detail?.code === "ARTIFACT_VERSION_MISMATCH" && detail.version !== undefined) {
+            if (detail.version !== requestRef.current.version) {
+              rerunQueries();
+              return;
+            }
+            const refresh = refreshRef.current;
+            if (staleVersionRef.current === null && refresh) {
+              staleVersionRef.current = detail.version;
+              heldErrorsRef.current = {};
+              refresh();
+            }
+            if (heldErrorsRef.current && message !== null) {
+              heldErrorsRef.current[toolName] = message;
+              return;
+            }
+          }
           setToolErrors((current) => {
             if (message === null) {
               if (!(toolName in current)) return current;
@@ -189,7 +232,7 @@ export function ArtifactRendererRoot({
           });
         },
       }),
-    [],
+    [rerunQueries],
   );
 
   // ── Errors and retry ──

@@ -45,8 +45,29 @@ export interface InterpreterToolProviderOptions {
   fetch?: typeof fetch;
   /** Called when a call starts. */
   onStart?: (toolName: string) => void;
-  /** Called when a call settles; `message` is `null` on success. */
-  onSettle?: (toolName: string, message: string | null) => void;
+  /**
+   * Called when a call settles; `message` is `null` on success. On failure,
+   * `detail` has the error's `code` when the interpreter sent one (such as
+   * OpenUI Cloud's `ARTIFACT_VERSION_MISMATCH`) and the `version` the call ran against.
+   */
+  onSettle?: (toolName: string, message: string | null, detail?: InterpreterSettleDetail) => void;
+}
+
+/** @category Types */
+export interface InterpreterSettleDetail {
+  code?: string;
+  version?: string;
+}
+
+/** An interpreter error that kept the endpoint's error code. @category Types */
+export class InterpreterError extends Error {
+  constructor(
+    message: string,
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "InterpreterError";
+  }
 }
 
 function errorMessage(error: unknown): string | undefined {
@@ -54,6 +75,14 @@ function errorMessage(error: unknown): string | undefined {
   if (error && typeof error === "object" && "message" in error) {
     const { message } = error as { message: unknown };
     if (typeof message === "string") return message;
+  }
+  return undefined;
+}
+
+function errorCode(error: unknown): string | undefined {
+  if (error && typeof error === "object" && "code" in error) {
+    const { code } = error as { code: unknown };
+    if (typeof code === "string") return code;
   }
   return undefined;
 }
@@ -77,7 +106,10 @@ async function callEndpoint(
     body = null;
   }
   if (!res.ok || (body?.error !== undefined && body.error !== null)) {
-    throw new Error(errorMessage(body?.error) ?? `Interpreter request failed: ${res.status}`);
+    throw new InterpreterError(
+      errorMessage(body?.error) ?? `Interpreter request failed: ${res.status}`,
+      errorCode(body?.error),
+    );
   }
   return body?.result;
 }
@@ -118,7 +150,10 @@ export function createInterpreterToolProvider(
         options.onSettle?.(name, null);
         return { content: [], structuredContent: result ?? null };
       } catch (error) {
-        options.onSettle?.(name, errorMessage(error) ?? "The data tool failed.");
+        options.onSettle?.(name, errorMessage(error) ?? "The data tool failed.", {
+          ...(errorCode(error) !== undefined && { code: errorCode(error) }),
+          ...(version !== undefined && { version }),
+        });
         throw error;
       }
     },

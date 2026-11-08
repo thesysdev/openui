@@ -74,8 +74,10 @@ const streamError = (
  * One stream per artifact, shared by every renderer showing it, so an edit
  * streamed by one renderer updates them all. Reads `storage.stream` when the
  * storage has it, and falls back to `storage.get` otherwise.
+ *
+ * @internal Exported for its tests; renderers use it through `useArtifactStream`.
  */
-class ArtifactStreamStore {
+export class ArtifactStreamStore {
   private readonly entries = new Map<string, Entry>();
 
   constructor(private readonly storage: ArtifactStorage) {}
@@ -117,7 +119,9 @@ class ArtifactStreamStore {
     const isFirst = entry.versions.size === 0;
     entry.versions.add(version);
     if (isFirst || !entry.started) return;
-    if (entry.controller) entry.stale = true;
+    // A stream that already ended can still hold its controller for a few
+    // microtasks; mark only a running one, or the new version is never read.
+    if (entry.controller && entry.snapshot.isStreaming) entry.stale = true;
     else void this.connect(id);
   }
 
@@ -126,6 +130,39 @@ class ArtifactStreamStore {
     entry.reconnects = 0;
     entry.started = true;
     void this.connect(id);
+  }
+
+  /**
+   * Reads the artifact again, for a renderer told it moved on (a script run
+   * refused for its version). A stream in progress picks the new version up
+   * when it ends; otherwise it's fetched now.
+   */
+  refresh(id: string): void {
+    const entry = this.entry(id);
+    if (!entry.started) return;
+    if (entry.controller && entry.snapshot.isStreaming) entry.stale = true;
+    else {
+      entry.reconnects = 0;
+      void this.connect(id);
+    }
+  }
+
+  /**
+   * True while `version` is one `noteVersion` hasn't recorded yet: the program
+   * on screen is behind, and its data calls would run against a version the
+   * storage no longer has. Clears once `noteVersion` records it and fetches it.
+   * False while no version is recorded, since `noteVersion` fetches nothing for
+   * the first one.
+   */
+  awaits(id: string, version: string | undefined): boolean {
+    if (!version) return false;
+    const entry = this.entry(id);
+    return (
+      entry.started &&
+      entry.snapshot.program !== null &&
+      entry.versions.size > 0 &&
+      !entry.versions.has(version)
+    );
   }
 
   private entry(id: string): Entry {
@@ -244,6 +281,9 @@ class ArtifactStreamStore {
     switch (event.type) {
       case "reference": {
         const version = event.data?.version;
+        // The versions the stream delivers count as seen, so an edit's version
+        // noted later is "newer", not "first", for an artifact opened by id.
+        if (version) entry.versions.add(version);
         // A reconnect into the version being streamed sends it whole again.
         entry.replace = version !== undefined && version === entry.version;
         entry.version = version;
@@ -322,6 +362,8 @@ export interface UseArtifactStreamOptions {
 export interface ArtifactStreamState extends Omit<ArtifactStreamSnapshot, "id"> {
   /** Reconnects after a `network-error`. Undefined when there's nothing to retry. */
   retry?: () => void;
+  /** Reads the artifact again, when a data call says it moved on. */
+  refresh?: () => void;
 }
 
 const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: null };
@@ -356,6 +398,12 @@ export function useArtifactStream({
   useEffect(() => {
     if (store && id) store.noteVersion(id, version);
   }, [store, id, version]);
+  // Read while rendering: `noteVersion` runs after the renderer's own effects,
+  // which would otherwise run the old program's queries with its old version.
+  const awaiting = store && id ? store.awaits(id, version) : false;
+  const refresh = useCallback(() => {
+    if (store && id) store.refresh(id);
+  }, [store, id]);
 
   return useMemo<ArtifactStreamState>(() => {
     if (ownContent) return { program: content, isStreaming: false, error: null };
@@ -371,6 +419,6 @@ export function useArtifactStream({
     const { id: _id, ...rest } = snapshot;
     const retry =
       snapshot.error?.code === "network-error" && store && id ? () => store.retry(id) : undefined;
-    return { ...rest, retry };
-  }, [ownContent, content, snapshot, id, storage, store]);
+    return { ...rest, isStreaming: rest.isStreaming || awaiting, retry, refresh };
+  }, [ownContent, content, snapshot, id, storage, store, awaiting, refresh]);
 }

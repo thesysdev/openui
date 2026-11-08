@@ -7,12 +7,13 @@ export type {
   UseArtifactStreamOptions,
 } from "./cloud/artifactStream";
 export type { FrontendTokenSource } from "./cloud/frontendTokenManager";
-export { createInterpreterToolProvider } from "./cloud/interpreter";
+export { InterpreterError, createInterpreterToolProvider } from "./cloud/interpreter";
 export type {
   Interpreter,
   InterpreterConfig,
   InterpreterFunction,
   InterpreterRequest,
+  InterpreterSettleDetail,
   InterpreterToolProvider,
   InterpreterToolProviderOptions,
 } from "./cloud/interpreter";
