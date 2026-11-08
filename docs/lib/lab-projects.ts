@@ -386,6 +386,23 @@ export const labProjects: ProjectItem[] = [
       { label: "Website", href: "https://origintrail.io", external: true },
     ],
   },
+  {
+    name: "OpenUI Sports",
+    description:
+      "A registry of soccer, NBA, and NFL components where a model answers sports questions in OpenUI Lang and an iOS app renders it as native SwiftUI views while it streams.",
+    type: "App",
+    status: "Community",
+    accent: "blue",
+    icon: MonitorSmartphone,
+    links: [
+      { label: "GitHub", href: "https://github.com/mireabot/openui-gen", external: true },
+      {
+        label: "Website",
+        href: "https://naivesolution.dev/projects/openui-sports",
+        external: true,
+      },
+    ],
+  },
 ];
 
 /** Community projects on the Demos page, featured first. Ones with an Integrations card are listed there instead. */

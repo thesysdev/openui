@@ -83,6 +83,8 @@ export type RepoExample = {
   firstParty: boolean;
   /** Shown with a "Featured" tag. */
   featured?: boolean;
+  /** Shown after every other card in its section. */
+  listLast?: boolean;
 };
 
 /** Examples shown in a different section than their folder in `examples/`, keyed by path. */
@@ -148,6 +150,7 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     logoIsDark: false,
     runnable: false,
     firstParty: true,
+    listLast: true,
   },
   {
     name: "openui-dotnet",
@@ -183,6 +186,18 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     sourceUrl:
       "https://github.com/GetStream/stream-chat-swift/tree/develop/Sources/StreamChatOpenUI",
     logo: "https://github.com/GetStream.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
+    name: "openui-sports",
+    title: "OpenUI Sports",
+    description:
+      "A SwiftUI rendering engine that shows soccer, NBA, and NFL answers written in OpenUI Lang as native iOS views while they stream, with a web preview studio and components registry.",
+    category: "app-frameworks",
+    sourceUrl: "https://github.com/mireabot/openui-gen",
+    logo: "https://github.com/mireabot.png",
     logoIsDark: false,
     runnable: false,
     firstParty: false,
@@ -568,12 +583,14 @@ export function getExamplesInCategory(category: ExampleCategoryId): RepoExample[
 }
 
 /**
- * A section's cards in page order: official first, then featured, then the rest of the community.
+ * A section's cards in page order: official first, then featured, then the rest of the community,
+ * then any marked `listLast`.
  * Within each group, first-party cards lead, then the longest description, so cards sharing a row
  * have similar heights.
  */
 export function getSortedExamplesInCategory(category: ExampleCategoryId): RepoExample[] {
-  const rank = (example: RepoExample) => (!example.community ? 0 : example.featured ? 1 : 2);
+  const rank = (example: RepoExample) =>
+    example.listLast ? 3 : !example.community ? 0 : example.featured ? 1 : 2;
   return getExamplesInCategory(category).sort(
     (a, b) =>
       rank(a) - rank(b) ||
