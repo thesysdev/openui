@@ -52,7 +52,8 @@ struct NativeCardSurface: ViewModifier {
             }
             .overlay {
                 RoundedRectangle(cornerRadius: theme.radius3xl, style: .continuous)
-                    .strokeBorder(bordered ? theme.borderDefault : .clear, lineWidth: nativePresentation.borderWidth)
+                    .strokeBorder(bordered ? nativePresentation.resolvedCardBorderColor(with: theme) : .clear,
+                        lineWidth: nativePresentation.borderWidth)
                     .allowsHitTesting(false)
             }
     }

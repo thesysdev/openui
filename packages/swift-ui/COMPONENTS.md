@@ -117,6 +117,10 @@ This includes touch targets, thumbnails, carousel widths, chart axes and
 native motion. Changing a theme does not reset this environment value.
 The renderer stays transparent; the app owns its page and message background.
 
+Cards use `borderInteractive` for a readable default outline. Set
+`presentation.cardBorderColor` when a product needs a different card boundary
+without changing form controls, Steps or other users of the shared theme tokens.
+
 ### Migrating from 0.1.1-rc.1
 
 This RC changes the theme API. In particular, `foreground` now means a surface

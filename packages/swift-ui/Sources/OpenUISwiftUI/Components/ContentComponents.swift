@@ -2,13 +2,18 @@ import OpenUILang
 import SwiftUI
 
 
+enum NativeHeadingStyle {
+  static func titleFont(compact: Bool, theme: OpenUIThemeValues) -> OpenUIFont {
+    compact ? theme.textHeadingSm : theme.textBodyLgHeavy
+  }
+}
 struct NativeHeading: View {
   let context: OpenUIComponentContext
   let compact: Bool
   var body: some View {
     VStack(alignment: .leading, spacing: context.theme.spacing(compact ? "3xs" : "xs")) {
       if let title = context.string(compact ? "heading" : "title") {
-        Text(title).openUIFont(compact ? context.theme.textHeadingSm : context.theme.textHeadingMd).accessibilityAddTraits(
+        Text(title).openUIFont(NativeHeadingStyle.titleFont(compact: compact, theme: context.theme)).accessibilityAddTraits(
           .isHeader)
       }
       if let detail = context.string(compact ? "description" : "subtitle") {
@@ -35,7 +40,8 @@ struct NativeMarkdown: View {
       .overlay {
         RoundedRectangle(cornerRadius: max(0, context.theme.radiusL - 2))
           .strokeBorder(context.string("variant") == "card" || context.string("variant") == "sunk"
-            ? context.theme.borderDefault : .clear, lineWidth: context.presentation.borderWidth)
+            ? context.presentation.resolvedCardBorderColor(with: context.theme) : .clear,
+            lineWidth: context.presentation.borderWidth)
           .allowsHitTesting(false)
       }
   }
@@ -72,7 +78,7 @@ struct NativeCallout: View {
             }
           }
           Spacer(minLength: 0)
-        }.padding(context.theme.spaceM).accessibilityElement(children: .combine)
+        }.padding(.vertical, context.theme.spaceM).accessibilityElement(children: .combine)
       }
     }.task(id: "\(state.sourceRevision):\(visible):\(context.canInteract)") {
       guard visible, context.canInteract, binding != nil else { return }
@@ -478,8 +484,8 @@ struct NativeSteps: View {
         .padding(.bottom, index < items.count - 1 ? context.theme.spacing("m") : 0)
         .background(alignment: .topLeading) {
           if index < items.count - 1 {
-            Rectangle().fill(context.theme.borderDefault)
-              .frame(width: 1 / displayScale)
+            Rectangle().fill(context.theme.borderInteractive)
+              .frame(width: 1.5 / displayScale)
               .padding(.top, markerDiameter + context.theme.spacing("xs")).offset(x: markerDiameter / 2)
               .accessibilityHidden(true)
           }

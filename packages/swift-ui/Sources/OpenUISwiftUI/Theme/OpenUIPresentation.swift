@@ -17,6 +17,7 @@ public struct OpenUIPresentation {
     public var maximumCarouselCardWidth: CGFloat = 320
     public var carouselPeek: CGFloat = 32
     public var borderWidth: CGFloat = 1
+    public var cardBorderColor: Color?
     public var minimumCardWidth: CGFloat = 240
     public var minimumCompactCardWidth: CGFloat = 160
     public var minimumChoiceWidth: CGFloat = 136
@@ -26,4 +27,7 @@ public struct OpenUIPresentation {
     // This is native geometry, not a new model-facing style parameter.
     var singleStackedBarThickness: CGFloat = 28
     public init() {}
+    public func resolvedCardBorderColor(with theme: OpenUIThemeValues) -> Color {
+        cardBorderColor ?? theme.borderInteractive
+    }
 }
