@@ -172,15 +172,19 @@ export function ArtifactRendererRoot({
   requestRef.current = { id, version: stream.version };
 
   // A data call OpenUI Cloud refused because the artifact moved on
-  // (`ARTIFACT_VERSION_MISMATCH`): if the newer version is already on screen,
-  // the queries just run again; otherwise the artifact is read again, once per
-  // version, and they run once it's shown. The refusals wait out the re-read
-  // and show only if it comes back on the same version, a real mismatch.
+  // (`ARTIFACT_VERSION_MISMATCH`): if a newer version is already on screen, the
+  // queries run again; otherwise the artifact is read again and they run once
+  // it's shown. One automatic recovery per run of refusals: late refusals for a
+  // version already handled are absorbed, but a refusal for the version the
+  // recovery reached (a real mismatch, or a server whose versions keep
+  // changing) shows the error. A successful call starts over.
   const refreshRef = useRef(stream.refresh);
   refreshRef.current = stream.refresh;
   const staleVersionRef = useRef<string | null>(null);
   /** Refusals held back while the re-read runs; `null` once it's back. */
   const heldErrorsRef = useRef<Record<string, string> | null>(null);
+  const recoveryRef = useRef<"idle" | "recovering" | "gave-up">("idle");
+  const handledVersionsRef = useRef(new Set<string>());
   // Once per version on screen: refusals for an older version can keep
   // landing after the queries ran again, and each re-run re-sends them all.
   const rerunForVersionRef = useRef<string | undefined>(undefined);
@@ -190,16 +194,26 @@ export function ArtifactRendererRoot({
     setToolErrors({});
     setRendererKey((key) => key + 1);
   }, []);
+  // Another artifact: nothing carries over.
+  useEffect(() => {
+    staleVersionRef.current = null;
+    heldErrorsRef.current = null;
+    recoveryRef.current = "idle";
+    handledVersionsRef.current = new Set();
+    rerunForVersionRef.current = undefined;
+  }, [id]);
   useEffect(() => {
     const staleVersion = staleVersionRef.current;
     if (staleVersion === null || stream.isStreaming) return;
     const held = heldErrorsRef.current;
     heldErrorsRef.current = null;
+    staleVersionRef.current = null;
     if (stream.version !== staleVersion) {
-      staleVersionRef.current = null;
       rerunQueries(stream.version);
-    } else if (held) {
-      setToolErrors((current) => ({ ...current, ...held }));
+    } else {
+      // The re-read came back on the refused version: a real mismatch.
+      recoveryRef.current = "gave-up";
+      if (held) setToolErrors((current) => ({ ...current, ...held }));
     }
   }, [stream.version, stream.isStreaming, rerunQueries]);
 
@@ -212,20 +226,34 @@ export function ArtifactRendererRoot({
         onSettle: (toolName, message, detail) => {
           setInFlight((count) => Math.max(0, count - 1));
           if (detail?.code === "ARTIFACT_VERSION_MISMATCH" && detail.version !== undefined) {
-            if (detail.version !== requestRef.current.version) {
-              rerunQueries(requestRef.current.version);
+            // A re-read for this version is under way: hold the refusal.
+            if (heldErrorsRef.current && detail.version === staleVersionRef.current) {
+              if (message !== null) heldErrorsRef.current[toolName] = message;
               return;
             }
-            const refresh = refreshRef.current;
-            if (staleVersionRef.current === null && refresh) {
-              staleVersionRef.current = detail.version;
-              heldErrorsRef.current = {};
-              refresh();
+            const handled = handledVersionsRef.current.has(detail.version);
+            if (recoveryRef.current === "recovering" && handled) return;
+            if (recoveryRef.current === "idle") {
+              const onScreen = requestRef.current.version;
+              const refresh = refreshRef.current;
+              if (detail.version !== onScreen || refresh) {
+                recoveryRef.current = "recovering";
+                handledVersionsRef.current.add(detail.version);
+                if (detail.version !== onScreen) {
+                  rerunQueries(onScreen);
+                } else {
+                  staleVersionRef.current = detail.version;
+                  heldErrorsRef.current = message !== null ? { [toolName]: message } : {};
+                  refresh!();
+                }
+                return;
+              }
+            } else if (recoveryRef.current === "recovering") {
+              // The version the recovery reached was refused too.
+              recoveryRef.current = "gave-up";
             }
-            if (heldErrorsRef.current && message !== null) {
-              heldErrorsRef.current[toolName] = message;
-              return;
-            }
+          } else if (message === null) {
+            recoveryRef.current = "idle";
           }
           setToolErrors((current) => {
             if (message === null) {
