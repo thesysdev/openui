@@ -169,7 +169,7 @@ export class ArtifactStreamStore {
   }
 
   /** Reads the artifact again, after the running stream if there is one. */
-  refresh(id: string): void {
+  private refresh(id: string): void {
     const entry = this.entry(id);
     if (!entry.started) return;
     if (entry.controller && entry.snapshot.isStreaming) entry.stale = true;
