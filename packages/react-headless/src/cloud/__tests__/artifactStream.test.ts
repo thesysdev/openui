@@ -130,7 +130,7 @@ describe("ArtifactStreamStore", () => {
 describe("ArtifactStreamStore version refusals", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("an older version than the one on screen re-runs every renderer's calls, once", async () => {
+  it("an older version than the one on screen: re-run, no read", async () => {
     const storage = storageWith({ v1: "root = A", v2: "root = B" });
     const store = new ArtifactStreamStore({ ...unused, ...storage });
     store.subscribe("a1", () => {});
@@ -138,48 +138,41 @@ describe("ArtifactStreamStore version refusals", () => {
     storage.current = "v2";
     store.noteVersion("a1", "v2");
     await tick();
-    expect(store.versionMismatch("a1", "v1")).toBe("drop");
-    expect(store.getSnapshot("a1").rerun).toBe(1);
-    // Late refusals of calls made with v1, from this or another renderer.
-    expect(store.versionMismatch("a1", "v1")).toBe("drop");
-    expect(store.versionMismatch("a1", "v0")).toBe("drop");
-    expect(store.getSnapshot("a1").rerun).toBe(1);
+    await expect(store.versionMismatch("a1", "v1")).resolves.toBe("rerun");
     expect(storage.connections).toEqual(["v1", "v2"]);
   });
 
-  it("the version on screen is read again once for all renderers, then re-runs on a newer one", async () => {
+  it("the version on screen: one re-read shared by every refusal, then re-run on a newer one", async () => {
     const storage = storageWith({ v1: "root = A", v2: "root = B" });
     const store = new ArtifactStreamStore({ ...unused, ...storage });
     store.subscribe("a1", () => {});
     await tick();
     storage.current = "v2"; // edited elsewhere
-    expect(store.versionMismatch("a1", "v1")).toBe("hold");
-    expect(store.versionMismatch("a1", "v1")).toBe("hold"); // a second renderer
-    await tick();
+    const first = store.versionMismatch("a1", "v1");
+    const second = store.versionMismatch("a1", "v1"); // another renderer
+    expect(second).toBe(first);
+    await expect(first).resolves.toBe("rerun");
     expect(storage.connections).toEqual(["v1", "v2"]);
-    expect(store.getSnapshot("a1")).toMatchObject({ version: "v2", rerun: 1 });
-    expect(store.getSnapshot("a1").versionMismatch).toBeFalsy();
-    expect(store.versionMismatch("a1", "v1")).toBe("drop");
+    expect(store.getSnapshot("a1")).toMatchObject({ version: "v2", program: "root = B" });
   });
 
-  it("the same version coming back is a real mismatch: held refusals show, no more reads", async () => {
+  it("the same version back is a real mismatch; no other re-read for 10 s", async () => {
+    let now = 1_000;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
     const storage = storageWith({ v1: "root = A" });
     const store = new ArtifactStreamStore({ ...unused, ...storage });
     store.subscribe("a1", () => {});
     await tick();
-    expect(store.versionMismatch("a1", "v1")).toBe("hold");
-    await tick();
-    expect(store.getSnapshot("a1").versionMismatch).toBe(true);
-    expect(store.getSnapshot("a1").rerun).toBeUndefined();
-    expect(store.versionMismatch("a1", "v1")).toBe("show"); // "Try again"
+    await expect(store.versionMismatch("a1", "v1")).resolves.toBe("show");
+    await expect(store.versionMismatch("a1", "v1")).resolves.toBe("show"); // "Try again"
     expect(storage.connections).toEqual(["v1", "v1"]);
-    store.dataSucceeded("a1");
-    expect(store.getSnapshot("a1").versionMismatch).toBe(false);
+    now += 10_000;
+    await expect(store.versionMismatch("a1", "v1")).resolves.toBe("show");
+    expect(storage.connections).toEqual(["v1", "v1", "v1"]);
   });
 
-  it("a server whose version changes on every read stops after one re-read, even when other calls succeed", async () => {
-    let now = 1_000_000;
-    vi.spyOn(Date, "now").mockImplementation(() => now);
+  it("a server whose version changes on every read stops after one re-read", async () => {
+    vi.spyOn(performance, "now").mockReturnValue(1_000);
     const connections: string[] = [];
     const storage: ArtifactStorage = {
       ...unused,
@@ -194,26 +187,14 @@ describe("ArtifactStreamStore version refusals", () => {
     const store = new ArtifactStreamStore(storage);
     store.subscribe("a1", () => {});
     await tick();
-    expect(store.versionMismatch("a1", "v1")).toBe("hold");
-    await tick();
-    expect(store.getSnapshot("a1")).toMatchObject({ version: "v2", rerun: 1 });
-    // The re-run: a direct tool call succeeds, the script is refused for v2.
-    store.dataSucceeded("a1");
-    expect(store.versionMismatch("a1", "v2")).toBe("show");
-    store.dataSucceeded("a1");
-    expect(store.versionMismatch("a1", "v2")).toBe("show");
+    await expect(store.versionMismatch("a1", "v1")).resolves.toBe("rerun");
+    // The re-run is refused for v2, the version the re-read brought.
+    await expect(store.versionMismatch("a1", "v2")).resolves.toBe("show");
     await tick();
     expect(connections).toEqual(["v1", "v2"]);
-
-    // Later, a new run of refusals recovers again.
-    now += 10_000;
-    store.dataSucceeded("a1");
-    expect(store.versionMismatch("a1", "v2")).toBe("hold");
-    await tick();
-    expect(connections).toEqual(["v1", "v2", "v3"]);
   });
 
-  it("a refusal during a stream waits for it, and settles after the catch-up read", async () => {
+  it("a refusal during a stream is answered after the catch-up read", async () => {
     const connections: string[] = [];
     let current = "v1";
     let release!: () => void;
@@ -233,12 +214,10 @@ describe("ArtifactStreamStore version refusals", () => {
     store.subscribe("a1", () => {});
     await tick();
     current = "v2";
-    expect(store.versionMismatch("a1", "v1")).toBe("hold");
+    const answer = store.versionMismatch("a1", "v1");
     release();
-    await tick();
+    await expect(answer).resolves.toBe("rerun");
     expect(connections).toEqual(["v1", "v2"]);
-    expect(store.getSnapshot("a1")).toMatchObject({ version: "v2", rerun: 1 });
-    expect(store.getSnapshot("a1").versionMismatch).toBeFalsy();
   });
 });
 
@@ -311,19 +290,21 @@ describe("useArtifactStream", () => {
     expect(B).toMatchObject({ program: "root = A", isStreaming: false });
   });
 
-  it("two renderers share one recovery: one re-read, and both see the re-run", async () => {
+  it("two renderers refused together share one re-read", async () => {
     const storage = storageWith({ v1: "root = A", v2: "root = B" });
     await openThenMountCard({ ...unused, ...storage });
     storage.current = "v2";
-    let verdicts: string[] = [];
+    let answers: string[] = [];
     await act(async () => {
-      verdicts = [states.A!.reportVersionMismatch!("v1"), states.B!.reportVersionMismatch!("v1")];
-      await tick();
+      answers = await Promise.all([
+        states.A!.reportVersionMismatch!("v1"),
+        states.B!.reportVersionMismatch!("v1"),
+      ]);
     });
-    expect(verdicts).toEqual(["hold", "hold"]);
+    expect(answers).toEqual(["rerun", "rerun"]);
     expect(storage.connections).toEqual(["v1", "v2"]);
-    expect(states.A).toMatchObject({ version: "v2", rerun: 1 });
-    expect(states.B).toMatchObject({ version: "v2", rerun: 1 });
+    expect(states.A).toMatchObject({ version: "v2" });
+    expect(states.B).toMatchObject({ version: "v2" });
   });
 
   it("an artifact in your own storage has nothing to report", async () => {
@@ -331,7 +312,6 @@ describe("useArtifactStream", () => {
       root.render(createElement(OwnContent));
     });
     expect(ownState?.reportVersionMismatch).toBeUndefined();
-    expect(ownState?.reportDataSuccess).toBeUndefined();
   });
 });
 

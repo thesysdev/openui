@@ -171,67 +171,51 @@ export function ArtifactRendererRoot({
   const requestRef = useRef<{ id: typeof id; version?: string }>({ id });
   requestRef.current = { id, version: stream.version };
 
-  // A data call OpenUI Cloud refused because the artifact moved on
-  // (`ARTIFACT_VERSION_MISMATCH`). The artifact's store recovers once for all
-  // its renderers and says what to do with each refusal: hold it while it reads
-  // the artifact again, drop it, or show it. `rerun` asks every renderer to run
-  // its queries again; `versionMismatch` says the held refusals are real.
+  // A call refused because the artifact moved on: the store says whether to run
+  // the queries again (once per refused version) or show the error.
   const reportVersionMismatchRef = useRef(stream.reportVersionMismatch);
   reportVersionMismatchRef.current = stream.reportVersionMismatch;
-  const reportDataSuccessRef = useRef(stream.reportDataSuccess);
-  reportDataSuccessRef.current = stream.reportDataSuccess;
-  /** Refusals held while the store reads the artifact again. */
-  const heldErrorsRef = useRef<Record<string, string>>({});
-  const rerun = `${id}:${stream.rerun ?? 0}`;
-  const lastRerunRef = useRef(rerun);
-  useEffect(() => {
-    if (lastRerunRef.current === rerun) return;
-    lastRerunRef.current = rerun;
-    heldErrorsRef.current = {};
-    setToolErrors({});
-    setRendererKey((key) => key + 1);
-  }, [rerun]);
-  useEffect(() => {
-    if (!stream.versionMismatch) return;
-    const held = heldErrorsRef.current;
-    heldErrorsRef.current = {};
-    if (Object.keys(held).length > 0) setToolErrors((current) => ({ ...current, ...held }));
-  }, [stream.versionMismatch]);
+  const rerunForRef = useRef<{ id: typeof id; version: string } | null>(null);
 
-  const toolProvider = useMemo(
-    () =>
-      createInterpreterToolProvider({
-        getInterpreter: () => interpreterRef.current,
-        getRequest: () => requestRef.current,
-        onStart: () => setInFlight((count) => count + 1),
-        onSettle: (toolName, message, detail) => {
-          setInFlight((count) => Math.max(0, count - 1));
-          if (message === null) {
-            reportDataSuccessRef.current?.();
-          } else if (
-            detail?.code === "ARTIFACT_VERSION_MISMATCH" &&
-            detail.version !== undefined &&
-            reportVersionMismatchRef.current
-          ) {
-            const verdict = reportVersionMismatchRef.current(detail.version);
-            if (verdict === "drop") return;
-            if (verdict === "hold") {
-              heldErrorsRef.current[toolName] = message;
-              return;
-            }
-          }
-          setToolErrors((current) => {
-            if (message === null) {
-              if (!(toolName in current)) return current;
-              const { [toolName]: _cleared, ...rest } = current;
-              return rest;
-            }
-            return current[toolName] === message ? current : { ...current, [toolName]: message };
-          });
-        },
-      }),
-    [],
-  );
+  const toolProvider = useMemo(() => {
+    const setToolError = (toolName: string, message: string | null) =>
+      setToolErrors((current) => {
+        if (message === null) {
+          if (!(toolName in current)) return current;
+          const { [toolName]: _cleared, ...rest } = current;
+          return rest;
+        }
+        return current[toolName] === message ? current : { ...current, [toolName]: message };
+      });
+    const rerunFor = (refused: { id: typeof id; version: string }) => {
+      const last = rerunForRef.current;
+      if (last?.id === refused.id && last.version === refused.version) return;
+      rerunForRef.current = refused;
+      setToolErrors({});
+      setRendererKey((key) => key + 1);
+    };
+    return createInterpreterToolProvider({
+      getInterpreter: () => interpreterRef.current,
+      getRequest: () => requestRef.current,
+      onStart: () => setInFlight((count) => count + 1),
+      onSettle: (toolName, message, detail) => {
+        setInFlight((count) => Math.max(0, count - 1));
+        const report = reportVersionMismatchRef.current;
+        if (detail?.code !== "ARTIFACT_VERSION_MISMATCH" || !detail.version || !report) {
+          setToolError(toolName, message);
+          return;
+        }
+        // A call for the artifact this renderer showed before.
+        if (detail.id !== requestRef.current.id) return;
+        const refused = { id: detail.id, version: detail.version };
+        void report(refused.version).then((answer) => {
+          if (refused.id !== requestRef.current.id) return;
+          if (answer === "rerun") rerunFor(refused);
+          else setToolError(toolName, message);
+        });
+      },
+    });
+  }, []);
 
   // ── Errors and retry ──
   // The artifact's own error is the stream's, as is, so it keeps its identity

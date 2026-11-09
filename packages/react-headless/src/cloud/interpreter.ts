@@ -46,28 +46,14 @@ export interface InterpreterToolProviderOptions {
   /** Called when a call starts. */
   onStart?: (toolName: string) => void;
   /**
-   * Called when a call settles; `message` is `null` on success. On failure,
-   * `detail` has the error's `code` when the interpreter sent one (such as
-   * OpenUI Cloud's `ARTIFACT_VERSION_MISMATCH`) and the `version` the call ran against.
+   * Called when a call settles; `message` is `null` on success. On failure, `detail`
+   * has the error's `code`, if any, and the artifact `id` and `version` the call ran with.
    */
-  onSettle?: (toolName: string, message: string | null, detail?: InterpreterSettleDetail) => void;
-}
-
-/** @category Types */
-export interface InterpreterSettleDetail {
-  code?: string;
-  version?: string;
-}
-
-/** An interpreter error that kept the endpoint's error code. @category Types */
-export class InterpreterError extends Error {
-  constructor(
-    message: string,
-    readonly code?: string,
-  ) {
-    super(message);
-    this.name = "InterpreterError";
-  }
+  onSettle?: (
+    toolName: string,
+    message: string | null,
+    detail?: { code?: string; id: string; version?: string },
+  ) => void;
 }
 
 function errorMessage(error: unknown): string | undefined {
@@ -106,10 +92,8 @@ async function callEndpoint(
     body = null;
   }
   if (!res.ok || (body?.error !== undefined && body.error !== null)) {
-    throw new InterpreterError(
-      errorMessage(body?.error) ?? `Interpreter request failed: ${res.status}`,
-      errorCode(body?.error),
-    );
+    const message = errorMessage(body?.error) ?? `Interpreter request failed: ${res.status}`;
+    throw Object.assign(new Error(message), { code: errorCode(body?.error) });
   }
   return body?.result;
 }
@@ -150,8 +134,10 @@ export function createInterpreterToolProvider(
         options.onSettle?.(name, null);
         return { content: [], structuredContent: result ?? null };
       } catch (error) {
+        const code = errorCode(error);
         options.onSettle?.(name, errorMessage(error) ?? "The data tool failed.", {
-          ...(errorCode(error) !== undefined && { code: errorCode(error) }),
+          ...(code !== undefined && { code }),
+          id,
           ...(version !== undefined && { version }),
         });
         throw error;
