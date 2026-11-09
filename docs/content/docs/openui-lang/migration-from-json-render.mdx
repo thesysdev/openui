@@ -1,0 +1,400 @@
+---
+title: Migrating from json-render
+description: Map json-render catalogs, specs, renderers, actions, and streaming concepts to OpenUI Lang.
+---
+
+If you are using [json-render](https://github.com/vercel-labs/json-render) and want to move to OpenUI Lang, the most useful way to think about the migration is as a change in the model-facing UI language and runtime, not as a component-by-component rename.
+
+Both projects use the same broad architecture:
+
+1. The application defines the UI vocabulary available to the model.
+2. The model generates a constrained UI representation.
+3. A renderer maps that representation to application components.
+4. The application owns side effects such as data access and actions.
+5. The UI can be delivered progressively while the model is generating it.
+
+The main difference is the representation and the way the contract is created:
+
+- json-render centers on a catalog and a JSON tree.
+- OpenUI centers on a component library and OpenUI Lang, a streaming-first language with component signatures generated from Zod schemas.
+
+There is no automatic one-to-one conversion for every application. Use the mapping below to move the boundaries one at a time.
+
+## Concept mapping
+
+| json-render | OpenUI Lang | Migration note |
+| --- | --- | --- |
+| `defineCatalog(...)` | `defineComponent(...)` + `createLibrary(...)` | Define each model-renderable component with a schema, then assemble the library. |
+| Catalog component schema | `props: z.object(...)` | Keep required fields first and optional fields last so the generated signature is easy for the model to use. |
+| Component description | `description` | OpenUI uses descriptions when it generates the system prompt. |
+| Catalog action definitions | `Action(...)`, `@Run`, `@Set`, `@Reset`, `@ToAssistant`, or `onAction` | Choose between runtime actions, tool-backed queries/mutations, and host callbacks based on the behavior you need. |
+| Registry | The `component` renderer in `defineComponent(...)` | The implementation stays in the host application; the library is the model-facing contract. |
+| JSON spec with `root` and `elements` | OpenUI Lang statements and references | OpenUI names statements directly and composes them with references such as `Card.ref` or `z.array(Child.ref)`. |
+| `Renderer` with a json-render `spec` and `registry` | `<Renderer library={...} response={...} />` | Pass the library and the streamed OpenUI Lang response to the OpenUI renderer. |
+| `SpecStream` | The OpenUI parser and renderer's streaming response path | Feed the growing OpenUI Lang response to `<Renderer />`; the parser re-runs as chunks arrive. |
+| `$state`, `$cond`, `$template` | `$variables`, expressions, and conditional expressions | Translate state paths into named OpenUI variables and expressions rather than copying the JSON expression objects. |
+| `$bindState` | Passing a `$variable` to a reactive input prop | OpenUI creates two-way binding when an input receives a `$variable`. |
+| `watch` | Queries, mutations, and actions that reference reactive variables | Re-fetching and re-evaluation happen through OpenUI's reactive state and tool model. |
+
+The catalog/spec/renderer separation is still useful after the migration. The names and wire format change, but the responsibilities remain distinct.
+
+## 1. Move the catalog into an OpenUI library
+
+A json-render catalog typically describes component props and actions:
+
+```tsx
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Metric: {
+      props: z.object({
+        label: z.string(),
+        value: z.string(),
+      }),
+      description: "Display a metric value.",
+    },
+  },
+  actions: {
+    refresh_data: { description: "Refresh dashboard data." },
+  },
+});
+```
+
+In OpenUI, define the renderable component and assemble a library:
+
+```tsx
+import { createLibrary, defineComponent } from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+const Metric = defineComponent({
+  name: "Metric",
+  description: "Display a metric value.",
+  props: z.object({
+    label: z.string(),
+    value: z.string(),
+  }),
+  component: ({ props }) => (
+    <div>
+      <strong>{props.label}</strong>
+      <div>{props.value}</div>
+    </div>
+  ),
+});
+
+export const library = createLibrary({
+  root: "Metric",
+  components: [Metric],
+});
+```
+
+### Important differences
+
+- `defineComponent` combines the schema, description, and renderer that json-render keeps in separate catalog and registry objects.
+- The property order in the Zod object defines positional argument order in OpenUI Lang.
+- Nested components are represented with component references. For example, use `z.array(Item.ref)` for a list of `Item` children.
+- `root` tells the prompt and parser which component must be the program entry point. It also gives the renderer a stable shell to display while children stream in.
+- You can extend a built-in library instead of starting from an empty one. See [Overview](/docs/openui-lang/overview#extend-a-built-in-library).
+
+## 2. Translate the generated UI representation
+
+A standard json-render spec uses an ID-based element map:
+
+```ts
+const spec = {
+  root: "card-1",
+  elements: {
+    "card-1": {
+      type: "Card",
+      props: { title: "Tickets" },
+      children: ["metric-1"],
+    },
+    "metric-1": {
+      type: "Metric",
+      props: { label: "Open", value: "12" },
+      children: [],
+    },
+  },
+};
+```
+
+The equivalent OpenUI Lang program names each statement and references the child:
+
+```text
+root = Card("Tickets", [metric])
+metric = Metric("Open", "12")
+```
+
+The exact arguments depend on your library schema. The migration is not a mechanical JSON-to-text conversion: redesign each component signature so the most important information is clear and streamable.
+
+### Composition rules
+
+For json-render, child relationships are IDs in `children`. In OpenUI, model-visible child relationships are part of the component schema:
+
+```tsx
+const Metric = defineComponent({
+  name: "Metric",
+  description: "Display a metric.",
+  props: z.object({ label: z.string(), value: z.string() }),
+  component: ({ props }) => <div>{props.label}: {props.value}</div>,
+});
+
+const Dashboard = defineComponent({
+  name: "Dashboard",
+  description: "A dashboard containing metric cards.",
+  props: z.object({ metrics: z.array(Metric.ref) }),
+  component: ({ props, renderNode }) => <div>{renderNode(props.metrics)}</div>,
+});
+```
+
+This makes valid child types part of the schema instead of relying on a separate `children` array convention.
+
+## 3. Replace catalog prompts with generated system prompts
+
+json-render can generate a model-facing prompt from its catalog:
+
+```ts
+const systemPrompt = catalog.prompt();
+```
+
+For OpenUI, generate a serialized library specification and build the prompt on the backend:
+
+```bash
+pnpx @openuidev/cli@latest generate ./src/library.ts
+```
+
+This produces a prompt and a `.spec.json` file. Use the spec with `generateSystemPrompt`:
+
+```ts
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import librarySpec from "./generated/library.spec.json";
+
+const systemPrompt = generateSystemPrompt({
+  library: librarySpec as LibrarySpec,
+  promptOptions: {
+    preamble: "You build a support dashboard using OpenUI Lang.",
+    inlineMode: true,
+    bindings: true,
+    toolCalls: true,
+    additionalRules: [
+      "Use Dashboard as the root component.",
+      "Use a separate statement for each metric card so the UI streams progressively.",
+    ],
+  },
+});
+```
+
+Use `library.prompt(...)` only when generating the prompt in an environment that can import the component library. For backend or Edge routes, the generated spec plus `generateSystemPrompt` avoids importing React components into the backend.
+
+## 4. Replace the registry and renderer
+
+A json-render application normally connects a catalog to concrete implementations with a registry:
+
+```tsx
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Metric: ({ props }) => <MetricView {...props} />,
+  },
+});
+
+<Renderer spec={spec} registry={registry} />;
+```
+
+In OpenUI, the implementation is attached when the component is defined:
+
+```tsx
+import { Renderer } from "@openuidev/react-lang";
+
+<Renderer
+  library={library}
+  response={openuiResponse}
+  isStreaming={isStreaming}
+/>
+```
+
+`response` is the raw OpenUI Lang text. As the response grows, the parser re-runs, resolves references when they arrive, and renders the parts of the tree that are currently valid.
+
+For custom components, `Renderer` can also provide:
+
+- `onAction` for structured action events
+- `onStateUpdate` and `initialState` for form-state persistence
+- `toolProvider` for `Query()` and `Mutation()` calls
+- `onError` for structured parser and runtime errors
+
+See [The Renderer](/docs/openui-lang/renderer) for the complete prop reference.
+
+## 5. Migrate state and expressions
+
+json-render expressions are data values inside the JSON spec. For example, a component might read a state path:
+
+```json
+{
+  "type": "Text",
+  "props": {
+    "value": { "$state": "/filters/days" }
+  }
+}
+```
+
+OpenUI declares state as named variables:
+
+```text
+$days = "7"
+label = TextContent("Showing the last " + $days + " days")
+```
+
+Bind a variable to an input to make it two-way:
+
+```text
+$days = "7"
+filter = Select("days", $days, [
+  SelectItem("7", "7 days"),
+  SelectItem("30", "30 days")
+])
+```
+
+When `$days` changes, expressions that reference it re-evaluate and `Query()` calls that use it in their arguments re-fetch automatically.
+
+### Common expression translations
+
+| json-render expression | OpenUI approach |
+| --- | --- |
+| `{ "$state": "/filters/days" }` | `$days` or another named `$variable` |
+| `{ "$cond": ..., "$then": ..., "$else": ... }` | A ternary expression or conditional component value |
+| `{ "$template": "..." }` | String concatenation or interpolation using `$variables` |
+| `{ "$bindState": "/filters/days" }` | Pass `$days` to a reactive input prop |
+| `visible` condition | A conditional expression that returns a component or `null` |
+
+Do not copy json-render state paths into props as plain strings. Decide which values should be reactive, declare them as `$variables`, and pass the variable to the component or query that depends on it.
+
+## 6. Migrate actions and data access
+
+json-render actions are declared in the catalog and handled by the host application. OpenUI separates the common cases into a few mechanisms:
+
+### UI actions
+
+Use `Action` with built-in steps for UI state and runtime behavior:
+
+```text
+$showEdit = false
+save = Button("Save", Action([
+  @Set($showEdit, false),
+  @Reset($title)
+]))
+```
+
+Use `@ToAssistant` or a component's `useTriggerAction` when an interaction should send an intent back to the assistant. Use `onAction` when the host application needs to handle a structured event:
+
+```tsx
+<Renderer
+  library={library}
+  response={content}
+  onAction={(event) => {
+    if (event.type === "continue_conversation") {
+      sendToAssistant(event.humanFriendlyMessage);
+    }
+  }}
+/>
+```
+
+### Data access
+
+For data reads and writes, expose tools and use `Query()` or `Mutation()` in the OpenUI program:
+
+```text
+tickets = Query("list_tickets", {status: "open"}, {rows: []})
+create = Mutation("create_ticket", {title: $title}, {ok: false})
+refresh = Button("Refresh", Action([@Run(tickets)]))
+```
+
+Provide the host implementation through `toolProvider`:
+
+```tsx
+<Renderer
+  library={library}
+  response={content}
+  toolProvider={{
+    list_tickets: async (args) => fetch("/api/tickets").then((r) => r.json()),
+    create_ticket: async (args) =>
+      fetch("/api/tickets", {
+        method: "POST",
+        body: JSON.stringify(args),
+      }).then((r) => r.json()),
+  }}
+/>
+```
+
+The exact tool names and argument schemas are application-specific. Validate arguments and handle authentication and errors in the host implementation.
+
+## 7. Translate streaming and incremental updates
+
+json-render uses `createSpecStreamCompiler` to accumulate chunks into a partial spec:
+
+```ts
+const compiler = createSpecStreamCompiler<MySpec>();
+const { result } = compiler.push(chunk);
+setSpec(result);
+```
+
+With OpenUI, keep the response text as it streams and pass the latest text to the renderer:
+
+```tsx
+<Renderer
+  library={library}
+  response={partialOpenUIResponse}
+  isStreaming={true}
+/>
+```
+
+OpenUI's parser is line-oriented and streaming-compatible. The root statement can render first, while child statements arrive later. Forward references are resolved when their statements arrive, and malformed or incomplete statements are reported through the renderer's error handling.
+
+For follow-up edits to an existing UI, enable `editMode` in the prompt options. The model can output only changed or new statements, and the parser merges them by statement name:
+
+- The same name replaces the previous definition.
+- A new name adds a statement.
+- A missing name remains unchanged.
+- Removing a statement from the root's children makes it unreachable and eligible for cleanup.
+
+This is the closest OpenUI equivalent to applying incremental patches to an accumulated json-render spec.
+
+## Recommended migration sequence
+
+1. Inventory the json-render catalog, registry, actions, and state expressions.
+2. Start with one small vertical slice, such as a metric card or a read-only dashboard.
+3. Convert catalog components into `defineComponent` declarations with Zod props.
+4. Assemble a library and choose a root component.
+5. Generate the OpenUI system prompt from the library spec.
+6. Convert one representative JSON spec into OpenUI Lang by hand.
+7. Render the OpenUI response with `<Renderer />`.
+8. Move state paths to `$variables` and replace JSON expressions with OpenUI expressions.
+9. Move host actions to `Action`, `onAction`, `Query`, or `Mutation` as appropriate.
+10. Add streaming, then enable `editMode` only after full generation works reliably.
+11. Keep the original json-render implementation behind a feature flag until the migrated slice has equivalent behavior.
+
+## Migration checklist
+
+- [ ] Every model-renderable component has a `defineComponent` declaration.
+- [ ] Every component has a clear description and a Zod props schema.
+- [ ] The library has an explicit `root` component.
+- [ ] The backend uses a generated library spec with `generateSystemPrompt`.
+- [ ] JSON `children` relationships are represented by OpenUI component references.
+- [ ] State paths have been translated to named `$variables` where reactivity is needed.
+- [ ] Data reads and writes have explicit tool implementations.
+- [ ] UI actions have an intentional mapping to `Action`, `onAction`, or assistant actions.
+- [ ] The renderer handles partial responses and reports errors.
+- [ ] Streaming works before incremental edit mode is enabled.
+- [ ] Application-specific components and actions have been tested with representative prompts.
+
+## Related OpenUI documentation
+
+- [Overview](/docs/openui-lang/overview)
+- [Defining Components](/docs/openui-lang/defining-components)
+- [System Prompts](/docs/openui-lang/system-prompts)
+- [The Renderer](/docs/openui-lang/renderer)
+- [Interactivity](/docs/openui-lang/interactivity)
+- [Reactive State](/docs/openui-lang/reactive-state)
+- [Queries and Mutations](/docs/openui-lang/queries-mutations)
+- [Incremental Editing](/docs/openui-lang/incremental-editing)
+- [Feature Comparison](/docs/openui-lang/comparison)
