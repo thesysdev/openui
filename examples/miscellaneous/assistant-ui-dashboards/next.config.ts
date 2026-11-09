@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   turbopack: { root: process.cwd() },
+  // The badge would sit over the sidebar's list.
+  devIndicators: { position: "bottom-right" },
   // With THESYS_BASE_URL set, such as a local stack, the browser reaches it through this app's
   // origin, so it needs no CORS setup. The page tells the browser to do so.
   async rewrites() {

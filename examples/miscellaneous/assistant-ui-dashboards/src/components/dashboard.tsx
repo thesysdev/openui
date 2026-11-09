@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { ToolCallMessagePartProps } from "@assistant-ui/react";
+import { useAui, useAuiState, type ToolCallMessagePartProps } from "@assistant-ui/react";
 import { ThemeProvider } from "@openuidev/dashboard-library";
 import { LiveArtifactRenderer, useArtifactRenderer } from "@openuidev/react-ui/cloud";
 import {
@@ -35,7 +35,10 @@ type Open = DashboardSource & { key: string };
 
 const OpenDashboard = createContext<{
   open: Open | null;
+  /** Opens a dashboard beside the current chat, or closes it with `null`. */
   setOpen: (open: Open | null) => void;
+  /** Opens a dashboard beside its chat, switching to it; with no chat, beside a new one. */
+  openInChat: (open: Open, chatId: string | undefined) => void;
   /** The open dashboard's artifact id, once its renderer knows it. */
   openId: string | null;
   setOpenId: (id: string | null) => void;
@@ -45,6 +48,7 @@ const OpenDashboard = createContext<{
 }>({
   open: null,
   setOpen: () => {},
+  openInChat: () => {},
   openId: null,
   setOpenId: () => {},
   saved: 0,
@@ -52,12 +56,38 @@ const OpenDashboard = createContext<{
 });
 
 export function OpenDashboardProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState<Open | null>(null);
+  const aui = useAui();
+  // `moving`: the dashboard waits for the chat switch it asked for, then stays with that chat.
+  const [state, setState] = useState<{ open: Open; moving: boolean } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [saved, setSaved] = useState(0);
   const onSaved = useCallback(() => setSaved((count) => count + 1), []);
+
+  // The panel belongs to its chat: switching chats closes it.
+  const threadId = useAuiState((s) => s.threads.mainThreadId);
+  useEffect(
+    () => setState((current) => (current?.moving ? { ...current, moving: false } : null)),
+    [threadId],
+  );
+
+  const setOpen = useCallback((open: Open | null) => setState(open && { open, moving: false }), []);
+  const openInChat = useCallback(
+    (open: Open, chatId: string | undefined) => {
+      const { mainThreadId, newThreadId } = aui.threads.getState();
+      // Already beside its chat, or, with none, beside an empty new chat.
+      if (chatId ? chatId === mainThreadId : mainThreadId === newThreadId) return setOpen(open);
+      setState({ open, moving: true });
+      if (chatId) aui.threads.switchToThread(chatId);
+      else aui.threads.switchToNewThread();
+    },
+    [aui, setOpen],
+  );
+
+  const open = state?.open ?? null;
   return (
-    <OpenDashboard.Provider value={{ open, setOpen, openId, setOpenId, saved, onSaved }}>
+    <OpenDashboard.Provider
+      value={{ open, setOpen, openInChat, openId, setOpenId, saved, onSaved }}
+    >
       {children}
     </OpenDashboard.Provider>
   );
@@ -87,27 +117,75 @@ export function DashboardCard({
   const isOpen = open?.key === toolCallId;
   const response = !isError && typeof result === "string" ? result : undefined;
 
-  // Opens once, when the result arrives, so closing the panel sticks.
-  const opened = useRef(false);
+  // Opens once, when the result arrives, so closing the panel sticks. A result already there
+  // when the card mounts is from a past chat being reopened: it stays closed.
+  const opened = useRef(Boolean(response));
   useEffect(() => {
     if (!response || opened.current) return;
     opened.current = true;
     setOpen({ key: toolCallId, response });
   }, [response, toolCallId, setOpen]);
 
-  const title =
-    args?.title ?? (toolName === "edit_dashboard" ? "Dashboard change" : "New dashboard");
-  const [label, tone]: [string, Tone] = isError
-    ? ["Couldn't start", "error"]
-    : response
-      ? [toolName === "edit_dashboard" ? "Change started" : "Live", "live"]
-      : [status?.type === "running" ? "Starting" : "Waiting", "busy"];
+  const isEdit = toolName === "edit_dashboard";
+  const title = args?.title ?? (isEdit ? "Dashboard change" : "New dashboard");
+  if (!response) {
+    return (
+      <Card
+        title={title}
+        status={
+          isError
+            ? ["Couldn't start", "error"]
+            : [status?.type === "running" ? "Starting" : "Waiting", "busy"]
+        }
+      />
+    );
+  }
 
+  // A renderer of its own, never opened, so the card shows the same state as the panel: every
+  // renderer of one dashboard shares its stream. Closed, it doesn't render the dashboard.
+  return (
+    <LiveArtifactRenderer
+      response={response}
+      library={library}
+      interpreter={{ url: "/api/interpreter" }}
+      isOpen={false}
+    >
+      <LiveArtifactRenderer.Preview>
+        <RendererCard
+          title={title}
+          isEdit={isEdit}
+          isOpen={isOpen}
+          onToggle={() => setOpen(isOpen ? null : { key: toolCallId, response })}
+        />
+      </LiveArtifactRenderer.Preview>
+    </LiveArtifactRenderer>
+  );
+}
+
+function RendererCard({ isEdit, ...props }: Omit<CardProps, "status"> & { isEdit: boolean }) {
+  const { isStreaming, error } = useArtifactRenderer();
+  const status: [string, Tone] = error
+    ? ["Couldn't load", "error"]
+    : isStreaming
+      ? [isEdit ? "Changing" : "Generating", "busy"]
+      : [isEdit ? "Changed" : "Live", "live"];
+  return <Card {...props} status={status} />;
+}
+
+type CardProps = {
+  title: string;
+  status: [label: string, tone: Tone];
+  isOpen?: boolean;
+  /** Without it, the card can't be opened yet. */
+  onToggle?: () => void;
+};
+
+function Card({ title, status: [label, tone], isOpen = false, onToggle }: CardProps) {
   return (
     <button
       type="button"
-      disabled={!response}
-      onClick={() => setOpen(isOpen || !response ? null : { key: toolCallId, response })}
+      disabled={!onToggle}
+      onClick={onToggle}
       aria-pressed={isOpen}
       className={cn(
         "group my-3 flex w-full max-w-md items-center gap-3 rounded-xl border bg-card p-3 text-left shadow-xs transition-colors",
@@ -125,7 +203,7 @@ export function DashboardCard({
           {label}
         </span>
       </span>
-      {response && (
+      {onToggle && (
         <span className="flex items-center gap-0.5 text-xs font-medium text-muted-foreground group-hover:text-foreground">
           {isOpen ? "Close" : "Open"}
           {isOpen ? <PanelRightClose className="size-4" /> : <ChevronRight className="size-4" />}

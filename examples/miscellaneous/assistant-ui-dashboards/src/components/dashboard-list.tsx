@@ -33,6 +33,7 @@ import {
 import { LayoutDashboard, Pencil, Pin, PinOff, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useOpenDashboard } from "./dashboard";
+import { chatOf } from "./threads";
 
 /**
  * The user's dashboards in OpenUI Cloud: pinned ones first, then the rest, newest first. Each
@@ -47,7 +48,7 @@ export function DashboardList() {
   const { unpin } = useArtifactUnpin();
   const { update } = useArtifactUpdate();
   const { deleteArtifact } = useArtifactDelete();
-  const { open, setOpen, openId, saved } = useOpenDashboard();
+  const { open, setOpen, openInChat, openId, saved } = useOpenDashboard();
   // The dashboard a dialog is about. It stays set while the dialog animates closed, so the
   // dialog keeps showing its name.
   const [renaming, setRenaming] = useState<DialogTarget>(null);
@@ -81,7 +82,9 @@ export function DashboardList() {
     <li key={artifact.id} className="group relative">
       <button
         type="button"
-        onClick={() => setOpen({ key: `list:${artifact.id}`, id: artifact.id })}
+        onClick={() =>
+          openInChat({ key: `list:${artifact.id}`, id: artifact.id }, chatOf(artifact.id))
+        }
         aria-current={open !== null && openId === artifact.id}
         className={cn(
           "flex w-full items-center gap-2 rounded-md px-2 py-1.5 pr-20 text-left text-sm hover:bg-sidebar-accent",
@@ -121,7 +124,7 @@ export function DashboardList() {
   );
 
   return (
-    <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+    <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4">
       {pinned.artifacts.length > 0 && (
         <section className="flex flex-col gap-1">
           <h2 className="px-2 text-xs font-medium text-muted-foreground">Pinned</h2>

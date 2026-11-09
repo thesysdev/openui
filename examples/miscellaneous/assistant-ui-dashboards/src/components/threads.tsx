@@ -47,6 +47,22 @@ function updateThread(remoteId: string, change: Partial<StoredThread>) {
   write("threads", { ...all, [remoteId]: { ...current, ...change, updatedAt: Date.now() } });
 }
 
+/**
+ * The chat that built a dashboard: the one whose saved messages hold its id, in the tool
+ * result's `artifact_id=` reference. A dashboard built elsewhere, such as in another browser,
+ * has none.
+ */
+export function chatOf(artifactId: string): string | undefined {
+  const reference = `artifact_id=${encodeURIComponent(artifactId)}&`;
+  return Object.keys(threads()).find((remoteId) => {
+    try {
+      return localStorage.getItem(`${PREFIX}:messages:${remoteId}`)?.includes(reference);
+    } catch {
+      return false;
+    }
+  });
+}
+
 /** Loads and saves each thread's messages. */
 function useHistory() {
   const aui = useAui();
