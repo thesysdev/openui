@@ -1,5 +1,11 @@
 # @openuidev/server
 
+## 0.4.1
+
+### Patch Changes
+
+- [#1560](https://github.com/thesysdev/openui/pull/1560) [`2454f68`](https://github.com/thesysdev/openui/commit/2454f68c133cf0cf2ce65e4817af408c0751d155) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Dashboard scripts can make more tool calls per run.
+
 ## 0.4.0
 
 ### Minor Changes
