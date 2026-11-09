@@ -72,7 +72,7 @@ export function defineDashboard<Context extends ExecutionContext>(
   ): Promise<string> {
     // The dashboard belongs to the user the context names.
     assertUserIdRequired(context);
-    // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
+    // Everything rides in the config block: kind, tools and title for generation, the artifact an edit changes for OpenUI Cloud.
     const [{ token }, definitions] = await Promise.all([
       createFrontendToken(api, context.userId, signal),
       toolDefinitions(),
@@ -83,7 +83,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       {
         model,
         messages: [
-          { role: "system", content: config({ tools: definitions, ...call }) },
+          { role: "system", content: config({ kind: "dashboard", tools: definitions, ...call }) },
           { role: "user", content: prompt },
         ],
       },

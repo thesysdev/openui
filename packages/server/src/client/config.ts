@@ -7,8 +7,13 @@ import type { ToolDefinition } from "../tools/types";
 
 const CONFIG_MARKER = "]]>openui:config\n";
 
-/** What a dashboard call adds to the config block, as its `artifact` key. */
+/** The kinds of artifact OpenUI Cloud generates from a config block. */
+export type ArtifactKind = "dashboard";
+
+/** What a call adds to the config block, as its `artifact` key. */
 export interface ArtifactCall {
+  /** What to generate, so OpenUI Cloud doesn't have to guess. */
+  kind: ArtifactKind;
   /** The data tools its queries may call. */
   tools: ToolDefinition[];
   /** The artifact's title, on create. */
@@ -20,7 +25,7 @@ export interface ArtifactCall {
 /**
  * OpenUI Cloud's config block for an artifact: lang-core writes the library
  * part (`chatLibrary`, `systemPromptOptions`), and each call adds its own
- * under `artifact`: data tools, title and edit target.
+ * under `artifact`: kind, data tools, title and edit target.
  */
 export function artifactConfig(library: LibrarySpec, promptOptions?: CloudPromptOptions) {
   // Built once, so an invalid library fails when the dashboard is defined.
