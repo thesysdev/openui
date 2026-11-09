@@ -55,11 +55,20 @@ const OpenDashboard = createContext<{
   onSaved: () => {},
 });
 
+/**
+ * The open dashboard's artifact id, for the chat transport: it sends it with each message, so
+ * "this dashboard" means the one the user is looking at. Outside React because the transport is.
+ */
+export const openDashboardId: { current: string | null } = { current: null };
+
 export function OpenDashboardProvider({ children }: { children: ReactNode }) {
   const aui = useAui();
   // `moving`: the dashboard waits for the chat switch it asked for, then stays with that chat.
   const [state, setState] = useState<{ open: Open; moving: boolean } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  useEffect(() => {
+    openDashboardId.current = openId;
+  }, [openId]);
   const [saved, setSaved] = useState(0);
   const onSaved = useCallback(() => setSaved((count) => count + 1), []);
 
@@ -113,17 +122,20 @@ export function DashboardCard({
   isError,
   status,
 }: DashboardToolProps) {
-  const { setOpen } = useOpenDashboard();
+  const { setOpen, openId } = useOpenDashboard();
   const response = !isError && typeof result === "string" ? result : undefined;
 
   // Opens once, when the result arrives, so closing the panel sticks. A result already there
-  // when the card mounts is from a past chat being reopened: it stays closed.
+  // when the card mounts is from a past chat being reopened: it stays closed. An edit to the
+  // dashboard already in the panel leaves the panel as it is: it follows the edit through the
+  // stream it shares with this card, and keeps its filters and scroll position.
   const opened = useRef(Boolean(response));
+  const showing = openId !== null && openId === args?.id;
   useEffect(() => {
     if (!response || opened.current) return;
     opened.current = true;
-    setOpen({ key: toolCallId, response });
-  }, [response, toolCallId, setOpen]);
+    if (!showing) setOpen({ key: toolCallId, response });
+  }, [response, toolCallId, setOpen, showing]);
 
   const isEdit = toolName === "edit_dashboard";
   const title = args?.title ?? (isEdit ? "Dashboard change" : "New dashboard");
@@ -168,9 +180,10 @@ function RendererCard({
   response: string;
 }) {
   const { id, isStreaming, error } = useArtifactRenderer();
-  const { open, setOpen } = useOpenDashboard();
-  // Open from this card, or from the Dashboards list on the same dashboard.
-  const isOpen = open?.key === toolCallId || (id !== null && open?.key === `list:${id}`);
+  const { open, openId, setOpen } = useOpenDashboard();
+  // Open from this card, or the panel is showing the same dashboard: opened from another of its
+  // cards or from the Dashboards list.
+  const isOpen = open?.key === toolCallId || (id !== null && openId === id);
   const status: [string, Tone] = error
     ? ["Couldn't load", "error"]
     : isStreaming
