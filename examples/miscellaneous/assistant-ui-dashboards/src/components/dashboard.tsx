@@ -113,8 +113,7 @@ export function DashboardCard({
   isError,
   status,
 }: DashboardToolProps) {
-  const { open, setOpen } = useOpenDashboard();
-  const isOpen = open?.key === toolCallId;
+  const { setOpen } = useOpenDashboard();
   const response = !isError && typeof result === "string" ? result : undefined;
 
   // Opens once, when the result arrives, so closing the panel sticks. A result already there
@@ -151,25 +150,40 @@ export function DashboardCard({
       isOpen={false}
     >
       <LiveArtifactRenderer.Preview>
-        <RendererCard
-          title={title}
-          isEdit={isEdit}
-          isOpen={isOpen}
-          onToggle={() => setOpen(isOpen ? null : { key: toolCallId, response })}
-        />
+        <RendererCard title={title} isEdit={isEdit} toolCallId={toolCallId} response={response} />
       </LiveArtifactRenderer.Preview>
     </LiveArtifactRenderer>
   );
 }
 
-function RendererCard({ isEdit, ...props }: Omit<CardProps, "status"> & { isEdit: boolean }) {
-  const { isStreaming, error } = useArtifactRenderer();
+function RendererCard({
+  title,
+  isEdit,
+  toolCallId,
+  response,
+}: {
+  title: string;
+  isEdit: boolean;
+  toolCallId: string;
+  response: string;
+}) {
+  const { id, isStreaming, error } = useArtifactRenderer();
+  const { open, setOpen } = useOpenDashboard();
+  // Open from this card, or from the Dashboards list on the same dashboard.
+  const isOpen = open?.key === toolCallId || (id !== null && open?.key === `list:${id}`);
   const status: [string, Tone] = error
     ? ["Couldn't load", "error"]
     : isStreaming
       ? [isEdit ? "Changing" : "Generating", "busy"]
       : [isEdit ? "Changed" : "Live", "live"];
-  return <Card {...props} status={status} />;
+  return (
+    <Card
+      title={title}
+      status={status}
+      isOpen={isOpen}
+      onToggle={() => setOpen(isOpen ? null : { key: toolCallId, response })}
+    />
+  );
 }
 
 type CardProps = {
