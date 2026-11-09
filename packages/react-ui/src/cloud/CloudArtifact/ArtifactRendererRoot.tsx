@@ -172,50 +172,31 @@ export function ArtifactRendererRoot({
   requestRef.current = { id, version: stream.version };
 
   // A data call OpenUI Cloud refused because the artifact moved on
-  // (`ARTIFACT_VERSION_MISMATCH`): if a newer version is already on screen, the
-  // queries run again; otherwise the artifact is read again and they run once
-  // it's shown. One automatic recovery per run of refusals: late refusals for a
-  // version already handled are absorbed, but a refusal for the version the
-  // recovery reached (a real mismatch, or a server whose versions keep
-  // changing) shows the error. A successful call starts over.
-  const refreshRef = useRef(stream.refresh);
-  refreshRef.current = stream.refresh;
-  const staleVersionRef = useRef<string | null>(null);
-  /** Refusals held back while the re-read runs; `null` once it's back. */
-  const heldErrorsRef = useRef<Record<string, string> | null>(null);
-  const recoveryRef = useRef<"idle" | "recovering" | "gave-up">("idle");
-  const handledVersionsRef = useRef(new Set<string>());
-  // Once per version on screen: refusals for an older version can keep
-  // landing after the queries ran again, and each re-run re-sends them all.
-  const rerunForVersionRef = useRef<string | undefined>(undefined);
-  const rerunQueries = useCallback((version: string | undefined) => {
-    if (version !== undefined && rerunForVersionRef.current === version) return;
-    rerunForVersionRef.current = version;
+  // (`ARTIFACT_VERSION_MISMATCH`). The artifact's store recovers once for all
+  // its renderers and says what to do with each refusal: hold it while it reads
+  // the artifact again, drop it, or show it. `rerun` asks every renderer to run
+  // its queries again; `versionMismatch` says the held refusals are real.
+  const reportVersionMismatchRef = useRef(stream.reportVersionMismatch);
+  reportVersionMismatchRef.current = stream.reportVersionMismatch;
+  const reportDataSuccessRef = useRef(stream.reportDataSuccess);
+  reportDataSuccessRef.current = stream.reportDataSuccess;
+  /** Refusals held while the store reads the artifact again. */
+  const heldErrorsRef = useRef<Record<string, string>>({});
+  const rerun = `${id}:${stream.rerun ?? 0}`;
+  const lastRerunRef = useRef(rerun);
+  useEffect(() => {
+    if (lastRerunRef.current === rerun) return;
+    lastRerunRef.current = rerun;
+    heldErrorsRef.current = {};
     setToolErrors({});
     setRendererKey((key) => key + 1);
-  }, []);
-  // Another artifact: nothing carries over.
+  }, [rerun]);
   useEffect(() => {
-    staleVersionRef.current = null;
-    heldErrorsRef.current = null;
-    recoveryRef.current = "idle";
-    handledVersionsRef.current = new Set();
-    rerunForVersionRef.current = undefined;
-  }, [id]);
-  useEffect(() => {
-    const staleVersion = staleVersionRef.current;
-    if (staleVersion === null || stream.isStreaming) return;
+    if (!stream.versionMismatch) return;
     const held = heldErrorsRef.current;
-    heldErrorsRef.current = null;
-    staleVersionRef.current = null;
-    if (stream.version !== staleVersion) {
-      rerunQueries(stream.version);
-    } else {
-      // The re-read came back on the refused version: a real mismatch.
-      recoveryRef.current = "gave-up";
-      if (held) setToolErrors((current) => ({ ...current, ...held }));
-    }
-  }, [stream.version, stream.isStreaming, rerunQueries]);
+    heldErrorsRef.current = {};
+    if (Object.keys(held).length > 0) setToolErrors((current) => ({ ...current, ...held }));
+  }, [stream.versionMismatch]);
 
   const toolProvider = useMemo(
     () =>
@@ -225,35 +206,19 @@ export function ArtifactRendererRoot({
         onStart: () => setInFlight((count) => count + 1),
         onSettle: (toolName, message, detail) => {
           setInFlight((count) => Math.max(0, count - 1));
-          if (detail?.code === "ARTIFACT_VERSION_MISMATCH" && detail.version !== undefined) {
-            // A re-read for this version is under way: hold the refusal.
-            if (heldErrorsRef.current && detail.version === staleVersionRef.current) {
-              if (message !== null) heldErrorsRef.current[toolName] = message;
+          if (message === null) {
+            reportDataSuccessRef.current?.();
+          } else if (
+            detail?.code === "ARTIFACT_VERSION_MISMATCH" &&
+            detail.version !== undefined &&
+            reportVersionMismatchRef.current
+          ) {
+            const verdict = reportVersionMismatchRef.current(detail.version);
+            if (verdict === "drop") return;
+            if (verdict === "hold") {
+              heldErrorsRef.current[toolName] = message;
               return;
             }
-            const handled = handledVersionsRef.current.has(detail.version);
-            if (recoveryRef.current === "recovering" && handled) return;
-            if (recoveryRef.current === "idle") {
-              const onScreen = requestRef.current.version;
-              const refresh = refreshRef.current;
-              if (detail.version !== onScreen || refresh) {
-                recoveryRef.current = "recovering";
-                handledVersionsRef.current.add(detail.version);
-                if (detail.version !== onScreen) {
-                  rerunQueries(onScreen);
-                } else {
-                  staleVersionRef.current = detail.version;
-                  heldErrorsRef.current = message !== null ? { [toolName]: message } : {};
-                  refresh!();
-                }
-                return;
-              }
-            } else if (recoveryRef.current === "recovering") {
-              // The version the recovery reached was refused too.
-              recoveryRef.current = "gave-up";
-            }
-          } else if (message === null) {
-            recoveryRef.current = "idle";
           }
           setToolErrors((current) => {
             if (message === null) {
@@ -265,7 +230,7 @@ export function ArtifactRendererRoot({
           });
         },
       }),
-    [rerunQueries],
+    [],
   );
 
   // ── Errors and retry ──

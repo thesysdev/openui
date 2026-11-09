@@ -5,6 +5,7 @@ export type {
   ArtifactStreamSnapshot,
   ArtifactStreamState,
   UseArtifactStreamOptions,
+  VersionMismatchVerdict,
 } from "./cloud/artifactStream";
 export type { FrontendTokenSource } from "./cloud/frontendTokenManager";
 export { InterpreterError, createInterpreterToolProvider } from "./cloud/interpreter";

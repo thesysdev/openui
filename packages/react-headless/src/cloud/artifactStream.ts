@@ -26,7 +26,21 @@ export interface ArtifactStreamSnapshot {
   version?: string;
   isStreaming: boolean;
   error: ArtifactStreamError | null;
+  /**
+   * Goes up when every renderer of this artifact should run its data calls
+   * again: one was refused for an older version than the one on screen.
+   */
+  rerun?: number;
+  /**
+   * A data call was refused for the version on screen, and reading the artifact
+   * again gave that version back: the refusal is real. Renderers show the
+   * refusals they held.
+   */
+  versionMismatch?: boolean;
 }
+
+/** What a renderer does with a refused data call: keep it back, drop it, or show it. @category Types */
+export type VersionMismatchVerdict = "hold" | "drop" | "show";
 
 interface Entry {
   snapshot: ArtifactStreamSnapshot;
@@ -45,9 +59,25 @@ interface Entry {
   /** A newer revision was seen while a stream was still running. */
   stale: boolean;
   idleTimer: ReturnType<typeof setTimeout> | null;
+  /** Recovery from refused data calls (`versionMismatch`), shared by every renderer. */
+  recovery: "idle" | "recovering" | "gave-up";
+  /** Refused versions this recovery already acted on. */
+  handled: Set<string>;
+  /** The refused version a re-read is under way for. */
+  rereading: string | null;
+  /** The version on screen the last `rerun` was for. */
+  rerunFor: string | undefined;
+  /** When the last automatic re-read started. */
+  rereadAt: number;
 }
 
 const MAX_RECONNECTS = 3;
+/**
+ * At most one automatic re-read per artifact this often. A successful call
+ * starts a new recovery, so without it a dashboard whose direct tool calls
+ * succeed while its scripts are refused could re-read without end.
+ */
+const REREAD_INTERVAL_MS = 10_000;
 /** A connection that stayed open this long was healthy, so its drop doesn't count against `MAX_RECONNECTS`. */
 const STABLE_CONNECTION_MS = 10_000;
 const ERROR_CODES = new Set<string>([
@@ -95,6 +125,10 @@ export class ArtifactStreamStore {
     }
     if (!entry.started) {
       entry.started = true;
+      // A reopened artifact gets its own recovery.
+      entry.recovery = "idle";
+      entry.handled = new Set();
+      entry.rereading = null;
       void this.connect(id);
     }
     return () => {
@@ -133,8 +167,85 @@ export class ArtifactStreamStore {
   }
 
   /**
-   * Reads the artifact again, for a renderer told it moved on (a script run
-   * refused for its version). A stream in progress picks the new version up
+   * A renderer's data call was refused because the artifact moved on
+   * (OpenUI Cloud's `ARTIFACT_VERSION_MISMATCH`), for `version`. One recovery
+   * for all the artifact's renderers:
+   * - an older version than the one on screen: every renderer runs its calls
+   *   again (`rerun`), once per version on screen;
+   * - the version on screen: the artifact is read once more, and the refusals
+   *   are held until it's back. A newer version re-runs the calls; the same
+   *   version is a real mismatch (`versionMismatch`), and the held refusals show.
+   * Late refusals for a version already handled, or for an older version once
+   * the calls ran again for the one on screen, are dropped. A refusal for the
+   * version the recovery reached shows, with no further reads, until a call
+   * succeeds (`dataSucceeded`); and the artifact is re-read at most once every
+   * {@link REREAD_INTERVAL_MS}. So a server whose versions keep changing can't
+   * loop.
+   */
+  versionMismatch(id: string, version: string): VersionMismatchVerdict {
+    const entry = this.entry(id);
+    if (entry.rereading === version) return "hold";
+    const onScreen = entry.snapshot.version;
+    // A call made before the calls ran again for the version on screen.
+    if (version !== onScreen && onScreen !== undefined && entry.rerunFor === onScreen) {
+      entry.handled.add(version);
+      return "drop";
+    }
+    if (entry.recovery === "recovering" && entry.handled.has(version)) return "drop";
+    if (entry.recovery === "idle") {
+      if (version !== onScreen) {
+        entry.recovery = "recovering";
+        entry.handled.add(version);
+        this.rerun(id, onScreen);
+        return "drop";
+      }
+      const now = Date.now();
+      if (entry.started && now - entry.rereadAt >= REREAD_INTERVAL_MS) {
+        entry.recovery = "recovering";
+        entry.handled.add(version);
+        entry.rereading = version;
+        entry.rereadAt = now;
+        this.refresh(id);
+        return "hold";
+      }
+      return "show";
+    }
+    // The version the recovery reached was refused too.
+    entry.recovery = "gave-up";
+    return "show";
+  }
+
+  /** A data call succeeded: the next refusal starts a new recovery. */
+  dataSucceeded(id: string): void {
+    const entry = this.entry(id);
+    if (entry.recovery === "idle") return;
+    entry.recovery = "idle";
+    if (entry.snapshot.versionMismatch) this.update(id, { versionMismatch: false });
+  }
+
+  /** Every renderer runs its data calls again, once per version on screen. */
+  private rerun(id: string, version: string | undefined): void {
+    const entry = this.entry(id);
+    if (version !== undefined && entry.rerunFor === version) return;
+    entry.rerunFor = version;
+    this.update(id, { rerun: (entry.snapshot.rerun ?? 0) + 1, versionMismatch: false });
+  }
+
+  /** A read ended: settle a re-read started by `versionMismatch`. */
+  private afterRead(id: string): void {
+    const entry = this.entry(id);
+    const refused = entry.rereading;
+    if (refused === null || entry.snapshot.isStreaming) return;
+    entry.rereading = null;
+    if (entry.snapshot.version !== refused) this.rerun(id, entry.snapshot.version);
+    else {
+      entry.recovery = "gave-up";
+      this.update(id, { versionMismatch: true });
+    }
+  }
+
+  /**
+   * Reads the artifact again. A stream in progress picks the new version up
    * when it ends; otherwise it's fetched now.
    */
   refresh(id: string): void {
@@ -180,6 +291,11 @@ export class ArtifactStreamStore {
         versions: new Set(),
         stale: false,
         idleTimer: null,
+        recovery: "idle",
+        handled: new Set(),
+        rereading: null,
+        rerunFor: undefined,
+        rereadAt: -Infinity,
       };
       this.entries.set(id, entry);
     }
@@ -243,6 +359,7 @@ export class ArtifactStreamStore {
       isStreaming: false,
       error: streamError("network-error", "Couldn't reach the artifact's storage.", failure),
     });
+    this.afterRead(id);
   }
 
   /** Storages without `stream`: read the stored artifact once. */
@@ -265,6 +382,7 @@ export class ArtifactStreamStore {
         ),
       });
     }
+    this.afterRead(id);
   }
 
   /** Fetches a revision noted while the stream that just ended was running. */
@@ -316,6 +434,7 @@ export class ArtifactStreamStore {
         entry.version = undefined;
         this.update(id, { ...swapped, isStreaming: false });
         this.catchUp(id);
+        this.afterRead(id);
         return;
       }
       case "error": {
@@ -333,6 +452,7 @@ export class ArtifactStreamStore {
           ),
         });
         this.catchUp(id);
+        this.afterRead(id);
       }
     }
   }
@@ -362,8 +482,14 @@ export interface UseArtifactStreamOptions {
 export interface ArtifactStreamState extends Omit<ArtifactStreamSnapshot, "id"> {
   /** Reconnects after a `network-error`. Undefined when there's nothing to retry. */
   retry?: () => void;
-  /** Reads the artifact again, when a data call says it moved on. */
-  refresh?: () => void;
+  /**
+   * Report a data call refused because the artifact moved on, for `version`.
+   * Says whether to hold the refusal, drop it, or show it; see `rerun` and
+   * `versionMismatch`. Undefined for an artifact in your own storage.
+   */
+  reportVersionMismatch?: (version: string) => VersionMismatchVerdict;
+  /** Report a data call that succeeded. */
+  reportDataSuccess?: () => void;
 }
 
 const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: null };
@@ -401,9 +527,17 @@ export function useArtifactStream({
   // Read while rendering: `noteVersion` runs after the renderer's own effects,
   // which would otherwise run the old program's queries with its old version.
   const awaiting = store && id ? store.awaits(id, version) : false;
-  const refresh = useCallback(() => {
-    if (store && id) store.refresh(id);
-  }, [store, id]);
+  const reportVersionMismatch = useMemo(
+    () =>
+      store && id
+        ? (refused: string): VersionMismatchVerdict => store.versionMismatch(id, refused)
+        : undefined,
+    [store, id],
+  );
+  const reportDataSuccess = useMemo(
+    () => (store && id ? () => store.dataSucceeded(id) : undefined),
+    [store, id],
+  );
 
   return useMemo<ArtifactStreamState>(() => {
     if (ownContent) return { program: content, isStreaming: false, error: null };
@@ -419,6 +553,22 @@ export function useArtifactStream({
     const { id: _id, ...rest } = snapshot;
     const retry =
       snapshot.error?.code === "network-error" && store && id ? () => store.retry(id) : undefined;
-    return { ...rest, isStreaming: rest.isStreaming || awaiting, retry, refresh };
-  }, [ownContent, content, snapshot, id, storage, store, awaiting, refresh]);
+    return {
+      ...rest,
+      isStreaming: rest.isStreaming || awaiting,
+      retry,
+      reportVersionMismatch,
+      reportDataSuccess,
+    };
+  }, [
+    ownContent,
+    content,
+    snapshot,
+    id,
+    storage,
+    store,
+    awaiting,
+    reportVersionMismatch,
+    reportDataSuccess,
+  ]);
 }
