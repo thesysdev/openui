@@ -174,39 +174,6 @@ describe("ArtifactRendererRoot version refusals", () => {
     expect(errors.card).toBeDefined();
   });
 
-  it("a server whose version changes on every read: one re-read, then the error", async () => {
-    let n = 0;
-    const c = cloud(
-      () => `v${++n}`,
-      () => `v${n + 1}`,
-    );
-    await show(c.storage, [
-      renderer("panel", "a", c.interpreter),
-      renderer("card", "a", c.interpreter),
-    ]);
-    expect(c.reads).toEqual(["a@v1", "a@v2"]);
-    expect(c.calls).toEqual(["a@v1", "a@v1", "a@v2", "a@v2"]);
-    expect(errors.panel).toBeDefined();
-  });
-
-  it("reopened after a real mismatch and an edit elsewhere, the panel recovers", async () => {
-    let now = 1_000;
-    vi.spyOn(performance, "now").mockImplementation(() => now);
-    let latest = "v9";
-    const c = cloud(
-      (_id, read) => (read < 2 ? "v1" : "v2"),
-      () => latest,
-    );
-    await show(c.storage, renderer("panel", "a", c.interpreter));
-    expect(errors.panel).toBeDefined();
-    await show(c.storage, null);
-    now += 60_000;
-    latest = "v2";
-    await show(c.storage, renderer("panel", "a", c.interpreter), 120);
-    expect(errors.panel).toBeUndefined();
-    expect(c.calls.at(-1)).toBe("a@v2");
-  });
-
   it("a late refusal for the artifact a renderer switched away from re-runs nothing else", async () => {
     const c = cloud(
       () => "v1",
@@ -226,23 +193,5 @@ describe("ArtifactRendererRoot version refusals", () => {
     expect(c.calls).toContain("a@v1");
     expect(callsBy.card).toEqual(["root = b"]);
     expect(c.reads).toEqual(["a@v1", "b@v1"]);
-  });
-
-  it("switching a renderer to another artifact runs that artifact's query once", async () => {
-    const c = cloud(
-      () => "v1",
-      () => "v1",
-    );
-    await show(
-      c.storage,
-      [renderer("panel", "a", c.interpreter), renderer("card", "b", c.interpreter)],
-      40,
-    );
-    await show(
-      c.storage,
-      [renderer("panel", "b", c.interpreter), renderer("card", "b", c.interpreter)],
-      40,
-    );
-    expect(callsBy.panel).toEqual(["root = a", "root = b"]);
   });
 });

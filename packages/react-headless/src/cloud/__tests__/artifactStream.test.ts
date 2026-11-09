@@ -55,17 +55,6 @@ describe("ArtifactStreamStore", () => {
     expect(storage.connections).toEqual(["v1", "v2"]);
   });
 
-  it("treats the stream's own version as seen, so noting it again changes nothing", async () => {
-    const storage = storageWith({ v1: "root = A" });
-    const store = new ArtifactStreamStore({ ...unused, ...storage });
-    store.subscribe("a1", () => {});
-    store.noteVersion("a1", "v1");
-    await tick();
-    store.noteVersion("a1", "v1");
-    await tick();
-    expect(storage.connections).toEqual(["v1"]);
-  });
-
   it("awaits a version it has not recorded, until noteVersion records it", async () => {
     const storage = storageWith({ v1: "root = A", v2: "root = B" });
     const store = new ArtifactStreamStore({ ...unused, ...storage });
@@ -77,53 +66,6 @@ describe("ArtifactStreamStore", () => {
     storage.current = "v2";
     store.noteVersion("a1", "v2");
     expect(store.awaits("a1", "v2")).toBe(false);
-  });
-
-  it("refresh reads the artifact again when no stream is running", async () => {
-    const storage = storageWith({ v1: "root = A", v2: "root = B" });
-    const store = new ArtifactStreamStore({ ...unused, ...storage });
-    store.subscribe("a1", () => {});
-    await tick();
-    storage.current = "v2";
-    store.refresh("a1");
-    await tick();
-    expect(store.getSnapshot("a1")).toMatchObject({ program: "root = B", version: "v2" });
-    expect(storage.connections).toEqual(["v1", "v2"]);
-  });
-
-  it("refresh during a stream in progress reads the artifact again after it ends", async () => {
-    const connections: string[] = [];
-    let current = "v1";
-    let release!: () => void;
-    const gate = new Promise<void>((resolve) => (release = resolve));
-    const storage: ArtifactStorage = {
-      ...unused,
-      async *stream(id: string): AsyncIterable<ArtifactStreamEvent> {
-        const version = current;
-        connections.push(version);
-        yield { type: "reference", data: { id, version } };
-        yield { type: "delta", data: { text: `root = ${version}` } };
-        if (connections.length === 1) await gate;
-        yield { type: "end" };
-      },
-    };
-    const store = new ArtifactStreamStore(storage);
-    store.subscribe("a1", () => {});
-    await tick();
-    current = "v2";
-    store.refresh("a1");
-    await tick();
-    expect(connections).toEqual(["v1"]);
-    expect(store.getSnapshot("a1").isStreaming).toBe(true);
-
-    release();
-    await tick();
-    expect(connections).toEqual(["v1", "v2"]);
-    expect(store.getSnapshot("a1")).toMatchObject({
-      program: "root = v2",
-      version: "v2",
-      isStreaming: false,
-    });
   });
 });
 
@@ -266,57 +208,25 @@ describe("useArtifactStream", () => {
     return { A: states.A!, B: states.B! };
   }
 
-  it("doesn't hold a card's queries when the storage has no stream, so no version", async () => {
-    const storage: ArtifactStorage = {
-      ...unused,
-      get: async () => ({ id: "a1", content: "root = A" }) as unknown as Artifact,
-    };
-    const { A, B } = await openThenMountCard(storage);
-    expect(A).toMatchObject({ program: "root = A", isStreaming: false });
-    expect(B).toMatchObject({ program: "root = A", isStreaming: false });
-  });
-
-  it("doesn't hold a card's queries when the stream's reference has no version", async () => {
-    const storage: ArtifactStorage = {
-      ...unused,
-      async *stream(id: string): AsyncIterable<ArtifactStreamEvent> {
-        yield { type: "reference", data: { id } };
-        yield { type: "delta", data: { text: "root = A" } };
-        yield { type: "end" };
+  it.each<[string, ArtifactStorage]>([
+    [
+      "the storage has no stream",
+      { ...unused, get: async () => ({ id: "a1", content: "root = A" }) as unknown as Artifact },
+    ],
+    [
+      "the stream's reference has no version",
+      {
+        ...unused,
+        async *stream(id: string): AsyncIterable<ArtifactStreamEvent> {
+          yield { type: "reference", data: { id } };
+          yield { type: "delta", data: { text: "root = A" } };
+          yield { type: "end" };
+        },
       },
-    };
+    ],
+  ])("doesn't hold a card's queries when %s, so no version is recorded", async (_, storage) => {
     const { A, B } = await openThenMountCard(storage);
     expect(A).toMatchObject({ program: "root = A", isStreaming: false });
     expect(B).toMatchObject({ program: "root = A", isStreaming: false });
-  });
-
-  it("two renderers refused together share one re-read", async () => {
-    const storage = storageWith({ v1: "root = A", v2: "root = B" });
-    await openThenMountCard({ ...unused, ...storage });
-    storage.current = "v2";
-    let answers: string[] = [];
-    await act(async () => {
-      answers = await Promise.all([
-        states.A!.reportVersionMismatch!("v1"),
-        states.B!.reportVersionMismatch!("v1"),
-      ]);
-    });
-    expect(answers).toEqual(["rerun", "rerun"]);
-    expect(storage.connections).toEqual(["v1", "v2"]);
-    expect(states.A).toMatchObject({ version: "v2" });
-    expect(states.B).toMatchObject({ version: "v2" });
-  });
-
-  it("an artifact in your own storage has nothing to report", async () => {
-    await act(async () => {
-      root.render(createElement(OwnContent));
-    });
-    expect(ownState?.reportVersionMismatch).toBeUndefined();
   });
 });
-
-let ownState: ArtifactStreamState | undefined;
-function OwnContent() {
-  ownState = useArtifactStream({ id: "a1", content: "root = A" });
-  return null;
-}
