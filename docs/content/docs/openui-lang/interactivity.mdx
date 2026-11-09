@@ -180,6 +180,23 @@ interface FormValidationContextValue {
 }
 ```
 
-Built-in validators include `required`, `minLength`, `maxLength`, `min`, `max`, `pattern`, and `email`. Custom validators can be added via `builtInValidators`.
+Built-in validators include `required`, `minLength`, `maxLength`, `min`, `max`, `pattern`, and `email`.
+
+### Custom validators
+
+Pass app-specific rules to `Renderer` with the `validators` prop. A field rule whose name matches a custom validator calls it, and custom validators take precedence over built-in rules of the same name. Each validator returns an error message, or `undefined` when the value is valid.
+
+The third argument gives access to the other fields in the same form, so cross-field rules such as "confirm password must match" work:
+
+```tsx
+import { Renderer, type ValidatorFn } from "@openuidev/react-lang";
+
+const matches: ValidatorFn = (value, otherField, ctx) =>
+  value === ctx?.values[String(otherField)] ? undefined : "Values do not match";
+
+<Renderer library={library} response={response} validators={{ matches }} />;
+```
+
+A field can then reference the rule by name, for example `{ required: true, matches: "password" }`. Make sure the model knows the rule exists, e.g. by mentioning it in `additionalRules` and allowing the key in your component's `rules` schema.
 
 ---

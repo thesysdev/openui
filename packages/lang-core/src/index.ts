@@ -94,4 +94,4 @@ export { ToolNotFoundError } from "./runtime/toolProvider";
 
 // ── Validation ──
 export { builtInValidators, parseRules, parseStructuredRules, validate } from "./utils/validation";
-export type { ParsedRule, ValidatorFn } from "./utils/validation";
+export type { ParsedRule, ValidatorContext, ValidatorFn } from "./utils/validation";

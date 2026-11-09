@@ -27,7 +27,22 @@ export function parseRules(rules: unknown): ParsedRule[] {
   return rules.filter((r): r is string => typeof r === "string").map(parseRule);
 }
 
-export type ValidatorFn = (value: unknown, arg?: number | string) => string | undefined;
+/**
+ * Extra information passed to validators so they can implement cross-field
+ * rules (e.g. "must match password").
+ */
+export interface ValidatorContext {
+  /** Name of the field being validated. */
+  fieldName: string;
+  /** Current values of all registered fields in the same form, keyed by field name. */
+  values: Record<string, unknown>;
+}
+
+export type ValidatorFn = (
+  value: unknown,
+  arg?: number | string,
+  ctx?: ValidatorContext,
+) => string | undefined;
 
 function isEmpty(value: unknown): boolean {
   if (value === null || value === undefined || value === "") return true;
@@ -134,6 +149,7 @@ export function validate(
   value: unknown,
   rules: ParsedRule[],
   customValidators?: Record<string, ValidatorFn>,
+  ctx?: ValidatorContext,
 ): string | undefined {
   for (const rule of rules) {
     const validator = customValidators?.[rule.type] ?? builtInValidators[rule.type];
@@ -141,7 +157,7 @@ export function validate(
       console.warn(`[openui] Unknown validation rule type: "${rule.type}"`);
       continue;
     }
-    const error = validator(value, rule.arg);
+    const error = validator(value, rule.arg, ctx);
     if (error) return error;
   }
   return undefined;

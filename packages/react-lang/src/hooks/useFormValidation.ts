@@ -1,4 +1,4 @@
-import { validate, type ParsedRule } from "@openuidev/lang-core";
+import { validate, type ParsedRule, type ValidatorFn } from "@openuidev/lang-core";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 
 export interface FormValidationContextValue {
@@ -17,6 +17,22 @@ export function useFormValidation(): FormValidationContextValue | null {
   return useContext(FormValidationContext);
 }
 
+/**
+ * Custom validators supplied via `<Renderer validators={...}>`. Forms rendered
+ * inside the Renderer pick them up automatically.
+ */
+export const FormValidatorsContext = createContext<Record<string, ValidatorFn> | undefined>(
+  undefined,
+);
+
+/** Form state stores `{ value, componentType }`; unwrap to the raw value. */
+function unwrapFieldValue(value: unknown): unknown {
+  if (value != null && typeof value === "object" && "value" in value && "componentType" in value) {
+    return (value as { value: unknown }).value;
+  }
+  return value;
+}
+
 interface FieldRegistration {
   rules: ParsedRule[];
   getValue: () => unknown;
@@ -27,19 +43,33 @@ export function useCreateFormValidation(): FormValidationContextValue {
   const errorsRef = useRef(errors);
   errorsRef.current = errors;
   const fieldsRef = useRef<Record<string, FieldRegistration>>({});
+  // Read through a ref so the callbacks below keep a stable identity even when
+  // the host passes a new validators object on every render.
+  const validators = useContext(FormValidatorsContext);
+  const validatorsRef = useRef(validators);
+  validatorsRef.current = validators;
+
+  const getFormValues = useCallback((): Record<string, unknown> => {
+    const values: Record<string, unknown> = {};
+    for (const [name, reg] of Object.entries(fieldsRef.current)) {
+      values[name] = unwrapFieldValue(reg.getValue());
+    }
+    return values;
+  }, []);
 
   const getFieldError = useCallback((name: string) => errorsRef.current[name], []);
 
   const validateField = useCallback(
     (name: string, value: unknown, rules: ParsedRule[]): boolean => {
-      const error = validate(value, rules);
+      const values = { ...getFormValues(), [name]: unwrapFieldValue(value) };
+      const error = validate(value, rules, validatorsRef.current, { fieldName: name, values });
       setErrors((prev) => {
         if (prev[name] === error) return prev;
         return { ...prev, [name]: error };
       });
       return !error;
     },
-    [],
+    [getFormValues],
   );
 
   const registerField = useCallback(
@@ -57,25 +87,20 @@ export function useCreateFormValidation(): FormValidationContextValue {
     let allValid = true;
     const newErrors: Record<string, string | undefined> = {};
 
+    const values = getFormValues();
+
     for (const [name, reg] of Object.entries(fieldsRef.current)) {
-      let value = reg.getValue();
-      // Normalize: form state stores { value, componentType }; extract actual value if needed
-      if (
-        value != null &&
-        typeof value === "object" &&
-        "value" in value &&
-        "componentType" in value
-      ) {
-        value = (value as { value: unknown }).value;
-      }
-      const error = validate(value, reg.rules);
+      const error = validate(values[name], reg.rules, validatorsRef.current, {
+        fieldName: name,
+        values,
+      });
       newErrors[name] = error;
       if (error) allValid = false;
     }
 
     setErrors(newErrors);
     return allValid;
-  }, []);
+  }, [getFormValues]);
 
   const clearFieldError = useCallback((name: string) => {
     setErrors((prev) => {
