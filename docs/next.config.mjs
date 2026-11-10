@@ -54,10 +54,10 @@ const config = {
   },
   async redirects() {
     return [
-      // The GitHub dashboards demo was removed; its links open the Demos page.
+      // The GitHub dashboards demo was removed; its links open the Sales Dashboard demo.
       {
         source: "/demo/github/:path*",
-        destination: "/demos",
+        destination: "/demo/sales-dashboard",
         permanent: true,
       },
       {
