@@ -12,6 +12,7 @@ const proxiedDemos = {
   "f1-dashboard": "https://openui-f1-dashboard.vercel.app",
   "trip-planner": "https://openui-trip-planner.vercel.app",
   "intelligent-ui": "https://open-intelligent-ui.vercel.app",
+  northstar: "https://openui-northstar-sales-agent.vercel.app",
 };
 
 /** @type {import('next').NextConfig} */

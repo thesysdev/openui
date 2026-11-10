@@ -56,6 +56,11 @@ export const PROXIED_DEMOS = {
     repo: "thesysdev/open-intelligent-ui",
     screenshots: offlineScreenshots("intelligent-ui"),
   },
+  northstar: {
+    title: "Northstar Sales Agent",
+    repo: "thesysdev/openui-northstar-sales-agent",
+    screenshots: offlineScreenshots("northstar"),
+  },
 } as const;
 
 export type ProxiedDemoSlug = keyof typeof PROXIED_DEMOS;

@@ -12,6 +12,7 @@ const STATIC_PATHS = [
   "/demo/f1-dashboard",
   "/demo/trip-planner/planner",
   "/demo/intelligent-ui",
+  "/demo/northstar",
   "/demo/github",
   "/pricing",
   "/cloud/gateway",
