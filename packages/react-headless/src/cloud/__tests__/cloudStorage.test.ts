@@ -286,3 +286,34 @@ describe("cloud item conversion", () => {
     ]);
   });
 });
+
+describe("cloud artifact last results", () => {
+  it("reads results, answers {} on a failure, and writes without throwing", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(json({ results: { k: { total: 1 } } }))
+      .mockResolvedValueOnce(json({ error: "down" }, 500))
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockRejectedValueOnce(new Error("offline"));
+    const storage = cloudArtifactStorage({ baseUrl, fetch });
+
+    expect(await storage.getResults!("a/1")).toEqual({ k: { total: 1 } });
+    expect(fetch.mock.calls[0]![0]).toBe("https://cloud.example.com/v1/artifacts/a%2F1/results");
+    expect(await storage.getResults!("a/1")).toEqual({});
+    expect(await storage.getResults!("a/1")).toEqual({});
+
+    const entry = { key: "k", result: { total: 2 } };
+    storage.putResult!("a/1", entry);
+    expect(fetch.mock.calls[3]).toEqual([
+      "https://cloud.example.com/v1/artifacts/a%2F1/results",
+      {
+        method: "PUT",
+        body: JSON.stringify(entry),
+        headers: { "Content-Type": "application/json" },
+      },
+    ]);
+    storage.putResult!("a/1", entry);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+});

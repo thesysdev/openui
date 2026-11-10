@@ -87,6 +87,10 @@ export interface ArtifactStorage {
   unpin?(id: string): Promise<ArtifactSummary>;
   /** Optional. Delete an artifact. */
   delete?(id: string): Promise<void>;
+  /** Optional. The saved query results of an artifact, by key. Must not reject. */
+  getResults?(id: string): Promise<Record<string, unknown>>;
+  /** Optional. Save a query result under a key, without waiting. Must not throw. */
+  putResult?(id: string, entry: { key: string; result: unknown }): void;
 }
 
 /**

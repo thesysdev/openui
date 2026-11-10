@@ -5,6 +5,7 @@ import {
   useArtifactStorage,
   useArtifactStream,
   type Interpreter,
+  type InterpreterToolProvider,
 } from "@openuidev/react-headless";
 import type { McpClientLike, OpenUIError } from "@openuidev/react-lang";
 import clsx from "clsx";
@@ -13,6 +14,7 @@ import {
   isValidElement,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -105,6 +107,33 @@ const DELETED_ERROR: ArtifactError = {
   code: "not-found",
   message: "This artifact was deleted.",
 };
+
+/** JSON with sorted object keys, so equal arguments give the same key. */
+function stableStringify(value: unknown): string {
+  return JSON.stringify(value, (_key, val: unknown) =>
+    val && typeof val === "object" && !Array.isArray(val)
+      ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => (a < b ? -1 : 1)))
+      : val,
+  );
+}
+
+type ToolResult = Awaited<ReturnType<InterpreterToolProvider["callTool"]>>;
+
+/** The data calls of one artifact version while it is on screen. */
+function newCalls(id: string | null, version: string | undefined) {
+  return {
+    id,
+    version,
+    /** Keys called at least once: a stored result is only served for a key's first call. */
+    seen: new Set<string>(),
+    /** The latest real call per key, answered once more after the switch to fresh results. */
+    real: new Map<string, Promise<ToolResult>>(),
+    /** Real calls still running for keys answered from storage. */
+    awaited: 0,
+    fresh: false,
+    written: new Set<string>(),
+  };
+}
 
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
@@ -276,6 +305,82 @@ export function ArtifactRendererRoot({
   const open = useCallback(() => setOpen(true), [setOpen]);
   const close = useCallback(() => setOpen(false), [setOpen]);
 
+  // ── Last results: a reopened dashboard shows them while its queries run ──
+  // Stored under `<version>|<tool>::<args>`. Closed preview cards neither read nor write.
+  const resultStore = interpreter && (!preview || isOpen) ? storage : null;
+  const resultsRef = useRef({ store: resultStore, stored: {} as Record<string, unknown> });
+  resultsRef.current.store = resultStore;
+  useEffect(() => {
+    resultsRef.current.stored = {};
+    if (!resultStore?.getResults || !id) return;
+    let current = true;
+    void resultStore.getResults(id).then((stored) => {
+      if (current) resultsRef.current.stored = stored;
+    });
+    return () => {
+      current = false;
+    };
+  }, [resultStore, id]);
+  const isStreamingRef = useRef(stream.isStreaming);
+  isStreamingRef.current = stream.isStreaming;
+
+  // `Renderer` runs its queries again only for a new provider, so the switch to the
+  // fresh results takes the provider away for one render.
+  const [switching, setSwitching] = useState(false);
+  useLayoutEffect(() => {
+    if (switching) setSwitching(false);
+  }, [switching]);
+  const callsRef = useRef(newCalls(id, stream.version));
+  const lastResultsProvider = useMemo<InterpreterToolProvider>(
+    () => ({
+      callTool(params) {
+        const request = requestRef.current;
+        if (callsRef.current.id !== request.id || callsRef.current.version !== request.version) {
+          callsRef.current = newCalls(request.id, request.version);
+        }
+        const calls = callsRef.current;
+        const key = `${request.version}|${params.name}::${stableStringify(params.arguments ?? {})}`;
+        const remembered = calls.real.get(key);
+        if (calls.fresh && remembered) {
+          calls.real.delete(key);
+          return remembered;
+        }
+        const { stored } = resultsRef.current;
+        const real = toolProvider.callTool(params);
+        if (calls.fresh) return real;
+        calls.real.set(key, real);
+        real.then(
+          (result) => {
+            const { store } = resultsRef.current;
+            if (!store?.putResult || !request.id || !request.version) return;
+            if (calls !== callsRef.current || isStreamingRef.current || calls.written.has(key))
+              return;
+            calls.written.add(key);
+            const serialized = JSON.stringify(result.structuredContent);
+            if (serialized === JSON.stringify(stored[key])) return;
+            if (new TextEncoder().encode(serialized).length > 256 * 1024) return;
+            store.putResult(request.id, { key, result: result.structuredContent });
+          },
+          () => {},
+        );
+        if (calls.seen.has(key) || !Object.hasOwn(stored, key)) {
+          calls.seen.add(key);
+          return real;
+        }
+        calls.seen.add(key);
+        calls.awaited++;
+        const settled = () => {
+          if (--calls.awaited > 0 || calls !== callsRef.current) return;
+          calls.fresh = true;
+          setSwitching(true);
+        };
+        real.then(settled, settled);
+        return Promise.resolve({ content: [], structuredContent: stored[key] });
+      },
+    }),
+    [toolProvider],
+  );
+
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
@@ -306,7 +411,7 @@ export function ArtifactRendererRoot({
         renderContent({
           program,
           isStreaming,
-          toolProvider: interpreter ? toolProvider : undefined,
+          toolProvider: interpreter && !switching ? lastResultsProvider : undefined,
           rendererKey,
           onError: handleRendererErrors,
         }),
@@ -315,7 +420,8 @@ export function ArtifactRendererRoot({
       program,
       isStreaming,
       interpreter,
-      toolProvider,
+      switching,
+      lastResultsProvider,
       rendererKey,
       handleRendererErrors,
       renderContent,
