@@ -118,6 +118,7 @@ function stableStringify(value: unknown): string {
 }
 
 type ToolResult = Awaited<ReturnType<InterpreterToolProvider["callTool"]>>;
+const noStored = () => null;
 
 /** The data calls of one artifact version while it is on screen. */
 function newCalls(id: string | null, version: string | undefined) {
@@ -308,18 +309,14 @@ export function ArtifactRendererRoot({
   // ── Last results: a reopened dashboard shows them while its queries run ──
   // Stored under `<version>|<tool>::<args>`. Closed preview cards neither read nor write.
   const resultStore = interpreter && (!preview || isOpen) ? storage : null;
-  const resultsRef = useRef({ store: resultStore, stored: {} as Record<string, unknown> });
+  const resultsRef = useRef({
+    store: resultStore,
+    stored: Promise.resolve<Record<string, unknown>>({}),
+  });
   resultsRef.current.store = resultStore;
   useEffect(() => {
-    resultsRef.current.stored = {};
-    if (!resultStore?.getResults || !id) return;
-    let current = true;
-    void resultStore.getResults(id).then((stored) => {
-      if (current) resultsRef.current.stored = stored;
-    });
-    return () => {
-      current = false;
-    };
+    resultsRef.current.stored =
+      resultStore?.getResults && id ? resultStore.getResults(id) : Promise.resolve({});
   }, [resultStore, id]);
   const isStreamingRef = useRef(stream.isStreaming);
   isStreamingRef.current = stream.isStreaming;
@@ -357,25 +354,29 @@ export function ArtifactRendererRoot({
               return;
             calls.written.add(key);
             const serialized = JSON.stringify(result.structuredContent);
-            if (serialized === JSON.stringify(stored[key])) return;
             if (new TextEncoder().encode(serialized).length > 256 * 1024) return;
-            store.putResult(request.id, { key, result: result.structuredContent });
+            const id = request.id;
+            void stored.then((was) => {
+              if (serialized === JSON.stringify(was[key])) return;
+              store.putResult?.(id, { key, result: result.structuredContent });
+            });
           },
           () => {},
         );
-        if (calls.seen.has(key) || !Object.hasOwn(stored, key)) {
-          calls.seen.add(key);
-          return real;
-        }
+        if (calls.seen.has(key)) return real;
         calls.seen.add(key);
-        calls.awaited++;
-        const settled = () => {
-          if (--calls.awaited > 0 || calls !== callsRef.current) return;
-          calls.fresh = true;
-          setSwitching(true);
-        };
-        real.then(settled, settled);
-        return Promise.resolve({ content: [], structuredContent: stored[key] });
+        // The stored result if it is here before the real one; the real call never waits.
+        return Promise.race([real.then(noStored, noStored), stored]).then((found) => {
+          if (!found || !Object.hasOwn(found, key) || calls !== callsRef.current) return real;
+          calls.awaited++;
+          const settled = () => {
+            if (--calls.awaited > 0 || calls !== callsRef.current) return;
+            calls.fresh = true;
+            setSwitching(true);
+          };
+          real.then(settled, settled);
+          return { content: [], structuredContent: found[key] };
+        });
       },
     }),
     [toolProvider],
