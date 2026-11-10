@@ -158,28 +158,17 @@ describe("ArtifactRendererRoot last results", () => {
     expect(refreshes()).toBe(0);
   });
 
-  it("a reopened dashboard shows the stored result, then the fresh one, with one call and its state kept", async () => {
-    const c = cloud(ONE, async () => stored({ "totals::{}": { total: 7 } }));
-    await show(c.storage, panel);
-    expect(shown()).toBe("7 all 0");
-    await act(async () => setFilter("mine"));
-
-    await answer("totals", { total: 9 });
-    expect(shown()).toBe("9 mine 0");
-    expect(calls).toHaveLength(1);
-    expect(c.saved.mock.calls).toEqual([["a", stored({ "totals::{}": { total: 9 } })]]);
-  });
-
-  it("each tile shows its fresh result as soon as it arrives, with one call per query", async () => {
+  it("a reopened dashboard shows the saved results, then each fresh one as it arrives, with one call per query and its state kept", async () => {
     const c = cloud(TWO, async () => stored(both));
     await show(c.storage, panel);
     expect(shown()).toBe("7 all 5");
+    await act(async () => setFilter("mine"));
     renders = [];
     await answer("totals", { total: 9 });
-    expect(shown()).toBe("9 all 5");
+    expect(shown()).toBe("9 mine 5");
     expect(c.saved.mock.calls).toEqual([["a", stored({ "totals::{}": { total: 9 } })]]);
     await answer("slow", { total: 6 });
-    expect(shown()).toBe("9 all 6");
+    expect(shown()).toBe("9 mine 6");
     expect(calls.map((call) => call.name)).toEqual(["totals", "slow"]);
     expect(c.saved.mock.calls[1]).toEqual([
       "a",
@@ -246,10 +235,12 @@ describe("ArtifactRendererRoot last results", () => {
     expect(calls).toHaveLength(1);
   });
 
-  it("a panel opened from a card, with the program already loaded, shows the stored result", async () => {
+  it("cards neither read nor write; a panel opened from one, with the program already loaded, shows the saved result", async () => {
     const c = cloud(ONE, async () => stored({ "totals::{}": { total: 7 } }));
-    await show(c.storage, card);
+    await show(c.storage, renderer({ key: "closed" }), card);
+    expect(calls).toHaveLength(0);
     expect(c.read).not.toHaveBeenCalled();
+    expect(c.saved).not.toHaveBeenCalled();
     await show(c.storage, card, panel);
     expect(shown()).toBe("7 all 0");
     expect(c.read).toHaveBeenCalledTimes(1);
@@ -278,12 +269,41 @@ describe("ArtifactRendererRoot last results", () => {
     expect(renders).not.toContain(7);
   });
 
-  it("a closed preview card and a card without content neither read nor write", async () => {
+  it("a storage without saved results passes every call straight through", async () => {
     const c = cloud(ONE, async () => stored({ "totals::{}": { total: 7 } }));
-    await show(c.storage, renderer({ key: "closed" }), card);
-    expect(calls).toHaveLength(0);
+    delete (c.storage.artifact as Partial<ArtifactStorage>).getQueryResults;
+    await show(c.storage, panel);
+    expect(shown()).toBe("0 all 0");
+    await answer("totals", { total: 9 });
+    expect(shown()).toBe("9 all 0");
+    expect(calls).toHaveLength(1);
     expect(c.read).not.toHaveBeenCalled();
     expect(c.saved).not.toHaveBeenCalled();
+  });
+
+  it("the key of a call does not depend on the order of its arguments", async () => {
+    const program = ONE.replace('"totals", {}', '"totals", {b: 1, a: {d: 2, c: 3}}');
+    const key = 'totals::{"a":{"c":3,"d":2},"b":1}';
+    const c = cloud(program, async () => stored({ [key]: { total: 7 } }));
+    await show(c.storage, panel);
+    expect(shown()).toBe("7 all 0");
+    await answer("totals", { total: 9 });
+    expect(c.saved.mock.calls).toEqual([["a", stored({ [key]: { total: 9 } })]]);
+  });
+
+  it("a key not called when the queries ran again makes a real call when it is called later", async () => {
+    const program = TWO.replace('"totals", {}', '"totals", {filter: $filter}');
+    const all = 'totals::{"filter":"all"}';
+    const c = cloud(program, async () => stored({ [all]: { total: 7 }, "slow::{}": { total: 5 } }));
+    await show(c.storage, panel);
+    await act(async () => setFilter("mine"));
+    await settle();
+    expect(calls).toHaveLength(3);
+    // The queries run again with the filter on "mine": the "all" call is not made again.
+    await answer("slow", { total: 6 });
+    await act(async () => setFilter("all"));
+    await settle();
+    expect(calls).toHaveLength(4);
   });
 
   it("after the first batch, a call is real even if its result is stored: not shown, not saved, no re-run", async () => {

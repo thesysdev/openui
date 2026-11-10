@@ -288,12 +288,10 @@ describe("cloud item conversion", () => {
 });
 
 describe("cloud artifact last results", () => {
-  it("reads the saved results, answers none on a failure, and writes without throwing", async () => {
+  it("reads the saved results, and a failed write neither throws nor rejects", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(json({ version: "v1", results: { k: { total: 1 } } }))
-      .mockResolvedValueOnce(json({ error: "down" }, 500))
-      .mockRejectedValueOnce(new Error("offline"))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockRejectedValueOnce(new Error("offline"));
     const storage = cloudArtifactStorage({ baseUrl, fetch });
@@ -304,12 +302,10 @@ describe("cloud artifact last results", () => {
       results: { k: { total: 1 } },
     });
     expect(fetch.mock.calls[0]![0]).toBe(url);
-    expect(await storage.getQueryResults!("a/1")).toEqual({ results: {} });
-    expect(await storage.getQueryResults!("a/1")).toEqual({ results: {} });
 
     const snapshot = { version: "v1", results: { k: { total: 2 } } };
     storage.putQueryResults!("a/1", snapshot);
-    expect(fetch.mock.calls[3]).toEqual([
+    expect(fetch.mock.calls[1]).toEqual([
       url,
       {
         method: "PUT",
@@ -317,8 +313,10 @@ describe("cloud artifact last results", () => {
         headers: { "Content-Type": "application/json" },
       },
     ]);
-    storage.putQueryResults!("a/1", snapshot);
+    // An unhandled rejection would fail the test.
+    expect(() => storage.putQueryResults!("a/1", snapshot)).not.toThrow();
     await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it("has no query result calls when cacheQueryResults is false", () => {

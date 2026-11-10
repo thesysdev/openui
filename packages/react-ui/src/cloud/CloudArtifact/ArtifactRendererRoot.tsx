@@ -110,7 +110,6 @@ const DELETED_ERROR: ArtifactError = {
 
 type ToolResult = Awaited<ReturnType<InterpreterToolProvider["callTool"]>>;
 type QueryResults = { version?: string; results: Record<string, unknown> };
-const noStored = () => null;
 
 /** The same key for the same tool and arguments, whatever the order of the argument keys. */
 function queryKey(tool: string, args: unknown): string {
@@ -121,47 +120,31 @@ function queryKey(tool: string, args: unknown): string {
   return `${tool}::${JSON.stringify(args ?? {}, sorted)}`;
 }
 
-/** `stored` if it is here before `real` settles, else `real`: the real call never waits. */
-async function firstOf(
-  real: Promise<ToolResult>,
-  stored: Promise<ToolResult | null>,
-  onStored: (stored: ToolResult) => void,
-): Promise<ToolResult> {
-  const found = await Promise.race([real.then(noStored, noStored), stored]);
-  if (!found) return real;
-  onStored(found);
-  return found;
-}
-
 /** One data call of a run's first batch. */
 interface FirstCall {
   real: Promise<ToolResult>;
   settled: boolean;
-  /** The stored result the dashboard shows for it, until its own result replaces it. */
+  /** The saved result the dashboard shows for it, until its own result replaces it. */
   shown?: ToolResult;
   /** The queries are running again: the next call for this key is answered from here. */
   replay: boolean;
 }
 
-/** One artifact version on screen. Its first batch of data calls may be answered from the stored results. */
-function newRun(id: string, version: string | undefined, stored: Promise<QueryResults>) {
-  return {
-    id,
-    version,
-    stored,
-    /** True while the first batch runs; after it, every call is a real call. */
-    open: true,
-    calls: new Map<string, FirstCall>(),
-    inFlight: 0,
-    /** A call joined the first batch since the last flush. */
-    joined: false,
-    /** The results fetched so far, to store. */
-    results: {} as Record<string, unknown>,
-    unsaved: false,
-    frame: undefined as number | undefined,
-  };
+/** One artifact version on screen. Its first batch of data calls may be answered from the saved results. */
+interface Run {
+  id: string;
+  version: string;
+  saved: Promise<QueryResults>;
+  /** True while the first batch runs; after it, every call is a real call. */
+  firstBatch: boolean;
+  calls: Map<string, FirstCall>;
+  /** A call joined the first batch since the last flush. */
+  joined: boolean;
+  /** The results fetched so far, to save. */
+  results: Record<string, unknown>;
+  unsaved: boolean;
+  frame?: number;
 }
-type Run = ReturnType<typeof newRun>;
 
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
@@ -337,14 +320,14 @@ export function ArtifactRendererRoot({
   // `Renderer` runs its queries again only for a new provider, so a refresh takes
   // the provider away for one render.
   const [refreshing, setRefreshing] = useState(false);
-  useLayoutEffect(() => {
-    if (refreshing) setRefreshing(false);
-  }, [refreshing]);
+  useLayoutEffect(() => setRefreshing(false), [refreshing]);
   const runRef = useRef<Run | null>(null);
   const storageRef = useRef(storage);
   storageRef.current = storage;
 
   const lastResults = useMemo(() => {
+    /** A refresh was asked for and the queries have not run again yet. */
+    let awaitingRefresh = false;
     const dropRun = () => {
       if (runRef.current?.frame !== undefined) cancelAnimationFrame(runRef.current.frame);
       runRef.current = null;
@@ -353,25 +336,20 @@ export function ArtifactRendererRoot({
     const currentRun = (): Run | null => {
       const { id: artifactId, version } = requestRef.current;
       const store = storageRef.current;
-      if (!artifactId || !store?.getQueryResults) return null;
+      if (!artifactId || !version || !store?.getQueryResults) return null;
       const run = runRef.current;
       if (run?.id === artifactId && run.version === version) return run;
       dropRun();
-      const stored = store.getQueryResults(artifactId).catch((): QueryResults => ({ results: {} }));
-      return (runRef.current = newRun(artifactId, version, stored));
-    };
-    const storedResult = async (run: Run, key: string): Promise<ToolResult | null> => {
-      const { version, results } = await run.stored;
-      if (!run.version || version !== run.version || !Object.hasOwn(results, key)) return null;
-      return { content: [], structuredContent: results[key] };
-    };
-    // The version is the one every call of the run was made with, also during an edit.
-    const saveSnapshot = (run: Run) => {
-      if (!run.version || !run.unsaved) return;
-      run.unsaved = false;
-      const snapshot = { version: run.version, results: run.results };
-      if (JSON.stringify(snapshot).length > 1024 * 1024) return;
-      storageRef.current?.putQueryResults?.(run.id, snapshot);
+      return (runRef.current = {
+        id: artifactId,
+        version,
+        saved: store.getQueryResults(artifactId).catch(() => ({ results: {} })),
+        firstBatch: true,
+        calls: new Map(),
+        joined: false,
+        results: {},
+        unsaved: false,
+      });
     };
     // Results that arrive in the same frame are handled together.
     const flushSoon = (run: Run) => {
@@ -379,48 +357,64 @@ export function ArtifactRendererRoot({
     };
     const flush = (run: Run) => {
       run.frame = undefined;
-      saveSnapshot(run);
+      // `afterRefresh` flushes again once the queries have run.
+      if (awaitingRefresh) return;
       const calls = [...run.calls.values()];
+      // Not called in the last refresh: a later call for the key is a new, real call.
+      for (const call of calls) call.replay = false;
+      if (run.unsaved) {
+        run.unsaved = false;
+        // The version is the one every call of the run was made with, also during an edit.
+        const snapshot = { version: run.version, results: { ...run.results } };
+        if (JSON.stringify(snapshot).length <= 1024 * 1024) {
+          storageRef.current?.putQueryResults?.(run.id, snapshot);
+        }
+      }
       const replaced = calls.filter((call) => call.settled && call.shown);
       if (replaced.length > 0) {
-        // The queries run again; `afterRefresh` then looks at the run once more.
         for (const call of replaced) call.shown = undefined;
         for (const call of calls) call.replay = true;
+        awaitingRefresh = true;
         setRefreshing(true);
-      } else if (run.inFlight === 0) {
+      } else if (calls.every((call) => call.settled)) {
         // A call that just joined may lead to more, such as a query that reads its result.
         if (run.joined) flushSoon(run);
-        else closeRun(run);
+        else {
+          run.firstBatch = false;
+          run.calls.clear();
+        }
       }
       run.joined = false;
     };
-    const closeRun = (run: Run) => {
-      run.open = false;
-      run.calls.clear();
-    };
-    const joinFirstBatch = (run: Run, key: string, real: Promise<ToolResult>) => {
+    const join = async (run: Run, key: string, real: Promise<ToolResult>): Promise<ToolResult> => {
       const call: FirstCall = { real, settled: false, replay: false };
       run.calls.set(key, call);
       run.joined = true;
-      run.inFlight++;
       const keep = ({ structuredContent }: ToolResult) => {
+        if (structuredContent === undefined) return;
         if (JSON.stringify(structuredContent).length > 256 * 1024) return;
         run.results[key] = structuredContent;
         run.unsaved = true;
       };
+      const settle = () => {
+        call.settled = true;
+        if (run === runRef.current) flushSoon(run);
+      };
+      // A result that cannot be kept must still settle the call.
       void real
-        .then(keep, () => {})
-        .then(() => {
-          call.settled = true;
-          run.inFlight--;
-          if (run === runRef.current) flushSoon(run);
-        });
-      return firstOf(real, storedResult(run, key), (stored) => (call.shown = stored));
+        .then(keep)
+        .catch(() => {})
+        .then(settle);
+      // The saved result if it is here before the real one settles: the real call never waits.
+      const notFirst = () => null;
+      const saved = await Promise.race([real.then(notFirst, notFirst), run.saved]);
+      if (saved?.version !== run.version || !Object.hasOwn(saved.results, key)) return real;
+      return (call.shown = { content: [], structuredContent: saved.results[key] });
     };
     const provider: InterpreterToolProvider = {
       callTool(params) {
         const run = currentRun();
-        if (!run?.open) return toolProvider.callTool(params);
+        if (!run?.firstBatch) return toolProvider.callTool(params);
         const key = queryKey(params.name, params.arguments);
         const call = run.calls.get(key);
         if (call?.replay) {
@@ -429,18 +423,21 @@ export function ArtifactRendererRoot({
           return !call.settled && call.shown ? Promise.resolve(call.shown) : call.real;
         }
         const real = toolProvider.callTool(params);
-        // A repeated call is answered as without stored results.
-        return call ? real : joinFirstBatch(run, key, real);
+        // A repeated call is answered as without saved results.
+        return call ? real : join(run, key, real);
       },
     };
-    const afterRefresh = () => runRef.current?.open && flushSoon(runRef.current);
+    const afterRefresh = () => {
+      awaitingRefresh = false;
+      if (runRef.current?.firstBatch) flushSoon(runRef.current);
+    };
     return { provider, afterRefresh, dropRun };
   }, [toolProvider]);
   // The queries have run again (a child's effects run first).
   useEffect(() => {
     if (!refreshing) lastResults.afterRefresh();
   }, [refreshing, lastResults]);
-  // Content shown again later starts over, with real calls.
+  // Content shown again later is a new run: it reads the saved results again.
   const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
   useEffect(() => lastResults.dropRun, [showsContent, lastResults]);
   const dataProvider = storage?.getQueryResults ? lastResults.provider : toolProvider;

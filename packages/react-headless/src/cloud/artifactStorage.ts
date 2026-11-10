@@ -121,18 +121,11 @@ export function cloudArtifactStorage({
     },
 
     ...(cacheQueryResults && {
-      /** GET /v1/artifacts/:id/query-results. `{ results: {} }` on any failure. */
+      /** GET /v1/artifacts/:id/query-results. */
       async getQueryResults(id: string) {
-        try {
-          const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`);
-          const body = (await res.json()) as {
-            version?: string;
-            results?: Record<string, unknown>;
-          };
-          return { version: body.version, results: body.results ?? {} };
-        } catch {
-          return { results: {} };
-        }
+        const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`);
+        const body = (await res.json()) as { version?: string; results?: Record<string, unknown> };
+        return { version: body.version, results: body.results ?? {} };
       },
 
       /** PUT /v1/artifacts/:id/query-results {version, results}. Not awaited; a failure is dropped. */
