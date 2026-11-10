@@ -57,6 +57,17 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
     ],
   },
   {
+    name: "AppLess",
+    tagline: "Phone OS concept",
+    description:
+      "An experimental phone with no apps. Ask for what you need and OpenUI streams a native interface for it on iOS and Android.",
+    image: { light: "/nav/appless-light.webp", dark: "/nav/appless-dark.webp" },
+    links: [
+      { label: "Website", href: SITE_NAV_LINKS.appless.href },
+      { label: "GitHub", href: "https://github.com/thesysdev/appless", external: true },
+    ],
+  },
+  {
     name: "F1 Dashboard",
     tagline: "Live race data",
     description:
@@ -85,16 +96,5 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
       "A ChatGPT-like assistant powered by OpenUI Cloud. Start a live conversation or replay a curated one.",
     image: { light: "/nav/chat-light.webp", dark: "/nav/chat-dark.webp" },
     links: [{ label: "Open demo", href: "/chat" }],
-  },
-  {
-    name: "AppLess",
-    tagline: "Phone OS concept",
-    description:
-      "An experimental phone with no apps. Ask for what you need and OpenUI streams a native interface for it on iOS and Android.",
-    image: { light: "/nav/appless-light.webp", dark: "/nav/appless-dark.webp" },
-    links: [
-      { label: "Website", href: SITE_NAV_LINKS.appless.href },
-      { label: "GitHub", href: "https://github.com/thesysdev/appless", external: true },
-    ],
   },
 ];
