@@ -121,21 +121,28 @@ export function cloudArtifactStorage({
     },
 
     ...(cacheQueryResults && {
-      /** GET /v1/artifacts/:id/results. `{}` on any failure. */
-      async getResults(id: string): Promise<Record<string, unknown>> {
+      /** GET /v1/artifacts/:id/query-results. `{ results: {} }` on any failure. */
+      async getQueryResults(id: string) {
         try {
-          const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/results`);
-          return ((await res.json()) as { results?: Record<string, unknown> })?.results ?? {};
+          const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`);
+          const body = (await res.json()) as {
+            version?: string;
+            results?: Record<string, unknown>;
+          };
+          return { version: body.version, results: body.results ?? {} };
         } catch {
-          return {};
+          return { results: {} };
         }
       },
 
-      /** PUT /v1/artifacts/:id/results {key, result}. Not awaited; a failure is dropped. */
-      putResult(id: string, entry: { key: string; result: unknown }): void {
-        request(`/v1/artifacts/${encodeURIComponent(id)}/results`, {
+      /** PUT /v1/artifacts/:id/query-results {version, results}. Not awaited; a failure is dropped. */
+      putQueryResults(
+        id: string,
+        snapshot: { version: string; results: Record<string, unknown> },
+      ): void {
+        request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`, {
           method: "PUT",
-          body: JSON.stringify(entry),
+          body: JSON.stringify(snapshot),
         }).catch(() => {});
       },
     }),

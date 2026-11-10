@@ -108,33 +108,49 @@ const DELETED_ERROR: ArtifactError = {
   message: "This artifact was deleted.",
 };
 
-/** JSON with sorted object keys, so equal arguments give the same key. */
-function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_key, val: unknown) =>
-    val && typeof val === "object" && !Array.isArray(val)
-      ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => (a < b ? -1 : 1)))
-      : val,
-  );
-}
-
 type ToolResult = Awaited<ReturnType<InterpreterToolProvider["callTool"]>>;
+type QueryResults = { version?: string; results: Record<string, unknown> };
 const noStored = () => null;
 
-/** The data calls of one artifact version while it is on screen. */
-function newCalls(id: string | null, version: string | undefined) {
+/** The same key for the same tool and arguments, whatever the order of the argument keys. */
+function queryKey(tool: string, args: unknown): string {
+  const sorted = (_key: string, value: unknown) =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => (a < b ? -1 : 1)))
+      : value;
+  return `${tool}::${JSON.stringify(args ?? {}, sorted)}`;
+}
+
+/** `stored` if it is here before `real` settles, else `real`: the real call never waits. */
+async function firstOf(
+  real: Promise<ToolResult>,
+  stored: Promise<ToolResult | null>,
+  onStored: () => void,
+): Promise<ToolResult> {
+  const found = await Promise.race([real.then(noStored, noStored), stored]);
+  if (!found) return real;
+  onStored();
+  return found;
+}
+
+/** One artifact version on screen. Its first batch of data calls may be answered from the stored results. */
+function newRun(id: string, version: string | undefined, stored: Promise<QueryResults>) {
   return {
     id,
     version,
-    /** Keys called at least once: a stored result is only served for a key's first call. */
-    seen: new Set<string>(),
-    /** The latest real call per key, answered once more after the switch to fresh results. */
-    real: new Map<string, Promise<ToolResult>>(),
-    /** Real calls still running for keys answered from storage. */
-    awaited: 0,
-    fresh: false,
-    written: new Set<string>(),
+    stored,
+    /** True until every call of the first batch has settled. */
+    open: true,
+    asked: new Set<string>(),
+    /** The first batch's real calls, answered once more when the queries run again. */
+    fetched: new Map<string, Promise<ToolResult>>(),
+    pending: 0,
+    /** The first batch's results, to store. */
+    results: {} as Record<string, unknown>,
+    showedStored: false,
   };
 }
+type Run = ReturnType<typeof newRun>;
 
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
@@ -307,80 +323,81 @@ export function ArtifactRendererRoot({
   const close = useCallback(() => setOpen(false), [setOpen]);
 
   // ── Last results: a reopened dashboard shows them while its queries run ──
-  // Stored under `<version>|<tool>::<args>`. Closed preview cards neither read nor write.
-  const resultStore = interpreter && (!preview || isOpen) ? storage : null;
-  const resultsRef = useRef({
-    store: resultStore,
-    stored: Promise.resolve<Record<string, unknown>>({}),
-  });
-  resultsRef.current.store = resultStore;
-  useEffect(() => {
-    resultsRef.current.stored =
-      resultStore?.getResults && id ? resultStore.getResults(id) : Promise.resolve({});
-  }, [resultStore, id]);
-  const isStreamingRef = useRef(stream.isStreaming);
-  isStreamingRef.current = stream.isStreaming;
-
-  // `Renderer` runs its queries again only for a new provider, so the switch to the
-  // fresh results takes the provider away for one render.
-  const [switching, setSwitching] = useState(false);
+  // `Renderer` runs its queries again only for a new provider, so the refresh takes
+  // the provider away for one render.
+  const [refreshing, setRefreshing] = useState(false);
   useLayoutEffect(() => {
-    if (switching) setSwitching(false);
-  }, [switching]);
-  const callsRef = useRef(newCalls(id, stream.version));
-  const lastResultsProvider = useMemo<InterpreterToolProvider>(
-    () => ({
-      callTool(params) {
-        const request = requestRef.current;
-        if (callsRef.current.id !== request.id || callsRef.current.version !== request.version) {
-          callsRef.current = newCalls(request.id, request.version);
-        }
-        const calls = callsRef.current;
-        const key = `${request.version}|${params.name}::${stableStringify(params.arguments ?? {})}`;
-        const remembered = calls.real.get(key);
-        if (calls.fresh && remembered) {
-          calls.real.delete(key);
-          return remembered;
-        }
-        const { stored } = resultsRef.current;
-        const real = toolProvider.callTool(params);
-        if (calls.fresh) return real;
-        calls.real.set(key, real);
-        real.then(
-          (result) => {
-            const { store } = resultsRef.current;
-            if (!store?.putResult || !request.id || !request.version) return;
-            if (calls !== callsRef.current || isStreamingRef.current || calls.written.has(key))
-              return;
-            calls.written.add(key);
-            const serialized = JSON.stringify(result.structuredContent);
-            if (new TextEncoder().encode(serialized).length > 256 * 1024) return;
-            const id = request.id;
-            void stored.then((was) => {
-              if (serialized === JSON.stringify(was[key])) return;
-              store.putResult?.(id, { key, result: result.structuredContent });
-            });
-          },
-          () => {},
-        );
-        if (calls.seen.has(key)) return real;
-        calls.seen.add(key);
-        // The stored result if it is here before the real one; the real call never waits.
-        return Promise.race([real.then(noStored, noStored), stored]).then((found) => {
-          if (!found || !Object.hasOwn(found, key) || calls !== callsRef.current) return real;
-          calls.awaited++;
-          const settled = () => {
-            if (--calls.awaited > 0 || calls !== callsRef.current) return;
-            calls.fresh = true;
-            setSwitching(true);
-          };
-          real.then(settled, settled);
-          return { content: [], structuredContent: found[key] };
-        });
-      },
-    }),
-    [toolProvider],
+    if (refreshing) setRefreshing(false);
+  }, [refreshing]);
+  const runRef = useRef<Run | null>(null);
+  // The queries have run again (a child's effects run first): what they did not ask for is dropped.
+  useEffect(() => {
+    if (!refreshing) runRef.current?.fetched.clear();
+  }, [refreshing]);
+  // Content shown again later starts over, with real calls.
+  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
+  useEffect(
+    () => () => {
+      runRef.current = null;
+    },
+    [showsContent],
   );
+  const storageRef = useRef(storage);
+  storageRef.current = storage;
+
+  const lastResultsProvider = useMemo<InterpreterToolProvider>(() => {
+    // Read on a run's first call, so a card that shows no content never reads.
+    const currentRun = (): Run | null => {
+      const { id: artifactId, version } = requestRef.current;
+      const store = storageRef.current;
+      if (!artifactId || !store?.getQueryResults) return null;
+      const run = runRef.current;
+      if (run?.id === artifactId && run.version === version) return run;
+      const stored = store.getQueryResults(artifactId).catch((): QueryResults => ({ results: {} }));
+      return (runRef.current = newRun(artifactId, version, stored));
+    };
+    const storedResult = async (run: Run, key: string): Promise<ToolResult | null> => {
+      const { version, results } = await run.stored;
+      if (!run.version || version !== run.version || !Object.hasOwn(results, key)) return null;
+      return { content: [], structuredContent: results[key] };
+    };
+    // The version is the one every call of the run was made with, also during an edit.
+    const saveSnapshot = (run: Run) => {
+      if (!run.version || Object.keys(run.results).length === 0) return;
+      const snapshot = { version: run.version, results: run.results };
+      if (JSON.stringify(snapshot).length > 1024 * 1024) return;
+      storageRef.current?.putQueryResults?.(run.id, snapshot);
+    };
+    const closeRun = (run: Run) => {
+      run.open = false;
+      if (run !== runRef.current) return;
+      saveSnapshot(run);
+      if (run.showedStored) setRefreshing(true);
+      else run.fetched.clear();
+    };
+    return {
+      callTool(params) {
+        const run = currentRun();
+        if (!run) return toolProvider.callTool(params);
+        const key = queryKey(params.name, params.arguments);
+        const fetched = run.open ? undefined : run.fetched.get(key);
+        if (fetched) {
+          run.fetched.delete(key);
+          return fetched;
+        }
+        const real = toolProvider.callTool(params);
+        // After the first batch, and for a repeated call, exactly as without stored results.
+        if (!run.open || run.asked.has(key)) return real;
+        run.asked.add(key);
+        run.fetched.set(key, real);
+        run.pending++;
+        const keep = (result: ToolResult) => void (run.results[key] = result.structuredContent);
+        void real.then(keep, () => {}).then(() => --run.pending === 0 && closeRun(run));
+        return firstOf(real, storedResult(run, key), () => (run.showedStored = true));
+      },
+    };
+  }, [toolProvider]);
+  const dataProvider = storage?.getQueryResults ? lastResultsProvider : toolProvider;
 
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
@@ -412,7 +429,7 @@ export function ArtifactRendererRoot({
         renderContent({
           program,
           isStreaming,
-          toolProvider: interpreter && !switching ? lastResultsProvider : undefined,
+          toolProvider: interpreter && !refreshing ? dataProvider : undefined,
           rendererKey,
           onError: handleRendererErrors,
         }),
@@ -421,8 +438,8 @@ export function ArtifactRendererRoot({
       program,
       isStreaming,
       interpreter,
-      switching,
-      lastResultsProvider,
+      refreshing,
+      dataProvider,
       rendererKey,
       handleRendererErrors,
       renderContent,

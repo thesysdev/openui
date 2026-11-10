@@ -288,38 +288,42 @@ describe("cloud item conversion", () => {
 });
 
 describe("cloud artifact last results", () => {
-  it("reads results, answers {} on a failure, and writes without throwing", async () => {
+  it("reads the saved results, answers none on a failure, and writes without throwing", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
-      .mockResolvedValueOnce(json({ results: { k: { total: 1 } } }))
+      .mockResolvedValueOnce(json({ version: "v1", results: { k: { total: 1 } } }))
       .mockResolvedValueOnce(json({ error: "down" }, 500))
       .mockRejectedValueOnce(new Error("offline"))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockRejectedValueOnce(new Error("offline"));
     const storage = cloudArtifactStorage({ baseUrl, fetch });
+    const url = "https://cloud.example.com/v1/artifacts/a%2F1/query-results";
 
-    expect(await storage.getResults!("a/1")).toEqual({ k: { total: 1 } });
-    expect(fetch.mock.calls[0]![0]).toBe("https://cloud.example.com/v1/artifacts/a%2F1/results");
-    expect(await storage.getResults!("a/1")).toEqual({});
-    expect(await storage.getResults!("a/1")).toEqual({});
+    expect(await storage.getQueryResults!("a/1")).toEqual({
+      version: "v1",
+      results: { k: { total: 1 } },
+    });
+    expect(fetch.mock.calls[0]![0]).toBe(url);
+    expect(await storage.getQueryResults!("a/1")).toEqual({ results: {} });
+    expect(await storage.getQueryResults!("a/1")).toEqual({ results: {} });
 
-    const entry = { key: "k", result: { total: 2 } };
-    storage.putResult!("a/1", entry);
+    const snapshot = { version: "v1", results: { k: { total: 2 } } };
+    storage.putQueryResults!("a/1", snapshot);
     expect(fetch.mock.calls[3]).toEqual([
-      "https://cloud.example.com/v1/artifacts/a%2F1/results",
+      url,
       {
         method: "PUT",
-        body: JSON.stringify(entry),
+        body: JSON.stringify(snapshot),
         headers: { "Content-Type": "application/json" },
       },
     ]);
-    storage.putResult!("a/1", entry);
+    storage.putQueryResults!("a/1", snapshot);
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   it("has no query result calls when cacheQueryResults is false", () => {
     const storage = cloudArtifactStorage({ baseUrl, fetch: vi.fn(), cacheQueryResults: false });
-    expect(storage.getResults).toBeUndefined();
-    expect(storage.putResult).toBeUndefined();
+    expect(storage.getQueryResults).toBeUndefined();
+    expect(storage.putQueryResults).toBeUndefined();
   });
 });
