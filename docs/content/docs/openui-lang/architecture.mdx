@@ -35,7 +35,7 @@ The LLM generated the wiring. The runtime executes it.
 - **Monitoring tools** with periodic refresh, server health metrics, and error rate tracking
 - **Any tool-connected UI.** If you can expose it as a tool (via [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) or function map), the LLM can wire it into a UI
 
-Try it live: [Open the GitHub Demo](/demo/github)
+Try it live: [Open the Northstar Sales Agent](https://www.openui.com/demo/northstar)
 
 ## Iterate and refine
 
@@ -92,7 +92,7 @@ await client.connect(new StreamableHTTPClientTransport(new URL("/api/mcp")));
 
 These examples leave out authentication, error handling, and connection lifecycle. Production code needs them.
 
-The `toolProvider` runs in the browser, next to the `Renderer`. The [GitHub Demo](/demo/github) uses a function map that calls the GitHub API from the browser. To keep data access on your server, point the functions at your API routes or connect an MCP client to your server.
+The `toolProvider` runs in the browser, next to the `Renderer`, so a function map can call a public API from the browser directly. To keep data access on your server, point the functions at your API routes or connect an MCP client to your server.
 
 ## A concrete example
 

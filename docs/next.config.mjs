@@ -54,6 +54,12 @@ const config = {
   },
   async redirects() {
     return [
+      // The GitHub dashboards demo was removed; its links open the Demos page.
+      {
+        source: "/demo/github/:path*",
+        destination: "/demos",
+        permanent: true,
+      },
       {
         source: "/favicon.svg",
         destination: "/shiro-logo.svg",

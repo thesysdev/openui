@@ -24,6 +24,21 @@ export const PLAYGROUND: ShowcaseItem[] = [
 
 export const FEATURED_PROJECTS: ShowcaseItem[] = [
   {
+    name: "Northstar Sales Agent",
+    tagline: "Live sales data",
+    description:
+      "Describe a sales view and get a live dashboard over a Postgres database, with KPIs, charts and tables that load fresh numbers every time. Ask in the chat to change it.",
+    image: { light: "/nav/northstar-light.webp", dark: "/nav/northstar-dark.webp" },
+    links: [
+      { label: "Open demo", href: SITE_NAV_LINKS.northstar.href },
+      {
+        label: "GitHub",
+        href: "https://github.com/thesysdev/openui-northstar-sales-agent",
+        external: true,
+      },
+    ],
+  },
+  {
     name: "Open Intelligent UI",
     tagline: "Interactive answers",
     description:
@@ -67,14 +82,6 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
       "A ChatGPT-like assistant powered by OpenUI Cloud. Start a live conversation or replay a curated one.",
     image: { light: "/nav/chat-light.webp", dark: "/nav/chat-dark.webp" },
     links: [{ label: "Open demo", href: "/chat" }],
-  },
-  {
-    name: "AI Dashboards",
-    tagline: "Live GitHub data",
-    description:
-      "Enter a GitHub username and ask questions about their activity. Each answer is an interactive dashboard.",
-    image: { light: "/nav/dashboard-light.webp", dark: "/nav/dashboard-dark.webp" },
-    links: [{ label: "Open demo", href: "/demo/github" }],
   },
   {
     name: "AppLess",

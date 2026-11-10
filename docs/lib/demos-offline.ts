@@ -25,7 +25,6 @@ export const DEMOS_DISABLED = process.env.NEXT_PUBLIC_DEMOS_DISABLED === "1";
    API, and /chat creates a conversation before its send is stopped. */
 export const IN_APP_DEMO_API_PATHS = [
   "/api/chat",
-  "/api/demo/github/stream",
   "/api/playground/stream",
   "/api/openui-cloud/chat",
 ] as const;
