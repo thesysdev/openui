@@ -161,6 +161,12 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
         label: "Demos",
         children: [
           {
+            title: "Sales Dashboard",
+            description: "Ask for a sales view and get a live dashboard over a Postgres database.",
+            ...SITE_NAV_LINKS.salesDashboard,
+            icon: PresentationChart,
+          },
+          {
             title: "Open Intelligent UI",
             description: "Interactive maps, images, and editable itineraries built with OpenUI.",
             ...SITE_NAV_LINKS.openIntelligentUi,
@@ -178,12 +184,6 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
             description: "Plan a trip with visual itineraries, maps, and live hotel prices.",
             ...SITE_NAV_LINKS.tripPlanner,
             icon: DeviceMobileCamera,
-          },
-          {
-            title: "AI Dashboards",
-            description: "A demo built on GitHub data that answers with a dashboard",
-            ...SITE_NAV_LINKS.aiDashboards,
-            icon: ChartPieSlice,
           },
         ],
       },

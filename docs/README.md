@@ -52,10 +52,10 @@ Set this variable and redeploy to take the hosted demos offline:
 NEXT_PUBLIC_DEMOS_DISABLED=1
 ```
 
-- `/chat`, `/compare`, `/demo/github` and `/openui-vs-json` still load, but a send opens the
+- `/chat`, `/compare` and `/openui-vs-json` still load, but a send opens the
   "Hosted demos are temporarily offline" dialog instead of calling the model.
-- The proxied demos (`/demo/f1-dashboard`, `/demo/trip-planner`, `/demo/intelligent-ui`) show an
-  offline page with the command to run them locally.
+- The proxied demos (`/demo/f1-dashboard`, `/demo/trip-planner`, `/demo/intelligent-ui`,
+  `/demo/sales-dashboard`) show an offline page with the command to run them locally.
 - `proxy.ts` answers the demos' model API routes with a 402 for anyone calling them directly.
 
 The flag is inlined at build time, so switching it needs a redeploy. The proxied demo slugs are
@@ -95,13 +95,11 @@ docs/
 │   ├── blog/                               # Blog pages
 │   ├── chat/                               # Standalone OpenUI OSS and Cloud chat
 │   ├── compare/                            # Pairwise Markdown, OSS, and Cloud comparison
-│   ├── demo/                               # Demo route
 │   ├── playground/                         # Interactive playground
 │   │
 │   ├── api/                                # API routes
 │   │   ├── search/route.ts                 # Search endpoint
 │   │   ├── chat/route.ts                   # Chat API
-│   │   ├── demo/github/stream/route.ts     # GitHub demo stream
 │   │   └── playground/stream/route.ts      # Playground stream
 │   ├── og/docs/[...slug]/route.tsx         # OG image generation
 │   └── llms.txt/, llms-full.txt/, llms.mdx/  # LLM-friendly content endpoints

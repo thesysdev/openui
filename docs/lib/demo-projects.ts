@@ -24,6 +24,24 @@ export const PLAYGROUND: ShowcaseItem[] = [
 
 export const FEATURED_PROJECTS: ShowcaseItem[] = [
   {
+    name: "Sales Dashboard",
+    tagline: "Live sales data",
+    description:
+      "Describe a sales view and get a live dashboard over a Postgres database, with KPIs, charts and tables that load fresh numbers every time. Ask in the chat to change it.",
+    image: {
+      light: "/nav/sales-dashboard-light.webp",
+      dark: "/nav/sales-dashboard-dark.webp",
+    },
+    links: [
+      { label: "Open demo", href: SITE_NAV_LINKS.salesDashboard.href },
+      {
+        label: "GitHub",
+        href: "https://github.com/thesysdev/openui-sales-dashboard",
+        external: true,
+      },
+    ],
+  },
+  {
     name: "Open Intelligent UI",
     tagline: "Interactive answers",
     description:
@@ -36,6 +54,17 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
     links: [
       { label: "Open demo", href: SITE_NAV_LINKS.openIntelligentUi.href, external: true },
       { label: "GitHub", href: "https://github.com/thesysdev/open-intelligent-ui", external: true },
+    ],
+  },
+  {
+    name: "AppLess",
+    tagline: "Phone OS concept",
+    description:
+      "An experimental phone with no apps. Ask for what you need and OpenUI streams a native interface for it on iOS and Android.",
+    image: { light: "/nav/appless-light.webp", dark: "/nav/appless-dark.webp" },
+    links: [
+      { label: "Website", href: SITE_NAV_LINKS.appless.href },
+      { label: "GitHub", href: "https://github.com/thesysdev/appless", external: true },
     ],
   },
   {
@@ -67,24 +96,5 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
       "A ChatGPT-like assistant powered by OpenUI Cloud. Start a live conversation or replay a curated one.",
     image: { light: "/nav/chat-light.webp", dark: "/nav/chat-dark.webp" },
     links: [{ label: "Open demo", href: "/chat" }],
-  },
-  {
-    name: "AI Dashboards",
-    tagline: "Live GitHub data",
-    description:
-      "Enter a GitHub username and ask questions about their activity. Each answer is an interactive dashboard.",
-    image: { light: "/nav/dashboard-light.webp", dark: "/nav/dashboard-dark.webp" },
-    links: [{ label: "Open demo", href: "/demo/github" }],
-  },
-  {
-    name: "AppLess",
-    tagline: "Phone OS concept",
-    description:
-      "An experimental phone with no apps. Ask for what you need and OpenUI streams a native interface for it on iOS and Android.",
-    image: { light: "/nav/appless-light.webp", dark: "/nav/appless-dark.webp" },
-    links: [
-      { label: "Website", href: SITE_NAV_LINKS.appless.href },
-      { label: "GitHub", href: "https://github.com/thesysdev/appless", external: true },
-    ],
   },
 ];

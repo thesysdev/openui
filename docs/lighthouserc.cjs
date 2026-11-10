@@ -20,7 +20,6 @@ const PAGES = [
   "/chat",
   "/benchmarks",
   "/cloud/gateway",
-  "/demo/github",
   "/openui-vs-json",
   "/demos",
 ];

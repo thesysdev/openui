@@ -1,6 +1,7 @@
 "use client";
 
 import { captureCreateCliCommandCopied } from "@/lib/analytics";
+import { SITE_NAV_LINKS } from "@/lib/site-nav-links";
 import { ArrowRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -276,7 +277,7 @@ function DesktopPlaygroundButton({ className = "" }: { className?: string }) {
 function MobilePlaygroundButton({ className = "" }: { className?: string }) {
   return (
     <PillLink
-      href="/demo/github"
+      href={SITE_NAV_LINKS.salesDashboard.href}
       className={`${styles.mobilePlaygroundButton} ${className}`.trim()}
       arrow={<TrailingArrow />}
     >
