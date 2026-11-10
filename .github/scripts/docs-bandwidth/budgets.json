@@ -1,0 +1,11 @@
+{
+  "idleSeconds": 60,
+  "defaults": { "loadKB": 4000, "idleKB": 100 },
+  "pages": {
+    "/": { "loadKB": 6300, "idleKB": 800 },
+    "/docs/openui-lang": { "loadKB": 3600 },
+    "/docs/api-reference/devtools": { "loadKB": 3900 },
+    "/docs/agent/getting-started/introduction": { "loadKB": 6300 },
+    "/dashboards": { "loadKB": 5600 }
+  }
+}
