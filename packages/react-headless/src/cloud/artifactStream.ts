@@ -45,9 +45,16 @@ interface Entry {
   /** A newer revision was seen while a stream was still running. */
   stale: boolean;
   idleTimer: ReturnType<typeof setTimeout> | null;
+  /** A re-read started by `versionMismatch`, and its pending answer. */
+  reread: { version: string; answer: Promise<"rerun" | "show">; settle: Settle } | null;
+  rereadAt: number;
 }
 
+type Settle = (answer: "rerun" | "show") => void;
+
 const MAX_RECONNECTS = 3;
+/** Refused data calls re-read an artifact at most this often, so they can't loop. */
+const REREAD_INTERVAL_MS = 10_000;
 /** A connection that stayed open this long was healthy, so its drop doesn't count against `MAX_RECONNECTS`. */
 const STABLE_CONNECTION_MS = 10_000;
 const ERROR_CODES = new Set<string>([
@@ -74,8 +81,10 @@ const streamError = (
  * One stream per artifact, shared by every renderer showing it, so an edit
  * streamed by one renderer updates them all. Reads `storage.stream` when the
  * storage has it, and falls back to `storage.get` otherwise.
+ *
+ * @internal Exported for tests.
  */
-class ArtifactStreamStore {
+export class ArtifactStreamStore {
   private readonly entries = new Map<string, Entry>();
 
   constructor(private readonly storage: ArtifactStorage) {}
@@ -117,7 +126,8 @@ class ArtifactStreamStore {
     const isFirst = entry.versions.size === 0;
     entry.versions.add(version);
     if (isFirst || !entry.started) return;
-    if (entry.controller) entry.stale = true;
+    // An ended stream can hold its controller a few microtasks longer.
+    if (entry.controller && entry.snapshot.isStreaming) entry.stale = true;
     else void this.connect(id);
   }
 
@@ -126,6 +136,59 @@ class ArtifactStreamStore {
     entry.reconnects = 0;
     entry.started = true;
     void this.connect(id);
+  }
+
+  /**
+   * A data call was refused for `version` (`ARTIFACT_VERSION_MISMATCH`). "rerun" if
+   * a newer version is on screen or a re-read brings one; else "show". Renderers
+   * refused together share one re-read.
+   */
+  versionMismatch(id: string, version: string): Promise<"rerun" | "show"> {
+    const entry = this.entry(id);
+    if (version !== entry.snapshot.version) return Promise.resolve("rerun");
+    if (entry.reread?.version === version) return entry.reread.answer;
+    const now = performance.now();
+    if (!entry.started || now - entry.rereadAt < REREAD_INTERVAL_MS) {
+      return Promise.resolve("show");
+    }
+    entry.rereadAt = now;
+    let settle!: Settle;
+    const answer = new Promise<"rerun" | "show">((resolve) => (settle = resolve));
+    entry.reread = { version, answer, settle };
+    this.refresh(id);
+    return answer;
+  }
+
+  /** A read ended: answer a pending re-read. */
+  private afterRead(id: string): void {
+    const entry = this.entry(id);
+    const reread = entry.reread;
+    if (!reread || entry.snapshot.isStreaming) return;
+    entry.reread = null;
+    reread.settle(entry.snapshot.version === reread.version ? "show" : "rerun");
+  }
+
+  /** Reads the artifact again, after the running stream if there is one. */
+  private refresh(id: string): void {
+    const entry = this.entry(id);
+    if (!entry.started) return;
+    if (entry.controller && entry.snapshot.isStreaming) entry.stale = true;
+    else {
+      entry.reconnects = 0;
+      void this.connect(id);
+    }
+  }
+
+  /** True while `version` is newer than any version recorded: the program on screen is behind. */
+  awaits(id: string, version: string | undefined): boolean {
+    if (!version) return false;
+    const entry = this.entry(id);
+    return (
+      entry.started &&
+      entry.snapshot.program !== null &&
+      entry.versions.size > 0 &&
+      !entry.versions.has(version)
+    );
   }
 
   private entry(id: string): Entry {
@@ -143,6 +206,8 @@ class ArtifactStreamStore {
         versions: new Set(),
         stale: false,
         idleTimer: null,
+        reread: null,
+        rereadAt: -Infinity,
       };
       this.entries.set(id, entry);
     }
@@ -206,6 +271,7 @@ class ArtifactStreamStore {
       isStreaming: false,
       error: streamError("network-error", "Couldn't reach the artifact's storage.", failure),
     });
+    this.afterRead(id);
   }
 
   /** Storages without `stream`: read the stored artifact once. */
@@ -228,6 +294,7 @@ class ArtifactStreamStore {
         ),
       });
     }
+    this.afterRead(id);
   }
 
   /** Fetches a revision noted while the stream that just ended was running. */
@@ -244,6 +311,8 @@ class ArtifactStreamStore {
     switch (event.type) {
       case "reference": {
         const version = event.data?.version;
+        // Seen, so an edit's version noted later counts as newer.
+        if (version) entry.versions.add(version);
         // A reconnect into the version being streamed sends it whole again.
         entry.replace = version !== undefined && version === entry.version;
         entry.version = version;
@@ -276,6 +345,7 @@ class ArtifactStreamStore {
         entry.version = undefined;
         this.update(id, { ...swapped, isStreaming: false });
         this.catchUp(id);
+        this.afterRead(id);
         return;
       }
       case "error": {
@@ -293,6 +363,7 @@ class ArtifactStreamStore {
           ),
         });
         this.catchUp(id);
+        this.afterRead(id);
       }
     }
   }
@@ -322,6 +393,8 @@ export interface UseArtifactStreamOptions {
 export interface ArtifactStreamState extends Omit<ArtifactStreamSnapshot, "id"> {
   /** Reconnects after a `network-error`. Undefined when there's nothing to retry. */
   retry?: () => void;
+  /** For a data call refused because the artifact moved on: run the queries again, or show the error. */
+  reportVersionMismatch?: (version: string) => Promise<"rerun" | "show">;
 }
 
 const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: null };
@@ -356,6 +429,12 @@ export function useArtifactStream({
   useEffect(() => {
     if (store && id) store.noteVersion(id, version);
   }, [store, id, version]);
+  // During render: noteVersion's effect runs after the renderer's queries start.
+  const awaiting = store && id ? store.awaits(id, version) : false;
+  const reportVersionMismatch = useMemo(
+    () => (store && id ? (refused: string) => store.versionMismatch(id, refused) : undefined),
+    [store, id],
+  );
 
   return useMemo<ArtifactStreamState>(() => {
     if (ownContent) return { program: content, isStreaming: false, error: null };
@@ -371,6 +450,6 @@ export function useArtifactStream({
     const { id: _id, ...rest } = snapshot;
     const retry =
       snapshot.error?.code === "network-error" && store && id ? () => store.retry(id) : undefined;
-    return { ...rest, retry };
-  }, [ownContent, content, snapshot, id, storage, store]);
+    return { ...rest, isStreaming: rest.isStreaming || awaiting, retry, reportVersionMismatch };
+  }, [ownContent, content, snapshot, id, storage, store, awaiting, reportVersionMismatch]);
 }

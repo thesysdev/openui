@@ -171,26 +171,51 @@ export function ArtifactRendererRoot({
   const requestRef = useRef<{ id: typeof id; version?: string }>({ id });
   requestRef.current = { id, version: stream.version };
 
-  const toolProvider = useMemo(
-    () =>
-      createInterpreterToolProvider({
-        getInterpreter: () => interpreterRef.current,
-        getRequest: () => requestRef.current,
-        onStart: () => setInFlight((count) => count + 1),
-        onSettle: (toolName, message) => {
-          setInFlight((count) => Math.max(0, count - 1));
-          setToolErrors((current) => {
-            if (message === null) {
-              if (!(toolName in current)) return current;
-              const { [toolName]: _cleared, ...rest } = current;
-              return rest;
-            }
-            return current[toolName] === message ? current : { ...current, [toolName]: message };
-          });
-        },
-      }),
-    [],
-  );
+  // A call refused because the artifact moved on: the store says whether to run
+  // the queries again (once per refused version) or show the error.
+  const reportVersionMismatchRef = useRef(stream.reportVersionMismatch);
+  reportVersionMismatchRef.current = stream.reportVersionMismatch;
+  const rerunForRef = useRef<{ id: typeof id; version: string } | null>(null);
+
+  const toolProvider = useMemo(() => {
+    const setToolError = (toolName: string, message: string | null) =>
+      setToolErrors((current) => {
+        if (message === null) {
+          if (!(toolName in current)) return current;
+          const { [toolName]: _cleared, ...rest } = current;
+          return rest;
+        }
+        return current[toolName] === message ? current : { ...current, [toolName]: message };
+      });
+    const rerunFor = (refused: { id: typeof id; version: string }) => {
+      const last = rerunForRef.current;
+      if (last?.id === refused.id && last.version === refused.version) return;
+      rerunForRef.current = refused;
+      setToolErrors({});
+      setRendererKey((key) => key + 1);
+    };
+    return createInterpreterToolProvider({
+      getInterpreter: () => interpreterRef.current,
+      getRequest: () => requestRef.current,
+      onStart: () => setInFlight((count) => count + 1),
+      onSettle: (toolName, message, detail) => {
+        setInFlight((count) => Math.max(0, count - 1));
+        const report = reportVersionMismatchRef.current;
+        if (detail?.code !== "ARTIFACT_VERSION_MISMATCH" || !detail.version || !report) {
+          setToolError(toolName, message);
+          return;
+        }
+        // A call for the artifact this renderer showed before.
+        if (detail.id !== requestRef.current.id) return;
+        const refused = { id: detail.id, version: detail.version };
+        void report(refused.version).then((answer) => {
+          if (refused.id !== requestRef.current.id) return;
+          if (answer === "rerun") rerunFor(refused);
+          else setToolError(toolName, message);
+        });
+      },
+    });
+  }, []);
 
   // ── Errors and retry ──
   // The artifact's own error is the stream's, as is, so it keeps its identity
