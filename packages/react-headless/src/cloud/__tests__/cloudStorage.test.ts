@@ -316,4 +316,10 @@ describe("cloud artifact last results", () => {
     storage.putResult!("a/1", entry);
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
+
+  it("has no query result calls when cacheQueryResults is false", () => {
+    const storage = cloudArtifactStorage({ baseUrl, fetch: vi.fn(), cacheQueryResults: false });
+    expect(storage.getResults).toBeUndefined();
+    expect(storage.putResult).toBeUndefined();
+  });
 });

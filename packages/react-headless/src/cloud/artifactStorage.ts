@@ -26,6 +26,11 @@ export interface CloudArtifactStorageOptions {
   fetch: typeof fetch;
   /** Default page size when the caller passes no limit. */
   pageLimit?: number;
+  /**
+   * Dashboards show each query's last result while it reloads; the results are
+   * kept in OpenUI Cloud for 24 hours, per user. `false` turns this off. Default true.
+   */
+  cacheQueryResults?: boolean;
 }
 
 function toSummary(artifact: CloudArtifact): ArtifactSummary {
@@ -43,6 +48,7 @@ export function cloudArtifactStorage({
   baseUrl,
   fetch: fetchImpl,
   pageLimit = 100,
+  cacheQueryResults = true,
 }: CloudArtifactStorageOptions): ArtifactStorage {
   const request = cloudRequest(fetchImpl, baseUrl);
   const base = baseUrl.replace(/\/+$/, "");
@@ -114,23 +120,25 @@ export function cloudArtifactStorage({
       await request(`/v1/artifacts/${encodeURIComponent(id)}`, { method: "DELETE" });
     },
 
-    /** GET /v1/artifacts/:id/results. `{}` on any failure. */
-    async getResults(id: string): Promise<Record<string, unknown>> {
-      try {
-        const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/results`);
-        return ((await res.json()) as { results?: Record<string, unknown> })?.results ?? {};
-      } catch {
-        return {};
-      }
-    },
+    ...(cacheQueryResults && {
+      /** GET /v1/artifacts/:id/results. `{}` on any failure. */
+      async getResults(id: string): Promise<Record<string, unknown>> {
+        try {
+          const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/results`);
+          return ((await res.json()) as { results?: Record<string, unknown> })?.results ?? {};
+        } catch {
+          return {};
+        }
+      },
 
-    /** PUT /v1/artifacts/:id/results {key, result}. Not awaited; a failure is dropped. */
-    putResult(id: string, entry: { key: string; result: unknown }): void {
-      request(`/v1/artifacts/${encodeURIComponent(id)}/results`, {
-        method: "PUT",
-        body: JSON.stringify(entry),
-      }).catch(() => {});
-    },
+      /** PUT /v1/artifacts/:id/results {key, result}. Not awaited; a failure is dropped. */
+      putResult(id: string, entry: { key: string; result: unknown }): void {
+        request(`/v1/artifacts/${encodeURIComponent(id)}/results`, {
+          method: "PUT",
+          body: JSON.stringify(entry),
+        }).catch(() => {});
+      },
+    }),
 
     /** GET /v1/artifacts/:id/stream (SSE). Replays a finished artifact the
      *  same way; every connection starts from the whole program. */

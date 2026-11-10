@@ -152,6 +152,30 @@ describe("ArtifactRendererRoot last results", () => {
     expect(committed).toEqual(["7 mine", "0 mine", "9 mine"]);
   });
 
+  it("stored results that arrive after the query started are still shown, unless the fresh one is first", async () => {
+    const late = async () => {
+      await sleep(15);
+      return { [KEY]: { total: 7 } };
+    };
+    const view = await open(cloud("v1", late).storage);
+    expect(view.calls).toHaveLength(1);
+    expect(view.shown()).toBe("7 all");
+    view.calls[0]!.resolve({ total: 9 });
+    await settle();
+    expect(view.shown()).toBe("9 all");
+    expect(view.calls).toHaveLength(1);
+
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    renders = [];
+    const never = () => new Promise<Record<string, unknown>>(() => {});
+    const fast = await open(cloud("v1", never).storage);
+    fast.calls[0]!.resolve({ total: 9 });
+    await settle();
+    expect(fast.shown()).toBe("9 all");
+    expect(renders).not.toContain(7);
+  });
+
   it("a failed call shows the error, not the stored result", async () => {
     const c = cloud("v1", async () => ({ [KEY]: { total: 7 } }));
     const view = await open(c.storage);
