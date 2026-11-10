@@ -41,6 +41,8 @@ const library = createLibrary({ root: "Board", components: [Board] });
 const ONE =
   '$filter = "all"\nroot = Board(q.total, $filter, 0)\nq = Query("totals", {}, {total: 0})';
 const TWO = `${ONE.replace(", 0)", ", r.total)")}\nr = Query("slow", {}, {total: 0})`;
+/** `r` reads `q`'s result. */
+const DEPENDENT = TWO.replace('"slow", {}', '"slow", {n: q.total}');
 const FILTERED = ONE.replace('"totals", {}', '"totals", {filter: $filter}');
 const stored = (results: Record<string, unknown>, version = "v1") => ({ version, results });
 type Read = NonNullable<ArtifactStorage["getQueryResults"]>;
@@ -82,6 +84,9 @@ describe("ArtifactRendererRoot last results", () => {
   let calls: Array<{ name: string; resolve: (r: unknown) => void; reject: (e: Error) => void }>;
   let errors: Array<OpenUIError | ArtifactError>;
   const shown = () => container.querySelector("output")?.textContent;
+  /** How often the queries ran again: each time starts with a render without results. */
+  const refreshes = () => renders.filter((t, i) => t === null && renders[i - 1] !== null).length;
+  const both = { "totals::{}": { total: 7 }, "slow::{}": { total: 5 } };
   const answer = async (name: string, result: unknown) => {
     calls.find((call) => call.name === name)!.resolve(result);
     await settle();
@@ -106,7 +111,7 @@ describe("ArtifactRendererRoot last results", () => {
   });
 
   const settle = async () => {
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 12; i++) {
       await act(async () => {
         await sleep(5);
       });
@@ -139,17 +144,18 @@ describe("ArtifactRendererRoot last results", () => {
     await settle();
   }
 
-  it("a first open makes one call per query and saves all results at once", async () => {
+  it("a first open makes one call per query and saves each result as it arrives", async () => {
     const c = cloud(TWO, async () => ({ results: {} }));
     await show(c.storage, panel);
+    renders = [];
     await answer("totals", { total: 7 });
-    expect(c.saved).not.toHaveBeenCalled();
+    expect(c.saved.mock.calls).toEqual([["a", stored({ "totals::{}": { total: 7 } })]]);
     await answer("slow", { total: 5 });
     expect(shown()).toBe("7 all 5");
     expect(calls.map((call) => call.name)).toEqual(["totals", "slow"]);
-    expect(c.saved.mock.calls).toEqual([
-      ["a", stored({ "totals::{}": { total: 7 }, "slow::{}": { total: 5 } })],
-    ]);
+    expect(c.saved.mock.calls[1]).toEqual(["a", stored(both)]);
+    expect(c.saved).toHaveBeenCalledTimes(2);
+    expect(refreshes()).toBe(0);
   });
 
   it("a reopened dashboard shows the stored result, then the fresh one, with one call and its state kept", async () => {
@@ -164,17 +170,55 @@ describe("ArtifactRendererRoot last results", () => {
     expect(c.saved.mock.calls).toEqual([["a", stored({ "totals::{}": { total: 9 } })]]);
   });
 
-  it("with one of two queries stored and the other slow, the queries run again once, one call each", async () => {
-    const c = cloud(TWO, async () => stored({ "totals::{}": { total: 7 } }));
+  it("each tile shows its fresh result as soon as it arrives, with one call per query", async () => {
+    const c = cloud(TWO, async () => stored(both));
     await show(c.storage, panel);
-    expect(shown()).toBe("7 all 0");
+    expect(shown()).toBe("7 all 5");
+    renders = [];
     await answer("totals", { total: 9 });
-    // The stored result stays until the whole first batch has settled.
-    expect(shown()).toBe("7 all 0");
-    await answer("slow", { total: 5 });
     expect(shown()).toBe("9 all 5");
+    expect(c.saved.mock.calls).toEqual([["a", stored({ "totals::{}": { total: 9 } })]]);
+    await answer("slow", { total: 6 });
+    expect(shown()).toBe("9 all 6");
     expect(calls.map((call) => call.name)).toEqual(["totals", "slow"]);
+    expect(c.saved.mock.calls[1]).toEqual([
+      "a",
+      stored({ "totals::{}": { total: 9 }, "slow::{}": { total: 6 } }),
+    ]);
+    expect(refreshes()).toBe(2);
+  });
+
+  it("results that arrive in the same frame run the queries again once", async () => {
+    const c = cloud(TWO, async () => stored(both));
+    await show(c.storage, panel);
+    renders = [];
+    calls[0]!.resolve({ total: 9 });
+    await answer("slow", { total: 6 });
+    expect(shown()).toBe("9 all 6");
+    expect(calls).toHaveLength(2);
+    expect(refreshes()).toBe(1);
     expect(c.saved).toHaveBeenCalledTimes(1);
+  });
+
+  it("a query that reads another's result is saved on a first open and shown on a reopen", async () => {
+    const first = cloud(DEPENDENT, async () => ({ results: {} }));
+    await show(first.storage, panel);
+    await answer("totals", { total: 7 });
+    await answer("slow", { total: 5 });
+    expect(shown()).toBe("7 all 5");
+    const saved = first.saved.mock.calls.at(-1)![1];
+    expect(saved).toEqual(stored({ "totals::{}": { total: 7 }, 'slow::{"n":7}': { total: 5 } }));
+
+    await act(async () => root.unmount());
+    root = createRoot(container);
+    calls = [];
+    await show(cloud(DEPENDENT, async () => saved).storage, panel);
+    expect(shown()).toBe("7 all 5");
+    await answer("totals", { total: 7 });
+    expect(shown()).toBe("7 all 5");
+    await answer("slow", { total: 6 });
+    expect(shown()).toBe("7 all 6");
+    expect(calls.map((call) => call.name)).toEqual(["totals", "slow"]);
   });
 
   it("stored results that arrive after the query started are shown; after the fresh result, never", async () => {
@@ -211,16 +255,17 @@ describe("ArtifactRendererRoot last results", () => {
     expect(c.read).toHaveBeenCalledTimes(1);
   });
 
-  it("a failed call shows the error, not the stored result, and saves nothing", async () => {
-    const c = cloud(ONE, async () => stored({ "totals::{}": { total: 7 } }));
+  it("a failed call shows the error for its query while the other keeps working", async () => {
+    const c = cloud(TWO, async () => stored(both));
     await show(c.storage, panel);
-    expect(shown()).toBe("7 all 0");
     calls[0]!.reject(new Error("down"));
     await settle();
-    expect(shown()).toBe("0 all 0");
+    expect(shown()).toBe("0 all 5");
     expect(errors.map((error) => error.code)).toEqual(["tool-error"]);
-    expect(calls).toHaveLength(1);
-    expect(c.saved).not.toHaveBeenCalled();
+    await answer("slow", { total: 6 });
+    expect(shown()).toBe("0 all 6");
+    expect(calls).toHaveLength(2);
+    expect(c.saved.mock.calls).toEqual([["a", stored({ "slow::{}": { total: 6 } })]]);
   });
 
   it("results stored for another version are ignored", async () => {
