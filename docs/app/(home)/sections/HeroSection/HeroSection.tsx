@@ -277,7 +277,7 @@ function DesktopPlaygroundButton({ className = "" }: { className?: string }) {
 function MobilePlaygroundButton({ className = "" }: { className?: string }) {
   return (
     <PillLink
-      href={SITE_NAV_LINKS.northstar.href}
+      href={SITE_NAV_LINKS.salesDashboard.href}
       className={`${styles.mobilePlaygroundButton} ${className}`.trim()}
       arrow={<TrailingArrow />}
     >

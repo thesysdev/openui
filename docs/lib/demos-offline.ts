@@ -55,10 +55,10 @@ export const PROXIED_DEMOS = {
     repo: "thesysdev/open-intelligent-ui",
     screenshots: offlineScreenshots("intelligent-ui"),
   },
-  northstar: {
-    title: "Northstar Sales Agent",
-    repo: "thesysdev/openui-northstar-sales-agent",
-    screenshots: offlineScreenshots("northstar"),
+  "sales-dashboard": {
+    title: "Sales Dashboard",
+    repo: "thesysdev/openui-sales-dashboard",
+    screenshots: offlineScreenshots("sales-dashboard"),
   },
 } as const;
 

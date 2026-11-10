@@ -161,9 +161,9 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
         label: "Demos",
         children: [
           {
-            title: "Northstar Sales Agent",
+            title: "Sales Dashboard",
             description: "Ask for a sales view and get a live dashboard over a Postgres database.",
-            ...SITE_NAV_LINKS.northstar,
+            ...SITE_NAV_LINKS.salesDashboard,
             icon: PresentationChart,
           },
           {

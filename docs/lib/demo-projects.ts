@@ -24,16 +24,19 @@ export const PLAYGROUND: ShowcaseItem[] = [
 
 export const FEATURED_PROJECTS: ShowcaseItem[] = [
   {
-    name: "Northstar Sales Agent",
+    name: "Sales Dashboard",
     tagline: "Live sales data",
     description:
       "Describe a sales view and get a live dashboard over a Postgres database, with KPIs, charts and tables that load fresh numbers every time. Ask in the chat to change it.",
-    image: { light: "/nav/northstar-light.webp", dark: "/nav/northstar-dark.webp" },
+    image: {
+      light: "/nav/sales-dashboard-light.webp",
+      dark: "/nav/sales-dashboard-dark.webp",
+    },
     links: [
-      { label: "Open demo", href: SITE_NAV_LINKS.northstar.href },
+      { label: "Open demo", href: SITE_NAV_LINKS.salesDashboard.href },
       {
         label: "GitHub",
-        href: "https://github.com/thesysdev/openui-northstar-sales-agent",
+        href: "https://github.com/thesysdev/openui-sales-dashboard",
         external: true,
       },
     ],

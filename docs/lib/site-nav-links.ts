@@ -13,7 +13,7 @@ export const SITE_NAV_LINKS = {
   /* Absolute, not /demo/...: these demos are proxied from openui.com only, so a
      relative link on a preview deployment would land on the preview's own
      vercel.app host instead of the demo. */
-  northstar: { href: "https://www.openui.com/demo/northstar" },
+  salesDashboard: { href: "https://www.openui.com/demo/sales-dashboard" },
   openIntelligentUi: { href: "https://www.openui.com/demo/intelligent-ui" },
   f1Dashboard: { href: "https://www.openui.com/demo/f1-dashboard" },
   tripPlanner: { href: "https://www.openui.com/demo/trip-planner/planner" },

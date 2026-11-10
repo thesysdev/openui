@@ -155,7 +155,7 @@ const FOOTER_GROUPS: { title: string; links: FooterLink[] }[] = [
     title: "Explore",
     links: [
       { title: "All Demos", ...SITE_NAV_LINKS.demos },
-      { title: "Northstar Sales Agent", ...SITE_NAV_LINKS.northstar },
+      { title: "Sales Dashboard", ...SITE_NAV_LINKS.salesDashboard },
       { title: "Open Intelligent UI", ...SITE_NAV_LINKS.openIntelligentUi },
       { title: "F1 Dashboard", ...SITE_NAV_LINKS.f1Dashboard },
       { title: "Trip Planner", ...SITE_NAV_LINKS.tripPlanner },
