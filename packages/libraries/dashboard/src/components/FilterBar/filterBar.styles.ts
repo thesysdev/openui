@@ -68,9 +68,9 @@ export const styles = {
   left: css`
     flex: 1 1 auto;
   `,
+  /* The left side grows to push this one to the end of the row. Once it wraps onto its own
+     row it starts at the left edge, and it can shrink so its filters wrap on narrow screens. */
   right: css`
-    flex: 0 0 auto;
-    justify-content: flex-end;
-    margin-left: auto;
+    flex: 0 1 auto;
   `,
 };
