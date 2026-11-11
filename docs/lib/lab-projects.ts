@@ -403,6 +403,19 @@ export const labProjects: ProjectItem[] = [
       },
     ],
   },
+  {
+    name: "Bub",
+    description:
+      "A tiny, plugin-based agent runtime whose AG-UI plugin streams replies and runs browser tools in an OpenUI chat frontend.",
+    type: "Framework",
+    status: "Community",
+    accent: "purple",
+    icon: Bot,
+    links: [
+      { label: "GitHub", href: "https://github.com/bubbuild/bub", external: true },
+      { label: "Docs", href: "https://bub.build/docs/integrations/ag-ui/", external: true },
+    ],
+  },
 ];
 
 /** Community projects on the Demos page, featured first. Ones with an Integrations card are listed there instead. */
