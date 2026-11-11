@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import Script from "next/script";
 import { SITE_NAME, SITE_OPEN_GRAPH } from "../lib/page-metadata";
-import { BASE_URL } from "../lib/source";
+import { BASE_URL } from "../lib/site-url";
 import "./global.css";
 import { PHProvider } from "./providers";
 

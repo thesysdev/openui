@@ -4,7 +4,9 @@ import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
 import { blogPosts, docs, integrationGuides } from "fumadocs-mdx:collections/server";
 import { expandShowcaseComponents } from "./showcase-markdown";
 
-export const BASE_URL = "https://www.openui.com";
+import { BASE_URL } from "./site-url";
+
+export { BASE_URL };
 
 /** Docs sections served from their own top-level path, like `/cookbooks`, instead of under `/docs`. */
 export const TOP_LEVEL_SECTIONS = ["cookbooks", "demos"];

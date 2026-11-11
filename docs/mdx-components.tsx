@@ -16,6 +16,7 @@ import {
 import { CodeBlockTabs } from "@/components/code-block-tabs";
 import { DocsCard } from "@/components/docs-card";
 import { FakeVisual } from "@/components/fake-visual";
+import { LazyVideo } from "@/components/lazy-video";
 import { Mermaid } from "@/components/mermaid";
 import { ModelReleaseCards } from "@/components/model-release-cards";
 import { TweetEmbed } from "@/components/tweet-embed";
@@ -38,6 +39,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Card: DocsCard,
     TweetEmbed,
     FakeVisual,
+    LazyVideo,
     CompletionByModel,
     CompletionByDensity,
     BlankScreens,

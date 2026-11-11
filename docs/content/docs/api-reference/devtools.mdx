@@ -5,10 +5,14 @@ description: API reference for the development-only devtools widget.
 
 Development-only UI widget for OpenUI apps. Renders a floating button that opens a left side drawer listing the events captured by [`@openuidev/observability`](https://github.com/thesysdev/openui/blob/HEAD/packages/observability) — level, a one-line summary, and a drill-in stack trace per entry. Development only visibility is controlled by the environment flag.
 
-<img
-  src="/images/api-reference/devtools.gif"
-  alt="OpenUI DevTools drawer displaying captured events in an OpenUI app"
+<LazyVideo
+  src="/images/api-reference/devtools.mp4"
+  aria-label="OpenUI DevTools drawer displaying captured events in an OpenUI app"
   className="w-full rounded-lg border"
+  autoPlay
+  muted
+  loop
+  playsInline
 />
 
 ## Installation
@@ -66,4 +70,4 @@ function App() {
 | `errorsOnly`      | `false`          | Initial state of the "errors only" display filter.               |
 | `autoOpenOnError` | `true`           | Initial state of the drawer's "auto-open on error" checkbox.     |
 | `theme`           | `"light"`        | `"light"` or `"dark"` theme for the drawer.                      |
-| `version`         | `@latest`        | CDN pin: `"0"` (major), `"0.1"` (minor), or `"0.1.0"` (exact).    |
+| `version`         | `@latest`        | CDN pin: `"0"` (major), `"0.1"` (minor), or `"0.1.0"` (exact).   |

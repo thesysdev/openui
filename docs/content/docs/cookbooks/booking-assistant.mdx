@@ -44,7 +44,7 @@ In this cookbook, you'll learn how to:
 The example finds stays anywhere in the world through [trivago's public MCP server](https://mcp.trivago.com/docs), which compares prices across booking sites and needs no API key. Every search returns real hotels with live prices for the requested dates, guest ratings, amenities, a photo, and a link to book. There is nothing to download or host: the only key you need is for OpenUI Gateway. The assistant never takes payment. Its last step opens the stay on trivago, where the person picks a booking site and books there.
 
 <div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl flex p-2">
-  <video
+  <LazyVideo
     src="/videos/cookbooks/booking-assistant.mp4"
     aria-label="The booking assistant turning a request for a 4-star hotel in Midtown Manhattan into a prefilled form, adding stars and must-haves, showing stays with photos and live prices, and reviewing a stay before continuing to book it on Expedia"
     playsInline
