@@ -44,13 +44,17 @@ const TWO = `${ONE.replace(", 0)", ", r.total)")}\nr = Query("slow", {}, {total:
 /** `r` reads `q`'s result. */
 const DEPENDENT = TWO.replace('"slow", {}', '"slow", {n: q.total}');
 const FILTERED = ONE.replace('"totals", {}', '"totals", {filter: $filter}');
-const stored = (results: Record<string, unknown>, version = "v1") => ({ version, results });
+/** Saved entries: each result with the version it is for. */
+const stored = (results: Record<string, unknown>, version = "v1") =>
+  Object.fromEntries(Object.entries(results).map(([key, result]) => [key, { version, result }]));
+/** One save: the arguments of `putQueryResult`. */
+const save = (key: string, result: unknown) => ["a", { key, value: { version: "v1", result } }];
 type Read = NonNullable<ArtifactStorage["getQueryResults"]>;
 
 /** An artifact storage that serves `program` at `version`. */
 function cloud(program: string, getQueryResults: Read, version = "v1") {
   const read = vi.fn(getQueryResults);
-  const putQueryResults = vi.fn();
+  const putQueryResult = vi.fn();
   const artifact = {
     list: async () => ({ artifacts: [] }),
     get: async () => ({}),
@@ -62,7 +66,7 @@ function cloud(program: string, getQueryResults: Read, version = "v1") {
       yield { type: "end" };
     },
     getQueryResults: read,
-    putQueryResults,
+    putQueryResult,
   } as unknown as ArtifactStorage;
   const storage = {
     thread: {
@@ -74,7 +78,7 @@ function cloud(program: string, getQueryResults: Read, version = "v1") {
     },
     artifact,
   } as unknown as ChatStorage;
-  return { storage, read, saved: putQueryResults };
+  return { storage, read, saved: putQueryResult };
 }
 
 describe("ArtifactRendererRoot last results", () => {
@@ -149,11 +153,11 @@ describe("ArtifactRendererRoot last results", () => {
     await show(c.storage, panel);
     renders = [];
     await answer("totals", { total: 7 });
-    expect(c.saved.mock.calls).toEqual([["a", stored({ "totals::{}": { total: 7 } })]]);
+    expect(c.saved.mock.calls).toEqual([save("totals::{}", { total: 7 })]);
     await answer("slow", { total: 5 });
     expect(shown()).toBe("7 all 5");
     expect(calls.map((call) => call.name)).toEqual(["totals", "slow"]);
-    expect(c.saved.mock.calls[1]).toEqual(["a", stored(both)]);
+    expect(c.saved.mock.calls[1]).toEqual(save("slow::{}", { total: 5 }));
     expect(c.saved).toHaveBeenCalledTimes(2);
     expect(refreshes()).toBe(0);
   });
@@ -166,14 +170,11 @@ describe("ArtifactRendererRoot last results", () => {
     renders = [];
     await answer("totals", { total: 9 });
     expect(shown()).toBe("9 mine 5");
-    expect(c.saved.mock.calls).toEqual([["a", stored({ "totals::{}": { total: 9 } })]]);
+    expect(c.saved.mock.calls).toEqual([save("totals::{}", { total: 9 })]);
     await answer("slow", { total: 6 });
     expect(shown()).toBe("9 mine 6");
     expect(calls.map((call) => call.name)).toEqual(["totals", "slow"]);
-    expect(c.saved.mock.calls[1]).toEqual([
-      "a",
-      stored({ "totals::{}": { total: 9 }, "slow::{}": { total: 6 } }),
-    ]);
+    expect(c.saved.mock.calls[1]).toEqual(save("slow::{}", { total: 6 }));
     expect(refreshes()).toBe(2);
   });
 
@@ -186,7 +187,7 @@ describe("ArtifactRendererRoot last results", () => {
     expect(shown()).toBe("9 all 6");
     expect(calls).toHaveLength(2);
     expect(refreshes()).toBe(1);
-    expect(c.saved).toHaveBeenCalledTimes(1);
+    expect(c.saved).toHaveBeenCalledTimes(2);
   });
 
   it("a query that reads another's result is saved on a first open and shown on a reopen", async () => {
@@ -195,7 +196,7 @@ describe("ArtifactRendererRoot last results", () => {
     await answer("totals", { total: 7 });
     await answer("slow", { total: 5 });
     expect(shown()).toBe("7 all 5");
-    const saved = first.saved.mock.calls.at(-1)![1];
+    const saved = Object.fromEntries(first.saved.mock.calls.map(([, e]) => [e.key, e.value]));
     expect(saved).toEqual(stored({ "totals::{}": { total: 7 }, 'slow::{"n":7}': { total: 5 } }));
 
     await act(async () => root.unmount());
@@ -256,7 +257,7 @@ describe("ArtifactRendererRoot last results", () => {
     await answer("slow", { total: 6 });
     expect(shown()).toBe("0 all 6");
     expect(calls).toHaveLength(2);
-    expect(c.saved.mock.calls).toEqual([["a", stored({ "slow::{}": { total: 6 } })]]);
+    expect(c.saved.mock.calls).toEqual([save("slow::{}", { total: 6 })]);
   });
 
   it("results stored for another version are ignored", async () => {
@@ -288,7 +289,7 @@ describe("ArtifactRendererRoot last results", () => {
     await show(c.storage, panel);
     expect(shown()).toBe("7 all 0");
     await answer("totals", { total: 9 });
-    expect(c.saved.mock.calls).toEqual([["a", stored({ [key]: { total: 9 } })]]);
+    expect(c.saved.mock.calls).toEqual([save(key, { total: 9 })]);
   });
 
   it("a key not called when the queries ran again makes a real call when it is called later", async () => {
@@ -322,6 +323,6 @@ describe("ArtifactRendererRoot last results", () => {
     await settle();
     expect(shown()).toBe("10 mine 0");
     expect(calls).toHaveLength(2);
-    expect(c.saved.mock.calls).toEqual([["a", stored({ [all]: { total: 9 } })]]);
+    expect(c.saved.mock.calls).toEqual([save(all, { total: 9 })]);
   });
 });

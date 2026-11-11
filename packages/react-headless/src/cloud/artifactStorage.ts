@@ -121,21 +121,17 @@ export function cloudArtifactStorage({
     },
 
     ...(cacheQueryResults && {
-      /** GET /v1/artifacts/:id/query-results. */
-      async getQueryResults(id: string) {
+      /** GET /v1/artifacts/:id/query-results → the saved entries by key. */
+      async getQueryResults(id: string): Promise<Record<string, unknown>> {
         const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`);
-        const body = (await res.json()) as { version?: string; results?: Record<string, unknown> };
-        return { version: body.version, results: body.results ?? {} };
+        return ((await res.json()) as { results?: Record<string, unknown> }).results ?? {};
       },
 
-      /** PUT /v1/artifacts/:id/query-results {version, results}. Not awaited; a failure is dropped. */
-      putQueryResults(
-        id: string,
-        snapshot: { version: string; results: Record<string, unknown> },
-      ): void {
+      /** PUT /v1/artifacts/:id/query-results {key, value}. Not awaited; a failure is dropped. */
+      putQueryResult(id: string, entry: { key: string; value: unknown }): void {
         request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`, {
           method: "PUT",
-          body: JSON.stringify(snapshot),
+          body: JSON.stringify(entry),
         }).catch(() => {});
       },
     }),

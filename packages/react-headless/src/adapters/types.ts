@@ -87,13 +87,10 @@ export interface ArtifactStorage {
   unpin?(id: string): Promise<ArtifactSummary>;
   /** Optional. Delete an artifact. */
   delete?(id: string): Promise<void>;
-  /** Optional. The query results last saved for an artifact, and the version they are for. */
-  getQueryResults?(id: string): Promise<{ version?: string; results: Record<string, unknown> }>;
-  /** Optional. Replace the saved query results of an artifact, without waiting. */
-  putQueryResults?(
-    id: string,
-    snapshot: { version: string; results: Record<string, unknown> },
-  ): void;
+  /** Optional. The query results last saved for an artifact, by key. */
+  getQueryResults?(id: string): Promise<Record<string, unknown>>;
+  /** Optional. Save one query result of an artifact under its key, without waiting. */
+  putQueryResult?(id: string, entry: { key: string; value: unknown }): void;
 }
 
 /**

@@ -5,7 +5,6 @@ import {
   useArtifactStorage,
   useArtifactStream,
   type Interpreter,
-  type InterpreterToolProvider,
 } from "@openuidev/react-headless";
 import type { McpClientLike, OpenUIError } from "@openuidev/react-lang";
 import clsx from "clsx";
@@ -14,7 +13,6 @@ import {
   isValidElement,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -48,6 +46,7 @@ import {
   PreviewTitle,
   RegionProvider,
 } from "./slots";
+import { useLastResults } from "./useLastResults";
 
 /** Props every artifact renderer takes. */
 export interface ArtifactRendererBaseProps {
@@ -107,44 +106,6 @@ const DELETED_ERROR: ArtifactError = {
   code: "not-found",
   message: "This artifact was deleted.",
 };
-
-type ToolResult = Awaited<ReturnType<InterpreterToolProvider["callTool"]>>;
-type QueryResults = { version?: string; results: Record<string, unknown> };
-
-/** The same key for the same tool and arguments, whatever the order of the argument keys. */
-function queryKey(tool: string, args: unknown): string {
-  const sorted = (_key: string, value: unknown) =>
-    value && typeof value === "object" && !Array.isArray(value)
-      ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => (a < b ? -1 : 1)))
-      : value;
-  return `${tool}::${JSON.stringify(args ?? {}, sorted)}`;
-}
-
-/** One data call of a run's first batch. */
-interface FirstCall {
-  real: Promise<ToolResult>;
-  settled: boolean;
-  /** The saved result the dashboard shows for it, until its own result replaces it. */
-  shown?: ToolResult;
-  /** The queries are running again: the next call for this key is answered from here. */
-  replay: boolean;
-}
-
-/** One artifact version on screen. Its first batch of data calls may be answered from the saved results. */
-interface Run {
-  id: string;
-  version: string;
-  saved: Promise<QueryResults>;
-  /** True while the first batch runs; after it, every call is a real call. */
-  firstBatch: boolean;
-  calls: Map<string, FirstCall>;
-  /** A call joined the first batch since the last flush. */
-  joined: boolean;
-  /** The results fetched so far, to save. */
-  results: Record<string, unknown>;
-  unsaved: boolean;
-  frame?: number;
-}
 
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
@@ -316,131 +277,9 @@ export function ArtifactRendererRoot({
   const open = useCallback(() => setOpen(true), [setOpen]);
   const close = useCallback(() => setOpen(false), [setOpen]);
 
-  // ── Last results: a reopened dashboard shows them, and each one until its own query answers ──
-  // `Renderer` runs its queries again only for a new provider, so a refresh takes
-  // the provider away for one render.
-  const [refreshing, setRefreshing] = useState(false);
-  useLayoutEffect(() => setRefreshing(false), [refreshing]);
-  const runRef = useRef<Run | null>(null);
-  const storageRef = useRef(storage);
-  storageRef.current = storage;
-
-  const lastResults = useMemo(() => {
-    /** A refresh was asked for and the queries have not run again yet. */
-    let awaitingRefresh = false;
-    const dropRun = () => {
-      if (runRef.current?.frame !== undefined) cancelAnimationFrame(runRef.current.frame);
-      runRef.current = null;
-    };
-    // Read on a run's first call, so a card that shows no content never reads.
-    const currentRun = (): Run | null => {
-      const { id: artifactId, version } = requestRef.current;
-      const store = storageRef.current;
-      if (!artifactId || !version || !store?.getQueryResults) return null;
-      const run = runRef.current;
-      if (run?.id === artifactId && run.version === version) return run;
-      dropRun();
-      return (runRef.current = {
-        id: artifactId,
-        version,
-        saved: store.getQueryResults(artifactId).catch(() => ({ results: {} })),
-        firstBatch: true,
-        calls: new Map(),
-        joined: false,
-        results: {},
-        unsaved: false,
-      });
-    };
-    // Results that arrive in the same frame are handled together.
-    const flushSoon = (run: Run) => {
-      run.frame ??= requestAnimationFrame(() => flush(run));
-    };
-    const flush = (run: Run) => {
-      run.frame = undefined;
-      // `afterRefresh` flushes again once the queries have run.
-      if (awaitingRefresh) return;
-      const calls = [...run.calls.values()];
-      // Not called in the last refresh: a later call for the key is a new, real call.
-      for (const call of calls) call.replay = false;
-      if (run.unsaved) {
-        run.unsaved = false;
-        // The version is the one every call of the run was made with, also during an edit.
-        const snapshot = { version: run.version, results: { ...run.results } };
-        if (JSON.stringify(snapshot).length <= 1024 * 1024) {
-          storageRef.current?.putQueryResults?.(run.id, snapshot);
-        }
-      }
-      const replaced = calls.filter((call) => call.settled && call.shown);
-      if (replaced.length > 0) {
-        for (const call of replaced) call.shown = undefined;
-        for (const call of calls) call.replay = true;
-        awaitingRefresh = true;
-        setRefreshing(true);
-      } else if (calls.every((call) => call.settled)) {
-        // A call that just joined may lead to more, such as a query that reads its result.
-        if (run.joined) flushSoon(run);
-        else {
-          run.firstBatch = false;
-          run.calls.clear();
-        }
-      }
-      run.joined = false;
-    };
-    const join = async (run: Run, key: string, real: Promise<ToolResult>): Promise<ToolResult> => {
-      const call: FirstCall = { real, settled: false, replay: false };
-      run.calls.set(key, call);
-      run.joined = true;
-      const keep = ({ structuredContent }: ToolResult) => {
-        if (structuredContent === undefined) return;
-        if (JSON.stringify(structuredContent).length > 256 * 1024) return;
-        run.results[key] = structuredContent;
-        run.unsaved = true;
-      };
-      const settle = () => {
-        call.settled = true;
-        if (run === runRef.current) flushSoon(run);
-      };
-      // A result that cannot be kept must still settle the call.
-      void real
-        .then(keep)
-        .catch(() => {})
-        .then(settle);
-      // The saved result if it is here before the real one settles: the real call never waits.
-      const notFirst = () => null;
-      const saved = await Promise.race([real.then(notFirst, notFirst), run.saved]);
-      if (saved?.version !== run.version || !Object.hasOwn(saved.results, key)) return real;
-      return (call.shown = { content: [], structuredContent: saved.results[key] });
-    };
-    const provider: InterpreterToolProvider = {
-      callTool(params) {
-        const run = currentRun();
-        if (!run?.firstBatch) return toolProvider.callTool(params);
-        const key = queryKey(params.name, params.arguments);
-        const call = run.calls.get(key);
-        if (call?.replay) {
-          call.replay = false;
-          // Its own result if it is here, else what the dashboard showed for it.
-          return !call.settled && call.shown ? Promise.resolve(call.shown) : call.real;
-        }
-        const real = toolProvider.callTool(params);
-        // A repeated call is answered as without saved results.
-        return call ? real : join(run, key, real);
-      },
-    };
-    const afterRefresh = () => {
-      awaitingRefresh = false;
-      if (runRef.current?.firstBatch) flushSoon(runRef.current);
-    };
-    return { provider, afterRefresh, dropRun };
-  }, [toolProvider]);
-  // The queries have run again (a child's effects run first).
-  useEffect(() => {
-    if (!refreshing) lastResults.afterRefresh();
-  }, [refreshing, lastResults]);
-  // Content shown again later is a new run: it reads the saved results again.
+  // A reopened dashboard shows its last results while its queries run.
   const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
-  useEffect(() => lastResults.dropRun, [showsContent, lastResults]);
-  const dataProvider = storage?.getQueryResults ? lastResults.provider : toolProvider;
+  const lastResults = useLastResults({ toolProvider, storage, requestRef, showsContent });
 
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
@@ -472,7 +311,8 @@ export function ArtifactRendererRoot({
         renderContent({
           program,
           isStreaming,
-          toolProvider: interpreter && !refreshing ? dataProvider : undefined,
+          toolProvider:
+            interpreter && !lastResults.refreshing ? lastResults.toolProvider : undefined,
           rendererKey,
           onError: handleRendererErrors,
         }),
@@ -481,8 +321,8 @@ export function ArtifactRendererRoot({
       program,
       isStreaming,
       interpreter,
-      refreshing,
-      dataProvider,
+      lastResults.refreshing,
+      lastResults.toolProvider,
       rendererKey,
       handleRendererErrors,
       renderContent,
