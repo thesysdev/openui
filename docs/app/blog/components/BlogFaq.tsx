@@ -1,5 +1,5 @@
 import { FaqList } from "@/app/(home)/sections/FaqSection/FaqSection";
-import { BASE_URL } from "@/lib/source";
+import { BASE_URL } from "@/lib/site-url";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
