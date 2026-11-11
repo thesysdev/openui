@@ -299,6 +299,19 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     firstParty: false,
   },
   {
+    name: "bub",
+    title: "Bub",
+    description:
+      "Bub's bub-ag-ui plugin serves a Bub agent over AG-UI to an OpenUI chat frontend that streams replies and runs browser tools.",
+    category: "agent-frameworks",
+    sourceUrl: "https://github.com/bubbuild/bub-contrib/tree/main/packages/bub-ag-ui",
+    guideUrl: "https://bub.build/docs/integrations/ag-ui/",
+    logo: "https://github.com/bubbuild.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
     name: "trueforge",
     title: "TrueForge",
     description:
