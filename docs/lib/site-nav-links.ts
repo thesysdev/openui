@@ -17,6 +17,7 @@ export const SITE_NAV_LINKS = {
   openIntelligentUi: { href: "https://www.openui.com/demo/intelligent-ui" },
   f1Dashboard: { href: "https://www.openui.com/demo/f1-dashboard" },
   tripPlanner: { href: "https://www.openui.com/demo/trip-planner/planner" },
+  hnTimes: { href: "https://thehntimes.com", newTab: true },
   oui1: { href: "/oui-1" },
   openClawOs: { href: "/openclaw-os" },
   appless: { href: "/appless" },
