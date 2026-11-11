@@ -90,6 +90,17 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
     ],
   },
   {
+    name: "The HN Times",
+    tagline: "HN as a newspaper",
+    description:
+      "Swap the host on any Hacker News link and get the thread as a newspaper page, with quotes checked against the comments and a map of the discussion.",
+    image: { light: "/nav/hntimes-light.webp", dark: "/nav/hntimes-dark.webp" },
+    links: [
+      { label: "Open demo", href: "https://thehntimes.com", external: true },
+      { label: "GitHub", href: "https://github.com/thesysdev/hntimes", external: true },
+    ],
+  },
+  {
     name: "OpenUI Chat",
     tagline: "Chat assistant",
     description:
