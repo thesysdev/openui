@@ -46,7 +46,7 @@ import {
   PreviewTitle,
   RegionProvider,
 } from "./slots";
-import { useLastResults } from "./useLastResults";
+import { useQueryResultCache } from "./useQueryResultCache";
 
 /** Props every artifact renderer takes. */
 export interface ArtifactRendererBaseProps {
@@ -279,7 +279,7 @@ export function ArtifactRendererRoot({
 
   // A reopened dashboard shows its last results while its queries run.
   const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
-  const lastResults = useLastResults({ toolProvider, storage, requestRef, showsContent });
+  const queryResultCache = useQueryResultCache({ toolProvider, storage, requestRef, showsContent });
 
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
@@ -312,7 +312,7 @@ export function ArtifactRendererRoot({
           program,
           isStreaming,
           toolProvider:
-            interpreter && !lastResults.refreshing ? lastResults.toolProvider : undefined,
+            interpreter && !queryResultCache.refreshing ? queryResultCache.toolProvider : undefined,
           rendererKey,
           onError: handleRendererErrors,
         }),
@@ -321,8 +321,8 @@ export function ArtifactRendererRoot({
       program,
       isStreaming,
       interpreter,
-      lastResults.refreshing,
-      lastResults.toolProvider,
+      queryResultCache.refreshing,
+      queryResultCache.toolProvider,
       rendererKey,
       handleRendererErrors,
       renderContent,

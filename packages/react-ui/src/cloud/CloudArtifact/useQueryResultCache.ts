@@ -1,4 +1,4 @@
-// Last results: a reopened dashboard shows the result each query had last time, until the
+// Query result cache: a reopened dashboard shows the result each query had last time, until the
 // query answers again.
 //
 // 1. Saved: one entry per query in the artifact storage, under `<tool>::<arguments as JSON>`,
@@ -51,7 +51,7 @@ function queryKey(tool: string, args: unknown): string {
   return `${tool}::${JSON.stringify(args ?? {}, sorted)}`;
 }
 
-export function useLastResults({
+export function useQueryResultCache({
   toolProvider,
   storage,
   requestRef,
@@ -71,7 +71,7 @@ export function useLastResults({
   const storageRef = useRef(storage);
   storageRef.current = storage;
 
-  const lastResults = useMemo(() => {
+  const queryResultCache = useMemo(() => {
     /** A refresh was asked for and the queries have not run again yet. */
     let awaitingRefresh = false;
 
@@ -181,14 +181,14 @@ export function useLastResults({
 
   // The queries have run again (a child's effects run first).
   useEffect(() => {
-    if (!refreshing) lastResults.afterRefresh();
-  }, [refreshing, lastResults]);
+    if (!refreshing) queryResultCache.afterRefresh();
+  }, [refreshing, queryResultCache]);
   // Content shown again later is a new run: it reads the saved results again.
-  useEffect(() => lastResults.dropRun, [showsContent, lastResults]);
+  useEffect(() => queryResultCache.dropRun, [showsContent, queryResultCache]);
 
   // A storage without saved results gets the original provider, untouched.
   return {
-    toolProvider: storage?.getQueryResults ? lastResults.provider : toolProvider,
+    toolProvider: storage?.getQueryResults ? queryResultCache.provider : toolProvider,
     refreshing,
   };
 }

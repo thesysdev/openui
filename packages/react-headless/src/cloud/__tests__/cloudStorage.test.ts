@@ -287,7 +287,7 @@ describe("cloud item conversion", () => {
   });
 });
 
-describe("cloud artifact last results", () => {
+describe("cloud artifact query result cache", () => {
   it("reads the saved results, and a failed write neither throws nor rejects", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()

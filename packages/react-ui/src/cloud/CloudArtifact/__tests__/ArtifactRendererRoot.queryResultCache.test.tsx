@@ -81,7 +81,7 @@ function cloud(program: string, getQueryResults: Read, version = "v1") {
   return { storage, read, saved: putQueryResult };
 }
 
-describe("ArtifactRendererRoot last results", () => {
+describe("ArtifactRendererRoot query result cache", () => {
   let root: Root;
   let container: HTMLDivElement;
   /** The interpreter's calls, each waiting to be answered. */
