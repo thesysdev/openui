@@ -89,6 +89,10 @@ export interface RenderContentArgs {
   rendererKey: number;
   /** Report errors from rendering; they reach the renderer's `onError`. */
   onError: (errors: OpenUIError[]) => void;
+  /** The state the user left the artifact in, for `Renderer`'s `initialState`. */
+  savedState?: Record<string, unknown>;
+  /** Call from `Renderer`'s `onStateUpdate`, so the state is there on the next open. */
+  onStateChange?: (state: Record<string, unknown>) => void;
 }
 
 export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
@@ -277,9 +281,16 @@ export function ArtifactRendererRoot({
   const open = useCallback(() => setOpen(true), [setOpen]);
   const close = useCallback(() => setOpen(false), [setOpen]);
 
-  // A reopened dashboard shows its last results while its queries run.
-  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
-  const lastResults = useLastResults({ toolProvider, storage, requestRef, showsContent });
+  // A reopened dashboard shows its last results while its queries run, on the filters
+  // the user left it on. Only an artifact with live data has either.
+  const showsContent = !!interpreter && (!preview || (isOpen && renderInHtmlElement !== null));
+  const lastResults = useLastResults({
+    toolProvider,
+    storage,
+    requestRef,
+    showsContent,
+    hasProgram: !!stream.program,
+  });
 
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
@@ -292,7 +303,7 @@ export function ArtifactRendererRoot({
       title,
       isStreaming,
       isFetching,
-      isLoading: isStreaming || isFetching,
+      isLoading: isStreaming || isFetching || lastResults.held,
       error,
       retry,
       isOpen,
@@ -300,10 +311,22 @@ export function ArtifactRendererRoot({
       close,
       preview,
     }),
-    [id, title, isStreaming, isFetching, error, retry, isOpen, open, close, preview],
+    [
+      id,
+      title,
+      isStreaming,
+      isFetching,
+      lastResults.held,
+      error,
+      retry,
+      isOpen,
+      open,
+      close,
+      preview,
+    ],
   );
 
-  const program = isDeleted ? null : stream.program;
+  const program = isDeleted || lastResults.held ? null : stream.program;
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
@@ -315,6 +338,8 @@ export function ArtifactRendererRoot({
             interpreter && !lastResults.refreshing ? lastResults.toolProvider : undefined,
           rendererKey,
           onError: handleRendererErrors,
+          savedState: lastResults.savedState,
+          onStateChange: lastResults.onStateChange,
         }),
     }),
     [
@@ -323,6 +348,8 @@ export function ArtifactRendererRoot({
       interpreter,
       lastResults.refreshing,
       lastResults.toolProvider,
+      lastResults.savedState,
+      lastResults.onStateChange,
       rendererKey,
       handleRendererErrors,
       renderContent,

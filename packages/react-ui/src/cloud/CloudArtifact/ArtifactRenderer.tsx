@@ -44,7 +44,15 @@ function ArtifactRendererImpl<L extends Library>({
   ...base
 }: StaticArtifactRendererProps<L> & { interpreter?: Interpreter }) {
   const renderContent = useCallback(
-    ({ program, isStreaming, toolProvider, rendererKey, onError }: RenderContentArgs) => (
+    ({
+      program,
+      isStreaming,
+      toolProvider,
+      rendererKey,
+      onError,
+      savedState,
+      onStateChange,
+    }: RenderContentArgs) => (
       <Renderer
         key={rendererKey}
         response={program}
@@ -53,8 +61,12 @@ function ArtifactRendererImpl<L extends Library>({
         toolProvider={toolProvider ?? null}
         queryLoader={NO_QUERY_LOADER}
         onAction={onAction}
-        onStateUpdate={onStateUpdate}
-        initialState={initialState}
+        onStateUpdate={(state) => {
+          onStateChange?.(state);
+          onStateUpdate?.(state);
+        }}
+        // Your `initialState` wins over the state the user left the artifact in.
+        initialState={savedState ? { ...savedState, ...initialState } : initialState}
         onParseResult={onParseResult}
         onError={onError}
         publishObservability={publishObservability}
