@@ -27,8 +27,9 @@ export interface CloudArtifactStorageOptions {
   /** Default page size when the caller passes no limit. */
   pageLimit?: number;
   /**
-   * Dashboards show each query's last result while it reloads; the results are
-   * kept in OpenUI Cloud for 24 hours, per user. `false` turns this off. Default true.
+   * Dashboards show each query's last result while it reloads, and reopen on the
+   * filters the user left them on; both are kept in OpenUI Cloud for 24 hours, per
+   * user. `false` turns this off. Default true.
    */
   cacheQueryResults?: boolean;
 }

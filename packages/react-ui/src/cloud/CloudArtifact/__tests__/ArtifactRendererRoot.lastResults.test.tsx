@@ -215,6 +215,9 @@ describe("ArtifactRendererRoot last results", () => {
     let arrive!: (results: ReturnType<typeof stored>) => void;
     const late = () => new Promise<ReturnType<typeof stored>>((resolve) => (arrive = resolve));
     await show(cloud(ONE, late).storage, panel);
+    // The dashboard waits 400 ms for the read before it starts.
+    await sleep(400);
+    await settle();
     expect(shown()).toBe("0 all 0");
     arrive(stored({ "totals::{}": { total: 7 } }));
     await settle();
@@ -228,6 +231,8 @@ describe("ArtifactRendererRoot last results", () => {
     renders = [];
     calls = [];
     await show(cloud(ONE, late).storage, panel);
+    await sleep(400);
+    await settle();
     await answer("totals", { total: 9 });
     arrive(stored({ "totals::{}": { total: 7 } }));
     await settle();
@@ -307,7 +312,7 @@ describe("ArtifactRendererRoot last results", () => {
     expect(calls).toHaveLength(4);
   });
 
-  it("after the first batch, a call is real even if its result is stored: not shown, not saved, no re-run", async () => {
+  it("after the first batch, a call is real even if its result is stored: not shown, no re-run, and its own result is saved", async () => {
     const all = 'totals::{"filter":"all"}';
     const mine = 'totals::{"filter":"mine"}';
     const c = cloud(FILTERED, async () => stored({ [all]: { total: 7 }, [mine]: { total: 8 } }));
@@ -323,6 +328,6 @@ describe("ArtifactRendererRoot last results", () => {
     await settle();
     expect(shown()).toBe("10 mine 0");
     expect(calls).toHaveLength(2);
-    expect(c.saved.mock.calls).toEqual([save(all, { total: 9 })]);
+    expect(c.saved.mock.calls).toEqual([save(all, { total: 9 }), save(mine, { total: 10 })]);
   });
 });
