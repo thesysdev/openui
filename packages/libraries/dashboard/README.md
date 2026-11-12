@@ -45,13 +45,13 @@ and `darkTheme` overrides.
 
 ## Components
 
-`Dashboard` is the root. 41 components in 10 groups:
+`Dashboard` is the root. 45 components in 10 groups:
 
 | Group         | Components                                                                                                         |
 | ------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Structure     | `Dashboard`, `Section`, `Row`, `Card`                                                                              |
 | Filters       | `FilterBar`, `PeriodPicker`, `DateRangeFilter`, `ChipFilter`, `SelectFilter`, `MultiSelectFilter`, `CompareToggle` |
-| Metrics       | `Kpis`, `Kpi`, `Stat`, `KeyValues`, `Goal`                                                                         |
+| Metrics       | `Kpis`, `Kpi`, `Trend`, `Progress`, `Split`, `States`, `Stat`, `KeyValues`, `KeyValue`, `Goal`                     |
 | Tables        | `Table`, `Column`                                                                                                  |
 | Trends        | `TimeSeries`, `Series`, `Reference`, `Marker`, `SmallMultiples`, `StatusTimeline`                                  |
 | Comparison    | `Bars`, `Leaderboard`, `Dumbbell`, `Distribution`, `Intervals`                                                     |
