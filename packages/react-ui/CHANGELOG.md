@@ -1,5 +1,12 @@
 # @openuidev/react-ui
 
+## 0.18.8
+
+### Patch Changes
+
+- Updated dependencies [[`d3763f5`](https://github.com/thesysdev/openui/commit/d3763f531b833e804e86d2059902d3f302cc7754)]:
+  - @openuidev/react-headless@0.18.8
+
 ## 0.18.7
 
 ### Patch Changes
