@@ -8,17 +8,17 @@ import { toStrings } from "../../../shared/values";
 
 export interface StatusTimelineProps {
   labels: string[];
-  states: string[][];
   periods?: string[];
+  states: (string | null)[][];
 }
 
 /** The smallest StatusTimeline cell, in px: below it texture and hover stop working, so the strips scroll instead. */
 const ST_CELL_MIN = 8;
 
 const STATUS = {
-  up: { label: "Up", color: "var(--openui-dashboard-good-mark)" },
-  degraded: { label: "Degraded", color: "var(--openui-dashboard-warning-mark)" },
-  down: { label: "Down", color: "var(--openui-dashboard-bad-mark)" },
+  good: { label: "Up", color: "var(--openui-dashboard-good-mark)" },
+  warning: { label: "Degraded", color: "var(--openui-dashboard-warning-mark)" },
+  bad: { label: "Down", color: "var(--openui-dashboard-bad-mark)" },
 } as const;
 const NO_DATA = "color-mix(in srgb, var(--openui-dashboard-ink) 8%, transparent)";
 
@@ -36,9 +36,9 @@ export function StatusTimeline(props: StatusTimelineProps) {
   const scroll = gridWidth > 0 && need > gridWidth;
   // State reads by texture as well as colour: up is dotted, degraded slashed, down back-slashed.
   const texture = {
-    up: " openui-dashboard-tex-0",
-    degraded: " openui-dashboard-tex-1",
-    down: " openui-dashboard-tex-2",
+    good: " openui-dashboard-tex-0",
+    warning: " openui-dashboard-tex-1",
+    bad: " openui-dashboard-tex-2",
   } as const;
 
   return (
@@ -53,7 +53,7 @@ export function StatusTimeline(props: StatusTimelineProps) {
         {labels.map((label, r) => {
           const row = states[r] ?? [];
           const known = row.filter((state) => state in STATUS);
-          const up = known.filter((state) => state === "up").length;
+          const up = known.filter((state) => state === "good").length;
           const tipState = hover?.row === r ? row[hover.period] : undefined;
           const tipStatus =
             tipState !== undefined && tipState in STATUS

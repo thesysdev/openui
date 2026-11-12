@@ -17,9 +17,9 @@ type CohortShow = "none" | CohortView;
 
 export interface CohortsProps {
   cohorts: string[];
-  sizes: number[];
   periods: string[];
-  rows: (number | null)[][];
+  values: (number | null)[][];
+  sizes: (number | null)[];
   format?: ValueFormat;
   view?: "percent" | "people";
   showValues?: boolean;
@@ -36,7 +36,7 @@ export function Cohorts(props: CohortsProps) {
   const cohorts = toStrings(props.cohorts);
   const sizes = toNumbers(props.sizes);
   const periods = toStrings(props.periods);
-  const rows = (Array.isArray(props.rows) ? props.rows : []).map((row) => toNumbers(row));
+  const rows = (Array.isArray(props.values) ? props.values : []).map((row) => toNumbers(row));
   const format = props.format ?? "percent";
   // Scale colour over the non-trivial cells so period 0 (100%) doesn't flatten the ramp.
   const cells = rows

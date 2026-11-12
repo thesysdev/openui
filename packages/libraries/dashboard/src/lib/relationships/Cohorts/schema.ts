@@ -3,9 +3,9 @@ import { formatSchema } from "../../../shared/format";
 import { numbersSchema } from "../../../shared/schema";
 export const cohortsPropsSchema = z.object({
   cohorts: z.array(z.string()),
-  sizes: z.array(z.number()),
   periods: z.array(z.string()),
-  rows: z.array(numbersSchema),
+  values: numbersSchema,
+  sizes: z.array(z.number()).optional(),
   format: formatSchema.optional(),
   view: z.enum(["percent", "people"]).optional(),
   showValues: z.boolean().optional(),

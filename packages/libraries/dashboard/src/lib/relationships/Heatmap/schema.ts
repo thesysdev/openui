@@ -4,7 +4,7 @@ import { numbersSchema } from "../../../shared/schema";
 export const heatmapPropsSchema = z.object({
   rows: z.array(z.string()),
   columns: z.array(z.string()),
-  values: z.array(numbersSchema),
+  values: numbersSchema,
   format: formatSchema.optional(),
   showValues: z.boolean().optional(),
   midpoint: z.number().optional(),
