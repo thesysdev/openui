@@ -1,5 +1,11 @@
 # @openuidev/react-headless
 
+## 0.18.8
+
+### Patch Changes
+
+- [#1627](https://github.com/thesysdev/openui/pull/1627) [`d3763f5`](https://github.com/thesysdev/openui/commit/d3763f531b833e804e86d2059902d3f302cc7754) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - `cacheQueryResults: false` on `useOpenuiCloudStorage` or `OpenUICloudProvider` turns off showing a dashboard's last results while it reloads. The option was described in 0.18.7 but could not be passed.
+
 ## 0.18.7
 
 ### Patch Changes
