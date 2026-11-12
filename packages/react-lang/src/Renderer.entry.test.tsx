@@ -47,8 +47,8 @@ it("reports no-root instead of parse-failed, and renders a ternary entry", () =>
   });
 });
 
-it("warns once with every error and the reliability docs link when onError is not passed", () => {
-  const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+it("logs one console.error with every error and the reliability docs link when onError is not passed", () => {
+  const spy = vi.spyOn(console, "error").mockImplementation(() => {});
   try {
     const container = document.createElement("div");
     const root = createRoot(container);
