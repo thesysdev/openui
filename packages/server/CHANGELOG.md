@@ -1,5 +1,13 @@
 # @openuidev/server
 
+## 0.4.2
+
+### Patch Changes
+
+- [#1616](https://github.com/thesysdev/openui/pull/1616) [`e92b25f`](https://github.com/thesysdev/openui/commit/e92b25f8b7346501d45310ffdd89a3622fddbc89) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Dashboard `create` and `edit` now send `context.userId` to OpenUI Cloud as `user_id`, instead of minting a frontend token for the user first. One request per call instead of two. The client's `appId` is no longer attached to dashboards.
+- Updated dependencies []:
+  - @openuidev/lang-core@1.1.1
+
 ## 0.4.1
 
 ### Patch Changes
