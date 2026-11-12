@@ -1,5 +1,13 @@
 # @openuidev/react-lang
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1613](https://github.com/thesysdev/openui/pull/1613) [`c782147`](https://github.com/thesysdev/openui/commit/c78214746c306491745e4f008593f3bc34c51671) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - When `Renderer` has no `onError`, its errors are now logged as a single `console.error` that lists every error and links to https://www.openui.com/docs/openui-lang/reliability, instead of one `console.warn` per error.
+- Updated dependencies []:
+  - @openuidev/lang-core@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/dashboard-library",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "OpenUI dashboard AI component library: the Dashboard/Section/CardRow layout grammar, filters, cards and charts a model composes into dashboards",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@openuidev/react-components": "workspace:>=0.0.1 <0.1.0",
-    "@openuidev/react-lang": "workspace:>=1.0.1 <2.0.0",
+    "@openuidev/react-lang": "workspace:>=1.1.1",
     "recharts": "^3.8.0",
     "d3-geo": "^3.1.2",
     "topojson-client": "^3.1.0",

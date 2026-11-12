@@ -1,5 +1,14 @@
 # @openuidev/react-ui
 
+## 0.18.7
+
+### Patch Changes
+
+- [#1607](https://github.com/thesysdev/openui/pull/1607) [`63a9c39`](https://github.com/thesysdev/openui/commit/63a9c39c26ba0d8ad130158e8cdb69b619aa2ae9) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - A dashboard shows its last results while it reloads. Pass `cacheQueryResults: false` to `cloudArtifactStorage` to turn this off. `ArtifactStorage` gets two optional methods for this, `getQueryResults` and `putQueryResult`.
+- Updated dependencies [[`63a9c39`](https://github.com/thesysdev/openui/commit/63a9c39c26ba0d8ad130158e8cdb69b619aa2ae9), [`c782147`](https://github.com/thesysdev/openui/commit/c78214746c306491745e4f008593f3bc34c51671)]:
+  - @openuidev/react-headless@0.18.7
+  - @openuidev/react-lang@1.1.1
+
 ## 0.18.6
 
 ### Patch Changes
