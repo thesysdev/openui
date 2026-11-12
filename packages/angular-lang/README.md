@@ -16,7 +16,7 @@ npm install @openuidev/angular-lang
 pnpm add @openuidev/angular-lang
 ```
 
-**Peer dependencies:** `@angular/core`, `@angular/common`, `rxjs`, `zod`
+**Peer dependencies:** Angular 22 (`@angular/core` and `@angular/common`), `rxjs`, `zod`
 
 This package works with `@openuidev/lang-core` ^0.4 (OpenUI Lang 0.5). OpenUI Lang 1.0 features need the React renderer, `@openuidev/react-lang` 1.x, for now.
 
@@ -33,19 +33,19 @@ This package works with `@openuidev/lang-core` ^0.4 (OpenUI Lang 0.5). OpenUI La
 ### 1. Define a component
 
 ```ts
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { defineComponent } from "@openuidev/angular-lang";
 import { z } from "zod/v4";
 
 @Component({
   selector: "demo-greeting",
   standalone: true,
-  template: `<div>Hello, {{ props?.name }}!</div>`,
+  template: `<div>Hello, {{ props()?.name }}!</div>`,
 })
 export class DemoGreetingComponent {
-  @Input() props: { name: string; mood?: "happy" | "excited" } | null = null;
-  @Input() renderNode: ((value: unknown) => unknown) | null = null;
-  @Input() statementId: string | undefined = undefined;
+  readonly props = input<{ name: string; mood?: "happy" | "excited" } | null>(null);
+  readonly renderNode = input<((value: unknown) => unknown) | null>(null);
+  readonly statementId = input<string | undefined>(undefined);
 }
 
 export const Greeting = defineComponent({
