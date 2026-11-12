@@ -96,13 +96,10 @@ export function useOpenUIErrors({
 
     lastErrorKeyRef.current = errorKey;
     setErrorRevision((revision) => revision + 1);
-    if (onErrorRef.current) {
-      onErrorRef.current(errors);
-    } else if (errors.length > 0) {
-      for (const error of errors) {
-        console.warn(`[openui] ${error.source}/${error.code}: ${error.message}`);
-      }
+    for (const error of errors) {
+      console.error(`[openui] ${error.source}/${error.code}: ${error.message}`, error);
     }
+    onErrorRef.current?.(errors);
   }, [
     isStreaming,
     response,

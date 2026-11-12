@@ -2,7 +2,7 @@
 import type { OpenUIError } from "@openuidev/lang-core";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { z } from "zod/v4";
 import { createLibrary, defineComponent } from "./library";
 import { Renderer } from "./Renderer";
@@ -45,4 +45,17 @@ it("reports no-root instead of parse-failed, and renders a ternary entry", () =>
     codes: [],
     text: "narrow",
   });
+});
+
+it("logs each reported error with console.error, with or without onError", () => {
+  const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    render('title = Title("Orders")');
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining("[openui] parser/no-root:"),
+      expect.objectContaining({ code: "no-root" }),
+    );
+  } finally {
+    spy.mockRestore();
+  }
 });
