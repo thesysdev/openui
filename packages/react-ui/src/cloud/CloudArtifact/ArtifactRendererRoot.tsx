@@ -46,6 +46,7 @@ import {
   PreviewTitle,
   RegionProvider,
 } from "./slots";
+import { useQueryResultCache } from "./useQueryResultCache";
 
 /** Props every artifact renderer takes. */
 export interface ArtifactRendererBaseProps {
@@ -276,6 +277,10 @@ export function ArtifactRendererRoot({
   const open = useCallback(() => setOpen(true), [setOpen]);
   const close = useCallback(() => setOpen(false), [setOpen]);
 
+  // A reopened dashboard shows its last results while its queries run.
+  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
+  const queryResultCache = useQueryResultCache({ toolProvider, storage, requestRef, showsContent });
+
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
@@ -306,7 +311,8 @@ export function ArtifactRendererRoot({
         renderContent({
           program,
           isStreaming,
-          toolProvider: interpreter ? toolProvider : undefined,
+          toolProvider:
+            interpreter && !queryResultCache.refreshing ? queryResultCache.toolProvider : undefined,
           rendererKey,
           onError: handleRendererErrors,
         }),
@@ -315,7 +321,8 @@ export function ArtifactRendererRoot({
       program,
       isStreaming,
       interpreter,
-      toolProvider,
+      queryResultCache.refreshing,
+      queryResultCache.toolProvider,
       rendererKey,
       handleRendererErrors,
       renderContent,
