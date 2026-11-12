@@ -3,6 +3,9 @@ import { source } from "@/lib/source";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+// Only prerendered slugs exist; anything else 404s without a render.
+export const dynamicParams = false;
+
 function getPage(slug: string[] = []) {
   return source.getPage(["cookbooks", ...slug]);
 }
