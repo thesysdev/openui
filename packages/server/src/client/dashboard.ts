@@ -1,10 +1,8 @@
-import { FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
-import { createFrontendToken } from "./frontend-token";
 import { OpenUIApiError, type Dashboard, type DashboardOptions } from "./types";
 
 function invalidInput(message: string): never {
@@ -59,10 +57,9 @@ export function defineDashboard<Context extends ExecutionContext>(
   }
 
   /**
-   * Mints the user's frontend token, so the artifact is theirs, and starts
-   * generating in the background. Resolves as soon as OpenUI Cloud has the
-   * artifact, with the tool response it writes: a sentence for the model and
-   * the artifact's header line for the renderer.
+   * Starts generating the user's dashboard in the background. Resolves as
+   * soon as OpenUI Cloud has the artifact, with the tool response it writes:
+   * a sentence for the model and the artifact's header line for the renderer.
    */
   async function start(
     context: Context,
@@ -73,10 +70,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     // The dashboard belongs to the user the context names.
     assertUserIdRequired(context);
     // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
-    const [{ token }, definitions] = await Promise.all([
-      createFrontendToken(api, context.userId, signal),
-      toolDefinitions(),
-    ]);
+    const definitions = await toolDefinitions();
     // Not streamed: OpenUI Cloud replies at once and keeps generating.
     const { response } = await api.post(
       "/v1/artifact/chat/completions",
@@ -86,9 +80,9 @@ export function defineDashboard<Context extends ExecutionContext>(
           { role: "system", content: config({ tools: definitions, ...call }) },
           { role: "user", content: prompt },
         ],
+        user_id: context.userId,
       },
       signal,
-      { [FRONTEND_TOKEN_HEADER]: token },
     );
     if (typeof response !== "string" || !response) {
       throw new OpenUIApiError(
