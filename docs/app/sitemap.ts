@@ -4,7 +4,6 @@ import { integrations } from "./(home)/integrations/data";
 const STATIC_PATHS = [
   "/",
   "/dashboards",
-  "/openui-vs-json",
   "/compare",
   "/lab",
   "/integrations",

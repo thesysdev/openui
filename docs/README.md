@@ -47,9 +47,9 @@ additional browser safeguard, not a substitute for those cost controls.
 ### Demo gateway
 
 Set `DEMO_GATEWAY_ORIGIN` (for example `http://localhost:3200`) to serve every `/demo/*` path from
-the private demo gateway, which adds login and daily limits. `/chat`, `/compare` and
-`/openui-vs-json` then redirect to `/demo/<slug>`. Leave it unset to keep serving the demos from
-this app.
+the private demo gateway, which adds login and daily limits. `/chat` and `/compare` then redirect
+to `/demo/<slug>`. Leave it unset to keep serving those two from this app. `/openui-vs-json` is
+served only by the gateway and always redirects to `/demo/openui-vs-json`.
 
 ### Taking the hosted demos offline
 
@@ -59,7 +59,7 @@ Set this variable and redeploy to take the hosted demos offline:
 NEXT_PUBLIC_DEMOS_DISABLED=1
 ```
 
-- `/chat`, `/compare` and `/openui-vs-json` still load, but a send opens the
+- `/chat` and `/compare` still load, but a send opens the
   "Hosted demos are temporarily offline" dialog instead of calling the model.
 - The proxied demos (`/demo/f1-dashboard`, `/demo/trip-planner`, `/demo/intelligent-ui`,
   `/demo/sales-dashboard`) show an offline page with the command to run them locally.
@@ -107,7 +107,6 @@ docs/
 │   ├── api/                                # API routes
 │   │   ├── search/route.ts                 # Search endpoint
 │   │   ├── chat/route.ts                   # Chat API
-│   │   └── playground/stream/route.ts      # Playground stream
 │   ├── og/docs/[...slug]/route.tsx         # OG image generation
 │   └── llms.txt/, llms-full.txt/, llms.mdx/  # LLM-friendly content endpoints
 │
@@ -149,7 +148,6 @@ docs/
 │   ├── cn.ts                               # className merge utility
 │   ├── chat-library.ts                     # Chat library config
 │   ├── demo-credits.ts                     # Demo credits data
-│   └── playground-library.ts               # Playground library config
 │
 ├── imports/                                # Shared imported assets/components
 ├── types/                                  # TypeScript type declarations

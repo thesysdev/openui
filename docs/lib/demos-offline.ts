@@ -23,11 +23,7 @@ export const DEMOS_DISABLED = process.env.NEXT_PUBLIC_DEMOS_DISABLED === "1";
 /* API routes that spend model credits for the in-app demos. The Cloud
    frontend-token route stays open: its tokens reach only the Conversations
    API, and /chat creates a conversation before its send is stopped. */
-export const IN_APP_DEMO_API_PATHS = [
-  "/api/chat",
-  "/api/playground/stream",
-  "/api/openui-cloud/chat",
-] as const;
+export const IN_APP_DEMO_API_PATHS = ["/api/chat", "/api/openui-cloud/chat"] as const;
 
 /* Demos deployed as their own Vercel projects and proxied under /demo/<slug>.
    Keep the slugs in step with proxiedDemos in next.config.mjs. The screenshots
