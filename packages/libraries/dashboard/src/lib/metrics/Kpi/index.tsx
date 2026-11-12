@@ -14,7 +14,7 @@ export const KpiComponent = defineComponent({
   name: "Kpi",
   props: kpiPropsSchema,
   description:
-    'Stat tile, only inside Kpis. value is a number, shown with format and its change vs previous (the same measure one period earlier), or a short text such as a plan, status or version (no format or previous; tone colours its status dot). hint is a short subtitle such as "Last 12 weeks". chart is at most one of: Trend(weekly) for a sparkline, Progress(50000) for progress toward a target, Split([{label: "Web", value: 310}, {label: "App", value: 190}]) for what a total is made of, States(["good", "good", "warning"]) for a status per period.',
+    'Stat tile, only inside Kpis. value is a number, shown with format and its change vs previous (the same measure one period earlier), or a short text such as a plan, status or version (no format or previous; tone colours its status dot). hint is a short subtitle such as "Paid plans only". chart is at most one of: Trend(weekly) for a sparkline, Progress(50000) for progress toward a target, Split([{label: "Web", value: 310}, {label: "App", value: 190}]) for what a total is made of, States(["good", "good", "warning"]) for a status per period.',
   component: KpiView,
 });
 
