@@ -5,8 +5,21 @@
     "moduleResolution": "bundler",
     "rootDir": "src",
     "outDir": "dist",
-    "types": ["react"]
+    "types": [
+      "react"
+    ],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable",
+      "ES2023.Intl"
+    ]
   },
-  "include": ["src"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }
