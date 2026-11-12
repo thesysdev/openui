@@ -222,14 +222,9 @@ export const baseRules = [
    shimmer sweeps over the whole card and a small round loader sits inside
    its top-right corner. */
   /* The shimmer anchors to the card: refreshing, or being written (the card draws it). */
-  .openui-dashboard-card:has(.openui-dashboard-state[data-state="refreshing"]),
-  .openui-dashboard-card:has(> .openui-dashboard-sheen),
-  .openui-dashboard-kpi-compact:has(> .openui-dashboard-sheen),
-  .openui-dashboard-kpi-compact:has(.openui-dashboard-state[data-state="refreshing"]) {
+  .openui-dashboard-card:has(.openui-dashboard-sheen),
+  .openui-dashboard-kpi-compact:has(> .openui-dashboard-sheen) {
     position: relative;
-  }
-  .openui-dashboard-state[data-state="refreshing"] {
-    position: static;
   }
   .openui-dashboard-sheen {
     position: absolute;
