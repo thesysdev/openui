@@ -1,21 +1,19 @@
 import { z } from "zod/v4";
 import { formatSchema } from "../../../shared/format";
+import { numbersSchema } from "../../../shared/schema";
 import { ReferenceComponent } from "../../trends/Reference";
-const pointSchema = z.object({
-  label: z.string(),
-  // null when a measure is missing: the point isn't drawn, and the chart names it under the plot.
-  x: z.union([z.number(), z.literal(null)]).optional(),
-  y: z.union([z.number(), z.literal(null)]).optional(),
-  size: z.number().optional(),
-  group: z.string().optional(),
-});
 
 export const scatterPropsSchema = z.object({
-  points: z.array(pointSchema),
+  labels: z.array(z.string()),
+  // null when a measure is missing: the point isn't drawn, and the chart names it under the plot.
+  xs: numbersSchema,
+  ys: numbersSchema,
   xLabel: z.string(),
   yLabel: z.string(),
   xFormat: formatSchema.optional(),
   yFormat: formatSchema.optional(),
+  sizes: numbersSchema.optional(),
+  groups: z.array(z.string()).optional(),
   references: z.array(ReferenceComponent.ref).optional(),
   sizeLabel: z.string().optional(),
   quadrants: z.array(z.string()).optional(),

@@ -1,13 +1,10 @@
 import { z } from "zod/v4";
 import { formatSchema } from "../../../shared/format";
-const linkSchema = z.object({
-  from: z.string(),
-  to: z.string(),
-  value: z.number(),
-  previous: z.number().optional(),
-});
 export const flowPropsSchema = z.object({
-  links: z.array(linkSchema),
+  from: z.array(z.string()),
+  to: z.array(z.string()),
+  values: z.array(z.number()),
   format: formatSchema.optional(),
+  previous: z.array(z.number()).optional(),
 });
 export type FlowSchemaProps = z.infer<typeof flowPropsSchema>;
