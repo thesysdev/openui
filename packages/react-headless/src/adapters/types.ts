@@ -24,6 +24,8 @@ export interface ArtifactSummary {
   /** Thread the artifact was created in. Drives the "go to original thread" action. */
   threadId: string;
   updatedAt?: string | number;
+  /** Whether the user pinned it. */
+  pinned?: boolean;
 }
 
 /** Full artifact. `content` must have the same shape as the tool-call `response` the renderer's parser expects. */
@@ -34,17 +36,57 @@ export interface Artifact extends ArtifactSummary {
 export interface ArtifactListParams {
   /** Partial-match search on `title`. Server-side. */
   name?: string;
-  /** Filter by artifact types. Server-side. */
+  /** Filter by artifact types (kinds, such as `dashboard` or `slides`). Server-side. */
   type?: string[];
+  /** `true`: only pinned artifacts; `false`: only unpinned ones. Server-side. */
+  pinned?: boolean;
+  /** Newest first (`desc`, the default) or oldest first. */
+  order?: "asc" | "desc";
   cursor?: string;
   limit?: number;
+}
+
+/**
+ * One event on an artifact's stream: its reference first, then its content in
+ * pieces, then `end` (or `error`). Every connection starts over: the
+ * reference, then everything so far. A reference with the `version` a reader
+ * already has replaces what it has of it.
+ */
+export type ArtifactStreamEvent =
+  | {
+      type: "reference";
+      data: { id: string; type?: string; title?: string; version?: string };
+    }
+  | { type: "delta"; data: { text: string } }
+  | { type: "end" }
+  | { type: "error"; data: { code?: string; message?: string } };
+
+export interface ArtifactStreamOptions {
+  signal?: AbortSignal;
 }
 
 export interface ArtifactStorage {
   list(params?: ArtifactListParams): Promise<{ artifacts: ArtifactSummary[]; nextCursor?: string }>;
   get(id: string): Promise<Artifact>;
-  /** Persist edited artifact content. Called by renderer implementations (via `useArtifactStorage`), not by the framework. */
-  update(patch: { id: string; content: unknown }): Promise<ArtifactSummary>;
+  /**
+   * Persist edited content, a new title, or both. Called by renderer implementations (via
+   * `useArtifactStorage`) and `useArtifactUpdate`, not by the framework. A storage that
+   * doesn't rename can ignore `title`.
+   */
+  update(patch: { id: string; content?: unknown; title?: string }): Promise<ArtifactSummary>;
+  /**
+   * Optional. Stream an artifact while it is generated, or replay a finished
+   * one. A missing artifact yields one `error` event with code `not-found`,
+   * and one the caller may not read, code `unauthorized`; a failed
+   * connection throws and is retried. Storages without it are read with `get`.
+   */
+  stream?(id: string, options?: ArtifactStreamOptions): AsyncIterable<ArtifactStreamEvent>;
+  /** Optional. Pin an artifact for the user. */
+  pin?(id: string): Promise<ArtifactSummary>;
+  /** Optional. Unpin an artifact. */
+  unpin?(id: string): Promise<ArtifactSummary>;
+  /** Optional. Delete an artifact. */
+  delete?(id: string): Promise<void>;
 }
 
 /**

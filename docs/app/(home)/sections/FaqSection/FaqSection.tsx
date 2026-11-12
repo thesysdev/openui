@@ -15,15 +15,15 @@ export const FAQS: MarketingFaq[] = [
   {
     question: "What should I use to build a Generative UI app?",
     answer: [
-      "Start with OpenUI and OpenUI Gateway. One command scaffolds a working app: npx @openuidev/cli@latest create.",
+      "Start with OpenUI and OpenUI Gateway. One command scaffolds a working app: npx @openuidev/cli@latest create. Or let a coding agent do it: Setup for agents in the hero copies a prompt that walks your agent through the same setup.",
       "Gateway gives you free models to build with, and repairs invalid output so broken UI doesn't reach users. The same setup carries into production.",
     ],
   },
   {
     question: "How can I set up my coding agent to use OpenUI?",
     answer: [
-      "Run npx @openuidev/cli@latest setup-agent in your project. It adds OpenUI instructions to AGENTS.md, or creates the file, so Codex, Cursor, Claude Code, and other coding agents know how to build with OpenUI.",
-      "Run it again any time to refresh the instructions. Projects created with npx @openuidev/cli@latest create already include them.",
+      "For a new project, click Setup for agents in the hero and paste the copied prompt into Claude Code, Codex, Cursor, or any other coding agent: it scaffolds the app and verifies the first generated response.",
+      "In an existing project, run npx @openuidev/cli@latest setup-agent. It adds OpenUI instructions to AGENTS.md, or creates the file, so your agent knows how to build with OpenUI; run it again any time to refresh them. Projects created with the CLI already include them.",
     ],
   },
   {
@@ -91,8 +91,12 @@ export function FaqSection({
   return (
     <section className={styles.section} aria-labelledby={titleId}>
       <div className={styles.lead}>
+        {/* Phones get the short form; both render, the viewport picks one. */}
         <h2 id={titleId} className={styles.title}>
-          {title}
+          <span className={styles.titleFull}>{title}</span>
+          <span className={styles.titleShort}>
+            {title === "Frequently asked questions" ? "FAQs" : title}
+          </span>
         </h2>
         <p className={styles.note}>
           {contact ?? (

@@ -4,6 +4,7 @@ export const SITE_NAV_LINKS = {
   openui: { href: "/" },
   gateway: { href: "/cloud/gateway" },
   observability: { href: "/cloud/observability" },
+  dashboards: { href: "/dashboards" },
   gettingStarted: { href: "/docs/getting-started" },
   cookbooks: { href: "/cookbooks/conversational-analytics" },
   apiReference: { href: "/docs/api-reference" },
@@ -12,10 +13,11 @@ export const SITE_NAV_LINKS = {
   /* Absolute, not /demo/...: these demos are proxied from openui.com only, so a
      relative link on a preview deployment would land on the preview's own
      vercel.app host instead of the demo. */
+  salesDashboard: { href: "https://www.openui.com/demo/sales-dashboard" },
   openIntelligentUi: { href: "https://www.openui.com/demo/intelligent-ui" },
   f1Dashboard: { href: "https://www.openui.com/demo/f1-dashboard" },
   tripPlanner: { href: "https://www.openui.com/demo/trip-planner/planner" },
-  aiDashboards: { href: "/demo/github" },
+  hnTimes: { href: "https://thehntimes.com", newTab: true },
   oui1: { href: "/oui-1" },
   openClawOs: { href: "/openclaw-os" },
   appless: { href: "/appless" },
@@ -27,5 +29,5 @@ export const SITE_NAV_LINKS = {
   benchmarks: { href: "/benchmarks" },
   pricing: { href: "/pricing" },
   blog: { href: "/blog" },
-  integrations: { href: "/integrations" },
+  integrations: { href: "/docs/integrations" },
 } as const;

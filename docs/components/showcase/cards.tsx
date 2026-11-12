@@ -18,6 +18,7 @@ export type LinkCardItem = {
   name: string;
   description: string;
   tag?: string;
+  featured?: boolean;
   links: CardLinkItem[];
 };
 
@@ -107,6 +108,30 @@ export function ShowcaseGrid({
   );
 }
 
+/** A card's tags in one row; empty entries are skipped and "Featured" is highlighted. */
+export function CardTags({
+  tags,
+  className,
+}: {
+  tags: (string | null | undefined)[];
+  className?: string;
+}) {
+  const shown = tags.filter((tag): tag is string => Boolean(tag));
+  if (shown.length === 0) return null;
+  return (
+    <span className={`${styles.tags} ${className ?? ""}`.trim()}>
+      {shown.map((tag) => (
+        <span
+          key={tag}
+          className={`${styles.tag} ${tag === "Featured" ? styles.featuredTag : ""}`.trim()}
+        >
+          {tag}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function LinkCardGrid({
   items,
   clickable = false,
@@ -124,7 +149,7 @@ export function LinkCardGrid({
         >
           <div className={styles.cardHeader}>
             <h4 className={styles.cardTitle}>{item.name}</h4>
-            {item.tag ? <span className={styles.tag}>{item.tag}</span> : null}
+            <CardTags tags={[item.featured ? "Featured" : null, item.tag]} />
           </div>
           <p className={styles.cardDescription}>{item.description}</p>
           <div className={styles.cardLinks}>

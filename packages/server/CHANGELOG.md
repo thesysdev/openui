@@ -1,5 +1,17 @@
 # @openuidev/server
 
+## 0.4.1
+
+### Patch Changes
+
+- [#1560](https://github.com/thesysdev/openui/pull/1560) [`2454f68`](https://github.com/thesysdev/openui/commit/2454f68c133cf0cf2ce65e4817af408c0751d155) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Dashboard scripts can make more tool calls per run.
+
+## 0.4.0
+
+### Minor Changes
+
+- [#1488](https://github.com/thesysdev/openui/pull/1488) [`afb41d5`](https://github.com/thesysdev/openui/commit/afb41d5cf252842b9a54cf8d512acfd928428d79) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add `OpenUIClient`: define a dashboard once with `defineDashboard`, create and edit dashboards from your agent, run their data tools with `interpreter.execute`, and mint frontend tokens.
+
 ## 0.3.0
 
 ### Minor Changes

@@ -42,7 +42,11 @@ export function HeroProof() {
             </div>
             <p className={styles.sideNote}>
               OpenUI Lang generates up to 3x faster and uses 67% fewer tokens than JSON-based UI
-              formats. Fewer tokens means every generation finishes sooner and costs less.
+              formats.
+              <span className={styles.sideNotePhoneHidden}>
+                {" "}
+                Fewer tokens means every generation finishes sooner and costs less.
+              </span>
             </p>
           </div>
         </div>

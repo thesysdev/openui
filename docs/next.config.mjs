@@ -12,6 +12,7 @@ const proxiedDemos = {
   "f1-dashboard": "https://openui-f1-dashboard.vercel.app",
   "trip-planner": "https://openui-trip-planner.vercel.app",
   "intelligent-ui": "https://open-intelligent-ui.vercel.app",
+  "sales-dashboard": "https://openui-sales-dashboard.vercel.app",
 };
 
 // The demo gateway (a private app) serves every hosted demo under /demo, with login and daily
@@ -68,6 +69,12 @@ const config = {
   async redirects() {
     return [
       ...demoGatewayRedirects,
+      // The GitHub dashboards demo was removed; its links open the Sales Dashboard demo.
+      {
+        source: "/demo/github/:path*",
+        destination: "/demo/sales-dashboard",
+        permanent: true,
+      },
       {
         source: "/favicon.svg",
         destination: "/shiro-logo.svg",

@@ -1,0 +1,20 @@
+{
+  "title": "Dashboards",
+  "root": true,
+  "pages": [
+    "index",
+    "quickstart",
+    "how-it-works",
+    "---Set up---",
+    "authentication",
+    "define-dashboards",
+    "connect-data",
+    "---Build---",
+    "generate",
+    "edit",
+    "render",
+    "list",
+    "---Agent integration---",
+    "add-to-your-agent"
+  ]
+}

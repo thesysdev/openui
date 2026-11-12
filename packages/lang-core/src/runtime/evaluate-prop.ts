@@ -51,6 +51,14 @@ function evaluatePropValue(
   if (value == null) return value;
   if (typeof value !== "object") return value;
 
+  // A dynamic root can revisit already-evaluated bindings. Keep their expression
+  // deferred until the input supplies $value, just as for an AST-produced binding.
+  if (isReactiveAssign(value)) {
+    return reactiveSchema && isReactiveSchema(reactiveSchema)
+      ? value
+      : (context.getState(value.target) ?? null);
+  }
+
   // AST node — evaluate with schema context
   if (isASTNode(value)) {
     // StateRef on reactive prop → ReactiveAssign marker

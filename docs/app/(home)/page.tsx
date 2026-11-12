@@ -1,5 +1,5 @@
 import { SITE_OPEN_GRAPH } from "@/lib/page-metadata";
-import { BASE_URL } from "@/lib/source";
+import { BASE_URL } from "@/lib/site-url";
 import type { Metadata } from "next";
 import { AGENT_SETUP_PROMPT, AgentPicker } from "./components/AgentPicker/AgentPicker";
 import { LangShowcase } from "./components/LangShowcase/LangShowcase";
@@ -9,8 +9,8 @@ import {
   ComparisonTabs,
 } from "./components/StreamingComparison/ComparisonTabs";
 import { AD_SPEND } from "./components/StreamingComparison/examples/adSpend";
+import { FINANCE_DASHBOARD } from "./components/StreamingComparison/examples/financeDashboard";
 import { PARIS_HOTELS } from "./components/StreamingComparison/examples/parisHotels";
-import { SALES_DASHBOARD } from "./components/StreamingComparison/examples/salesDashboard";
 import { TRIP_FORM } from "./components/StreamingComparison/examples/tripForm";
 import styles from "./page.module.css";
 import { BANNER_END_ANCHOR_ID } from "./sections/CloudBanner/CloudBanner";
@@ -31,7 +31,7 @@ import { TweetWallSection } from "./sections/TweetWallSection/TweetWallSection";
 const COMPARISON_TABS: ComparisonTab[] = [
   { id: "charts", label: "Charts", example: AD_SPEND },
   { id: "cards", label: "Cards", example: PARIS_HOTELS },
-  { id: "dashboards", label: "Dashboards", example: SALES_DASHBOARD },
+  { id: "dashboards", label: "Dashboards", example: FINANCE_DASHBOARD },
   { id: "forms", label: "Forms", example: TRIP_FORM },
 ];
 
@@ -125,7 +125,10 @@ export default function HomePage() {
           subtitle="Open Standard for Generative UI"
           showPlaygroundButton={false}
           showTagline={false}
-          commandTrailing={<AgentPicker command={AGENT_SETUP_PROMPT} />}
+          /* Replaces the command pill outright: the agent button and the
+             runner button carry both paths, and the runner menu holds the
+             commands. */
+          commandSlot={<AgentPicker command={AGENT_SETUP_PROMPT} />}
           proofSlot={<RendererProofLine lead="One spec, rendered in" />}
           /* No GitHub CTA in the hero on either breakpoint: the header carries
              the star count already. Dropping githubRepoUrl takes the desktop
@@ -134,7 +137,11 @@ export default function HomePage() {
           /* The Without / With OpenUI demo, streamed live in HTML. Swap the
              example for any config in components/StreamingComparison/examples. */
           desktopPreviewSlot={<ComparisonTabs tabs={COMPARISON_TABS} initial={1} />}
-          mobilePreviewSlot={<ComparisonTabs tabs={COMPARISON_TABS} initial={1} />}
+          /* Phones get the one Cards example, a single tab draws no bar, and
+             the Without answer rests finished instead of streaming. */
+          mobilePreviewSlot={
+            <ComparisonTabs tabs={COMPARISON_TABS.filter((tab) => tab.id === "cards")} leftStatic />
+          }
           /* TEMP: the live compare demo is back in the hero, as on main.
              To return to the screenshot showcase, set showPreview={false},
              move <LogoStrip /> back down by the tweet wall, restore

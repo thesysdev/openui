@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
-    "@openuidev/lang-core": "1.0.2",
-    "@openuidev/react-headless": "0.18.1",
-    "@openuidev/react-lang": "1.0.2",
-    "@openuidev/react-ui": "0.18.1",
+    "@openuidev/lang-core": "1.1.0",
+    "@openuidev/react-headless": "0.18.5",
+    "@openuidev/react-lang": "1.1.0",
+    "@openuidev/react-ui": "0.18.5",
     "ai": "^6.0.116",
     "next": "16.3.8",
     "react": "19.2.3",
@@ -27,7 +27,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.1",
+    "@openuidev/cli": "0.6.3",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",

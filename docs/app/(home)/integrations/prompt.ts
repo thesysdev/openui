@@ -1,4 +1,4 @@
-import { BASE_URL } from "@/lib/source";
+import { BASE_URL } from "@/lib/site-url";
 import type { Integration } from "./data";
 
 /*

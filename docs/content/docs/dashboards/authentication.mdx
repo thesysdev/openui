@@ -1,0 +1,129 @@
+---
+title: Authentication
+description: Set up the API key on the server and a per-user frontend token in the browser.
+---
+
+Dashboards use two credentials. The API key authenticates your server and never reaches the browser. A frontend token is a short-lived credential scoped to one user, which the browser uses to stream and list that user's dashboards.
+
+Every dashboard belongs to the user who created it. Only that user can open, edit, list, or run it.
+
+## API key
+
+Create a key in the [Thesys Console](https://console.thesys.dev/keys) and store it in your server environment as `THESYS_API_KEY`.
+
+To create one from the command line instead:
+
+```bash
+npx @openuidev/cli generate-api-key --file .env.local
+```
+
+## Create the client
+
+Install the server package:
+
+```bash
+npm install @openuidev/server
+```
+
+Create one `OpenUIClient` for your server. It reads `THESYS_API_KEY` from the environment:
+
+```ts title="lib/openui.ts"
+import { OpenUIClient } from "@openuidev/server";
+
+export const openui = new OpenUIClient();
+```
+
+| Option    | Description                                                                                  |
+| --------- | -------------------------------------------------------------------------------------------- |
+| `apiKey`  | The API key. Default: `process.env.THESYS_API_KEY`.                                          |
+| `baseUrl` | The API origin, without `/v1`. Default: `https://api.thesys.dev`.                            |
+| `appId`   | Separates apps that share one API key. Users' tokens and dashboards belong to the given app. |
+
+## The user id
+
+Every server call takes a `context` with the signed-in user's id. Take it from your session, never from the request body:
+
+```ts
+const context = { userId: session.user.id };
+
+await dashboards.create({ title, prompt }, context);
+await dashboards.edit({ id, prompt }, context);
+await dashboards.interpreter.execute(request, context);
+```
+
+`create` makes the dashboard belong to `context.userId`. `edit` and `interpreter.execute` run only for the dashboard's owner.
+
+`context` can carry more than the user id. Your data tools receive the whole object, which is useful for scoping data to what the user may see. See [Connect data](/docs/dashboards/connect-data#use-the-context).
+
+## Frontend token route
+
+Add a route that returns a frontend token for the signed-in user:
+
+```ts title="app/api/frontend-token/route.ts"
+import { OpenUIApiError } from "@openuidev/server";
+import { openui } from "@/lib/openui";
+import { getSession } from "@/lib/auth"; // your session lookup
+
+export async function POST(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  try {
+    const token = await openui.createFrontendToken(
+      { userId: session.user.id },
+      { signal: request.signal },
+    );
+    return Response.json(token, { headers: { "Cache-Control": "private, no-store" } });
+  } catch (error) {
+    const status = error instanceof OpenUIApiError ? (error.status ?? 500) : 500;
+    return Response.json({ error: "Could not create a frontend token." }, { status });
+  }
+}
+```
+
+`createFrontendToken` returns `{ token, expires_at }`. Return it unchanged: the browser reads that shape.
+
+Use the same user id here as in the server calls. A token for one user can't read another user's dashboards.
+
+## Connect the browser
+
+Install the React packages:
+
+```bash
+npm install @openuidev/react-ui @openuidev/react-headless @openuidev/react-lang
+```
+
+Wrap the part of the app that shows dashboards in `OpenUICloudProvider`, with the token route's URL:
+
+```tsx title="app/providers.tsx"
+"use client";
+
+import { OpenUICloudProvider } from "@openuidev/react-ui/cloud";
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return <OpenUICloudProvider token="/api/frontend-token">{children}</OpenUICloudProvider>;
+}
+```
+
+The provider requests a token when a renderer or list first needs one, caches it, and requests a new one shortly before it expires.
+
+| Prop    | Description                                                              |
+| ------- | ------------------------------------------------------------------------ |
+| `token` | The token route's URL, or an async function that returns a token string. |
+
+Use a function to call the token route with custom headers, such as an `Authorization` header for apps that don't use cookies:
+
+```tsx
+<OpenUICloudProvider
+  token={async () => {
+    const res = await fetch("/api/frontend-token", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${await getAccessToken()}` },
+    });
+    const { token } = await res.json();
+    return token;
+  }}
+>
+  {children}
+</OpenUICloudProvider>
+```

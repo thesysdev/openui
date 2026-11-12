@@ -1,0 +1,91 @@
+---
+title: Overview
+description: Live dashboards that an agent generates from a prompt and that load fresh data every time they open.
+hideFooter: true
+---
+
+Dashboards are live artifacts, like [Claude's live artifacts](https://support.claude.com/en/articles/14729249): the agent builds one once, and the user reopens, filters, and refreshes it without another model call. OpenUI provides APIs to generate them in your own agentic application.
+
+For example, the request "compare weekly npm downloads for react, vue, and svelte over the last 6 months" produces a dashboard with a chart and a table. Each time it opens, it calls the npm downloads tool again and shows the latest numbers.
+
+<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
+  <LazyVideo
+    src="/videos/dashboards/openui-dashboards.mp4"
+    poster="/videos/dashboards/openui-dashboards-poster.jpg"
+    aria-label="An agent building a live dashboard from a chat request"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+    className="block h-auto w-full"
+  />
+</div>
+
+<p>
+  <a href="https://www.openui.com/demo/sales-dashboard" target="_blank" rel="noopener noreferrer">
+    Try the live demo →
+  </a>
+</p>
+
+## Use cases
+
+- **Analytics inside a product:** A user asks about data in their own account and gets a dashboard built from the product's components. For example, "orders and refunds by day for the last 30 days, with a status filter".
+- **Operations and support:** For example, "tickets missing SLA this week, by queue and priority".
+- **Finance and planning:** For example, "spend against budget this quarter, by team".
+- **Developer tools:** For example, "weekly npm downloads and GitHub stars for react, vue, and svelte", as in the [Quick Start](/docs/dashboards/quickstart) app.
+
+## Get started
+
+<Cards>
+  <Card title="Quick Start" href="/docs/dashboards/quickstart">
+    Run the example and try prompts that create and edit dashboards.
+  </Card>
+  <Card title="How it works" href="/docs/dashboards/how-it-works">
+    Follow a dashboard from the chat message to its live data.
+  </Card>
+</Cards>
+
+Create and run a chat app whose agent builds dashboards about npm packages and GitHub repositories. The command generates an API key and starts the dev server:
+
+```bash
+npx @openuidev/cli@latest create --example assistant-ui-dashboards
+```
+
+## Features
+
+### Live data
+
+Each time a dashboard opens, it loads its numbers through your data tools, so it always shows the current state of the data. For example, a dashboard of yesterday's orders shows today's orders when it's opened tomorrow.
+
+### Auto-refresh
+
+A dashboard can reload its data on an interval while it's open, such as every 30 seconds. Only the data reloads: the layout stays the same and no model is called. For example, a support queue dashboard refreshes its open tickets every minute.
+
+### Computed fields
+
+A generated script derives new metrics from the results of your data tools. The script runs in OpenUI's interpreter, with secure execution, and can call only your data tools. For example, a dashboard can group customers by age range from a tool that returns each customer's birth date, without a new endpoint.
+
+### Interactive filters
+
+Filters, date ranges, and refresh buttons load new data into the same layout. The user explores the data without another prompt, and no model is called. For example, changing a status filter from "all" to "refunded" reloads the table and the chart with refunded orders only.
+
+### Prebuilt and custom components
+
+A dashboard renders only with the component library passed in, so it uses the same charts, tables, and filters as the rest of the app. The prebuilt dashboard library works without any setup. Moving to your design system's components later changes the library, not the integration.
+
+### Incremental edits
+
+A follow-up request patches only the parts of the dashboard it describes. The rest of the layout, its filters, and its queries stay as they are. For example, "add a pie chart of revenue by payment method" adds the chart without rebuilding the dashboard around it.
+
+### Validated output
+
+The model's output is checked against the component library as it's generated. Invalid output, such as an unknown component or a missing argument, is repaired before the dashboard renders.
+
+### Hundreds of models
+
+Dashboards can be built and edited by hundreds of models from providers such as Anthropic, OpenAI, and Google. `anthropic/claude-sonnet-5.5` is recommended for building dashboards. See the [model list](/docs/gateway/models).
+
+### MCP servers
+
+Dashboards can use APIs from MCP servers, next to the tools defined in code. For example, a dashboard can combine orders from an internal API with issues from the GitHub MCP server.

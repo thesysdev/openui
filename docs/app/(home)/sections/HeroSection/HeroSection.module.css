@@ -832,6 +832,9 @@
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
+  /* The pill's rounded end reads as indented against the flush text block;
+     pull it back a step so the command aligns optically. */
+  margin-left: -0.5rem;
 }
 
 /* Secondary hero CTA — white pill mirroring the primary button's bevel, subtler. */
@@ -995,6 +998,7 @@
 
 .previewFrameSlot {
   max-width: 1280px;
+  overflow: visible;
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -1040,6 +1044,7 @@
 }
 
 .mobileIllustrationViewportSlot {
+  overflow: visible;
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -1263,7 +1268,7 @@
 
   .mobileHero:has(.mobileIllustrationViewportSlot [role="tablist"]) .mobileHeroStack {
     gap: 0.5rem;
-    padding-block: 0.5rem 0;
+    padding-block: 1.5rem 0;
   }
 
   .mobileHero:has(.mobileIllustrationViewportSlot [role="tablist"]) .mobileCtaStack {
@@ -1280,6 +1285,55 @@
 .mobileProof {
   display: flex;
   justify-content: center;
-  margin-block: 1.25rem 0.5rem;
+  margin-block: 3.5rem 3rem;
   padding-inline: 1rem;
+}
+
+/* The renderer proof introduces the preview, separately from the CTA group. */
+/* Between the subtitle and the command, tucked to the subtitle: with the
+   stack's own 24px gap, the gap above it is half the gap below it. */
+.desktopProof {
+  margin-top: 0;
+}
+
+.desktopProof + .desktopCtaStack {
+  margin-top: 1.5rem;
+}
+
+.desktopHeroInner:has(.desktopProof) {
+  padding-bottom: 0;
+}
+
+.section:has(.desktopProof) .previewSection {
+  margin-top: 3rem;
+}
+
+.section .mobileHero:has(.mobileProof) .mobileCtaStack {
+  padding-bottom: 0;
+}
+
+/* Opt-in truncation for longer example commands. The full command still copies. */
+.commandFade .commandTrigger {
+  width: var(--cmd-width);
+}
+
+.commandFade .commandTriggerLabel,
+.commandFade .commandMenuItemLabel,
+.commandFade .npmMobileLabel {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: clip;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+}
+
+.commandFade .npmTicker {
+  animation: none;
+}
+
+.commandFade ~ .copyToast {
+  top: auto;
+  bottom: calc(100% + 6px);
+  margin-top: 0;
 }

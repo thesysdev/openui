@@ -224,3 +224,25 @@
     max-width: none;
   }
 }
+
+/* Phones shorten the default title to "FAQs". */
+.titleShort {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .titleFull {
+    display: none;
+  }
+
+  .titleShort {
+    display: inline;
+  }
+
+  /* One width on every page: the viewport minus the dashboards page's
+     16px gutters, whatever container the page wraps this section in. */
+  .section {
+    width: calc(100vw - 2rem);
+    margin-inline: auto;
+  }
+}

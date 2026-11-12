@@ -1,5 +1,5 @@
 export const OPENUI_GITHUB_REPOSITORY = "thesysdev/openui";
-export const GITHUB_STAR_FALLBACK = 10890;
+export const GITHUB_STAR_FALLBACK = 14777;
 
 export type GitHubStarsResponse = {
   stars: number;

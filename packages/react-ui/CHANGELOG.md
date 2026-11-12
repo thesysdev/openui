@@ -1,5 +1,44 @@
 # @openuidev/react-ui
 
+## 0.18.6
+
+### Patch Changes
+
+- [#1594](https://github.com/thesysdev/openui/pull/1594) [`19bb0c9`](https://github.com/thesysdev/openui/commit/19bb0c9849c3669d26da9eb5287178be7f5fb081) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - An open dashboard follows edits: the artifact stream records the versions it delivers, a reopened panel waits for the newer version before running its queries, and a query refused for an old version (`ARTIFACT_VERSION_MISMATCH`) runs again instead of showing an error, after one re-read shared by every renderer of the artifact. `useArtifactStream` gets `reportVersionMismatch`, and `onSettle` gets a `detail` with the error's code and the artifact id and version the call ran with.
+- Updated dependencies [[`19bb0c9`](https://github.com/thesysdev/openui/commit/19bb0c9849c3669d26da9eb5287178be7f5fb081)]:
+  - @openuidev/react-headless@0.18.6
+
+## 0.18.5
+
+### Patch Changes
+
+- [#1575](https://github.com/thesysdev/openui/pull/1575) [`adec1c1`](https://github.com/thesysdev/openui/commit/adec1c1525800729d60a9975e183b3fa82eba726) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `defineLiveArtifactRenderer` (`@openuidev/react-ui/cloud/agent-interface`) shows OpenUI Cloud dashboards in `AgentInterface`: the dashboard tools' results become a card in the chat that opens the live dashboard in the side panel, and saved dashboards open in the artifact browser.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.18.5
+
+## 0.18.4
+
+### Patch Changes
+
+- [#1565](https://github.com/thesysdev/openui/pull/1565) [`18af788`](https://github.com/thesysdev/openui/commit/18af78876e0f49813b4089cc09be6ce16d1c7666) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Cloud artifact renderers read the artifact reference from OpenUI Cloud's content line (`]]>openui:content?artifact_id=…`) in a tool response.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.18.4
+
+## 0.18.3
+
+### Patch Changes
+
+- [#1493](https://github.com/thesysdev/openui/pull/1493) [`f5ff998`](https://github.com/thesysdev/openui/commit/f5ff998d0ae139cdafa3508436a2c91284f28fd1) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - New `@openuidev/react-ui/cloud` entry: `LiveArtifactRenderer` and `StaticArtifactRenderer` for OpenUI Cloud artifacts, plus `useArtifactList`, `useArtifactPin`, `useArtifactUnpin`, `useArtifactDelete` and `useArtifactUpdate`. The `@openuidev/react-headless` peer window moves to `>=0.18.2`.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.18.3
+
+## 0.18.2
+
+### Patch Changes
+
+- Updated dependencies [[`da5ea77`](https://github.com/thesysdev/openui/commit/da5ea770eb4284d8d1a08471d46f5bf6fe6a8b0f)]:
+  - @openuidev/react-headless@0.18.2
+
 ## 0.18.1
 
 ### Patch Changes

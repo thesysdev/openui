@@ -1,18 +1,15 @@
 import { EXAMPLE_CATEGORIES, type ExampleCategoryId } from "@/lib/example-categories";
-import { getExamplesInCategory } from "@/lib/examples-catalog";
+import { getSortedExamplesInCategory } from "@/lib/examples-catalog";
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
-import { CardLink } from "./cards";
+import { CardLink, CardTags } from "./cards";
 import { RunLocally } from "./run-locally";
 import styles from "./showcase.module.css";
 
 /** One section of the Integrations page. Its `##` heading lives in the MDX, so it shows in the TOC. */
 export function ExampleCategory({ id }: { id: ExampleCategoryId }) {
   const category = EXAMPLE_CATEGORIES.find((c) => c.id === id);
-  // Longest description first, so cards sharing a row have similar heights.
-  const examples = getExamplesInCategory(id).sort(
-    (a, b) => b.description.length - a.description.length,
-  );
+  const examples = getSortedExamplesInCategory(id);
   if (!category || examples.length === 0) return null;
 
   return (
@@ -30,6 +27,13 @@ export function ExampleCategory({ id }: { id: ExampleCategoryId }) {
                 className={example.logoIsDark ? styles.cardLogoDark : styles.cardLogo}
               />
               <h4 className={styles.cardTitle}>{example.title}</h4>
+              <CardTags
+                className={styles.identityTag}
+                tags={[
+                  example.featured ? "Featured" : null,
+                  example.community ? "Community" : null,
+                ]}
+              />
             </div>
             <p className={styles.cardDescription}>{example.description}</p>
             <div className={styles.cardLinks}>
@@ -37,6 +41,9 @@ export function ExampleCategory({ id }: { id: ExampleCategoryId }) {
                 <RunLocally title={example.title} name={example.name} env={example.env} />
               ) : null}
               <CardLink label="Source" href={example.sourceUrl} external />
+              {example.packageUrl ? (
+                <CardLink label="Package" href={example.packageUrl} external />
+              ) : null}
               {example.guideUrl ? (
                 <Link className={styles.cardLink} href={example.guideUrl}>
                   <BookOpen aria-hidden className={styles.cardLinkIcon} />

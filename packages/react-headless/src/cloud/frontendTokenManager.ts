@@ -81,6 +81,30 @@ export function createFrontendTokenManager({
   };
 }
 
+/** Where a frontend token comes from: your mint endpoint's URL, or a function
+ *  returning a fresh token (you own caching). */
+export type FrontendTokenSource = string | (() => Promise<string>);
+
+/** Normalize a token source into a FrontendTokenManager. */
+export function toFrontendTokenManager(
+  source: FrontendTokenSource,
+  options: Omit<FrontendTokenManagerOptions, "mintUrl"> = {},
+): FrontendTokenManager {
+  if (typeof source === "string") {
+    return createFrontendTokenManager({ ...options, mintUrl: source });
+  }
+  let current: string | null = null;
+  return {
+    async getToken(): Promise<string> {
+      current = await source();
+      return current;
+    },
+    invalidate(staleToken?: string): void {
+      if (staleToken === undefined || staleToken === current) current = null;
+    },
+  };
+}
+
 /**
  * Wrap a base fetch so every request carries a fresh token, with one reactive
  * retry on 401. The request is re-sent with the same init — pass re-readable
