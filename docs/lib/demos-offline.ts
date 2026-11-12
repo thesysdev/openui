@@ -2,28 +2,15 @@ import { DEMO_CREDITS_EXHAUSTED_CODE } from "@/lib/demo-credits";
 
 /* Hosted demos switch.
    Set NEXT_PUBLIC_DEMOS_DISABLED=1 and redeploy to take the hosted demos
-   offline: the in-app demos open DemosOfflineDialog instead of sending,
-   proxy.ts answers their API routes with a 402 for anyone calling them
-   directly, and the proxied demos' pages show a notice instead. Unset it and
+   offline: proxy.ts answers the proxied demos' API routes with a 402 and
+   shows a notice instead of their pages. Unset it and
    redeploy to bring them back. */
 
 export const DEMOS_PAUSED_MESSAGE =
   "Hosted demos are temporarily offline. Thanks for your patience while we bring them back.";
 
-export const DEMOS_PAUSED_LOCAL_MESSAGE =
-  "You can still try OpenUI on your machine: scaffold a starter app and run it locally.";
-
-/** Scaffolds a starter app; the interactive CLI walks through the API key and setup. */
-export const DEMOS_PAUSED_LOCAL_COMMAND =
-  "pnpm dlx @openuidev/cli@latest create --name openui-demo";
-
 /** Inlined at build time, so it reads the same on the server and in the browser. */
 export const DEMOS_DISABLED = process.env.NEXT_PUBLIC_DEMOS_DISABLED === "1";
-
-/* API routes that spend model credits for the in-app demos. The Cloud
-   frontend-token route stays open: its tokens reach only the Conversations
-   API, and /chat creates a conversation before its send is stopped. */
-export const IN_APP_DEMO_API_PATHS = ["/api/chat", "/api/openui-cloud/chat"] as const;
 
 /* Demos deployed as their own Vercel projects and proxied under /demo/<slug>.
    Keep the slugs in step with proxiedDemos in next.config.mjs. The screenshots
