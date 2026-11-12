@@ -16,12 +16,7 @@ export interface CloudApi {
   /** The client's app, if it has one. */
   readonly appId?: string;
   /** POSTs JSON and resolves with the JSON object OpenUI Cloud returns. */
-  post(
-    path: string,
-    body: unknown,
-    signal?: AbortSignal,
-    headers?: Record<string, string>,
-  ): Promise<Record<string, unknown>>;
+  post(path: string, body: unknown, signal?: AbortSignal): Promise<Record<string, unknown>>;
 }
 
 /** The error a failed OpenUI Cloud response describes. */
@@ -72,10 +67,10 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
 
   return {
     ...(options.appId !== undefined && { appId: options.appId }),
-    async post(path, body, signal, headers) {
+    async post(path, body, signal) {
       const response = await request(path, {
         method: "POST",
-        headers: { ...headers, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
         signal,
       });
