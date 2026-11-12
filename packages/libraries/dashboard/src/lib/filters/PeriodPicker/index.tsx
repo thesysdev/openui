@@ -14,7 +14,7 @@ export const PeriodPickerComponent = defineComponent({
 });
 function PeriodPickerView({ props }: ComponentRenderProps<PeriodPickerSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useFilterField(props.value, "period");
+  const field = useFilterField(props.value, "period", undefined, props.options);
   return (
     <PeriodPicker
       {...props}

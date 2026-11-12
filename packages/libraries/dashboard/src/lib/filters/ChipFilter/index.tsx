@@ -14,7 +14,7 @@ export const ChipFilterComponent = defineComponent({
 });
 function ChipFilterView({ props }: ComponentRenderProps<ChipFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useFilterField(props.value, `chip:${props.label ?? ""}`);
+  const field = useFilterField(props.value, "chip", props.label, props.options);
   return (
     <ChipFilter
       {...props}

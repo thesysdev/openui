@@ -14,7 +14,7 @@ export const SelectFilterComponent = defineComponent({
 });
 function SelectFilterView({ props }: ComponentRenderProps<SelectFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useFilterField(props.value, `select:${props.label ?? ""}`);
+  const field = useFilterField(props.value, "select", props.label, props.options);
   return (
     <SelectFilter
       {...props}

@@ -17,7 +17,7 @@ export const MultiSelectFilterComponent = defineComponent({
 });
 function MultiSelectFilterView({ props }: ComponentRenderProps<MultiSelectFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useFilterField(props.value, `multiSelect:${props.label ?? ""}`);
+  const field = useFilterField(props.value, "multiSelect", props.label, props.options);
   return (
     <MultiSelectFilter
       {...props}

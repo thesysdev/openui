@@ -17,7 +17,7 @@ export const DateRangeFilterComponent = defineComponent({
 });
 function DateRangeFilterView({ props }: ComponentRenderProps<DateRangeFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useFilterField(props.value, `dateRange:${props.label ?? ""}`);
+  const field = useFilterField(props.value, "dateRange", props.label, props.options);
   return (
     <DateRangeFilter
       {...props}

@@ -13,7 +13,7 @@ export const SearchFilterComponent = defineComponent({
 });
 function SearchFilterView({ props }: ComponentRenderProps<SearchFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useFilterField(props.value, "search");
+  const field = useFilterField(props.value, "search", props.placeholder);
   return (
     <SearchFilter
       {...props}

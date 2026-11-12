@@ -22,7 +22,7 @@ export function ChipFilter(props: ChipFilterProps) {
     <div
       className="openui-dashboard-chips"
       role="radiogroup"
-      aria-label={props.label ?? "Filter"}
+      aria-label={props.label ?? list.map((option) => option.label ?? option.value).join(", ")}
       onKeyDown={(event) => !props.streaming && radioKeys(event, list, current, props.onChange)}
     >
       {/* Labelled like the dropdowns: a muted "Label:" ahead of the value. */}

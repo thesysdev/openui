@@ -13,7 +13,7 @@ export interface SelectFilterProps {
   onChange: (value: string) => void;
   streaming: boolean;
   options: Option[];
-  label?: string;
+  label: string;
 }
 
 export function SelectFilter(props: SelectFilterProps) {
@@ -28,9 +28,7 @@ export function SelectFilter(props: SelectFilterProps) {
       disabled={props.streaming}
       label={
         <>
-          {props.label ? (
-            <span className="openui-dashboard-select-prefix">{props.label}:</span>
-          ) : null}
+          <span className="openui-dashboard-select-prefix">{props.label}:</span>
           {currentLabel}
         </>
       }
@@ -40,7 +38,7 @@ export function SelectFilter(props: SelectFilterProps) {
           <div
             className="openui-dashboard-menu"
             role="listbox"
-            aria-label={props.label ?? "Filter"}
+            aria-label={props.label}
             onKeyDown={menuNav}
           >
             {list.map((option) => (

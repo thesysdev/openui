@@ -3,9 +3,9 @@ import { z } from "zod/v4";
 import { optionSchema } from "../optionSchema";
 
 export const compareTogglePropsSchema = z.object({
-  value: reactive(z.string().optional()),
-  options: z.array(optionSchema).optional(),
   label: z.string().optional(),
   defaultOn: z.boolean().optional(),
+  value: reactive(z.string().optional()),
+  options: z.array(optionSchema).optional(),
 });
 export type CompareToggleSchemaProps = z.infer<typeof compareTogglePropsSchema>;
