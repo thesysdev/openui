@@ -3,9 +3,8 @@ import { z } from "zod/v4";
 import { optionSchema } from "../optionSchema";
 
 export const selectFilterPropsSchema = z.object({
-  name: z.string(),
-  label: z.string(),
+  value: reactive(z.string()),
   options: z.array(optionSchema),
-  value: reactive(z.string().optional()),
+  label: z.string(),
 });
 export type SelectFilterSchemaProps = z.infer<typeof selectFilterPropsSchema>;

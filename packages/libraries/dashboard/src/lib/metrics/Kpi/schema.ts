@@ -1,6 +1,10 @@
 import { z } from "zod/v4";
 import { formatSchema } from "../../../shared/format";
-import { goodWhenSchema, numbersSchema, toneSchema } from "../../../shared/schema";
+import { goodWhenSchema, toneSchema } from "../../../shared/schema";
+import { ProgressComponent } from "../Progress";
+import { SplitComponent } from "../Split";
+import { StatesComponent } from "../States";
+import { TrendComponent } from "../Trend";
 
 export const kpiPropsSchema = z.object({
   label: z.string(),
@@ -10,12 +14,9 @@ export const kpiPropsSchema = z.object({
   previous: z.number().nullable().optional(),
   goodWhen: goodWhenSchema.optional(),
   hint: z.string().optional(),
-  trend: numbersSchema.optional(),
-  trendPrevious: numbersSchema.optional(),
+  chart: z
+    .union([TrendComponent.ref, ProgressComponent.ref, SplitComponent.ref, StatesComponent.ref])
+    .optional(),
   tone: toneSchema.optional(),
-  target: z.number().optional(),
-  split: z.array(z.object({ label: z.string(), value: z.number() })).optional(),
-  // A union, so the signature brackets it: ("good" | "warning" | "bad" | null)[], not "good" | "warning" | "bad"[].
-  states: z.array(z.union([z.enum(["good", "warning", "bad"]), z.literal(null)])).optional(),
 });
 export type KpiSchemaProps = z.infer<typeof kpiPropsSchema>;

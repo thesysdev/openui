@@ -25,10 +25,10 @@ export interface PointMapProps {
   lons: number[];
   values: number[];
   format?: ValueFormat;
-  valueLabel?: string;
-  groups?: string[];
   previous?: number[];
   goodWhen?: "up" | "down" | "neutral";
+  groups?: string[];
+  valueLabel?: string;
 }
 // ---------- PointMap: values at places ----------
 export function PointMap(props: PointMapProps) {

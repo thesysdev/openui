@@ -32,6 +32,22 @@ export interface KpiProps {
   streaming: boolean;
 }
 
+/** What a tile reads from each chart component (Trend, Progress, Split, States). */
+export interface KpiTrend {
+  values: (number | null)[];
+  previous?: (number | null)[];
+}
+export interface KpiProgress {
+  target: number;
+}
+export interface KpiSplit {
+  labels: string[];
+  values: number[];
+}
+export interface KpiStates {
+  states: ("good" | "warning" | "bad" | null)[];
+}
+
 /* ---------- Small charts a tile can carry (one per tile) ---------- */
 
 /** Progress toward a target: a filled track, the share and the target named under it. */

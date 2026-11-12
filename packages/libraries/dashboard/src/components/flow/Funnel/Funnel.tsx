@@ -15,10 +15,10 @@ import { Empty } from "../../shared/States";
 import { TooltipCard } from "../../shared/TooltipCard";
 import { ViewSwitch } from "../../shared/ViewSwitch";
 export interface FunnelProps {
-  steps: string[];
+  labels: string[];
   values: number[];
-  previous?: number[];
   format?: ValueFormat;
+  previous?: number[];
   shape?: "bars" | "funnel";
   segments: { name: string; values: (number | null)[] }[];
   basis?: "step" | "start";
@@ -424,7 +424,7 @@ export function Funnel(props: FunnelProps) {
   const [basisChoice, setBasis] = useState<FunnelBasis | null>(null);
   const basis: FunnelBasis = basisChoice ?? props.basis ?? "step";
   const shadeId = `fs${useId().replace(/:/g, "")}`;
-  const steps = toStrings(props.steps);
+  const steps = toStrings(props.labels);
   const values = toNumbers(props.values).map((value) => value ?? 0);
   const previous = toNumbers(props.previous);
   const top = values[0] ?? 0;

@@ -6,14 +6,16 @@ import { Empty } from "../../shared/States";
 
 /* ---------- KeyValues ---------- */
 
+export interface KeyValueRow {
+  label: string;
+  value: number | string | null;
+  format?: ValueFormat;
+  previous?: number | null;
+  goodWhen?: "up" | "down" | "neutral";
+}
+
 export interface KeyValuesProps {
-  rows: {
-    label: string;
-    value: number | string | null;
-    format?: ValueFormat;
-    previous?: number | null;
-    goodWhen?: "up" | "down" | "neutral";
-  }[];
+  rows: KeyValueRow[];
 }
 
 export function KeyValues(props: KeyValuesProps) {

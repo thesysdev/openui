@@ -1,30 +1,27 @@
 "use client";
-import {
-  defineComponent,
-  useIsStreaming,
-  useStateField,
-  type ComponentRenderProps,
-} from "@openuidev/react-lang";
+import { defineComponent, useIsStreaming, type ComponentRenderProps } from "@openuidev/react-lang";
 import {
   MultiSelectFilter,
   type MultiSelectFilterProps,
 } from "../../../components/filters/MultiSelectFilter";
 import { options } from "../../../components/filters/options";
 import type { Covered, SchemaCoverage } from "../../schemaCoverage";
+import { useFilterField } from "../useFilterField";
 import { multiSelectFilterPropsSchema, type MultiSelectFilterSchemaProps } from "./schema";
 export const MultiSelectFilterComponent = defineComponent({
   name: "MultiSelectFilter",
   props: multiSelectFilterPropsSchema,
   description:
-    "Dropdown with checkboxes; the value is an array of selected values ([] means all). For live data, pass its $variable into query arguments; with data written into the program, use ChipFilter or SelectFilter.",
+    "Dropdown with checkboxes. value takes the $variable that holds an array of the selected options' values ($plans = [], and [] means all). For live data, pass that $variable into query arguments; with data written into the program, use ChipFilter or SelectFilter.",
   component: MultiSelectFilterView,
 });
 function MultiSelectFilterView({ props }: ComponentRenderProps<MultiSelectFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useStateField(props.name, props.value);
+  const field = useFilterField(props.value, "multiSelect", props.label, props.options);
   return (
     <MultiSelectFilter
       {...props}
+      name={field.name}
       value={field.value}
       onChange={field.setValue}
       streaming={streaming}

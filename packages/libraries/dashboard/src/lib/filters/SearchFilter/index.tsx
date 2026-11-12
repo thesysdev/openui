@@ -1,24 +1,27 @@
 "use client";
-import {
-  defineComponent,
-  useIsStreaming,
-  useStateField,
-  type ComponentRenderProps,
-} from "@openuidev/react-lang";
+import { defineComponent, useIsStreaming, type ComponentRenderProps } from "@openuidev/react-lang";
 import { SearchFilter, type SearchFilterProps } from "../../../components/filters/SearchFilter";
 import type { Covered, SchemaCoverage } from "../../schemaCoverage";
+import { useFilterField } from "../useFilterField";
 import { searchFilterPropsSchema, type SearchFilterSchemaProps } from "./schema";
 export const SearchFilterComponent = defineComponent({
   name: "SearchFilter",
   props: searchFilterPropsSchema,
-  description: "Search box. Pass its $variable to Table(..., search) to filter rows.",
+  description:
+    'Search box. value takes the $variable that holds the typed text ($q = ""). Pass the same $variable as a Table\'s search to filter its rows.',
   component: SearchFilterView,
 });
 function SearchFilterView({ props }: ComponentRenderProps<SearchFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useStateField(props.name, props.value);
+  const field = useFilterField(props.value, "search", props.placeholder);
   return (
-    <SearchFilter {...props} value={field.value} onChange={field.setValue} streaming={streaming} />
+    <SearchFilter
+      {...props}
+      name={field.name}
+      value={field.value}
+      onChange={field.setValue}
+      streaming={streaming}
+    />
   );
 }
 

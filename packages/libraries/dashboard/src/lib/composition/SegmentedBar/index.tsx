@@ -7,7 +7,7 @@ export const SegmentedBarComponent = defineComponent({
   name: "SegmentedBar",
   props: segmentedBarPropsSchema,
   description:
-    "Part of a whole as one bar with a legend of values and shares; up to 8 parts. previous (last period's values, same order) adds each part's change in share, in points, to its tooltip while compare is on. Inside a headline tile, use Kpi split instead.",
+    "Part of a whole as one bar with a legend of values and shares; up to 8 parts. previous (last period's values, same order) adds each part's change in share, in points, to its tooltip while compare is on. Inside a headline tile, use a Kpi with a Split chart instead.",
   component: ({ props }) => <SegmentedBar {...props} />,
 });
 

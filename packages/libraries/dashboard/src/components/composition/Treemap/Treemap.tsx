@@ -18,9 +18,9 @@ import { TooltipCard } from "../../shared/TooltipCard";
 export interface TreemapProps {
   labels: string[];
   values: number[];
-  groups?: string[];
   format?: ValueFormat;
   previous?: number[];
+  groups?: string[];
 }
 type TreeLeaf = { name: string; value: number; color: string; group?: string; texture: number };
 

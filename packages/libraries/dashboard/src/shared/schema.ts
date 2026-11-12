@@ -14,5 +14,8 @@ export const goodWhenSchema = z.enum(["up", "down", "neutral"]);
 export const toneSchema = z.enum(["good", "bad", "warning", "info", "neutral"]);
 export type Tone = z.infer<typeof toneSchema>;
 
+/** One period's status; null is no data. A union, so a signature brackets it: ("good" | "warning" | "bad" | null)[]. */
+export const stateSchema = z.union([z.enum(["good", "warning", "bad"]), z.literal(null)]);
+
 /** A list of numbers, where gaps (not yet observed, not applicable) are null. */
 export const numbersSchema = z.array(z.number().nullable());

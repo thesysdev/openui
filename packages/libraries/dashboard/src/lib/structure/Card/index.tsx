@@ -9,7 +9,7 @@ export const CardComponent = defineComponent({
   name: "Card",
   props: cardPropsSchema,
   description:
-    'content stacks top to bottom, usually [Stat?, one visual]. Default width "half". title says what is plotted; subtitle gives units, period or source ("Weekly · USD"). controls are this card\'s own switches, shown in its header: a ChipFilter or SelectFilter for what the card is broken down by or which metric it plots, e.g. Card("Top sources", [Leaderboard(...)], "half", "Visitors", [ChipFilter("sourceBy", [{value: "channel", label: "Channel"}, {value: "domain", label: "Domain"}], $sourceBy)]).',
+    'content stacks top to bottom, usually [Stat?, one visual]. Default width "half". title says what is plotted; subtitle gives units, period or source ("Weekly · USD"). controls are this card\'s own switches, shown in its header: a ChipFilter or SelectFilter for what the card is broken down by or which metric it plots, e.g. Card("Top sources", [Leaderboard(...)], "half", "Visitors", [ChipFilter($sourceBy, [{value: "channel", label: "Channel"}, {value: "domain", label: "Domain"}])]).',
   component: CardView,
 });
 
