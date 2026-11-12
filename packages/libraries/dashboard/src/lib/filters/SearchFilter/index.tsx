@@ -11,7 +11,8 @@ import { searchFilterPropsSchema, type SearchFilterSchemaProps } from "./schema"
 export const SearchFilterComponent = defineComponent({
   name: "SearchFilter",
   props: searchFilterPropsSchema,
-  description: "Search box. Pass its $variable to Table(..., search) to filter rows.",
+  description:
+    'Search box. value takes the $variable that holds the typed text ($q = ""). Pass the same $variable as a Table\'s search to filter its rows.',
   component: SearchFilterView,
 });
 function SearchFilterView({ props }: ComponentRenderProps<SearchFilterSchemaProps>) {

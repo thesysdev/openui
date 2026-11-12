@@ -13,7 +13,7 @@ export const SelectFilterComponent = defineComponent({
   name: "SelectFilter",
   props: selectFilterPropsSchema,
   description:
-    "Dropdown for one value out of a longer list. In a FilterBar for a dashboard-wide segment, or in a Card's controls to switch that card's breakdown.",
+    "Dropdown for one value out of a longer list. value takes the $variable that holds the selected option's value. In a FilterBar for a dashboard-wide segment, or in a Card's controls to switch that card's breakdown.",
   component: SelectFilterView,
 });
 function SelectFilterView({ props }: ComponentRenderProps<SelectFilterSchemaProps>) {

@@ -13,7 +13,7 @@ export const PeriodPickerComponent = defineComponent({
   name: "PeriodPicker",
   props: periodPickerPropsSchema,
   description:
-    'Segmented control for a few date presets, e.g. [{value: "7d", label: "7D"}, {value: "30d", label: "30D"}]. Pass its $variable into query arguments (live data), or key written-in data by preset.',
+    'Segmented control for a few date presets, e.g. [{value: "7d", label: "7D"}, {value: "30d", label: "30D"}]. value takes the $variable that holds the selected option\'s value ($period = "30d"). Pass that $variable into query arguments (live data), or key written-in data by it.',
   component: PeriodPickerView,
 });
 function PeriodPickerView({ props }: ComponentRenderProps<PeriodPickerSchemaProps>) {

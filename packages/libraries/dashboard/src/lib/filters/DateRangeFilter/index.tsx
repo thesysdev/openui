@@ -16,7 +16,7 @@ export const DateRangeFilterComponent = defineComponent({
   name: "DateRangeFilter",
   props: dateRangeFilterPropsSchema,
   description:
-    'Dropdown with presets (default 7d, 30d, 90d, 12m, ytd) and a calendar for a custom range; the value is a preset key or "2026-10-01..2026-10-31". For live data, pass its $variable into query arguments; with data written into the program, use PeriodPicker.',
+    'Dropdown with presets (default 7d, 30d, 90d, 12m, ytd) and a calendar for a custom range; value takes the $variable that holds the selection: a preset key ("30d") or a custom range "2026-10-01..2026-10-31". For live data, pass that $variable into query arguments; with data written into the program, use PeriodPicker.',
   component: DateRangeFilterView,
 });
 function DateRangeFilterView({ props }: ComponentRenderProps<DateRangeFilterSchemaProps>) {

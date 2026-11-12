@@ -16,7 +16,7 @@ export const MultiSelectFilterComponent = defineComponent({
   name: "MultiSelectFilter",
   props: multiSelectFilterPropsSchema,
   description:
-    "Dropdown with checkboxes; the value is an array of selected values ([] means all). For live data, pass its $variable into query arguments; with data written into the program, use ChipFilter or SelectFilter.",
+    "Dropdown with checkboxes. value takes the $variable that holds an array of the selected options' values ($plans = [], and [] means all). For live data, pass that $variable into query arguments; with data written into the program, use ChipFilter or SelectFilter.",
   component: MultiSelectFilterView,
 });
 function MultiSelectFilterView({ props }: ComponentRenderProps<MultiSelectFilterSchemaProps>) {
