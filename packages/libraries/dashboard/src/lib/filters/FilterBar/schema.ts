@@ -4,7 +4,6 @@ import { CompareToggleComponent } from "../CompareToggle";
 import { DateRangeFilterComponent } from "../DateRangeFilter";
 import { MultiSelectFilterComponent } from "../MultiSelectFilter";
 import { PeriodPickerComponent } from "../PeriodPicker";
-import { SearchFilterComponent } from "../SearchFilter";
 import { SelectFilterComponent } from "../SelectFilter";
 
 export const filterBarPropsSchema = z.object({
@@ -15,7 +14,6 @@ export const filterBarPropsSchema = z.object({
       ChipFilterComponent.ref,
       SelectFilterComponent.ref,
       MultiSelectFilterComponent.ref,
-      SearchFilterComponent.ref,
       CompareToggleComponent.ref,
     ]),
   ),
