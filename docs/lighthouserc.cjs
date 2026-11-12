@@ -17,7 +17,6 @@ const PAGES = [
   "/blog/how-chatgpt-intelligent-ui-works",
   "/docs",
   "/docs/openui-lang",
-  "/chat",
   "/benchmarks",
   "/cloud/gateway",
   "/demos",

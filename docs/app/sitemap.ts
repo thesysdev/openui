@@ -4,10 +4,8 @@ import { integrations } from "./(home)/integrations/data";
 const STATIC_PATHS = [
   "/",
   "/dashboards",
-  "/compare",
   "/lab",
   "/integrations",
-  "/chat",
   "/demo/f1-dashboard",
   "/demo/trip-planner/planner",
   "/demo/intelligent-ui",

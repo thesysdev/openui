@@ -16,20 +16,15 @@ const proxiedDemos = {
 };
 
 // The demo gateway (a private app) serves every hosted demo under /demo, with login and daily
-// limits. Set DEMO_GATEWAY_ORIGIN to send /demo/* there and move /chat and /compare under
-// /demo. Unset, the docs app keeps serving those two itself. /openui-vs-json lives only on the
-// gateway, so it always redirects.
+// limits. Set DEMO_GATEWAY_ORIGIN to send /demo/* there. /chat, /compare and /openui-vs-json live
+// only on the gateway, so they always redirect.
 const demoGatewayOrigin = process.env.DEMO_GATEWAY_ORIGIN?.replace(/\/+$/, "");
 
 const demoGatewayRedirects = [
+  { source: "/chat", destination: "/demo/chat", permanent: false },
+  { source: "/chat/:path*", destination: "/demo/chat/:path*", permanent: false },
+  { source: "/compare", destination: "/demo/compare", permanent: false },
   { source: "/openui-vs-json", destination: "/demo/openui-vs-json", permanent: false },
-  ...(demoGatewayOrigin
-    ? [
-        { source: "/chat", destination: "/demo/chat", permanent: false },
-        { source: "/chat/:path*", destination: "/demo/chat/:path*", permanent: false },
-        { source: "/compare", destination: "/demo/compare", permanent: false },
-      ]
-    : []),
 ];
 
 /** @type {import('next').NextConfig} */
