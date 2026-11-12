@@ -81,7 +81,6 @@ export function defineDashboard<Context extends ExecutionContext>(
           { role: "user", content: prompt },
         ],
         user_id: context.userId,
-        ...(api.appId !== undefined && { app_id: api.appId }),
       },
       signal,
     );
