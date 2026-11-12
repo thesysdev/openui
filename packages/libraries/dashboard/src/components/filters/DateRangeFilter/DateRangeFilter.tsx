@@ -41,11 +41,11 @@ export interface DateRangeFilterProps {
   onChange: (value: string) => void;
   streaming: boolean;
   label?: string;
-  presets: Option[];
+  options: Option[];
 }
 
 export function DateRangeFilter(props: DateRangeFilterProps) {
-  const presets = props.presets.length ? props.presets : DEFAULT_PRESETS;
+  const presets = props.options.length ? props.options : DEFAULT_PRESETS;
   const current = props.value ?? presets[1]?.value ?? presets[0]?.value ?? "";
   const today = isoDay(new Date());
   const text =

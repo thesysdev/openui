@@ -9,7 +9,7 @@
 /** Written-in data keyed by a period filter, so the filter changes every number it should. */
 const FILTERED_EXAMPLE = `root = Dashboard([filters, lead, trends])
 $period = "30d"
-filters = FilterBar([PeriodPicker("period", [{value: "7d", label: "7D"}, {value: "30d", label: "30D"}], $period), CompareToggle("Previous period")])
+filters = FilterBar([PeriodPicker($period, [{value: "7d", label: "7D"}, {value: "30d", label: "30D"}]), CompareToggle()])
 lead = Section("", [Kpis([Kpi("Revenue", k[$period].rev, "currency-compact", k[$period].revPrev), Kpi("Orders", k[$period].orders, "number", k[$period].ordersPrev), Kpi("Average order", k[$period].aov, "currency-precise", k[$period].aovPrev)])])
 trends = Section("Trends", [Row([Card("Revenue", [TimeSeries(t[$period].labels, [Series("Revenue", t[$period].values, t[$period].previous)], "area", "currency-compact")], "two-thirds", "USD"), Card("Revenue by channel", [Donut(["Online", "Retail", "Wholesale"], [228000, 131000, 53600], "currency-compact", "Total")], "third", "Last 30 days")])])
 k = {"7d": {rev: 96400, revPrev: 91200, orders: 1284, ordersPrev: 1190, aov: 75.08, aovPrev: 76.64}, "30d": {rev: 412600, revPrev: 398200, orders: 5460, ordersPrev: 5310, aov: 75.57, aovPrev: 74.99}}
@@ -31,7 +31,7 @@ $period = "30d"
 $q = ""
 byDay = Query("sales_by_day", {period: $period}, {rows: []})
 byChannel = Query("sales_by_channel", {period: $period}, {rows: []})
-filters = FilterBar([PeriodPicker("period", [{value: "7d", label: "7D"}, {value: "30d", label: "30D"}, {value: "90d", label: "90D"}], $period), CompareToggle("Previous period"), SearchFilter("q", "Search channels…", $q)])
+filters = FilterBar([PeriodPicker($period, [{value: "7d", label: "7D"}, {value: "30d", label: "30D"}, {value: "90d", label: "90D"}]), CompareToggle(), SearchFilter($q, "Search channels…")])
 lead = Section("", [Kpis([Kpi("Revenue", @Sum(byDay.rows.revenue), "currency-compact", @Sum(byDay.rows.previous_revenue)), Kpi("Orders", @Sum(byDay.rows.orders), "number", @Sum(byDay.rows.previous_orders))])])
 trends = Section("Trends", [Row([Card("Revenue by day", [TimeSeries(byDay.rows.day, [Series("Revenue", byDay.rows.revenue, byDay.rows.previous_revenue)], "area", "currency-compact")], "two-thirds", "USD"), Card("Revenue by channel", [Leaderboard(byChannel.rows.channel, byChannel.rows.revenue, "currency-compact", byChannel.rows.previous_revenue)], "third", "USD")])])
 detail = Section("Detail", [Row([Card("Channels", [Table([Column("Channel", byChannel.rows.channel, "primary"), Column("Revenue", byChannel.rows.revenue, "number", "currency"), Column("Orders", byChannel.rows.orders, "number", "number")], 10, false, $q)], "full")])])`;

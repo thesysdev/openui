@@ -1,16 +1,12 @@
 "use client";
-import {
-  defineComponent,
-  useIsStreaming,
-  useStateField,
-  type ComponentRenderProps,
-} from "@openuidev/react-lang";
+import { defineComponent, useIsStreaming, type ComponentRenderProps } from "@openuidev/react-lang";
 import {
   MultiSelectFilter,
   type MultiSelectFilterProps,
 } from "../../../components/filters/MultiSelectFilter";
 import { options } from "../../../components/filters/options";
 import type { Covered, SchemaCoverage } from "../../schemaCoverage";
+import { useFilterField } from "../useFilterField";
 import { multiSelectFilterPropsSchema, type MultiSelectFilterSchemaProps } from "./schema";
 export const MultiSelectFilterComponent = defineComponent({
   name: "MultiSelectFilter",
@@ -21,10 +17,11 @@ export const MultiSelectFilterComponent = defineComponent({
 });
 function MultiSelectFilterView({ props }: ComponentRenderProps<MultiSelectFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useStateField(props.name, props.value);
+  const field = useFilterField(props.value, `multiSelect:${props.label ?? ""}`);
   return (
     <MultiSelectFilter
       {...props}
+      name={field.name}
       value={field.value}
       onChange={field.setValue}
       streaming={streaming}

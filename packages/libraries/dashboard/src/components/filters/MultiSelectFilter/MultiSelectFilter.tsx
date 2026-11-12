@@ -11,7 +11,7 @@ export interface MultiSelectFilterProps {
   value?: string[];
   onChange: (value: string[]) => void;
   streaming: boolean;
-  label: string;
+  label?: string;
   options: Option[];
 }
 
@@ -50,7 +50,9 @@ export function MultiSelectFilter(props: MultiSelectFilterProps) {
       disabled={props.streaming}
       label={
         <>
-          <span className="openui-dashboard-select-prefix">{props.label}:</span>
+          {props.label ? (
+            <span className="openui-dashboard-select-prefix">{props.label}:</span>
+          ) : null}
           {summary}
         </>
       }

@@ -1,13 +1,9 @@
 "use client";
-import {
-  defineComponent,
-  useIsStreaming,
-  useStateField,
-  type ComponentRenderProps,
-} from "@openuidev/react-lang";
+import { defineComponent, useIsStreaming, type ComponentRenderProps } from "@openuidev/react-lang";
 import { options } from "../../../components/filters/options";
 import { PeriodPicker, type PeriodPickerProps } from "../../../components/filters/PeriodPicker";
 import type { Covered, SchemaCoverage } from "../../schemaCoverage";
+import { useFilterField } from "../useFilterField";
 import { periodPickerPropsSchema, type PeriodPickerSchemaProps } from "./schema";
 export const PeriodPickerComponent = defineComponent({
   name: "PeriodPicker",
@@ -18,7 +14,7 @@ export const PeriodPickerComponent = defineComponent({
 });
 function PeriodPickerView({ props }: ComponentRenderProps<PeriodPickerSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useStateField(props.name, props.value);
+  const field = useFilterField(props.value, "period");
   return (
     <PeriodPicker
       {...props}
@@ -30,7 +26,7 @@ function PeriodPickerView({ props }: ComponentRenderProps<PeriodPickerSchemaProp
   );
 }
 
-// Every schema field reaches PeriodPicker (name binds the $variable here).
+// Every schema field reaches PeriodPicker.
 export type PeriodPickerSchemaCovered = Covered<
-  SchemaCoverage<PeriodPickerSchemaProps, PeriodPickerProps, "name">
+  SchemaCoverage<PeriodPickerSchemaProps, PeriodPickerProps>
 >;

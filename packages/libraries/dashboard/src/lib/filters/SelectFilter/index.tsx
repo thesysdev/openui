@@ -1,13 +1,9 @@
 "use client";
-import {
-  defineComponent,
-  useIsStreaming,
-  useStateField,
-  type ComponentRenderProps,
-} from "@openuidev/react-lang";
+import { defineComponent, useIsStreaming, type ComponentRenderProps } from "@openuidev/react-lang";
 import { options } from "../../../components/filters/options";
 import { SelectFilter, type SelectFilterProps } from "../../../components/filters/SelectFilter";
 import type { Covered, SchemaCoverage } from "../../schemaCoverage";
+import { useFilterField } from "../useFilterField";
 import { selectFilterPropsSchema, type SelectFilterSchemaProps } from "./schema";
 export const SelectFilterComponent = defineComponent({
   name: "SelectFilter",
@@ -18,10 +14,11 @@ export const SelectFilterComponent = defineComponent({
 });
 function SelectFilterView({ props }: ComponentRenderProps<SelectFilterSchemaProps>) {
   const streaming = useIsStreaming();
-  const field = useStateField(props.name, props.value);
+  const field = useFilterField(props.value, `select:${props.label ?? ""}`);
   return (
     <SelectFilter
       {...props}
+      name={field.name}
       value={field.value}
       onChange={field.setValue}
       streaming={streaming}
