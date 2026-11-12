@@ -329,9 +329,8 @@ export const tableRules = [
   .openui-dashboard-table[data-totals] tbody tr:last-child td {
     border-bottom-color: transparent;
   }
-  /* The sideways stepper sits top right of the card (which the layout positions), level with its
-   title. When the card has its own header controls there, it drops to the top of the body
-   instead, right-aligned above the table. */
+  /* The sideways stepper sits under the table, right-aligned beside the pager (see table-foot),
+   next to the columns it brings in. */
   .openui-dashboard-scroll-step.openui-dashboard-table-step {
     position: absolute;
     top: calc(var(--openui-dashboard-space-lg) - 2px);
@@ -341,13 +340,35 @@ export const tableRules = [
     transform: none;
     box-shadow: none;
   }
-  /* His .card:has(.card-controls) .scroll-step.table-step: every Card renders that toolbar, so it
-     always applied; written without the :has(), which goober can't scope. */
+  /* In the card body it is laid out in the foot row, not floated over the card. */
   .openui-dashboard-card
     .openui-dashboard-card-body
     .openui-dashboard-scroll-step.openui-dashboard-table-step {
     position: static;
     align-self: flex-end;
+  }
+  /* A paged table's sizer row: each column's widest value from any page, laid out for its width
+   only, so columns keep their widths from page to page. No height, nothing shown or read out. */
+  .openui-dashboard-table .openui-dashboard-table-sizer {
+    height: 0;
+  }
+  .openui-dashboard-table .openui-dashboard-table-sizer td {
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .openui-dashboard-table-sizer-value {
+    display: block;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+  /* Under the table: the sideways stepper, then the pager, right-aligned on one line. */
+  .openui-dashboard-table-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
   }
   /* Pager: compact and right-aligned — ‹ 1 2 3 › — soft-cornered steps, the
    current page marked by a simple underline. */

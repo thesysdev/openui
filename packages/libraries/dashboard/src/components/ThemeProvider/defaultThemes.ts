@@ -19,7 +19,8 @@ export const defaultLightTheme = {
   series4: "#df507b",
   series5: "#3894ff",
   series6: "#ff8000",
-  series7: "#7f56d9",
+  // A sienna, not a second violet: #7f56d9 sat ΔE 5 from series1 (2 for protanopia).
+  series7: "#a0522d",
   series8: "#00cbd9",
   mutedMark: "#b4b4b4",
   seq1: "#f5f6ff",
@@ -110,7 +111,7 @@ export const defaultDarkTheme: Required<Theme> = {
   series4: "#df507b",
   series5: "#3894ff",
   series6: "#ff8000",
-  series7: "#8f6ae0",
+  series7: "#b8693a",
   series8: "#00cbd9",
   mutedMark: "rgba(250, 250, 250, 0.3)",
   seq1: "#1b1c34",

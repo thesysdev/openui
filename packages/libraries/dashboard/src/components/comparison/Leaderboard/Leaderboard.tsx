@@ -58,7 +58,8 @@ export function Leaderboard(props: LeaderboardProps) {
             goodWhen={props.goodWhen}
             rows={[
               {
-                name: "Now",
+                // "Now" only reads against a Previous row; alone, it is just the value.
+                name: item.previous !== null ? "Now" : "Value",
                 color: "var(--openui-dashboard-series-1)",
                 value: item.value,
                 previous: item.previous,

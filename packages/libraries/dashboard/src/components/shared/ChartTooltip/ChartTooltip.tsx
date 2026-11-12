@@ -18,6 +18,8 @@ export type ChartTooltipProps = {
   previousLabel: string;
   /** A series' swatch colour; gets the hovered row too, for marks coloured per value (diverging bars). */
   colorOf?: (i: number, row: Row) => string;
+  /** The title for a category label, e.g. a date as "May 14" (see dateLabels). */
+  formatLabel?: ((label: string) => string) | null;
 };
 
 export function ChartTooltip({
@@ -30,6 +32,7 @@ export function ChartTooltip({
   showPrevious,
   previousLabel,
   colorOf = seriesColor,
+  formatLabel,
 }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   const row = payload[0]!.payload;
@@ -50,7 +53,7 @@ export function ChartTooltip({
   }
   return (
     <TooltipCard
-      title={String(label ?? row["label"])}
+      title={(formatLabel ?? String)(String(label ?? row["label"]))}
       rows={rows}
       format={format}
       goodWhen={goodWhen}

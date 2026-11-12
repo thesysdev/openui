@@ -21,6 +21,7 @@ import {
   BAR_SIZE,
   buildRows,
   CHIP_ROOM,
+  chipAlign,
   durationTicks,
   hasPrevious,
   legendFor,
@@ -33,7 +34,13 @@ import {
   type Row,
 } from "../../../shared/chartHelpers";
 
-import { formatValue, isDurationFormat, isRateFormat, isRatioFormat } from "../../../shared/format";
+import {
+  dateLabels,
+  formatValue,
+  isDurationFormat,
+  isRateFormat,
+  isRatioFormat,
+} from "../../../shared/format";
 
 import { Legend } from "../../../components/shared/Legend";
 import { SrTable } from "../../../components/shared/SrTable";
@@ -190,6 +197,8 @@ export function TimeSeries(props: TimeSeriesProps) {
       })
     : baseRows;
   const showPrevious = compare.enabled && hasPrevious(series);
+  // Dates on the axis and in the tooltip read "May 14", not 2026-05-14.
+  const labelText = dateLabels(labels);
   const keys = series.flatMap((s, i) => [
     `s${i}`,
     ...(forecast ? [`f${i}`] : []),
@@ -326,6 +335,7 @@ export function TimeSeries(props: TimeSeriesProps) {
               tickLine={false}
               axisLine={false}
               tick={AXIS_TICK}
+              tickFormatter={labelText ?? undefined}
               tickMargin={10}
               minTickGap={20}
               interval="preserveStartEnd"
@@ -371,6 +381,7 @@ export function TimeSeries(props: TimeSeriesProps) {
                   showPrevious={showPrevious}
                   previousLabel={compare.label}
                   colorOf={(i: number) => markColor(series, type, i)}
+                  formatLabel={labelText}
                 />
               )}
             />
@@ -387,6 +398,7 @@ export function TimeSeries(props: TimeSeriesProps) {
                 label={
                   <ReferenceChipLabel
                     text={`${reference.label} · ${formatValue(reference.value, props.format)}`}
+                    align={stacked ? "start" : chipAlign(rows, keys, reference.value)}
                   />
                 }
               />

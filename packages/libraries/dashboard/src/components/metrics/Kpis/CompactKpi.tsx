@@ -1,5 +1,6 @@
 "use client";
 import { formatValue } from "../../../shared/format";
+import { useFirstFetch } from "../../../shared/queryState";
 import { useViewState } from "../../../shared/viewState";
 import { DeltaBadge } from "../../shared/DeltaBadge";
 import { Sheen, StateFrame } from "../../shared/States";
@@ -18,7 +19,9 @@ export function CompactKpi({
   streaming: boolean;
 }) {
   const override = useViewState();
-  const writing = streaming && fact.value == null;
+  // As on the full tile: the model is writing it, or the first query fetch is under way.
+  const firstFetch = useFirstFetch();
+  const writing = (streaming && fact.value == null) || firstFetch;
   const inState = !!override && override !== "partial" && override !== "refreshing";
   return (
     <section

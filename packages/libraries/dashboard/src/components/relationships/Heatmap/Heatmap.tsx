@@ -105,7 +105,17 @@ export function Heatmap(props: HeatmapProps) {
       <div className="openui-dashboard-cohort-wrap">
         <table
           className="openui-dashboard-cohort openui-dashboard-heat"
-          style={{ borderSpacing: 2, tableLayout: "fixed" }}
+          // Never narrower than its column labels (11px, about 6px a character, plus 6px padding
+          // a side): in a narrow card they would run into each other; it scrolls instead.
+          style={{
+            borderSpacing: 2,
+            tableLayout: "fixed",
+            minWidth:
+              labelWidth +
+              columnLabels.length *
+                (Math.ceil(Math.max(0, ...columnLabels.map((label) => label.length)) * 6) + 12) +
+              2 * (columnLabels.length + 2),
+          }}
         >
           {/* Fixed layout keeps every hour or day column the same width. */}
           <colgroup>

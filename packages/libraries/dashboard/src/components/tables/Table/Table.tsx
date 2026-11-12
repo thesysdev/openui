@@ -1,14 +1,15 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import {
   columnDecimals,
   deltaTone,
+  formatDateText,
   formatDay,
   formatValue,
   isRateFormat,
   padDecimals,
-  parseIsoDate,
+  parseDateText,
   type ValueFormat,
 } from "../../../shared/format";
 import { useIsomorphicLayoutEffect } from "../../../shared/hooks";
@@ -49,8 +50,41 @@ function searchText(
   }
   if (typeof value === "boolean") return String(value);
   if (typeof value !== "string") return "";
-  const day = column.kind === "date" ? parseIsoDate(value) : null;
-  return day ? `${value} ${formatDay(day)}` : value;
+  const day = isDateColumn(column) ? dateText(value) : null;
+  return day ? `${value} ${day}` : value;
+}
+
+/** A whole column of year-months (2025-11) reads as months, as on a chart axis. */
+const MONTHS = { months: true };
+
+/**
+ * A column of dates: kind "date", or text whose every value is a date (2026-05-14, 2025-11, or
+ * 10/01/2026, 12:00:00 AM), so data that leaves out the kind still reads as dates.
+ */
+function isDateColumn(column: TableColumn): boolean {
+  if (column.kind === "date") return true;
+  if (column.kind !== undefined && column.kind !== "text") return false;
+  const given = column.values.filter((value) => value !== null && value !== "");
+  return given.length > 0 && given.every((value) => parseDateText(value, MONTHS) !== null);
+}
+
+/**
+ * A date cell's machine-readable date: ISO dates and months as written (2026-11-08, 2025-11), and
+ * the en-US locale shape as the local day it names (10/01/2026, 12:00:00 AM is 2026-10-01).
+ */
+function machineDate(value: unknown): string {
+  const text = String(value).trim();
+  if (!text.includes("/")) return text;
+  const date = parseDateText(text)!.date;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** A date cell's text: "Apr 2", or "Nov 2025" for a month. */
+function dateText(value: unknown): string | null {
+  const parsed = parseDateText(value, MONTHS);
+  if (!parsed) return null;
+  return parsed.unit === "month" ? formatDateText(value, MONTHS) : formatDay(parsed.date);
 }
 
 /* ---------- Table ---------- */
@@ -217,6 +251,7 @@ export function Table(props: TableProps) {
       );
     if (sort) {
       const values = columns[sort.column]?.values ?? [];
+      const dates = !!columns[sort.column] && isDateColumn(columns[sort.column]!);
       indexes.sort((a, b) => {
         const x = values[a];
         const y = values[b];
@@ -229,10 +264,16 @@ export function Table(props: TableProps) {
           const result = first(x).localeCompare(first(y), undefined, NATURAL);
           return sort.desc ? -result : result;
         }
+        // Dates by when they are: 10/01/2026 sorts after 9/30/2026, as text it wouldn't.
+        const [dx, dy] = dates
+          ? [parseDateText(x, MONTHS), parseDateText(y, MONTHS)]
+          : [null, null];
         const result =
           typeof x === "number" && typeof y === "number"
             ? x - y
-            : String(x).localeCompare(String(y), undefined, NATURAL);
+            : dx && dy
+              ? dx.date.getTime() - dy.date.getTime()
+              : String(x).localeCompare(String(y), undefined, NATURAL);
         return sort.desc ? -result : result;
       });
     }
@@ -260,12 +301,51 @@ export function Table(props: TableProps) {
     : undefined;
   const groupOf = (row: number) => (groupColumn ? String(groupColumn.values[row] ?? "—") : null);
 
+  // A paged table keeps its tallest page's height, so a short last page doesn't pull the pager,
+  // and everything under the card, up. Measured per data set: new rows start afresh.
+  const [reserve, setReserve] = useState(0);
+  const reserved = useRef({ key: "", height: 0 });
+  useIsomorphicLayoutEffect(() => {
+    const table = wrap?.querySelector("table");
+    if (!table) return;
+    const key = `${order.length}:${pageSize}:${columns.length}`;
+    if (reserved.current.key !== key) reserved.current = { key, height: 0 };
+    const paged = order.length > pageSize;
+    const height = paged
+      ? Math.max(reserved.current.height, Math.ceil(table.getBoundingClientRect().height))
+      : 0;
+    reserved.current.height = height;
+    setReserve((current) => (current === height ? current : height));
+  }, [wrap, page, order, pageSize, columns.length]);
+
   if (!columns.length || !rowCount) return <Empty />;
   if (!order.length)
     return <Empty title={`No rows match “${props.search}”`} hint="Try a different search." />;
   const pages = Math.ceil(order.length / pageSize);
   const safePage = Math.min(page, pages - 1);
   const visible = order.slice(safePage * pageSize, safePage * pageSize + pageSize);
+  // A paged table's widest value per column, by the text its cell shows (see the sizer row).
+  const shownLength = (column: TableColumn, value: unknown): number => {
+    if (value === null || value === undefined) return 0;
+    if (Array.isArray(value)) return value.join(", ").length;
+    if (typeof value === "number")
+      return column.kind === "delta"
+        ? deltaText(value, column.format, perColumn.get(column)?.deltaPlaces ?? 0).length
+        : (perColumn.get(column)?.fmt(column.kind === "progress" ? "percent" : undefined)(value)
+            .length ?? 0);
+    if (typeof value === "string")
+      return (isDateColumn(column) ? dateText(value) : value)?.length ?? 0;
+    return String(value).length;
+  };
+  const sizer =
+    pages > 1
+      ? columns.map((column) =>
+          order.reduce<unknown>((widest, row) => {
+            const value = column.values[row];
+            return shownLength(column, value) > shownLength(column, widest) ? value : widest;
+          }, null),
+        )
+      : null;
   const numeric = (column: TableColumn) =>
     ["number", "bar", "delta", "progress"].includes(
       column.kind ?? (column.values.some((v) => typeof v === "number") ? "number" : "text"),
@@ -281,7 +361,9 @@ export function Table(props: TableProps) {
   const fmt = (column: TableColumn, fallback?: ValueFormat) => perColumn.get(column)!.fmt(fallback);
   const deltaPlaces = (column: TableColumn) => perColumn.get(column)?.deltaPlaces ?? 0;
   const cell = (column: TableColumn, value: unknown) => {
-    const kind = column.kind ?? (typeof value === "number" ? "number" : "text");
+    const kind = isDateColumn(column)
+      ? "date"
+      : (column.kind ?? (typeof value === "number" ? "number" : "text"));
     if (value === null || value === undefined || value === "")
       return <span className="openui-dashboard-cell-muted">—</span>;
     switch (kind) {
@@ -314,9 +396,9 @@ export function Table(props: TableProps) {
         );
       }
       case "date": {
-        const day = parseIsoDate(value);
+        const day = dateText(value);
         if (!day) return String(value);
-        return <time dateTime={String(value)}>{formatDay(day)}</time>;
+        return <time dateTime={machineDate(value)}>{day}</time>;
       }
       case "link": {
         const href = /^https?:\/\//.test(String(value)) ? String(value) : `https://${value}`;
@@ -429,55 +511,62 @@ export function Table(props: TableProps) {
     }
   };
 
+  // Sideways scrolling, like the legend's up/down stepper: under the table, beside the pager, so
+  // the arrows sit next to the columns they bring in. Halves disable at each end.
+  const stepper =
+    more || back ? (
+      <div
+        className="openui-dashboard-scroll-step openui-dashboard-scroll-step-x openui-dashboard-table-step"
+        role="group"
+        aria-label="Scroll columns"
+      >
+        <button
+          type="button"
+          aria-label="Scroll left"
+          disabled={!back}
+          onClick={() =>
+            wrap?.scrollBy({ left: -Math.max(120, wrap.clientWidth * 0.5), behavior: "smooth" })
+          }
+        >
+          <svg viewBox="0 0 12 12" fill="none" aria-hidden>
+            <path
+              d="M7.5 3 4.5 6l3 3"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          aria-label="Scroll right"
+          disabled={!more}
+          onClick={() =>
+            wrap?.scrollBy({ left: Math.max(120, wrap.clientWidth * 0.5), behavior: "smooth" })
+          }
+        >
+          <svg viewBox="0 0 12 12" fill="none" aria-hidden>
+            <path
+              d="m4.5 3 3 3-3 3"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+    ) : null;
+
   return (
     <div className="openui-dashboard-card-body">
-      {/* Sideways scrolling, like the legend's up/down stepper: top right of
-          the card, level with its title; halves disable at each end. */}
-      {more || back ? (
-        <div
-          className="openui-dashboard-scroll-step openui-dashboard-scroll-step-x openui-dashboard-table-step"
-          role="group"
-          aria-label="Scroll columns"
-        >
-          <button
-            type="button"
-            aria-label="Scroll left"
-            disabled={!back}
-            onClick={() =>
-              wrap?.scrollBy({ left: -Math.max(120, wrap.clientWidth * 0.5), behavior: "smooth" })
-            }
-          >
-            <svg viewBox="0 0 12 12" fill="none" aria-hidden>
-              <path
-                d="M7.5 3 4.5 6l3 3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            aria-label="Scroll right"
-            disabled={!more}
-            onClick={() =>
-              wrap?.scrollBy({ left: Math.max(120, wrap.clientWidth * 0.5), behavior: "smooth" })
-            }
-          >
-            <svg viewBox="0 0 12 12" fill="none" aria-hidden>
-              <path
-                d="m4.5 3 3 3-3 3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      ) : null}
-      <div className="openui-dashboard-table-wrap" ref={setWrap} data-more={more ? "" : undefined}>
+      <div
+        className="openui-dashboard-table-wrap"
+        ref={setWrap}
+        data-more={more ? "" : undefined}
+        style={reserve ? { minHeight: reserve } : undefined}
+      >
         <table
           className="openui-dashboard-table"
           // A totals row follows, for the stylesheet: his .table:has(tfoot), which goober can't scope.
@@ -528,6 +617,27 @@ export function Table(props: TableProps) {
                 </th>
               ))}
             </tr>
+            {sizer ? (
+              // Each column's widest value across every page, hidden and no taller than 0px, so
+              // columns keep their widths from page to page instead of following the page shown.
+              <tr className="openui-dashboard-table-sizer" aria-hidden="true">
+                {columns.map((column, c) => (
+                  <td key={c} className={numeric(column) ? "openui-dashboard-num" : undefined}>
+                    {c === 0 ? (
+                      <span className="openui-dashboard-cell-clip">
+                        <span className="openui-dashboard-table-sizer-value">
+                          {cell(column, sizer[c])}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="openui-dashboard-table-sizer-value">
+                        {cell(column, sizer[c])}
+                      </span>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ) : null}
           </thead>
           <tbody>
             {visible.map((row, i) => (
@@ -610,67 +720,72 @@ export function Table(props: TableProps) {
           ) : null}
         </table>
       </div>
-      {pages > 1 ? (
-        // Compact and right-aligned: previous, the page numbers, next.
-        <nav
-          className="openui-dashboard-table-pager"
-          aria-label={`Rows ${safePage * pageSize + 1}–${Math.min(order.length, (safePage + 1) * pageSize)} of ${order.length}`}
-        >
-          <button
-            type="button"
-            className="openui-dashboard-pager-step"
-            aria-label="Previous page"
-            disabled={safePage === 0}
-            onClick={() => setPage(safePage - 1)}
-          >
-            <svg viewBox="0 0 12 12" fill="none" aria-hidden>
-              <path
-                d="M7.5 3 4.5 6l3 3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <span className="openui-dashboard-pager-pages">
-            {pageList(safePage, pages).map((item, i) =>
-              item === null ? (
-                <span key={`gap-${i}`} className="openui-dashboard-pager-gap" aria-hidden>
-                  …
-                </span>
-              ) : (
-                <button
-                  key={item}
-                  type="button"
-                  className="openui-dashboard-pager-page"
-                  aria-current={item === safePage ? "page" : undefined}
-                  aria-label={`Page ${item + 1}`}
-                  onClick={() => setPage(item)}
-                >
-                  {item + 1}
-                </button>
-              ),
-            )}
-          </span>
-          <button
-            type="button"
-            className="openui-dashboard-pager-step"
-            aria-label="Next page"
-            disabled={safePage >= pages - 1}
-            onClick={() => setPage(safePage + 1)}
-          >
-            <svg viewBox="0 0 12 12" fill="none" aria-hidden>
-              <path
-                d="m4.5 3 3 3-3 3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </nav>
+      {stepper || pages > 1 ? (
+        <div className="openui-dashboard-table-foot">
+          {stepper}
+          {pages > 1 ? (
+            // Compact and right-aligned: previous, the page numbers, next.
+            <nav
+              className="openui-dashboard-table-pager"
+              aria-label={`Rows ${safePage * pageSize + 1}–${Math.min(order.length, (safePage + 1) * pageSize)} of ${order.length}`}
+            >
+              <button
+                type="button"
+                className="openui-dashboard-pager-step"
+                aria-label="Previous page"
+                disabled={safePage === 0}
+                onClick={() => setPage(safePage - 1)}
+              >
+                <svg viewBox="0 0 12 12" fill="none" aria-hidden>
+                  <path
+                    d="M7.5 3 4.5 6l3 3"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              <span className="openui-dashboard-pager-pages">
+                {pageList(safePage, pages).map((item, i) =>
+                  item === null ? (
+                    <span key={`gap-${i}`} className="openui-dashboard-pager-gap" aria-hidden>
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      className="openui-dashboard-pager-page"
+                      aria-current={item === safePage ? "page" : undefined}
+                      aria-label={`Page ${item + 1}`}
+                      onClick={() => setPage(item)}
+                    >
+                      {item + 1}
+                    </button>
+                  ),
+                )}
+              </span>
+              <button
+                type="button"
+                className="openui-dashboard-pager-step"
+                aria-label="Next page"
+                disabled={safePage >= pages - 1}
+                onClick={() => setPage(safePage + 1)}
+              >
+                <svg viewBox="0 0 12 12" fill="none" aria-hidden>
+                  <path
+                    d="m4.5 3 3 3-3 3"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </nav>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

@@ -6,10 +6,13 @@ export type WrappedTickProps = {
   payload?: { value: string };
   angled?: boolean;
   band?: number;
+  /** The text for a category label, e.g. a date as "May 14" (see dateLabels). */
+  format?: ((label: string) => string) | null;
 };
 
 /** An x-axis tick that wraps a multi-word label onto two lines instead of colliding. */
-export function WrappedTick({ x, y, payload, angled, band }: WrappedTickProps) {
+export function WrappedTick({ x, y, payload, angled, band, format }: WrappedTickProps) {
+  const label = (format ?? String)(String(payload?.value ?? ""));
   if (angled) {
     return (
       <text
@@ -21,11 +24,11 @@ export function WrappedTick({ x, y, payload, angled, band }: WrappedTickProps) {
         fontSize={11}
         transform={`rotate(-35 ${x} ${y})`}
       >
-        {payload?.value}
+        {label}
       </text>
     );
   }
-  const text = String(payload?.value ?? "");
+  const text = label;
   const words = text.split(" ");
   // Split onto two lines only when the label doesn't fit its column on one.
   const fits = !band || text.length * 6.4 <= band - 6;

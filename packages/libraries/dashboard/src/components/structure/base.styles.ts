@@ -66,6 +66,10 @@ export const baseRules = [
     .openui-dashboard-cell > .openui-dashboard-card {
       min-height: clamp(280px, 75cqw, var(--openui-dashboard-row-h, 400px));
     }
+    /* Cards whose content sizes itself (Table, KeyValues, Donut) fit it here too. */
+    .openui-dashboard-row[data-fit] > .openui-dashboard-cell > .openui-dashboard-card {
+      min-height: auto;
+    }
   }
   @container openui-dashboard (max-width: 480px) {
     .openui-dashboard-w-quarter.openui-dashboard-cell {

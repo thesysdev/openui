@@ -112,7 +112,8 @@ export function GeoMap(props: GeoMapProps) {
       goodWhen={props.goodWhen}
       rows={[
         {
-          name: "Now",
+          // "Now" only reads against a Previous row; alone, it is just the value.
+          name: entry.previous !== null ? "Now" : "Value",
           color: "var(--openui-dashboard-series-1)",
           value: read(entry),
           previous: readPrev(entry),

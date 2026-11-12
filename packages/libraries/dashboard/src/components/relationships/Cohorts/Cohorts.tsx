@@ -79,6 +79,17 @@ export function Cohorts(props: CohortsProps) {
   // top-left, top-right and bottom-left (the grid is a triangle, so its own last cells end each row).
   const corner = "calc(var(--openui-dashboard-radius-sm) - 2px)";
   const lastPeriod = periods.length - 1;
+  // Column widths: the cohort names, the sizes, and each period at least as wide as its label
+  // (12px, weight 500, about 6.6px a character, plus 6px padding a side) and the 46px cell minimum.
+  const labelColumn = Math.min(
+    Math.max(Math.max(11, ...cohorts.map((c) => c.length)) * 7 + 20, 64),
+    200,
+  );
+  const sizeColumn = Math.max(56, formatValue(totalSize, "number").length * 7 + 20);
+  const periodColumn = Math.max(
+    46,
+    Math.ceil(Math.max(...periods.map((p) => p.length)) * 6.6) + 12,
+  );
   const lastCohort = cohorts.length - 1;
   const corners = (key: string, j: number) => {
     const row = key === "all" ? -1 : cohorts.indexOf(key);
@@ -192,19 +203,19 @@ export function Cohorts(props: CohortsProps) {
       ) : null}
       <div className="openui-dashboard-cohort-wrap">
         {/* Fixed layout, as on Heatmap: printing values (the Show switch) never resizes a column. */}
-        <table className="openui-dashboard-cohort" style={{ tableLayout: "fixed" }}>
+        <table
+          className="openui-dashboard-cohort"
+          // Never narrower than its labels: fixed columns would share out too little room in a
+          // narrow card, and "Month 0", "Month 1"… would run into each other. It scrolls instead.
+          style={{
+            tableLayout: "fixed",
+            minWidth:
+              labelColumn + sizeColumn + periods.length * periodColumn + 3 * (periods.length + 3),
+          }}
+        >
           <colgroup>
-            <col
-              style={{
-                width: Math.min(
-                  Math.max(Math.max(11, ...cohorts.map((c) => c.length)) * 7 + 20, 64),
-                  200,
-                ),
-              }}
-            />
-            <col
-              style={{ width: Math.max(56, formatValue(totalSize, "number").length * 7 + 20) }}
-            />
+            <col style={{ width: labelColumn }} />
+            <col style={{ width: sizeColumn }} />
             {periods.map((period) => (
               <col key={period} />
             ))}

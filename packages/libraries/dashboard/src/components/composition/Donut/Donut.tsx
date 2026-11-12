@@ -72,7 +72,9 @@ export function Donut(props: DonutProps) {
       <div
         ref={areaRef}
         style={{
-          flex: "1 1 auto",
+          // Its own height, not the card's spare: in a taller row the space falls under the legend,
+          // not above the arc.
+          flex: "none",
           width: "100%",
           display: "flex",
           alignItems: "center",
