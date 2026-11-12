@@ -199,6 +199,11 @@ export function Table(props: TableProps) {
     [columns],
   );
   const query = typeof props.search === "string" ? props.search.trim().toLowerCase() : "";
+  // groupBy names a column by its label, whatever its case or outer spaces.
+  const groupKey = typeof props.groupBy === "string" ? props.groupBy.trim().toLowerCase() : "";
+  const groupColumn = groupKey
+    ? columns.find((column) => String(column.label).trim().toLowerCase() === groupKey)
+    : undefined;
   const order = useMemo(() => {
     // A number's text exactly as its cell shows it, for search.
     const shownNumber = (column: TableColumn, value: number) => {
@@ -238,9 +243,7 @@ export function Table(props: TableProps) {
     }
     // Grouped: rows gather under their group in order of first appearance,
     // keeping the sort inside each group.
-    const groupValues = props.groupBy
-      ? columns.find((column) => column.label === props.groupBy)?.values
-      : undefined;
+    const groupValues = groupColumn?.values;
     if (groupValues) {
       const rank = new Map<string, number>();
       for (const row of indexes) {
@@ -254,10 +257,7 @@ export function Table(props: TableProps) {
       );
     }
     return indexes;
-  }, [columns, rowCount, sort, query, props.groupBy, perColumn]);
-  const groupColumn = props.groupBy
-    ? columns.find((column) => column.label === props.groupBy)
-    : undefined;
+  }, [columns, rowCount, sort, query, groupColumn, perColumn]);
   const groupOf = (row: number) => (groupColumn ? String(groupColumn.values[row] ?? "—") : null);
 
   if (!columns.length || !rowCount) return <Empty />;
