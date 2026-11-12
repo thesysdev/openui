@@ -2,7 +2,7 @@
 
 import { MUTED_COLOR, seriesColor, textureOf } from "../../../shared/colors";
 import { useCompare } from "../../../shared/compare";
-import { formatValue, type ValueFormat } from "../../../shared/format";
+import { formatDateText, formatValue, type ValueFormat } from "../../../shared/format";
 import { foldParts } from "../../../shared/parts";
 import { columnFormatter } from "../../../shared/scales";
 import type { Tone } from "../../../shared/schema";
@@ -176,7 +176,9 @@ export function Kpi(props: KpiProps) {
         <div className="openui-dashboard-kpi-main">
           {text !== null ? (
             <div className="openui-dashboard-kpi-value openui-dashboard-kpi-text" title={text}>
-              <span className="openui-dashboard-kpi-text-value">{text}</span>
+              <span className="openui-dashboard-kpi-text-value">
+                {formatDateText(text) ?? text}
+              </span>
               {props.tone ? <StatusIcon tone={props.tone} /> : null}
             </div>
           ) : (

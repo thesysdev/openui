@@ -4,9 +4,11 @@ import { Fragment, useMemo, useState } from "react";
 import {
   columnDecimals,
   deltaTone,
+  formatDay,
   formatValue,
   isRateFormat,
   padDecimals,
+  parseIsoDate,
   type ValueFormat,
 } from "../../../shared/format";
 import { useIsomorphicLayoutEffect } from "../../../shared/hooks";
@@ -17,6 +19,39 @@ import type { GoodWhen } from "../../shared/DeltaBadge";
 import { Sparkline } from "../../shared/Sparkline";
 import { Empty } from "../../shared/States";
 import { StatusIcon } from "../../shared/StatusIcon";
+
+// Text sorts the way people read it: digit runs as numbers, so 4.9.0 comes before 4.10.0
+// and "item 2" before "item 10". Same-shaped dates (2026-04-02) still sort by date.
+const NATURAL: Intl.CollatorOptions = { numeric: true };
+
+/**
+ * What a search matches in a cell: its value and the text a reader sees. A number matches as
+ * written (12400) and as the column shows it ($12,400; 12.4K); a date column's value matches as
+ * shown (Jul 8, 2020) and as written (2020-07-08); a chip list matches each tag; a boolean matches
+ * the true or false its badge shows. Sparklines and states draw marks, not words, so they have
+ * nothing to find, and neither does any other value. Data comes from a model or a live API, so
+ * the value is checked here rather than trusted to match the column's type.
+ */
+function searchText(
+  column: TableColumn,
+  value: unknown,
+  shown: (column: TableColumn, value: number) => string,
+): string {
+  if (value === null || value === undefined) return "";
+  if (column.kind === "sparkline" || column.kind === "states") return "";
+  if (Array.isArray(value)) return value.filter((tag) => typeof tag === "string").join(" ");
+  if (typeof value === "number") {
+    const plain =
+      column.kind === "delta" || column.kind === "progress"
+        ? formatValue(value, column.format ?? "percent")
+        : formatValue(value, column.format);
+    return `${value} ${plain} ${shown(column, value)}`;
+  }
+  if (typeof value === "boolean") return String(value);
+  if (typeof value !== "string") return "";
+  const day = column.kind === "date" ? parseIsoDate(value) : null;
+  return day ? `${value} ${formatDay(day)}` : value;
+}
 
 /* ---------- Table ---------- */
 
@@ -75,6 +110,17 @@ const deltaNumber = (value: number, format?: ValueFormat | null) =>
     ? formatValue(value, { type: "number", decimals: 1 })
     : formatValue(value, format ?? "percent");
 
+/** A delta cell's text: "+11.4 pts" for a rate, "+11.4%" otherwise, to the column's precision. */
+function deltaText(value: number, format?: ValueFormat | null, decimals = 0): string {
+  const rate = isRateFormat(format);
+  // The same rules as every other delta (computeDelta): hundredths under 0.1, flat only under 0.005.
+  const small = Math.abs(value) > 0 && Math.abs(value) < 0.1;
+  const number = small
+    ? formatValue(value, { type: rate ? "number" : "percent", decimals: 2 })
+    : padDecimals(deltaNumber(value, format), decimals);
+  return rate ? `${value > 0 ? "+" : ""}${number} pts` : `${value > 0 ? "+" : ""}${number}`;
+}
+
 function DeltaCell({
   value,
   format,
@@ -86,13 +132,7 @@ function DeltaCell({
   goodWhen?: GoodWhen;
   decimals?: number;
 }) {
-  const rate = isRateFormat(format);
-  // The same rules as every other delta (computeDelta): hundredths under 0.1, flat only under 0.005.
-  const small = Math.abs(value) > 0 && Math.abs(value) < 0.1;
-  const number = small
-    ? formatValue(value, { type: rate ? "number" : "percent", decimals: 2 })
-    : padDecimals(deltaNumber(value, format), decimals);
-  const text = rate ? `${value > 0 ? "+" : ""}${number} pts` : `${value > 0 ? "+" : ""}${number}`;
+  const text = deltaText(value, format, decimals);
   const direction = Math.abs(value) < 0.005 ? "flat" : value > 0 ? "up" : "down";
   const tone = deltaTone(direction, goodWhen ?? "up");
   return (
@@ -130,58 +170,6 @@ export function Table(props: TableProps) {
   const [page, setPage] = useState(0);
   const pageSize = props.pageSize ?? 10;
 
-  const query = typeof props.search === "string" ? props.search.trim().toLowerCase() : "";
-  const order = useMemo(() => {
-    let indexes = Array.from({ length: rowCount }, (_, i) => i);
-    // A search (from a SearchFilter) keeps rows where any text cell matches.
-    if (query)
-      indexes = indexes.filter((row) =>
-        columns.some(
-          (column) =>
-            typeof column.values[row] === "string" &&
-            (column.values[row] as string).toLowerCase().includes(query),
-        ),
-      );
-    if (sort) {
-      const values = columns[sort.column]?.values ?? [];
-      indexes.sort((a, b) => {
-        const x = values[a];
-        const y = values[b];
-        if (x === y) return 0;
-        if (x === null || x === undefined) return 1;
-        if (y === null || y === undefined) return -1;
-        // A chip column holds lists: order by the first tag.
-        if (Array.isArray(x) || Array.isArray(y)) {
-          const first = (v: unknown) => String((Array.isArray(v) ? v[0] : v) ?? "");
-          const result = first(x).localeCompare(first(y));
-          return sort.desc ? -result : result;
-        }
-        const result =
-          typeof x === "number" && typeof y === "number"
-            ? x - y
-            : String(x).localeCompare(String(y));
-        return sort.desc ? -result : result;
-      });
-    }
-    // Grouped: rows gather under their group in order of first appearance,
-    // keeping the sort inside each group.
-    const groupValues = props.groupBy
-      ? columns.find((column) => column.label === props.groupBy)?.values
-      : undefined;
-    if (groupValues) {
-      const rank = new Map<string, number>();
-      for (const row of indexes) {
-        const key = String(groupValues[row] ?? "—");
-        if (!rank.has(key)) rank.set(key, rank.size);
-      }
-      indexes = [...indexes].sort(
-        (a, b) =>
-          (rank.get(String(groupValues[a] ?? "—")) ?? 0) -
-          (rank.get(String(groupValues[b] ?? "—")) ?? 0),
-      );
-    }
-    return indexes;
-  }, [columns, rowCount, sort, query, props.groupBy]);
   // Per-column numbers, worked out once per data change rather than once per cell:
   // the largest value (bar cells), the delta precision, and formatters to one precision.
   const perColumn = useMemo(
@@ -210,6 +198,63 @@ export function Table(props: TableProps) {
       ),
     [columns],
   );
+  const query = typeof props.search === "string" ? props.search.trim().toLowerCase() : "";
+  const order = useMemo(() => {
+    // A number's text exactly as its cell shows it, for search.
+    const shownNumber = (column: TableColumn, value: number) => {
+      const stats = perColumn.get(column);
+      if (!stats) return "";
+      if (column.kind === "delta") return deltaText(value, column.format, stats.deltaPlaces);
+      return stats.fmt(column.kind === "progress" ? "percent" : undefined)(value);
+    };
+    let indexes = Array.from({ length: rowCount }, (_, i) => i);
+    // A search (from a SearchFilter) keeps rows where any cell matches what it shows or holds.
+    if (query)
+      indexes = indexes.filter((row) =>
+        columns.some((column) =>
+          searchText(column, column.values[row], shownNumber).toLowerCase().includes(query),
+        ),
+      );
+    if (sort) {
+      const values = columns[sort.column]?.values ?? [];
+      indexes.sort((a, b) => {
+        const x = values[a];
+        const y = values[b];
+        if (x === y) return 0;
+        if (x === null || x === undefined) return 1;
+        if (y === null || y === undefined) return -1;
+        // A chip column holds lists: order by the first tag.
+        if (Array.isArray(x) || Array.isArray(y)) {
+          const first = (v: unknown) => String((Array.isArray(v) ? v[0] : v) ?? "");
+          const result = first(x).localeCompare(first(y), undefined, NATURAL);
+          return sort.desc ? -result : result;
+        }
+        const result =
+          typeof x === "number" && typeof y === "number"
+            ? x - y
+            : String(x).localeCompare(String(y), undefined, NATURAL);
+        return sort.desc ? -result : result;
+      });
+    }
+    // Grouped: rows gather under their group in order of first appearance,
+    // keeping the sort inside each group.
+    const groupValues = props.groupBy
+      ? columns.find((column) => column.label === props.groupBy)?.values
+      : undefined;
+    if (groupValues) {
+      const rank = new Map<string, number>();
+      for (const row of indexes) {
+        const key = String(groupValues[row] ?? "—");
+        if (!rank.has(key)) rank.set(key, rank.size);
+      }
+      indexes = [...indexes].sort(
+        (a, b) =>
+          (rank.get(String(groupValues[a] ?? "—")) ?? 0) -
+          (rank.get(String(groupValues[b] ?? "—")) ?? 0),
+      );
+    }
+    return indexes;
+  }, [columns, rowCount, sort, query, props.groupBy, perColumn]);
   const groupColumn = props.groupBy
     ? columns.find((column) => column.label === props.groupBy)
     : undefined;
@@ -269,21 +314,9 @@ export function Table(props: TableProps) {
         );
       }
       case "date": {
-        const day =
-          typeof value === "string"
-            ? new Date(value.length === 10 ? `${value}T00:00:00` : value)
-            : null;
-        if (!day || Number.isNaN(day.getTime())) return String(value);
-        const sameYear = day.getFullYear() === new Date().getFullYear();
-        return (
-          <time dateTime={String(value)}>
-            {day.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: sameYear ? undefined : "numeric",
-            })}
-          </time>
-        );
+        const day = parseIsoDate(value);
+        if (!day) return String(value);
+        return <time dateTime={String(value)}>{formatDay(day)}</time>;
       }
       case "link": {
         const href = /^https?:\/\//.test(String(value)) ? String(value) : `https://${value}`;

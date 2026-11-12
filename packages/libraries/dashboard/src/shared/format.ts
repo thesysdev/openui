@@ -314,3 +314,54 @@ export function padDecimals(text: string, decimals: number): string {
     (_, whole: string, frac = "") => `${whole}.${frac.padEnd(decimals, "0")}`,
   );
 }
+
+/* ---------- Dates ---------- */
+
+// A date or timestamp as APIs return it: 2026-04-01, 2026-04-01T21:01:20.458Z, 2026-04-01 21:01:20+05:30.
+const ISO_DATE =
+  /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;
+
+/**
+ * The day an ISO date or timestamp names, or null for any other text. A bare date reads as local
+ * midnight, so it shows the day it says in every time zone. An impossible day (2026-02-30) is
+ * null rather than rolled over to the next month.
+ */
+export function parseIsoDate(value: unknown): Date | null {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  if (!ISO_DATE.test(text)) return null;
+  // The strict shape every browser parses: "T" between date and time, a colon in the offset.
+  const iso =
+    text.length === 10
+      ? `${text}T00:00:00`
+      : text.replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2");
+  const day = new Date(iso);
+  if (Number.isNaN(day.getTime())) return null;
+  // Date rolls an impossible day over (2026-02-30 to Mar 2); a real one reads back the same.
+  const [year, month, date] = text.slice(0, 10).split("-").map(Number) as [number, number, number];
+  const calendar = new Date(Date.UTC(year, month - 1, date));
+  if (
+    calendar.getUTCFullYear() !== year ||
+    calendar.getUTCMonth() !== month - 1 ||
+    calendar.getUTCDate() !== date
+  ) {
+    return null;
+  }
+  return day;
+}
+
+/** "Apr 2" this year, "Apr 23, 2012" before it: how a Table date column reads. */
+export function formatDay(day: Date): string {
+  const sameYear = day.getFullYear() === new Date().getFullYear();
+  return day.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: sameYear ? undefined : "numeric",
+  });
+}
+
+/** An ISO date or timestamp as a short day, or null for any other text (a version, a name). */
+export function formatDateText(value: unknown): string | null {
+  const day = parseIsoDate(value);
+  return day ? formatDay(day) : null;
+}

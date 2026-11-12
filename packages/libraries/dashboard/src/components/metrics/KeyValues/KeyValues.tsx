@@ -1,6 +1,6 @@
 "use client";
 
-import { formatValue, type ValueFormat } from "../../../shared/format";
+import { formatDateText, formatValue, type ValueFormat } from "../../../shared/format";
 import { DeltaBadge } from "../../shared/DeltaBadge";
 import { Empty } from "../../shared/States";
 
@@ -35,11 +35,22 @@ export function KeyValues(props: KeyValuesProps) {
                 inline
               />
             ) : null}
-            <span className="openui-dashboard-kv-value">
-              {typeof row.value === "number"
-                ? formatValue(row.value, row.format)
-                : row.value || "—"}
-            </span>
+            {formatDateText(row.value) !== null ? (
+              // A date from an API (2026-04-01T21:01:20.458Z) reads as a day; hover shows it all.
+              <time
+                className="openui-dashboard-kv-value"
+                dateTime={String(row.value)}
+                title={String(row.value)}
+              >
+                {formatDateText(row.value)}
+              </time>
+            ) : (
+              <span className="openui-dashboard-kv-value">
+                {typeof row.value === "number"
+                  ? formatValue(row.value, row.format)
+                  : row.value || "—"}
+              </span>
+            )}
           </dd>
         </div>
       ))}
