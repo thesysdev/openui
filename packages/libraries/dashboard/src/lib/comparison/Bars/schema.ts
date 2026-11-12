@@ -12,7 +12,7 @@ export const barsPropsSchema = z.object({
   labels: z.array(z.string()),
   series: z.array(SeriesComponent.ref),
   format: formatSchema.optional(),
-  orientation: z.enum(["vertical", "horizontal"]).optional(),
+  orientation: z.enum(["horizontal", "vertical"]).optional(),
   stacked: stackedSchema.optional(),
   goodWhen: goodWhenSchema.optional(),
   references: z.array(ReferenceComponent.ref).optional(),

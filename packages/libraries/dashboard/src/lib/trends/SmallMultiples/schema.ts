@@ -5,7 +5,7 @@ import { SeriesComponent as Series } from "../Series";
 export const smallMultiplesPropsSchema = z.object({
   labels: z.array(z.string()),
   series: z.array(Series.ref),
-  type: z.enum(["line", "area"]).optional(),
+  type: z.enum(["area", "line"]).optional(),
   format: formatSchema.optional(),
   columns: z.number().optional(),
 });
