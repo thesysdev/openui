@@ -38,7 +38,7 @@ const PROMPT_GROUPS: PromptGroup[] = [
       `Shared argument types: Format = ${FORMAT_PRESETS.map((preset) => `"${preset}"`).join(" | ")}, or {type, currency?, decimals?, prefix?, suffix?} to override, e.g. {type: "number", suffix: " seats"}. Width = ${WIDTHS.map((width) => `"${width}"`).join(" | ")}. GoodWhen = "up" | "down" | "neutral": which direction of change is good news.`,
       'Numbers are raw with a Format; never formatted strings like "$1.2K" or "12%". percent values are already percentages (18.4 = 18.4%); ratio is for fractions; duration is seconds, ms milliseconds, days days. A Kpi\'s text value is for words (a plan, a status, a version), never a number.',
       {
-        text: 'Live data tools return { columns, rows, truncated }, rows being objects keyed by column. Read one column across all rows with a pluck: r = Query(...) then TimeSeries(r.rows.day, [Series("Events", r.rows.events)]). Ask a query for exactly the rows and columns a card shows.',
+        text: "A pluck reads one column across a list of rows: where a Query result r holds its rows as objects in r.rows, r.rows.day is every row's day, so TimeSeries(r.rows.day, [Series(\"Events\", r.rows.events)]). Read each tool's result in the shape that tool describes, and ask a query for exactly the rows and columns a card shows.",
         needs: ["TimeSeries", "Series"],
       },
       'To skip an optional argument before one you need, pass null: Kpi("Signups", 2227, "number", null, null, "Last 30 days").',
