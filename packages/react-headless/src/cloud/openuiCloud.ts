@@ -35,6 +35,11 @@ export interface OpenuiCloudOptions {
   token: FrontendTokenSource;
   /** Which storage surfaces to wire. Omit to enable all. */
   features?: OpenuiCloudFeatures;
+  /**
+   * Dashboards show each query's last result while it reloads; the results are
+   * kept in OpenUI Cloud for 24 hours, per user. `false` turns this off. Default true.
+   */
+  cacheQueryResults?: boolean;
   /** fetch override (tests / SSR). Defaults to globalThis.fetch. */
   fetch?: typeof fetch;
   /** Refresh the cached token this many seconds before expiry (URL form). Default 60. */
@@ -60,7 +65,7 @@ const DEFAULT_API_BASE_URL = "https://api.thesys.dev";
  * with the master key).
  */
 export function useOpenuiCloudStorage(options: OpenuiCloudOptions): ChatStorage {
-  const { apiBaseUrl, token, fetch, refreshSkewSeconds } = options;
+  const { apiBaseUrl, token, fetch, refreshSkewSeconds, cacheQueryResults } = options;
   const artifactOn = options.features?.artifact ?? true;
   return useMemo(
     () =>
@@ -69,9 +74,10 @@ export function useOpenuiCloudStorage(options: OpenuiCloudOptions): ChatStorage 
         token,
         fetch,
         refreshSkewSeconds,
+        cacheQueryResults,
         features: { artifact: artifactOn },
       }),
-    [apiBaseUrl, token, fetch, refreshSkewSeconds, artifactOn],
+    [apiBaseUrl, token, fetch, refreshSkewSeconds, cacheQueryResults, artifactOn],
   );
 }
 
@@ -90,7 +96,11 @@ function createCloudStorage(options: OpenuiCloudOptions): ChatStorage {
     thread: cloudThreadStorage({ baseUrl, fetch: fctFetch }),
   };
   if (artifactOn) {
-    storage.artifact = cloudArtifactStorage({ baseUrl, fetch: fctFetch });
+    storage.artifact = cloudArtifactStorage({
+      baseUrl,
+      fetch: fctFetch,
+      cacheQueryResults: options.cacheQueryResults,
+    });
   }
   return storage;
 }
