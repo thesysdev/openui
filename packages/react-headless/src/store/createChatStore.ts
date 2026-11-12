@@ -79,6 +79,10 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
 
       switchToNewThread: () => {
         get().cancelMessage();
+        const { selectedThreadId, messages } = get();
+        if (selectedThreadId && messages.length > 0) {
+          threadStorage.cacheMessages?.(selectedThreadId, messages).catch(() => {});
+        }
         set({
           selectedThreadId: null,
           messages: [],
@@ -238,6 +242,9 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
               }),
             adapter: configRef.current.llm.streamProtocol,
           });
+
+          // Persist messages after successful streaming so they survive thread switches.
+          await threadStorage.cacheMessages?.(threadId, get().messages);
         } catch (e) {
           if (!abortController.signal.aborted) {
             set({ threadError: e instanceof Error ? e : new Error(String(e)) });
