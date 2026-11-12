@@ -5,8 +5,9 @@ import { useEffect, useRef, type ComponentProps } from "react";
 /* A <video> for docs pages that only downloads when it is about to be seen.
    An autoPlay video normally downloads in full as soon as the page loads, even
    far below the fold. Here it fetches just its metadata (so the box keeps its
-   size), starts playing once it nears the viewport and pauses when it leaves.
-   Videos without autoPlay wait for the reader to press play. */
+   size and shows its first frame), starts playing once it nears the viewport
+   and pauses when it leaves. Videos without autoPlay wait for the reader to
+   press play. */
 export function LazyVideo({ autoPlay, preload, ...props }: ComponentProps<"video">) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -24,5 +25,5 @@ export function LazyVideo({ autoPlay, preload, ...props }: ComponentProps<"video
     return () => observer.disconnect();
   }, [autoPlay]);
 
-  return <video ref={ref} preload={autoPlay ? "metadata" : (preload ?? "none")} {...props} />;
+  return <video ref={ref} preload={preload ?? "metadata"} {...props} />;
 }

@@ -125,6 +125,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
         key={entry.href}
         className={styles.mobileTrayLink}
         href={entry.href}
+        prefetch={false}
         onClick={onClose}
         {...(entry.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
@@ -198,6 +199,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
                 <Link
                   className={styles.mobileTrayDocsLink}
                   href={docsLink.href}
+                  prefetch={false}
                   onClick={onClose}
                   aria-label={docsLink.title}
                 >

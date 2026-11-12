@@ -193,6 +193,7 @@ function FooterLinks() {
               <li key={link.title}>
                 <Link
                   href={link.href}
+                  prefetch={false}
                   {...(link.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 >
                   {link.title}

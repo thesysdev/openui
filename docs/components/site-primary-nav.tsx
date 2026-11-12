@@ -407,6 +407,7 @@ function DropdownCard({
     <Link
       className={className}
       href={child.href}
+      prefetch={false}
       role="menuitem"
       onClick={onNavigate}
       {...(onHover
@@ -706,6 +707,7 @@ export function SitePrimaryNav() {
             className={`${styles.link} ${isActive ? styles.linkActive : ""}`.trim()}
             href={item.href}
             key={item.href}
+            prefetch={false}
             onPointerEnter={scheduleNeighbourClose}
             onPointerLeave={cancelNeighbourClose}
             {...(item.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
