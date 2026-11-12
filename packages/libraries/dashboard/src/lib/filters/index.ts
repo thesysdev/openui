@@ -6,7 +6,6 @@ import { DateRangeFilterComponent } from "./DateRangeFilter";
 import { FilterBarComponent } from "./FilterBar";
 import { MultiSelectFilterComponent } from "./MultiSelectFilter";
 import { PeriodPickerComponent } from "./PeriodPicker";
-import { SearchFilterComponent } from "./SearchFilter";
 import { SelectFilterComponent } from "./SelectFilter";
 export const filters: Group = {
   components: [
@@ -16,7 +15,6 @@ export const filters: Group = {
     ChipFilterComponent,
     SelectFilterComponent,
     MultiSelectFilterComponent,
-    SearchFilterComponent,
     CompareToggleComponent,
   ],
   styles: { filters: filtersStyles },

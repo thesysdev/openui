@@ -46,7 +46,6 @@ export const COMPONENT_ORDER = [
   "PeriodPicker",
   "DateRangeFilter",
   "MultiSelectFilter",
-  "SearchFilter",
   "ChipFilter",
   "SelectFilter",
   "CompareToggle",

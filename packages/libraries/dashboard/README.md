@@ -47,15 +47,15 @@ and `darkTheme` overrides.
 
 `Dashboard` is the root. 41 components in 10 groups:
 
-| Group         | Components                                                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Structure     | `Dashboard`, `Section`, `Row`, `Card`                                                                                              |
-| Filters       | `FilterBar`, `PeriodPicker`, `DateRangeFilter`, `ChipFilter`, `SelectFilter`, `MultiSelectFilter`, `SearchFilter`, `CompareToggle` |
-| Metrics       | `Kpis`, `Kpi`, `Stat`, `KeyValues`, `Goal`                                                                                         |
-| Tables        | `Table`, `Column`                                                                                                                  |
-| Trends        | `TimeSeries`, `Series`, `Reference`, `Marker`, `SmallMultiples`, `StatusTimeline`                                                  |
-| Comparison    | `Bars`, `Leaderboard`, `Dumbbell`, `Distribution`, `Intervals`                                                                     |
-| Composition   | `Donut`, `SegmentedBar`, `Treemap`, `Waterfall`                                                                                    |
-| Flow          | `Funnel`, `Flow`                                                                                                                   |
-| Relationships | `Scatter`, `Heatmap`, `Cohorts`                                                                                                    |
-| Maps          | `GeoMap`, `PointMap`                                                                                                               |
+| Group         | Components                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Structure     | `Dashboard`, `Section`, `Row`, `Card`                                                                              |
+| Filters       | `FilterBar`, `PeriodPicker`, `DateRangeFilter`, `ChipFilter`, `SelectFilter`, `MultiSelectFilter`, `CompareToggle` |
+| Metrics       | `Kpis`, `Kpi`, `Stat`, `KeyValues`, `Goal`                                                                         |
+| Tables        | `Table`, `Column`                                                                                                  |
+| Trends        | `TimeSeries`, `Series`, `Reference`, `Marker`, `SmallMultiples`, `StatusTimeline`                                  |
+| Comparison    | `Bars`, `Leaderboard`, `Dumbbell`, `Distribution`, `Intervals`                                                     |
+| Composition   | `Donut`, `SegmentedBar`, `Treemap`, `Waterfall`                                                                    |
+| Flow          | `Funnel`, `Flow`                                                                                                   |
+| Relationships | `Scatter`, `Heatmap`, `Cohorts`                                                                                    |
+| Maps          | `GeoMap`, `PointMap`                                                                                               |

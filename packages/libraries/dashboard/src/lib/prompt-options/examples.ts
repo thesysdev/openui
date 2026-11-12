@@ -28,7 +28,6 @@ detail = Section("Detail", [Row([Card("Agents", [Table([Column("Agent", ["Priya"
  */
 const LIVE_EXAMPLE = `root = Dashboard([filters, lead, trends, detail])
 $range = "30d"
-$q = ""
 start = days[$range] ? "(current_date - " + days[$range] + ")" : "split_part('" + $range + "', '..', 1)::date"
 end = days[$range] ? "current_date" : "split_part('" + $range + "', '..', 2)::date"
 during = "day >= " + start + " AND day <= " + end
@@ -39,10 +38,10 @@ byDay = Query("run_sql", {query: "SELECT day, revenue FROM daily_sales WHERE " +
 byChannel = Query("sales_by_channel", {range: $range}, {rows: []})
 now = @First(totals.rows)
 prev = @First(earlier.rows)
-filters = FilterBar([DateRangeFilter($range, [{value: "7d", label: "Last 7 days"}, {value: "30d", label: "Last 30 days"}, {value: "90d", label: "Last 90 days"}]), CompareToggle("Previous period", true), SearchFilter($q, "Search channels…")])
+filters = FilterBar([DateRangeFilter($range, [{value: "7d", label: "Last 7 days"}, {value: "30d", label: "Last 30 days"}, {value: "90d", label: "Last 90 days"}]), CompareToggle("Previous period", true)])
 lead = Section("", [Kpis([Kpi("Revenue", now.revenue, "currency-compact", prev.revenue), Kpi("Orders", now.orders, "number", prev.orders)])])
 trends = Section("Trends", [Row([Card("Revenue by day", [TimeSeries(byDay.rows.day, [Series("Revenue", byDay.rows.revenue)], "area", "currency-compact")], "full", "USD")])])
-detail = Section("Detail", [Row([Card("Channels", [Table([Column("Channel", byChannel.rows.channel, "primary"), Column("Revenue", byChannel.rows.revenue, "number", "currency"), Column("Orders", byChannel.rows.orders, "number", "number")], 10, false, $q)], "full")])])
+detail = Section("Detail", [Row([Card("Channels", [Table([Column("Channel", byChannel.rows.channel, "primary"), Column("Revenue", byChannel.rows.revenue, "number", "currency"), Column("Orders", byChannel.rows.orders, "number", "number")], 10, false)], "full")])])
 days = {"7d": 7, "30d": 30, "90d": 90}`;
 
 /**
