@@ -46,7 +46,8 @@ export interface DateRangeFilterProps {
 
 export function DateRangeFilter(props: DateRangeFilterProps) {
   const presets = props.options.length ? props.options : DEFAULT_PRESETS;
-  const current = props.value ?? presets[1]?.value ?? presets[0]?.value ?? "";
+  // The $variable's own value: with none, the button just names itself.
+  const current = props.value ?? "";
   const today = isoDay(new Date());
   const text =
     presets.find((preset) => preset.value === current)?.label ?? formatRange(current) ?? current;
@@ -57,10 +58,16 @@ export function DateRangeFilter(props: DateRangeFilterProps) {
       label={
         <>
           <CalendarIcon />
-          {props.label ? (
-            <span className="openui-dashboard-select-prefix">{props.label}:</span>
-          ) : null}
-          {text}
+          {!current ? (
+            (props.label ?? "Date range")
+          ) : (
+            <>
+              {props.label ? (
+                <span className="openui-dashboard-select-prefix">{props.label}:</span>
+              ) : null}
+              {text}
+            </>
+          )}
         </>
       }
     >

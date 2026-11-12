@@ -18,19 +18,24 @@ export interface SelectFilterProps {
 
 export function SelectFilter(props: SelectFilterProps) {
   const list = props.options;
-  const current = props.value ?? list[0]?.value ?? "";
+  // The $variable's own value: with none, the button just names itself.
+  const current = props.value ?? undefined;
   const currentLabel = list.find((option) => option.value === current)?.label ?? current;
   useReportFilter(props.name, current);
   return (
     <Popover
       width={200}
-      active={list.length > 1 && current !== list[0]?.value}
+      active={list.length > 1 && current !== undefined && current !== list[0]?.value}
       disabled={props.streaming}
       label={
-        <>
-          <span className="openui-dashboard-select-prefix">{props.label}:</span>
-          {currentLabel}
-        </>
+        current === undefined ? (
+          props.label
+        ) : (
+          <>
+            <span className="openui-dashboard-select-prefix">{props.label}:</span>
+            {currentLabel}
+          </>
+        )
       }
     >
       {(close) => (
