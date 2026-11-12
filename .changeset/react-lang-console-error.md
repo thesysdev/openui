@@ -2,4 +2,4 @@
 "@openuidev/react-lang": patch
 ---
 
-`Renderer` now logs every reported error with `console.error` (`[openui] <source>/<code>: <message>`) before calling `onError`. Previously errors were only logged, as `console.warn`, when no `onError` was passed.
+When `Renderer` has no `onError`, its errors are now logged as a single `console.warn` that lists every error and links to https://www.openui.com/docs/openui-lang/reliability, instead of one `console.warn` per error.

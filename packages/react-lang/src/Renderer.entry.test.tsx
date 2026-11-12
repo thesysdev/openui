@@ -47,14 +47,20 @@ it("reports no-root instead of parse-failed, and renders a ternary entry", () =>
   });
 });
 
-it("logs each reported error with console.error, with or without onError", () => {
-  const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+it("warns once with every error and the reliability docs link when onError is not passed", () => {
+  const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
   try {
-    render('title = Title("Orders")');
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining("[openui] parser/no-root:"),
-      expect.objectContaining({ code: "no-root" }),
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    act(() =>
+      root.render(createElement(Renderer, { response: 'title = Title("Orders")', library })),
     );
+    act(() => root.unmount());
+    expect(spy).toHaveBeenCalledTimes(1);
+    const message = String(spy.mock.calls[0]?.[0]);
+    expect(message).toContain("[openui] Rendered with 1 error:");
+    expect(message).toContain("parser/no-root:");
+    expect(message).toContain("https://www.openui.com/docs/openui-lang/reliability");
   } finally {
     spy.mockRestore();
   }

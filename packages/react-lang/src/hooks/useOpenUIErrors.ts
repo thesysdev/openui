@@ -27,6 +27,17 @@ export interface UseOpenUIErrorsOptions {
   onError?: (errors: OpenUIError[]) => void;
 }
 
+const RELIABILITY_DOCS_URL = "https://www.openui.com/docs/openui-lang/reliability";
+
+function formatErrorsWarning(errors: OpenUIError[]): string {
+  const lines = errors.map((error) => `  - ${error.source}/${error.code}: ${error.message}`);
+  return [
+    `[openui] Rendered with ${errors.length} error${errors.length === 1 ? "" : "s"}:`,
+    ...lines,
+    `See ${RELIABILITY_DOCS_URL} for how to fix and prevent these errors.`,
+  ].join("\n");
+}
+
 /** Aggregates Renderer errors and owns the public onError callback behavior. */
 export function useOpenUIErrors({
   response,
@@ -96,10 +107,11 @@ export function useOpenUIErrors({
 
     lastErrorKeyRef.current = errorKey;
     setErrorRevision((revision) => revision + 1);
-    for (const error of errors) {
-      console.error(`[openui] ${error.source}/${error.code}: ${error.message}`, error);
+    if (onErrorRef.current) {
+      onErrorRef.current(errors);
+    } else if (errors.length > 0) {
+      console.warn(formatErrorsWarning(errors));
     }
-    onErrorRef.current?.(errors);
   }, [
     isStreaming,
     response,
