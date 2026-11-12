@@ -67,7 +67,8 @@ export function defineDashboard<Context extends ExecutionContext>(
     call: { title?: string; id?: string },
     signal?: AbortSignal,
   ): Promise<string> {
-    // The dashboard belongs to the user the context names.
+    // The dashboard belongs to the user the context names, in the client's app if it has one,
+    // as a frontend token minted for them would say.
     assertUserIdRequired(context);
     // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
     const definitions = await toolDefinitions();
@@ -81,6 +82,7 @@ export function defineDashboard<Context extends ExecutionContext>(
           { role: "user", content: prompt },
         ],
         user_id: context.userId,
+        ...(api.appId !== undefined && { app_id: api.appId }),
       },
       signal,
     );
