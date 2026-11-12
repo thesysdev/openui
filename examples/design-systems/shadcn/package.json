@@ -15,10 +15,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/lang-core": "1.1.0",
-    "@openuidev/react-headless": "0.18.5",
-    "@openuidev/react-lang": "1.1.0",
-    "@openuidev/react-ui": "0.18.5",
+    "@openuidev/lang-core": "1.1.1",
+    "@openuidev/react-headless": "0.18.8",
+    "@openuidev/react-lang": "1.1.1",
+    "@openuidev/react-ui": "0.18.7",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
