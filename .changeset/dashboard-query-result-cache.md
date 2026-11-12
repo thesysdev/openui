@@ -1,5 +1,5 @@
 ---
-"@openuidev/react-headless": minor
+"@openuidev/react-headless": patch
 "@openuidev/react-ui": patch
 ---
 
