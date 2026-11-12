@@ -8,8 +8,9 @@
 // 3. A first-batch call shows its saved result if that is here before the real one, and is
 //    for the version on screen.
 // 4. When a real result arrives, the queries run again on the next animation frame.
-//    `Renderer` builds its query manager once, for one provider, so the provider is left
-//    out for one render (`refreshing`). Each query is then answered from what was fetched,
+//    `Renderer` builds its query manager once and keeps it when it is given another
+//    provider object, so the provider is left out for one render (`refreshing`): only
+//    that makes it build a new one. Each query is then answered from what was fetched,
 //    or from its saved result again if its own call is still in flight.
 // 5. Once nothing is in flight the first batch is over: every call is a plain real call.
 
@@ -116,7 +117,7 @@ export function useQueryResultCache({
       run.joined = true;
       // Saved with the version the call was made with, also during an edit.
       const keep = ({ structuredContent: result }: ToolResult) => {
-        if (result === undefined || JSON.stringify(result).length > 256 * 1024) return;
+        if (result === undefined) return;
         const value = { version: run.version, result };
         storageRef.current?.putQueryResult?.(run.id, { key, value });
       };
@@ -183,8 +184,11 @@ export function useQueryResultCache({
   useEffect(() => {
     if (!refreshing) queryResultCache.afterRefresh();
   }, [refreshing, queryResultCache]);
-  // Content shown again later is a new run: it reads the saved results again.
-  useEffect(() => queryResultCache.dropRun, [showsContent, queryResultCache]);
+  // Content shown again later is a new run: it reads the saved results again. Dropped when
+  // the content goes, not in a cleanup: StrictMode runs cleanups right after the first calls.
+  useEffect(() => {
+    if (!showsContent) queryResultCache.dropRun();
+  }, [showsContent, queryResultCache]);
 
   // A storage without saved results gets the original provider, untouched.
   return {

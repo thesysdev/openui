@@ -12,7 +12,7 @@ import {
   useStateField,
   type OpenUIError,
 } from "@openuidev/react-lang";
-import { act, createElement, type ReactNode } from "react";
+import { act, createElement, StrictMode, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
@@ -176,6 +176,19 @@ describe("ArtifactRendererRoot query result cache", () => {
     expect(calls.map((call) => call.name)).toEqual(["totals", "slow"]);
     expect(c.saved.mock.calls[1]).toEqual(save("slow::{}", { total: 6 }));
     expect(refreshes()).toBe(2);
+  });
+
+  it("in StrictMode, a dashboard opened again with its program already loaded shows the fresh result", async () => {
+    const c = cloud(ONE, async () => stored({ "totals::{}": { total: 7 } }));
+    const strict = <StrictMode key="strict">{panel}</StrictMode>;
+    await show(c.storage, strict);
+    await answer("totals", { total: 8 });
+    await show(c.storage);
+    calls = [];
+    await show(c.storage, strict);
+    expect(shown()).toBe("7 all 0");
+    await answer("totals", { total: 9 });
+    expect(shown()).toBe("9 all 0");
   });
 
   it("results that arrive in the same frame run the queries again once", async () => {
