@@ -1,1 +1,1 @@
-export { KeyValues, type KeyValuesProps } from "./KeyValues";
+export { KeyValues, type KeyValueRow, type KeyValuesProps } from "./KeyValues";

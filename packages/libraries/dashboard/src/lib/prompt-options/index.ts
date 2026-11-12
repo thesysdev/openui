@@ -70,7 +70,7 @@ const PROMPT_GROUPS: PromptGroup[] = [
   },
   {
     name: "Metrics",
-    components: ["Kpis", "Kpi", "Stat", "KeyValues", "Goal"],
+    components: ["Kpis", "Kpi", "Stat", "KeyValues", "KeyValue", "Goal"],
     notes: [
       previousValuesNote,
       'Set goodWhen "down" for metrics where lower is better: costs, CAC, churn, latency, errors.',

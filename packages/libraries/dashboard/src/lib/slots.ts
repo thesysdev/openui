@@ -82,6 +82,7 @@ export const COMPONENT_ORDER = [
   "Leaderboard",
   "Goal",
   "KeyValues",
+  "KeyValue",
 ];
 
 /** The registered components' refs among these names, in this order. */
