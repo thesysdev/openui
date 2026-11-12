@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/dashboard-library",
-  "version": "1.0.0",
-  "description": "OpenUI Lang component library for analytics dashboards: filters, headline numbers, charts, tables and maps a model composes into a dashboard",
+  "version": "0.0.2",
+  "description": "OpenUI dashboard AI component library: the Dashboard/Section/CardRow layout grammar, filters, cards and charts a model composes into dashboards",
   "license": "MIT",
   "type": "module",
   "exports": {
