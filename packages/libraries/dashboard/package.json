@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/dashboard-library",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OpenUI dashboard AI component library: the Dashboard/Section/CardRow layout grammar, filters, cards and charts a model composes into dashboards",
   "license": "MIT",
   "type": "module",

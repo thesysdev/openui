@@ -1,5 +1,11 @@
 # @openuidev/server
 
+## 0.4.3
+
+### Patch Changes
+
+- [#1630](https://github.com/thesysdev/openui/pull/1630) [`4d24e02`](https://github.com/thesysdev/openui/commit/4d24e0205a0110c641d02b9ace168e45ccc58d9c) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Dashboard `create` and `edit` send the client's `appId` as `app_id` again, next to `user_id`, as the frontend token 0.4.1 minted carried it. With an `appId` set, dashboards made before 0.4.2 stay editable, and frontend tokens minted with that `appId` can open new ones.
+
 ## 0.4.2
 
 ### Patch Changes
