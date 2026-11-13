@@ -25,12 +25,14 @@ export function CompareToggle(props: CompareToggleProps) {
     ? given
     : [{ value: "previous", label: props.label || "Previous period" }];
   const stored = props.value;
-  // Off (None) by default; defaultOn starts on the first choice. A choice
-  // that no longer exists falls back to the first one.
-  const current =
-    stored === COMPARE_OFF || (stored === undefined && !props.defaultOn)
+  // With options the control shows the $variable's own value: the program reads
+  // the same variable for its data, so anything that isn't an option (unset
+  // included) is None. Without options it is one switch, off until defaultOn.
+  const current = given.length
+    ? (given.find((option) => option.value === stored)?.value ?? COMPARE_OFF)
+    : stored === COMPARE_OFF || (stored === undefined && !props.defaultOn)
       ? COMPARE_OFF
-      : (list.find((option) => option.value === stored) ?? list[0]!).value;
+      : list[0]!.value;
   const chosen = list.find((option) => option.value === current);
   const chosenLabel = chosen ? (chosen.label ?? chosen.value) : null;
   // While off, deltas still read against the "off" data, which is the first

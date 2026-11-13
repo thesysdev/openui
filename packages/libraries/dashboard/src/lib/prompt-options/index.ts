@@ -18,7 +18,9 @@ const all = (names: string[]) => names.every(isRegistered);
 /** "Give previous-period values wherever they exist (…)": lists only components that exist. */
 function previousValuesNote() {
   const takers = ["Kpi", "Stat", "Series", "Funnel", "Leaderboard", "GeoMap"].filter(isRegistered);
-  const toggle = isRegistered("CompareToggle") ? " and add a CompareToggle" : "";
+  const toggle = isRegistered("CompareToggle")
+    ? " and add a CompareToggle. Change figures show whenever previous is given; the toggle only shows or hides the overlays on charts"
+    : "";
   return `Give previous-period values wherever they exist (${takers.join(", ")})${toggle}.`;
 }
 

@@ -216,48 +216,44 @@ export function StateFrame({ children, compact, auto = null }: StateFrameProps) 
   const override = useViewState();
   const refreshing = useContext(RefreshingContext);
   const state = override ?? auto ?? (refreshing ? "refreshing" : null);
-  if (!state) return <>{children}</>;
   // Being streamed: its final height isn't known yet, so it holds a card's height.
   const streamed = !override && auto === "loading";
-  if (state === "partial") {
+  // Showing its data: plain, refreshing or partial. One fragment with the content
+  // first in all three, so the content stays mounted (and keeps its own state:
+  // a table's sort and page, a chart's view) when a refetch starts and ends.
+  if (!state || state === "refreshing" || state === "partial") {
     return (
       <>
         {children}
-        {compact ? null : <PartNote>Part of this couldn’t be drawn.</PartNote>}
+        {state === "partial" && !compact ? (
+          <PartNote>Part of this couldn’t be drawn.</PartNote>
+        ) : null}
+        {/* The numbers stay; a shimmer sweeps over the card and a small loader sits on its top-right corner. */}
+        {state === "refreshing" ? (
+          <>
+            <Sheen />
+            <span className="openui-dashboard-refresh" role="status">
+              <span className="openui-dashboard-sr-only">Updating</span>
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="5.5"
+                  stroke="currentColor"
+                  strokeOpacity="0.2"
+                  strokeWidth="1.75"
+                />
+                <path
+                  d="M8 2.5a5.5 5.5 0 0 1 5.5 5.5"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+          </>
+        ) : null}
       </>
-    );
-  }
-  if (state === "refreshing") {
-    // The numbers stay; a shimmer sweeps over the card and a small loader sits on its top-right corner.
-    return (
-      <div
-        className="openui-dashboard-state"
-        data-state="refreshing"
-        data-compact={compact ? "" : undefined}
-        aria-busy
-      >
-        {children}
-        <span className="openui-dashboard-sheen" aria-hidden />
-        <span className="openui-dashboard-refresh" role="status">
-          <span className="openui-dashboard-sr-only">Updating</span>
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden>
-            <circle
-              cx="8"
-              cy="8"
-              r="5.5"
-              stroke="currentColor"
-              strokeOpacity="0.2"
-              strokeWidth="1.75"
-            />
-            <path
-              d="M8 2.5a5.5 5.5 0 0 1 5.5 5.5"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-            />
-          </svg>
-        </span>
-      </div>
     );
   }
   return (
