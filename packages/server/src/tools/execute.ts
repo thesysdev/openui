@@ -21,6 +21,27 @@ import {
 const MAX_ROUNDS = 8;
 const MAX_TOOL_CALLS = 256;
 const DEFAULT_TIMEOUT_MS = 60_000;
+// Your tools from one round run at most this many at a time, so a large batch
+// can't flood your backend; the results still go back together.
+const MAX_CONCURRENT_TOOLS = 16;
+
+/** `Promise.all(items.map(fn))` with at most `limit` running at once; order kept. */
+async function mapWithLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]!);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
 
 function invalidResponse(): never {
   throw new ToolExecutionError("Invalid script execution response", "invalid_response", 502);
@@ -182,8 +203,12 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
           seen.add(call["call_id"]);
         }
         state = response["state"];
-        toolResults = await Promise.all(
-          (calls as ScriptToolCall[]).map(async (call): Promise<ScriptToolResult> => {
+        toolResults = await mapWithLimit(
+          calls as ScriptToolCall[],
+          MAX_CONCURRENT_TOOLS,
+          async (call): Promise<ScriptToolResult> => {
+            // A timed-out or aborted run starts no more tools.
+            signal.throwIfAborted();
             try {
               const toolArgs: unknown = JSON.parse(call.arguments);
               if (!isRecord(toolArgs))
@@ -211,7 +236,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
                 },
               };
             }
-          }),
+          },
         );
       }
       throw new ToolExecutionError("Script execution limit exceeded", "script_limit", 502);
