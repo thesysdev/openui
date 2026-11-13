@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import React, { forwardRef, useRef, useState } from "react";
 import { useResponsiveContainer } from "../../hooks/useResponsiveContainer";
+import { toCssUrl } from "../_shared/utils";
 
 export interface ImageBlockProps extends React.HTMLAttributes<HTMLDivElement> {
   src: string;
@@ -17,6 +18,7 @@ export const ImageBlock = forwardRef<HTMLDivElement, ImageBlockProps>(
     const isMobile = breakpoint === "mobile";
 
     if (!src) return null;
+    const bgImage = hasError ? undefined : toCssUrl(src);
 
     return (
       <div
@@ -33,9 +35,7 @@ export const ImageBlock = forwardRef<HTMLDivElement, ImageBlockProps>(
           },
           className,
         )}
-        style={
-          src && !hasError ? ({ "--bg-image": `url(${src})` } as React.CSSProperties) : undefined
-        }
+        style={bgImage ? ({ "--bg-image": bgImage } as React.CSSProperties) : undefined}
         {...rest}
       >
         <img

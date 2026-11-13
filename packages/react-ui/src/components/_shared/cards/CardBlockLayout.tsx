@@ -9,6 +9,8 @@ import {
 } from "react";
 import { getRowConfiguration, useCarouselMask } from "./smallCardBlockUtils";
 
+const CSS_LENGTH_RE = /^\d+(\.\d+)?(px|rem|em|%|vw|vh)?$/;
+
 export type CardBlockLayoutVariant = "grid" | "carousel";
 export type CardBlockSize = "small" | "medium";
 
@@ -52,11 +54,12 @@ function CardBlockLayoutInner<T>(
   const base = `openui-${size}-card-block`;
   const count = safeItems.length;
 
-  const gapStyle = gap
-    ? ({
-        [`--openui-${size}-card-gap`]: typeof gap === "number" ? `${gap}px` : gap,
-      } as CSSProperties)
-    : undefined;
+  const gapValue = typeof gap === "number" ? `${gap}px` : gap?.trim();
+  // The gap is model-controlled and lands in a style attribute: only a CSS length is allowed
+  const gapStyle =
+    gapValue && CSS_LENGTH_RE.test(gapValue)
+      ? ({ [`--openui-${size}-card-gap`]: gapValue } as CSSProperties)
+      : undefined;
 
   const renderCell = (item: T, index: number) => (
     <div

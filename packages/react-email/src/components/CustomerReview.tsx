@@ -3,6 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { Button, Column, Heading, Hr, Row, Section, Text } from "@react-email/components";
 import { z } from "zod/v4";
+import { safeColor } from "../safeColor";
 
 export const EmailCustomerReview = defineComponent({
   name: "EmailCustomerReview",
@@ -32,7 +33,7 @@ export const EmailCustomerReview = defineComponent({
     ];
     const buttonLabel = (props.buttonLabel as string) ?? "Write a review";
     const buttonHref = (props.buttonHref as string) ?? "#";
-    const buttonColor = (props.buttonColor as string) ?? "#4F46E5";
+    const buttonColor = safeColor(props.buttonColor, "#4F46E5");
 
     return (
       <Section>
