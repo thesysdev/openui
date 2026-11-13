@@ -1,0 +1,168 @@
+name: Require linked issue
+
+# Closes community pull requests that are not linked to an issue, per
+# CONTRIBUTING.md ("Start With an Issue"). Reopens them automatically once the
+# description is edited to reference one.
+#
+# Skipped for: thesysdev org members / anyone with write access, bots, PRs
+# opened before ENFORCE_AFTER, and PRs carrying the `no-issue-needed` label.
+#
+# pull_request_target is required so the token can comment on and close PRs
+# from forks. This workflow must never check out or execute PR code.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: require-linked-issue-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.type != 'Bot'
+    env:
+      # Only PRs created at or after this instant are enforced.
+      ENFORCE_AFTER: "2026-11-13T00:00:00Z"
+      CLOSED_LABEL: needs-linked-issue
+      EXEMPT_LABEL: no-issue-needed
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { owner, repo } = context.repo;
+            const number = pr.number;
+            const author = pr.user.login;
+            const labels = pr.labels.map((l) => l.name);
+            const { ENFORCE_AFTER, CLOSED_LABEL, EXEMPT_LABEL } = process.env;
+
+            if (new Date(pr.created_at) < new Date(ENFORCE_AFTER)) {
+              core.info(`PR predates ${ENFORCE_AFTER}; skipping.`);
+              return;
+            }
+            if (pr.merged) return;
+            if (labels.includes(EXEMPT_LABEL)) {
+              core.info(`PR has the ${EXEMPT_LABEL} label; skipping.`);
+              return;
+            }
+
+            // --- Is the author part of the org / a maintainer? ---------------
+            let trusted = ["OWNER", "MEMBER", "COLLABORATOR"].includes(pr.author_association);
+            if (!trusted) {
+              // author_association can under-report private org membership, so
+              // also treat anyone with write access to the repo as internal.
+              try {
+                const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username: author,
+                });
+                trusted = ["admin", "maintain", "write"].includes(data.permission);
+              } catch (err) {
+                core.info(`Permission lookup failed for ${author}: ${err.message}`);
+              }
+            }
+            if (trusted) {
+              core.info(`${author} is an org member or maintainer; skipping.`);
+              return;
+            }
+
+            // --- Is the PR linked to an issue? -------------------------------
+            async function isIssue(n) {
+              try {
+                const { data } = await github.rest.issues.get({ owner, repo, issue_number: n });
+                return !data.pull_request;
+              } catch {
+                return false;
+              }
+            }
+
+            async function hasLinkedIssue() {
+              // 1. Issues linked through closing keywords or the sidebar.
+              try {
+                const res = await github.graphql(
+                  `query ($owner: String!, $repo: String!, $number: Int!) {
+                    repository(owner: $owner, name: $repo) {
+                      pullRequest(number: $number) {
+                        closingIssuesReferences(first: 1) { totalCount }
+                      }
+                    }
+                  }`,
+                  { owner, repo, number },
+                );
+                if (res.repository.pullRequest.closingIssuesReferences.totalCount > 0) return true;
+              } catch (err) {
+                core.info(`closingIssuesReferences lookup failed: ${err.message}`);
+              }
+
+              // 2. Any `#123` or issue URL in the description that points at a
+              //    real issue (not a PR) in this repository. Also covers the
+              //    moment right after opening, before GitHub indexes the link.
+              const body = (pr.body || "").replace(/<!--[\s\S]*?-->/g, "");
+              const refs = new Set();
+              const urlRe = new RegExp(
+                `https://github\\.com/${owner}/${repo}/issues/(\\d+)`,
+                "gi",
+              );
+              for (const m of body.matchAll(/(?:^|[^\w/])#(\d+)\b/g)) refs.add(Number(m[1]));
+              for (const m of body.matchAll(urlRe)) refs.add(Number(m[1]));
+              for (const n of [...refs].filter((n) => n !== number).slice(0, 10)) {
+                if (await isIssue(n)) return true;
+              }
+              return false;
+            }
+
+            const linked = await hasLinkedIssue();
+            const flagged = labels.includes(CLOSED_LABEL);
+
+            if (linked) {
+              if (flagged) {
+                await github.rest.issues
+                  .removeLabel({ owner, repo, issue_number: number, name: CLOSED_LABEL })
+                  .catch(() => {});
+                if (pr.state === "closed") {
+                  try {
+                    await github.rest.pulls.update({ owner, repo, pull_number: number, state: "open" });
+                    core.info("Linked issue found; reopened.");
+                  } catch (err) {
+                    core.warning(`Could not reopen #${number}: ${err.message}`);
+                  }
+                }
+              }
+              return;
+            }
+
+            if (pr.state !== "open") return; // already closed, nothing to do
+
+            const base = `https://github.com/${owner}/${repo}`;
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: number,
+              labels: [CLOSED_LABEL],
+            });
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: [
+                `Hi @${author}, thanks for the contribution!`,
+                "",
+                `This pull request isn't linked to an issue, so it has been closed automatically. We ask that every change starts with an issue so the direction can be agreed on before review — see [CONTRIBUTING.md](${base}/blob/${pr.base.ref}/CONTRIBUTING.md#start-with-an-issue).`,
+                "",
+                "To get this reopened:",
+                "",
+                `1. [Open an issue](${base}/issues/new/choose) describing the change (or find the existing one) and wait for a maintainer to confirm the direction.`,
+                "2. Edit this pull request's description to reference it, e.g. `Closes #123`.",
+                "",
+                "The pull request will reopen automatically once the description references an issue.",
+              ].join("\n"),
+            });
+            await github.rest.pulls.update({ owner, repo, pull_number: number, state: "closed" });
+            core.notice(`Closed #${number}: no linked issue.`);
