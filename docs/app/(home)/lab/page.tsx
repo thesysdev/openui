@@ -19,7 +19,7 @@ const TYPE_ACCENT: Record<string, "blue" | "green" | "purple" | "orange" | "slat
   Article: "purple",
 };
 
-const DISCORD_URL = "https://discord.gg/suzHfJnpw";
+const DISCORD_URL = "https://discord.com/invite/Pbv5PsqUSv";
 
 export const metadata = createPageMetadata(page);
 
