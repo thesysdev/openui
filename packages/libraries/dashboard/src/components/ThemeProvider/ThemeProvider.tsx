@@ -1,63 +1,53 @@
-import {
-  ThemeProvider as BaseThemeProvider,
-  useTheme,
-  type Theme,
-  type ThemeMode,
-} from "@openuidev/react-components";
-import { createContext, useContext, useMemo, type FC, type ReactNode } from "react";
-import { defaultDarkTheme, defaultLightTheme } from "./defaultThemes";
-const InsideTheme = createContext(false);
+"use client";
+
+import { createContext, useContext, useMemo, type CSSProperties, type ReactNode } from "react";
+import { defaultDarkTheme, defaultLightTheme, type Theme } from "./defaultThemes";
+
+type ThemeMode = "light" | "dark";
+type ThemeProps = {
+  /** Active colour scheme. Defaults to the nearest dashboard ThemeProvider's mode, otherwise `"light"`. */
+  mode?: ThemeMode;
+  /** Partial overrides for light mode, merged onto the built-in light tokens. */
+  lightTheme?: Theme;
+  /** Partial overrides for dark mode. When omitted, `lightTheme` applies to both modes. */
+  darkTheme?: Theme;
+  children?: ReactNode;
+};
 
 /**
- * Whether this library's `ThemeProvider` is already above this point. Every provider
- * writes its theme to the shared `.openui-dashboard-theme` selector, so a nested
- * one would append a later sheet with the defaults and undo the outer theme for
- * every dashboard on the page.
+ * The provider's mode, and its tokens as inline CSS variables. A portal renders outside the
+ * provider's element, so it puts `style` on its own root to carry the same tokens.
  */
-export const useIsInsideTheme = () => useContext(InsideTheme);
+export const ThemeContext = createContext<{ mode: ThemeMode; style: CSSProperties } | null>(null);
 
-export interface ThemeProviderProps {
-  children: ReactNode;
-  /** Overrides the mode read from the outer react-components `<ThemeProvider>`. */
-  mode?: ThemeMode;
-  /** Shallow-merged over the default light Dashboard theme. */
-  lightTheme?: Partial<Theme>;
-  /** Shallow-merged over the default dark Dashboard theme. */
-  darkTheme?: Partial<Theme>;
+/** `seqInk1` → `--openui-dashboard-seq-ink-1`, `space2xl` → `--openui-dashboard-space-2xl`. */
+export function tokenVariable(key: string) {
+  return `--openui-dashboard-${key.replace(/[A-Z]|\d+/g, (part) => `-${part.toLowerCase()}`)}`;
 }
 
-/**
- * Themes the Dashboard surface. Mirrors `ReportThemeProvider` — dashboards
- * render at one scale throughout, so a single react-components `ThemeProvider` scoped to
- * `.openui-dashboard-theme` is enough (no shell/canvas split like
- * Presentation needs).
- *
- * The openui token overrides in `defaultThemes.ts` give the dashboard its denser
- * typography, emitted onto the scope class by react-components' `ThemeProvider`.
- */
-export const ThemeProvider: FC<ThemeProviderProps> = ({
-  children,
-  mode: modeOverride,
-  lightTheme,
-  darkTheme,
-}) => {
-  const { mode: ambientMode } = useTheme();
-  const mode: ThemeMode = modeOverride ?? ambientMode;
+export function ThemeProvider({ mode: suppliedMode, lightTheme, darkTheme, children }: ThemeProps) {
+  const parent = useContext(ThemeContext);
+  const mode = suppliedMode ?? parent?.mode ?? "light";
 
-  const mergedLight = useMemo<Theme>(() => ({ ...defaultLightTheme, ...lightTheme }), [lightTheme]);
-
-  const mergedDark = useMemo<Theme>(() => ({ ...defaultDarkTheme, ...darkTheme }), [darkTheme]);
+  const value = useMemo(() => {
+    const defaults = mode === "light" ? defaultLightTheme : defaultDarkTheme;
+    const overrides: Theme | undefined = mode === "light" ? lightTheme : (darkTheme ?? lightTheme);
+    const style: Record<string, string> = { colorScheme: mode };
+    for (const [key, token] of Object.entries(defaults)) {
+      style[tokenVariable(key)] = overrides?.[key as keyof Theme] ?? token;
+    }
+    return { mode, style: style as CSSProperties };
+  }, [mode, lightTheme, darkTheme]);
 
   return (
-    <div className="openui-dashboard-theme" style={{ display: "contents" }}>
-      <BaseThemeProvider
-        mode={mode}
-        lightTheme={mergedLight}
-        darkTheme={mergedDark}
-        cssSelector=".openui-dashboard-theme"
-      >
-        <InsideTheme.Provider value={true}>{children}</InsideTheme.Provider>
-      </BaseThemeProvider>
-    </div>
+    <ThemeContext.Provider value={value}>
+      <div data-dashboard-mode={mode} style={{ display: "contents", ...value.style }}>
+        {children}
+      </div>
+    </ThemeContext.Provider>
   );
-};
+}
+
+export function DashboardTheme({ children }: { children: ReactNode }) {
+  return useContext(ThemeContext) ? <>{children}</> : <ThemeProvider>{children}</ThemeProvider>;
+}

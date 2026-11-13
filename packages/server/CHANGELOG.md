@@ -1,5 +1,31 @@
 # @openuidev/server
 
+## 0.4.3
+
+### Patch Changes
+
+- [#1630](https://github.com/thesysdev/openui/pull/1630) [`4d24e02`](https://github.com/thesysdev/openui/commit/4d24e0205a0110c641d02b9ace168e45ccc58d9c) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Dashboard `create` and `edit` send the client's `appId` as `app_id` again, next to `user_id`, as the frontend token 0.4.1 minted carried it. With an `appId` set, dashboards made before 0.4.2 stay editable, and frontend tokens minted with that `appId` can open new ones.
+
+## 0.4.2
+
+### Patch Changes
+
+- [#1616](https://github.com/thesysdev/openui/pull/1616) [`e92b25f`](https://github.com/thesysdev/openui/commit/e92b25f8b7346501d45310ffdd89a3622fddbc89) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Dashboard `create` and `edit` now send `context.userId` to OpenUI Cloud as `user_id`, instead of minting a frontend token for the user first. One request per call instead of two. The client's `appId` is no longer attached to dashboards.
+- Updated dependencies []:
+  - @openuidev/lang-core@1.1.1
+
+## 0.4.1
+
+### Patch Changes
+
+- [#1560](https://github.com/thesysdev/openui/pull/1560) [`2454f68`](https://github.com/thesysdev/openui/commit/2454f68c133cf0cf2ce65e4817af408c0751d155) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Dashboard scripts can make more tool calls per run.
+
+## 0.4.0
+
+### Minor Changes
+
+- [#1488](https://github.com/thesysdev/openui/pull/1488) [`afb41d5`](https://github.com/thesysdev/openui/commit/afb41d5cf252842b9a54cf8d512acfd928428d79) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add `OpenUIClient`: define a dashboard once with `defineDashboard`, create and edit dashboards from your agent, run their data tools with `interpreter.execute`, and mint frontend tokens.
+
 ## 0.3.0
 
 ### Minor Changes

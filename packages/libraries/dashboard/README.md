@@ -40,15 +40,22 @@ export function DashboardMessage({ response }: { response: string }) {
 `ThemeProvider` is optional. It sets the mode (light by default) and takes `lightTheme`
 and `darkTheme` overrides.
 
+`promptOptions` holds the generation rules and examples. To build your own options, spread its
+`examples` and `additionalRules`, which are also exported on their own.
+
 ## Components
 
-`Dashboard` is the root. 46 components in 6 groups:
+`Dashboard` is the root. 45 components in 10 groups:
 
-| Group            | Components                                                                                                                                                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard Layout | `Dashboard`, `DashboardHeader`, `Section`, `FilterBar`, `FilterSelect`, `FilterMultiSelect`, `DatePicker`, `CardRow`, `IconButton`                                                                                              |
-| Shell Cards      | `SmallCard`, `MediumCard`, `LargeCard`, `DashboardCardHeader`, `List`, `ListItem`, `EntityList`, `Callout`, `Button`, `ButtonGroup`, `Select`, `SelectItem`, `ImageBlock`, `Tag`, `TagBlock`, `TextContent`, `MarkDownRenderer` |
-| Metrics          | `MetricIndicator`, `OverviewCardItem`, `OverviewCardBlock`                                                                                                                                                                      |
-| Charts           | `LineChart`, `BarChart`, `AreaChart`, `HorizontalBarChart`, `RadarChart`, `ScatterChart`, `RadialChart`, `PieChart`, `Series`, `ScatterSeries`, `Point`                                                                         |
-| Data Display     | `Table`, `Col`                                                                                                                                                                                                                  |
-| Primitives       | `Icon`, `IconTag`, `IconText`, `TextBlock`                                                                                                                                                                                      |
+| Group         | Components                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Structure     | `Dashboard`, `Section`, `Row`, `Card`                                                                              |
+| Filters       | `FilterBar`, `PeriodPicker`, `DateRangeFilter`, `ChipFilter`, `SelectFilter`, `MultiSelectFilter`, `CompareToggle` |
+| Metrics       | `Kpis`, `Kpi`, `Trend`, `Progress`, `Split`, `States`, `Stat`, `KeyValues`, `KeyValue`, `Goal`                     |
+| Tables        | `Table`, `Column`                                                                                                  |
+| Trends        | `TimeSeries`, `Series`, `Reference`, `Marker`, `SmallMultiples`, `StatusTimeline`                                  |
+| Comparison    | `Bars`, `Leaderboard`, `Dumbbell`, `Distribution`, `Intervals`                                                     |
+| Composition   | `Donut`, `SegmentedBar`, `Treemap`, `Waterfall`                                                                    |
+| Flow          | `Funnel`, `Flow`                                                                                                   |
+| Relationships | `Scatter`, `Heatmap`, `Cohorts`                                                                                    |
+| Maps          | `GeoMap`, `PointMap`                                                                                               |

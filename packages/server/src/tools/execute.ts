@@ -17,8 +17,9 @@ import {
   type ToolHandler,
 } from "./types";
 
+// Rounds of calls a script run may wait on. Only this package counts them.
 const MAX_ROUNDS = 8;
-const MAX_TOOL_CALLS = 16;
+const MAX_TOOL_CALLS = 256;
 const DEFAULT_TIMEOUT_MS = 60_000;
 
 function invalidResponse(): never {

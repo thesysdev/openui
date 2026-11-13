@@ -1,12 +1,14 @@
 import * as path from "node:path";
 
-import { resolveInstallPackageManager } from "../../../lib/detect-package-manager";
+import type { PackageManager } from "../../../lib/detect-package-manager";
 import { CliCancelledError, cliErrorProperties, CreateError } from "../../../lib/errors";
 import { writeAgentsGuide } from "../../../lib/scaffold";
 import { withSpinner } from "../../../lib/spinner";
 import type { CreateAppOptions, EnvResult } from "./create-types";
+import { runDevServer } from "./dev-server";
 import { resolveCloudEnv, writeEnvVar } from "./env";
 import type { ExampleProject } from "./examples-catalog";
+import { installProjectDependencies, resolveInstallInvocation } from "./install";
 import {
   agentReadmeNote,
   cdStep,
@@ -14,6 +16,7 @@ import {
   readmePath,
   skillInstallHint,
 } from "./messages";
+import { resolveImmediate } from "./resolve";
 import {
   exampleDevCommand,
   exampleLayout,
@@ -27,7 +30,7 @@ export async function runCreateExample(params: {
   options: CreateAppOptions;
   interactive: boolean;
   agent?: string;
-  packageManager: ReturnType<typeof resolveInstallPackageManager>;
+  packageManager: PackageManager;
   t0: number;
   name: string;
   /** What to `cd` into: the project folder, or `.` when created in place. */
@@ -57,13 +60,11 @@ export async function runCreateExample(params: {
     example_source: options.example ? "flag" : interactive ? "prompt" : "default",
   });
 
-  tel.trackEnvResolutionStarted({ example: example.name });
-  const envResult = await resolveExampleEnv(example, name, options, interactive, agent, tel);
-
+  const immediateResolution = resolveImmediate(options.immediate, options.noInstall, interactive);
   tel.trackImmediateSelected({
-    immediate: false,
-    dependency_install_requested: false,
-    selection_source: "no_install",
+    immediate: immediateResolution.immediate,
+    dependency_install_requested: immediateResolution.installDependencies,
+    selection_source: immediateResolution.source,
   });
 
   console.info();
@@ -77,6 +78,7 @@ export async function runCreateExample(params: {
         targetDir,
         name,
         packageManager: packageManager.name,
+        tel,
         onRetry,
       });
       if (!options.noSkill) await writeAgentsGuide(targetDir, { onRetry });
@@ -105,6 +107,30 @@ export async function runCreateExample(params: {
   }
   tel.trackScaffoldSucceeded({ example: example.name });
 
+  layout ??= exampleLayout(targetDir);
+  // Nested examples run several apps (often in different languages), so they
+  // keep the printed per-app steps instead of one install + `run dev`.
+  const nested = isNestedExample(layout);
+  const { installCmd, installArgs } = resolveInstallInvocation({ packageManager, targetDir });
+  let dependencyInstalled = false;
+  if (nested) {
+    tel.trackDependencyInstallSkipped({ skip_reason: "nested_example" });
+  } else {
+    dependencyInstalled = await installProjectDependencies({
+      tel,
+      verbose,
+      targetDir,
+      scaffold: { example: example.name },
+      packageManager,
+      installCmd,
+      installArgs,
+      installDependencies: immediateResolution.installDependencies,
+    });
+  }
+
+  // Keys (Thesys sign-in or a provider key) come last, like the template flow.
+  tel.trackEnvResolutionStarted({ example: example.name });
+  const envResult = await resolveExampleEnv(example, name, options, interactive, agent, tel);
   try {
     if (envResult.envKeyValue && example.env.key) {
       writeEnvVar(path.join(targetDir, example.env.file), example.env.key, envResult.envKeyValue);
@@ -129,14 +155,14 @@ export async function runCreateExample(params: {
     auth_succeeded: envResult.authSucceeded,
   });
 
-  layout ??= exampleLayout(targetDir);
-  const installCmd = packageManager.installCmd;
-  tel.trackDependencyInstallSkipped({
-    skip_reason: "example_scaffold_only",
-  });
-  tel.trackDevCommandSkipped({
-    skip_reason: "not_immediate",
-  });
+  // Examples without a primary key (several keys to fill in) never auto-start.
+  const apiKeyAvailable = Boolean(
+    example.env.key && (envResult.envWritten || process.env[example.env.key]?.trim()),
+  );
+  const devStartBlockedByMissingApiKey =
+    immediateResolution.immediate && !nested && !apiKeyAvailable;
+  const startDev =
+    immediateResolution.immediate && dependencyInstalled && !devStartBlockedByMissingApiKey;
 
   tel.trackCreateSucceeded({
     example: example.name,
@@ -144,19 +170,28 @@ export async function runCreateExample(params: {
     env_written: envResult.envWritten,
     auth_method: envResult.authMethod,
     auth_succeeded: envResult.authSucceeded,
-    dependency_installed: false,
+    dependency_installed: dependencyInstalled,
   });
   const agentReadme = agent ? readmePath(targetDir) : undefined;
-  const envNote = exampleEnvNote(example.env, envResult.envWritten, dir, packageManager.dlxCmd);
-  const nextStep = isNestedExample(layout)
-    ? nestedExampleNextSteps({
-        name: dir,
-        targetDir,
-        layout,
-        runCmd: packageManager.runCmd,
-        installCmd,
-      })
-    : [...cdStep(dir), `> ${installCmd}`, `> ${packageManager.runCmd} run dev`].join("\n");
+  const envNote = exampleEnvNote(
+    example.env,
+    envResult.envWritten,
+    apiKeyAvailable,
+    dir,
+    packageManager.dlxCmd,
+  );
+  const devCmd = `${packageManager.runCmd} run dev`;
+  // The missing-key note already cd's into the project, so the run steps carry on from there.
+  const alreadyInProject = example.env.key === "THESYS_API_KEY" && !apiKeyAvailable;
+  const nextStep = nested
+    ? nestedExampleNextSteps({ name: dir, targetDir, layout, packageManager })
+    : startDev
+      ? `Starting the development server in "${name}"...\n\n> ${devCmd}`
+      : [
+          ...(alreadyInProject ? [] : cdStep(dir)),
+          ...(dependencyInstalled ? [] : [`> ${installCmd}`]),
+          `> ${devCmd}`,
+        ].join("\n");
 
   console.info(
     `\n${[
@@ -169,6 +204,27 @@ export async function runCreateExample(params: {
       .filter(Boolean)
       .join("\n\n")}\n`,
   );
+
+  if (devStartBlockedByMissingApiKey) {
+    tel.trackDevCommandSkipped({
+      skip_reason: "missing_api_key",
+      required_env: example.env.key,
+    });
+    return;
+  }
+
+  if (!startDev) {
+    tel.trackDevCommandSkipped({
+      skip_reason: nested
+        ? "nested_example"
+        : options.noInstall
+          ? "dependencies_not_installed"
+          : "not_immediate",
+    });
+    return;
+  }
+
+  await runDevServer({ tel, packageManager, targetDir, dir });
 }
 
 async function resolveExampleEnv(
@@ -222,11 +278,14 @@ async function promptForProviderKey(envKey: string): Promise<string | null> {
 function exampleEnvNote(
   env: ExampleProject["env"],
   envWritten: boolean,
+  /** The key is in the env file or already exported in the shell. */
+  apiKeyAvailable: boolean,
   name: string,
   dlxCmd: string,
 ): string {
   if (!env.key) return `Add your API keys to ${env.file} (see the example README).`;
   if (envWritten) return `✅ ${env.file} updated with ${env.key}.`;
+  if (apiKeyAvailable) return "";
   if (env.key === "THESYS_API_KEY") return missingCloudKeyNote(name, dlxCmd, env.file);
   return `Add ${env.key}=… to ${env.file} (see the example README).`;
 }
@@ -239,17 +298,18 @@ function nestedExampleNextSteps(params: {
   name: string;
   targetDir: string;
   layout: ExampleLayout;
-  runCmd: string;
-  installCmd: string;
+  packageManager: PackageManager;
 }): string {
+  const { packageManager } = params;
   const blocks: string[] = [];
   for (const relative of params.layout.jsPackages) {
     const pkgDir = relative === "." ? params.targetDir : path.join(params.targetDir, relative);
+    const { installCmd } = resolveInstallInvocation({ packageManager, targetDir: pkgDir });
     blocks.push(
       [
         `> cd ${posixJoin(params.name, relative)}`,
-        `> ${params.installCmd}`,
-        `> ${exampleDevCommand(pkgDir, params.runCmd)}`,
+        `> ${installCmd}`,
+        `> ${exampleDevCommand(pkgDir, packageManager.runCmd)}`,
       ].join("\n"),
     );
   }

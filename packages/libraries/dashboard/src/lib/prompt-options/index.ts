@@ -1,79 +1,154 @@
-import { type PromptOptions } from "@openuidev/react-lang";
-const DASHBOARD_EXAMPLE = `root = Dashboard([header, section])
-header = DashboardHeader("Sales Dashboard", "Q1 2025 Overview")
-section = Section([row1, row2])
-row1 = CardRow([card1, card2, card3])
-card1 = SmallCard("Total Revenue", "$1.2M", {direction: "up", value: 12.5})
-card2 = SmallCard("Active Users", "2,847", {direction: "up", value: 8.1})
-card3 = SmallCard("Churn Rate", "2.4%", {direction: "down", value: 0.3})
-row2 = CardRow([chartCard])
-chartCard = MediumCard([chartHeader, chart])
-chartHeader = DashboardCardHeader("Revenue Trend", "Last 30 days")
-chart = LineChart(["Jan", "Feb", "Mar"], [Series("Revenue", [120, 150, 180])])`;
-
-const OVERVIEW_CARDS_EXAMPLE = `root = Dashboard([header, section])
-header = DashboardHeader("Platform Overview")
-section = Section([row1, row2])
-row1 = CardRow([overview])
-overview = SmallCard(IconText(Icon("dollar-sign"), "neutral"), [MetricIndicator("$48.2K", "Monthly recurring", {direction: "up", value: 12.5})])
-row2 = CardRow([tableCard])
-tableCard = LargeCard([tableHeader, table])
-tableHeader = DashboardCardHeader("Top Products")
-table = Table([productCol, unitsCol, revenueCol])
-productCol = Col("Product", ["Widget Pro", "Widget Lite"])
-unitsCol = Col("Units", [842, 1205], "number")
-revenueCol = Col("Revenue", ["$12,400", "$9,800"], "number")`;
-
-const FILTERED_DASHBOARD_EXAMPLE = `root = Dashboard([header, section])
-$region = "all"
-header = DashboardHeader("Usage Analytics")
-filter = FilterBar([regionFilter])
-regionFilter = FilterSelect("region", "Region", [{value: "all", label: "All Regions"}, {value: "na", label: "North America"}, {value: "emea", label: "EMEA"}], $region)
-data = {all: {events: "4,500", mix: [45, 35, 20], months: [1200, 1500, 1800]}, na: {events: "2,700", mix: [50, 30, 20], months: [700, 900, 1100]}, emea: {events: "1,800", mix: [38, 42, 20], months: [500, 600, 700]}}
-section = Section([row1, row2], filter)
-row1 = CardRow([eventsCard])
-eventsCard = SmallCard("Total Events", data[$region].events)
-row2 = CardRow([pieCard, barCard])
-pieCard = MediumCard([pieHeader, pie])
-pieHeader = DashboardCardHeader("Distribution")
-pie = PieChart(["API", "Web", "Mobile"], data[$region].mix)
-barCard = MediumCard([barHeader, bar])
-barHeader = DashboardCardHeader("Monthly Usage")
-bar = BarChart(["Jan", "Feb", "Mar"], [Series("Events", data[$region].months)])`;
+import type { ComponentGroup } from "@openuidev/react-lang";
+import { FORMAT_PRESETS } from "../../shared/format";
+import { WIDTHS } from "../../shared/schema";
+import { isRegistered } from "../defineComponents";
 
 /**
- * Prompt options for the Dashboard library. Pass to
- * `library.prompt(promptOptions)` when a dashboard
- * prompt is needed. The explicit generator does not currently emit a dashboard
- * artifact.
+ * His prompt groups and notes (library.ts), written out in full once. A group shows only the
+ * components registered so far and is left out while it has none, and a note that names
+ * components not registered yet waits for them. Once every group ticket has landed the prompt
+ * is his, word for word, and no group ticket needs to edit this file.
  */
-export const examples: string[] = [
-  DASHBOARD_EXAMPLE,
-  OVERVIEW_CARDS_EXAMPLE,
-  FILTERED_DASHBOARD_EXAMPLE,
+type Note = string | { text: string; needs: string[] } | (() => string | null);
+
+type PromptGroup = { name: string; components: string[]; notes: Note[] };
+
+const all = (names: string[]) => names.every(isRegistered);
+
+/** "Give previous-period values wherever they exist (…)": lists only components that exist. */
+function previousValuesNote() {
+  const takers = ["Kpi", "Stat", "Series", "Funnel", "Leaderboard", "GeoMap"].filter(isRegistered);
+  const toggle = isRegistered("CompareToggle") ? " and add a CompareToggle" : "";
+  return `Give previous-period values wherever they exist (${takers.join(", ")})${toggle}.`;
+}
+
+/** Story order: his text once trends and tables exist; until then, without them. */
+function storyOrderNote() {
+  const tail = all(["TimeSeries", "Table"])
+    ? "then trends, then breakdowns, then detail tables"
+    : "then Rows of Cards";
+  return `Story order: a lead Section with one Kpis strip of 3–6 headline numbers, ${tail}. Don't size Kpis: the strip lays them out. A number that needs a chart beside it is a Card with a Stat.`;
+}
+
+const PROMPT_GROUPS: PromptGroup[] = [
+  {
+    name: "Structure",
+    components: ["Dashboard", "Section", "Row", "Card"],
+    notes: [
+      `Shared argument types: Format = ${FORMAT_PRESETS.map((preset) => `"${preset}"`).join(" | ")}, or {type, currency?, decimals?, prefix?, suffix?} to override, e.g. {type: "number", suffix: " seats"}. Width = ${WIDTHS.map((width) => `"${width}"`).join(" | ")}. GoodWhen = "up" | "down" | "neutral": which direction of change is good news.`,
+      'Numbers are raw with a Format; never formatted strings like "$1.2K" or "12%". percent values are already percentages (18.4 = 18.4%); ratio is for fractions; duration is seconds, ms milliseconds, days days. A Kpi\'s text value is for words (a plan, a status, a version), never a number.',
+      {
+        text: "A pluck reads one column across a list of rows: where a Query result r holds its rows as objects in r.rows, r.rows.day is every row's day, so TimeSeries(r.rows.day, [Series(\"Events\", r.rows.events)]). Read each tool's result in the shape that tool describes, and ask a query for exactly the rows and columns a card shows.",
+        needs: ["TimeSeries", "Series"],
+      },
+      'To skip an optional argument before one you need, pass null: Kpi("Signups", 2227, "number", null, null, "New accounts").',
+      storyOrderNote,
+      {
+        text: "Charts are grouped below by the question they answer: Trends (over time), Comparison (across categories), Composition (part of a whole), Flow (between stages), Relationships (two measures or axes), Maps (by place). Pick the group by the question, then the chart. One unit per chart (no dual axes); split different units into separate charts.",
+        needs: ["TimeSeries", "Bars", "Donut", "Funnel", "Scatter", "GeoMap"],
+      },
+    ],
+  },
+  {
+    name: "Filters",
+    components: [
+      "FilterBar",
+      "PeriodPicker",
+      "DateRangeFilter",
+      "ChipFilter",
+      "SelectFilter",
+      "MultiSelectFilter",
+      "SearchFilter",
+      "CompareToggle",
+    ],
+    notes: [
+      "One FilterBar first, for dashboard-wide filters only: date filter first, then segments several cards read (plan, region), then CompareToggle.",
+      "A switch that changes only one card, such as what it's broken down by (channel or referring domain; device, browser or OS) or which metric it plots, belongs in that Card's controls, not the FilterBar. Its $variable feeds only that card's Query or data.",
+      "A filter must change what is shown, but only cards whose numbers depend on it read it; point-in-time or cross-segment cards can ignore it. With data written into the program, key values by option: data[$period].mrr (nest keys for two filters: data[$period][$channel].signups).",
+    ],
+  },
+  {
+    name: "Metrics",
+    components: [
+      "Kpis",
+      "Kpi",
+      "Trend",
+      "Progress",
+      "Split",
+      "States",
+      "Stat",
+      "KeyValues",
+      "KeyValue",
+      "Goal",
+    ],
+    notes: [
+      previousValuesNote,
+      'Set goodWhen "down" for metrics where lower is better: costs, CAC, churn, latency, errors.',
+    ],
+  },
+  {
+    name: "Tables",
+    components: ["Table", "Column"],
+    notes: ["Table for several measures per row; Columns pick how each cell draws."],
+  },
+  // Charts are grouped by the question they answer, the same groups as the library's pages.
+  {
+    name: "Trends",
+    components: ["TimeSeries", "Series", "Reference", "Marker", "SmallMultiples", "StatusTimeline"],
+    notes: [
+      'How a measure moves over time → TimeSeries (events → markers; share over time → stacked "percent"; projections → forecastFrom). Many series of one measure → SmallMultiples. Up, degraded or down per service over time → StatusTimeline.',
+    ],
+  },
+  {
+    name: "Comparison",
+    components: ["Bars", "Leaderboard", "Dumbbell", "Distribution", "Intervals"],
+    notes: [
+      "Values across categories → Bars (variance around zero → diverging). A ranked top-N list to read → Leaderboard. Before → after per category → Dumbbell. Spread of values → Distribution. Estimates with uncertainty → Intervals.",
+    ],
+  },
+  {
+    name: "Composition",
+    components: ["Donut", "SegmentedBar", "Treemap", "Waterfall"],
+    notes: [
+      "Part of a whole → Donut when the total is the headline, SegmentedBar for a compact strip; both take up to 8 parts. Treemap for many or nested parts. How a total moved → Waterfall.",
+    ],
+  },
+  {
+    name: "Flow",
+    components: ["Funnel", "Flow"],
+    notes: [
+      "Ordered conversion steps → Funnel; start it at the first meaningful step (signup started), not raw traffic, and show traffic as a Kpi. Paths between stages → Flow.",
+    ],
+  },
+  {
+    name: "Relationships",
+    components: ["Scatter", "Heatmap", "Cohorts"],
+    notes: [
+      "Two measures per item → Scatter. Magnitude across two categorical axes → Heatmap. Retention by cohort → Cohorts.",
+    ],
+  },
+  {
+    name: "Maps",
+    components: ["GeoMap", "PointMap"],
+    notes: ["By country or US state → GeoMap. At places such as stores or cities → PointMap."],
+  },
 ];
 
-export const additionalRules: string[] = [
-  "Output MUST begin with `root = Dashboard([children])` on the first line.",
-  "Arguments are POSITIONAL — do NOT use named args with colons.",
-  "Dashboard children must be DashboardHeader and Section components.",
-  "Each Section contains an array of CardRow components and an optional FilterBar.",
-  "CardRow contains SmallCard, MediumCard, or LargeCard — do not mix SmallCard with Medium/LargeCard in the same row.",
-  "SmallCard has three forms: SmallCard(title, metric, trend?) for KPIs; SmallCard(IconText(...), [MetricIndicator(...)]) for icon cards; SmallCard(lhs, rhs) for snippet rows.",
-  "MediumCard and LargeCard accept DashboardCardHeader, charts, Table, and MetricIndicator as children.",
-  "Use DashboardCardHeader for card-level titles. Use titleType 'number' for KPI-first cards.",
-  'Use OverviewCardBlock for KPI metric grids with flat props: OverviewCardItem(title, subtitle?, icon?, imageSrc?, imageAlt?, value?, valueSubtext?, trend?). Arguments are positional, so pass "" for imageSrc and imageAlt when using an icon.',
-  "Use Table with Col children for tabular data. Set Col type to 'number' for right-aligned numeric columns.",
-  'A filter must change what the dashboard shows. Declare `$region = "all"`, pass `$region` as the filter\'s value argument, and read every value it affects from one object with an entry per option value: `data[$region].revenue`.',
-  'Without a data tool, use only FilterSelect in a FilterBar, even when asked for a date picker or for ticking several options: written values can\'t follow a free date or several selections. Offer dates as options such as "Last 30 days", and groups as options such as "All products".',
-  "Button and IconButton only send their label and the current filter values back to you as a chat message. They can't export, download, save or change anything. If one is pressed for something you can't do, repeat the dashboard with a Callout in a MediumCard that says you can't do it, because plain text isn't shown. Never claim it started or finished, and never offer download buttons.",
-  "Use realistic, professional placeholder data.",
-  "Icon takes a name string (e.g. 'dollar-sign', 'users'). Use common lucide icon names.",
-];
+function noteText(note: Note): string | null {
+  if (typeof note === "string") return note;
+  if (typeof note === "function") return note();
+  return all(note.needs) ? note.text : null;
+}
 
-export const promptOptions: PromptOptions = {
-  preamble: "You are generating an openui-lang dashboard.",
-  examples,
-  additionalRules,
-  bindings: true,
-};
+export { examples } from "./examples";
+export { additionalRules, promptOptions } from "./promptOptions";
+
+/** The prompt groups for the components registered so far. */
+export function promptGroups(): ComponentGroup[] {
+  return PROMPT_GROUPS.flatMap((group) => {
+    const components = group.components.filter(isRegistered);
+    if (!components.length) return [];
+    const notes = group.notes.map(noteText).filter((note): note is string => note !== null);
+    return [{ name: group.name, components, notes }];
+  });
+}

@@ -26,6 +26,11 @@ export interface CloudArtifactStorageOptions {
   fetch: typeof fetch;
   /** Default page size when the caller passes no limit. */
   pageLimit?: number;
+  /**
+   * Dashboards show each query's last result while it reloads; the results are
+   * kept in OpenUI Cloud for 24 hours, per user. `false` turns this off. Default true.
+   */
+  cacheQueryResults?: boolean;
 }
 
 function toSummary(artifact: CloudArtifact): ArtifactSummary {
@@ -43,6 +48,7 @@ export function cloudArtifactStorage({
   baseUrl,
   fetch: fetchImpl,
   pageLimit = 100,
+  cacheQueryResults = true,
 }: CloudArtifactStorageOptions): ArtifactStorage {
   const request = cloudRequest(fetchImpl, baseUrl);
   const base = baseUrl.replace(/\/+$/, "");
@@ -113,6 +119,22 @@ export function cloudArtifactStorage({
     async delete(id: string): Promise<void> {
       await request(`/v1/artifacts/${encodeURIComponent(id)}`, { method: "DELETE" });
     },
+
+    ...(cacheQueryResults && {
+      /** GET /v1/artifacts/:id/query-results → the saved entries by key. */
+      async getQueryResults(id: string): Promise<Record<string, unknown>> {
+        const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`);
+        return ((await res.json()) as { results?: Record<string, unknown> }).results ?? {};
+      },
+
+      /** PUT /v1/artifacts/:id/query-results {key, value}. Not awaited; a failure is dropped. */
+      putQueryResult(id: string, entry: { key: string; value: unknown }): void {
+        request(`/v1/artifacts/${encodeURIComponent(id)}/query-results`, {
+          method: "PUT",
+          body: JSON.stringify(entry),
+        }).catch(() => {});
+      },
+    }),
 
     /** GET /v1/artifacts/:id/stream (SSE). Replays a finished artifact the
      *  same way; every connection starts from the whole program. */

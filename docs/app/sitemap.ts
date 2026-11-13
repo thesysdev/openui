@@ -3,15 +3,13 @@ import { integrations } from "./(home)/integrations/data";
 
 const STATIC_PATHS = [
   "/",
-  "/openui-vs-json",
-  "/compare",
+  "/dashboards",
   "/lab",
   "/integrations",
-  "/chat",
   "/demo/f1-dashboard",
   "/demo/trip-planner/planner",
   "/demo/intelligent-ui",
-  "/demo/github",
+  "/demo/sales-dashboard",
   "/pricing",
   "/cloud/gateway",
   "/cloud/gateway/models",

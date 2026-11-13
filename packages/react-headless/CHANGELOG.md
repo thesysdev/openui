@@ -1,5 +1,41 @@
 # @openuidev/react-headless
 
+## 0.18.8
+
+### Patch Changes
+
+- [#1627](https://github.com/thesysdev/openui/pull/1627) [`d3763f5`](https://github.com/thesysdev/openui/commit/d3763f531b833e804e86d2059902d3f302cc7754) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - `cacheQueryResults: false` on `useOpenuiCloudStorage` or `OpenUICloudProvider` turns off showing a dashboard's last results while it reloads. The option was described in 0.18.7 but could not be passed.
+
+## 0.18.7
+
+### Patch Changes
+
+- [#1607](https://github.com/thesysdev/openui/pull/1607) [`63a9c39`](https://github.com/thesysdev/openui/commit/63a9c39c26ba0d8ad130158e8cdb69b619aa2ae9) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - A dashboard shows its last results while it reloads. Pass `cacheQueryResults: false` to `cloudArtifactStorage` to turn this off. `ArtifactStorage` gets two optional methods for this, `getQueryResults` and `putQueryResult`.
+
+## 0.18.6
+
+### Patch Changes
+
+- [#1594](https://github.com/thesysdev/openui/pull/1594) [`19bb0c9`](https://github.com/thesysdev/openui/commit/19bb0c9849c3669d26da9eb5287178be7f5fb081) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - An open dashboard follows edits: the artifact stream records the versions it delivers, a reopened panel waits for the newer version before running its queries, and a query refused for an old version (`ARTIFACT_VERSION_MISMATCH`) runs again instead of showing an error, after one re-read shared by every renderer of the artifact. `useArtifactStream` gets `reportVersionMismatch`, and `onSettle` gets a `detail` with the error's code and the artifact id and version the call ran with.
+
+## 0.18.5
+
+No changes in this release.
+
+## 0.18.4
+
+No changes in this release.
+
+## 0.18.3
+
+No changes in this release.
+
+## 0.18.2
+
+### Patch Changes
+
+- [#1487](https://github.com/thesysdev/openui/pull/1487) [`da5ea77`](https://github.com/thesysdev/openui/commit/da5ea770eb4284d8d1a08471d46f5bf6fe6a8b0f) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Stream OpenUI Cloud artifacts by id. The cloud artifact storage can now stream, pin, unpin, delete and rename artifacts, and `OpenUICloudProvider` connects renderers outside `ChatProvider`.
+
 ## 0.18.1
 
 ### Patch Changes

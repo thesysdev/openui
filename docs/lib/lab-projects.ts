@@ -386,6 +386,36 @@ export const labProjects: ProjectItem[] = [
       { label: "Website", href: "https://origintrail.io", external: true },
     ],
   },
+  {
+    name: "OpenUI Sports",
+    description:
+      "A registry of soccer, NBA, and NFL components where a model answers sports questions in OpenUI Lang and an iOS app renders it as native SwiftUI views while it streams.",
+    type: "App",
+    status: "Community",
+    accent: "blue",
+    icon: MonitorSmartphone,
+    links: [
+      { label: "GitHub", href: "https://github.com/mireabot/openui-gen", external: true },
+      {
+        label: "Website",
+        href: "https://naivesolution.dev/projects/openui-sports",
+        external: true,
+      },
+    ],
+  },
+  {
+    name: "Bub",
+    description:
+      "A tiny, plugin-based agent runtime whose AG-UI plugin streams replies and runs browser tools in an OpenUI chat frontend.",
+    type: "Framework",
+    status: "Community",
+    accent: "purple",
+    icon: Bot,
+    links: [
+      { label: "GitHub", href: "https://github.com/bubbuild/bub", external: true },
+      { label: "Docs", href: "https://bub.build/docs/integrations/ag-ui/", external: true },
+    ],
+  },
 ];
 
 /** Community projects on the Demos page, featured first. Ones with an Integrations card are listed there instead. */

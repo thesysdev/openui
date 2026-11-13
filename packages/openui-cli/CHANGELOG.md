@@ -1,5 +1,21 @@
 # @openuidev/cli
 
+## 0.6.3
+
+### Patch Changes
+
+- [#1583](https://github.com/thesysdev/openui/pull/1583) [`fe9171c`](https://github.com/thesysdev/openui/commit/fe9171c769cafa2d0ac9606d856e210d87782140) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `setup-agent` no longer adds a refresh-note comment to `AGENTS.md`. The refresh command now lives at the end of the OpenUI skill itself.
+
+- [#1584](https://github.com/thesysdev/openui/pull/1584) [`7864d61`](https://github.com/thesysdev/openui/commit/7864d615c5feac91e244daf4205992f42f497d63) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `openui create` usage analytics now record why sign-in was skipped, which prompt a cancel came from, how long the catalog and template or example clones take, and when the dev server is ready. The create funnel's existing steps are unchanged.
+
+- [#1574](https://github.com/thesysdev/openui/pull/1574) [`4fd85e4`](https://github.com/thesysdev/openui/commit/4fd85e4c8b9b42feb579763c7f07ef857aaf9f09) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `openui create` now signs you in as the last step, after scaffolding and installing: press any key to generate an API key, or `Esc` to finish without one and add it later with `generate-api-key`. A `THESYS_API_KEY` already exported in your shell skips sign-in.
+
+## 0.6.2
+
+### Patch Changes
+
+- [#1569](https://github.com/thesysdev/openui/pull/1569) [`c67cfc7`](https://github.com/thesysdev/openui/commit/c67cfc71a09ecc5bf0a0f34edb21eb4d428eed47) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `openui create --example` now installs dependencies and, in a terminal with an API key set, starts the development server, like the default template. Examples with several apps still print per-app steps.
+
 ## 0.6.1
 
 ### Patch Changes

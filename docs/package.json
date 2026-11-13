@@ -3,10 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --spec --out generated/chat-library.spec.json && pnpm exec openui generate lib/playground-library.ts --spec --out generated/playground-library.spec.json",
     "fetch:tweets": "node scripts/fetch-static-tweets.mjs",
     "build": "node scripts/generate-og-map.mjs && next build --no-mangling",
-    "dev": "pnpm generate:prompts && node scripts/generate-og-map.mjs && { node scripts/generate-og-map.mjs --watch & next dev; }",
+    "dev": "node scripts/generate-og-map.mjs && { node scripts/generate-og-map.mjs --watch & next dev; }",
     "start": "next start",
     "types:check": "fumadocs-mdx && node scripts/generate-og-map.mjs && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx && node scripts/generate-og-map.mjs",

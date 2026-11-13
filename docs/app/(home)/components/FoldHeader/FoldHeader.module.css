@@ -16,7 +16,8 @@
      from tablet width up, rather than only on wide screens. */
   max-width: 100%;
   font-family: var(--home-font-display);
-  font-size: clamp(2.125rem, 4vw, 3.75rem);
+  /* Same scale as the product band's "Make your AI apps and agents" headline. */
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
   font-weight: var(--home-display-weight, 600);
   line-height: var(--home-display-leading, 1.1);
   letter-spacing: var(--home-display-tracking, -0.02em);

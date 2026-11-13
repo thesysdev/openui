@@ -39,12 +39,18 @@ interface MoreStackChip extends StackChipBase {
 export type StackChipItem =
   ImageStackChip | VectorStackChip | MascotStackChip | TextStackChip | MoreStackChip;
 
-function ChipIcon({ item }: { item: StackChipItem }) {
+function ChipIcon({ item, plain = false }: { item: StackChipItem; plain?: boolean }) {
   const iconId = useId();
 
   switch (item.iconKind) {
     case "image": {
-      const imgSrc = item.localSrc ?? `https://cdn.simpleicons.org/${item.slug}/${item.iconColor}`;
+      // Plain chips drop the badge colour, so the mark carries the brand
+      // colour itself (simpleicons' default when no colour is given).
+      const imgSrc =
+        item.localSrc ??
+        (plain
+          ? `https://cdn.simpleicons.org/${item.slug}`
+          : `https://cdn.simpleicons.org/${item.slug}/${item.iconColor}`);
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={imgSrc} alt={item.name} width={16} height={16} className={styles.badgeImage} />
@@ -100,10 +106,14 @@ export function StackChip({
   item,
   dense = false,
   iconOnly = false,
+  plain = false,
 }: {
   item: StackChipItem;
   dense?: boolean;
   iconOnly?: boolean;
+  /* "fine" is for plain chips drawn at their small size (the compatibility
+     clusters draw at 50px and scale down, which already thins their edge). */
+  plain?: boolean | "fine";
 }) {
   const chipClassName = [
     styles.chip,
@@ -113,11 +123,19 @@ export function StackChip({
   ]
     .filter(Boolean)
     .join(" ");
+  const badgeClassName = [
+    styles.badge,
+    item.badgeClassName ?? "",
+    plain ? styles.badgePlain : "",
+    plain === "fine" ? styles.badgePlainFine : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={chipClassName} aria-hidden={item.isBlurred || undefined}>
-      <div className={`${styles.badge} ${item.badgeClassName ?? ""}`.trim()}>
-        <ChipIcon item={item} />
+      <div className={badgeClassName}>
+        <ChipIcon item={item} plain={Boolean(plain)} />
       </div>
       <span className={styles.chipLabel}>{item.name}</span>
     </div>

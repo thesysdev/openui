@@ -45,8 +45,15 @@ export interface InterpreterToolProviderOptions {
   fetch?: typeof fetch;
   /** Called when a call starts. */
   onStart?: (toolName: string) => void;
-  /** Called when a call settles; `message` is `null` on success. */
-  onSettle?: (toolName: string, message: string | null) => void;
+  /**
+   * Called when a call settles; `message` is `null` on success. On failure, `detail`
+   * has the error's `code`, if any, and the artifact `id` and `version` the call ran with.
+   */
+  onSettle?: (
+    toolName: string,
+    message: string | null,
+    detail?: { code?: string; id: string; version?: string },
+  ) => void;
 }
 
 function errorMessage(error: unknown): string | undefined {
@@ -54,6 +61,14 @@ function errorMessage(error: unknown): string | undefined {
   if (error && typeof error === "object" && "message" in error) {
     const { message } = error as { message: unknown };
     if (typeof message === "string") return message;
+  }
+  return undefined;
+}
+
+function errorCode(error: unknown): string | undefined {
+  if (error && typeof error === "object" && "code" in error) {
+    const { code } = error as { code: unknown };
+    if (typeof code === "string") return code;
   }
   return undefined;
 }
@@ -77,7 +92,8 @@ async function callEndpoint(
     body = null;
   }
   if (!res.ok || (body?.error !== undefined && body.error !== null)) {
-    throw new Error(errorMessage(body?.error) ?? `Interpreter request failed: ${res.status}`);
+    const message = errorMessage(body?.error) ?? `Interpreter request failed: ${res.status}`;
+    throw Object.assign(new Error(message), { code: errorCode(body?.error) });
   }
   return body?.result;
 }
@@ -118,7 +134,12 @@ export function createInterpreterToolProvider(
         options.onSettle?.(name, null);
         return { content: [], structuredContent: result ?? null };
       } catch (error) {
-        options.onSettle?.(name, errorMessage(error) ?? "The data tool failed.");
+        const code = errorCode(error);
+        options.onSettle?.(name, errorMessage(error) ?? "The data tool failed.", {
+          ...(code !== undefined && { code }),
+          id,
+          ...(version !== undefined && { version }),
+        });
         throw error;
       }
     },

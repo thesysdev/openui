@@ -20,7 +20,7 @@ interface StackRow {
 
    Every entry needs a real mark. Anything with no logo to be found is left out
    rather than stood in for by a related company's. */
-const STACK_ROWS: StackRow[] = [
+export const STACK_ROWS: StackRow[] = [
   {
     /* OpenAI, xAI and DeepSeek are local files: Simple Icons carries no OpenAI
        mark, and its "x" is the social network, not xAI. */

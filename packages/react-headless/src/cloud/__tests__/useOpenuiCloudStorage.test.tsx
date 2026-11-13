@@ -144,4 +144,15 @@ describe("useOpenuiCloudStorage", () => {
       "fresh",
     );
   });
+
+  it("caches query results by default; cacheQueryResults: false leaves the two methods out", async () => {
+    await render({ token: "/api/token" });
+    expect(storage.artifact!.getQueryResults).toBeTypeOf("function");
+    expect(storage.artifact!.putQueryResult).toBeTypeOf("function");
+
+    await render({ token: "/api/token", cacheQueryResults: false });
+    expect(storage.artifact!.getQueryResults).toBeUndefined();
+    expect(storage.artifact!.putQueryResult).toBeUndefined();
+    expect(storage.artifact!.list).toBeTypeOf("function");
+  });
 });

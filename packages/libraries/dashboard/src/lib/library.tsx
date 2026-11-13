@@ -1,128 +1,23 @@
-import { createLibrary, type ComponentGroup } from "@openuidev/react-lang";
-import { dashboardComponents } from "./defineComponents";
-export { additionalRules, examples, promptOptions } from "./prompt-options/index";
+import { createLibrary, tagSchemaId } from "@openuidev/react-lang";
+import { formatSchema } from "../shared/format";
+import { goodWhenSchema, widthSchema } from "../shared/schema";
+import { groupComponents, inPromptOrder } from "./defineComponents";
+import { promptGroups } from "./prompt-options";
 
-export const componentGroups: ComponentGroup[] = [
-  {
-    name: "Dashboard Layout",
-    components: [
-      "Dashboard",
-      "DashboardHeader",
-      "Section",
-      "FilterBar",
-      "FilterSelect",
-      "FilterMultiSelect",
-      "DatePicker",
-      "CardRow",
-      "IconButton",
-    ],
-    notes: [
-      "Use Dashboard as the dashboard root with DashboardHeader plus Section children.",
-      "Use DashboardHeader for the page-level dashboard header.",
-      "Use one Section for most dashboard content. Create multiple Sections only for altogether different topics or domains, such as Sales vs Expenses. Do not create a new Section for every row or card.",
-      "A Section owns rows and an optional section-scoped FilterBar. Put a FilterBar in the Section whose rows it affects.",
-      "FilterBar supports only these filter types: FilterSelect, FilterMultiSelect, and DatePicker with mode single or range. Do not use Select, MarkDownRenderer, TextContent, or TagBlock inside FilterBar.",
-      "Use CardRow for horizontal card arrangements inside Section.",
-      "Valid CardRow patterns are: small-only, medium-only, medium+large mixed, or large-only.",
-    ],
-  },
-  {
-    name: "Shell Cards",
-    components: [
-      "SmallCard",
-      "MediumCard",
-      "LargeCard",
-      "DashboardCardHeader",
-      "List",
-      "ListItem",
-      "EntityList",
-      "Callout",
-      "Button",
-      "ButtonGroup",
-      "Select",
-      "SelectItem",
-      "ImageBlock",
-      "Tag",
-      "TagBlock",
-      "TextContent",
-      "MarkDownRenderer",
-    ],
-    notes: [
-      "SmallCard is compact. MediumCard supports DashboardCardHeader, text, callouts, ImageBlock, charts, tables, lists, actions, tags, and metrics. LargeCard supports the same content as MediumCard except PieChart, donut charts, RadialChart, and RadarChart.",
-      "Use Callout inside MediumCard or LargeCard for info, success, warning, or danger alerts.",
-      "Use Button and ButtonGroup inside MediumCard or LargeCard for action triggers. ButtonGroup arranges buttons in a row or column.",
-      "Use Select inside MediumCard or LargeCard for inline dropdowns that are not part of the FilterBar filter system.",
-      "Use ImageBlock inside MediumCard for displaying images such as logos, product photos, or illustrations.",
-      "Use TagBlock with Tag children inside MediumCard or LargeCard for status labels or category chips. Tag variants: success, info, warning, danger, neutral.",
-      "Use TextContent for inline markdown text or MarkDownRenderer for full markdown blocks inside MediumCard or LargeCard.",
-      "SelectItem is a child of Select. Each SelectItem has a value and label.",
-      'Use DashboardCardHeader as the first child inside MediumCard or LargeCard when the card needs title/subtext plus optional compact controls. If a card has a clear leading KPI or score, prefer making that value the DashboardCardHeader title with titleType "number" and use the subtitle for the label; use titleType "text" for descriptive card titles.',
-      "Do not use FilterBar inside MediumCard or LargeCard.",
-      "Do not use PieChart, donut charts, RadialChart, or RadarChart inside LargeCard.",
-      'When a CardRow contains three MediumCards and a MediumCard uses a PieChart or donut chart, always pass appearance "semiCircular" as the sixth PieChart argument, after height.',
-      "Inside LargeCard, use vertical BarChart for categorical comparisons. Do not use HorizontalBarChart in LargeCard unless the user explicitly asks for horizontal bars or the category labels are too long to read on a vertical axis.",
-      "MediumCard and LargeCard accept a second positional collapsed boolean. Use MediumCard(children, true) only for dense cards with multiple body blocks, long text or markdown, or large tables. Use LargeCard(children, true) only for dense large cards in a mixed MediumCard + LargeCard row; never collapse LargeCard in large-only rows.",
-      "SmallCard supports three compact forms: overview card with icon, overview card, and snippet card.",
-      "Use overview card with icon as SmallCard(IconText(Icon(...), iconVariant), [MetricIndicator(value, label, trend?)]) when the metric represents a recognizable real-world concept that can be symbolized universally, such as users, revenue, errors, CPU, memory, or latency.",
-      "Use overview card as SmallCard(title, metric, trend?) when the metric is abstract, composite, or system-specific and does not have a clear universal visual symbol, such as health score, activation quality, pipeline coverage, or custom internal KPIs.",
-      "Use snippet card as SmallCard(lhs, rhs) for compact entity, task, account, alert, or status records where the left side identifies the item and the right side shows one emphasized value/status/time. Do not use snippet cards for top-level aggregate KPI summaries.",
-    ],
-  },
-  {
-    name: "Metrics",
-    components: ["MetricIndicator", "OverviewCardItem", "OverviewCardBlock"],
-    notes: [
-      "Use MetricIndicator for concise value plus trend callouts inside small, medium, and large cards.",
-      "Use OverviewCardBlock for KPI metric grids with OverviewCardItem children.",
-    ],
-  },
-  {
-    name: "Charts",
-    components: [
-      "LineChart",
-      "BarChart",
-      "AreaChart",
-      "HorizontalBarChart",
-      "RadarChart",
-      "ScatterChart",
-      "RadialChart",
-      "PieChart",
-      "Series",
-      "ScatterSeries",
-      "Point",
-    ],
-    notes: [
-      "Use LineChart for trends over time.",
-      "Use BarChart for comparing values across categories.",
-      "Use AreaChart for volume trends with filled area.",
-      "Use PieChart for part-to-whole breakdowns. Supports pie, donut, and semiCircular appearance variants.",
-      "Use HorizontalBarChart only when category labels are long or the user explicitly requests horizontal bars.",
-      "Use RadarChart for multi-factor comparisons across dimensions.",
-    ],
-  },
-  {
-    name: "Data Display",
-    components: ["Table", "Col"],
-    notes: [
-      "Use Table with Col children for tabular data. Tables auto-paginate at 10 rows.",
-      "Set Col type to 'number' for right-aligned numeric columns.",
-    ],
-  },
-  {
-    name: "Primitives",
-    components: ["Icon", "IconTag", "IconText", "TextBlock"],
-    notes: [
-      "Icon takes a name string (e.g. 'dollar-sign', 'users'). Use common lucide icon names.",
-    ],
-  },
-];
+// Name the shared types so each signature prints "Format" instead of the whole
+// union (it appears ~20 times); the Structure notes define them once.
+tagSchemaId(formatSchema, "Format");
+tagSchemaId(widthSchema, "Width");
+tagSchemaId(goodWhenSchema, "GoodWhen");
 
-/**
- * Standalone library keyed on `Dashboard` as root.
- *
- * Callers that need a prompt pass `promptOptions` to
- * `library.prompt()`.
- */
+export { additionalRules, examples, promptOptions } from "./prompt-options";
+
+/** Every OpenUI Lang component of the dashboard, in prompt order, for use in another library. */
+export const dashboardComponents = inPromptOrder(groupComponents);
+
+/** The dashboard's prompt groups and their notes. */
+export const componentGroups = promptGroups();
+
 export const library = createLibrary({
   root: "Dashboard",
   components: dashboardComponents,

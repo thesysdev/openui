@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/dashboard-library",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "OpenUI dashboard AI component library: the Dashboard/Section/CardRow layout grammar, filters, cards and charts a model composes into dashboards",
   "license": "MIT",
   "type": "module",
@@ -36,19 +36,28 @@
   },
   "dependencies": {
     "@openuidev/react-components": "workspace:>=0.0.1 <0.1.0",
-    "@openuidev/react-lang": "workspace:>=1.0.1 <2.0.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.562.0",
-    "remark-gfm": "^4.0.1"
+    "@openuidev/react-lang": "workspace:>=1.1.1",
+    "recharts": "^3.8.0",
+    "d3-geo": "^3.1.2",
+    "topojson-client": "^3.1.0",
+    "us-atlas": "^3.0.1",
+    "world-atlas": "^2.0.2"
   },
   "peerDependencies": {
     "react": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",
     "react": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "react-dom": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@types/d3-geo": "^3.1.1",
+    "@types/geojson": "^7946.0.16",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5"
   },
   "keywords": [
     "openui",
@@ -58,7 +67,11 @@
     "component-library",
     "openui-lang",
     "charts",
-    "llm"
+    "llm",
+    "maps",
+    "recharts",
+    "analytics",
+    "react"
   ],
   "homepage": "https://openui.com",
   "author": "engineering@thesys.dev",
