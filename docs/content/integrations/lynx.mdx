@@ -82,4 +82,19 @@ export function StreamingSurface({ source }: { source: AsyncIterable<string> }) 
 
 </Step>
 
+<Step title="Run the full example" source="https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/lynx">
+
+[The Lynx example](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/lynx) wires the three steps above into a complete chat app: a ReactLynx client using the OpenUI Chat library, a Next.js backend that streams OpenUI Lang through OpenUI Gateway, and a Lynx streaming fetch reader. It also shows `@ToAssistant` actions continuing the conversation and `@OpenUrl` actions reaching the host.
+
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/app-frameworks/lynx
+(cd backend && pnpm install --ignore-workspace)
+(cd app && pnpm install --ignore-workspace)
+```
+
+Add `THESYS_API_KEY` to `backend/.env.local`, then run `pnpm dev` in each application.
+
+</Step>
+
 </Steps>

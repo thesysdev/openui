@@ -421,6 +421,7 @@ const integrationCatalog: Integration[] = [
       "@lynx-js/genui/openui incrementally parses OpenUI Lang, maps registered expressions to ReactLynx components, and renders them through Lynx's native pipeline while the host application owns its component definitions, tools, and actions.",
     install: "npm install @lynx-js/genui @lynx-js/react @lynx-js/lynx-ui",
     links: [
+      exampleLink("app-frameworks/lynx"),
       {
         label: "OpenUI integration guide",
         href: "https://lynxjs.org/next/react/genui/openui.html",

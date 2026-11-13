@@ -43,6 +43,7 @@ through `openui create --example <name>`.
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
 | [Angular](./app-frameworks/angular)           | An NG-ZORRO X chat interface with the Angular OpenUI renderer                   |
 | [FastAPI](./app-frameworks/fastapi)           | A Python FastAPI streaming backend with a React OpenUI client                   |
+| [Lynx](./app-frameworks/lynx)                 | A ReactLynx chat app rendering streamed OpenUI Lang natively                    |
 | [React Native](./app-frameworks/react-native) | An Expo client rendering native OpenUI components from a Next.js backend stream |
 | [Svelte](./app-frameworks/svelte)             | OpenUI Lang parsing and rendering in SvelteKit                                  |
 | [Vue](./app-frameworks/vue)                   | OpenUI Lang parsing and rendering in Nuxt and Vue                               |
@@ -92,7 +93,7 @@ pnpm install --ignore-workspace
 # or: bun install
 ```
 
-The pnpm flag prevents the command from climbing to this repository's ancestor workspace; it is not needed after copying an example elsewhere. The scripts do not invoke pnpm internally, so the corresponding `pnpm dev`, `npm run dev`, and `bun run dev` commands are equivalent. FastAPI's JavaScript application is in `app-frameworks/fastapi/frontend`; React Native has separate applications in `app-frameworks/react-native/backend` and `app-frameworks/react-native/chat-app`.
+The pnpm flag prevents the command from climbing to this repository's ancestor workspace; it is not needed after copying an example elsewhere. The scripts do not invoke pnpm internally, so the corresponding `pnpm dev`, `npm run dev`, and `bun run dev` commands are equivalent. FastAPI's JavaScript application is in `app-frameworks/fastapi/frontend`; React Native has separate applications in `app-frameworks/react-native/backend` and `app-frameworks/react-native/chat-app`; Lynx has separate applications in `app-frameworks/lynx/backend` and `app-frameworks/lynx/app`.
 
 Repository maintainers can install every application from the repository root with:
 
