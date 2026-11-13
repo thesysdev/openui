@@ -1,0 +1,43 @@
+name: Auto label
+
+# Adds `type:` and `component:` labels to new issues and PRs.
+# Rules: .github/scripts/auto-label.mjs
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+  # pull_request_target so PRs from forks can be labeled. Safe because the job
+  # only checks out the default branch and never runs code from the PR.
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+  # Manual run: creates every label and labels all open issues and PRs.
+  workflow_dispatch:
+
+concurrency:
+  group: auto-label-${{ github.event.issue.number || github.event.pull_request.number || 'all' }}
+
+permissions:
+  contents: read
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { pathToFileURL } = require("url");
+            const path = require("path");
+            const { default: autoLabel } = await import(
+              pathToFileURL(path.resolve(".github/scripts/auto-label.mjs")).href
+            );
+            await autoLabel({ github, context, core });
