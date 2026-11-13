@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 import { MUTED_COLOR, seriesColor as themeSeriesColor } from "./colors";
 import { formatValue, type ValueFormat } from "./format";
 import { type LegendEntry } from "./legend";
+import { niceStep } from "./scales";
 import { type ReferenceProps, type SeriesProps } from "./trends";
 import { toNumbers } from "./values";
 
@@ -78,6 +79,62 @@ export function durationTicks(
   if (!max) return undefined;
   const step = DURATION_STEPS.find((candidate) => max / candidate <= 5) ?? Math.ceil(max / 5);
   return Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step);
+}
+
+/**
+ * Value-axis ticks on 1, 2, 2.5 or 5 × 10ⁿ steps, from zero (or below it, for negative data) to
+ * just past the data, so an axis never counts in 950K steps as Recharts' own ticks can. A stacked
+ * row counts as its positive and negative sums; whole-number data keeps whole-number steps.
+ */
+export function niceTicks(
+  rows: Row[],
+  keys: string[],
+  extra: number[] = [],
+  { stacked = false, integers = false }: { stacked?: boolean; integers?: boolean } = {},
+): number[] | undefined {
+  const values = extra.filter(Number.isFinite);
+  for (const row of rows) {
+    let up = 0;
+    let down = 0;
+    for (const key of keys) {
+      const value = row[key];
+      if (typeof value !== "number" || !Number.isFinite(value)) continue;
+      if (!stacked) values.push(value);
+      else if (value > 0) up += value;
+      else down += value;
+    }
+    if (stacked) values.push(up, down);
+  }
+  const lo = Math.min(0, ...values);
+  const hi = Math.max(0, ...values);
+  if (lo === hi) return undefined;
+  const raw = niceStep((hi - lo) / 4);
+  // Whole numbers step by 1, 2 or 5 × 10ⁿ: a 2.5 step would print 7.5.
+  const step = integers && !Number.isInteger(raw) ? Math.max(1, Math.floor(raw)) : raw;
+  const start = Math.floor(lo / step) * step;
+  const end = Math.ceil(hi / step) * step;
+  return Array.from({ length: Math.round((end - start) / step) + 1 }, (_, i) =>
+    Number((start + i * step).toPrecision(12)),
+  );
+}
+
+/**
+ * Which end of a horizontal reference line its chip should sit at: the start, unless the data
+ * passes closer to the line there than at the end (the chip would cover it).
+ */
+export function chipAlign(rows: Row[], keys: string[], value: number): "start" | "end" {
+  const edge = Math.max(1, Math.ceil(rows.length * 0.2));
+  const clearance = (slice: Row[]) =>
+    Math.min(
+      Infinity,
+      ...slice.flatMap((row) =>
+        keys.flatMap((key) => {
+          const point = row[key];
+          return typeof point === "number" ? [Math.abs(point - value)] : [];
+        }),
+      ),
+    );
+  return clearance(rows.slice(-edge)) > clearance(rows.slice(0, edge)) ? "end" : "start";
 }
 
 /** Whole-number data gets whole-number ticks (no "0.2 signups"). */

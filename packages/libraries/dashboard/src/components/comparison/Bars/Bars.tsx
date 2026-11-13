@@ -33,6 +33,7 @@ import {
   hasPrevious,
   legendFor,
   minPlotWidth,
+  niceTicks,
   PLOT_FLOOR,
   previousColor,
   wrappedLabelWidth,
@@ -41,7 +42,7 @@ import {
 } from "../../../shared/chartHelpers";
 import { useCompare } from "../../../shared/compare";
 import type { ValueFormat } from "../../../shared/format";
-import { formatValue, isDurationFormat } from "../../../shared/format";
+import { dateLabels, formatValue, isDurationFormat } from "../../../shared/format";
 import { useWidth } from "../../../shared/hooks";
 import { unusableSeries } from "../../../shared/parts";
 import type { ReferenceProps, SeriesProps } from "../../../shared/trends";
@@ -154,11 +155,14 @@ export function Bars(props: BarsProps) {
   const stacked = !!props.stacked;
   const percent = props.stacked === "percent";
   const stackId = stacked ? "stack" : undefined;
-  const longestLabel = Math.max(...labels.map((label) => label.length));
+  // Dates on the axis and in the tooltip read "May 14", not 2026-05-14; widths follow the shown text.
+  const labelText = dateLabels(labels);
+  const shownLabels = labelText ? labels.map(labelText) : labels;
+  const longestLabel = Math.max(...shownLabels.map((label) => label.length));
   // Vertical bars: tilt category labels only when a wrapped label is wider than its column.
   const column = width ? (width - 64) / Math.max(1, labels.length) : 0;
   const angled =
-    !horizontal && column > 0 && Math.max(...labels.map(wrappedLabelWidth)) > column - 6;
+    !horizontal && column > 0 && Math.max(...shownLabels.map(wrappedLabelWidth)) > column - 6;
   // Bars side by side in one category: a stack is one bar; a faded previous bar adds half of one.
   const barsPerBand = stacked ? 1 : count + (ghostBars ? 0.5 : 0);
   // Horizontal: the usual height, grown only when a category needs more room to keep every bar at BAR_MIN.
@@ -174,6 +178,29 @@ export function Bars(props: BarsProps) {
     // 100% stacks all end on the same line, so no segment rounds, the outer one included.
     percent || (stacked && i < count - 1) ? [0, 0, 0, 0] : horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0];
 
+  // Round steps ($1M, not $950K), with the domain ending on the last tick so none is dropped.
+  const valueKeys = series
+    .map((_, i) => `s${i}`)
+    .concat(ghostBars || tickPrevious ? series.map((_, i) => `p${i}`) : []);
+  const nice = niceTicks(
+    rows,
+    stacked ? series.map((_, i) => `s${i}`) : valueKeys,
+    // A stack sums its segments; a faded previous bar beside it stands on its own.
+    references
+      .map((r) => r.value)
+      .concat(
+        stacked && ghostBars
+          ? rows.flatMap((row) => (typeof row["p0"] === "number" ? [row["p0"]] : []))
+          : [],
+      ),
+    {
+      stacked,
+      integers: allIntegers(rows, valueKeys) && references.every((r) => Number.isInteger(r.value)),
+    },
+  );
+  const niceAxis = nice
+    ? { ticks: nice, domain: [nice[0]!, nice[nice.length - 1]!] as [number, number] }
+    : {};
   const valueAxis = {
     tickLine: false,
     axisLine: false,
@@ -183,13 +210,15 @@ export function Bars(props: BarsProps) {
       rows,
       series.map((_, i) => `s${i}`),
     ),
-    ticks: isDurationFormat(props.format)
-      ? durationTicks(
-          rows,
-          series.map((_, i) => `s${i}`).concat(ghostBars ? series.map((_, i) => `p${i}`) : []),
-          references.map((r) => r.value),
-        )
-      : undefined,
+    ...(isDurationFormat(props.format)
+      ? {
+          ticks: durationTicks(
+            rows,
+            series.map((_, i) => `s${i}`).concat(ghostBars ? series.map((_, i) => `p${i}`) : []),
+            references.map((r) => r.value),
+          ),
+        }
+      : niceAxis),
     tickFormatter: (value: number) =>
       percent ? `${Math.round(value * 100)}%` : formatValue(value, props.format, { axis: true }),
     ...(percent
@@ -283,6 +312,7 @@ export function Bars(props: BarsProps) {
                   tickLine={false}
                   axisLine={false}
                   tick={{ ...AXIS_TICK, fill: "var(--openui-dashboard-ink-secondary)" }}
+                  tickFormatter={labelText ?? undefined}
                   width={Math.min(190, Math.max(64, longestLabel * 7.4 + 14))}
                 />
               </>
@@ -292,7 +322,7 @@ export function Bars(props: BarsProps) {
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
-                  tick={<WrappedTick angled={angled} band={column} />}
+                  tick={<WrappedTick angled={angled} band={column} format={labelText} />}
                   height={angled ? 56 : 36}
                   interval={0}
                 />
@@ -322,6 +352,7 @@ export function Bars(props: BarsProps) {
                   goodWhen={props.goodWhen}
                   showPrevious={showPrevious}
                   previousLabel={compare.label}
+                  formatLabel={labelText}
                   colorOf={
                     diverging
                       ? (i: number, row: Row) =>

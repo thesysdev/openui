@@ -4,6 +4,7 @@ import { MUTED_COLOR, seriesColor, textureOf } from "../../../shared/colors";
 import { useCompare } from "../../../shared/compare";
 import { formatDateText, formatValue, type ValueFormat } from "../../../shared/format";
 import { foldParts } from "../../../shared/parts";
+import { useFirstFetch } from "../../../shared/queryState";
 import { columnFormatter } from "../../../shared/scales";
 import type { Tone } from "../../../shared/schema";
 import { toNumbers } from "../../../shared/values";
@@ -160,7 +161,10 @@ function StatusStrip({ states }: { states: ("good" | "warning" | "bad" | null)[]
 export function Kpi(props: KpiProps) {
   const compare = useCompare();
   const override = useViewState();
-  const writing = props.streaming && props.value == null;
+  // Loading while the model writes the value, and while the first query fetch is under way:
+  // a derived value (revenue / orders) reads 0 until its data arrives.
+  const firstFetch = useFirstFetch();
+  const writing = (props.streaming && props.value == null) || firstFetch;
   const trend = toNumbers(props.trend);
   const trendPrevious = toNumbers(props.trendPrevious);
   const text = typeof props.value === "string" ? props.value : null;
@@ -233,7 +237,12 @@ export function Kpi(props: KpiProps) {
             <span>vs {formatValue(props.previous, props.format)}</span>
           </div>
         ) : null}
-        {props.hint ? <div className="openui-dashboard-kpi-hint">{props.hint}</div> : null}
+        {props.hint ? (
+          // A hint that is a date (an "as of" from the data) reads "Oct 1", not 10/01/2026, 12:00:00 AM.
+          <div className="openui-dashboard-kpi-hint">
+            {formatDateText(props.hint) ?? props.hint}
+          </div>
+        ) : null}
       </StateFrame>
     </section>
   );

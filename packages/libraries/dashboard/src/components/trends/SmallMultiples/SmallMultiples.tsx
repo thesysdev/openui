@@ -19,7 +19,7 @@ import { SrTable } from "../../../components/shared/SrTable";
 import { Empty } from "../../../components/shared/States";
 import { TooltipCard } from "../../../components/shared/TooltipCard";
 import { seriesColor } from "../../../shared/colors";
-import { formatValue } from "../../../shared/format";
+import { dateLabels, formatValue } from "../../../shared/format";
 import { useWidth } from "../../../shared/hooks";
 import { niceStep } from "../../../shared/scales";
 import { toNumbers, toStrings } from "../../../shared/values";
@@ -39,6 +39,8 @@ export function SmallMultiples(props: SmallMultiplesProps) {
   const [gridRef, width] = useWidth();
   const compare = useCompare();
   const labels = toStrings(props.labels);
+  // Dates in the tooltip read "May 14", not 2026-05-14.
+  const labelText = dateLabels(labels);
   const series = props.series;
   if (!labels.length || !series.length) return <Empty />;
   const type = props.type ?? "area";
@@ -201,7 +203,7 @@ export function SmallMultiples(props: SmallMultiplesProps) {
                             if (!row || row.v === null) return null;
                             return (
                               <TooltipCard
-                                title={String(label)}
+                                title={(labelText ?? String)(String(label))}
                                 rows={[
                                   {
                                     name: s.name,

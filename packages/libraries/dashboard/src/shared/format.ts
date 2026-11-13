@@ -237,10 +237,13 @@ export function isDurationFormat(format?: ValueFormat | null): boolean {
   return resolve(format).type === "duration";
 }
 
-/** Whether a format measures a rate, where change reads in points rather than percent. */
+/**
+ * Whether a format measures a rate, where change reads in points rather than percent. A number
+ * with a "%" suffix (a margin written as {type: "number", suffix: "%"}) is a percent too.
+ */
 export function isRateFormat(format?: ValueFormat | null): boolean {
-  const type = resolve(format).type;
-  return type === "percent" || type === "ratio";
+  const { type, suffix } = resolve(format);
+  return type === "percent" || type === "ratio" || (type === "number" && suffix.trim() === "%");
 }
 
 export type Delta = { text: string; direction: "up" | "down" | "flat" };
@@ -360,8 +363,102 @@ export function formatDay(day: Date): string {
   });
 }
 
-/** An ISO date or timestamp as a short day, or null for any other text (a version, a name). */
-export function formatDateText(value: unknown): string | null {
-  const day = parseIsoDate(value);
-  return day ? formatDay(day) : null;
+// The en-US Date#toLocaleString() shape some data sources return: 10/1/2026, 12:00:00 AM. Only this
+// one: its AM/PM marks the US month-first order, so 10/01/2026 can't be the 10th of January.
+const US_DATETIME = /^(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AP]M)$/i;
+// A year and month, as monthly data is often keyed: 2025-11.
+const YEAR_MONTH = /^(\d{4})-(\d{2})$/;
+
+/** A date read from text, with whether it names a whole month and whether it has a time of day. */
+export type DateText = { date: Date; unit: "day" | "month"; time: boolean };
+
+const atMidnight = (date: Date) =>
+  date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0;
+
+/**
+ * The date a text names: an ISO date or timestamp, or the en-US toLocaleString() shape
+ * (10/01/2026, 12:00:00 AM). Null for any other text, and for impossible days (02/30/2026), so a
+ * version or a name is never read as a date. A year and month (2025-11) counts only with
+ * `months`, for a whole set of values (an axis, a column): alone, "2026-04" may be a version.
+ */
+export function parseDateText(
+  value: unknown,
+  { months = false }: { months?: boolean } = {},
+): DateText | null {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  const iso = parseIsoDate(text);
+  if (iso) return { date: iso, unit: "day", time: text.length > 10 && !atMidnight(iso) };
+  const month = months ? YEAR_MONTH.exec(text) : null;
+  if (month) {
+    const [year, index] = [Number(month[1]), Number(month[2]) - 1];
+    return index >= 0 && index < 12
+      ? { date: new Date(year, index, 1), unit: "month", time: false }
+      : null;
+  }
+  const us = US_DATETIME.exec(text);
+  if (!us) return null;
+  const [m, d, y, h, min, sec] = [1, 2, 3, 4, 5, 6].map((i) => Number(us[i] ?? 0)) as number[];
+  if (m! < 1 || m! > 12 || h! < 1 || h! > 12 || min! > 59 || sec! > 59) return null;
+  const hours = (h! % 12) + (us[7]!.toUpperCase() === "PM" ? 12 : 0);
+  const date = new Date(y!, m! - 1, d!, hours, min!, sec!);
+  // A real day reads back the same; 02/30/2026 would roll over to March.
+  if (date.getMonth() !== m! - 1 || date.getDate() !== d!) return null;
+  return { date, unit: "day", time: !atMidnight(date) };
+}
+
+/** "Nov 2025": how a month reads. */
+function formatMonth(date: Date, withYear: boolean): string {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    year: withYear ? "numeric" : undefined,
+  });
+}
+
+/**
+ * A date as a short day ("Apr 2"), or null for any other text (a version, a name). A day this
+ * year leaves its year out, as a Table date column does. With `months`, a year and month reads
+ * "Nov 2025".
+ */
+export function formatDateText(
+  value: unknown,
+  { months = false }: { months?: boolean } = {},
+): string | null {
+  const parsed = parseDateText(value, { months });
+  if (!parsed) return null;
+  return parsed.unit === "month" ? formatMonth(parsed.date, true) : formatDay(parsed.date);
+}
+
+/**
+ * Chart category labels that are all dates, or all months, read as dates: "May 14" or "Nov 2025",
+ * with the year only when some label falls outside this year, and the time only when two labels
+ * share a day. Null when any label is other text, so names and quarters pass through untouched.
+ */
+export function dateLabels(labels: string[]): ((label: string) => string) | null {
+  const shown = labels.filter((label) => label.trim() !== "");
+  const parsed = shown.map((label) => parseDateText(label, { months: true }));
+  if (!parsed.length || parsed.some((date) => !date)) return null;
+  const dates = parsed as DateText[];
+  const unit = dates[0]!.unit;
+  if (dates.some((date) => date.unit !== unit)) return null;
+  const year = new Date().getFullYear();
+  const withYear = dates.some((date) => date.date.getFullYear() !== year);
+  const day = (date: Date) =>
+    date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: withYear ? "numeric" : undefined,
+    });
+  const days = dates.map((date) => day(date.date));
+  const timed = unit === "day" && new Set(days).size < days.length;
+  const text = new Map(
+    shown.map((label, i) => {
+      const date = dates[i]!;
+      if (unit === "month") return [label, formatMonth(date.date, withYear)];
+      if (!timed) return [label, days[i]!];
+      const time = date.date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      return [label, `${days[i]}, ${time}`];
+    }),
+  );
+  return (label) => text.get(label) ?? label;
 }

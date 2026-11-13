@@ -5,7 +5,8 @@ import { widthClass, type Width } from "../../../shared/schema";
 export const ROW_HEIGHTS = [240, 320, 400, 480, 560, 640] as const;
 export type RowHeight = (typeof ROW_HEIGHTS)[number];
 export interface RowProps {
-  items: { children: ReactNode; width: Width; height: RowHeight }[];
+  /** fit: the card's content sizes itself (a Table, KeyValues, a Donut) instead of stretching to the row. */
+  items: { children: ReactNode; width: Width; height: RowHeight; fit?: boolean }[];
   height?: RowHeight;
 }
 export function Row({ items, height }: RowProps) {
@@ -17,10 +18,16 @@ export function Row({ items, height }: RowProps) {
     height && ROW_HEIGHTS.includes(height)
       ? height
       : Math.max(...items.map((item) => item.height), 240);
+  // When every card sizes itself, a fixed height only adds empty space under the content: the
+  // cards fit it, and the grid still lines them up at the tallest one.
+  const fit = items.length > 0 && items.every((item) => item.fit);
   return (
     <div
       className="openui-dashboard-row"
-      style={{ "--openui-dashboard-row-h": `${resolvedHeight}px` } as CSSProperties}
+      data-fit={fit ? "" : undefined}
+      style={
+        fit ? undefined : ({ "--openui-dashboard-row-h": `${resolvedHeight}px` } as CSSProperties)
+      }
     >
       {items.map((item, i) => {
         const grown = wideSpans[i] !== SPAN[widths[i] ?? "half"];
