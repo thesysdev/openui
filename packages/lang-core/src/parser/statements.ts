@@ -105,9 +105,12 @@ export function split(tokens: Token[]): RawStmt[] {
     const expr: Token[] = [];
     let depth = 0;
     let ternaryDepth = 0;
+    // A ternary's `:` with nothing after it yet (`a ? b :`): its else branch is
+    // still empty, so a newline here continues the statement.
+    let elseEmpty = false;
     while (pos < tokens.length && tokens[pos].t !== T.EOF) {
       const tt = tokens[pos].t;
-      if (tt === T.Newline && depth <= 0 && ternaryDepth <= 0) {
+      if (tt === T.Newline && depth <= 0 && ternaryDepth <= 0 && !elseEmpty) {
         // Before breaking, look ahead past whitespace/newlines to see if
         // the next meaningful token is `?` or `:` — if so, the ternary
         // continues on the next line and we should NOT split here.
@@ -129,7 +132,9 @@ export function split(tokens: Token[]): RawStmt[] {
       else if ((tt === T.RParen || tt === T.RBrack || tt === T.RBrace) && depth > 0) depth--;
       // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
       else if (tt === T.Question && depth === 0) ternaryDepth++;
-      else if (tt === T.Colon && depth === 0 && ternaryDepth > 0) ternaryDepth--;
+      const ternaryColon = tt === T.Colon && depth === 0 && ternaryDepth > 0;
+      if (ternaryColon) ternaryDepth--;
+      elseEmpty = ternaryColon;
       expr.push(tokens[pos++]);
     }
 
