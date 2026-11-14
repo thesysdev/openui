@@ -64,6 +64,15 @@ for (const id of IDS) {
     if (u.url && u.display_url) text = text.split(u.url).join(u.display_url);
   }
   if (md.length) text = text.replace(/\s*https:\/\/t\.co\/\S+\s*$/, "").trim();
+  // X returns text HTML-escaped (&amp;, &lt;, ...) and sometimes uses U+2028 as a
+  // line break; decode both so the card shows what the author typed.
+  text = text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/\u2028/g, "\n");
 
   const avatarUrl = (d.user?.profile_image_url_https || "").replace("_normal.", "_bigger.");
 
