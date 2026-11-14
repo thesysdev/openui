@@ -1,5 +1,6 @@
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
+import { MAX_PROBE_ROUNDS, probeRound } from "../tools/probe";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
@@ -22,7 +23,7 @@ export function defineDashboard<Context extends ExecutionContext>(
   options: DashboardOptions<Context>,
 ): Dashboard<Context> {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { library, model, promptOptions, tools, mcp } = options;
+  const { library, model, promptOptions, tools, mcp, probe } = options;
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
@@ -72,28 +73,55 @@ export function defineDashboard<Context extends ExecutionContext>(
     assertUserIdRequired(context);
     // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
     const definitions = await toolDefinitions();
-    // Not streamed: OpenUI Cloud replies at once and keeps generating.
-    const { response } = await api.post(
-      "/v1/artifact/chat/completions",
-      {
-        model,
-        messages: [
-          { role: "system", content: config({ tools: definitions, ...call }) },
-          { role: "user", content: prompt },
-        ],
-        user_id: context.userId,
-        ...(api.appId !== undefined && { app_id: api.appId }),
-      },
-      signal,
-    );
-    if (typeof response !== "string" || !response) {
-      throw new OpenUIApiError(
-        "OpenUI Cloud didn't start a background artifact",
-        "invalid_response",
-        502,
+    const messages: unknown[] = [
+      { role: "system", content: config({ tools: definitions, ...call }) },
+      { role: "user", content: prompt },
+    ];
+    const probeTools =
+      probe === false || definitions.length === 0
+        ? undefined
+        : definitions.map(({ name, description, parameters }) => ({
+            type: "function",
+            function: {
+              name,
+              ...(description !== undefined && { description }),
+              parameters: parameters ?? { type: "object", properties: {} },
+            },
+          }));
+    for (let round = 0; ; round++) {
+      // Not streamed: OpenUI Cloud replies at once and keeps generating.
+      // Tools go with every request: without them, earlier tool results are ignored.
+      const reply = await api.post(
+        "/v1/artifact/chat/completions",
+        {
+          model,
+          messages,
+          ...(probeTools && { tools: probeTools }),
+          user_id: context.userId,
+          ...(api.appId !== undefined && { app_id: api.appId }),
+        },
+        signal,
       );
+      if (typeof reply["response"] === "string" && reply["response"]) return reply["response"];
+
+      const choice: unknown = Array.isArray(reply["choices"]) ? reply["choices"][0] : undefined;
+      const message = isRecord(choice) ? choice["message"] : undefined;
+      const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
+      if (
+        !probeTools ||
+        round >= MAX_PROBE_ROUNDS ||
+        !Array.isArray(toolCalls) ||
+        !toolCalls.length ||
+        !toolCalls.every((toolCall) => isRecord(toolCall) && typeof toolCall["id"] === "string")
+      ) {
+        throw new OpenUIApiError(
+          "OpenUI Cloud didn't start a background artifact",
+          "invalid_response",
+          502,
+        );
+      }
+      messages.push(message, ...(await probeRound(toolCalls, await loadTools(), context, signal)));
     }
-    return response;
   }
 
   return {
