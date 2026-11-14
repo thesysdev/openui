@@ -41,8 +41,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(@modelcontextprotocol/sdk@1.32.1(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@openuidev/react-ui':
-        specifier: 0.18.7
-        version: 0.18.7(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(@modelcontextprotocol/sdk@1.32.1(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.18.8
+        version: 0.18.8(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(@modelcontextprotocol/sdk@1.32.1(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       adk-llm-bridge:
         specifier: ^0.5.3
         version: 0.5.3(@google/adk@1.6.0(@grpc/grpc-js@1.14.6)(@mikro-orm/mariadb@6.6.16(@mikro-orm/core@6.6.16)(pg@8.20.0))(@mikro-orm/mssql@6.6.16(@mikro-orm/core@6.6.16)(mariadb@3.5.4)(pg@8.20.0))(@mikro-orm/mysql@6.6.16(@mikro-orm/core@6.6.16)(@types/node@22.20.1)(mariadb@3.5.4)(pg@8.20.0))(@mikro-orm/postgresql@6.6.16(@mikro-orm/core@6.6.16)(mariadb@3.5.4))(@mikro-orm/sqlite@6.6.16(@mikro-orm/core@6.6.16)(mariadb@3.5.4)(pg@8.20.0))(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.0))(encoding@0.1.13))(ws@8.21.3)(zod@4.5.4)
@@ -1283,8 +1283,8 @@ packages:
       react-native:
         optional: true
 
-  '@openuidev/react-ui@0.18.7':
-    resolution: {integrity: sha512-06CAEPmC3qo6irt0kFpW9ftKXrc59vm4nu3XA35jz929Awf2eLiqZs0qVMI8/6WuczAdvpLUEVt1UbgDAdXlQw==}
+  '@openuidev/react-ui@0.18.8':
+    resolution: {integrity: sha512-9pzqp6B+RoQg96mZgfIRf7xdf9MJyDrk16Qag9MpzCEaOnK3RZU8GTzPcDWVpCn+GAmHOsjkOialqiAoE3WdGg==}
     peerDependencies:
       '@openuidev/react-headless': '>=0.18.2 <0.19.0'
       '@openuidev/react-lang': '>=1.0.0 <2.0.0'
@@ -6261,7 +6261,7 @@ snapshots:
     dependencies:
       '@mikro-orm/core': 6.6.16
       fs-extra: 11.3.3
-      knex: 3.2.10(pg@8.20.0)(sqlite3@5.1.7)
+      knex: 3.2.10(mysql2@3.24.6(@types/node@22.20.1))(pg@8.20.0)
       sqlstring: 2.3.3
     optionalDependencies:
       mariadb: 3.5.4
@@ -6687,7 +6687,7 @@ snapshots:
       '@modelcontextprotocol/sdk': 1.32.1(zod@4.5.4)
       react-dom: 19.2.3(react@19.2.3)
 
-  '@openuidev/react-ui@0.18.7(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(@modelcontextprotocol/sdk@1.32.1(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-ui@0.18.8(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(@modelcontextprotocol/sdk@1.32.1(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@openuidev/react-headless': 0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))

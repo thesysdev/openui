@@ -18,11 +18,11 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
       '@openuidev/react-ui':
-        specifier: 0.18.7
-        version: 0.18.7(@openuidev/react-headless@0.18.8(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@1.1.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
+        specifier: 0.18.8
+        version: 0.18.8(@openuidev/react-headless@0.18.8(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@1.1.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
       '@openuidev/server':
-        specifier: 0.4.2
-        version: 0.4.2(zod@4.6.5)
+        specifier: 0.4.3
+        version: 0.4.3(zod@4.6.5)
       next:
         specifier: 16.2.6
         version: 16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -804,8 +804,8 @@ packages:
       react-native:
         optional: true
 
-  '@openuidev/react-ui@0.18.7':
-    resolution: {integrity: sha512-06CAEPmC3qo6irt0kFpW9ftKXrc59vm4nu3XA35jz929Awf2eLiqZs0qVMI8/6WuczAdvpLUEVt1UbgDAdXlQw==}
+  '@openuidev/react-ui@0.18.8':
+    resolution: {integrity: sha512-9pzqp6B+RoQg96mZgfIRf7xdf9MJyDrk16Qag9MpzCEaOnK3RZU8GTzPcDWVpCn+GAmHOsjkOialqiAoE3WdGg==}
     peerDependencies:
       '@openuidev/react-headless': '>=0.18.2 <0.19.0'
       '@openuidev/react-lang': '>=1.0.0 <2.0.0'
@@ -814,8 +814,8 @@ packages:
       zod: ^3.25.0 || ^4.0.0
       zustand: ^4.5.5
 
-  '@openuidev/server@0.4.2':
-    resolution: {integrity: sha512-fqp8VfAzE4Liy99sCKujNm2NaYnd/hRTU0/Hu8b0YCgx2+7yFPk5agT3jaYUKnAwXTqXK7PGL/FUpXBIwHwqgw==}
+  '@openuidev/server@0.4.3':
+    resolution: {integrity: sha512-+76Rf+/GLLHYVcsREONC7e5iP11yamQpR+TA7v8ECLZruZH7TNoUiakLkxG9HZ1i0O+0FIJ2q7KTxqGkmS01pw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@langchain/core': ^1.2.3
@@ -2728,7 +2728,7 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.4(react@19.2.4)
 
-  '@openuidev/react-ui@0.18.7(@openuidev/react-headless@0.18.8(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@1.1.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
+  '@openuidev/react-ui@0.18.8(@openuidev/react-headless@0.18.8(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@1.1.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@openuidev/react-headless': 0.18.8(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
@@ -2777,7 +2777,7 @@ snapshots:
       - csstype
       - supports-color
 
-  '@openuidev/server@0.4.2(zod@4.6.5)':
+  '@openuidev/server@0.4.3(zod@4.6.5)':
     dependencies:
       '@openuidev/lang-core': 1.1.1(zod@4.6.5)
     transitivePeerDependencies:

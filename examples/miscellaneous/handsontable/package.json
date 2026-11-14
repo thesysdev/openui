@@ -20,7 +20,7 @@
     "@openuidev/lang-core": "1.1.1",
     "@openuidev/react-headless": "0.18.8",
     "@openuidev/react-lang": "1.1.1",
-    "@openuidev/react-ui": "0.18.7",
+    "@openuidev/react-ui": "0.18.8",
     "handsontable": "^17.0.1",
     "hyperformula": "^3.2.0",
     "lucide-react": "^1.8.0",

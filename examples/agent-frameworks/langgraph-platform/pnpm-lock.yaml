@@ -36,8 +36,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@openuidev/react-ui':
-        specifier: 0.18.7
-        version: 0.18.7(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.18.8
+        version: 0.18.8(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       deepagents:
         specifier: ^1.10.5
         version: 1.13.2(@langchain/core@1.2.9(openai@7.8.0(ws@8.21.3)(zod@4.5.4))(ws@8.21.3))(@langchain/langgraph-checkpoint@1.1.5(@langchain/core@1.2.9(openai@7.8.0(ws@8.21.3)(zod@4.5.4))(ws@8.21.3)))(@langchain/langgraph-sdk@1.10.0(@langchain/core@1.2.9(openai@7.8.0(ws@8.21.3)(zod@4.5.4))(ws@8.21.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@langchain/langgraph@1.4.13(@langchain/core@1.2.9(openai@7.8.0(ws@8.21.3)(zod@4.5.4))(ws@8.21.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(langchain@1.5.10(@langchain/core@1.2.9(openai@7.8.0(ws@8.21.3)(zod@4.5.4))(ws@8.21.3))(openai@7.8.0(ws@8.21.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(ws@8.21.3))(langsmith@0.9.0(openai@7.8.0(ws@8.21.3)(zod@4.5.4))(ws@8.21.3))
@@ -1152,8 +1152,8 @@ packages:
       react-native:
         optional: true
 
-  '@openuidev/react-ui@0.18.7':
-    resolution: {integrity: sha512-06CAEPmC3qo6irt0kFpW9ftKXrc59vm4nu3XA35jz929Awf2eLiqZs0qVMI8/6WuczAdvpLUEVt1UbgDAdXlQw==}
+  '@openuidev/react-ui@0.18.8':
+    resolution: {integrity: sha512-9pzqp6B+RoQg96mZgfIRf7xdf9MJyDrk16Qag9MpzCEaOnK3RZU8GTzPcDWVpCn+GAmHOsjkOialqiAoE3WdGg==}
     peerDependencies:
       '@openuidev/react-headless': '>=0.18.2 <0.19.0'
       '@openuidev/react-lang': '>=1.0.0 <2.0.0'
@@ -5423,7 +5423,7 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.3(react@19.2.3)
 
-  '@openuidev/react-ui@0.18.7(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-ui@0.18.8(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@openuidev/react-headless': 0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))

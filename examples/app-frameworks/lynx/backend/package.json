@@ -11,14 +11,14 @@
   },
   "dependencies": {
     "@lynx-js/genui": "0.7.2",
-    "@openuidev/lang-core": "1.1.0",
+    "@openuidev/lang-core": "1.1.1",
     "next": "^15.5.29",
     "openai": "^6.22.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.1",
+    "@openuidev/cli": "0.6.3",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
