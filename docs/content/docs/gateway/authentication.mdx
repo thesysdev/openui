@@ -26,6 +26,10 @@ export const gateway = new OpenAI({
 });
 ```
 
+## Identify the end user
+
+Server requests authenticate your organization, not the person using your application. Send a [`safety_identifier`](/docs/gateway/safety-identifier) with each Chat Completions or Responses request, so a model provider's policy flag points at one end user instead of your whole organization.
+
 ## Frontend tokens
 
 Applications that access persistent conversations directly from the browser use short-lived frontend tokens. Each token is scoped to a specific user, so your backend must provide a `user_id` when minting it.
