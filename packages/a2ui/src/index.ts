@@ -28,6 +28,25 @@ export {
   validationFailedErrorMessageSchema,
 } from "./protocol-schema";
 export { validateAgentToRendererMessage } from "./runtime-schema";
+export {
+  BASIC_CATALOG_FUNCTIONS,
+  a2uiPromptOptions,
+  compileToA2UI,
+  createA2UIStream,
+  expressToOpenUI,
+  openUIToExpress,
+} from "./standard";
+export type {
+  A2UICompileError,
+  A2UICompileOptions,
+  A2UICompiledProgram,
+  A2UIComponent,
+  A2UIPromptOptionsInput,
+  A2UIStandardMessage,
+  A2UIStandardVersion,
+  A2UIStreamOptions,
+  ExpressRewriteOptions,
+} from "./standard";
 export type {
   A2UIClientOptions,
   A2UIFunctionAllowedCaller,
