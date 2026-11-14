@@ -3,7 +3,7 @@
 import { ThreadList } from "@/components/assistant-ui/elements/thread-list.aui";
 import { Thread } from "@/components/assistant-ui/elements/thread.aui";
 import { cn } from "@/lib/utils";
-import { useChatRuntime } from "@assistant-ui/ai-sdk";
+import { AssistantChatTransport, useChatRuntime } from "@assistant-ui/ai-sdk";
 import {
   AssistantRuntimeProvider,
   AuiConfig,
@@ -17,17 +17,27 @@ import { OpenUICloudProvider } from "@openuidev/react-ui/cloud";
 import { LayoutDashboard, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import toolkit from "../lib/toolkit";
-import { DashboardPanel, OpenDashboardProvider, useOpenDashboard } from "./dashboard";
+import {
+  DashboardPanel,
+  OpenDashboardProvider,
+  openDashboardId,
+  useOpenDashboard,
+} from "./dashboard";
 import { DashboardList } from "./dashboard-list";
 import { localThreadList } from "./threads";
 
 const token = "/api/frontend-token";
 
+// Each message carries the dashboard open beside the chat, so an edit lands on that one.
+const transport = new AssistantChatTransport({
+  body: () => ({ openDashboardId: openDashboardId.current ?? undefined }),
+});
+
 export default function App({ apiBaseUrl }: { apiBaseUrl?: string }) {
   // Each thread posts to /api/chat, which runs the dashboard tools on the server. Threads are
   // kept in this browser (src/components/threads.tsx), not in OpenUI Cloud.
   const runtime = useRemoteThreadListRuntime({
-    runtimeHook: () => useChatRuntime(),
+    runtimeHook: () => useChatRuntime({ transport }),
     adapter: localThreadList,
   });
   return (
