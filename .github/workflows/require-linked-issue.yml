@@ -1,0 +1,189 @@
+name: Require linked issue
+
+# Closes community pull requests that do not close an open issue, per
+# CONTRIBUTING.md ("Start With an Issue"). Reopens them automatically once the
+# description is edited to close one (e.g. `Closes #123`).
+#
+# Skipped for: thesysdev org members / anyone with write access, bots, PRs
+# opened before ENFORCE_AFTER, and PRs carrying the `no-issue-needed` label.
+# Maintainers can override by adding `no-issue-needed` (reopens the PR) or by
+# reopening the PR themselves (adds `no-issue-needed`).
+#
+# pull_request_target is required so the token can comment on and close PRs
+# from forks. This workflow must never check out or execute PR code.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, labeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: require-linked-issue-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.type != 'Bot'
+    env:
+      # Only PRs created at or after this instant are enforced.
+      ENFORCE_AFTER: "2026-11-13T00:00:00Z"
+      CLOSED_LABEL: needs-linked-issue
+      EXEMPT_LABEL: no-issue-needed
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const event = context.payload.action;
+            const sender = context.payload.sender.login;
+            const number = context.payload.pull_request.number;
+            const { ENFORCE_AFTER, CLOSED_LABEL, EXEMPT_LABEL } = process.env;
+
+            if (event === "labeled" && context.payload.label?.name !== EXEMPT_LABEL) return;
+
+            // Re-read the PR so labels, state and body are current, not the
+            // snapshot from when the event fired.
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+            const author = pr.user.login;
+            const labels = pr.labels.map((l) => l.name);
+            const flagged = labels.includes(CLOSED_LABEL);
+
+            if (new Date(pr.created_at) < new Date(ENFORCE_AFTER)) {
+              core.info(`PR predates ${ENFORCE_AFTER}; skipping.`);
+              return;
+            }
+            if (pr.merged) return;
+
+            async function clearFlag() {
+              await github.rest.issues
+                .removeLabel({ owner, repo, issue_number: number, name: CLOSED_LABEL })
+                .catch(() => {});
+              if (pr.state === "closed") {
+                try {
+                  await github.rest.pulls.update({ owner, repo, pull_number: number, state: "open" });
+                  core.info(`Reopened #${number}.`);
+                } catch (err) {
+                  core.warning(`Could not reopen #${number}: ${err.message}`);
+                }
+              }
+            }
+
+            if (labels.includes(EXEMPT_LABEL)) {
+              core.info(`PR has the ${EXEMPT_LABEL} label; skipping.`);
+              if (flagged) await clearFlag();
+              return;
+            }
+
+            // --- Is the author part of the org / a maintainer? ---------------
+            let trusted = ["OWNER", "MEMBER", "COLLABORATOR"].includes(pr.author_association);
+            if (!trusted) {
+              // author_association can under-report private org membership, so
+              // also treat anyone with write access to the repo as internal.
+              try {
+                const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username: author,
+                });
+                trusted = ["admin", "maintain", "write"].includes(data.permission);
+              } catch (err) {
+                core.info(`Permission lookup failed for ${author}: ${err.message}`);
+              }
+            }
+            if (trusted) {
+              core.info(`${author} is an org member or maintainer; skipping.`);
+              return;
+            }
+
+            // A maintainer reopening the PR by hand overrides the check.
+            if (event === "reopened" && sender !== author) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [EXEMPT_LABEL] });
+              await github.rest.issues
+                .removeLabel({ owner, repo, issue_number: number, name: CLOSED_LABEL })
+                .catch(() => {});
+              core.info(`Reopened by ${sender}; added ${EXEMPT_LABEL}.`);
+              return;
+            }
+
+            // --- Does the PR close an open issue? ----------------------------
+            // Uses GitHub's own closing references (closing keywords in the
+            // description or a Development sidebar link). GitHub links them a
+            // moment after the PR is opened or edited, so retry before closing.
+            async function closesOpenIssue() {
+              const self = `${owner}/${repo}`.toLowerCase();
+              const attempts = 4;
+              let lastError;
+              for (let i = 0; i < attempts; i++) {
+                if (i > 0) await new Promise((r) => setTimeout(r, 5000));
+                try {
+                  const res = await github.graphql(
+                    `query ($owner: String!, $repo: String!, $number: Int!) {
+                      repository(owner: $owner, name: $repo) {
+                        pullRequest(number: $number) {
+                          closingIssuesReferences(first: 20) {
+                            nodes { state repository { nameWithOwner } }
+                          }
+                        }
+                      }
+                    }`,
+                    { owner, repo, number },
+                  );
+                  lastError = undefined;
+                  const refs = res.repository.pullRequest.closingIssuesReferences.nodes;
+                  if (
+                    refs.some(
+                      (ref) =>
+                        ref.state === "OPEN" && ref.repository.nameWithOwner.toLowerCase() === self,
+                    )
+                  ) {
+                    return true;
+                  }
+                } catch (err) {
+                  lastError = err;
+                  core.info(`closingIssuesReferences lookup failed: ${err.message}`);
+                }
+              }
+              // Never close a PR because the lookup itself failed.
+              if (lastError) throw lastError;
+              return false;
+            }
+
+            if (await closesOpenIssue()) {
+              if (flagged) await clearFlag();
+              return;
+            }
+
+            if (pr.state !== "open") return; // already closed, nothing to do
+
+            if (!flagged) {
+              const base = `https://github.com/${owner}/${repo}`;
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: number,
+                labels: [CLOSED_LABEL],
+              });
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: number,
+                body: [
+                  `Hi @${author}, thanks for the contribution!`,
+                  "",
+                  `This pull request doesn't close an open issue, so it has been closed automatically. We ask that every change starts with an issue so the direction can be agreed on before review — see [CONTRIBUTING.md](${base}/blob/${pr.base.ref}/CONTRIBUTING.md#start-with-an-issue).`,
+                  "",
+                  "To get this reopened:",
+                  "",
+                  `1. [Open an issue](${base}/issues/new/choose) describing the change (or find the existing one) and wait for a maintainer to confirm the direction.`,
+                  "2. Edit this pull request's description to close it, e.g. `Closes #123`.",
+                  "",
+                  "The pull request will reopen automatically once the description closes an open issue.",
+                ].join("\n"),
+              });
+            }
+            await github.rest.pulls.update({ owner, repo, pull_number: number, state: "closed" });
+            core.notice(`Closed #${number}: does not close an open issue.`);
