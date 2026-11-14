@@ -12,6 +12,8 @@ The Responses API can run supported tools inside the Gateway. Application functi
 | Remote MCP           | `{ type: "mcp", server_label, server_url }` | Gateway      |
 | Application function | `{ type: "function", name, parameters }`    | Your backend |
 
+To build your own web search or image search tools, for any model or agent framework, use the [Web Search API](/docs/gateway/api/web-search) and the [Image Search API](/docs/gateway/api/image-search).
+
 ```ts
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import type { Tool } from "openai/resources/responses/responses";
