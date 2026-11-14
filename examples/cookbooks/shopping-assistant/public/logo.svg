@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .mark { fill: #5b3fd1; }
+    .icon { stroke: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      .mark { fill: #a996ff; }
+      .icon { stroke: #170c45; }
+    }
+  </style>
+  <rect class="mark" width="32" height="32" rx="16" />
+  <g class="icon" transform="translate(7 7) scale(0.75)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+    <path d="M3 6h18" />
+    <path d="M16 10a4 4 0 0 1-8 0" />
+  </g>
+</svg>

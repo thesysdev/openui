@@ -1,5 +1,10 @@
 {
   "title": "Cookbooks",
   "root": true,
-  "pages": ["conversational-analytics", "document-comparison", "booking-assistant"]
+  "pages": [
+    "conversational-analytics",
+    "document-comparison",
+    "booking-assistant",
+    "shopping-assistant"
+  ]
 }
