@@ -29,6 +29,13 @@ const ordersByDay = z.object({
   status: z.enum(["paid", "refunded", "all"]).optional(),
 });
 
+// Reads the arguments leniently: "" and null mean unset, and out-of-range days are clamped.
+function readOrdersByDay(args: Record<string, unknown>) {
+  const days = Math.min(365, Math.max(1, Math.trunc(Number(args.days)) || 30));
+  const status = args.status === "paid" || args.status === "refunded" ? args.status : "all";
+  return { days, status };
+}
+
 export const dataTools: Record<string, DataTool> = {
   get_orders_by_day: {
     description: "Order count and revenue per day, newest last. Revenue is in USD cents.",
@@ -40,7 +47,7 @@ export const dataTools: Record<string, DataTool> = {
       ],
     },
     execute: async (args, context, { signal }) => {
-      const { days, status = "all" } = ordersByDay.parse(args);
+      const { days, status } = readOrdersByDay(args);
       return { days: await db.ordersByDay({ days, status, signal }) };
     },
   },
@@ -60,7 +67,7 @@ export const dashboards = openui.defineDashboard({
 ### Guidelines
 
 - **Keep `output` static:** Defining the dashboard never calls a tool, so the example has to be written out. Match the real shape exactly, including nesting and field names.
-- **Read arguments leniently:** A filter nobody has picked yet arrives as `""` or `null`. Treat those as unset, and clamp limits instead of rejecting them.
+- **Read arguments leniently:** A filter nobody has picked yet arrives as `""` or `null`. Treat those as unset, and clamp limits instead of rejecting them. A strict `parse` throws on these, and the dashboard shows an error. Keep the lenient reading out of the schema you pass as `parameters`: `z.toJSONSchema` can't convert `preprocess` or `transform`.
 - **Return only what the dashboard needs:** Results go to the browser as is.
 - **Honor `signal`:** It aborts when the dashboard's request ends or the time budget runs out.
 - **Prefer read-only tools:** A dashboard runs its queries on every view, and scripts can call any tool in the list.
@@ -71,8 +78,8 @@ export const dashboards = openui.defineDashboard({
 
 ```ts
 execute: async (args, context, { signal }) => {
-  const { days } = ordersByDay.parse(args);
-  return { days: await db.ordersByDay({ days, accountId: context.accountId, signal }) };
+  const { days, status } = readOrdersByDay(args);
+  return { days: await db.ordersByDay({ days, status, accountId: context.accountId, signal }) };
 },
 ```
 
@@ -120,7 +127,7 @@ Pass an array to connect several servers. Optional arguments that arrive as `""`
 The renderer sends each of the dashboard's data requests to an interpreter route as a POST request. The route passes the request to `dashboards.interpreter.execute()` with the signed-in user, and returns `{ result }`:
 
 ```ts title="app/api/interpreter/route.ts"
-import { OpenUIApiError, ToolExecutionError } from "@openuidev/server";
+import { type InterpreterRequest, OpenUIApiError, ToolExecutionError } from "@openuidev/server";
 import { dashboards } from "@/lib/openui";
 import { getSession } from "@/lib/auth"; // your session lookup
 
@@ -128,33 +135,43 @@ export async function POST(request: Request) {
   const session = await getSession(request);
   if (!session) return new Response("Unauthorized", { status: 401 });
 
+  let body: InterpreterRequest;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json(
+      { error: { code: "invalid_input", message: "The request body must be JSON." } },
+      { status: 400 },
+    );
+  }
+
   try {
     const result = await dashboards.interpreter.execute(
-      await request.json(),
+      body,
       { userId: session.user.id },
       { signal: request.signal },
     );
     return Response.json({ result });
   } catch (error) {
     const known = error instanceof ToolExecutionError || error instanceof OpenUIApiError;
+    const code = known ? error.code : "internal_error";
     return Response.json(
-      {
-        error: {
-          code: known ? error.code : "internal_error",
-          message: error instanceof Error ? error.message : String(error),
-        },
-      },
-      { status: known ? (error.status ?? 500) : 500 },
+      { error: { code, message: error instanceof Error ? error.message : String(error) } },
+      { status: known ? (error.status ?? (code === "invalid_input" ? 400 : 500)) : 500 },
     );
   }
 }
 ```
 
+The renderer sends `{ name, arguments }`, plus the dashboard's `id` and `version` when the name is a generated script.
+
 `execute` runs the named data tool directly. When the name is a generated script, it runs the script in the OpenUI interpreter for safe execution. The script calls your tools on this server through the same handlers. Scripts run only for the dashboard's owner.
+
+Data tools are not tied to a dashboard: any signed-in user who can reach this route can call any data tool by name, with any arguments. The session check and the `context` are what limit the data, so scope every tool by the signed-in user.
 
 | Option      | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
 | `signal`    | Cancels the call.                                            |
 | `timeoutMs` | The total time budget, including your tools. Default: 60000. |
 
-Errors keep a stable `code`, such as `tool_not_found` or `tool_timeout`, and an HTTP `status`. The renderer shows the message in the dashboard's error slot.
+Errors keep a stable `code`, such as `tool_not_found` or `tool_timeout`, and an HTTP `status` when the error has one. A body without a `name`, or with non-object `arguments`, is `invalid_input` and has no status, so the route answers 400. An error thrown by your tool is `internal_error` with 500. The renderer shows the message in the dashboard's error slot.
