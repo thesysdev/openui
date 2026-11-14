@@ -27,8 +27,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)
       '@openuidev/react-ui':
-        specifier: 0.18.7
-        version: 0.18.7(@openuidev/react-headless@0.18.8(ai@6.0.273(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.18.8
+        version: 0.18.8(@openuidev/react-headless@0.18.8(ai@6.0.273(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       ai:
         specifier: ^6.0.0
         version: 6.0.273(zod@4.4.3)
@@ -889,8 +889,8 @@ packages:
       react-native:
         optional: true
 
-  '@openuidev/react-ui@0.18.7':
-    resolution: {integrity: sha512-06CAEPmC3qo6irt0kFpW9ftKXrc59vm4nu3XA35jz929Awf2eLiqZs0qVMI8/6WuczAdvpLUEVt1UbgDAdXlQw==}
+  '@openuidev/react-ui@0.18.8':
+    resolution: {integrity: sha512-9pzqp6B+RoQg96mZgfIRf7xdf9MJyDrk16Qag9MpzCEaOnK3RZU8GTzPcDWVpCn+GAmHOsjkOialqiAoE3WdGg==}
     peerDependencies:
       '@openuidev/react-headless': '>=0.18.2 <0.19.0'
       '@openuidev/react-lang': '>=1.0.0 <2.0.0'
@@ -4737,7 +4737,7 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.3(react@19.2.3)
 
-  '@openuidev/react-ui@0.18.7(@openuidev/react-headless@0.18.8(ai@6.0.273(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-ui@0.18.8(@openuidev/react-headless@0.18.8(ai@6.0.273(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@openuidev/react-headless': 0.18.8(ai@6.0.273(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
