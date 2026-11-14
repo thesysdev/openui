@@ -88,14 +88,17 @@ function getArrayInnerType(schema: unknown): unknown | undefined {
   return undefined;
 }
 
-function getEnumValues(schema: unknown): string[] | undefined {
+// The values an enum accepts. For z.enum(TsEnum) or z.enum({ Small: "sm" }) these are the
+// entries' values ("sm"), not their keys, and a numeric TS enum's reverse keys are left out.
+function getEnumValues(schema: unknown): unknown[] | undefined {
   const s = unwrap(schema);
-  const def = getZodDef(s);
-  if (def?.type !== "enum") return undefined;
-  if (Array.isArray(def.values)) return def.values;
-  if (def.entries && typeof def.entries === "object") return Object.keys(def.entries);
-  return undefined;
+  if (getZodType(s) !== "enum") return undefined;
+  const values = (s as any)._zod.values;
+  return values instanceof Set ? [...values] : undefined;
 }
+
+// A literal value as written in a signature: strings quoted, numbers and booleans bare.
+const literalText = (v: unknown): string => (typeof v === "string" ? `"${v}"` : String(v));
 
 export type SchemaRegistry = ReturnType<typeof z.registry<{ id: string }>>;
 
@@ -179,14 +182,11 @@ function resolveBaseType(inner: unknown, reg?: SchemaRegistry): string | undefin
   }
 
   const enumVals = getEnumValues(inner);
-  if (enumVals) return enumVals.map((v) => `"${v}"`).join(" | ");
+  if (enumVals) return enumVals.map(literalText).join(" | ");
 
   if (zodType === "literal") {
     const vals = getZodDef(inner)?.values;
-    if (Array.isArray(vals) && vals.length === 1) {
-      const v = vals[0];
-      return typeof v === "string" ? `"${v}"` : String(v);
-    }
+    if (Array.isArray(vals) && vals.length === 1) return literalText(vals[0]);
   }
 
   const shape = getObjectShape(inner);
