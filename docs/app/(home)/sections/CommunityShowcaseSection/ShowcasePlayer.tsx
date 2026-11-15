@@ -88,7 +88,17 @@ export function ShowcasePlayer({ projects }: { projects: ShowcaseProject[] }) {
                 <div className={styles.panelInner}>
                   <p className={styles.description}>{item.description}</p>
                   <p className={styles.meta}>
-                    <span>Built by {item.maker}</span>
+                    <span>
+                      Built by{" "}
+                      <a
+                        className={styles.maker}
+                        href={item.makerHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {item.maker}
+                      </a>
+                    </span>
                     <a
                       className={styles.visit}
                       href={item.href}

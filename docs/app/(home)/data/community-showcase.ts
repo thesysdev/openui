@@ -1,7 +1,8 @@
 /**
  * The community showcase on the homepage: the projects featured for one
  * rotation. To rotate, replace `projects` and move the two dates forward.
- * Recordings live in /public/community-showcase.
+ * Demo clips live in /public/community-showcase, cut from each maker's own
+ * demo video where they posted one.
  */
 
 export interface ShowcaseProject {
@@ -10,10 +11,12 @@ export interface ShowcaseProject {
   href: string;
   /** Who built it. */
   maker: string;
+  /** The maker's X or LinkedIn profile, linked from their name. */
+  makerHref: string;
   /** One or two sentences on what it does with OpenUI. */
   description: string;
   tags: string[];
-  /** Screen recording under /public: muted, short (5 to 20s), 16:10 or wider. */
+  /** Demo clip under /public: muted, short (5 to 20s), 16:10 or wider. */
   video: string;
   /** Optional still shown before the recording loads. */
   poster?: string;
@@ -35,6 +38,7 @@ export const COMMUNITY_SHOWCASE: ShowcaseRotation = {
       name: "Curio",
       href: "https://curio-landing-phi.vercel.app",
       maker: "Jose Estevez",
+      makerHref: "https://x.com/JoseEstevez520",
       description:
         "A reading companion: answers render as generative UI, and clicking any highlighted term opens an explanation right where you are reading.",
       tags: ["Reading", "Generative UI"],
@@ -44,6 +48,7 @@ export const COMMUNITY_SHOWCASE: ShowcaseRotation = {
       name: "Windshift",
       href: "https://windshift.sh",
       maker: "Stefan Ernst",
+      makerHref: "https://github.com/stefan-ernst",
       description:
         "A self-hosted work management platform. Describe a dashboard widget and it is generated as OpenUI Lang and rendered with @openuidev/svelte-lang.",
       tags: ["Work management", "Svelte", "Dashboards"],
@@ -53,6 +58,7 @@ export const COMMUNITY_SHOWCASE: ShowcaseRotation = {
       name: "AI Native Dashboard",
       href: "https://github.com/jaibhasin/AI-Native-Dashboard",
       maker: "Jai Bhasin",
+      makerHref: "https://x.com/bhasin_jai_",
       description:
         "An infinite canvas where you ask for a widget in plain language and OpenUI renders it as a movable, resizable card.",
       tags: ["Dashboards", "Canvas"],
@@ -62,6 +68,7 @@ export const COMMUNITY_SHOWCASE: ShowcaseRotation = {
       name: "OpenUI Sports",
       href: "https://naivesolution.dev/projects/openui-sports",
       maker: "Michael Kolkov",
+      makerHref: "https://x.com/michaelkolkov",
       description:
         "A registry of soccer, NBA, and NFL components that a model fills in with OpenUI Lang: match cards, standings, leaderboards, and charts.",
       tags: ["Sports", "Component registry", "SwiftUI"],
@@ -71,6 +78,7 @@ export const COMMUNITY_SHOWCASE: ShowcaseRotation = {
       name: "Learnify",
       href: "https://learnify.ahmedfahim.dev",
       maker: "Ahmed Fahim",
+      makerHref: "https://x.com/ahmedfahim21_",
       description:
         "A lecture companion: pause any NPTEL lecture, ask in your own language, and get quizzes, flashcards, and concept maps.",
       tags: ["Education", "Flashcards"],

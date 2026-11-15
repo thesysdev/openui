@@ -125,6 +125,17 @@
   font-size: 0.8125rem;
 }
 
+.maker {
+  color: var(--openui-text-neutral-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--home-hairline);
+  text-underline-offset: 3px;
+}
+
+.maker:hover {
+  text-decoration-color: currentColor;
+}
+
 .visit {
   display: inline-flex;
   align-items: center;
