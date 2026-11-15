@@ -1,4 +1,4 @@
-import type { AssistantMessage, Message } from "@openuidev/react-headless";
+import type { AssistantMessage, Message, ReasoningMessage } from "@openuidev/react-headless";
 import {
   MessageProvider,
   useActiveDetailedView,
@@ -306,7 +306,8 @@ export const RenderMessage = memo(
       );
     }
 
-    // Other roles (system, developer, reasoning, activity) — skip by default
+    // Other roles (system, developer, activity) — skip by default. Reasoning
+    // renders inside its turn's timeline (see InterleavedTurn).
     return null;
   },
 );
@@ -334,8 +335,19 @@ export const ThreadError = () => {
   );
 };
 
+/** The messages that make up a turn's segments, in run order. */
+type TurnSegment = AssistantMessage | ReasoningMessage;
+
+const isTurnSegment = (m: Message): m is TurnSegment =>
+  m.role === "assistant" || m.role === "reasoning";
+
+const segmentHasBody = (s: TurnSegment) =>
+  s.role === "reasoning"
+    ? s.content.length > 0
+    : (s.content?.length ?? 0) > 0 || (s.toolCalls?.length ?? 0) > 0;
+
 /**
- * Groups a message list into turns: a run of consecutive assistant/tool
+ * Groups a message list into turns: a run of consecutive assistant/reasoning/tool
  * messages becomes ONE group; every other message (user, system, …) stands alone.
  * `startIndex` is the group's position in the original list.
  */
@@ -343,7 +355,7 @@ function groupIntoTurns(messages: Message[]): { messages: Message[]; startIndex:
   const groups: { messages: Message[]; startIndex: number }[] = [];
   let current: { messages: Message[]; startIndex: number } | null = null;
   messages.forEach((message, i) => {
-    if (message.role === "assistant" || message.role === "tool") {
+    if (isTurnSegment(message) || message.role === "tool") {
       if (!current) {
         current = { messages: [], startIndex: i };
         groups.push(current);
@@ -369,47 +381,63 @@ const InterleavedTurn = ({
   className,
   isRunning,
   lastAssistantId,
+  isLastGroup,
 }: {
-  segments: AssistantMessage[];
+  segments: TurnSegment[];
   allMessages: Message[];
   assistantMessage?: AssistantMessageComponent;
   toolCallTimeline?: ToolCallTimelineComponent;
   className?: string;
   isRunning: boolean;
   lastAssistantId: string | null;
+  /** This turn is the newest group in the thread. */
+  isLastGroup: boolean;
 }) => {
   // Ignore trailing empty assistants (e.g. TEXT_MESSAGE_START after parallel
   // tools with no content yet / never). Those would become `last` and blank the
   // answer slot until a chat remount rebuilds from storage.
   const activeSegments = useMemo(() => {
-    const withBody = segments.filter(
-      (s) => (s.content?.length ?? 0) > 0 || (s.toolCalls?.length ?? 0) > 0,
-    );
+    const withBody = segments.filter(segmentHasBody);
     return withBody.length > 0 ? withBody : segments;
   }, [segments]);
+  const assistants = useMemo(
+    () => activeSegments.filter((s): s is AssistantMessage => s.role === "assistant"),
+    [activeSegments],
+  );
 
-  const last = activeSegments[activeSegments.length - 1]!;
-  const turnLive = isRunning && lastAssistantId === last.id;
+  // A turn can be reasoning alone while the model thinks before its first token.
+  const last = assistants[assistants.length - 1];
+  const tail = activeSegments[activeSegments.length - 1]!;
+  const turnLive = isRunning && (last ? lastAssistantId === last.id : isLastGroup);
 
   // One id-keyed pairing across every segment's tool calls (synthetic message).
-  const turnMessage = useMemo(
-    () => ({ ...activeSegments[0]!, toolCalls: activeSegments.flatMap((s) => s.toolCalls ?? []) }),
-    [activeSegments],
+  const turnMessage = useMemo<AssistantMessage>(
+    () => ({
+      ...(assistants[0] ?? { id: activeSegments[0]!.id, role: "assistant" }),
+      toolCalls: assistants.flatMap((s) => s.toolCalls ?? []),
+    }),
+    [assistants, activeSegments],
   );
   const turnActivities = useToolActivities(turnMessage, allMessages);
 
-  const lastContent = readMessage(last.content ?? "", turnLive).content;
+  const lastContent = readMessage(last?.content ?? "", turnLive).content;
   // Show the last segment as the answer once it looks like Lang, or once the run
-  // settles.
-  const answer = !turnLive || hasLangSyntax(lastContent) ? last : null;
+  // settles. Reasoning after it means the model is still working toward the answer.
+  const answer = last && (!turnLive || (tail === last && hasLangSyntax(lastContent))) ? last : null;
   const answerMessage = useMemo(() => (answer ? { ...answer, toolCalls: [] } : null), [answer]);
 
-  // Rows in run order: each non-answer segment's thinking prose, then its tools.
+  // Rows in run order: reasoning, and each non-answer segment's thinking prose
+  // followed by its tools.
   const steps = useMemo<TimelineStep[]>(() => {
     const byCallId = new Map(turnActivities.map((a) => [a.toolCall.id, a]));
     const rows: TimelineStep[] = [];
     const claimed = new Set<string>();
     for (const seg of activeSegments) {
+      if (seg.role === "reasoning") {
+        if (seg.content)
+          rows.push({ type: "text", id: seg.id, text: seg.content, reasoning: true });
+        continue;
+      }
       if (seg.id !== answer?.id) {
         const prose = readMessage(seg.content ?? "", turnLive && seg === last).content;
         if (prose) rows.push({ type: "text", id: seg.id, text: prose });
@@ -441,10 +469,11 @@ const InterleavedTurn = ({
   // Hold the tray open until the answer's first tokens arrive. `answer` is
   // `last` or null, so reuse the already-parsed `lastContent`.
   const answerStarted = !!answer && lastContent.length > 0;
+  const hasReasoning = activeSegments.some((s) => s.role === "reasoning" && s.content);
 
   return (
     <>
-      {turnActivities.length > 0 &&
+      {(turnActivities.length > 0 || hasReasoning) &&
         (CustomToolCallTimeline ? (
           <CustomToolCallTimeline
             activities={turnActivities}
@@ -501,6 +530,7 @@ const RenderGroup = ({
   className,
   isRunning,
   lastAssistantId,
+  isLastGroup,
 }: {
   group: Message[];
   allMessages: Message[];
@@ -510,23 +540,25 @@ const RenderGroup = ({
   className?: string;
   isRunning: boolean;
   lastAssistantId: string | null;
+  isLastGroup: boolean;
 }) => {
-  // A group is either a run of assistant/tool messages or one standalone
-  // non-assistant message (user/system/…). The former is always one interleaved
+  // A group is either a run of assistant/reasoning/tool messages or one
+  // standalone message (user/system/…). The former is always one interleaved
   // turn, which owns the tool-call timeline (it reads `last` for the answer, so
   // a length-one assistant group works too); the latter renders on its own.
-  const assistants = group.filter((m): m is AssistantMessage => m.role === "assistant");
+  const segments = group.filter(isTurnSegment);
   const message = group[0]!;
 
-  return assistants.length > 0 ? (
+  return segments.length > 0 ? (
     <InterleavedTurn
-      segments={assistants}
+      segments={segments}
       allMessages={allMessages}
       assistantMessage={CustomAssistantMessage}
       toolCallTimeline={toolCallTimeline}
       className={className}
       isRunning={isRunning}
       lastAssistantId={lastAssistantId}
+      isLastGroup={isLastGroup}
     />
   ) : (
     <MessageProvider key={message.id} message={message}>
@@ -671,7 +703,7 @@ export const Messages = ({
 
   return (
     <div ref={messagesRef} className={clsx("openui-agent-thread-messages", className)}>
-      {groups.map((group) => (
+      {groups.map((group, i) => (
         <RenderGroup
           key={group.messages[0]!.id}
           group={group.messages}
@@ -682,6 +714,7 @@ export const Messages = ({
           className={className}
           isRunning={isRunning}
           lastAssistantId={lastAssistantId}
+          isLastGroup={i === groups.length - 1}
         />
       ))}
       {isRunning && <div>{loader}</div>}

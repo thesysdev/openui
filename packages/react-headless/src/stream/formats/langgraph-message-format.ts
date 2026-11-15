@@ -23,10 +23,10 @@ interface LangChainMessage {
 
 // ── Outbound (AG-UI → LangGraph) ────────────────────────────────
 
-function toLangChainMessage(message: Message): LangChainMessage {
+function toLangChainMessages(message: Message): LangChainMessage[] {
   switch (message.role) {
     case "user":
-      return { type: "human", content: message.content ?? "" };
+      return [{ type: "human", content: message.content ?? "" }];
 
     case "assistant": {
       const result: LangChainMessage = { type: "ai", content: message.content ?? "" };
@@ -37,24 +37,27 @@ function toLangChainMessage(message: Message): LangChainMessage {
           args: safeParseArgs(tc.function.arguments),
         }));
       }
-      return result;
+      return [result];
     }
 
     case "tool":
-      return {
-        type: "tool",
-        content: message.content,
-        tool_call_id: message.toolCallId,
-      };
+      return [
+        {
+          type: "tool",
+          content: message.content,
+          tool_call_id: message.toolCallId,
+        },
+      ];
 
     case "system":
-      return { type: "system", content: message.content };
+      return [{ type: "system", content: message.content }];
 
     case "developer":
-      return { type: "system", content: message.content };
+      return [{ type: "system", content: message.content }];
 
     default:
-      return { type: "system", content: "" };
+      // reasoning, activity — LangChain has no message type for them
+      return [];
   }
 }
 
@@ -135,6 +138,7 @@ function safeParseArgs(args: string): Record<string, unknown> | string {
  *   - Maps `role` to `type` (`"user"` → `"human"`, `"assistant"` → `"ai"`)
  *   - Converts `toolCalls[].function.arguments` from JSON string to object
  *   - Converts `toolCallId` → `tool_call_id`
+ *   - Drops `reasoning` and `activity` messages
  *
  * LangGraph → AG-UI (fromApi):
  *   - Maps `type` to `role` (`"human"` → `"user"`, `"ai"` → `"assistant"`)
@@ -143,7 +147,7 @@ function safeParseArgs(args: string): Record<string, unknown> | string {
  */
 export const langGraphMessageFormat: MessageFormat = {
   toApi(messages: Message[]): LangChainMessage[] {
-    return messages.map(toLangChainMessage);
+    return messages.flatMap(toLangChainMessages);
   },
 
   fromApi(data: unknown): Message[] {

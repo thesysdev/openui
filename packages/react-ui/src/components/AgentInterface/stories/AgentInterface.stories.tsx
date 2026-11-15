@@ -970,6 +970,63 @@ export const WithWorkspace = {
   ),
 };
 
+/** Emits each event on its own tick, so the thread visibly streams. */
+const pacedSSE = (events: object[], intervalMs: number): Response =>
+  new Response(
+    new ReadableStream({
+      async start(controller) {
+        for (const event of events) {
+          await new Promise((resolve) => setTimeout(resolve, intervalMs));
+          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`));
+        }
+        controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    }),
+  );
+
+const reasoningLLM = makeMockLLM({
+  send: async () => {
+    const thought =
+      "The user wants a plan. I should split it into steps, check what is blocking each one, " +
+      "and keep the answer short enough to act on today.";
+    return pacedSSE(
+      [
+        { type: "REASONING_START", messageId: "phase-1" },
+        { type: "REASONING_MESSAGE_START", messageId: "reasoning-1", role: "reasoning" },
+        ...thought
+          .split(/(?<= )/)
+          .map((delta) => ({ type: "REASONING_MESSAGE_CONTENT", messageId: "reasoning-1", delta })),
+        { type: "REASONING_MESSAGE_END", messageId: "reasoning-1" },
+        { type: "REASONING_END", messageId: "phase-1" },
+        { type: "TEXT_MESSAGE_START", messageId: "answer-1", role: "assistant" },
+        {
+          type: "TEXT_MESSAGE_CONTENT",
+          messageId: "answer-1",
+          delta: "Start with the blocked step, then ship the rest in order.",
+        },
+        { type: "TEXT_MESSAGE_END", messageId: "answer-1" },
+      ],
+      120,
+    );
+  },
+});
+
+/** Send any message: the reply streams its reasoning first, then the answer. */
+export const WithReasoning = {
+  render: () => (
+    <AgentInterface
+      storage={populatedStorage}
+      llm={reasoningLLM}
+      logoUrl={logoUrl}
+      agentName="OpenUI"
+      starters={[
+        { displayText: "Plan my week", prompt: "Plan my week", icon: <Sparkles size={16} /> },
+      ]}
+    />
+  ),
+};
+
 /** Workspace Mode C — children replace the rail entirely. */
 export const WorkspaceCustomChildren = {
   render: () => (

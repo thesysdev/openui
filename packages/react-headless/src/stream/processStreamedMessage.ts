@@ -1,4 +1,11 @@
-import { AssistantMessage, EventType, Message, StreamProtocolAdapter, ToolMessage } from "../types";
+import {
+  AssistantMessage,
+  EventType,
+  Message,
+  ReasoningMessage,
+  StreamProtocolAdapter,
+  ToolMessage,
+} from "../types";
 import { agUIAdapter } from "./adapters";
 
 /**
@@ -6,7 +13,7 @@ import { agUIAdapter } from "./adapters";
  */
 interface Parameters {
   response: Response;
-  /** A function that creates a new message in the thread (assistant or tool). */
+  /** A function that creates a new message in the thread (assistant, reasoning, or tool). */
   createMessage: (message: Message) => void;
   /** A function that updates an existing message in the thread (matched by id). */
   updateMessage: (message: Message) => void;
@@ -53,22 +60,32 @@ export const processStreamedMessage = async ({
   // these are surfaced as errored tool messages instead of being left hanging.
   const inFlightToolCallIds = new Set<string>();
 
+  // The reasoning message currently streaming (already in the thread), and the
+  // wire messageId its deltas arrive under. Reasoning is its own thread message,
+  // placed between the assistant segments around it.
+  let currentReasoning: ReasoningMessage | null = null;
+  let currentReasoningWireId: string | undefined;
+  const reasoningIds = new Set<string>();
+
+  // Updates wait for the next animation frame, latest version per message id.
+  const pendingUpdates = new Map<string, Message>();
   let rafId: number | null = null;
-  const debouncedUpdate = (msg: AssistantMessage) => {
-    if (rafId !== null) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      updateMessage(msg);
+  const flushUpdates = () => {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
       rafId = null;
-    });
+    }
+    for (const msg of pendingUpdates.values()) updateMessage(msg);
+    pendingUpdates.clear();
+  };
+  const scheduleUpdate = (msg: Message) => {
+    pendingUpdates.set(msg.id, msg);
+    if (rafId === null) rafId = requestAnimationFrame(flushUpdates);
   };
 
   /** Flush the open assistant and start a fresh one (interleaved segments). */
   const startNewAssistantSegment = () => {
-    if (rafId !== null) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-      if (!isFirst) updateMessage(currentMessage);
-    }
+    flushUpdates();
     currentMessage = {
       id: crypto.randomUUID(),
       role: "assistant",
@@ -89,8 +106,35 @@ export const processStreamedMessage = async ({
       createMessage(currentMessage);
       isFirst = false;
     } else {
-      debouncedUpdate(currentMessage);
+      scheduleUpdate(currentMessage);
     }
+  };
+
+  /** End the streaming reasoning message, so whatever follows lands below it. */
+  const closeReasoning = () => {
+    if (!currentReasoning) return;
+    flushUpdates();
+    currentReasoning = null;
+    currentReasoningWireId = undefined;
+  };
+
+  const appendReasoning = (wireId: string | undefined, delta: string) => {
+    if (currentReasoning && wireId && currentReasoningWireId && wireId !== currentReasoningWireId) {
+      closeReasoning();
+    }
+    if (currentReasoning) {
+      currentReasoning = { ...currentReasoning, content: currentReasoning.content + delta };
+      scheduleUpdate(currentReasoning);
+      return;
+    }
+    // Reasoning after the open segment's text or tool calls goes below them,
+    // and the text that follows it opens a new segment below the reasoning.
+    if (messageHasBody(currentMessage)) startNewAssistantSegment();
+    const id = wireId && !reasoningIds.has(wireId) ? wireId : crypto.randomUUID();
+    reasoningIds.add(id);
+    currentReasoning = { id, role: "reasoning", content: delta };
+    currentReasoningWireId = wireId;
+    createMessage(currentReasoning);
   };
 
   for await (const event of adapter.parse(response)) {
@@ -104,6 +148,7 @@ export const processStreamedMessage = async ({
         // otherwise open a blank assistant segment that shadows the real answer
         // (common around parallel tool calls when a new message item is opened).
         if (!event.delta) break;
+        closeReasoning();
         // Some adapters (LangGraph / ChatOpenAI Responses) keep one wire
         // messageId for a whole model step even when Responses interleaved
         // several message items. Text after tools means a new segment — same
@@ -119,6 +164,7 @@ export const processStreamedMessage = async ({
       }
 
       case EventType.TOOL_CALL_START:
+        closeReasoning();
         inFlightToolCallIds.add(event.toolCallId);
         currentMessage = {
           ...currentMessage,
@@ -173,6 +219,7 @@ export const processStreamedMessage = async ({
         // chunk-only call stays "streaming" until its result lands.)
         const id = event.toolCallId;
         if (!id) break;
+        closeReasoning();
         const toolCalls = [...(currentMessage.toolCalls || [])];
         let index = toolCalls.findIndex((tc) => tc.id === id);
         if (index === -1) {
@@ -225,11 +272,7 @@ export const processStreamedMessage = async ({
         // back to back). Publish it first, or the result briefly pairs with no
         // call and renders as a nameless tool — for as long as the frame is
         // deferred, which in a background tab is until it's shown again.
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
-          updateMessage(currentMessage);
-        }
+        flushUpdates();
 
         // Surface a failure onto the @ag-ui/core ToolMessage.error field. The
         // TOOL_CALL_RESULT schema is `passthrough`, so adapters may carry an
@@ -269,6 +312,22 @@ export const processStreamedMessage = async ({
         continue; // skip the trailing isFirst/update logic — this event doesn't touch currentMessage
       }
 
+      // CHUNK is the convenience form of START + CONTENT + END, so the first
+      // chunk opens the message the same way CONTENT does.
+      case EventType.REASONING_MESSAGE_CHUNK:
+      case EventType.REASONING_MESSAGE_CONTENT:
+        if (event.delta) appendReasoning(event.messageId, event.delta);
+        continue;
+
+      case EventType.REASONING_MESSAGE_START:
+        if (currentReasoningWireId !== event.messageId) closeReasoning();
+        continue;
+
+      case EventType.REASONING_MESSAGE_END:
+      case EventType.REASONING_END:
+        closeReasoning();
+        continue;
+
       case EventType.RUN_ERROR: {
         const raw = (event as any).message || (event as any).error || "Stream error";
         const errorText = typeof raw === "string" ? raw : JSON.stringify(raw);
@@ -292,11 +351,8 @@ export const processStreamedMessage = async ({
     commitCurrentMessage();
   }
 
-  if (rafId !== null) {
-    // flush any update
-    cancelAnimationFrame(rafId);
-    updateMessage(currentMessage);
-  } else if (isFirst && messageHasBody(currentMessage)) {
+  flushUpdates();
+  if (isFirst && messageHasBody(currentMessage)) {
     // Last event was a no-op (e.g. empty delta) after body landed in memory only.
     createMessage(currentMessage);
   }
