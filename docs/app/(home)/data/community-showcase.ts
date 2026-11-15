@@ -52,7 +52,7 @@ export const COMMUNITY_SHOWCASE: ShowcaseRotation = {
       maker: "Jai Bhasin",
       makerHref: "https://x.com/bhasin_jai_",
       description:
-        "An infinite canvas where you ask for a widget in plain language and OpenUI renders it as a movable, resizable card.",
+        "An infinite canvas: describe what you are planning and OpenUI fills it with a dashboard of movable, resizable widgets.",
       video: "/community-showcase/ai-native-dashboard.mp4",
     },
     {
