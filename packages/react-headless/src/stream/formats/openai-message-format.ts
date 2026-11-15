@@ -59,21 +59,21 @@ function toOpenAIToolMessage(message: ToolMessage): ChatCompletionToolMessagePar
   };
 }
 
-function toOpenAI(message: Message): ChatCompletionMessageParam {
+function toOpenAI(message: Message): ChatCompletionMessageParam[] {
   switch (message.role) {
     case "user":
-      return toOpenAIUserMessage(message);
+      return [toOpenAIUserMessage(message)];
     case "assistant":
-      return toOpenAIAssistantMessage(message);
+      return [toOpenAIAssistantMessage(message)];
     case "tool":
-      return toOpenAIToolMessage(message);
+      return [toOpenAIToolMessage(message)];
     case "system":
-      return { role: "system", content: message.content };
+      return [{ role: "system", content: message.content }];
     case "developer":
-      return { role: "developer", content: message.content };
+      return [{ role: "developer", content: message.content }];
     default:
-      // reasoning, activity — map to system as fallback
-      return { role: "system", content: "" };
+      // reasoning, activity — Chat Completions has no input for them
+      return [];
   }
 }
 
@@ -160,11 +160,12 @@ function fromOpenAI(data: ChatCompletionMessageParam): Message {
  * Converts between AG-UI message format and OpenAI **Chat Completions**
  * message format (`ChatCompletionMessageParam`).
  *
- * This is a 1-to-1 mapping — each AG-UI message becomes exactly one
- * `ChatCompletionMessageParam` and vice versa.
+ * Each AG-UI message becomes at most one `ChatCompletionMessageParam` and
+ * vice versa.
  *
  * AG-UI → OpenAI (toApi):
  *   - Strips `id` (OpenAI doesn't use message IDs)
+ *   - Drops `reasoning` and `activity` messages (no Chat Completions input for them)
  *   - Converts `toolCalls` → `tool_calls`
  *   - Converts `toolCallId` → `tool_call_id`
  *   - Converts multipart `content` arrays to OpenAI content format
@@ -176,7 +177,7 @@ function fromOpenAI(data: ChatCompletionMessageParam): Message {
  */
 export const openAIMessageFormat: MessageFormat = {
   toApi(messages: Message[]): ChatCompletionMessageParam[] {
-    return messages.map(toOpenAI);
+    return messages.flatMap(toOpenAI);
   },
 
   fromApi(data: unknown): Message[] {
