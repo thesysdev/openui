@@ -82,7 +82,6 @@ export function ShowcasePlayer({ projects }: { projects: ShowcaseProject[] }) {
               >
                 <span className={styles.rank}>{String(index + 1).padStart(2, "0")}</span>
                 <span className={styles.name}>{item.name}</span>
-                <span className={styles.tags}>{item.tags.join(" · ")}</span>
               </button>
               <div className={styles.panel} inert={!isActive}>
                 <div className={styles.panelInner}>

@@ -78,16 +78,6 @@
   line-height: var(--home-heading-leading);
 }
 
-.tags {
-  min-width: 0;
-  margin-left: auto;
-  overflow: hidden;
-  color: var(--openui-text-neutral-secondary);
-  font-size: 0.8125rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* Opens by animating the row from 0fr to 1fr, so no height is measured. */
 .panel {
   display: grid;
