@@ -1,10 +1,7 @@
 /**
  * The community showcase on the homepage: the projects featured for one
  * rotation. To rotate, replace `projects` and move the two dates forward.
- *
- * PLACEHOLDER PICKS: these five are taken from ADOPTERS.md so the section has
- * real content to preview, and the recordings are stand-in footage already in
- * /public, not recordings of these projects. Swap both before launch.
+ * Recordings live in /public/community-showcase.
  */
 
 export interface ShowcaseProject {
@@ -35,49 +32,49 @@ export const COMMUNITY_SHOWCASE: ShowcaseRotation = {
   featuredUntil: "2026-11-15",
   projects: [
     {
-      name: "GAIA",
-      href: "https://heygaia.io",
-      maker: "Aryan Randeriya",
+      name: "Curio",
+      href: "https://curio-landing-phi.vercel.app",
+      maker: "Jose Estevez",
       description:
-        "A proactive personal AI assistant. Its backend LLM writes OpenUI Lang, so cards, lists, and other interactive components render inline in the conversation instead of plain text.",
-      tags: ["Assistant", "OpenUI Lang", "React"],
-      video: "/agent-interface/Fixpanel.mp4",
+        "A reading companion: answers render as generative UI, and clicking any highlighted term opens an explanation right where you are reading.",
+      tags: ["Reading", "Generative UI"],
+      video: "/community-showcase/curio.mp4",
     },
     {
-      name: "Oodle",
-      href: "https://www.oodle.ai/",
-      maker: "Gaurav Maheshwari",
+      name: "Windshift",
+      href: "https://windshift.sh",
+      maker: "Stefan Ernst",
       description:
-        "Streaming, composable observability UI: metrics, logs, traces, and incident timelines drawn by the assistant.",
-      tags: ["Observability", "Charts"],
-      video: "/agent-interface/Linea.mp4",
+        "A self-hosted work management platform. Describe a dashboard widget and it is generated as OpenUI Lang and rendered with @openuidev/svelte-lang.",
+      tags: ["Work management", "Svelte", "Dashboards"],
+      video: "/community-showcase/windshift.mp4",
     },
     {
-      name: "prox",
-      href: "https://useprox.com/",
-      maker: "Gregory Makodzeba",
+      name: "AI Native Dashboard",
+      href: "https://github.com/jaibhasin/AI-Native-Dashboard",
+      maker: "Jai Bhasin",
       description:
-        "Turns manuals and product data into cited, interactive answers like troubleshooters, selectors, and calculators.",
-      tags: ["Support", "Forms"],
-      video: "/agent-interface/Play.mp4",
+        "An infinite canvas where you ask for a widget in plain language and OpenUI renders it as a movable, resizable card.",
+      tags: ["Dashboards", "Canvas"],
+      video: "/community-showcase/ai-native-dashboard.mp4",
+    },
+    {
+      name: "OpenUI Sports",
+      href: "https://naivesolution.dev/projects/openui-sports",
+      maker: "Michael Kolkov",
+      description:
+        "A registry of soccer, NBA, and NFL components that a model fills in with OpenUI Lang: match cards, standings, leaderboards, and charts.",
+      tags: ["Sports", "Component registry", "SwiftUI"],
+      video: "/community-showcase/openui-sports.mp4",
     },
     {
       name: "Learnify",
       href: "https://learnify.ahmedfahim.dev",
       maker: "Ahmed Fahim",
       description:
-        "A lecture companion: pause any NPTEL lecture, ask in your own language, and get quizzes, flashcards, and notes.",
-      tags: ["Education", "Quizzes"],
-      video: "/agent-interface/hostpog.mp4",
-    },
-    {
-      name: "Bub",
-      href: "https://bub.build/",
-      maker: "Chojan Shang",
-      description:
-        "A tiny plugin-based agent runtime whose AG-UI plugin streams replies into an OpenUI chat frontend.",
-      tags: ["Agent runtime", "AG-UI"],
-      video: "/agent-interface/tendesk.mp4",
+        "A lecture companion: pause any NPTEL lecture, ask in your own language, and get quizzes, flashcards, and concept maps.",
+      tags: ["Education", "Flashcards"],
+      video: "/community-showcase/learnify.mp4",
     },
   ],
 };
