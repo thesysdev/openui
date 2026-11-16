@@ -497,6 +497,19 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     firstParty: false,
   },
   {
+    name: "fleet-prime",
+    title: "Fleet Prime",
+    description:
+      "A local browser workspace for Prime Agent where the agent builds dashboards and inline UI in OpenUI Lang from the session's files, commands, and results.",
+    category: "miscellaneous",
+    sourceUrl: "https://github.com/Qredence/fleet-prime-agent",
+    guideUrl: "https://docs.qredence.ai/fleet-prime-agent/introduction",
+    logo: "https://github.com/Qredence.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
     name: "genui-vscode",
     title: "VS Code (Genui)",
     description:
