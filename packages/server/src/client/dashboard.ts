@@ -4,7 +4,12 @@ import { CREATE_SCRIPT_TOOL, probeRound } from "../tools/probe";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
-import { OpenUIApiError, type Dashboard, type DashboardOptions } from "./types";
+import {
+  OpenUIApiError,
+  type Dashboard,
+  type DashboardOptions,
+  type DashboardProgress,
+} from "./types";
 
 function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
@@ -68,13 +73,22 @@ export function defineDashboard<Context extends ExecutionContext>(
     prompt: string,
     call: { title?: string; id?: string },
     signal?: AbortSignal,
+    onProgress?: (step: DashboardProgress) => void,
   ): Promise<string> {
+    // Progress is for display: a callback that throws doesn't stop the build.
+    const progress = (step: DashboardProgress) => {
+      try {
+        onProgress?.(step);
+      } catch {
+        // ignored
+      }
+    };
     // The dashboard belongs to the user the context names, in the client's app if it has one,
     // as a frontend token minted for them would say.
     assertUserIdRequired(context);
     // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
     const definitions = await toolDefinitions();
-    const messages: unknown[] = [
+    let messages: unknown[] = [
       { role: "system", content: config({ tools: definitions, ...call }) },
       { role: "user", content: prompt },
     ];
@@ -132,6 +146,9 @@ export function defineDashboard<Context extends ExecutionContext>(
         typeof message["content"] === "string" &&
         message["content"]
       ) {
+        if (typeof reply["artifact_id"] === "string") {
+          progress({ type: "started", artifactId: reply["artifact_id"] });
+        }
         return message["content"];
       }
       const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
@@ -148,22 +165,29 @@ export function defineDashboard<Context extends ExecutionContext>(
         );
       }
       if (typeof reply["draft_id"] === "string" && reply["draft_id"]) draftId = reply["draft_id"];
-      messages.push(
-        message,
-        ...(await probeRound(toolCalls, await loadTools(), context, signal, interpreter, draftId)),
+      const results = await probeRound(
+        toolCalls,
+        await loadTools(),
+        context,
+        signal,
+        interpreter,
+        draftId,
+        progress,
       );
+      // OpenUI Cloud holds the build's turns under its draft_id: send only the new results.
+      messages = draftId !== undefined ? results : [...messages, message, ...results];
     }
   }
 
   return {
-    async create({ title, prompt }, context, { signal } = {}) {
-      return start(context, prompt, { title }, signal);
+    async create({ title, prompt }, context, { signal, onProgress } = {}) {
+      return start(context, prompt, { title }, signal, onProgress);
     },
 
     // OpenUI Cloud edits the version it stores.
-    async edit({ id, prompt }, context, { signal } = {}) {
+    async edit({ id, prompt }, context, { signal, onProgress } = {}) {
       if (typeof id !== "string" || !id) invalidInput("id is required");
-      return start(context, prompt, { id }, signal);
+      return start(context, prompt, { id }, signal, onProgress);
     },
 
     interpreter,

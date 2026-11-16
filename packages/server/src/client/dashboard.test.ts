@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DataTool } from "../tools/types";
 import type { CloudApi } from "./api";
 import { defineDashboard } from "./dashboard";
-import type { ArtifactLibrary, Dashboard } from "./types";
+import { describeDashboardProgress, type ArtifactLibrary, type Dashboard } from "./types";
 
 // The config block is lang-core's; these tests are about the requests around it.
 vi.mock("./config", () => ({
@@ -130,12 +130,43 @@ describe("defineDashboard create", () => {
     ]);
     expect(bodies[0]).not.toHaveProperty("draft_id");
     expect(bodies[1]!.draft_id).toBe("art_build");
-    expect(bodies[1]!.messages[3]).toEqual({
-      role: "tool",
-      tool_call_id: "c1",
-      content: '{"revenue":7}',
-    });
+    // OpenUI Cloud holds the build's turns: only the new results go back.
+    expect(bodies[1]!.messages).toEqual([
+      { role: "tool", tool_call_id: "c1", content: '{"revenue":7}' },
+    ]);
     expect(sales.execute).not.toHaveBeenCalled();
+  });
+
+  it("reports progress, and ignores a callback that throws", async () => {
+    const reply = {
+      ...toolCalls(
+        toolCall("c1", "sales", '{"region":"EU"}'),
+        toolCall("c2", "create_script", '{"name":"revenue","code":"async () => 1"}'),
+      ),
+      draft_id: "art_build",
+    };
+    const { dashboard } = setup([reply, { ...started, artifact_id: "art_build" }], { sales });
+    const steps: unknown[] = [];
+    await expect(
+      dashboard.create({ title: "Sales", prompt: "Sales" }, context, {
+        onProgress: (step) => {
+          steps.push(step);
+          throw new Error("ui broke");
+        },
+      }),
+    ).resolves.toBe("Dashboard started");
+    expect(steps).toEqual(
+      expect.arrayContaining([
+        { type: "tool", name: "sales", status: "running" },
+        { type: "tool", name: "sales", status: "done" },
+        { type: "script", name: "revenue", status: "running" },
+        { type: "script", name: "revenue", status: "done" },
+        { type: "started", artifactId: "art_build" },
+      ]),
+    );
+    expect(describeDashboardProgress({ type: "script", name: "revenue", status: "running" })).toBe(
+      "Checking script revenue",
+    );
   });
 
   it("runs the model's tool calls and sends the results back in order", async () => {

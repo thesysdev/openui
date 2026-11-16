@@ -1,4 +1,5 @@
 import { isRecord } from "../client/api";
+import type { DashboardProgress } from "../client/types";
 import { abortable } from "../shared/abort";
 import { DRAFT_ID } from "./execute";
 import {
@@ -13,6 +14,16 @@ import {
 export const CREATE_SCRIPT_TOOL = "create_script";
 
 /** Runs one round of the model's tool calls, within 60 seconds. */
+/** The script a create_script call names, if its arguments say. */
+function scriptNameOf(call: { function?: { arguments?: string } }): string {
+  try {
+    const args: unknown = JSON.parse(call.function?.arguments || "{}");
+    return isRecord(args) && typeof args["name"] === "string" ? args["name"] : "";
+  } catch {
+    return "";
+  }
+}
+
 export async function probeRound<Context extends ExecutionContext>(
   calls: Array<{ id: string; function?: { name?: string; arguments?: string } }>,
   tools: Record<string, DataTool<Context>>,
@@ -20,6 +31,7 @@ export async function probeRound<Context extends ExecutionContext>(
   callerSignal: AbortSignal | undefined,
   interpreter: Interpreter<Context>,
   draftId: string | undefined,
+  onProgress: (step: DashboardProgress) => void = () => {},
 ) {
   callerSignal?.throwIfAborted();
   const controller = new AbortController();
@@ -51,6 +63,10 @@ export async function probeRound<Context extends ExecutionContext>(
             throw new ToolExecutionError("Tool arguments must be a JSON object", "bad_args");
           }
           const scriptName = args["name"];
+          const step = savesScript
+            ? ({ type: "script", name: String(scriptName ?? "") } as const)
+            : ({ type: "tool", name } as const);
+          onProgress({ ...step, status: "running" });
           const result = savesScript
             ? await interpreter.execute(
                 {
@@ -73,10 +89,19 @@ export async function probeRound<Context extends ExecutionContext>(
               "bad_tool_result",
             );
           }
+          // A script's run fails with its error as the result.
+          const failed = isRecord(result) && Object.keys(result).length === 1 && "error" in result;
+          onProgress({ ...step, status: failed ? "error" : "done" });
         } catch (error) {
           callerSignal?.throwIfAborted();
           // A failing tool is an answer for the model, not a failed build.
           const message = error instanceof Error ? error.message : String(error);
+          const name = call.function?.name ?? "";
+          onProgress(
+            name === CREATE_SCRIPT_TOOL && !Object.hasOwn(tools, name)
+              ? { type: "script", name: scriptNameOf(call), status: "error" }
+              : { type: "tool", name, status: "error" },
+          );
           content = JSON.stringify({
             error: {
               code: error instanceof ToolExecutionError ? error.code : "tool_exec_error",

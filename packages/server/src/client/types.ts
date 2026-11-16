@@ -58,6 +58,33 @@ export interface RequestOptions {
 }
 
 /**
+ * One step of a dashboard build: a data tool the model called, a script it saved and ran,
+ * or the dashboard starting to generate (render it from then on).
+ */
+export type DashboardProgress =
+  | { type: "tool"; name: string; status: "running" | "done" | "error" }
+  | { type: "script"; name: string; status: "running" | "done" | "error" }
+  | { type: "started"; artifactId: string };
+
+/** A short line for a progress step, such as "Checking script revenue_by_month". */
+export function describeDashboardProgress(step: DashboardProgress): string {
+  if (step.type === "started") return "Building the dashboard";
+  const what = step.type === "script" ? `script ${step.name}` : step.name;
+  if (step.status === "running")
+    return step.type === "script" ? `Checking ${what}` : `Calling ${what}`;
+  return step.status === "done" ? `Checked ${what}` : `${what} failed`;
+}
+
+export interface DashboardRequestOptions extends RequestOptions {
+  /**
+   * Called as the build goes, to show its progress, for example in your tool's card:
+   * forward each step to the browser and label it with `describeDashboardProgress`.
+   * Whatever it throws is ignored.
+   */
+  onProgress?: (step: DashboardProgress) => void;
+}
+
+/**
  * Creates and edits live dashboards. Each call resolves, as soon as the artifact has an id,
  * with the tool's response: return it from your tool as is, and pass it to the renderer.
  */
@@ -69,10 +96,14 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
   create(
     params: CreateDashboardParams,
     context: Context,
-    options?: RequestOptions,
+    options?: DashboardRequestOptions,
   ): Promise<string>;
   /** Edits in place, for its owner. Renderers keep the current version until the edit is ready. */
-  edit(params: EditDashboardParams, context: Context, options?: RequestOptions): Promise<string>;
+  edit(
+    params: EditDashboardParams,
+    context: Context,
+    options?: DashboardRequestOptions,
+  ): Promise<string>;
   /** Runs this dashboard's data tools and generated scripts on your server. */
   readonly interpreter: Interpreter<Context>;
 }
