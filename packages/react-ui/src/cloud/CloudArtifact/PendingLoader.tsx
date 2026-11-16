@@ -1,21 +1,22 @@
 "use client";
 
 import clsx from "clsx";
+import { LoaderCircle } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { names } from "./cloudArtifact.styles";
+import { styles as artifactStyles, names } from "./cloudArtifact.styles";
 import { pendingLoaderNames, pendingLoaderStyles as styles } from "./pendingLoader.styles";
 import { EASE_OUT, prefersReducedMotion, startPendingLoader } from "./pendingLoaderEngine";
 
 export interface PendingLoaderProps {
   /** Fixed text for the note. Without it, the note steps through building a dashboard. */
   label?: string;
-  /** The color the loader is tinted from, as any CSS color. Defaults to the text color. */
+  /** The color the cards are tinted from, as any CSS color. Defaults to the text color. */
   color?: string;
   /** The cards' shapes: title bars, charts and numbers. Defaults to `color` at 8%. */
   shapeColor?: string;
   /** The cards' background. Defaults to `color` at 3%. */
   cardColor?: string;
-  /** The cards' and the note's border. Defaults to `color` at 10%. */
+  /** The cards' border. Defaults to `color` at 10%. */
   borderColor?: string;
 }
 
@@ -60,7 +61,11 @@ export function PendingLoader({
       />
       <div className={styles.overlay} aria-hidden="true">
         <div className={clsx(styles.note, pendingLoaderNames.note)}>
-          <span className={styles.spinner} />
+          <LoaderCircle
+            className={clsx(artifactStyles.spinner, names.spinner)}
+            size={14}
+            aria-hidden
+          />
           <NoteText label={label} />
         </div>
       </div>

@@ -1,5 +1,4 @@
 import { css } from "goober";
-import { spin } from "./cloudArtifact.styles";
 
 /** Class names inside the pending loader. The engine builds its cards from them. */
 export const pendingLoaderNames = {
@@ -188,37 +187,21 @@ export const pendingLoaderStyles = {
     place-items: center;
     pointer-events: none;
   `,
-  // A frosted pill floating over the cards.
+  // The renderer's loading pill, over the cards.
   note: css`
     display: inline-flex;
     align-items: center;
-    gap: 11px;
-    padding: 11px 18px 11px 14px;
-    border: 1px solid var(--openui-pending-border);
+    gap: var(--openui-space-2xs);
+    padding: var(--openui-space-2xs) var(--openui-space-s);
+    border: 1px solid var(--openui-border-default);
     border-radius: var(--openui-radius-full);
-    background: color-mix(in srgb, var(--openui-pending-tint) 5%, transparent);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.12);
+    background: var(--openui-background);
+    box-shadow: var(--openui-shadow-s);
+    color: var(--openui-text-neutral-secondary);
     /* The page's font family, a step below its root size, like an app's interface text. */
     font-size: 0.875rem;
-    font-weight: 500;
     line-height: 1.2;
     white-space: nowrap;
-  `,
-  spinner: css`
-    flex: none;
-    box-sizing: border-box;
-    width: 14px;
-    height: 14px;
-    border: 2px solid color-mix(in srgb, var(--openui-pending-tint) 15%, transparent);
-    border-top-color: var(--openui-pending-tint);
-    border-radius: 50%;
-    animation: ${spin} 0.8s linear infinite;
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-      border-color: color-mix(in srgb, var(--openui-pending-tint) 40%, transparent);
-    }
   `,
   srOnly: css`
     position: absolute;

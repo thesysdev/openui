@@ -9,7 +9,7 @@ const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
 const bodySmall = typography("openui-text-body-sm", "regular");
 const labelSmall = typography("openui-text-label-sm", "regular");
 
-export const spin = keyframes`
+const spin = keyframes`
   to {
     transform: rotate(360deg);
   }

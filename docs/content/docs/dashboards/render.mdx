@@ -81,7 +81,7 @@ In this mode the renderer draws no frame unless a `Chrome` slot is passed. See [
 
 ### Before the tool returns
 
-The model writes the tool call's arguments before `create` runs, which can take a while. Mount the renderer as soon as the call starts, without `response` or `id`. Until the result arrives it shows the `Pending` slot, a skeleton dashboard that rearranges itself, and then the same renderer streams the dashboard:
+The model writes the tool call's arguments before `create` runs, which can take a while. Mount the renderer as soon as the call starts, without `response` or `id`. Until the result arrives it shows the `Pending` slot, a skeleton dashboard, and then the same renderer streams the dashboard:
 
 ```tsx
 <LiveArtifactRenderer
@@ -106,8 +106,6 @@ Each part of the renderer is a slot, passed as a child. A slot can be left out t
 | `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                             |
 | `Content`                                                     | Chrome  | The dashboard itself.                                                                                        |
 | `Pending`, `Loading`, `Error`                                 | Content | Shown only before the tool returns, while the dashboard loads, or after it fails, even with custom children. |
-
-`Pending` takes a fixed `label` for its note and colors, as any CSS color: `color` tints the whole loader (default: the text color), and `shapeColor`, `cardColor` and `borderColor` set one part each.
 
 For example, a full-height panel with its own header:
 
