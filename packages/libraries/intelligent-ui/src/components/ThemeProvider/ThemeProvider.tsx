@@ -14,6 +14,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { tokens } from "../../shared/tokens";
 import {
   defaultDarkTheme,
   defaultLightTheme,
@@ -23,7 +24,10 @@ import {
 
 /** Props for the library's {@link ThemeProvider}. */
 export type ThemeProviderProps = {
-  /** Active colour scheme. Defaults to the nearest library ThemeProvider's mode, otherwise `"light"`. */
+  /**
+   * Active colour scheme. Defaults to the nearest library ThemeProvider's mode, then to a
+   * react-components ThemeProvider's around the app, otherwise `"light"`.
+   */
   mode?: ThemeMode;
   /** Partial overrides for light mode: react-components' keys and the library's `intelligent*` keys. */
   lightTheme?: Theme;
@@ -116,9 +120,10 @@ function IntelligentVariables({
   theme: IntelligentTheme;
 }) {
   const { portalThemeClassName } = useComponentsTheme();
-  // The text colour too: the library's Text sets none and inherits it, so without this a light
-  // library on a dark page would show the page's light text on its light cards.
-  const rules = `color-scheme: ${mode}; color: var(--openui-text-neutral-primary); ${cssVars(theme)}`;
+  // The text colour and font too: the library's Text sets neither and inherits them, so without
+  // this a light library on a dark page would show the page's light text on its light cards, in
+  // the page's font.
+  const rules = `color-scheme: ${mode}; color: var(--openui-text-neutral-primary); font-family: ${tokens.font}; ${cssVars(theme)}`;
   useInsertionEffect(() => {
     const style = createStyleTag();
     style.setAttribute("data-openui-intelligent-theme", id);
@@ -152,7 +157,10 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const id = cssSafeId(useId());
   const parent = useContext(ThemeContext);
-  const mode = suppliedMode ?? parent?.mode ?? "light";
+  const { mode: componentsMode } = useComponentsTheme();
+  // Without a mode of its own or a library parent, it follows a react-components ThemeProvider
+  // around the app ("light" without one), so a dark app doesn't get a light answer.
+  const mode = suppliedMode ?? parent?.mode ?? componentsMode;
   const scope = `openui-intelligent-theme-${id}`;
 
   // A nested provider builds on its parent's overrides, so it changes only what it sets itself.
@@ -202,7 +210,5 @@ export function ThemeProvider({
  * one), so a dark app doesn't get a light answer with no background of its own.
  */
 export function RootTheme({ children }: { children: ReactNode }) {
-  const library = useContext(ThemeContext);
-  const { mode } = useComponentsTheme();
-  return library ? <>{children}</> : <ThemeProvider mode={mode}>{children}</ThemeProvider>;
+  return useContext(ThemeContext) ? <>{children}</> : <ThemeProvider>{children}</ThemeProvider>;
 }

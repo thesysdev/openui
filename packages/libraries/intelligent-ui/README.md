@@ -37,8 +37,10 @@ export function IntelligentMessage({ response }: { response: string }) {
 }
 ```
 
-`ThemeProvider` is optional. It sets the mode (light by default) and takes `lightTheme`
-and `darkTheme` overrides.
+`ThemeProvider` is optional. It sets the mode and takes `lightTheme` and `darkTheme` overrides.
+Without a mode it follows a react-components `ThemeProvider` around your app, or light without
+one. In an OpenUI chat (`@openuidev/react-ui`), wrap the chat in `ThemeProvider` with the chat's
+mode: the library can't read react-ui's theme.
 
 `promptOptions` holds the generation rules and examples. To build your own options, spread its
 `examples` and `additionalRules`, which are also exported on their own.

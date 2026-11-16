@@ -59,7 +59,6 @@ export const buttonStyles = {
          never wider than its column. */
       max-width: 100%;
       overflow-wrap: anywhere;
-      font-family: inherit;
       transition:
         background-color 0.15s,
         border-color 0.15s,
