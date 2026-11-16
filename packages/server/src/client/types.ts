@@ -70,9 +70,10 @@ export type DashboardProgress =
 export function describeDashboardProgress(step: DashboardProgress): string {
   if (step.type === "started") return "Building the dashboard";
   const what = step.type === "script" ? `script ${step.name}` : step.name;
-  if (step.status === "running")
-    return step.type === "script" ? `Checking ${what}` : `Calling ${what}`;
-  return step.status === "done" ? `Checked ${what}` : `${what} failed`;
+  if (step.status === "error") return `${what} failed`;
+  if (step.type === "script")
+    return step.status === "running" ? `Checking ${what}` : `Checked ${what}`;
+  return step.status === "running" ? `Calling ${what}` : `Called ${what}`;
 }
 
 export interface DashboardRequestOptions extends RequestOptions {
