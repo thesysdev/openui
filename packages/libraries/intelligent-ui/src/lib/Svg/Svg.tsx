@@ -11,9 +11,10 @@ const DRAWABLE = new Set([...shapeComponents.map((shape) => shape.name), G.name]
 export const SvgSchema = z.object({
   children: z.array(z.union([...shapes.element.options, G.ref])),
   viewBox: z.string(),
-  label: z.string().optional(),
   width: length.optional(),
   height: length.optional(),
+  // Last, so answers written before it (width third) still parse.
+  label: z.string().optional(),
 });
 
 export const Svg = defineComponent({
