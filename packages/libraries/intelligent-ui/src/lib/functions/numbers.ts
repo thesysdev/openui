@@ -14,8 +14,9 @@ export const Sqrt = defineFunction({
   name: "Sqrt",
   description: "Square root; null for a negative number",
   params: z.object({ number: z.number() }),
-  returns: z.number(),
-  fn: ({ number }) => finite(Math.sqrt(number)),
+  returns: z.number().nullable(),
+  // A negative number is an expected input, not an error, so it returns null without throwing.
+  fn: ({ number }) => (number < 0 ? null : finite(Math.sqrt(number))),
 });
 
 export const Random = defineFunction({
