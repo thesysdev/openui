@@ -15,6 +15,7 @@ import { TRIP_FORM } from "./components/StreamingComparison/examples/tripForm";
 import styles from "./page.module.css";
 import { BANNER_END_ANCHOR_ID } from "./sections/CloudBanner/CloudBanner";
 import { CloudSection } from "./sections/CloudSection/CloudSection";
+import { CommunityShowcaseSection } from "./sections/CommunityShowcaseSection/CommunityShowcaseSection";
 import { CompatibilitySection } from "./sections/CompatibilitySection/CompatibilitySection";
 import { FAQS, FaqSection } from "./sections/FaqSection/FaqSection";
 import { Footer } from "./sections/Footer/Footer";
@@ -25,7 +26,6 @@ import { LangHeadline } from "./sections/ProductSection/LangHeadline";
 import { LANG_PRODUCT } from "./sections/ProductSection/products";
 import { ProductSection } from "./sections/ProductSection/ProductSection";
 import { ShiroPeek } from "./sections/ShiroPeek/ShiroPeek";
-import { TweetWallSection } from "./sections/TweetWallSection/TweetWallSection";
 
 /* The examples under the hero's comparison, one per tab. */
 const COMPARISON_TABS: ComparisonTab[] = [
@@ -113,7 +113,7 @@ export default function HomePage() {
         }}
       />
       {/* Five folds, in order: the hero, what OpenUI does, how it works, what
-          it works with, then questions. Gateway and the tweet wall sit between
+          it works with, then questions. Gateway and the community showcase sit between
           the last two so they never interrupt that story. */}
       <div className={styles.heroShell}>
         <HeroSection
@@ -170,12 +170,12 @@ export default function HomePage() {
               generation, then reliability in production. */}
           <HeroProof />
 
-          {/* Then who uses OpenUI and what they say. */}
+          {/* Then the hosted product and what the community has built. */}
           <div className={styles.cloudGroup}>
             <ShiroPeek />
             <CloudSection />
           </div>
-          <TweetWallSection />
+          <CommunityShowcaseSection />
 
           {/* Fold 5: FAQ. */}
           <div className={styles.faqBand} id={BANNER_END_ANCHOR_ID}>
