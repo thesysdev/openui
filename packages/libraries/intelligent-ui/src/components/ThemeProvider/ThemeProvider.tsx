@@ -27,7 +27,10 @@ export type ThemeProviderProps = {
   mode?: ThemeMode;
   /** Partial overrides for light mode: react-components' keys and the library's `intelligent*` keys. */
   lightTheme?: Theme;
-  /** Partial overrides for dark mode. When omitted, `lightTheme` applies to both modes. */
+  /**
+   * Partial overrides for dark mode. When omitted, `lightTheme` applies to both modes. A nested
+   * provider's overrides apply on top of its parent's.
+   */
   darkTheme?: Theme;
   children?: ReactNode;
 };
@@ -36,6 +39,8 @@ type ThemeContextValue = {
   mode: ThemeMode;
   /** The library's resolved `intelligent*` keys for the active mode. */
   theme: IntelligentTheme;
+  /** This provider's overrides for each mode, its parent's included, for a nested provider to build on. */
+  overrides: { light: Theme; dark: Theme };
 };
 
 /**
@@ -134,8 +139,10 @@ function IntelligentVariables({
  * - Inside, a react-components ThemeProvider themes the react-components the library draws with
  *   (Button, Select, DatePicker, Chart…) from this provider's mode and keys. A react-components
  *   ThemeProvider around the app is ignored inside it.
- * - A nested provider takes its parent's mode unless it sets one.
- * - Without one, a response's root `Col` wraps itself in a default provider.
+ * - A nested provider takes its parent's mode unless it sets one, and builds on its parent's
+ *   overrides.
+ * - Without one, a response's root `Col` wraps itself in a default provider, in the mode of the
+ *   react-components ThemeProvider around the app if there is one.
  */
 export function ThemeProvider({
   mode: suppliedMode,
@@ -148,18 +155,29 @@ export function ThemeProvider({
   const mode = suppliedMode ?? parent?.mode ?? "light";
   const scope = `openui-intelligent-theme-${id}`;
 
-  const light = useMemo(() => splitTheme(lightTheme), [lightTheme]);
-  const dark = useMemo(() => (darkTheme ? splitTheme(darkTheme) : undefined), [darkTheme]);
+  // A nested provider builds on its parent's overrides, so it changes only what it sets itself.
+  const overrides = useMemo(
+    () => ({
+      light: { ...parent?.overrides.light, ...lightTheme },
+      dark: { ...parent?.overrides.dark, ...(darkTheme ?? lightTheme) },
+    }),
+    [parent?.overrides, lightTheme, darkTheme],
+  );
+  const light = useMemo(() => splitTheme(overrides.light), [overrides.light]);
+  const dark = useMemo(() => splitTheme(overrides.dark), [overrides.dark]);
 
   const theme = useMemo<IntelligentTheme>(
     () =>
       mode === "light"
         ? { ...defaultLightTheme, ...light.intelligent }
-        : { ...defaultDarkTheme, ...(dark ?? light).intelligent },
+        : { ...defaultDarkTheme, ...dark.intelligent },
     [mode, light, dark],
   );
 
-  const context = useMemo<ThemeContextValue>(() => ({ mode, theme }), [mode, theme]);
+  const context = useMemo<ThemeContextValue>(
+    () => ({ mode, theme, overrides }),
+    [mode, theme, overrides],
+  );
 
   return (
     <ThemeContext.Provider value={context}>
@@ -168,7 +186,7 @@ export function ThemeProvider({
           mode={mode}
           cssSelector={`.${scope}`}
           lightTheme={light.components as ComponentsTheme}
-          darkTheme={dark?.components as ComponentsTheme | undefined}
+          darkTheme={dark.components as ComponentsTheme}
         >
           <IntelligentVariables id={id} scope={scope} mode={mode} theme={theme} />
           {children}
@@ -178,7 +196,13 @@ export function ThemeProvider({
   );
 }
 
-/** Wraps `children` in a default ThemeProvider unless a library ThemeProvider is already above. */
+/**
+ * Wraps `children` in a default ThemeProvider unless a library ThemeProvider is already above. The
+ * default takes its mode from a react-components ThemeProvider around the app ("light" without
+ * one), so a dark app doesn't get a light answer with no background of its own.
+ */
 export function RootTheme({ children }: { children: ReactNode }) {
-  return useContext(ThemeContext) ? <>{children}</> : <ThemeProvider>{children}</ThemeProvider>;
+  const library = useContext(ThemeContext);
+  const { mode } = useComponentsTheme();
+  return library ? <>{children}</> : <ThemeProvider mode={mode}>{children}</ThemeProvider>;
 }

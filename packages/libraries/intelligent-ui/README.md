@@ -46,9 +46,11 @@ export function IntelligentMessage({
 ### Theming
 
 `ThemeProvider` is optional. Without it, a response with a `Col` root wraps itself in a default
-one, in light mode.
+one, in the mode of the react-components `ThemeProvider` around your app, or light without one.
 
 - `mode` is `"light"` or `"dark"`. A nested `ThemeProvider` without one takes its parent's.
+- A nested `ThemeProvider`'s overrides apply on top of its parent's, so it changes only what it
+  sets.
 - `lightTheme` and `darkTheme` take partial overrides; without `darkTheme`, `lightTheme` applies to
   both modes. They take react-components' theme keys, which the components the library draws with
   (Button, Select, DatePicker, Chart and more) read, and the library's own `intelligent*` keys:
@@ -67,8 +69,8 @@ one, in light mode.
 ```
 
 `ThemeProvider` themes only what is inside it, never `body`, and carries its variables into the
-menus and popovers that open outside it. The library always themes itself: a react-components
-`ThemeProvider` around your app doesn't change it, so set the mode on this one.
+menus and popovers that open outside it. Inside it, a react-components `ThemeProvider` around
+your app changes nothing: the library takes its mode and keys from this one only.
 
 It sets the theme's variables but doesn't paint your page. To give the response the theme's
 background, put it in an element inside `ThemeProvider`, for example
