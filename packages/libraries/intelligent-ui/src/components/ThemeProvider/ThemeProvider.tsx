@@ -95,9 +95,9 @@ function createStyleTag() {
 }
 
 /**
- * Writes the library's variables where react-components' provider below writes its own: on this
- * provider's scope class, and on that provider's portal class, so a Select menu, Popover or
- * DatePicker that renders outside the scope carries them too.
+ * Writes the library's variables, colour scheme and text colour where react-components' provider
+ * below writes its own: on this provider's scope class, and on that provider's portal class, so a
+ * Select menu, Popover or DatePicker that renders outside the scope carries them too.
  */
 function IntelligentVariables({
   id,
@@ -111,7 +111,9 @@ function IntelligentVariables({
   theme: IntelligentTheme;
 }) {
   const { portalThemeClassName } = useComponentsTheme();
-  const rules = `color-scheme: ${mode}; ${cssVars(theme)}`;
+  // The text colour too: the library's Text sets none and inherits it, so without this a light
+  // library on a dark page would show the page's light text on its light cards.
+  const rules = `color-scheme: ${mode}; color: var(--openui-text-neutral-primary); ${cssVars(theme)}`;
   useInsertionEffect(() => {
     const style = createStyleTag();
     style.setAttribute("data-openui-intelligent-theme", id);
