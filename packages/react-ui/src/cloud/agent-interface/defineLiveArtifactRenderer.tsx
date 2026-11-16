@@ -67,8 +67,11 @@ export function defineLiveArtifactRenderer({
     toolName,
     label,
     icon,
-    parser: ({ response, id }) => {
+    parser: ({ response, id }, { isStreaming }) => {
       if (id) return { props: { id }, meta: { id, version: 1, heading: label } };
+      // The call is still running: the renderer is pending until its result lands. A stopped
+      // call renders nothing, so nothing is left loading.
+      if (response == null) return isStreaming ? { props: {}, meta: null } : null;
       if (typeof response !== "string" || !response) return null;
       const reference = parseArtifactReference(response);
       return {

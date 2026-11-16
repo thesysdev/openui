@@ -6,11 +6,13 @@ import type { ArtifactError } from "./errors";
 export interface ArtifactRendererState {
   id: string | null;
   title?: string;
+  /** No artifact yet: the tool call that makes it is still running. */
+  isPending: boolean;
   /** The artifact's content is being generated. */
   isStreaming: boolean;
   /** Its data tools are running. */
   isFetching: boolean;
-  /** Either of the two. */
+  /** Any of the three. */
   isLoading: boolean;
   /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
   error: ArtifactError | OpenUIError | null;

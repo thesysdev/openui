@@ -5,11 +5,11 @@ export const typography = (token: string, variation: "regular" | "medium") => `
   letter-spacing: var(--${token}-letter-spacing);
   font-variation-settings: var(--openui-font-variation-${variation});
 `;
-const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
+export const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
 const bodySmall = typography("openui-text-body-sm", "regular");
 const labelSmall = typography("openui-text-label-sm", "regular");
 
-const spin = keyframes`
+export const spin = keyframes`
   to {
     transform: rotate(360deg);
   }
@@ -32,6 +32,7 @@ export const names = {
   content: "openui-artifact-content",
   loading: "openui-artifact-loading",
   loadingEmpty: "openui-artifact-loading-empty",
+  pending: "openui-artifact-pending",
   error: "openui-artifact-error",
   panel: "openui-artifact-panel",
 } as const;
