@@ -51,7 +51,7 @@ export function getCreateCliPackageManager(command: string): CreateCliPackageMan
   const normalized = command.trim().replace(/\s+/g, " ");
   if (!CREATE_CLI_COMMAND_PATTERN.test(normalized)) return null;
 
-  if (/^pnpx\s/i.test(normalized)) return "pnpm";
+  if (/^(?:pnpx|pnpm dlx)\s/i.test(normalized)) return "pnpm";
   if (/^bunx\s/i.test(normalized)) return "bun";
   if (/^yarn dlx\s/i.test(normalized)) return "yarn";
   if (/^npx\s/i.test(normalized)) return "npm";

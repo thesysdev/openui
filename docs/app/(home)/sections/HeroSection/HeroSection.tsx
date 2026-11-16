@@ -265,7 +265,7 @@ function CommandTabs({
 function DesktopPlaygroundButton({ className = "" }: { className?: string }) {
   return (
     <PillLink
-      href="/openui-vs-json"
+      href={SITE_NAV_LINKS.openuiVsJson.href}
       className={`${styles.desktopPlaygroundButton} ${className}`.trim()}
       arrow={<TrailingArrow />}
     >
