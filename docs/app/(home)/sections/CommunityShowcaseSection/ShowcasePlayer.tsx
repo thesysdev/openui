@@ -1,14 +1,15 @@
 "use client";
 
-import { ArrowUpRight, Pause, Play } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import type { ShowcaseProject } from "../../data/community-showcase";
 import styles from "./CommunityShowcaseSection.module.css";
 
-function hostOf(href: string): string {
-  return new URL(href).hostname.replace(/^www\./, "");
-}
+/* The Integrations page, where the rest of what people have built is listed. */
+const MORE_HREF = "/docs/integrations";
+const ADD_PROJECT_URL = "https://github.com/thesysdev/openui/issues";
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
@@ -69,25 +70,34 @@ export function ShowcasePlayer({ projects }: { projects: ShowcaseProject[] }) {
 
   return (
     <div ref={hostRef} className={styles.player}>
-      <ol className={styles.list}>
-        {projects.map((item, index) => {
-          const isActive = index === active;
-          return (
-            <li key={item.name} className={isActive ? styles.itemActive : styles.item}>
-              <button
-                type="button"
-                className={styles.itemHeader}
-                aria-expanded={isActive}
-                onClick={() => select(index)}
-              >
-                <span className={styles.rank}>{String(index + 1).padStart(2, "0")}</span>
-                <span className={styles.name}>{item.name}</span>
-              </button>
-              <div className={styles.panel} inert={!isActive}>
-                <div className={styles.panelInner}>
-                  <p className={styles.description}>{item.description}</p>
-                  <p className={styles.meta}>
-                    <span>
+      <div>
+        <ol className={styles.list}>
+          {projects.map((item, index) => {
+            const isActive = index === active;
+            return (
+              <li key={item.name} className={isActive ? styles.itemActive : styles.item}>
+                <div className={styles.itemHeader}>
+                  <button
+                    type="button"
+                    className={styles.itemToggle}
+                    aria-expanded={isActive}
+                    onClick={() => select(index)}
+                  >
+                    <span className={styles.name}>{item.name}</span>
+                  </button>
+                  <a
+                    className={styles.visit}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit ${item.name}`}
+                  >
+                    <ArrowUpRight size={18} aria-hidden="true" />
+                  </a>
+                </div>
+                <div className={styles.panel} inert={!isActive}>
+                  <div className={styles.panelInner}>
+                    <p className={styles.meta}>
                       Built by{" "}
                       <a
                         className={styles.maker}
@@ -97,26 +107,45 @@ export function ShowcasePlayer({ projects }: { projects: ShowcaseProject[] }) {
                       >
                         {item.maker}
                       </a>
-                    </span>
-                    <a
-                      className={styles.visit}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {hostOf(item.href)}
-                      <ArrowUpRight size={14} aria-hidden="true" />
-                    </a>
-                  </p>
+                    </p>
+                    {/* Every description is laid out in the same cell and only this
+                        project's is shown, so each panel is as tall as the longest
+                        one and switching projects never changes the list's height. */}
+                    <div className={styles.description}>
+                      {projects.map((other) =>
+                        other === item ? (
+                          <p key={other.name}>{other.description}</p>
+                        ) : (
+                          <p key={other.name} className={styles.sizer} aria-hidden="true">
+                            {other.description}
+                          </p>
+                        ),
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <span className={styles.progressTrack} aria-hidden="true">
-                {isActive && <span ref={progressRef} className={styles.progressFill} />}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+                <span className={styles.progressTrack} aria-hidden="true">
+                  {isActive && <span ref={progressRef} className={styles.progressFill} />}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+        <p className={styles.more}>
+          <Link className={styles.moreLink} href={MORE_HREF}>
+            and many more
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+          <a
+            className={styles.addLink}
+            href={ADD_PROJECT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Add yours
+          </a>
+        </p>
+      </div>
 
       <div className={styles.stage}>
         <video

@@ -35,18 +35,13 @@
   position: relative;
 }
 
+/* The row: the project name opens it, the arrow beside it goes to its site. */
 .itemHeader {
+  position: relative;
   display: flex;
-  width: 100%;
-  align-items: baseline;
-  gap: 0.75rem;
-  padding: 1rem 0;
-  border: 0;
-  background: none;
+  align-items: center;
+  gap: 0.375rem;
   color: var(--openui-text-neutral-secondary);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
   transition: color 0.15s ease;
 }
 
@@ -55,22 +50,30 @@
   color: var(--openui-text-neutral-primary);
 }
 
-.itemHeader:focus-visible {
+.itemToggle {
+  padding: 1rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The whole row selects the project, not just the name. */
+.itemToggle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.itemToggle:focus-visible {
   outline: 2px solid var(--openui-text-neutral-primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-.rank {
-  flex-shrink: 0;
-  color: var(--openui-text-neutral-secondary);
-  font-family: var(--home-font-mono);
-  font-size: var(--home-label-size);
-  font-variant-numeric: tabular-nums;
-}
-
 .name {
-  flex-shrink: 0;
   font-family: var(--home-font-display);
   font-size: var(--home-heading-size);
   font-weight: var(--home-heading-weight);
@@ -78,7 +81,33 @@
   line-height: var(--home-heading-leading);
 }
 
-/* Opens by animating the row from 0fr to 1fr, so no height is measured. */
+/* Above the row's click layer, with a touch-sized hit area. */
+.visit {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.visit:hover {
+  background: var(--home-hairline);
+  color: var(--openui-text-neutral-primary);
+}
+
+.visit:focus-visible {
+  outline: 2px solid var(--openui-text-neutral-primary);
+  outline-offset: 2px;
+}
+
+/* Opens by animating the row from 0fr to 1fr, so no height is measured. Every
+   panel is the same height (see .description), so one closing while another
+   opens keeps the list's total height constant. */
 .panel {
   display: grid;
   grid-template-rows: 0fr;
@@ -92,25 +121,10 @@
 .panelInner {
   min-height: 0;
   overflow: hidden;
-  /* In line with the name, past the rank. */
-  padding-left: calc(2ch + 0.75rem);
-}
-
-.description {
-  margin: 0;
-  color: var(--openui-text-neutral-secondary);
-  font-size: var(--home-body-size);
-  line-height: var(--home-body-leading);
-  text-wrap: pretty;
 }
 
 .meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.25rem 1rem;
-  margin: 0.75rem 0 1.125rem;
+  margin: 0 0 0.5rem;
   color: var(--openui-text-neutral-secondary);
   font-size: 0.8125rem;
 }
@@ -126,18 +140,24 @@
   text-decoration-color: currentColor;
 }
 
-.visit {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  color: var(--openui-text-neutral-primary);
-  font-weight: 500;
-  text-decoration: none;
+.description {
+  display: grid;
+  margin: 0 0 1.125rem;
+  color: var(--openui-text-neutral-secondary);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
 }
 
-.visit:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.description p {
+  grid-area: 1 / 1;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.sizer {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* The divider under each row doubles as the active row's progress bar. */
@@ -155,6 +175,47 @@
   transform-origin: left;
   background: var(--openui-text-neutral-primary);
   transition: transform 0.25s linear;
+}
+
+/* The closing row under the five: on to the rest, or add your own. */
+.more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding-top: 1rem;
+  font-size: var(--home-body-size);
+}
+
+.moreLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--openui-text-neutral-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.moreLink svg {
+  transition: transform 0.2s ease;
+}
+
+.moreLink:hover svg {
+  transform: translateX(2px);
+}
+
+.addLink {
+  color: var(--openui-text-neutral-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--home-hairline);
+  text-underline-offset: 3px;
+}
+
+.addLink:hover {
+  color: var(--openui-text-neutral-primary);
+  text-decoration-color: currentColor;
 }
 
 /* The recording in the same device the hero comparison uses: a page-coloured
@@ -238,7 +299,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .panel,
-  .progressFill {
+  .progressFill,
+  .moreLink svg {
     transition: none;
   }
 
