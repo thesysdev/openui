@@ -111,7 +111,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
       // Tools go with every request: without them, earlier tool results are ignored.
       const reply = await api.post(
-        "/v1/artifact/chat/completions",
+        "/v1/dashboard/chat/completions",
         {
           model,
           messages,
@@ -122,10 +122,18 @@ export function defineDashboard<Context extends ExecutionContext>(
         },
         signal,
       );
-      if (typeof reply["response"] === "string" && reply["response"]) return reply["response"];
-
       const choice: unknown = Array.isArray(reply["choices"]) ? reply["choices"][0] : undefined;
       const message = isRecord(choice) ? choice["message"] : undefined;
+      // The dashboard started: the message is the tool response for your agent's model.
+      if (
+        isRecord(choice) &&
+        choice["finish_reason"] === "stop" &&
+        isRecord(message) &&
+        typeof message["content"] === "string" &&
+        message["content"]
+      ) {
+        return message["content"];
+      }
       const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
       if (
         !probeTools ||

@@ -13,7 +13,17 @@ const context = { userId: "user_1", team: "blue" };
 type Context = typeof context;
 type Message = Record<string, unknown>;
 
-const started = { response: "Dashboard started" };
+const started = {
+  object: "chat.completion",
+  choices: [
+    {
+      index: 0,
+      message: { role: "assistant", content: "Dashboard started" },
+      finish_reason: "stop",
+    },
+  ],
+  artifact_id: "art_1",
+};
 const toolCall = (id: string, name: string, args = "{}") => ({
   id,
   type: "function",
