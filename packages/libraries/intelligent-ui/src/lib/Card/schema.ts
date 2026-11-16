@@ -4,8 +4,8 @@ import { children } from "../schemas";
 export const CardSchema = z.object({
   children,
   variant: z.enum(["outline", "soft"]).optional(),
-  padding: z.number().optional(),
   gap: z.number().optional(),
+  padding: z.number().optional(),
 });
 
 export type CardProps = z.infer<typeof CardSchema>;

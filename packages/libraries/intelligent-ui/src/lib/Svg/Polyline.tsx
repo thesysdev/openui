@@ -8,9 +8,9 @@ import { Standalone } from "./standalone";
 
 export const PolylineSchema = z.object({
   points: z.string(),
+  fill: color.optional(),
   stroke: color.optional(),
   strokeWidth: z.number().optional(),
-  fill: color.optional(),
   opacity: z.number().optional(),
 });
 
