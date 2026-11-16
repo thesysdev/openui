@@ -1,0 +1,74 @@
+import clsx from "clsx";
+import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import { type Color, fg } from "../../shared/props";
+import { names, textStyles } from "./text.styles";
+
+export interface TextProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "color"> {
+  size?: "xs" | "sm" | "md" | "lg";
+  color?: Color;
+  weight?: "normal" | "medium" | "semibold";
+  italic?: boolean;
+  lineThrough?: boolean;
+  tabularNums?: boolean;
+  /** Clamps the paragraph to this many lines. */
+  maxLines?: number;
+  /** Holds block components (a Badge, a Math): a div, since a paragraph can't contain them. */
+  block?: boolean;
+}
+
+/** A paragraph. */
+const Text = forwardRef<HTMLParagraphElement, TextProps>(
+  (
+    {
+      size,
+      color,
+      weight,
+      italic,
+      lineThrough,
+      tabularNums,
+      maxLines,
+      block,
+      className,
+      style,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
+    const Element = block ? "div" : "p";
+    const lines = maxLines && maxLines > 0 ? Math.round(maxLines) : undefined;
+    return (
+      <Element
+        ref={ref as never}
+        className={clsx(
+          textStyles.root,
+          names.root,
+          size ? [textStyles.size[size], names.size[size]] : names.size.default,
+          weight && [textStyles.weight[weight], names.weight[weight]],
+          lines && [textStyles.clamp, names.clamp],
+          className,
+        )}
+        style={{
+          color: fg(color),
+          fontStyle: italic ? "italic" : undefined,
+          textDecoration: lineThrough ? "line-through" : undefined,
+          fontVariantNumeric: tabularNums ? "tabular-nums" : undefined,
+          WebkitLineClamp: lines,
+          ...style,
+        }}
+        {...rest}
+      >
+        {children}
+      </Element>
+    );
+  },
+);
+
+Text.displayName = "Text";
+
+/** Holds a component (an Icon, a Badge, a Math) in a line of Text, aligned with the words. */
+function TextInline({ children }: { children?: ReactNode }) {
+  return <span className={clsx(textStyles.inline, names.inline)}>{children}</span>;
+}
+
+export { Text, TextInline };

@@ -1,0 +1,41 @@
+"use client";
+
+import { TextArea as RCTextArea } from "@openuidev/react-components";
+import { defineComponent, useStateField } from "@openuidev/react-lang";
+import clsx from "clsx";
+import { Field } from "../../components/Field";
+import { names as fieldNames, fieldStyles } from "../../components/Field/field.styles";
+import { useFieldName, useFieldRules } from "../controls";
+import { TextAreaSchema } from "./schema";
+
+export * from "./schema";
+
+export const TextArea = defineComponent({
+  name: "TextArea",
+  props: TextAreaSchema,
+  description: "Multi-line text field; rows is 2 to 20 (default 3).",
+  component: ({ props, statementId }) => {
+    const name = useFieldName(props.label, statementId);
+    const field = useStateField(name, props.value);
+    const rules = useFieldRules(name, props.rules, field.value);
+    return (
+      <Field label={props.label} required={rules.required} error={rules.error}>
+        <RCTextArea
+          className={clsx(fieldStyles.control, fieldNames.control)}
+          rows={Math.min(20, Math.max(2, Math.round(props.rows ?? 3)))}
+          value={String(field.value ?? "")}
+          placeholder={props.placeholder}
+          aria-label={props.label ? undefined : props.placeholder}
+          aria-required={rules.required || undefined}
+          aria-invalid={rules.error ? true : undefined}
+          hasError={!!rules.error}
+          onChange={(event) => {
+            rules.clear();
+            field.setValue(event.target.value);
+          }}
+          onBlur={rules.check}
+        />
+      </Field>
+    );
+  },
+});

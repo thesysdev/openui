@@ -556,6 +556,43 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
 
+  packages/libraries/intelligent-ui:
+    dependencies:
+      '@openuidev/react-components':
+        specifier: workspace:>=0.0.1 <0.1.0
+        version: link:../../react-components
+      '@openuidev/react-lang':
+        specifier: workspace:>=1.1.1
+        version: link:../../react-lang
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      katex:
+        specifier: ^0.16.44
+        version: 0.16.44
+      lucide-react:
+        specifier: ^0.562.0
+        version: 0.562.0(react@19.2.4)
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.4
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.4(react@19.2.4)
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+
   packages/observability:
     devDependencies:
       vitest:
