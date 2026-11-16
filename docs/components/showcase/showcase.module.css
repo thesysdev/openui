@@ -295,6 +295,18 @@
   z-index: 2;
 }
 
+.cardClickable .runButton {
+  position: relative;
+  z-index: 2;
+}
+.featuredCard .cardLinks {
+  gap: 1rem;
+  align-items: center;
+}
+.featuredCard .cardLinks > :first-child {
+  font-weight: 600;
+}
+
 .cardClickable .cardStretch {
   position: static;
 }
@@ -305,4 +317,107 @@
   inset: 0;
   z-index: 1;
   border-radius: inherit;
+}
+
+/* Demo cards: one framed preview, then content and the website's pill controls. */
+.demoCard {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.demoCard:hover {
+  background: transparent;
+}
+
+.demoCard .featuredMedia {
+  overflow: hidden;
+  border: 1px solid var(--docs-card-border);
+  border-radius: var(--openui-radius-xl, 12px);
+}
+
+.demoCard .featuredBody {
+  padding: 16px 2px 8px;
+}
+.demoCard .cardTitle {
+  font-weight: 500;
+}
+.demoCard .cardLinks {
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.demoCard .demoAction {
+  position: relative;
+  z-index: 2;
+  height: 36px;
+  min-height: 36px;
+  padding-inline: 16px;
+  border-radius: var(--openui-radius-full, 999px);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+.demoCard a.demoAction {
+  color: var(--docs-text-heading) !important;
+}
+.demoCard .demoTertiary,
+.demoCard .demoTertiary:hover,
+.demoCard .demoTertiary:active {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.demoCard .cardLinks > :first-child {
+  font-weight: 500;
+}
+.demoCard .cardStretch {
+  position: static;
+}
+.demoAction:focus-visible {
+  outline: 2px solid var(--docs-text-heading);
+  outline-offset: 3px;
+}
+
+.runActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.runActions .runAction {
+  height: 36px;
+  min-height: 36px;
+  padding-inline: 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--openui-radius-full, 999px);
+  text-decoration: none !important;
+}
+.runActions .runActionPrimary,
+.runActions .runActionPrimary:hover,
+.runActions .runActionPrimary:active {
+  background: var(--color-fd-foreground);
+  color: var(--color-fd-background) !important;
+  border-color: var(--color-fd-foreground);
+}
+.runActions a.runAction {
+  color: var(--color-fd-foreground) !important;
+}
+.runActions svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.runCommand code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.runNote:empty {
+  display: none;
 }

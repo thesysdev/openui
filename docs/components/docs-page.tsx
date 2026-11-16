@@ -15,14 +15,15 @@ type DocsSourcePage = NonNullable<ReturnType<typeof source.getPage>>;
 /** Renders a docs content page. Shared by `/docs` and the top-level sections like `/cookbooks`. */
 export function DocsPageView({ page }: { page: DocsSourcePage }) {
   const MDX = page.data.body;
+  const showToc = page.slugs[0] !== "demos";
 
   return (
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
       footer={{ enabled: !page.data.hideFooter }}
-      tableOfContent={{ style: "clerk" }}
-      tableOfContentPopover={{ style: "clerk" }}
+      tableOfContent={{ style: "clerk", enabled: showToc }}
+      tableOfContentPopover={{ style: "clerk", enabled: showToc }}
       // Without a sidebar there is room for the `full` page width next to the TOC (see global.css).
       data-no-sidebar={!page.data.sidebar || undefined}
     >

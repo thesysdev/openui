@@ -6,61 +6,55 @@ import { SITE_NAV_LINKS } from "@/lib/site-nav-links";
 export const PLAYGROUND: ShowcaseItem[] = [
   {
     name: "Compare",
+    demoId: "compare",
     tagline: "Side by side",
     description:
       "See the same answers rendered as Markdown, with OpenUI OSS, and with OpenUI Cloud, side by side.",
     image: { light: "/nav/compare-light.webp", dark: "/nav/compare-dark.webp" },
-    links: [{ label: "Open demo", href: "/compare" }],
+    links: [{ label: "Try demo", href: SITE_NAV_LINKS.compare.href }],
   },
   {
     name: "OpenUI vs JSON",
+    demoId: "vs-json",
     tagline: "Tokens",
     description:
       "Generate UI from a prompt and watch OpenUI Lang stream against JSON, with up to 67% fewer tokens.",
     image: { light: "/nav/vsjson-light.webp", dark: "/nav/vsjson-dark.webp" },
-    links: [{ label: "Open demo", href: "/openui-vs-json" }],
+    links: [{ label: "Try demo", href: SITE_NAV_LINKS.openuiVsJson.href }],
   },
 ];
 
 export const FEATURED_PROJECTS: ShowcaseItem[] = [
   {
     name: "Sales Dashboard",
+    demoId: "sales-dashboard",
+    templateRepo: "thesysdev/openui-sales-dashboard",
     tagline: "Live sales data",
-    description:
-      "Describe a sales view and get a live dashboard over a Postgres database, with KPIs, charts and tables that load fresh numbers every time. Ask in the chat to change it.",
+    description: "Turn sales data into a live dashboard with charts, tables and KPIs.",
     image: {
       light: "/nav/sales-dashboard-light.webp",
       dark: "/nav/sales-dashboard-dark.webp",
     },
-    links: [
-      { label: "Open demo", href: SITE_NAV_LINKS.salesDashboard.href },
-      {
-        label: "GitHub",
-        href: "https://github.com/thesysdev/openui-sales-dashboard",
-        external: true,
-      },
-    ],
+    links: [{ label: "Try demo", href: SITE_NAV_LINKS.salesDashboard.href }],
   },
   {
     name: "Open Intelligent UI",
+    demoId: "intelligent-ui",
+    templateRepo: "thesysdev/open-intelligent-ui",
     tagline: "Interactive answers",
-    description:
-      "An open-source recreation of ChatGPT’s Intelligent UI experience, with maps, photographs, and editable itineraries rendered with OpenUI.",
+    description: "Ask a question. Get maps, charts and tools you can use.",
     // The final frame of the homepage KALLAX demo (public/homepage/agents).
     image: {
       light: "/nav/open-intelligent-ui-light.png",
       dark: "/nav/open-intelligent-ui-dark.png",
     },
-    links: [
-      { label: "Open demo", href: SITE_NAV_LINKS.openIntelligentUi.href, external: true },
-      { label: "GitHub", href: "https://github.com/thesysdev/open-intelligent-ui", external: true },
-    ],
+    links: [{ label: "Try demo", href: SITE_NAV_LINKS.openIntelligentUi.href, external: true }],
   },
   {
     name: "AppLess",
+    demoId: "appless",
     tagline: "Phone OS concept",
-    description:
-      "An experimental phone with no apps. Ask for what you need and OpenUI streams a native interface for it on iOS and Android.",
+    description: "Explore a phone interface generated from your requests.",
     image: { light: "/nav/appless-light.webp", dark: "/nav/appless-dark.webp" },
     links: [
       { label: "Website", href: SITE_NAV_LINKS.appless.href },
@@ -69,43 +63,40 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
   },
   {
     name: "F1 Dashboard",
+    demoId: "f1-dashboard",
+    templateRepo: "thesysdev/openui-f1-dashboard",
     tagline: "Live race data",
-    description:
-      "Ask about any race, driver or team and get charts, tables and timing from OpenF1, next to live standings dashboards.",
+    description: "Explore races, drivers and lap times with live F1 data.",
     image: { light: "/nav/f1-dashboard-light.webp", dark: "/nav/f1-dashboard-dark.webp" },
-    links: [
-      { label: "Open demo", href: SITE_NAV_LINKS.f1Dashboard.href },
-      { label: "GitHub", href: "https://github.com/thesysdev/openui-f1-dashboard", external: true },
-    ],
+    links: [{ label: "Try demo", href: SITE_NAV_LINKS.f1Dashboard.href }],
   },
   {
     name: "Trip Planner",
+    demoId: "trip-planner",
+    templateRepo: "thesysdev/openui-trip-planner",
     tagline: "Travel agent",
-    description:
-      "Plan a trip as visual spreads, a day-by-day itinerary on a map, a moodboard and a journal, with live hotel prices from trivago.",
+    description: "Plan a trip with maps, itineraries and hotel options.",
     image: { light: "/nav/trip-planner-light.webp", dark: "/nav/trip-planner-dark.webp" },
-    links: [
-      { label: "Open demo", href: SITE_NAV_LINKS.tripPlanner.href },
-      { label: "GitHub", href: "https://github.com/thesysdev/openui-trip-planner", external: true },
-    ],
+    links: [{ label: "Try demo", href: SITE_NAV_LINKS.tripPlanner.href }],
   },
   {
     name: "The HN Times",
+    demoId: "hntimes",
     tagline: "HN as a newspaper",
     description:
-      "Swap the host on any Hacker News link and get the thread as a newspaper page, with quotes checked against the comments and a map of the discussion.",
+      "Read Hacker News discussions as a newspaper, with checked quotes and a discussion map.",
     image: { light: "/nav/hntimes-light.webp", dark: "/nav/hntimes-dark.webp" },
     links: [
-      { label: "Open demo", href: SITE_NAV_LINKS.hnTimes.href, external: true },
+      { label: "Try demo", href: SITE_NAV_LINKS.hnTimes.href, external: true },
       { label: "GitHub", href: "https://github.com/thesysdev/hntimes", external: true },
     ],
   },
   {
     name: "OpenUI Chat",
+    demoId: "chat",
     tagline: "Chat assistant",
-    description:
-      "A ChatGPT-like assistant powered by OpenUI Cloud. Start a live conversation or replay a curated one.",
+    description: "Try an assistant that answers with interactive UI.",
     image: { light: "/nav/chat-light.webp", dark: "/nav/chat-dark.webp" },
-    links: [{ label: "Open demo", href: "/chat" }],
+    links: [{ label: "Try demo", href: SITE_NAV_LINKS.chat.href }],
   },
 ];

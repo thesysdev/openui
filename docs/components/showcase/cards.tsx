@@ -1,8 +1,13 @@
+"use client";
+
+import buttonStyles from "@/app/(home)/components/Button/Button.module.css";
+import Link from "@/components/site-link";
+import { BUILD_CTA_ENABLED, captureGalleryEvent } from "@/lib/demo-gallery-analytics";
 import { ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import { RunLocally } from "./run-locally";
 import styles from "./showcase.module.css";
 
-export type CardLinkItem = { label: string; href: string; external?: boolean };
+export type CardLinkItem = { label: string; href: string; external?: boolean; demoId?: string };
 
 /** A card with a light/dark screenshot, used for featured projects and demos. */
 export type ShowcaseItem = {
@@ -11,6 +16,8 @@ export type ShowcaseItem = {
   description: string;
   image?: { light: string; dark: string };
   links: CardLinkItem[];
+  demoId?: string;
+  templateRepo?: string;
 };
 
 /** A text-only card, used for community projects, chat conversations, and tools. */
@@ -36,20 +43,40 @@ export function CardLink({
   href,
   external,
   stretched = false,
+  demoId,
 }: CardLinkItem & { stretched?: boolean }) {
   // A stretched link's hit area covers the whole card (see .cardStretch).
-  const className = stretched ? `${styles.cardLink} ${styles.cardStretch}` : styles.cardLink;
+  const sourceLink = href.startsWith("https://github.com/");
+  const baseClass =
+    demoId && !sourceLink
+      ? `${styles.demoAction} ${buttonStyles.pillBase} ${buttonStyles.pillSecondary}`
+      : styles.cardLink;
+  const className = stretched ? `${baseClass} ${styles.cardStretch}` : baseClass;
+  const onClick = () => {
+    if (demoId)
+      captureGalleryEvent(
+        "demo:cta_clicked",
+        demoId,
+        href.includes("github.com") ? "source" : "demo",
+      );
+  };
   if (external) {
     return (
-      <a className={className} href={href} target="_blank" rel="noopener noreferrer">
+      <a
+        className={className}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+      >
         {label}
-        <ArrowUpRight aria-hidden className={styles.cardLinkIcon} />
+        {!demoId && <ArrowUpRight aria-hidden className={styles.cardLinkIcon} />}
       </a>
     );
   }
 
   return (
-    <Link className={className} href={href}>
+    <Link className={className} href={href} onClick={onClick}>
       {label}
     </Link>
   );
@@ -68,7 +95,7 @@ export function ShowcaseGrid({
       {items.map((item) => (
         <article
           key={item.name}
-          className={`${styles.featuredCard} ${clickable ? styles.cardClickable : ""}`.trim()}
+          className={`${styles.featuredCard} ${item.demoId ? styles.demoCard : ""} ${clickable ? styles.cardClickable : ""}`.trim()}
         >
           {item.image && (
             <div className={styles.featuredMedia}>
@@ -89,7 +116,7 @@ export function ShowcaseGrid({
             </div>
           )}
           <div className={styles.featuredBody}>
-            <span className={styles.eyebrow}>{item.tagline}</span>
+            {!item.demoId && <span className={styles.eyebrow}>{item.tagline}</span>}
             <h3 className={styles.cardTitle}>{item.name}</h3>
             <p className={styles.cardDescription}>{item.description}</p>
             <div className={styles.cardLinks}>
@@ -97,9 +124,26 @@ export function ShowcaseGrid({
                 <CardLink
                   key={link.label}
                   {...link}
+                  demoId={item.demoId}
                   stretched={clickable && i === primaryIndex(item.links)}
                 />
               ))}
+              {item.templateRepo &&
+                (BUILD_CTA_ENABLED ? (
+                  <RunLocally
+                    title={item.name}
+                    name={`repo:${item.templateRepo}`}
+                    label="Use template"
+                    demoId={item.demoId}
+                  />
+                ) : (
+                  <CardLink
+                    label="Source"
+                    href={`https://github.com/${item.templateRepo}`}
+                    external
+                    demoId={item.demoId}
+                  />
+                ))}
             </div>
           </div>
         </article>

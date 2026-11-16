@@ -1,13 +1,19 @@
 import { FEATURED_PROJECTS, PLAYGROUND } from "@/lib/demo-projects";
 import { getCommunityProjects } from "@/lib/lab-projects";
 import { LinkCardGrid, ShowcaseGrid } from "./cards";
+import { GalleryExposure } from "./gallery-exposure";
 
 export function Playground() {
   return <ShowcaseGrid items={PLAYGROUND} clickable />;
 }
 
 export function FeaturedProjects() {
-  return <ShowcaseGrid items={FEATURED_PROJECTS} clickable />;
+  return (
+    <>
+      <GalleryExposure />
+      <ShowcaseGrid items={FEATURED_PROJECTS} clickable />
+    </>
+  );
 }
 
 export function CommunityProjects() {
