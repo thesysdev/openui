@@ -155,3 +155,23 @@ The conversation must already exist. System/developer instructions are skipped;
 text and user `image_url` blocks are supported. Use `langGraphMessagesToItems`
 for conversion without a network request. `apiBaseUrl` and `fetch` work as in
 `storeChatCompletionHistory`; storage failures reject the returned promise.
+
+## Dashboard build progress
+
+`dashboards.create` and `dashboards.edit` resolve once the dashboard starts generating. Before
+that, the model may call your data tools and check its scripts. Pass `onProgress` to show those
+steps, for example in your tool's card while it runs:
+
+```ts
+import { describeDashboardProgress } from "@openuidev/server";
+
+const response = await dashboards.create({ title, prompt }, { userId }, {
+  // Forward each step to the browser the way your agent streams tool updates.
+  onProgress: (step) => send({ label: describeDashboardProgress(step), step }),
+});
+```
+
+Steps are `{ type: "tool" | "script", name, status: "running" | "done" | "error" }`, then
+`{ type: "started", artifactId }` when the dashboard starts generating; render it from then on.
+Labels read like "Calling get_sales" or "Checking script revenue_by_month". Errors thrown by
+`onProgress` are ignored.
