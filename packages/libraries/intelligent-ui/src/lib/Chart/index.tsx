@@ -8,6 +8,7 @@ import {
   ScatterChart,
 } from "@openuidev/react-components";
 import { defineComponent } from "@openuidev/react-lang";
+import { defaultLightTheme, useIntelligentTheme } from "../../components/ThemeProvider";
 import { ChartSchema, type ChartProps } from "./schema";
 
 export * from "./schema";
@@ -41,12 +42,39 @@ const narrow = (rows: Row[], category: string, series: string[]): Row[] =>
     return out;
   });
 
+const CHART_KEYS = [
+  "intelligentChart1",
+  "intelligentChart2",
+  "intelligentChart3",
+  "intelligentChart4",
+  "intelligentChart5",
+  "intelligentChart6",
+] as const;
+
+/**
+ * The theme's chart colours for `count` series, in order: series 1 gets chart colour 1, as in the
+ * original Intelligent UI app, repeating after six. react-components spreads a palette out from
+ * its middle (`getDistributedColors`): for an even count above 2 it starts one along, so the list
+ * is turned back one place to land each colour on its own series.
+ */
+function seriesColours(theme: ReturnType<typeof useIntelligentTheme>, count: number): string[] {
+  const source = theme?.theme ?? defaultLightTheme;
+  const colours = CHART_KEYS.map((key) => source[key] ?? defaultLightTheme[key] ?? "#0285ff");
+  const ordered = Array.from(
+    { length: Math.max(count, 1) },
+    (_, i) => colours[i % colours.length]!,
+  );
+  if (ordered.length > 2 && ordered.length % 2 === 0) ordered.unshift(ordered.pop()!);
+  return ordered;
+}
+
 export const Chart = defineComponent({
   name: "Chart",
   props: ChartSchema,
   description:
     'Rows of data; x is the category key (a number key for scatter), series the value keys (default: every number key). format applies to pie and donut only: "percent" shows each slice as a share of the total, "number" its value. stacked stacks bar and area series. height sets the plot height in px; pie and donut ignore it and size themselves.',
-  component: ({ props }: { props: ChartProps }) => {
+  component: function ChartComponent({ props }: { props: ChartProps }) {
+    const theme = useIntelligentTheme();
     const rows = rowsOf(props.data);
     const category = categoryOf(rows, props.x);
     const series = seriesOf(rows, category, props.series);
@@ -64,6 +92,7 @@ export const Chart = defineComponent({
           dataKey={series[0] ?? ""}
           variant={props.type}
           format={props.format === "percent" ? "percentage" : "number"}
+          customPalette={seriesColours(theme, rows.length)}
           isAnimationActive={false}
         />
       );
@@ -83,13 +112,20 @@ export const Chart = defineComponent({
           xAxisDataKey="x"
           yAxisDataKey="y"
           height={height}
+          customPalette={seriesColours(theme, datasets.length)}
           isAnimationActive={false}
         />
       );
     }
 
     const data = narrow(rows, category, series);
-    const common = { data, categoryKey: category, height, isAnimationActive: false } as const;
+    const common = {
+      data,
+      categoryKey: category,
+      height,
+      customPalette: seriesColours(theme, series.length),
+      isAnimationActive: false,
+    } as const;
 
     if (props.type === "line") return <LineChart {...common} />;
     // AreaChart stacks unless told not to; like a bar chart, this one stacks only when asked.

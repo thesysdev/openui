@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "@openuidev/react-components";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -24,6 +25,9 @@ const CONFETTI = [
 
 /** Bursts confetti over the page when its condition turns true. */
 export function Celebration({ when, paused }: CelebrationProps) {
+  // The confetti is portaled to body, outside the ThemeProvider's scope, so it carries the
+  // provider's portal class to keep the theme's chart colours.
+  const { portalThemeClassName } = useTheme();
   const [burst, setBurst] = useState(0);
   const was = useRef<boolean | null>(null);
   useEffect(() => {
@@ -39,7 +43,11 @@ export function Celebration({ when, paused }: CelebrationProps) {
   }, [burst]);
   if (!burst || typeof document === "undefined") return null;
   return createPortal(
-    <div className={clsx(celebrationStyles.root, names.root)} aria-hidden key={burst}>
+    <div
+      className={clsx(celebrationStyles.root, names.root, portalThemeClassName)}
+      aria-hidden
+      key={burst}
+    >
       {Array.from({ length: 70 }, (_, i) => (
         <i
           key={i}
