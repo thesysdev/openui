@@ -5,7 +5,7 @@ export const typography = (token: string, variation: "regular" | "medium") => `
   letter-spacing: var(--${token}-letter-spacing);
   font-variation-settings: var(--openui-font-variation-${variation});
 `;
-export const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
+const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
 const bodySmall = typography("openui-text-body-sm", "regular");
 const labelSmall = typography("openui-text-label-sm", "regular");
 

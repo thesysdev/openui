@@ -1,5 +1,5 @@
 import { css } from "goober";
-import { bodyHeavy, spin } from "./cloudArtifact.styles";
+import { spin } from "./cloudArtifact.styles";
 
 /** Class names inside the pending loader. The engine builds its cards from them. */
 export const pendingLoaderNames = {
@@ -195,7 +195,9 @@ export const pendingLoaderStyles = {
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.12);
-    ${bodyHeavy}
+    /* The page's font family and size: only the weight is the loader's. */
+    font-weight: 500;
+    line-height: 1.2;
     white-space: nowrap;
   `,
   spinner: css`
