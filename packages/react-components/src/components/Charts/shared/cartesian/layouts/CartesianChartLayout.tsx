@@ -195,11 +195,15 @@ function ScrollBody({
           className={classes?.mainContainer ?? `${prefix}-main-container`}
           onScroll={orch.scroll.handleScroll}
         >
+          {/* Wider than its box on purpose: the box scrolls. `max-width: none` inline, so an app's
+              `svg { max-width: 100% }` reset (common, and unlayered) can't squeeze it to the box and
+              cut off the last categories with nothing left to scroll. */}
           <svg
             className={classes?.svg}
             role="img"
             aria-label={ariaLabel}
             width={orch.dimensions.chartAreaWidth}
+            style={{ maxWidth: "none" }}
             height={orch.dimensions.totalHeight}
             onMouseMove={mouseHandlers.handleMouseMove}
             onMouseLeave={mouseHandlers.handleMouseLeave}
