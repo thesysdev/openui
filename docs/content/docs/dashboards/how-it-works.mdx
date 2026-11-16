@@ -16,7 +16,7 @@ A dashboard is generated once and loads its data every time it opens.
 
 **Generate:** The user asks for a dashboard in the chat. The agent calls a tool that creates the dashboard, and OpenUI generates it from the component library, validating and repairing the output as it's built. For data that has to be derived, such as a metric that combines several data tools, OpenUI also generates a script. The tool returns a response, and the chat renders the dashboard from it.
 
-**Load data:** Each time it opens, the dashboard calls its data tools for live data. Scripts run in OpenUI's interpreter, with secure execution, and call the data tools they need.
+**Load data:** Each time it opens, the dashboard calls its data tools for live data. Scripts run in OpenUI's JS interpreter, with secure execution, and call the data tools they need.
 
 **Edit:** A follow-up request calls a tool that edits the dashboard. OpenUI patches only the parts the request describes. Renderers keep showing the current version until the new one is ready.
 
@@ -26,9 +26,9 @@ A dashboard is generated once and loads its data every time it opens.
 
 The model that builds and edits dashboards: any supported model. Its output is validated and repaired before it renders. See [Define dashboards](/docs/dashboards/define-dashboards).
 
-### Interpreter
+### JS interpreter
 
-A dashboard can run a generated script that calls several data tools and computes new metrics from their results. Scripts run in OpenUI's interpreter, with secure execution. See [Connect data](/docs/dashboards/connect-data#add-the-interpreter-route).
+A dashboard can run a generated script that calls several data tools and computes new metrics from their results. Scripts run in OpenUI's JS interpreter, with secure execution. See [Connect data](/docs/dashboards/connect-data#add-the-interpreter-route).
 
 ### Renderer
 
