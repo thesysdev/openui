@@ -34,6 +34,7 @@ export type {
   ErrorProps,
   LoaderProps,
   PartProps,
+  PendingProps,
   PreviewProps,
 } from "./CloudArtifact/slots";
 export { useArtifactList } from "./CloudArtifact/useArtifactList";

@@ -32,6 +32,7 @@ export const names = {
   content: "openui-artifact-content",
   loading: "openui-artifact-loading",
   loadingEmpty: "openui-artifact-loading-empty",
+  pending: "openui-artifact-pending",
   error: "openui-artifact-error",
   panel: "openui-artifact-panel",
 } as const;
