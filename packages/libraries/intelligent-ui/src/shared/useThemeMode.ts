@@ -1,8 +1,8 @@
 "use client";
 
-import { useTheme } from "@openuidev/react-components";
+import { useIntelligentTheme } from "../components/ThemeProvider";
 
-/** Light or dark, from the nearest react-components ThemeProvider, as its own components read it. */
+/** Light or dark, from the nearest library ThemeProvider; light outside one. */
 export function useThemeMode(): "light" | "dark" {
-  return useTheme().mode === "dark" ? "dark" : "light";
+  return useIntelligentTheme()?.mode === "dark" ? "dark" : "light";
 }

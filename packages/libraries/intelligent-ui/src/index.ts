@@ -5,7 +5,12 @@
  * itself, a widget it cannot draw (a sandboxed HTML page) and
  * generic @functions.
  */
-export { ThemeProvider, type ThemeProps as ThemeProviderProps } from "@openuidev/react-components";
+export {
+  ThemeProvider,
+  type IntelligentTheme,
+  type Theme,
+  type ThemeProviderProps,
+} from "./components/ThemeProvider";
 export { componentGroups, library } from "./lib/library";
 
 export { additionalRules, examples, promptOptions } from "./lib/prompt-options";

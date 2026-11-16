@@ -43,13 +43,36 @@ export function IntelligentMessage({
 }
 ```
 
-`ThemeProvider` is optional. It sets the mode (light by default)
-and takes `lightTheme` and `darkTheme` overrides. Without it, a response with a `Col` root uses the
-light default theme.
+### Theming
 
-`ThemeProvider` sets the theme's colour variables but doesn't paint your page. Give the page the
-theme's background, for example `body { background: var(--openui-background); }`, so a dark
-theme's text sits on a dark page.
+`ThemeProvider` is optional. Without it, a response with a `Col` root wraps itself in a default
+one, in light mode.
+
+- `mode` is `"light"` or `"dark"`. A nested `ThemeProvider` without one takes its parent's.
+- `lightTheme` and `darkTheme` take partial overrides; without `darkTheme`, `lightTheme` applies to
+  both modes. They take react-components' theme keys, which the components the library draws with
+  (Button, Select, DatePicker, Chart and more) read, and the library's own `intelligent*` keys:
+  `intelligentChart1` to `intelligentChart6`, spacing such as `intelligentSpaceGroup`, corner radius
+  such as `intelligentRadiusLg`, and colours such as `intelligentInk`. Each sets the
+  `--openui-intelligent-*` variable of the same name (`intelligentChart1` →
+  `--openui-intelligent-chart-1`). An unset library colour follows react-components' colours.
+
+```tsx
+<ThemeProvider
+  mode="dark"
+  lightTheme={{ textSuccessPrimary: "#0a7d4f", intelligentChart1: "#6155e8" }}
+>
+  <Renderer response={response} library={library} />
+</ThemeProvider>
+```
+
+`ThemeProvider` themes only what is inside it, never `body`, and carries its variables into the
+menus and popovers that open outside it. The library always themes itself: a react-components
+`ThemeProvider` around your app doesn't change it, so set the mode on this one.
+
+It sets the theme's variables but doesn't paint your page. To give the response the theme's
+background, put it in an element inside `ThemeProvider`, for example
+`<div style={{ background: "var(--openui-background)" }}>`.
 
 ### Actions
 
