@@ -428,6 +428,23 @@ export const labProjects: ProjectItem[] = [
       { label: "Docs", href: "https://bub.build/docs/integrations/ag-ui/", external: true },
     ],
   },
+  {
+    name: "Fleet Prime",
+    description:
+      "A local browser workspace for coding and research with Prime Agent, where the agent builds dashboards and inline UI with OpenUI Lang from the session's data.",
+    type: "App",
+    status: "Community",
+    accent: "blue",
+    icon: Code2,
+    links: [
+      { label: "GitHub", href: "https://github.com/Qredence/fleet-prime-agent", external: true },
+      {
+        label: "Docs",
+        href: "https://docs.qredence.ai/fleet-prime-agent/introduction",
+        external: true,
+      },
+    ],
+  },
 ];
 
 /** The project's own site, as opposed to its repo, docs page, or an article about it. */

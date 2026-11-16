@@ -60,7 +60,7 @@ export function DashboardFlowDiagram() {
     <DiagramFrame
       id={m}
       title="How dashboards work"
-      description="1. The user asks for a dashboard in the chat, and the agent on your server receives the message. 2. The agent's create_dashboard or edit_dashboard tool calls dashboards.create() or dashboards.edit(), and OpenUI's generator starts building the dashboard. 3. The call returns a response right away. 4. The agent returns the response as the tool result. 5. The chat passes the result to LiveArtifactRenderer. 6. The dashboard's Query() calls go to the interpreter route on your server. 7. A generated script runs in OpenUI's interpreter, a secure execution environment. 8. The script calls your data tools on your server. 9. The results return to the renderer."
+      description="1. The user asks for a dashboard in the chat, and the agent on your server receives the message. 2. The agent's create_dashboard or edit_dashboard tool calls dashboards.create() or dashboards.edit(), and OpenUI's generator starts building the dashboard. 3. The call returns a response right away. 4. The agent returns the response as the tool result. 5. The chat passes the result to LiveArtifactRenderer. 6. The dashboard's Query() calls go to the interpreter route on your server. 7. A generated script runs in OpenUI's JS interpreter, a secure execution environment. 8. The script calls your data tools on your server. 9. The results return to the renderer."
       width={1020}
       height={520}
       minWidth={640}
@@ -122,7 +122,7 @@ export function DashboardFlowDiagram() {
         width={180}
         height={170}
         icon={ShieldCheck}
-        title="Interpreter"
+        title="JS interpreter"
         lines={["Secure execution", "of generated", "scripts"]}
         highlight
       />
@@ -163,7 +163,7 @@ export function DashboardFlowDiagram() {
         Results
       </StepLabel>
 
-      {/* Your server and the interpreter: scripts run there and call your tools back. */}
+      {/* Your server and the JS interpreter: scripts run there and call your tools back. */}
       <Arrow marker={m} x1={614} y1={360} x2={804} y2={360} />
       <StepLabel x={710} y={348} n={7}>
         Run script

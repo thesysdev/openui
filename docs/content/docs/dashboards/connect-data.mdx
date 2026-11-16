@@ -5,7 +5,7 @@ description: Define the data tools dashboards call, connect MCP servers, and run
 
 A dashboard loads its data through data tools: functions on your server that return JSON. The model sees each tool's description, arguments, and an example output when it builds the dashboard. The browser runs the tools through an interpreter route on your server every time the dashboard opens.
 
-To derive data, the model can also write a script that calls several tools and combines their results. Scripts run in the OpenUI interpreter for safe execution, and can only call the tools passed to `defineDashboard`.
+To derive data, the model can also write a script that calls several tools and combines their results. Scripts run in the OpenUI JS interpreter for safe execution, and can only call the tools passed to `defineDashboard`.
 
 ## Define a data tool
 
@@ -150,7 +150,7 @@ export async function POST(request: Request) {
 }
 ```
 
-`execute` runs the named data tool directly. When the name is a generated script, it runs the script in the OpenUI interpreter for safe execution. The script calls your tools on this server through the same handlers. Scripts run only for the dashboard's owner.
+`execute` runs the named data tool directly. When the name is a generated script, it runs the script in the OpenUI JS interpreter for safe execution. The script calls your tools on this server through the same handlers. Scripts run only for the dashboard's owner.
 
 | Option      | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
