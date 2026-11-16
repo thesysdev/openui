@@ -33,16 +33,21 @@ export const pendingLoaderStyles = {
     --openui-pending-card: color-mix(in srgb, var(--openui-pending-tint) 3%, transparent);
     --openui-pending-border: color-mix(in srgb, var(--openui-pending-tint) 10%, transparent);
     position: relative;
+    display: flex;
+    flex-direction: column;
     box-sizing: border-box;
     /* Fills a content area with a height; on a page without one, takes a dashboard's. */
     height: 100%;
     min-height: 400px;
     padding: var(--openui-space-m);
   `,
+  // A flex item, not `height: 100%`: on a page without a height the root's comes from
+  // `min-height`, which a percentage can't resolve against, and the cards need a height.
   stage: css`
     position: relative;
+    flex: 1;
     width: 100%;
-    height: 100%;
+    min-height: 0;
 
     & .${n.card} {
       position: absolute;
@@ -195,7 +200,8 @@ export const pendingLoaderStyles = {
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.12);
-    /* The page's font family and size: only the weight is the loader's. */
+    /* The page's font family, a step below its root size, like an app's interface text. */
+    font-size: 0.875rem;
     font-weight: 500;
     line-height: 1.2;
     white-space: nowrap;
