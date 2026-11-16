@@ -10,7 +10,6 @@ import {
   Wrench,
 } from "lucide-react";
 import type { ComponentType } from "react";
-import { isIntegrationUrl } from "./examples-catalog";
 
 /** Official and community projects built around OpenUI, shown on /lab and /docs/examples. */
 
@@ -32,6 +31,8 @@ export interface ProjectItem {
   featured?: boolean;
   accent: "blue" | "green" | "purple" | "orange" | "slate";
   icon: ComponentType<{ className?: string; strokeWidth?: number }>;
+  /** A capture of the project's live site, under /public. Shown on the Demos page. */
+  screenshot?: string;
   links: ProjectLink[];
 }
 
@@ -44,6 +45,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "green",
     icon: MonitorSmartphone,
+    screenshot: "/community-projects/curio.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/JoseEstevez520/curio", external: true },
       { label: "Website", href: "https://curio-landing-phi.vercel.app", external: true },
@@ -57,6 +59,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "purple",
     icon: Wrench,
+    screenshot: "/community-projects/openui-forge.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/OthmanAdi/openui-forge", external: true },
       { label: "Website", href: "https://spruce-prism-8yya.here.now/", external: true },
@@ -70,6 +73,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "green",
     icon: Bot,
+    screenshot: "/community-projects/gaia.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/theexperiencecompany/gaia", external: true },
       { label: "Website", href: "https://heygaia.io/", external: true },
@@ -299,6 +303,7 @@ export const labProjects: ProjectItem[] = [
     featured: true,
     accent: "blue",
     icon: BookOpenCheck,
+    screenshot: "/community-projects/learnify.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/ahmedfahim21/Learnify", external: true },
       { label: "Website", href: "https://learnify.ahmedfahim.dev/", external: true },
@@ -312,6 +317,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "orange",
     icon: PlugZap,
+    screenshot: "/community-projects/qwenpaw.jpg",
     links: [
       {
         label: "GitHub",
@@ -329,6 +335,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "purple",
     icon: Sparkles,
+    screenshot: "/community-projects/airi.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/moeru-ai/airi", external: true },
       { label: "Website", href: "https://airi.moeru.ai/docs/", external: true },
@@ -342,6 +349,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "green",
     icon: MonitorSmartphone,
+    screenshot: "/community-projects/openalgo.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/marketcalls/openalgo", external: true },
       { label: "Website", href: "https://docs.openalgo.in", external: true },
@@ -355,6 +363,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "blue",
     icon: MonitorSmartphone,
+    screenshot: "/community-projects/windshift.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/Windshiftapp/core", external: true },
       { label: "Website", href: "https://windshift.sh", external: true },
@@ -368,6 +377,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "orange",
     icon: Bot,
+    screenshot: "/community-projects/peri.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/KonghaYao/peri", external: true },
       { label: "Website", href: "https://docs.peri-code.dev/", external: true },
@@ -381,6 +391,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "slate",
     icon: Server,
+    screenshot: "/community-projects/origintrail-dkg.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/OriginTrail/dkg", external: true },
       { label: "Website", href: "https://origintrail.io", external: true },
@@ -394,6 +405,7 @@ export const labProjects: ProjectItem[] = [
     status: "Community",
     accent: "blue",
     icon: MonitorSmartphone,
+    screenshot: "/community-projects/openui-sports.jpg",
     links: [
       { label: "GitHub", href: "https://github.com/mireabot/openui-gen", external: true },
       {
@@ -418,15 +430,18 @@ export const labProjects: ProjectItem[] = [
   },
 ];
 
-/** Community projects on the Demos page, featured first. Ones with an Integrations card are listed there instead. */
+/** The project's own site, as opposed to its repo, docs page, or an article about it. */
+export function getLiveLink(project: ProjectItem): ProjectLink | undefined {
+  return project.links.find((link) => link.label === "Website");
+}
+
+/** Community projects on the Demos page, featured first: every one with a live site to
+    open. Appearing elsewhere (the Integrations page, the homepage showcase) does not
+    keep a project off this list. */
 export function getCommunityProjects(): ProjectItem[] {
   return (
     labProjects
-      .filter(
-        (project) =>
-          project.status === "Community" &&
-          !project.links.some((link) => isIntegrationUrl(link.href)),
-      )
+      .filter((project) => project.status === "Community" && Boolean(getLiveLink(project)))
       // The sort is stable, so the rest keep their order.
       .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
   );

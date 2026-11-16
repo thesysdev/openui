@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import styles from "./showcase.module.css";
 
 export type CardLinkItem = { label: string; href: string; external?: boolean };
@@ -7,9 +8,12 @@ export type CardLinkItem = { label: string; href: string; external?: boolean };
 /** A card with a light/dark screenshot, used for featured projects and demos. */
 export type ShowcaseItem = {
   name: string;
-  tagline: string;
+  /** Not shown on the cards. */
+  tagline?: string;
   description: string;
   image?: { light: string; dark: string };
+  /** A full-size screenshot. In a grid with a lead card, the item that has one leads. */
+  leadImage?: string;
   links: CardLinkItem[];
 };
 
@@ -58,52 +62,77 @@ export function CardLink({
 export function ShowcaseGrid({
   items,
   clickable = false,
+  lead = false,
+  wide = false,
+  footer,
 }: {
   items: ShowcaseItem[];
   /* Make the whole card open its main link, not just the link text. */
   clickable?: boolean;
+  /* Give one item a full-width card, screenshot beside the copy: the first
+     with a `leadImage`, moved to the front. */
+  lead?: boolean;
+  /* Two wide cards a row instead of three. */
+  wide?: boolean;
+  /* A closing card after the items, such as a call to add a project. */
+  footer?: ReactNode;
 }) {
+  const leadItem = lead ? items.find((item) => item.leadImage) : undefined;
+  const ordered = leadItem ? [leadItem, ...items.filter((item) => item !== leadItem)] : items;
+
   return (
-    <div className={styles.featuredGrid}>
-      {items.map((item) => (
-        <article
-          key={item.name}
-          className={`${styles.featuredCard} ${clickable ? styles.cardClickable : ""}`.trim()}
-        >
-          {item.image && (
-            <div className={styles.featuredMedia}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className={styles.imageLight}
-                src={item.image.light}
-                alt={item.name}
-                loading="lazy"
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className={styles.imageDark}
-                src={item.image.dark}
-                alt={item.name}
-                loading="lazy"
-              />
+    <div className={`${styles.featuredGrid} ${wide ? styles.wideGrid : ""}`.trim()}>
+      {ordered.map((item) => {
+        const isLead = item === leadItem;
+        const main = primaryIndex(item.links);
+        const className = [
+          styles.featuredCard,
+          clickable ? styles.cardClickable : "",
+          isLead ? styles.leadCard : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        return (
+          <article key={item.name} className={className}>
+            {isLead ? (
+              <div className={styles.featuredMedia}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.leadImage} alt={item.name} />
+              </div>
+            ) : (
+              item.image && (
+                <div className={styles.featuredMedia}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    className={styles.imageLight}
+                    src={item.image.light}
+                    alt={item.name}
+                    loading="lazy"
+                  />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    className={styles.imageDark}
+                    src={item.image.dark}
+                    alt={item.name}
+                    loading="lazy"
+                  />
+                </div>
+              )
+            )}
+            <div className={styles.featuredBody}>
+              <h3 className={styles.cardTitle}>{item.name}</h3>
+              <p className={styles.cardDescription}>{item.description}</p>
+              <div className={styles.cardLinks}>
+                {item.links.map((link, i) => (
+                  <CardLink key={link.label} {...link} stretched={clickable && i === main} />
+                ))}
+              </div>
             </div>
-          )}
-          <div className={styles.featuredBody}>
-            <span className={styles.eyebrow}>{item.tagline}</span>
-            <h3 className={styles.cardTitle}>{item.name}</h3>
-            <p className={styles.cardDescription}>{item.description}</p>
-            <div className={styles.cardLinks}>
-              {item.links.map((link, i) => (
-                <CardLink
-                  key={link.label}
-                  {...link}
-                  stretched={clickable && i === primaryIndex(item.links)}
-                />
-              ))}
-            </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
+      {footer}
     </div>
   );
 }
