@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 
-/** Official and community projects built around OpenUI, shown on /lab and /docs/examples. */
+/** Official and community projects built around OpenUI, shown on /demos and /docs/integrations. */
 
 export type ProjectStatus = "Official" | "Community";
 
@@ -261,8 +261,7 @@ export const labProjects: ProjectItem[] = [
       },
       {
         label: "Docs",
-        href: "/integrations/react-native",
-        external: true,
+        href: "/docs/integrations",
       },
     ],
   },

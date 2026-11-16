@@ -1,4 +1,3 @@
-import { getIntegrationPageMetadata, integrations } from "@/app/(home)/integrations/data";
 import { ogPages } from "@/generated/og-pages";
 import { pageOgImage, SITE_OG_IMAGE } from "../page-metadata";
 import { blog, source } from "../source";
@@ -20,7 +19,6 @@ export function getOgImages(): Map<string, OgImage> {
   }
   // Dynamic routes: one adapter per content collection.
   all.push(
-    ...integrations.map((integration) => pageOgImage(getIntegrationPageMetadata(integration))),
     ...blog.getPages().map(blogOgImage),
     ...source.getPages().map(docsOgImage),
   );
