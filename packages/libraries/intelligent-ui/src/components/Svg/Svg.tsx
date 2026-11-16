@@ -6,6 +6,8 @@ import { names, svgStyles } from "./svg.styles";
 export interface SvgProps {
   /** "minX minY width height", e.g. "0 0 240 160". */
   viewBox: string;
+  /** What the drawing shows, read by screen readers. Without one, the drawing is hidden from them. */
+  label?: string;
   /** Without one, the drawing fills its column, up to 1.5x the viewBox (at least 280px). */
   width?: Length;
   height?: Length;
@@ -21,7 +23,7 @@ export const useInSvg = () => useContext(InSvg);
 const VIEW_BOX = /^\s*[-\d.]+(\s*[\s,]\s*[-\d.]+){3}\s*$/;
 
 /** A drawing that scales to its width. */
-export function Svg({ viewBox: viewBoxProp, width, height, children }: SvgProps) {
+export function Svg({ viewBox: viewBoxProp, label, width, height, children }: SvgProps) {
   const viewBox =
     typeof viewBoxProp === "string" && viewBoxProp.length < 20000 && VIEW_BOX.test(viewBoxProp)
       ? viewBoxProp
@@ -34,7 +36,9 @@ export function Svg({ viewBox: viewBoxProp, width, height, children }: SvgProps)
       className={clsx(svgStyles.root, names.root)}
       viewBox={viewBox}
       style={{ width: size(width) ?? "100%", maxWidth, height: size(height) }}
-      role="img"
+      {...(label?.trim()
+        ? { role: "img", "aria-label": label.trim() }
+        : { "aria-hidden": true, focusable: "false" })}
       preserveAspectRatio="xMidYMid meet"
     >
       <InSvg.Provider value>{children}</InSvg.Provider>
