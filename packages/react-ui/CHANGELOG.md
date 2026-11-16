@@ -1,5 +1,13 @@
 # @openuidev/react-ui
 
+## 0.18.9
+
+### Patch Changes
+
+- [#1644](https://github.com/thesysdev/openui/pull/1644) [`29b9de0`](https://github.com/thesysdev/openui/commit/29b9de0e3236d7a584358b4aef97471faac88a5e) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `LiveArtifactRenderer` and `StaticArtifactRenderer` can mount before the tool returns: without `response`, `id` or `content` they're pending instead of showing "This response doesn't reference an artifact.", and `useArtifactRenderer()` reports `isPending`. The new `Pending` slot shows a skeleton dashboard that rearranges itself under a note; it takes `label`, `color`, `shapeColor`, `cardColor` and `borderColor`, or children to replace it. `defineLiveArtifactRenderer` shows the card and panel as soon as a dashboard tool call starts.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.18.9
+
 ## 0.18.8
 
 ### Patch Changes
