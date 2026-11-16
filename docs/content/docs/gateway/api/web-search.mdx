@@ -3,7 +3,7 @@ title: Web Search API
 description: Implement a web search tool for any model or agent framework.
 ---
 
-The Web Search API returns web pages for a query, including the text of each page. Use it to implement a web search tool for any model or agent framework. The model calls your tool, your backend calls this endpoint, and the results go back to the model.
+The Web Search API returns web pages for a query, including the text of each page. Results come from [Exa](https://exa.ai). Use it to implement a web search tool for any model or agent framework. The model calls your tool, your backend calls this endpoint, and the results go back to the model.
 
 **Endpoint:** `POST https://api.thesys.dev/v1/search/web`
 
@@ -96,11 +96,11 @@ The Responses API can also run web search inside the Gateway, with no function t
 
 ## Data
 
-The query you send is passed to a third-party search provider. The query and the results are not stored beyond the request logs.
+The query you send is passed to Exa, the search provider. The query and the results are not stored beyond the request logs.
 
 ## Pricing
 
-Each successful call is charged the search provider's price from your credits, with no markup, and does not use a plan API call. A call that finds no results is still charged. A failed call is free. See [Pricing](/docs/gateway/pricing-credits) for the current rate.
+Each successful call is charged Exa's price from your credits, with no markup, and does not use a plan API call. A call that finds no results is still charged. A failed call is free. See [Pricing](/docs/gateway/pricing-credits) for the current rate.
 
 ## Errors
 

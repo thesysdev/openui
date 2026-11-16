@@ -3,7 +3,7 @@ title: Image Search API
 description: Implement an image search tool for any model or agent framework.
 ---
 
-The Image Search API returns images for a query, with the page that shows each image. Use it to implement an image search tool for any model or agent framework. The model calls your tool, your backend calls this endpoint, and the results go back to the model.
+The Image Search API returns images for a query, with the page that shows each image. Results come from Google image search. Use it to implement an image search tool for any model or agent framework. The model calls your tool, your backend calls this endpoint, and the results go back to the model.
 
 **Endpoint:** `POST https://api.thesys.dev/v1/search/images`
 
@@ -96,7 +96,7 @@ The Responses API can also run image search inside the Gateway, with no function
 
 ## Data
 
-The query you send is passed to a third-party search provider. The query and the results are not stored beyond the request logs.
+The query you send is passed to Google, the search provider. The query and the results are not stored beyond the request logs.
 
 ## Pricing
 
