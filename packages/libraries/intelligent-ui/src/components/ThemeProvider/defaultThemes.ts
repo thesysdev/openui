@@ -74,7 +74,6 @@ export type IntelligentTheme = {
   intelligentRadiusMd?: string;
   intelligentRadiusLg?: string;
   intelligentRadiusXl?: string;
-  intelligentRadius2xl?: string;
   intelligentPhotoEmpty?: string;
   intelligentPhotoEmptyIcon?: string;
 };
@@ -102,7 +101,6 @@ const shared = {
   intelligentRadiusMd: "10px",
   intelligentRadiusLg: "12px",
   intelligentRadiusXl: "14px",
-  intelligentRadius2xl: "20px",
 } satisfies IntelligentTheme;
 
 export const defaultLightTheme: IntelligentTheme = { ...shared };

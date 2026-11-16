@@ -111,7 +111,6 @@ export const tokens = {
   radiusMd: "var(--openui-intelligent-radius-md, 10px)",
   radiusLg: "var(--openui-intelligent-radius-lg, 12px)",
   radiusXl: "var(--openui-intelligent-radius-xl, 14px)",
-  radius2xl: "var(--openui-intelligent-radius-2xl, 20px)",
   photoEmpty:
     "var(--openui-intelligent-photo-empty, var(--openui-intelligent-surface, color-mix(in srgb, var(--openui-intelligent-ink, var(--openui-text-neutral-primary, oklch(0.097 0 0))) 4%, transparent)))",
   photoEmptyIcon:
