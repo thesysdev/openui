@@ -1,16 +1,25 @@
 import { isRecord } from "../client/api";
 import { abortable } from "../shared/abort";
-import { ToolExecutionError, type DataTool, type ExecutionContext } from "./types";
+import { DRAFT_ID } from "./execute";
+import {
+  ToolExecutionError,
+  type DataTool,
+  type ExecutionContext,
+  type Interpreter,
+} from "./types";
 
-// A loop guard only: the server decides when to stop asking for tools.
-export const MAX_PROBE_ROUNDS = 8;
+/** The model saves one of the dashboard's scripts and runs it once: `{ name, code, args? }`.
+ *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */
+export const CREATE_SCRIPT_TOOL = "create_script";
 
 /** Runs one round of the model's tool calls, within 60 seconds. */
 export async function probeRound<Context extends ExecutionContext>(
   calls: Array<{ id: string; function?: { name?: string; arguments?: string } }>,
   tools: Record<string, DataTool<Context>>,
   context: Context,
-  callerSignal?: AbortSignal,
+  callerSignal: AbortSignal | undefined,
+  interpreter: Interpreter<Context>,
+  draftId: string | undefined,
 ) {
   callerSignal?.throwIfAborted();
   const controller = new AbortController();
@@ -28,7 +37,8 @@ export async function probeRound<Context extends ExecutionContext>(
         let content: string;
         try {
           const name = call.function?.name as string;
-          if (!Object.hasOwn(tools, name)) {
+          const savesScript = name === CREATE_SCRIPT_TOOL && !Object.hasOwn(tools, name);
+          if (!savesScript && !Object.hasOwn(tools, name)) {
             throw new ToolExecutionError(`Unknown tool: ${name}`, "tool_not_found");
           }
           let args: unknown;
@@ -40,10 +50,22 @@ export async function probeRound<Context extends ExecutionContext>(
           if (!isRecord(args)) {
             throw new ToolExecutionError("Tool arguments must be a JSON object", "bad_args");
           }
-          const result = await abortable(
-            Promise.resolve().then(() => tools[name]!.execute(args, context, { signal })),
-            signal,
-          );
+          const scriptName = args["name"];
+          const result = savesScript
+            ? await interpreter.execute(
+                {
+                  name: typeof scriptName === "string" ? scriptName : "",
+                  arguments: isRecord(args["args"]) ? args["args"] : {},
+                },
+                context,
+                { signal, [DRAFT_ID]: draftId ?? "" } as Parameters<
+                  Interpreter<Context>["execute"]
+                >[2],
+              )
+            : await abortable(
+                Promise.resolve().then(() => tools[name]!.execute(args, context, { signal })),
+                signal,
+              );
           content = JSON.stringify(result ?? null);
           if (content === undefined) {
             throw new ToolExecutionError(

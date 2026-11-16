@@ -54,6 +54,10 @@ export function dataToolLoader<Context extends ExecutionContext>(
     );
 }
 
+/** Internal execute option: the build whose saved script runs (create_script),
+ *  in place of a stored artifact's. A symbol, so no request body can set it. */
+export const DRAFT_ID = Symbol("draftId");
+
 /** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
 export function createInterpreter<Context extends ExecutionContext = ExecutionContext>(
   api: CloudApi,
@@ -105,9 +109,11 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
 
     try {
       tools = await abortable(handlers(), signal);
-      if (Object.hasOwn(tools, input.name)) return await dispatch(input.name, args);
+      const draftId = (executionOptions as { [DRAFT_ID]?: string } | undefined)?.[DRAFT_ID];
+      if (draftId === undefined && Object.hasOwn(tools, input.name))
+        return await dispatch(input.name, args);
       // Generated scripts run from the artifact OpenUI Cloud stores.
-      if (typeof input.id !== "string" || !input.id) {
+      if (draftId === undefined && (typeof input.id !== "string" || !input.id)) {
         throw new ToolExecutionError(
           `Unknown tool: ${input.name}. Send the artifact's id to run its scripts.`,
           "tool_not_found",
@@ -116,9 +122,13 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
       }
       // Only the artifact's owner can run its scripts.
       const source = {
-        artifact_id: input.id,
-        ...(typeof input.version === "string" &&
-          input.version && { artifact_version: input.version }),
+        ...(draftId !== undefined
+          ? { draft_id: draftId }
+          : {
+              artifact_id: input.id,
+              ...(typeof input.version === "string" &&
+                input.version && { artifact_version: input.version }),
+            }),
         user_id: context.userId,
         ...(api.appId !== undefined && { app_id: api.appId }),
       };

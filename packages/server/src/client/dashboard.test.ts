@@ -27,9 +27,14 @@ const rounds = (count: number) =>
 
 /** A dashboard on a mocked API that answers each chat POST with the next reply. */
 function setup(replies: unknown[], tools: Record<string, DataTool<Context>>, probe?: boolean) {
-  const bodies: Array<{ messages: Message[]; tools?: unknown[] }> = [];
+  const bodies: Array<{ messages: Message[]; tools?: unknown[]; draft_id?: string }> = [];
+  const executes: Array<Record<string, unknown>> = [];
   const post = async (path: string, body: unknown) => {
     if (path === "/v1/frontend-tokens") return { token: "fct_1", expires_at: 1 };
+    if (path === "/v1/app/execute") {
+      executes.push(body as Record<string, unknown>);
+      return { status: "done", result: { revenue: 7 } };
+    }
     // Copied, because the messages array grows between requests.
     bodies.push(JSON.parse(JSON.stringify(body)));
     return replies[bodies.length - 1];
@@ -40,7 +45,7 @@ function setup(replies: unknown[], tools: Record<string, DataTool<Context>>, pro
     tools,
     probe,
   });
-  return { dashboard, bodies };
+  return { dashboard, bodies, executes };
 }
 
 const create = (dashboard: Dashboard<Context>, signal?: AbortSignal) =>
@@ -82,7 +87,45 @@ describe("defineDashboard create", () => {
         type: "function",
         function: { name: "bare", parameters: { type: "object", properties: {} } },
       },
+      {
+        type: "function",
+        function: { name: "create_script", parameters: { type: "object", properties: {} } },
+      },
     ]);
+  });
+
+  it("leaves create_script out when one of your tools has that name", async () => {
+    const { dashboard, bodies } = setup([started], { create_script: sales });
+    await create(dashboard);
+    expect(bodies[0]!.tools).toHaveLength(1);
+  });
+
+  it("runs a saved script through OpenUI Cloud by the build's draft_id, and sends the id back", async () => {
+    const reply = {
+      ...toolCalls(
+        toolCall("c1", "create_script", '{"name":"revenue","code":"async () => 1","args":{"d":7}}'),
+      ),
+      draft_id: "art_build",
+    };
+    const { dashboard, bodies, executes } = setup([reply, started], { sales });
+    await expect(create(dashboard)).resolves.toBe("Dashboard started");
+    expect(executes).toEqual([
+      {
+        draft_id: "art_build",
+        user_id: "user_1",
+        name: "revenue",
+        arguments: { d: 7 },
+        tool_results: [],
+      },
+    ]);
+    expect(bodies[0]).not.toHaveProperty("draft_id");
+    expect(bodies[1]!.draft_id).toBe("art_build");
+    expect(bodies[1]!.messages[3]).toEqual({
+      role: "tool",
+      tool_call_id: "c1",
+      content: '{"revenue":7}',
+    });
+    expect(sales.execute).not.toHaveBeenCalled();
   });
 
   it("runs the model's tool calls and sends the results back in order", async () => {
@@ -135,12 +178,12 @@ describe("defineDashboard create", () => {
     expect(error(bodies[1]!.messages[4])).toBe("tool_exec_error");
   });
 
-  it("keeps sending tools, and fails when the model still asks for them after 8 rounds", async () => {
-    const { dashboard, bodies } = setup(rounds(9), { sales });
-    await expect(create(dashboard)).rejects.toMatchObject({ code: "invalid_response" });
-    expect(bodies).toHaveLength(9);
+  it("keeps sending the same tools for as many rounds as the model asks", async () => {
+    const { dashboard, bodies } = setup([...rounds(12), started], { sales });
+    await expect(create(dashboard)).resolves.toBe("Dashboard started");
+    expect(bodies).toHaveLength(13);
     for (const body of bodies) expect(body.tools).toEqual(bodies[0]!.tools);
-    expect(sales.execute).toHaveBeenCalledTimes(8);
+    expect(sales.execute).toHaveBeenCalledTimes(12);
   });
 
   it("answers tools still running after 60 seconds with a timeout and continues", async () => {

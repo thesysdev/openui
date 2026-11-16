@@ -1,6 +1,6 @@
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
-import { MAX_PROBE_ROUNDS, probeRound } from "../tools/probe";
+import { CREATE_SCRIPT_TOOL, probeRound } from "../tools/probe";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
@@ -36,6 +36,7 @@ export function defineDashboard<Context extends ExecutionContext>(
 
   // One list of tools for generation and the interpreter; MCP tools are listed once.
   const loadTools = dataToolLoader<Context>({ tools, mcp } as DashboardOptions<Context>);
+  const interpreter = createInterpreter<Context>(api, loadTools);
 
   /** What generation sees of your data tools and the MCP server's. */
   async function toolDefinitions() {
@@ -80,15 +81,33 @@ export function defineDashboard<Context extends ExecutionContext>(
     const probeTools =
       probe === false || definitions.length === 0
         ? undefined
-        : definitions.map(({ name, description, parameters }) => ({
-            type: "function",
-            function: {
-              name,
-              ...(description !== undefined && { description }),
-              parameters: parameters ?? { type: "object", properties: {} },
-            },
-          }));
-    for (let round = 0; ; round++) {
+        : [
+            ...definitions.map(({ name, description, parameters }) => ({
+              type: "function",
+              function: {
+                name,
+                ...(description !== undefined && { description }),
+                parameters: parameters ?? { type: "object", properties: {} },
+              },
+            })),
+            // Says this server runs the scripts the model saves (see probeRound),
+            // unless one of your tools has that name.
+            ...(definitions.some(({ name }) => name === CREATE_SCRIPT_TOOL)
+              ? []
+              : [
+                  {
+                    type: "function",
+                    function: {
+                      name: CREATE_SCRIPT_TOOL,
+                      parameters: { type: "object", properties: {} },
+                    },
+                  },
+                ]),
+          ];
+    // The build OpenUI Cloud keeps the model's saved scripts under, from its first tool-call reply.
+    let draftId: string | undefined;
+    // No round limit: OpenUI Cloud decides when the model stops asking for tools.
+    for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
       // Tools go with every request: without them, earlier tool results are ignored.
       const reply = await api.post(
@@ -97,6 +116,7 @@ export function defineDashboard<Context extends ExecutionContext>(
           model,
           messages,
           ...(probeTools && { tools: probeTools }),
+          ...(draftId !== undefined && { draft_id: draftId }),
           user_id: context.userId,
           ...(api.appId !== undefined && { app_id: api.appId }),
         },
@@ -109,7 +129,6 @@ export function defineDashboard<Context extends ExecutionContext>(
       const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
       if (
         !probeTools ||
-        round >= MAX_PROBE_ROUNDS ||
         !Array.isArray(toolCalls) ||
         !toolCalls.length ||
         !toolCalls.every((toolCall) => isRecord(toolCall) && typeof toolCall["id"] === "string")
@@ -120,7 +139,11 @@ export function defineDashboard<Context extends ExecutionContext>(
           502,
         );
       }
-      messages.push(message, ...(await probeRound(toolCalls, await loadTools(), context, signal)));
+      if (typeof reply["draft_id"] === "string" && reply["draft_id"]) draftId = reply["draft_id"];
+      messages.push(
+        message,
+        ...(await probeRound(toolCalls, await loadTools(), context, signal, interpreter, draftId)),
+      );
     }
   }
 
@@ -135,6 +158,6 @@ export function defineDashboard<Context extends ExecutionContext>(
       return start(context, prompt, { id }, signal);
     },
 
-    interpreter: createInterpreter<Context>(api, loadTools),
+    interpreter,
   };
 }
