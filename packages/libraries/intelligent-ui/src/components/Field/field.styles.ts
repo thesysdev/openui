@@ -65,6 +65,10 @@ export const fieldStyles = {
   /** A Select's open menu: a long option (a URL, say) ends in an ellipsis inside the screen. */
   menu: css`
     max-width: calc(100vw - 24px);
+    /* The same canvas as a Popover's panel, so the two popups match. */
+    &.openui-select-content {
+      background-color: ${tokens.canvas};
+    }
     & .openui-select-item-text,
     & .openui-select-item-text * {
       min-width: 0;

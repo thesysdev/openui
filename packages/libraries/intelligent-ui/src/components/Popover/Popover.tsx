@@ -6,6 +6,10 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } f
 import { createPortal } from "react-dom";
 import { names, popoverStyles } from "./popover.styles";
 
+// Measures before paint in the browser; on the server, where there is nothing to measure, a plain
+// effect, so React 18 doesn't warn that a layout effect does nothing there.
+const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 /** Space kept between the panel and the screen edge, and between the panel and its trigger. */
 const EDGE = 12;
 const GAP = 8;
@@ -40,7 +44,7 @@ export function Popover({ trigger, children }: PopoverProps) {
   // An icon-only trigger has no text to name it (or the panel it labels). Measured after each new
   // trigger, which may still be streaming in.
   const [unnamed, setUnnamed] = useState(false);
-  useLayoutEffect(() => setUnnamed(!button.current?.textContent?.trim()), [trigger]);
+  useBrowserLayoutEffect(() => setUnnamed(!button.current?.textContent?.trim()), [trigger]);
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -48,7 +52,7 @@ export function Popover({ trigger, children }: PopoverProps) {
     if (refocus) button.current?.focus();
   };
 
-  useLayoutEffect(() => {
+  useBrowserLayoutEffect(() => {
     if (!open || !button.current || !panel.current) return;
     const r = button.current.getBoundingClientRect();
     const { width, height } = panel.current.getBoundingClientRect();
