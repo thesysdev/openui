@@ -48,7 +48,7 @@ export const Select = defineComponent({
           >
             <SelectValue placeholder={props.placeholder ?? "Choose…"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={clsx(fieldStyles.menu, fieldNames.menu)}>
             {optionList(props.options).map((o, i) => (
               <SelectItem key={`${o.value}-${i}`} value={o.value}>
                 {o.label}

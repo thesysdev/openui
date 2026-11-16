@@ -8,6 +8,7 @@ export const names = {
   error: "openui-intelligent-field-error",
   errorIcon: "openui-intelligent-field-error-icon",
   control: "openui-intelligent-field-control",
+  menu: "openui-intelligent-field-menu",
 } as const;
 
 const subtle = "var(--openui-highlight-subtle, oklch(0.097 0 0 / 0.02))";
@@ -23,6 +24,21 @@ export const fieldStyles = {
    */
   control: css`
     box-sizing: border-box;
+    /* A long chosen value (a URL, say) ends in an ellipsis instead of widening the field. */
+    &.openui-select-trigger {
+      min-width: 0;
+      max-width: 100%;
+    }
+    &.openui-select-trigger .openui-select-trigger-icon {
+      flex: none;
+    }
+    &.openui-select-trigger .openui-select-value,
+    &.openui-select-trigger .openui-select-value * {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     &.openui-select-trigger,
     & .openui-date-picker-trigger {
       box-sizing: border-box;
@@ -46,6 +62,17 @@ export const fieldStyles = {
       border-radius: var(--openui-radius-l, 10px);
     }
   `,
+  /** A Select's open menu: a long option (a URL, say) ends in an ellipsis inside the screen. */
+  menu: css`
+    max-width: calc(100vw - 24px);
+    & .openui-select-item-text,
+    & .openui-select-item-text * {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  `,
   root: css`
     font-variation-settings: normal;
     display: flex;
@@ -54,6 +81,7 @@ export const fieldStyles = {
     min-width: 0;
   `,
   label: css`
+    overflow-wrap: anywhere;
     color: ${tokens.ink};
     font-size: 14px;
     line-height: 1.4;

@@ -55,7 +55,10 @@ export const buttonStyles = {
       align-self: flex-start;
       flex: none;
       min-height: 36px;
-      white-space: nowrap;
+      /* A label wraps only when it has to, and a long word (a URL, an email) breaks, so a button is
+         never wider than its column. */
+      max-width: 100%;
+      overflow-wrap: anywhere;
       font-family: inherit;
       transition:
         background-color 0.15s,
