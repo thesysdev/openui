@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Pause, Play, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
@@ -142,6 +142,7 @@ export function ShowcasePlayer({ projects }: { projects: ShowcaseProject[] }) {
             target="_blank"
             rel="noopener noreferrer"
           >
+            <Plus size={14} aria-hidden="true" />
             Add yours
           </a>
         </p>

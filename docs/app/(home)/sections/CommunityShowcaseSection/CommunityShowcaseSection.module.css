@@ -206,16 +206,23 @@
   transform: translateX(2px);
 }
 
+/* A small pill button: plus sign, then the label. */
 .addLink {
-  color: var(--openui-text-neutral-secondary);
-  text-decoration: underline;
-  text-decoration-color: var(--home-hairline);
-  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3125rem 0.75rem 0.3125rem 0.5rem;
+  border: 1px solid var(--home-hairline);
+  border-radius: 999px;
+  color: var(--openui-text-neutral-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
 }
 
 .addLink:hover {
-  color: var(--openui-text-neutral-primary);
-  text-decoration-color: currentColor;
+  background: var(--home-hairline);
 }
 
 /* The recording in the same device the hero comparison uses: a page-coloured
