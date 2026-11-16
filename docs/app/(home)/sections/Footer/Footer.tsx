@@ -1,6 +1,6 @@
+import Link from "@/components/site-link";
 import svgPaths from "@/imports/svg-urruvoh2be";
 import { SITE_NAV_LINKS } from "@/lib/site-nav-links";
-import Link from "next/link";
 import { useId } from "react";
 import styles from "./Footer.module.css";
 import { ThemeTabs } from "./ThemeTabs";

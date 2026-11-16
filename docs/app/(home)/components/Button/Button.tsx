@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "@/components/site-link";
 import { copyText } from "@/lib/copy-text";
 import { Check, Copy } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import styles from "./Button.module.css";
 

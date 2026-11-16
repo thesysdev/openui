@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "@/components/site-link";
 import { SITE_NAV_LINKS } from "@/lib/site-nav-links";
 import {
   ArrowRight,
@@ -16,7 +17,6 @@ import {
   Users,
   type Icon,
 } from "@phosphor-icons/react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import styles from "./site-primary-nav.module.css";

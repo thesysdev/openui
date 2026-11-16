@@ -1,9 +1,9 @@
 "use client";
 
 import buttonStyles from "@/app/(home)/components/Button/Button.module.css";
+import Link from "@/components/site-link";
 import { BUILD_CTA_ENABLED, captureGalleryEvent } from "@/lib/demo-gallery-analytics";
 import { ArrowUpRight } from "lucide-react";
-import Link from "next/link";
 import { RunLocally } from "./run-locally";
 import styles from "./showcase.module.css";
 
