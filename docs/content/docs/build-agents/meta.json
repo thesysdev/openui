@@ -13,6 +13,7 @@
     "chat-ui",
     "assistant-ui",
     "copilotkit",
+    "open-webui",
     "custom-chat-ui",
     "---Production---",
     "[Production overview](/docs/production)"

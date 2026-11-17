@@ -1,0 +1,116 @@
+---
+title: "Mastra"
+seoTitle: "Mastra generative UI: build a frontend for Mastra agents"
+description: "To build a UI for a Mastra agent, connect it to OpenUI over AG-UI and render its streamed output as typed interfaces."
+---
+
+To build a UI for a Mastra agent, connect it to OpenUI over AG-UI and render its streamed output as typed interfaces.
+
+Mastra owns the agent and tools, the AG-UI transport serializes the run as SSE, and OpenUI's agUIAdapter drives the chat state and component renderer on the client.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra)
+
+## Install
+
+```bash
+npm install @mastra/core @ag-ui/mastra @ag-ui/core @openuidev/react-ui @openuidev/react-lang @openuidev/lang-core zod
+```
+
+## Build the Mastra agent
+
+Define the Agent with createTool tools and the generated OpenUI instructions. The example registers a custom Mastra gateway that routes model calls through OpenUI Cloud.
+
+```ts title="src/mastra.ts"
+import { Mastra } from "@mastra/core";
+import { Agent } from "@mastra/core/agent";
+import { createTool } from "@mastra/core/tools";
+import { z } from "zod";
+// Builds the OpenUI system prompt from your component library.
+import { cloudInstructions } from "@/lib/cloud-prompt";
+// Routes model calls to OpenUI Cloud. Copy src/openui-cloud-gateway.ts from the example.
+import { OpenUICloudGateway, openuiCloudModelId } from "@/openui-cloud-gateway";
+
+const getWeather = createTool({
+  id: "get_weather",
+  description: "Get current weather for a city.",
+  inputSchema: z.object({ location: z.string() }),
+  execute: async ({ location }) => {
+    // Call your weather API here.
+  },
+});
+
+export const openuiAgent = new Agent({
+  id: "openui-mastra-agent",
+  name: "OpenUI x Mastra Agent",
+  instructions: cloudInstructions(),
+  model: { id: openuiCloudModelId },
+  tools: { getWeather },
+});
+
+export const mastra = new Mastra({
+  gateways: { openuiCloud: new OpenUICloudGateway() },
+  agents: { openui: openuiAgent },
+});
+```
+
+[View source →](https://github.com/thesysdev/openui/blob/main/examples/agent-frameworks/mastra/src/mastra.ts)
+
+## Stream AG-UI events
+
+Wrap the agent with MastraAgent from @ag-ui/mastra in a server route and stream its AG-UI events to the browser as SSE.
+
+```ts title="src/app/api/chat/route.ts"
+import { MastraAgent } from "@ag-ui/mastra";
+import type { Message } from "@ag-ui/core";
+import { openuiAgent } from "@/mastra";
+
+const agent = new MastraAgent({ agent: openuiAgent, resourceId: "chat-user" });
+
+export async function POST(req: Request) {
+  const { messages, threadId }: { messages: Message[]; threadId: string } = await req.json();
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    start(controller) {
+      agent
+        .run({ messages, threadId, runId: crypto.randomUUID(), tools: [], context: [] })
+        .subscribe({
+          next: (event) => {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          },
+          complete: () => controller.close(),
+        });
+    },
+  });
+
+  return new Response(stream, { headers: { "Content-Type": "text/event-stream" } });
+}
+```
+
+[View source →](https://github.com/thesysdev/openui/blob/main/examples/agent-frameworks/mastra/src/app/api/chat/route.ts)
+
+## Connect your chat UI
+
+Create an llm with fetchLLM and agUIAdapter(), then pass it to AgentInterface for a ready-made chat app or to ChatProvider from @openuidev/react-headless for your own UI.
+
+```tsx title="src/app/page.tsx"
+"use client";
+
+import { AgentInterface, agUIAdapter, fetchLLM } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+
+// POSTs { messages, threadId, ... } to the route above and parses its AG-UI stream.
+const llm = fetchLLM({ url: "/api/chat", streamAdapter: agUIAdapter() });
+
+export default function Page() {
+  return <AgentInterface llm={llm} componentLibrary={openuiLibrary} />;
+}
+```
+
+[View source →](https://github.com/thesysdev/openui/blob/main/examples/agent-frameworks/mastra/src/app/page.tsx)
+
+## Related
+
+- [Example source](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra)
+- [Mastra's OpenUI guide](https://mastra.ai/guides/build-your-ui/openui)
+- [Mastra](https://mastra.ai)

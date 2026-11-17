@@ -112,6 +112,32 @@ const config = {
         destination: "/docs/integrations",
         permanent: true,
       },
+      // Each former /integrations/<slug> page goes to its guide in the docs.
+      ...Object.entries({
+        "shadcn-ui": "/docs/openui-lang/examples/design-systems/shadcn",
+        "material-ui": "/docs/openui-lang/examples/design-systems/material-ui",
+        handsontable: "/docs/openui-lang/examples/miscellaneous/handsontable",
+        "react-email": "/docs/openui-lang/examples/miscellaneous/react-email",
+        "langchain-langgraph": "/docs/build-agents/frameworks/langgraph",
+        "vercel-ai-sdk": "/docs/build-agents/frameworks/vercel-ai-sdk",
+        "google-adk": "/docs/build-agents/frameworks/google-adk",
+        mastra: "/docs/build-agents/frameworks/mastra",
+        "assistant-ui": "/docs/build-agents/assistant-ui",
+        "ag-ui": "/docs/build-agents/frameworks/ag-ui",
+        "grok-build": "/docs/build-agents/frameworks/grok-build",
+        "vercel-eve": "/docs/build-agents/frameworks/vercel-eve",
+        "pi-coding-agent": "/docs/build-agents/frameworks/pi",
+        "open-webui": "/docs/build-agents/open-webui",
+        lynx: "/docs/openui-lang/examples/app-frameworks/lynx",
+        vue: "/docs/openui-lang/examples/app-frameworks/vue",
+        angular: "/docs/openui-lang/examples/app-frameworks/angular",
+        "react-native": "/docs/openui-lang/examples/app-frameworks/react-native",
+        svelte: "/docs/openui-lang/examples/app-frameworks/svelte",
+      }).map(([slug, destination]) => ({
+        source: `/integrations/${slug}`,
+        destination,
+        permanent: true,
+      })),
       {
         source: "/integrations/:path*",
         destination: "/docs/integrations",
@@ -284,11 +310,6 @@ const config = {
         permanent: true,
       },
       {
-        source: "/docs/openui-lang/examples/app-frameworks/react-native",
-        destination: "/docs/openui-lang",
-        permanent: true,
-      },
-      {
         source: "/docs/openui-lang/src/library.ts",
         destination: "/docs/openui-lang/defining-components",
         permanent: true,
@@ -297,7 +318,7 @@ const config = {
       ...Object.entries({
         "shadcn-chat": "/docs/openui-lang/examples/design-systems/shadcn",
         "react-email": "/docs/openui-lang/examples/miscellaneous/react-email",
-        "react-native": "/docs/openui-lang",
+        "react-native": "/docs/openui-lang/examples/app-frameworks/react-native",
         dashboard: "/cookbooks/conversational-analytics",
         "langgraph-chat": "/docs/build-agents/frameworks/langgraph",
         "langchain-chat": "/docs/build-agents/frameworks/langgraph",
@@ -425,7 +446,7 @@ const config = {
         destination: "/docs/integrations",
         permanent: false,
       },
-            // Product rename: Paste → Debug. Keep the old path working.
+      // Product rename: Paste → Debug. Keep the old path working.
       {
         source: "/paste",
         destination: "/debug",
