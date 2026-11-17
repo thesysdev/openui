@@ -34,8 +34,6 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
   promptOptions?: ArtifactPromptOptions;
-  /** While a dashboard is built, the model may call your data tools to see their output. Default: `true`. */
-  probe?: boolean;
 } & DashboardDataTools<Context>;
 
 export interface CreateDashboardParams {

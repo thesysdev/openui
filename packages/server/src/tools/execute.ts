@@ -54,8 +54,9 @@ export function dataToolLoader<Context extends ExecutionContext>(
     );
 }
 
-/** Internal execute option: the build whose saved script runs (create_script),
- *  in place of a stored artifact's. A symbol, so no request body can set it. */
+/** Internal execute option: the dashboard whose build in progress holds the
+ *  saved script to run (create_script), in place of its stored scripts. A
+ *  symbol, so no request body can set it. */
 export const DRAFT_ID = Symbol("draftId");
 
 /** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
@@ -123,7 +124,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
       // Only the artifact's owner can run its scripts.
       const source = {
         ...(draftId !== undefined
-          ? { draft_id: draftId }
+          ? { artifact_id: draftId, draft: true }
           : {
               artifact_id: input.id,
               ...(typeof input.version === "string" &&

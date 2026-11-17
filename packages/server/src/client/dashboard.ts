@@ -1,6 +1,6 @@
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
-import { CREATE_SCRIPT_TOOL, probeRound } from "../tools/probe";
+import { probeRound } from "../tools/probe";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
@@ -28,7 +28,7 @@ export function defineDashboard<Context extends ExecutionContext>(
   options: DashboardOptions<Context>,
 ): Dashboard<Context> {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { library, model, promptOptions, tools, mcp, probe } = options;
+  const { library, model, promptOptions, tools, mcp } = options;
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
@@ -92,34 +92,18 @@ export function defineDashboard<Context extends ExecutionContext>(
       { role: "system", content: config({ tools: definitions, ...call }) },
       { role: "user", content: prompt },
     ];
-    const probeTools =
-      probe === false || definitions.length === 0
-        ? undefined
-        : [
-            ...definitions.map(({ name, description, parameters }) => ({
-              type: "function",
-              function: {
-                name,
-                ...(description !== undefined && { description }),
-                parameters: parameters ?? { type: "object", properties: {} },
-              },
-            })),
-            // Says this server runs the scripts the model saves (see probeRound),
-            // unless one of your tools has that name.
-            ...(definitions.some(({ name }) => name === CREATE_SCRIPT_TOOL)
-              ? []
-              : [
-                  {
-                    type: "function",
-                    function: {
-                      name: CREATE_SCRIPT_TOOL,
-                      parameters: { type: "object", properties: {} },
-                    },
-                  },
-                ]),
-          ];
-    // The build OpenUI Cloud keeps the model's saved scripts under, from its first tool-call reply.
-    let draftId: string | undefined;
+    // Your data tools, which the model may call while it builds; OpenUI Cloud
+    // adds create_script, whose saved scripts this server runs (see probeRound).
+    const dataTools = definitions.map(({ name, description, parameters }) => ({
+      type: "function",
+      function: {
+        name,
+        ...(description !== undefined && { description }),
+        parameters: parameters ?? { type: "object", properties: {} },
+      },
+    }));
+    // The dashboard's id, from the first tool-call reply: later rounds and saved scripts go by it.
+    let artifactId: string | undefined;
     // No round limit: OpenUI Cloud decides when the model stops asking for tools.
     for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
@@ -129,8 +113,8 @@ export function defineDashboard<Context extends ExecutionContext>(
         {
           model,
           messages,
-          ...(probeTools && { tools: probeTools }),
-          ...(draftId !== undefined && { draft_id: draftId }),
+          ...(dataTools.length > 0 && { tools: dataTools }),
+          ...(artifactId !== undefined && { artifact_id: artifactId }),
           user_id: context.userId,
           ...(api.appId !== undefined && { app_id: api.appId }),
         },
@@ -153,7 +137,6 @@ export function defineDashboard<Context extends ExecutionContext>(
       }
       const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
       if (
-        !probeTools ||
         !Array.isArray(toolCalls) ||
         !toolCalls.length ||
         !toolCalls.every((toolCall) => isRecord(toolCall) && typeof toolCall["id"] === "string")
@@ -164,18 +147,20 @@ export function defineDashboard<Context extends ExecutionContext>(
           502,
         );
       }
-      if (typeof reply["draft_id"] === "string" && reply["draft_id"]) draftId = reply["draft_id"];
+      if (typeof reply["artifact_id"] === "string" && reply["artifact_id"]) {
+        artifactId = reply["artifact_id"];
+      }
       const results = await probeRound(
         toolCalls,
         await loadTools(),
         context,
         signal,
         interpreter,
-        draftId,
+        artifactId,
         progress,
       );
-      // OpenUI Cloud holds the build's turns under its draft_id: send only the new results.
-      messages = draftId !== undefined ? results : [...messages, message, ...results];
+      // OpenUI Cloud keeps the build's turns: send only the new results.
+      messages = artifactId !== undefined ? results : [...messages, message, ...results];
     }
   }
 

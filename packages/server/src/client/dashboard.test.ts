@@ -36,8 +36,8 @@ const rounds = (count: number) =>
   Array.from({ length: count }, (_, i) => toolCalls(toolCall(`c${i}`, "sales")));
 
 /** A dashboard on a mocked API that answers each chat POST with the next reply. */
-function setup(replies: unknown[], tools: Record<string, DataTool<Context>>, probe?: boolean) {
-  const bodies: Array<{ messages: Message[]; tools?: unknown[]; draft_id?: string }> = [];
+function setup(replies: unknown[], tools: Record<string, DataTool<Context>>) {
+  const bodies: Array<{ messages: Message[]; tools?: unknown[]; artifact_id?: string }> = [];
   const executes: Array<Record<string, unknown>> = [];
   const post = async (path: string, body: unknown) => {
     if (path === "/v1/frontend-tokens") return { token: "fct_1", expires_at: 1 };
@@ -53,7 +53,6 @@ function setup(replies: unknown[], tools: Record<string, DataTool<Context>>, pro
     library: { components: {} } as unknown as ArtifactLibrary,
     model: "provider/model",
     tools,
-    probe,
   });
   return { dashboard, bodies, executes };
 }
@@ -77,13 +76,6 @@ afterEach(() => {
 });
 
 describe("defineDashboard create", () => {
-  it("sends no tools and posts once when probe is off", async () => {
-    const { dashboard, bodies } = setup([started], { sales }, false);
-    await expect(create(dashboard)).resolves.toBe("Dashboard started");
-    expect(bodies).toHaveLength(1);
-    expect(bodies[0]).not.toHaveProperty("tools");
-  });
-
   it("sends the data tools as function tools by default", async () => {
     const bare = { execute: async () => 1 } as unknown as DataTool<Context>;
     const { dashboard, bodies } = setup([started], { sales, bare });
@@ -97,39 +89,30 @@ describe("defineDashboard create", () => {
         type: "function",
         function: { name: "bare", parameters: { type: "object", properties: {} } },
       },
-      {
-        type: "function",
-        function: { name: "create_script", parameters: { type: "object", properties: {} } },
-      },
     ]);
   });
 
-  it("leaves create_script out when one of your tools has that name", async () => {
-    const { dashboard, bodies } = setup([started], { create_script: sales });
-    await create(dashboard);
-    expect(bodies[0]!.tools).toHaveLength(1);
-  });
-
-  it("runs a saved script through OpenUI Cloud by the build's draft_id, and sends the id back", async () => {
+  it("runs a saved script of the build by the dashboard's id, and sends the id back", async () => {
     const reply = {
       ...toolCalls(
         toolCall("c1", "create_script", '{"name":"revenue","code":"async () => 1","args":{"d":7}}'),
       ),
-      draft_id: "art_build",
+      artifact_id: "art_build",
     };
     const { dashboard, bodies, executes } = setup([reply, started], { sales });
     await expect(create(dashboard)).resolves.toBe("Dashboard started");
     expect(executes).toEqual([
       {
-        draft_id: "art_build",
+        artifact_id: "art_build",
+        draft: true,
         user_id: "user_1",
         name: "revenue",
         arguments: { d: 7 },
         tool_results: [],
       },
     ]);
-    expect(bodies[0]).not.toHaveProperty("draft_id");
-    expect(bodies[1]!.draft_id).toBe("art_build");
+    expect(bodies[0]).not.toHaveProperty("artifact_id");
+    expect(bodies[1]!.artifact_id).toBe("art_build");
     // OpenUI Cloud holds the build's turns: only the new results go back.
     expect(bodies[1]!.messages).toEqual([
       { role: "tool", tool_call_id: "c1", content: '{"revenue":7}' },
@@ -143,7 +126,7 @@ describe("defineDashboard create", () => {
         toolCall("c1", "sales", '{"region":"EU"}'),
         toolCall("c2", "create_script", '{"name":"revenue","code":"async () => 1"}'),
       ),
-      draft_id: "art_build",
+      artifact_id: "art_build",
     };
     const { dashboard } = setup([reply, { ...started, artifact_id: "art_build" }], { sales });
     const steps: unknown[] = [];
@@ -249,13 +232,10 @@ describe("defineDashboard create", () => {
     expect(bodies).toHaveLength(1);
   });
 
-  it("fails on any other reply, and on tool calls when probe is off", async () => {
+  it("fails on any other reply", async () => {
     const text = { choices: [{ message: { role: "assistant", content: "hi" } }] };
     const failure = { code: "invalid_response", status: 502 };
     await expect(create(setup([text], { sales }).dashboard)).rejects.toMatchObject(failure);
-    await expect(create(setup(rounds(1), { sales }, false).dashboard)).rejects.toMatchObject(
-      failure,
-    );
     expect(sales.execute).not.toHaveBeenCalled();
   });
 });

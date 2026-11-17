@@ -30,7 +30,7 @@ export async function probeRound<Context extends ExecutionContext>(
   context: Context,
   callerSignal: AbortSignal | undefined,
   interpreter: Interpreter<Context>,
-  draftId: string | undefined,
+  artifactId: string | undefined,
   onProgress: (step: DashboardProgress) => void = () => {},
 ) {
   callerSignal?.throwIfAborted();
@@ -74,7 +74,7 @@ export async function probeRound<Context extends ExecutionContext>(
                   arguments: isRecord(args["args"]) ? args["args"] : {},
                 },
                 context,
-                { signal, [DRAFT_ID]: draftId ?? "" } as Parameters<
+                { signal, [DRAFT_ID]: artifactId ?? "" } as Parameters<
                   Interpreter<Context>["execute"]
                 >[2],
               )
