@@ -27,16 +27,15 @@ export const dashboards = openui.defineDashboard({
 
 Define it once and import `dashboards` wherever the app creates, edits, or loads dashboards.
 
-| Option          | Description                                                                                                                                                                                                                                                                                                                                                             |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `library`       | The component library's spec. See [Component library](#component-library).                                                                                                                                                                                                                                                                                              |
-| `model`         | The model that builds and edits dashboards, as `provider/model`. Recommended: `anthropic/claude-sonnet-5.5`. See [Models](/docs/gateway/models).                                                                                                                                                                                                                        |
-| `tools`         | Your data tools. See [Connect data](/docs/dashboards/connect-data).                                                                                                                                                                                                                                                                                                     |
-| `mcp`           | One or more MCP servers whose tools dashboards can call. See [Connect data](/docs/dashboards/connect-data#mcp-servers).                                                                                                                                                                                                                                                 |
-| `promptOptions` | `preamble`, `examples`, and `additionalRules` added to the prompt the model builds dashboards from.                                                                                                                                                                                                                                                                     |
-| `probe`         | While a dashboard is built, the model may call your data tools to see their real output. It sees what your tools return, so have them return small results or accept a limit parameter. Set `false` to turn this off. Tools given to a dashboard are called without a prompt, while it is built and every time it opens, so register only tools that are safe for that. |
+| Option          | Description                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `library`       | The component library's spec. See [Component library](#component-library).                                                                       |
+| `model`         | The model that builds and edits dashboards, as `provider/model`. Recommended: `anthropic/claude-sonnet-5.5`. See [Models](/docs/gateway/models). |
+| `tools`         | Your data tools. See [Connect data](/docs/dashboards/connect-data).                                                                              |
+| `mcp`           | One or more MCP servers whose tools dashboards can call. See [Connect data](/docs/dashboards/connect-data#mcp-servers).                          |
+| `promptOptions` | `preamble`, `examples`, and `additionalRules` added to the prompt the model builds dashboards from.                                              |
 
-`tools`, `mcp`, or both are required.
+`tools`, `mcp`, or both are required. While a dashboard is built, the model calls your data tools to see their real output, so have them return small results or accept a limit parameter. Tools given to a dashboard are called without a prompt, while it is built and every time it opens, so register only tools that are safe for that.
 
 ## Component library
 
