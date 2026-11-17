@@ -476,6 +476,20 @@ describe("A2UI data model bridge", () => {
     expect(model).toEqual({ replaced: true });
   });
 
+  it("rejects prototype-chain keys and out-of-range array indexes", () => {
+    const model = { arr: [] as string[], a: { b: {} } };
+    for (const path of [
+      "/__proto__/polluted",
+      "/a/b/__proto__/polluted",
+      "/constructor/prototype/x",
+    ]) {
+      expect(() => applyDataModelUpdate(model, path, "x")).toThrow(/Reserved key/);
+    }
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    expect(() => applyDataModelUpdate(model, "/arr/4294967294", "x")).toThrow(/out of range/);
+    expect(applyDataModelUpdate(model, "/arr/0", "x")).toEqual({ arr: ["x"], a: { b: {} } });
+  });
+
   it("converts A2UI data-model keys to Lang bindings and unwraps form state", () => {
     expect(dataModelToOpenUIState({ user: { name: "Alice" } })).toEqual({
       $user: { name: "Alice" },
