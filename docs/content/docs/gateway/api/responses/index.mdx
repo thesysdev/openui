@@ -31,9 +31,16 @@ const response = await gateway.responses.create({
   model: "openai/gpt-5",
   input: "Compare quarterly revenue by region.",
   instructions: generateSystemPrompt({ cloud: true, library }),
+  safety_identifier: userId, // stable ID of the end user making this request
   stream: true,
 });
 ```
+
+<Callout type="warn">
+  Send `safety_identifier` with every request you make for an end user, including follow-ups.
+  Without it, model providers attribute policy violations to your whole organization. See [Safety
+  Identifier](/docs/gateway/safety-identifier).
+</Callout>
 
 Relay the response stream through your server route without changing its event shape. In the browser, configure the appropriate [Agent Interface adapter and message format](/docs/agent/reference/adapters-and-formats) for the Responses stream.
 
@@ -52,6 +59,7 @@ const first = await gateway.responses.create({
   model: "openai/gpt-5",
   input: "Compare quarterly revenue by region.",
   instructions: generateSystemPrompt({ cloud: true, library }),
+  safety_identifier: userId,
   store: true,
 });
 
@@ -60,6 +68,7 @@ const followUp = await gateway.responses.create({
   input: "Focus on Europe and explain the change.",
   instructions: generateSystemPrompt({ cloud: true, library }),
   previous_response_id: first.id,
+  safety_identifier: userId,
   store: true,
 });
 ```

@@ -67,6 +67,8 @@ export async function POST(req: Request) {
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: stepCountIs(5),
+    // Sent as safety_identifier: the stable ID of the end user making this request.
+    providerOptions: { openai: { safetyIdentifier: userId } },
   });
   return result.toUIMessageStreamResponse();
 }

@@ -64,6 +64,7 @@ export async function POST(req: Request) {
     model: "google/gemini-3.6-flash-free",
     stream: true,
     messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+    safety_identifier: userId, // stable ID of the end user making this request
   });
 
   // Write each text delta as a raw chunk, not an SSE event.

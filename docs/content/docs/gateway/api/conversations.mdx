@@ -31,6 +31,7 @@ const response = await gateway.responses.create({
   conversation: conversation.id,
   input: "Compare quarterly revenue by region.",
   instructions: generateSystemPrompt({ cloud: true, library }),
+  safety_identifier: userId, // stable ID of the end user making this request
   store: true,
   stream: true,
 });

@@ -1,0 +1,94 @@
+---
+title: Safety Identifier
+description: Tell Gateway which of your end users sent each request, so a policy flag points at one user instead of your whole organization.
+---
+
+<Callout type="warn">
+  Send `safety_identifier` with every request you make for an end user. Without it, model providers
+  attribute every policy violation to your whole organization, and repeated violations may affect
+  your organization's access to the API.
+</Callout>
+
+Model providers such as OpenAI check requests against their usage policies. When a provider flags a request, it needs to know who sent it. `safety_identifier` is the standard OpenAI request field for that. Gateway accepts it on the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) endpoints.
+
+## Why it matters
+
+- **With a safety identifier,** a flag points at one end user of your application. You can find that user and act.
+- **Without one,** Gateway can only tell the provider which organization sent the request. Every flagged request counts against your whole organization.
+
+When a provider flags a request, Gateway records the violation and emails your organization's admins. The email names the end user (your `safety_identifier`), the API key, the reason, the model, the time and your organization's total. Admins get at most one email per end user per day (UTC). Repeated violations may affect your organization's access to the API, leading to throttling or revoked access.
+
+## Send it on every request
+
+Set `safety_identifier` to a stable ID for the end user who sent the message. The OpenAI SDKs accept it as a normal request field.
+
+```ts title="server.ts" tab="Chat Completions" tab-group="safety-identifier"
+const completion = await gateway.chat.completions.create({
+  model: "openai/gpt-5",
+  messages,
+  safety_identifier: userId, // stable ID of the end user making this request
+  stream: true,
+});
+```
+
+```ts title="server.ts" tab="Responses API" tab-group="safety-identifier"
+const response = await gateway.responses.create({
+  model: "openai/gpt-5",
+  input: "Compare quarterly revenue by region.",
+  safety_identifier: userId, // stable ID of the end user making this request
+  stream: true,
+});
+```
+
+```python title="main.py" tab="Python" tab-group="safety-identifier"
+completion = client.chat.completions.create(
+    model="openai/gpt-5",
+    messages=messages,
+    safety_identifier=user_id,  # stable ID of the end user making this request
+    stream=True,
+)
+```
+
+```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="safety-identifier"
+const result = streamText({
+  model: gateway.chat("google/gemini-3.6-flash-free"),
+  messages: await convertToModelMessages(messages),
+  // The AI SDK sends this as safety_identifier.
+  providerOptions: { openai: { safetyIdentifier: userId } },
+});
+```
+
+The identifier applies to one request. With the Responses API, send it again on every follow-up, including requests that use `previous_response_id` or `conversation`.
+
+## Choose a value
+
+- Use an ID that stays the same for the same person, such as your internal user ID.
+- Do not send an email address, a name or other personal data. If your IDs contain personal data, send a hash instead.
+- Keep it to 42 characters or fewer. A full SHA-256 hex digest is 64 characters, so shorten it:
+
+```ts
+import { createHash } from "node:crypto";
+
+const userId = createHash("sha256").update(user.id).digest("hex").slice(0, 32);
+```
+
+## What Gateway sends to the provider
+
+Gateway puts your organization ID in front of your value, so the provider sees each end user as part of your organization:
+
+| Your request                     | Sent to the provider              |
+| :------------------------------- | :-------------------------------- |
+| `safety_identifier: "user_8812"` | `Xq7mK2pR9vLt4wN8sB3cD:user_8812` |
+| No `safety_identifier`           | `Xq7mK2pR9vLt4wN8sB3cD`           |
+
+Providers accept at most 64 characters. After the 21-character organization ID and the colon, 42 characters are left for your value. A longer value is rejected with HTTP 400 before the request reaches a model:
+
+```json
+{
+  "error": {
+    "message": "safety_identifier must be at most 42 characters",
+    "type": "invalid_safety_identifier",
+    "param": null
+  }
+}
+```
