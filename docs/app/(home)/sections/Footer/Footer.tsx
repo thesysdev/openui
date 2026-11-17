@@ -168,7 +168,6 @@ const FOOTER_GROUPS: { title: string; links: FooterLink[] }[] = [
       { title: "OUI-1", ...SITE_NAV_LINKS.oui1 },
       { title: "OpenClaw OS", ...SITE_NAV_LINKS.openClawOs },
       { title: "AppLess", ...SITE_NAV_LINKS.appless },
-      { title: "Community Projects", ...SITE_NAV_LINKS.community },
     ],
   },
   {
