@@ -24,8 +24,14 @@ export interface ArtifactSummary {
   /** Thread the artifact was created in. Drives the "go to original thread" action. */
   threadId: string;
   updatedAt?: string | number;
-  /** Whether the user pinned it. */
+  /** Whether the user pinned it. Each user has their own pins. */
   pinned?: boolean;
+  /** Whether the user created it. Only its owner can delete it. */
+  isOwner?: boolean;
+  /** Whether the user can edit, rename, and share it: its owner, or anyone it's shared with to edit. */
+  isEditable?: boolean;
+  /** Who it's shared with. Only for users who can edit it. */
+  shares?: ArtifactShare[];
 }
 
 /** Full artifact. `content` must have the same shape as the tool-call `response` the renderer's parser expects. */
@@ -40,11 +46,31 @@ export interface ArtifactListParams {
   type?: string[];
   /** `true`: only pinned artifacts; `false`: only unpinned ones. Server-side. */
   pinned?: boolean;
+  /** `true`: only the user's own artifacts; `false`: only those shared with them. Server-side. */
+  isOwner?: boolean;
   /** Newest first (`desc`, the default) or oldest first. */
   order?: "asc" | "desc";
   cursor?: string;
   limit?: number;
 }
+
+/** What a share allows: `view` opens and runs the artifact; `edit` also edits, renames, and shares it. */
+export type ArtifactAccess = "view" | "edit";
+
+/**
+ * Who an artifact is shared with: one user, one of your groups (the `groupIds` on the user's
+ * frontend token), or everyone in the artifact's app.
+ */
+export type ArtifactShareTarget = { type: "user" | "group"; id: string } | { type: "app" };
+
+/** One share on an artifact. */
+export type ArtifactShare = ArtifactShareTarget & {
+  access: ArtifactAccess;
+  /** The user who shared it. */
+  createdBy: string;
+  /** When it was shared, in ms. */
+  createdAt: number;
+};
 
 /**
  * One event on an artifact's stream: its reference first, then its content in
@@ -91,6 +117,13 @@ export interface ArtifactStorage {
   getQueryResults?(id: string): Promise<Record<string, unknown>>;
   /** Optional. Save one query result of an artifact under its key, without waiting. */
   putQueryResult?(id: string, entry: { key: string; value: unknown }): void;
+  /** Optional. Share an artifact, or change an existing share's access. Needs edit access. */
+  share?(
+    id: string,
+    share: ArtifactShareTarget & { access: ArtifactAccess },
+  ): Promise<ArtifactSummary>;
+  /** Optional. Remove a share; removing one that isn't there does nothing. Needs edit access. */
+  unshare?(id: string, target: ArtifactShareTarget): Promise<ArtifactSummary>;
 }
 
 /**

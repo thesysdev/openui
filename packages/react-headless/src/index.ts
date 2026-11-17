@@ -68,8 +68,11 @@ export { processStreamedMessage } from "./stream/processStreamedMessage";
 export { fetchLLM, getResponseErrorMessage, restStorage } from "./adapters";
 export type {
   Artifact,
+  ArtifactAccess,
   ArtifactCategory,
   ArtifactListParams,
+  ArtifactShare,
+  ArtifactShareTarget,
   ArtifactStorage,
   ArtifactSummary,
   ChatLLM,

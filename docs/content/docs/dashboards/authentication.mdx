@@ -5,7 +5,7 @@ description: Set up the API key on the server and a per-user frontend token in t
 
 Dashboards use two credentials. The API key authenticates your server and never reaches the browser. A frontend token is a short-lived credential scoped to one user, which the browser uses to stream and list that user's dashboards.
 
-Every dashboard belongs to the user who created it. Only that user can open, edit, list, or run it.
+Every dashboard belongs to the user who created it. Until they [share it](/docs/dashboards/sharing), only they can open, edit, list, or run it.
 
 ## API key
 
@@ -51,7 +51,13 @@ await dashboards.edit({ id, prompt }, context);
 await dashboards.interpreter.execute(request, context);
 ```
 
-`create` makes the dashboard belong to `context.userId`. `edit` and `interpreter.execute` run only for the dashboard's owner.
+`create` makes the dashboard belong to `context.userId`. `interpreter.execute` runs only for users who can open the dashboard: its owner, and anyone it's [shared with](/docs/dashboards/sharing). `edit` runs only for its owner and anyone it's shared with to edit.
+
+To share dashboards with groups, add the groups the user is in, from your own system, as `groupIds`. Up to 50:
+
+```ts
+const context = { userId: session.user.id, groupIds: session.user.teamIds };
+```
 
 `context` can carry more than the user id. Your data tools receive the whole object, which is useful for scoping data to what the user may see. See [Connect data](/docs/dashboards/connect-data#use-the-context).
 
@@ -83,7 +89,9 @@ export async function POST(request: Request) {
 
 `createFrontendToken` returns `{ token, expires_at }`. Return it unchanged: the browser reads that shape.
 
-Use the same user id here as in the server calls. A token for one user can't read another user's dashboards.
+Use the same user id here as in the server calls. A token reads its user's dashboards and those shared with them, and no others.
+
+If you share with groups, pass the same `groupIds` as in the server calls: `{ userId: session.user.id, groupIds: session.user.teamIds }`. The token keeps them until it expires, after 15 minutes, so a user you remove from a group keeps that group's dashboards until their next token.
 
 ## Connect the browser
 

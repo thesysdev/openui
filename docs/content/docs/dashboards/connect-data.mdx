@@ -150,7 +150,7 @@ export async function POST(request: Request) {
 }
 ```
 
-`execute` runs the named data tool directly. When the name is a generated script, it runs the script in the OpenUI JS interpreter for safe execution. The script calls your tools on this server through the same handlers. Scripts run only for the dashboard's owner.
+`execute` runs the named data tool directly. When the name is a generated script, it runs the script in the OpenUI JS interpreter for safe execution. The script calls your tools on this server through the same handlers. Scripts run only for users who can open the dashboard: its owner, and anyone it's [shared with](/docs/dashboards/sharing). Your tools get the viewer's `context`, so each user sees their own data.
 
 | Option      | Description                                                  |
 | ----------- | ------------------------------------------------------------ |

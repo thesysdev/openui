@@ -39,10 +39,21 @@ export interface CloudArtifact {
   name?: string;
   version?: string; // server bumps via String(Date.now()) when omitted
   content?: string;
-  pinned?: boolean;
+  pinned?: boolean; // by the caller
+  is_owner?: boolean;
+  is_editable?: boolean;
+  shares?: CloudArtifactShare[]; // only when is_editable
   created_at: number;
   updated_at?: number;
 }
+
+/** One share on an artifact. `app` has no `id`: everyone in the artifact's app. `created_at` is unix SECONDS. */
+export type CloudArtifactShare = ({ type: "user" | "group"; id: string } | { type: "app" }) & {
+  object: "openui.artifact.share";
+  access: "view" | "edit";
+  created_by: string;
+  created_at: number;
+};
 
 /** List envelope shared by all paged endpoints. */
 export interface CloudListEnvelope<T> {
