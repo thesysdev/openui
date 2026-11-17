@@ -1,0 +1,26 @@
+import clsx from "clsx";
+import { forwardRef, type HTMLAttributes } from "react";
+import { type Color, fg } from "../../shared/props";
+import { captionStyles, names } from "./caption.styles";
+
+export interface CaptionProps extends Omit<HTMLAttributes<HTMLParagraphElement>, "color"> {
+  color?: Color;
+}
+
+/** Small secondary text. */
+const Caption = forwardRef<HTMLParagraphElement, CaptionProps>(
+  ({ color, className, style, children, ...rest }, ref) => (
+    <p
+      ref={ref}
+      className={clsx(captionStyles.root, names.root, className)}
+      style={{ color: fg(color), ...style }}
+      {...rest}
+    >
+      {children}
+    </p>
+  ),
+);
+
+Caption.displayName = "Caption";
+
+export { Caption };

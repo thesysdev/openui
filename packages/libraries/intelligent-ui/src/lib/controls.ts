@@ -1,0 +1,106 @@
+"use client";
+
+/**
+ * What the controls' bindings share: running an action, a field's rules inside
+ * a Form, a control's state key, and option lists. The markup a field draws
+ * (label, required marker, error) is the Field component.
+ */
+import {
+  ACTION_STEPS,
+  parseStructuredRules,
+  useFormName,
+  useFormValidation,
+  useTriggerAction,
+} from "@openuidev/react-lang";
+import { useEffect, useId, useMemo, useRef } from "react";
+import { z } from "zod/v4";
+import { option, toOption } from "./schemas";
+
+type Plan = Parameters<ReturnType<typeof useTriggerAction>>[2];
+
+type Step = { type: string; refType?: string };
+
+/** Whether an action sends something on, as the chat kit's Button decides: to the assistant, a tool, or a mutation. */
+const sends = (plan: unknown) => {
+  const steps = (plan as { steps?: Step[] }).steps;
+  if (!steps) return true;
+  return steps.some(
+    (s) =>
+      s.type === ACTION_STEPS.ToAssistant ||
+      s.type === "custom_action" ||
+      (s.type === ACTION_STEPS.Run && s.refType === "mutation"),
+  );
+};
+
+/**
+ * Runs an action prop. With no action, a button sends its label to the
+ * assistant. Inside a Form, anything that sends checks the fields' rules first
+ * and stops on an error; a @Set step, such as a stepper's +, never does.
+ */
+export function useRunAction() {
+  const trigger = useTriggerAction();
+  const formName = useFormName();
+  const form = useFormValidation();
+  return (message: string, plan: unknown, sendLabel: boolean) => {
+    if (!plan && !sendLabel) return;
+    if (form && (!plan || sends(plan)) && !form.validateForm()) return;
+    if (plan) void trigger(message, formName, plan as Plan);
+    else void trigger(message, formName);
+  };
+}
+
+/**
+ * A field's rules inside a Form. Registers them so a send checks the field
+ * first, and returns the field's error, whether it is required, and handlers
+ * that check it (on blur) and clear it (on edit). Outside a Form, or with no
+ * rules, it does nothing.
+ */
+export function useFieldRules(name: string, rules: unknown, value: unknown) {
+  const form = useFormValidation();
+  const key = JSON.stringify(rules ?? null);
+  // Keyed on the rules' content: the program re-creates the object each render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const parsed = useMemo(() => parseStructuredRules(rules), [key]);
+  const latest = useRef(value);
+  latest.current = value;
+  const active = !!form && parsed.length > 0;
+  const register = form?.registerField;
+  const unregister = form?.unregisterField;
+  useEffect(() => {
+    if (!register || !unregister || parsed.length === 0) return;
+    register(name, parsed, () => latest.current);
+    return () => unregister(name);
+  }, [register, unregister, name, parsed]);
+  return {
+    required: active && parsed.some((rule) => rule.type === "required"),
+    error: active ? form.errors[name] : undefined,
+    check: () => {
+      if (active) form.validateField(name, latest.current, parsed);
+    },
+    clear: () => {
+      if (active) form.clearFieldError(name);
+    },
+  };
+}
+
+/**
+ * The state key of a control: its statement name, else its label, else a generated id. A
+ * statement name is unique in a program; a label is not, so two inline fields labelled "Name" in
+ * one Form still share a key. Only a field that is a statement's own value has a statement name.
+ */
+export function useFieldName(label: unknown, statementId?: string) {
+  const id = useId();
+  return statementId || (typeof label === "string" && label) || id;
+}
+
+/** Option lists, shared by Select, SegmentedControl and RadioGroup. */
+export const options = z.array(option);
+export const optionList = (value: unknown) =>
+  Array.isArray(value) ? value.flat().flatMap((o) => toOption(o) ?? []) : [];
+
+export const choice = z.union([
+  z.string(),
+  z.object({ value: z.string(), label: z.string(), description: z.string().optional() }),
+]);
+export type Choice = { value: string; label: string; description?: string };
+export const choiceList = (value: unknown): Choice[] => optionList(value);

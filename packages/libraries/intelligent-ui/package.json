@@ -1,0 +1,80 @@
+{
+  "name": "@openuidev/intelligent-ui-library",
+  "version": "0.0.1",
+  "description": "OpenUI Intelligent UI component library: layout, text, inputs, media, drawing and @functions a model composes into interactive answers",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:check": "prettier --check ./src",
+    "format:fix": "prettier --write ./src",
+    "check:publint": "publint",
+    "check:attw": "attw --pack . --ignore-rules no-resolution",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
+    "ci": "pnpm run lint:check && pnpm run format:check && pnpm run typecheck"
+  },
+  "dependencies": {
+    "@openuidev/lang-core": "workspace:>=1.1.1",
+    "@openuidev/react-components": "workspace:>=0.0.1 <0.1.0",
+    "@openuidev/react-lang": "workspace:>=1.1.1",
+    "clsx": "^2.1.1",
+    "katex": "^0.16.44",
+    "lucide-react": "^0.562.0"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "keywords": [
+    "openui",
+    "intelligent-ui",
+    "generative-ui",
+    "ai",
+    "component-library",
+    "openui-lang",
+    "llm"
+  ],
+  "homepage": "https://openui.com",
+  "author": "engineering@thesys.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thesysdev/openui.git",
+    "directory": "packages/libraries/intelligent-ui"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
