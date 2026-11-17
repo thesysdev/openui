@@ -11,18 +11,30 @@ pnpm add @openuidev/intelligent-ui-library
 
 ## Usage
 
-Generate the system prompt with the CLI from a file that re-exports the library:
+New to OpenUI? Start with [Getting Started](https://www.openui.com/docs/getting-started).
+
+Export the library spec with the CLI from a file that re-exports the library:
 
 ```ts
 // src/lib/intelligent-ui-library.ts
-export { library, promptOptions } from "@openuidev/intelligent-ui-library";
+export { library } from "@openuidev/intelligent-ui-library";
 ```
 
 ```sh
-npx @openuidev/cli generate src/lib/intelligent-ui-library.ts --out src/generated/system-prompt.txt
+npx @openuidev/cli generate src/lib/intelligent-ui-library.ts --spec --out src/generated/intelligent-ui.spec.json
 ```
 
-Send that file as the system message, then render the model's response:
+On the server, build the system prompt from the spec and the library's `promptOptions`:
+
+```ts
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import { promptOptions } from "@openuidev/intelligent-ui-library";
+import library from "./generated/intelligent-ui.spec.json";
+
+const systemPrompt = generateSystemPrompt({ library, promptOptions });
+```
+
+Send it as the system message, then render the model's response:
 
 ```tsx
 import { ThemeProvider, library } from "@openuidev/intelligent-ui-library";
