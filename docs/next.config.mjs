@@ -117,10 +117,10 @@ const config = {
         destination: "/docs/integrations",
         permanent: true,
       },
-      // The Lab page was removed; community projects live on the Demos page.
+      // The Lab page was removed; it now sends visitors to the Integrations docs.
       {
         source: "/lab",
-        destination: "/demos#community-projects",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
@@ -407,22 +407,22 @@ const config = {
       },
       {
         source: "/docs/add-ons",
-        destination: "/demos#community-projects",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/add-ons",
-        destination: "/demos#community-projects",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/ecosystem",
-        destination: "/demos#community-projects",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/registry",
-        destination: "/demos#community-projects",
+        destination: "/docs/integrations",
         permanent: false,
       },
             // Product rename: Paste → Debug. Keep the old path working.
@@ -438,12 +438,12 @@ const config = {
       },
       {
         source: "/projects",
-        destination: "/demos#community-projects",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
         source: "/showcase",
-        destination: "/demos#community-projects",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
