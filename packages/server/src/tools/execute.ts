@@ -57,7 +57,7 @@ export function dataToolLoader<Context extends ExecutionContext>(
 /** Internal execute option: the dashboard whose build in progress holds the
  *  saved script to run (create_script), in place of its stored scripts. A
  *  symbol, so no request body can set it. */
-export const DRAFT_ID = Symbol("draftId");
+export const DRAFT_OF = Symbol("draftOf");
 
 /** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
 export function createInterpreter<Context extends ExecutionContext = ExecutionContext>(
@@ -110,11 +110,11 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
 
     try {
       tools = await abortable(handlers(), signal);
-      const draftId = (executionOptions as { [DRAFT_ID]?: string } | undefined)?.[DRAFT_ID];
-      if (draftId === undefined && Object.hasOwn(tools, input.name))
+      const draftOf = (executionOptions as { [DRAFT_OF]?: string } | undefined)?.[DRAFT_OF];
+      if (draftOf === undefined && Object.hasOwn(tools, input.name))
         return await dispatch(input.name, args);
       // Generated scripts run from the artifact OpenUI Cloud stores.
-      if (draftId === undefined && (typeof input.id !== "string" || !input.id)) {
+      if (draftOf === undefined && (typeof input.id !== "string" || !input.id)) {
         throw new ToolExecutionError(
           `Unknown tool: ${input.name}. Send the artifact's id to run its scripts.`,
           "tool_not_found",
@@ -123,8 +123,8 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
       }
       // Only the artifact's owner can run its scripts.
       const source = {
-        ...(draftId !== undefined
-          ? { artifact_id: draftId, draft: true }
+        ...(draftOf !== undefined
+          ? { artifact_id: draftOf, draft: true }
           : {
               artifact_id: input.id,
               ...(typeof input.version === "string" &&

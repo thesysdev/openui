@@ -1,7 +1,7 @@
 import { isRecord } from "../client/api";
 import type { DashboardProgress } from "../client/types";
 import { abortable } from "../shared/abort";
-import { DRAFT_ID } from "./execute";
+import { DRAFT_OF } from "./execute";
 import {
   ToolExecutionError,
   type DataTool,
@@ -74,7 +74,7 @@ export async function probeRound<Context extends ExecutionContext>(
                   arguments: isRecord(args["args"]) ? args["args"] : {},
                 },
                 context,
-                { signal, [DRAFT_ID]: artifactId ?? "" } as Parameters<
+                { signal, [DRAFT_OF]: artifactId ?? "" } as Parameters<
                   Interpreter<Context>["execute"]
                 >[2],
               )
