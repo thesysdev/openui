@@ -47,13 +47,15 @@ export interface CloudArtifact {
   updated_at?: number;
 }
 
-/** One share on an artifact. `app` has no `id`: everyone in the artifact's app. `created_at` is unix SECONDS. */
-export type CloudArtifactShare = ({ type: "user" | "group"; id: string } | { type: "app" }) & {
+/** One share on an artifact. `created_at` is unix SECONDS. */
+export interface CloudArtifactShare {
   object: "openui.artifact.share";
+  type: "user" | "group";
+  id: string;
   access: "view" | "edit";
   created_by: string;
   created_at: number;
-};
+}
 
 /** List envelope shared by all paged endpoints. */
 export interface CloudListEnvelope<T> {

@@ -57,19 +57,13 @@ function toSummary(artifact: CloudArtifact): ArtifactSummary {
 }
 
 function toShare(share: CloudArtifactShare): ArtifactShare {
-  const meta = {
+  return {
+    type: share.type,
+    id: share.id,
     access: share.access,
     createdBy: share.created_by,
     createdAt: share.created_at * 1000,
   };
-  return share.type === "app"
-    ? { type: share.type, ...meta }
-    : { type: share.type, id: share.id, ...meta };
-}
-
-/** The share's target alone, as the share routes take it. */
-function toTarget(target: ArtifactShareTarget) {
-  return target.type === "app" ? { type: target.type } : { type: target.type, id: target.id };
 }
 
 export function cloudArtifactStorage({
@@ -149,23 +143,23 @@ export function cloudArtifactStorage({
       await request(`/v1/artifacts/${encodeURIComponent(id)}`, { method: "DELETE" });
     },
 
-    /** POST /v1/artifacts/:id/share {type, id?, access}. */
+    /** POST /v1/artifacts/:id/share {type, id, access}. Sends only those fields. */
     async share(
       id: string,
       share: ArtifactShareTarget & { access: ArtifactAccess },
     ): Promise<ArtifactSummary> {
       const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/share`, {
         method: "POST",
-        body: JSON.stringify({ ...toTarget(share), access: share.access }),
+        body: JSON.stringify({ type: share.type, id: share.id, access: share.access }),
       });
       return toSummary((await res.json()) as CloudArtifact);
     },
 
-    /** POST /v1/artifacts/:id/unshare {type, id?}. */
+    /** POST /v1/artifacts/:id/unshare {type, id}. Sends only those fields. */
     async unshare(id: string, target: ArtifactShareTarget): Promise<ArtifactSummary> {
       const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/unshare`, {
         method: "POST",
-        body: JSON.stringify(toTarget(target)),
+        body: JSON.stringify({ type: target.type, id: target.id }),
       });
       return toSummary((await res.json()) as CloudArtifact);
     },

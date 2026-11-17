@@ -25,7 +25,7 @@ const noopSubscribe = () => () => {};
 
 /** One key per target: a target has one share at most. */
 function targetKey(target: ArtifactShareTarget): string {
-  return target.type === "app" ? target.type : `${target.type}:${target.id}`;
+  return `${target.type}:${target.id}`;
 }
 
 /**
@@ -93,8 +93,8 @@ export function useArtifactShares(id: string): ArtifactSharesState {
 }
 
 /**
- * Shares an artifact with a user, a group, or everyone in its app, or changes the access of a
- * target it's already shared with. Lists and `useArtifactShares` show it right away, and revert
+ * Shares an artifact with a user or a group, or changes the access of a target it's already
+ * shared with. Lists and `useArtifactShares` show it right away, and revert
  * if it fails.
  *
  * @category Hooks

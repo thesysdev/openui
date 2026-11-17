@@ -58,19 +58,22 @@ export interface ArtifactListParams {
 export type ArtifactAccess = "view" | "edit";
 
 /**
- * Who an artifact is shared with: one user, one of your groups (the `groupIds` on the user's
- * frontend token), or everyone in the artifact's app.
+ * Who an artifact is shared with: one user, or one of your groups (the `groupIds` on the user's
+ * frontend token).
  */
-export type ArtifactShareTarget = { type: "user" | "group"; id: string } | { type: "app" };
+export interface ArtifactShareTarget {
+  type: "user" | "group";
+  id: string;
+}
 
 /** One share on an artifact. */
-export type ArtifactShare = ArtifactShareTarget & {
+export interface ArtifactShare extends ArtifactShareTarget {
   access: ArtifactAccess;
   /** The user who shared it. */
   createdBy: string;
   /** When it was shared, in ms. */
   createdAt: number;
-};
+}
 
 /**
  * One event on an artifact's stream: its reference first, then its content in

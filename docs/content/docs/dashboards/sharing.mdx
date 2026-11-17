@@ -1,6 +1,6 @@
 ---
 title: Share dashboards
-description: Share a dashboard with a user, a group, or everyone in your app, to view or edit it.
+description: Share a dashboard with a user or a group, to view or edit it.
 ---
 
 A new dashboard is private to the user who created it. Its owner, and anyone it's shared with to edit, can share it with:
@@ -9,7 +9,6 @@ A new dashboard is private to the user who created it. Its owner, and anyone it'
 | ----------------------- | ---------------------------------------------------------------------------------------------- |
 | `{ type: "user", id }`  | One user, by the id you pass as `userId`.                                                      |
 | `{ type: "group", id }` | Every user whose `groupIds` include `id`. Groups are yours: OpenUI never stores who's in them. |
-| `{ type: "app" }`       | Every user of the dashboard's app. See [Everyone in the app](#everyone-in-the-app).            |
 
 Each share gives `view` or `edit` access. A shared dashboard shares its layout and queries, never the sharer's data: its data tools always run with the viewer's own [`context`](/docs/dashboards/connect-data#use-the-context).
 
@@ -43,13 +42,9 @@ await dashboards.edit({ id, prompt }, { userId: session.user.id, groupIds });
 
 Group ids are strings you choose, such as `team:sales` or an account id. A user can be in up to 50 groups. OpenUI doesn't check that a user or group exists.
 
+To share with everyone, put every user in one group, such as `everyone`, and share with that group.
+
 Groups ride on the frontend token, which lasts 15 minutes. A user you remove from a group keeps that group's dashboards until their next token. Removing a share takes effect on the next request.
-
-## Everyone in the app
-
-`{ type: "app" }` shares a dashboard with every user of its app: the [`appId`](/docs/dashboards/authentication#create-the-client) of the client that created it. It reaches users whose tokens and server calls come from a client with the same `appId`.
-
-A dashboard created without an `appId` can't be shared with `app`, since that would reach every user of your API key. Share it with a group that holds all your users instead.
 
 ## Share from the browser
 
@@ -75,8 +70,8 @@ export function ShareDialog({ id }: { id: string }) {
     <>
       <ul>
         {shares.map((entry) => (
-          <li key={entry.type === "app" ? "app" : `${entry.type}:${entry.id}`}>
-            {entry.type === "app" ? "Everyone" : entry.id} can {entry.access}
+          <li key={`${entry.type}:${entry.id}`}>
+            {entry.id} can {entry.access}
             <button onClick={() => unshare(id, entry)}>Remove</button>
           </li>
         ))}
@@ -89,7 +84,7 @@ export function ShareDialog({ id }: { id: string }) {
 }
 ```
 
-The shares are part of the dashboard: `useArtifactShares` reads them from the dashboard a list loaded, or loads the dashboard if no list has. Each share has `type`, `id` (except for `app`), `access`, `createdBy`, and `createdAt` in milliseconds. `share` and `unshare` update every list and `useArtifactShares` right away, and revert if the request fails. Each also returns `isPending` and `error` for its last call.
+The shares are part of the dashboard: `useArtifactShares` reads them from the dashboard a list loaded, or loads the dashboard if no list has. Each share has `type`, `id`, `access`, `createdBy`, and `createdAt` in milliseconds. `share` and `unshare` update every list and `useArtifactShares` right away, and revert if the request fails. Each also returns `isPending` and `error` for its last call.
 
 Only users who can edit a dashboard see its shares, so show sharing only for dashboards with `isEditable`. For other users, `shares` is empty and changes fail.
 
