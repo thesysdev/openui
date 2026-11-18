@@ -1,0 +1,86 @@
+{
+  "name": "@openuidev/chat",
+  "version": "0.0.0",
+  "description": "OpenUI Lang for Chat SDK: generative UI as native cards on Slack, Teams, Google Chat and Discord",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.cts",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsdown",
+    "watch": "tsdown --watch",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.demo.json",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src README.md",
+    "format:check": "prettier --check ./src README.md",
+    "check:publint": "publint",
+    "check:attw": "attw --pack . --ignore-rules=no-resolution",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
+    "ci": "pnpm run lint:check && pnpm run format:check && pnpm run test && tsc -p tsconfig.test.json --noEmit",
+    "demo": "tsx demo/slack-bot.ts",
+    "demo:render": "tsx demo/render.ts"
+  },
+  "keywords": [
+    "openui",
+    "openui-lang",
+    "generative-ui",
+    "chat-sdk",
+    "slack",
+    "block-kit",
+    "teams",
+    "chatbot"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thesysdev/openui.git",
+    "directory": "packages/chat"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "dependencies": {
+    "@openuidev/lang-core": "workspace:^"
+  },
+  "peerDependencies": {
+    "chat": "^4.43.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ai-sdk/openai": "catalog:",
+    "@chat-adapter/slack": "^4.44.0",
+    "@chat-adapter/state-memory": "^4.44.0",
+    "@types/node": "catalog:",
+    "ai": "^6.0.116",
+    "chat": "^4.44.0",
+    "tsx": "^4.21.0",
+    "typescript": "catalog:",
+    "vitest": "^4.0.18",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
