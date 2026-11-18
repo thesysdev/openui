@@ -1,0 +1,4272 @@
+{
+  "render:counter": {
+    "output": [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Counter Demo"
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Count is *0*"
+        }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "+1"
+            },
+            "action_id": "inc"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "-1"
+            },
+            "action_id": "dec"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Reset"
+            },
+            "action_id": "reset"
+          }
+        ]
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": "updated just now"
+          }
+        ]
+      }
+    ],
+    "text": "Counter Demo",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 0
+    }
+  },
+  "render:controls": {
+    "output": [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Pick things"
+        },
+        "accessory": {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Go"
+          },
+          "action_id": "accBtn"
+        }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "static_select",
+            "action_id": "sel",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "priority"
+            },
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Low"
+                },
+                "value": "low"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "High"
+                },
+                "value": "high"
+              }
+            ],
+            "initial_option": {
+              "text": {
+                "type": "plain_text",
+                "text": "High"
+              },
+              "value": "high"
+            }
+          },
+          {
+            "type": "radio_buttons",
+            "action_id": "rad",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Me"
+                },
+                "value": "me"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "You"
+                },
+                "value": "you"
+              }
+            ]
+          },
+          {
+            "type": "checkboxes",
+            "action_id": "chk",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Alpha"
+                },
+                "value": "a"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Beta"
+                },
+                "value": "b"
+              }
+            ],
+            "initial_options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Alpha"
+                },
+                "value": "a"
+              }
+            ]
+          },
+          {
+            "type": "overflow",
+            "action_id": "ov",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Do X"
+                },
+                "value": "x"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Do Y"
+                },
+                "value": "y"
+              }
+            ]
+          },
+          {
+            "type": "datepicker",
+            "action_id": "dp",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "due"
+            },
+            "initial_date": "2026-08-01"
+          },
+          {
+            "type": "timepicker",
+            "action_id": "tp",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "at"
+            },
+            "initial_time": "09:30"
+          },
+          {
+            "type": "datetimepicker",
+            "action_id": "dtp",
+            "initial_date_time": 1754000000
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "dispatch_action": true,
+        "label": {
+          "type": "plain_text",
+          "text": "tags2"
+        },
+        "element": {
+          "type": "multi_static_select",
+          "action_id": "ms",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "tags2"
+          },
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Beta"
+              },
+              "value": "b"
+            }
+          ],
+          "initial_options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            }
+          ]
+        }
+      },
+      {
+        "type": "section",
+        "fields": [
+          {
+            "type": "mrkdwn",
+            "text": "*Status*\nOpen"
+          },
+          {
+            "type": "mrkdwn",
+            "text": "*Owner*\nRabi"
+          }
+        ]
+      },
+      {
+        "type": "image",
+        "image_url": "https://example.com/x.png",
+        "alt_text": "an image"
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "No-op"
+            },
+            "action_id": "plain"
+          }
+        ]
+      }
+    ],
+    "text": "Pick things",
+    "actionMap": {
+      "accBtn": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$priority",
+              "valueAST": {
+                "k": "Str",
+                "v": "low"
+              }
+            }
+          ]
+        }
+      },
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      },
+      "rad": {
+        "kind": "input",
+        "target": "$assignee"
+      },
+      "chk": {
+        "kind": "input",
+        "target": "$tags"
+      },
+      "ms": {
+        "kind": "input",
+        "target": "$tags"
+      },
+      "ov": {
+        "kind": "input",
+        "target": "$menu"
+      },
+      "dp": {
+        "kind": "input",
+        "target": "$due"
+      },
+      "tp": {
+        "kind": "input",
+        "target": "$at"
+      },
+      "dtp": {
+        "kind": "input",
+        "target": "$when"
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$priority": "high",
+      "$tags": [
+        "a"
+      ],
+      "$assignee": "",
+      "$due": "2026-08-01",
+      "$at": "09:30",
+      "$when": 1754000000,
+      "$menu": ""
+    }
+  },
+  "render:content": {
+    "output": [
+      {
+        "type": "data_visualization",
+        "block_id": "chart_0",
+        "title": "Issues by state",
+        "chart": {
+          "type": "bar",
+          "series": [
+            {
+              "name": "Issues",
+              "data": [
+                {
+                  "label": "Todo",
+                  "value": 5
+                },
+                {
+                  "label": "Doing",
+                  "value": 3
+                },
+                {
+                  "label": "Done",
+                  "value": 8
+                }
+              ]
+            }
+          ],
+          "axis_config": {
+            "categories": [
+              "Todo",
+              "Doing",
+              "Done"
+            ],
+            "x_label": "Status",
+            "y_label": "Count"
+          }
+        }
+      },
+      {
+        "type": "data_visualization",
+        "block_id": "chart_1",
+        "title": "Chart",
+        "chart": {
+          "type": "pie",
+          "segments": [
+            {
+              "label": "A",
+              "value": 1
+            },
+            {
+              "label": "B",
+              "value": 2
+            }
+          ]
+        }
+      },
+      {
+        "type": "markdown",
+        "text": "# Hello\n- one\n- two"
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            {
+              "type": "rich_text",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Title",
+                      "style": {
+                        "bold": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rich_text",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Priority",
+                      "style": {
+                        "bold": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "type": "raw_text",
+              "text": "Fix login"
+            },
+            {
+              "type": "raw_text",
+              "text": "High"
+            }
+          ],
+          [
+            {
+              "type": "raw_text",
+              "text": "Write docs"
+            },
+            {
+              "type": "raw_text",
+              "text": "Low"
+            }
+          ]
+        ]
+      },
+      {
+        "type": "rich_text",
+        "elements": [
+          {
+            "type": "rich_text_section",
+            "elements": [
+              {
+                "type": "text",
+                "text": "Intro para"
+              }
+            ]
+          },
+          {
+            "type": "rich_text_list",
+            "style": "ordered",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "text",
+                    "text": "first"
+                  }
+                ]
+              },
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "text",
+                    "text": "second"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "rich_text_list",
+            "style": "bullet",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "text",
+                    "text": "x"
+                  }
+                ]
+              },
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "text",
+                    "text": "y"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "rich_text_quote",
+            "elements": [
+              {
+                "type": "text",
+                "text": "quoted"
+              }
+            ]
+          },
+          {
+            "type": "rich_text_preformatted",
+            "elements": [
+              {
+                "type": "text",
+                "text": "let a = 1"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "text": "OpenUI message",
+    "actionMap": {},
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state",
+        "series": "Issues",
+        "xLabel": "Status",
+        "yLabel": "Count"
+      },
+      {
+        "id": "chart_1",
+        "type": "pie",
+        "labels": [
+          "A",
+          "B"
+        ],
+        "values": [
+          1,
+          2
+        ]
+      }
+    ],
+    "forms": {},
+    "state": {}
+  },
+  "render:form": {
+    "output": [
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "New issue"
+            },
+            "action_id": "form:frm"
+          }
+        ]
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Saved: no"
+        }
+      }
+    ],
+    "text": "Saved: no",
+    "actionMap": {},
+    "charts": [],
+    "forms": {
+      "frm": {
+        "title": "New issue",
+        "submit": "Create",
+        "fields": [
+          {
+            "target": "$title",
+            "kind": "text",
+            "label": "Title",
+            "initial": ""
+          },
+          {
+            "target": "$desc",
+            "kind": "textarea",
+            "label": "Description",
+            "initial": ""
+          },
+          {
+            "target": "$points",
+            "kind": "number",
+            "label": "Points",
+            "initial": 3
+          },
+          {
+            "target": "$team",
+            "kind": "select",
+            "label": "team",
+            "initial": "t1",
+            "options": [
+              {
+                "value": "t1",
+                "label": "Core"
+              },
+              {
+                "value": "t2",
+                "label": "Web"
+              }
+            ]
+          },
+          {
+            "target": "$due",
+            "kind": "date",
+            "label": "due",
+            "initial": ""
+          }
+        ],
+        "action": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$saved",
+              "valueAST": {
+                "k": "Str",
+                "v": "yes"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "state": {
+      "$title": "",
+      "$desc": "",
+      "$points": 3,
+      "$team": "t1",
+      "$due": "",
+      "$saved": "no"
+    }
+  },
+  "render:edge": {
+    "output": [
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Fine"
+            },
+            "action_id": "good"
+          }
+        ]
+      }
+    ],
+    "text": "OpenUI message",
+    "actionMap": {
+      "empty": {
+        "kind": "input",
+        "target": "$x"
+      },
+      "good": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$x",
+              "valueAST": {
+                "k": "Str",
+                "v": "1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$x": ""
+    }
+  },
+  "render:waCounter": {
+    "output": [
+      {
+        "type": "text",
+        "text": {
+          "body": "*Counter*"
+        }
+      },
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "button",
+          "body": {
+            "text": "Count is *0*"
+          },
+          "action": {
+            "buttons": [
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_0\"}",
+                  "title": "+1"
+                }
+              },
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_1\"}",
+                  "title": "-1"
+                }
+              },
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_2\"}",
+                  "title": "Reset"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "text",
+        "text": {
+          "body": "Tap a button to update."
+        }
+      }
+    ],
+    "text": "Counter",
+    "actionMap": {
+      "el_0": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "el_1": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "el_2": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 0
+    }
+  },
+  "render:waContent": {
+    "output": [
+      {
+        "type": "text",
+        "text": {
+          "body": "*Sprint status*\n\n*Open:* 12\n*Done:* 8\n\n――――――――――\n\n```\nTask       State\n---------  -----\nLogin fix  Done\nDocs       Todo\n```"
+        }
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": ""
+        },
+        "chartId": "chart_0",
+        "caption": "Issues by state"
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": "https://example.com/x.png",
+          "caption": "team photo"
+        }
+      },
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "list",
+          "body": {
+            "text": "Filter by priority"
+          },
+          "action": {
+            "button": "priority",
+            "sections": [
+              {
+                "rows": [
+                  {
+                    "id": "chat:{\"a\":\"sel\",\"v\":\"high\"}",
+                    "title": "High"
+                  },
+                  {
+                    "id": "chat:{\"a\":\"sel\",\"v\":\"low\"}",
+                    "title": "Low"
+                  },
+                  {
+                    "id": "chat:{\"a\":\"sel\",\"v\":\"all\"}",
+                    "title": "All"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "text",
+        "text": {
+          "body": "Some *bold* claim"
+        }
+      }
+    ],
+    "text": "Sprint status",
+    "actionMap": {
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$priority": "high"
+    }
+  },
+  "render:tgCounter": {
+    "output": {
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Counter",
+          "size": 3
+        },
+        {
+          "type": "paragraph",
+          "text": [
+            "Count is ",
+            {
+              "type": "bold",
+              "text": "0"
+            }
+          ]
+        }
+      ],
+      "keyboard": [
+        [
+          {
+            "text": "+1",
+            "callback_data": "inc"
+          },
+          {
+            "text": "-1",
+            "callback_data": "dec"
+          },
+          {
+            "text": "Reset",
+            "callback_data": "reset"
+          }
+        ]
+      ]
+    },
+    "text": "Counter",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 0
+    }
+  },
+  "render:tgContent": {
+    "output": {
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Sprint status",
+          "size": 2
+        },
+        {
+          "type": "table",
+          "cells": [
+            [
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "Open"
+                },
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "12",
+                "align": "left",
+                "valign": "middle"
+              }
+            ],
+            [
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "Done"
+                },
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "8",
+                "align": "left",
+                "valign": "middle"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "table",
+          "cells": [
+            [
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "Task"
+                },
+                "is_header": true,
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "State"
+                },
+                "is_header": true,
+                "align": "left",
+                "valign": "middle"
+              }
+            ],
+            [
+              {
+                "text": "Login fix",
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "Done",
+                "align": "left",
+                "valign": "middle"
+              }
+            ],
+            [
+              {
+                "text": "Docs",
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "Todo",
+                "align": "left",
+                "valign": "middle"
+              }
+            ]
+          ],
+          "is_bordered": true
+        },
+        {
+          "type": "photo",
+          "photo": {
+            "type": "photo",
+            "media": "attach://chart_0"
+          },
+          "caption": {
+            "text": "Issues by state"
+          }
+        },
+        {
+          "type": "blockquote",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Ship early, ship often"
+            }
+          ]
+        },
+        {
+          "type": "pre",
+          "text": "npm start",
+          "language": "bash"
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "first"
+                }
+              ],
+              "value": 1,
+              "type": "1"
+            },
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "second"
+                }
+              ],
+              "value": 2,
+              "type": "1"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "Deploy"
+                }
+              ],
+              "has_checkbox": true,
+              "is_checked": true
+            },
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "Test"
+                }
+              ],
+              "has_checkbox": true
+            }
+          ]
+        },
+        {
+          "type": "details",
+          "summary": "Release notes",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Long changelog text here"
+            }
+          ]
+        },
+        {
+          "type": "photo",
+          "photo": {
+            "type": "photo",
+            "media": "https://example.com/x.png"
+          },
+          "caption": {
+            "text": "team"
+          }
+        },
+        {
+          "type": "paragraph",
+          "text": [
+            "Some ",
+            {
+              "type": "bold",
+              "text": "bold"
+            },
+            " and ",
+            {
+              "type": "url",
+              "text": "a link",
+              "url": "https://example.com"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "Filter by priority"
+        }
+      ],
+      "keyboard": [
+        [
+          {
+            "text": "● High",
+            "callback_data": "sel|high"
+          },
+          {
+            "text": "Low",
+            "callback_data": "sel|low"
+          },
+          {
+            "text": "All",
+            "callback_data": "sel|all"
+          }
+        ],
+        [
+          {
+            "text": "None",
+            "callback_data": "sel|none"
+          }
+        ],
+        [
+          {
+            "text": "Docs",
+            "url": "https://example.com/docs"
+          },
+          {
+            "text": "Copy cmd",
+            "copy_text": {
+              "text": "npm start"
+            }
+          }
+        ]
+      ]
+    },
+    "text": "Sprint status",
+    "actionMap": {
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$priority": "high"
+    }
+  },
+  "render:teamsCounter": {
+    "output": {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "TextBlock",
+          "text": "Counter",
+          "weight": "Bolder",
+          "size": "Large",
+          "wrap": true
+        },
+        {
+          "type": "TextBlock",
+          "text": "Count is **0**",
+          "wrap": true
+        },
+        {
+          "type": "ActionSet",
+          "actions": [
+            {
+              "type": "Action.Submit",
+              "title": "+1",
+              "data": {
+                "actionId": "inc"
+              }
+            },
+            {
+              "type": "Action.Submit",
+              "title": "-1",
+              "data": {
+                "actionId": "dec"
+              }
+            },
+            {
+              "type": "Action.Submit",
+              "title": "Reset",
+              "data": {
+                "actionId": "reset"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "text": "Counter",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 0
+    }
+  },
+  "render:teamsContent": {
+    "output": {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "TextBlock",
+          "text": "Sprint status",
+          "weight": "Bolder",
+          "size": "ExtraLarge",
+          "wrap": true
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            {
+              "title": "Open",
+              "value": "12"
+            },
+            {
+              "title": "Done",
+              "value": "8"
+            }
+          ]
+        },
+        {
+          "type": "Container",
+          "separator": true,
+          "spacing": "Medium",
+          "items": []
+        },
+        {
+          "type": "Table",
+          "firstRowAsHeader": true,
+          "columns": [
+            {
+              "width": 1
+            },
+            {
+              "width": 1
+            }
+          ],
+          "rows": [
+            {
+              "type": "TableRow",
+              "cells": [
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Task",
+                      "wrap": true,
+                      "weight": "Bolder"
+                    }
+                  ]
+                },
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "State",
+                      "wrap": true,
+                      "weight": "Bolder"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TableRow",
+              "cells": [
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Login fix",
+                      "wrap": true
+                    }
+                  ]
+                },
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Done",
+                      "wrap": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TableRow",
+              "cells": [
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Docs",
+                      "wrap": true
+                    }
+                  ]
+                },
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Todo",
+                      "wrap": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Image",
+          "url": "https://openui-chart.invalid/chart_0",
+          "altText": "Issues by state"
+        },
+        {
+          "type": "Container",
+          "style": "emphasis",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Ship early, ship often",
+              "wrap": true,
+              "isSubtle": true
+            }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": "npm start",
+          "fontType": "Monospace",
+          "wrap": true
+        },
+        {
+          "type": "TextBlock",
+          "text": "1. first\n2. second",
+          "wrap": true
+        },
+        {
+          "type": "Image",
+          "url": "https://example.com/x.png",
+          "altText": "team"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Some **bold** and [a link](https://example.com)",
+          "wrap": true
+        },
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Left side",
+                  "wrap": true
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Right side",
+                  "wrap": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Input.Text",
+          "id": "$title",
+          "label": "Title"
+        },
+        {
+          "type": "Input.Number",
+          "id": "$points",
+          "label": "Points",
+          "value": 3
+        },
+        {
+          "type": "Input.Date",
+          "id": "$due",
+          "label": "Due"
+        },
+        {
+          "type": "Input.Time",
+          "id": "$at",
+          "label": "At",
+          "value": "09:30"
+        },
+        {
+          "type": "Input.Toggle",
+          "id": "$urgent",
+          "title": "Urgent",
+          "value": "false"
+        },
+        {
+          "type": "Input.ChoiceSet",
+          "id": "$team",
+          "label": "Team",
+          "style": "compact",
+          "choices": [
+            {
+              "title": "Core",
+              "value": "core"
+            },
+            {
+              "title": "Web",
+              "value": "web"
+            }
+          ],
+          "value": "core"
+        },
+        {
+          "type": "ActionSet",
+          "actions": [
+            {
+              "type": "Action.Submit",
+              "title": "Save",
+              "data": {
+                "actionId": "save"
+              },
+              "style": "positive"
+            },
+            {
+              "type": "Action.OpenUrl",
+              "title": "Docs",
+              "url": "https://example.com/docs"
+            }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": "Saved: no",
+          "wrap": true
+        }
+      ]
+    },
+    "text": "Sprint status",
+    "actionMap": {
+      "save": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$saved",
+              "valueAST": {
+                "k": "Str",
+                "v": "yes"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$title": "",
+      "$points": 3,
+      "$due": "",
+      "$at": "09:30",
+      "$urgent": "false",
+      "$team": "core",
+      "$saved": "no"
+    }
+  },
+  "render:blockkit": {
+    "output": [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Text with an image accessory"
+        },
+        "accessory": {
+          "type": "image",
+          "image_url": "https://example.com/avatar.png",
+          "alt_text": "avatar"
+        }
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "image",
+            "image_url": "https://example.com/icon.png",
+            "alt_text": "icon"
+          },
+          {
+            "type": "mrkdwn",
+            "text": "logged just now"
+          }
+        ]
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Save"
+            },
+            "action_id": "save",
+            "style": "primary"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Delete"
+            },
+            "action_id": "del",
+            "style": "danger",
+            "confirm": {
+              "title": {
+                "type": "plain_text",
+                "text": "Are you sure?"
+              },
+              "text": {
+                "type": "plain_text",
+                "text": "This clears the note."
+              },
+              "confirm": {
+                "type": "plain_text",
+                "text": "Yes"
+              },
+              "deny": {
+                "type": "plain_text",
+                "text": "Cancel"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Docs"
+            },
+            "action_id": "docs",
+            "url": "https://example.com/docs"
+          },
+          {
+            "type": "users_select",
+            "action_id": "us",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "owner"
+            },
+            "initial_user": "U111"
+          },
+          {
+            "type": "channels_select",
+            "action_id": "cs",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "channel"
+            }
+          },
+          {
+            "type": "conversations_select",
+            "action_id": "convs",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "conversation"
+            }
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "dispatch_action": true,
+        "label": {
+          "type": "plain_text",
+          "text": "assignees"
+        },
+        "element": {
+          "type": "multi_users_select",
+          "action_id": "mus",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "assignees"
+          },
+          "initial_users": [
+            "U111",
+            "U222"
+          ]
+        }
+      },
+      {
+        "type": "input",
+        "dispatch_action": true,
+        "label": {
+          "type": "plain_text",
+          "text": "channels"
+        },
+        "element": {
+          "type": "multi_channels_select",
+          "action_id": "mcs",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "channels"
+          },
+          "initial_channels": [
+            "C0AAAAAAA",
+            "C0BBBBBBB"
+          ]
+        }
+      },
+      {
+        "type": "input",
+        "dispatch_action": true,
+        "label": {
+          "type": "plain_text",
+          "text": "conversations"
+        },
+        "element": {
+          "type": "multi_conversations_select",
+          "action_id": "mconvs",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "conversations"
+          },
+          "initial_conversations": [
+            "C0AAAAAAA",
+            "C0BBBBBBB"
+          ]
+        }
+      },
+      {
+        "type": "input",
+        "dispatch_action": true,
+        "label": {
+          "type": "plain_text",
+          "text": "Add a note"
+        },
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "tb",
+          "dispatch_action_config": {
+            "trigger_actions_on": [
+              "on_enter_pressed"
+            ]
+          },
+          "initial_value": "hello"
+        }
+      },
+      {
+        "type": "video",
+        "video_url": "https://www.youtube.com/embed/abc",
+        "title": {
+          "type": "plain_text",
+          "text": "Demo video"
+        },
+        "thumbnail_url": "https://example.com/thumb.png",
+        "alt_text": "Demo video",
+        "description": {
+          "type": "plain_text",
+          "text": "A short demo"
+        }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Details"
+            },
+            "action_id": "form:frm"
+          }
+        ]
+      }
+    ],
+    "text": "Text with an image accessory",
+    "actionMap": {
+      "save": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$note",
+              "valueAST": {
+                "k": "Str",
+                "v": ""
+              }
+            }
+          ]
+        }
+      },
+      "del": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$note"
+              ]
+            }
+          ]
+        }
+      },
+      "us": {
+        "kind": "input",
+        "target": "$owner"
+      },
+      "mus": {
+        "kind": "input",
+        "target": "$assignees"
+      },
+      "cs": {
+        "kind": "input",
+        "target": "$chan"
+      },
+      "mcs": {
+        "kind": "input",
+        "target": "$chans"
+      },
+      "convs": {
+        "kind": "input",
+        "target": "$conv"
+      },
+      "mconvs": {
+        "kind": "input",
+        "target": "$chans"
+      },
+      "tb": {
+        "kind": "input",
+        "target": "$note"
+      }
+    },
+    "charts": [],
+    "forms": {
+      "frm": {
+        "title": "Details",
+        "submit": "Save",
+        "fields": [
+          {
+            "target": "$email",
+            "kind": "email",
+            "label": "Email",
+            "initial": "a@b.co"
+          },
+          {
+            "target": "$site",
+            "kind": "url",
+            "label": "Site",
+            "initial": ""
+          },
+          {
+            "target": "$tags",
+            "kind": "multiselect",
+            "label": "tags",
+            "initial": [
+              "a"
+            ],
+            "options": [
+              {
+                "value": "a",
+                "label": "Alpha"
+              },
+              {
+                "value": "b",
+                "label": "Beta"
+              }
+            ]
+          },
+          {
+            "target": "$at",
+            "kind": "time",
+            "label": "at",
+            "initial": "09:30"
+          },
+          {
+            "target": "$when",
+            "kind": "datetime",
+            "label": "when",
+            "initial": 1754000000
+          }
+        ]
+      }
+    },
+    "state": {
+      "$owner": "U111",
+      "$assignees": [
+        "U111",
+        "U222"
+      ],
+      "$chans": [
+        "C0AAAAAAA",
+        "C0BBBBBBB"
+      ],
+      "$chan": "",
+      "$conv": "",
+      "$note": "hello",
+      "$email": "a@b.co",
+      "$site": "",
+      "$tags": [
+        "a"
+      ],
+      "$at": "09:30",
+      "$when": 1754000000
+    }
+  },
+  "teams:action:inc": {
+    "output": {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "TextBlock",
+          "text": "Counter",
+          "weight": "Bolder",
+          "size": "Large",
+          "wrap": true
+        },
+        {
+          "type": "TextBlock",
+          "text": "Count is **1**",
+          "wrap": true
+        },
+        {
+          "type": "ActionSet",
+          "actions": [
+            {
+              "type": "Action.Submit",
+              "title": "+1",
+              "data": {
+                "actionId": "inc"
+              }
+            },
+            {
+              "type": "Action.Submit",
+              "title": "-1",
+              "data": {
+                "actionId": "dec"
+              }
+            },
+            {
+              "type": "Action.Submit",
+              "title": "Reset",
+              "data": {
+                "actionId": "reset"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "text": "Counter",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 1
+    }
+  },
+  "teams:submit:save": {
+    "output": {
+      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      "type": "AdaptiveCard",
+      "version": "1.5",
+      "body": [
+        {
+          "type": "TextBlock",
+          "text": "Sprint status",
+          "weight": "Bolder",
+          "size": "ExtraLarge",
+          "wrap": true
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            {
+              "title": "Open",
+              "value": "12"
+            },
+            {
+              "title": "Done",
+              "value": "8"
+            }
+          ]
+        },
+        {
+          "type": "Container",
+          "separator": true,
+          "spacing": "Medium",
+          "items": []
+        },
+        {
+          "type": "Table",
+          "firstRowAsHeader": true,
+          "columns": [
+            {
+              "width": 1
+            },
+            {
+              "width": 1
+            }
+          ],
+          "rows": [
+            {
+              "type": "TableRow",
+              "cells": [
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Task",
+                      "wrap": true,
+                      "weight": "Bolder"
+                    }
+                  ]
+                },
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "State",
+                      "wrap": true,
+                      "weight": "Bolder"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TableRow",
+              "cells": [
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Login fix",
+                      "wrap": true
+                    }
+                  ]
+                },
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Done",
+                      "wrap": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TableRow",
+              "cells": [
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Docs",
+                      "wrap": true
+                    }
+                  ]
+                },
+                {
+                  "type": "TableCell",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Todo",
+                      "wrap": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Image",
+          "url": "https://openui-chart.invalid/chart_0",
+          "altText": "Issues by state"
+        },
+        {
+          "type": "Container",
+          "style": "emphasis",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Ship early, ship often",
+              "wrap": true,
+              "isSubtle": true
+            }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": "npm start",
+          "fontType": "Monospace",
+          "wrap": true
+        },
+        {
+          "type": "TextBlock",
+          "text": "1. first\n2. second",
+          "wrap": true
+        },
+        {
+          "type": "Image",
+          "url": "https://example.com/x.png",
+          "altText": "team"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Some **bold** and [a link](https://example.com)",
+          "wrap": true
+        },
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Left side",
+                  "wrap": true
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Right side",
+                  "wrap": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Input.Text",
+          "id": "$title",
+          "label": "Title",
+          "value": "Hello"
+        },
+        {
+          "type": "Input.Number",
+          "id": "$points",
+          "label": "Points",
+          "value": 5
+        },
+        {
+          "type": "Input.Date",
+          "id": "$due",
+          "label": "Due"
+        },
+        {
+          "type": "Input.Time",
+          "id": "$at",
+          "label": "At",
+          "value": "09:30"
+        },
+        {
+          "type": "Input.Toggle",
+          "id": "$urgent",
+          "title": "Urgent",
+          "value": "true"
+        },
+        {
+          "type": "Input.ChoiceSet",
+          "id": "$team",
+          "label": "Team",
+          "style": "compact",
+          "choices": [
+            {
+              "title": "Core",
+              "value": "core"
+            },
+            {
+              "title": "Web",
+              "value": "web"
+            }
+          ],
+          "value": "web"
+        },
+        {
+          "type": "ActionSet",
+          "actions": [
+            {
+              "type": "Action.Submit",
+              "title": "Save",
+              "data": {
+                "actionId": "save"
+              },
+              "style": "positive"
+            },
+            {
+              "type": "Action.OpenUrl",
+              "title": "Docs",
+              "url": "https://example.com/docs"
+            }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": "Saved: yes",
+          "wrap": true
+        }
+      ]
+    },
+    "text": "Sprint status",
+    "actionMap": {
+      "save": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$saved",
+              "valueAST": {
+                "k": "Str",
+                "v": "yes"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$title": "Hello",
+      "$points": 5,
+      "$due": "",
+      "$at": "09:30",
+      "$urgent": "true",
+      "$team": "web",
+      "$saved": "yes"
+    }
+  },
+  "tg:action:inc": {
+    "output": {
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Counter",
+          "size": 3
+        },
+        {
+          "type": "paragraph",
+          "text": [
+            "Count is ",
+            {
+              "type": "bold",
+              "text": "1"
+            }
+          ]
+        }
+      ],
+      "keyboard": [
+        [
+          {
+            "text": "+1",
+            "callback_data": "inc"
+          },
+          {
+            "text": "-1",
+            "callback_data": "dec"
+          },
+          {
+            "text": "Reset",
+            "callback_data": "reset"
+          }
+        ]
+      ]
+    },
+    "text": "Counter",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 1
+    }
+  },
+  "tg:action:sel=low": {
+    "output": {
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Sprint status",
+          "size": 2
+        },
+        {
+          "type": "table",
+          "cells": [
+            [
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "Open"
+                },
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "12",
+                "align": "left",
+                "valign": "middle"
+              }
+            ],
+            [
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "Done"
+                },
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "8",
+                "align": "left",
+                "valign": "middle"
+              }
+            ]
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "table",
+          "cells": [
+            [
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "Task"
+                },
+                "is_header": true,
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": {
+                  "type": "bold",
+                  "text": "State"
+                },
+                "is_header": true,
+                "align": "left",
+                "valign": "middle"
+              }
+            ],
+            [
+              {
+                "text": "Login fix",
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "Done",
+                "align": "left",
+                "valign": "middle"
+              }
+            ],
+            [
+              {
+                "text": "Docs",
+                "align": "left",
+                "valign": "middle"
+              },
+              {
+                "text": "Todo",
+                "align": "left",
+                "valign": "middle"
+              }
+            ]
+          ],
+          "is_bordered": true
+        },
+        {
+          "type": "photo",
+          "photo": {
+            "type": "photo",
+            "media": "attach://chart_0"
+          },
+          "caption": {
+            "text": "Issues by state"
+          }
+        },
+        {
+          "type": "blockquote",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Ship early, ship often"
+            }
+          ]
+        },
+        {
+          "type": "pre",
+          "text": "npm start",
+          "language": "bash"
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "first"
+                }
+              ],
+              "value": 1,
+              "type": "1"
+            },
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "second"
+                }
+              ],
+              "value": 2,
+              "type": "1"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "Deploy"
+                }
+              ],
+              "has_checkbox": true,
+              "is_checked": true
+            },
+            {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "text": "Test"
+                }
+              ],
+              "has_checkbox": true
+            }
+          ]
+        },
+        {
+          "type": "details",
+          "summary": "Release notes",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": "Long changelog text here"
+            }
+          ]
+        },
+        {
+          "type": "photo",
+          "photo": {
+            "type": "photo",
+            "media": "https://example.com/x.png"
+          },
+          "caption": {
+            "text": "team"
+          }
+        },
+        {
+          "type": "paragraph",
+          "text": [
+            "Some ",
+            {
+              "type": "bold",
+              "text": "bold"
+            },
+            " and ",
+            {
+              "type": "url",
+              "text": "a link",
+              "url": "https://example.com"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "Filter by priority"
+        }
+      ],
+      "keyboard": [
+        [
+          {
+            "text": "High",
+            "callback_data": "sel|high"
+          },
+          {
+            "text": "● Low",
+            "callback_data": "sel|low"
+          },
+          {
+            "text": "All",
+            "callback_data": "sel|all"
+          }
+        ],
+        [
+          {
+            "text": "None",
+            "callback_data": "sel|none"
+          }
+        ],
+        [
+          {
+            "text": "Docs",
+            "url": "https://example.com/docs"
+          },
+          {
+            "text": "Copy cmd",
+            "copy_text": {
+              "text": "npm start"
+            }
+          }
+        ]
+      ]
+    },
+    "text": "Sprint status",
+    "actionMap": {
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$priority": "low"
+    }
+  },
+  "wa:action:inc": {
+    "output": [
+      {
+        "type": "text",
+        "text": {
+          "body": "*Counter*"
+        }
+      },
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "button",
+          "body": {
+            "text": "Count is *1*"
+          },
+          "action": {
+            "buttons": [
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_0\"}",
+                  "title": "+1"
+                }
+              },
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_1\"}",
+                  "title": "-1"
+                }
+              },
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_2\"}",
+                  "title": "Reset"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "text",
+        "text": {
+          "body": "Tap a button to update."
+        }
+      }
+    ],
+    "text": "Counter",
+    "actionMap": {
+      "el_0": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "el_1": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "el_2": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 1
+    }
+  },
+  "wa:action:sel=low": {
+    "output": [
+      {
+        "type": "text",
+        "text": {
+          "body": "*Sprint status*\n\n*Open:* 12\n*Done:* 8\n\n――――――――――\n\n```\nTask       State\n---------  -----\nLogin fix  Done\nDocs       Todo\n```"
+        }
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": ""
+        },
+        "chartId": "chart_0",
+        "caption": "Issues by state"
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": "https://example.com/x.png",
+          "caption": "team photo"
+        }
+      },
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "list",
+          "body": {
+            "text": "Filter by priority"
+          },
+          "action": {
+            "button": "priority",
+            "sections": [
+              {
+                "rows": [
+                  {
+                    "id": "chat:{\"a\":\"sel\",\"v\":\"high\"}",
+                    "title": "High"
+                  },
+                  {
+                    "id": "chat:{\"a\":\"sel\",\"v\":\"low\"}",
+                    "title": "Low"
+                  },
+                  {
+                    "id": "chat:{\"a\":\"sel\",\"v\":\"all\"}",
+                    "title": "All"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "text",
+        "text": {
+          "body": "Some *bold* claim"
+        }
+      }
+    ],
+    "text": "Sprint status",
+    "actionMap": {
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$priority": "low"
+    }
+  },
+  "action:counter:inc": {
+    "output": [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Counter Demo"
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Count is *1*"
+        }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "+1"
+            },
+            "action_id": "inc"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "-1"
+            },
+            "action_id": "dec"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Reset"
+            },
+            "action_id": "reset"
+          }
+        ]
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": "updated just now"
+          }
+        ]
+      }
+    ],
+    "text": "Counter Demo",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 1
+    }
+  },
+  "action:counter:reset": {
+    "output": [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Counter Demo"
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Count is *0*"
+        }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "+1"
+            },
+            "action_id": "inc"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "-1"
+            },
+            "action_id": "dec"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Reset"
+            },
+            "action_id": "reset"
+          }
+        ]
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": "updated just now"
+          }
+        ]
+      }
+    ],
+    "text": "Counter Demo",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 0
+    }
+  },
+  "action:controls:sel=low": {
+    "output": [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Pick things"
+        },
+        "accessory": {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Go"
+          },
+          "action_id": "accBtn"
+        }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "static_select",
+            "action_id": "sel",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "priority"
+            },
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Low"
+                },
+                "value": "low"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "High"
+                },
+                "value": "high"
+              }
+            ],
+            "initial_option": {
+              "text": {
+                "type": "plain_text",
+                "text": "Low"
+              },
+              "value": "low"
+            }
+          },
+          {
+            "type": "radio_buttons",
+            "action_id": "rad",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Me"
+                },
+                "value": "me"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "You"
+                },
+                "value": "you"
+              }
+            ]
+          },
+          {
+            "type": "checkboxes",
+            "action_id": "chk",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Alpha"
+                },
+                "value": "a"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Beta"
+                },
+                "value": "b"
+              }
+            ],
+            "initial_options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Alpha"
+                },
+                "value": "a"
+              }
+            ]
+          },
+          {
+            "type": "overflow",
+            "action_id": "ov",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Do X"
+                },
+                "value": "x"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Do Y"
+                },
+                "value": "y"
+              }
+            ]
+          },
+          {
+            "type": "datepicker",
+            "action_id": "dp",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "due"
+            },
+            "initial_date": "2026-08-01"
+          },
+          {
+            "type": "timepicker",
+            "action_id": "tp",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "at"
+            },
+            "initial_time": "09:30"
+          },
+          {
+            "type": "datetimepicker",
+            "action_id": "dtp",
+            "initial_date_time": 1754000000
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "dispatch_action": true,
+        "label": {
+          "type": "plain_text",
+          "text": "tags2"
+        },
+        "element": {
+          "type": "multi_static_select",
+          "action_id": "ms",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "tags2"
+          },
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Beta"
+              },
+              "value": "b"
+            }
+          ],
+          "initial_options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            }
+          ]
+        }
+      },
+      {
+        "type": "section",
+        "fields": [
+          {
+            "type": "mrkdwn",
+            "text": "*Status*\nOpen"
+          },
+          {
+            "type": "mrkdwn",
+            "text": "*Owner*\nRabi"
+          }
+        ]
+      },
+      {
+        "type": "image",
+        "image_url": "https://example.com/x.png",
+        "alt_text": "an image"
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "No-op"
+            },
+            "action_id": "plain"
+          }
+        ]
+      }
+    ],
+    "text": "Pick things",
+    "actionMap": {
+      "accBtn": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$priority",
+              "valueAST": {
+                "k": "Str",
+                "v": "low"
+              }
+            }
+          ]
+        }
+      },
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      },
+      "rad": {
+        "kind": "input",
+        "target": "$assignee"
+      },
+      "chk": {
+        "kind": "input",
+        "target": "$tags"
+      },
+      "ms": {
+        "kind": "input",
+        "target": "$tags"
+      },
+      "ov": {
+        "kind": "input",
+        "target": "$menu"
+      },
+      "dp": {
+        "kind": "input",
+        "target": "$due"
+      },
+      "tp": {
+        "kind": "input",
+        "target": "$at"
+      },
+      "dtp": {
+        "kind": "input",
+        "target": "$when"
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$priority": "low",
+      "$tags": [
+        "a"
+      ],
+      "$assignee": "",
+      "$due": "2026-08-01",
+      "$at": "09:30",
+      "$when": 1754000000,
+      "$menu": ""
+    }
+  },
+  "action:controls:chk=[a,b]": {
+    "output": [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Pick things"
+        },
+        "accessory": {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "Go"
+          },
+          "action_id": "accBtn"
+        }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "static_select",
+            "action_id": "sel",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "priority"
+            },
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Low"
+                },
+                "value": "low"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "High"
+                },
+                "value": "high"
+              }
+            ],
+            "initial_option": {
+              "text": {
+                "type": "plain_text",
+                "text": "High"
+              },
+              "value": "high"
+            }
+          },
+          {
+            "type": "radio_buttons",
+            "action_id": "rad",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Me"
+                },
+                "value": "me"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "You"
+                },
+                "value": "you"
+              }
+            ]
+          },
+          {
+            "type": "checkboxes",
+            "action_id": "chk",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Alpha"
+                },
+                "value": "a"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Beta"
+                },
+                "value": "b"
+              }
+            ],
+            "initial_options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Alpha"
+                },
+                "value": "a"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Beta"
+                },
+                "value": "b"
+              }
+            ]
+          },
+          {
+            "type": "overflow",
+            "action_id": "ov",
+            "options": [
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Do X"
+                },
+                "value": "x"
+              },
+              {
+                "text": {
+                  "type": "plain_text",
+                  "text": "Do Y"
+                },
+                "value": "y"
+              }
+            ]
+          },
+          {
+            "type": "datepicker",
+            "action_id": "dp",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "due"
+            },
+            "initial_date": "2026-08-01"
+          },
+          {
+            "type": "timepicker",
+            "action_id": "tp",
+            "placeholder": {
+              "type": "plain_text",
+              "text": "at"
+            },
+            "initial_time": "09:30"
+          },
+          {
+            "type": "datetimepicker",
+            "action_id": "dtp",
+            "initial_date_time": 1754000000
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "dispatch_action": true,
+        "label": {
+          "type": "plain_text",
+          "text": "tags2"
+        },
+        "element": {
+          "type": "multi_static_select",
+          "action_id": "ms",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "tags2"
+          },
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Beta"
+              },
+              "value": "b"
+            }
+          ],
+          "initial_options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Beta"
+              },
+              "value": "b"
+            }
+          ]
+        }
+      },
+      {
+        "type": "section",
+        "fields": [
+          {
+            "type": "mrkdwn",
+            "text": "*Status*\nOpen"
+          },
+          {
+            "type": "mrkdwn",
+            "text": "*Owner*\nRabi"
+          }
+        ]
+      },
+      {
+        "type": "image",
+        "image_url": "https://example.com/x.png",
+        "alt_text": "an image"
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "No-op"
+            },
+            "action_id": "plain"
+          }
+        ]
+      }
+    ],
+    "text": "Pick things",
+    "actionMap": {
+      "accBtn": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$priority",
+              "valueAST": {
+                "k": "Str",
+                "v": "low"
+              }
+            }
+          ]
+        }
+      },
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      },
+      "rad": {
+        "kind": "input",
+        "target": "$assignee"
+      },
+      "chk": {
+        "kind": "input",
+        "target": "$tags"
+      },
+      "ms": {
+        "kind": "input",
+        "target": "$tags"
+      },
+      "ov": {
+        "kind": "input",
+        "target": "$menu"
+      },
+      "dp": {
+        "kind": "input",
+        "target": "$due"
+      },
+      "tp": {
+        "kind": "input",
+        "target": "$at"
+      },
+      "dtp": {
+        "kind": "input",
+        "target": "$when"
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$priority": "high",
+      "$tags": [
+        "a",
+        "b"
+      ],
+      "$assignee": "",
+      "$due": "2026-08-01",
+      "$at": "09:30",
+      "$when": 1754000000,
+      "$menu": ""
+    }
+  },
+  "modal:form": {
+    "type": "modal",
+    "callback_id": "openui_form",
+    "private_metadata": "{\"channel\":\"C1\",\"ts\":\"1.2\",\"formId\":\"frm\"}",
+    "title": {
+      "type": "plain_text",
+      "text": "New issue"
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Create"
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel"
+    },
+    "blocks": [
+      {
+        "type": "input",
+        "block_id": "$title",
+        "label": {
+          "type": "plain_text",
+          "text": "Title"
+        },
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "$title"
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$desc",
+        "label": {
+          "type": "plain_text",
+          "text": "Description"
+        },
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "$desc",
+          "multiline": true
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$points",
+        "label": {
+          "type": "plain_text",
+          "text": "Points"
+        },
+        "element": {
+          "type": "number_input",
+          "action_id": "$points",
+          "is_decimal_allowed": false,
+          "initial_value": "3"
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$team",
+        "label": {
+          "type": "plain_text",
+          "text": "team"
+        },
+        "element": {
+          "type": "static_select",
+          "action_id": "$team",
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Core"
+              },
+              "value": "t1"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Web"
+              },
+              "value": "t2"
+            }
+          ],
+          "initial_option": {
+            "text": {
+              "type": "plain_text",
+              "text": "Core"
+            },
+            "value": "t1"
+          }
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$due",
+        "label": {
+          "type": "plain_text",
+          "text": "due"
+        },
+        "element": {
+          "type": "datepicker",
+          "action_id": "$due"
+        }
+      }
+    ]
+  },
+  "submit:form": {
+    "output": [
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "New issue"
+            },
+            "action_id": "form:frm"
+          }
+        ]
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Saved: yes"
+        }
+      }
+    ],
+    "text": "Saved: yes",
+    "actionMap": {},
+    "charts": [],
+    "forms": {
+      "frm": {
+        "title": "New issue",
+        "submit": "Create",
+        "fields": [
+          {
+            "target": "$title",
+            "kind": "text",
+            "label": "Title",
+            "initial": "Hello"
+          },
+          {
+            "target": "$desc",
+            "kind": "textarea",
+            "label": "Description",
+            "initial": ""
+          },
+          {
+            "target": "$points",
+            "kind": "number",
+            "label": "Points",
+            "initial": 5
+          },
+          {
+            "target": "$team",
+            "kind": "select",
+            "label": "team",
+            "initial": "t1",
+            "options": [
+              {
+                "value": "t1",
+                "label": "Core"
+              },
+              {
+                "value": "t2",
+                "label": "Web"
+              }
+            ]
+          },
+          {
+            "target": "$due",
+            "kind": "date",
+            "label": "due",
+            "initial": ""
+          }
+        ],
+        "action": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$saved",
+              "valueAST": {
+                "k": "Str",
+                "v": "yes"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "state": {
+      "$title": "Hello",
+      "$desc": "",
+      "$points": 5,
+      "$team": "t1",
+      "$due": "",
+      "$saved": "yes"
+    }
+  },
+  "modal:blockkit": {
+    "type": "modal",
+    "callback_id": "openui_form",
+    "private_metadata": "{\"channel\":\"C1\",\"ts\":\"1.3\",\"formId\":\"frm\"}",
+    "title": {
+      "type": "plain_text",
+      "text": "Details"
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Save"
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel"
+    },
+    "blocks": [
+      {
+        "type": "input",
+        "block_id": "$email",
+        "label": {
+          "type": "plain_text",
+          "text": "Email"
+        },
+        "element": {
+          "type": "email_text_input",
+          "action_id": "$email",
+          "initial_value": "a@b.co"
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$site",
+        "label": {
+          "type": "plain_text",
+          "text": "Site"
+        },
+        "element": {
+          "type": "url_text_input",
+          "action_id": "$site"
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$tags",
+        "label": {
+          "type": "plain_text",
+          "text": "tags"
+        },
+        "element": {
+          "type": "multi_static_select",
+          "action_id": "$tags",
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            },
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Beta"
+              },
+              "value": "b"
+            }
+          ],
+          "initial_options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "Alpha"
+              },
+              "value": "a"
+            }
+          ]
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$at",
+        "label": {
+          "type": "plain_text",
+          "text": "at"
+        },
+        "element": {
+          "type": "timepicker",
+          "action_id": "$at",
+          "initial_time": "09:30"
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "$when",
+        "label": {
+          "type": "plain_text",
+          "text": "when"
+        },
+        "element": {
+          "type": "datetimepicker",
+          "action_id": "$when",
+          "initial_date_time": 1754000000
+        }
+      }
+    ]
+  }
+}
