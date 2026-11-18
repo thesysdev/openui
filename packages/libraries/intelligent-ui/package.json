@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/intelligent-ui-library",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "OpenUI Intelligent UI component library: layout, text, inputs, media, drawing and @functions a model composes into interactive answers",
   "license": "MIT",
   "type": "module",
