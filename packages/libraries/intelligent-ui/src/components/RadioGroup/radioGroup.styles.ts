@@ -55,7 +55,22 @@ export const radioGroupStyles = {
     & .openui-radio-item-label {
       font: inherit;
       letter-spacing: inherit;
+      line-height: 22px;
       color: ${tokens.ink};
+    }
+    /* An option with a description is two lines: the radio sits beside its name, not centred on
+       both, and the description (a <p>) drops the browser's margins and matches the cards' size. */
+    & .openui-radio-item-container:has(.openui-radio-item-description) {
+      align-items: flex-start;
+      & .openui-radio-item {
+        margin-top: 2.5px;
+      }
+    }
+    & .openui-radio-item-description {
+      margin: 0;
+      color: ${tokens.muted};
+      font-size: 14px;
+      line-height: 21px;
     }
 
     & .openui-option-cards-grid {
