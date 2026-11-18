@@ -1,0 +1,187 @@
+{
+  "name": "@openuidev/channels",
+  "version": "0.1.0",
+  "description": "Generative UI for chat platforms: natively-rendered, interactive messages for Slack (Block Kit), Microsoft Teams (Adaptive Cards), Telegram, and WhatsApp, compiled from OpenUI Lang",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.cts",
+  "typesVersions": {
+    "*": {
+      "slack": [
+        "dist/slack/index.d.cts"
+      ],
+      "teams": [
+        "dist/teams/index.d.cts"
+      ],
+      "telegram": [
+        "dist/telegram/index.d.cts"
+      ],
+      "whatsapp": [
+        "dist/whatsapp/index.d.cts"
+      ],
+      "ui": [
+        "dist/ui/index.d.cts"
+      ],
+      "ui/charts": [
+        "dist/ui/charts.d.cts"
+      ]
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./slack": {
+      "import": {
+        "types": "./dist/slack/index.d.mts",
+        "default": "./dist/slack/index.mjs"
+      },
+      "require": {
+        "types": "./dist/slack/index.d.cts",
+        "default": "./dist/slack/index.cjs"
+      }
+    },
+    "./teams": {
+      "import": {
+        "types": "./dist/teams/index.d.mts",
+        "default": "./dist/teams/index.mjs"
+      },
+      "require": {
+        "types": "./dist/teams/index.d.cts",
+        "default": "./dist/teams/index.cjs"
+      }
+    },
+    "./telegram": {
+      "import": {
+        "types": "./dist/telegram/index.d.mts",
+        "default": "./dist/telegram/index.mjs"
+      },
+      "require": {
+        "types": "./dist/telegram/index.d.cts",
+        "default": "./dist/telegram/index.cjs"
+      }
+    },
+    "./whatsapp": {
+      "import": {
+        "types": "./dist/whatsapp/index.d.mts",
+        "default": "./dist/whatsapp/index.mjs"
+      },
+      "require": {
+        "types": "./dist/whatsapp/index.d.cts",
+        "default": "./dist/whatsapp/index.cjs"
+      }
+    },
+    "./ui": {
+      "import": {
+        "types": "./dist/ui/index.d.mts",
+        "default": "./dist/ui/index.mjs"
+      },
+      "require": {
+        "types": "./dist/ui/index.d.cts",
+        "default": "./dist/ui/index.cjs"
+      }
+    },
+    "./ui/charts": {
+      "import": {
+        "types": "./dist/ui/charts.d.mts",
+        "default": "./dist/ui/charts.mjs"
+      },
+      "require": {
+        "types": "./dist/ui/charts.d.cts",
+        "default": "./dist/ui/charts.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsdown",
+    "watch": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "golden": "tsx src/__tests__/fixtures/generate.ts",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "check:publint": "publint",
+    "check:attw": "attw --pack .",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
+    "ci": "pnpm run lint:check && pnpm run format:check && pnpm run test && tsc -p tsconfig.test.json --noEmit"
+  },
+  "dependencies": {
+    "@openuidev/lang-core": "workspace:^"
+  },
+  "peerDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "recharts": "^2.15.0 || ^3.0.0",
+    "zod": "catalog:"
+  },
+  "peerDependenciesMeta": {
+    "@resvg/resvg-js": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "recharts": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "openui",
+    "openui-lang",
+    "generative-ui",
+    "slack",
+    "block-kit",
+    "teams",
+    "adaptive-cards",
+    "telegram",
+    "whatsapp",
+    "chatbot",
+    "llm"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/channels"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@tightknitai/slack-block-kit-validator": "^0.1.13",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "adaptivecards": "^3.0.6",
+    "ajv": "^8.20.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "recharts": "^2.15.4",
+    "tsx": "^4.19.2",
+    "vitest": "^4.1.0",
+    "zod": "^4.4.3"
+  }
+}
