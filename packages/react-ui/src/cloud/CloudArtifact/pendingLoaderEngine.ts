@@ -184,9 +184,9 @@ export function startPendingLoader(
   const cards = new Map<number, HTMLElement>();
   const timers = new Set<ReturnType<typeof setTimeout>>();
   // The drawing: the cards are laid out at its own size, and it's scaled to fit the stage.
-  const canvas = document.createElement("div");
-  canvas.className = names.canvas;
-  stage.append(canvas);
+  const container = document.createElement("div");
+  container.className = names.container;
+  stage.append(container);
   let grid = grids[0]!;
   /** The drawing's own size, before scaling. */
   let width = 0;
@@ -354,7 +354,7 @@ export function startPendingLoader(
     el.style.zIndex = "0";
     setBox(el, p);
     el.innerHTML = `<div class="${names.body}">${KINDS[kind]()}</div>`;
-    canvas.append(el);
+    container.append(el);
     cards.set(n.id, el);
     if (!reduced) {
       el.animate?.(
@@ -510,12 +510,12 @@ export function startPendingLoader(
     if (fits !== grid || !tree) {
       grid = fits;
       ({ w: width, h: height } = sizeOf(grid));
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      container.style.width = `${width}px`;
+      container.style.height = `${height}px`;
       rebuild();
     }
     const scale = Math.min(w / width, h / height, MAX_SCALE);
-    canvas.style.setProperty("--openui-pending-scale", scale.toFixed(4));
+    container.style.setProperty("--openui-pending-scale", scale.toFixed(4));
   });
   observer.observe(stage);
   schedule();

@@ -3,7 +3,7 @@ import { css } from "goober";
 /** Class names inside the pending loader. The engine builds its cards from them. */
 export const pendingLoaderNames = {
   stage: "openui-artifact-pending-stage",
-  canvas: "openui-artifact-pending-canvas",
+  container: "openui-artifact-pending-container",
   card: "openui-artifact-pending-card",
   body: "openui-artifact-pending-card-body",
   bone: "openui-artifact-pending-bone",
@@ -36,22 +36,22 @@ export const pendingLoaderStyles = {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    /* Fills a content area with a height; on a page without one, takes a dashboard's. */
+    /* Fills a content area with a height, even a short one; on a page without one, the stage sets it. */
     height: 100%;
-    min-height: 400px;
     padding: var(--openui-space-m);
   `,
-  // A flex item, not `height: 100%`: on a page without a height the root's comes from
-  // `min-height`, which a percentage can't resolve against, and the cards need a height.
+  // A flex item, not `height: 100%`, which a page without a height can't resolve. There the
+  // basis gives the root a dashboard's 400px; in a content area with a height, the stage grows
+  // or shrinks to fit it. A `min-height` would beat that height and overflow a short strip.
   stage: css`
     position: relative;
-    flex: 1;
+    flex: 1 1 calc(400px - 2 * var(--openui-space-m, 0px));
     width: 100%;
     min-height: 0;
     overflow: hidden;
 
     /* The drawing, at its own size, scaled by the engine to fit and centred, like an SVG. */
-    & .${n.canvas} {
+    & .${n.container} {
       position: absolute;
       top: 50%;
       left: 50%;
