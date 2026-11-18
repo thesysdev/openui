@@ -182,6 +182,12 @@ const config = {
         destination: "/docs/openui-lang/architecture",
         permanent: true,
       },
+      // The legacy Prompts stub duplicated System Prompts.
+      {
+        source: "/docs/openui-lang/prompts",
+        destination: "/docs/openui-lang/system-prompts",
+        permanent: true,
+      },
       {
         source: "/docs/agent",
         destination: "/docs/agent/getting-started/introduction",
