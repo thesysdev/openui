@@ -3,6 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { Button } from "@react-email/components";
 import { z } from "zod/v4";
+import { safeColor } from "../safeColor";
 
 export const EmailButton = defineComponent({
   name: "EmailButton",
@@ -16,7 +17,7 @@ export const EmailButton = defineComponent({
     <Button
       href={props.href as string}
       style={{
-        backgroundColor: (props.backgroundColor as string) ?? "#5F51E8",
+        backgroundColor: safeColor(props.backgroundColor, "#5F51E8"),
         color: "#ffffff",
         borderRadius: "6px",
         padding: "12px 24px",
