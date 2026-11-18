@@ -1,0 +1,53 @@
+name: Triage
+
+# Adds or removes `status: needs-triage` on issues and PRs so the ones that
+# need a maintainer are easy to find. Rules: .github/scripts/triage.mjs and
+# CONTRIBUTING.md ("Labels and triage").
+
+on:
+  # Checks every open item, for the time-based rules.
+  schedule:
+    - cron: "30 3 * * *" # daily, 09:00 IST
+  workflow_dispatch:
+  issues:
+    types: [opened, edited, labeled, unlabeled, assigned, unassigned, reopened]
+  issue_comment:
+    types: [created]
+  # pull_request_target so PRs from forks can be labeled. Safe because the job
+  # only checks out the default branch and never runs code from the PR.
+  pull_request_target:
+    types: [opened, reopened, labeled, unlabeled, assigned, unassigned]
+  pull_request_review:
+    types: [submitted]
+  pull_request_review_comment:
+    types: [created]
+
+concurrency:
+  group: triage-${{ github.event.issue.number || github.event.pull_request.number || 'all' }}
+
+permissions:
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      # Always run the rules from the default branch, whatever the event.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { pathToFileURL } = require("url");
+            const path = require("path");
+            const { default: triage } = await import(
+              pathToFileURL(path.resolve(".github/scripts/triage.mjs")).href
+            );
+            await triage({ github, context, core });
