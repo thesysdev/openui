@@ -14,6 +14,10 @@ import type { A2UIClient } from "./client";
 import { dataModelToOpenUIState, toJsonObject } from "./json-pointer";
 import type { MapOpenUIAction, OpenUIActionOptions, SurfaceSnapshot } from "./types";
 
+// Agent-supplied URLs whose scheme would run script in the host origin
+const DANGEROUS_URI_RE =
+  /^[\u0000-\u0020\u007F]*(?:javascript|data|vbscript|file)[\u0000-\u0020\u007F]*:/i;
+
 export interface A2UIRendererProps {
   client: A2UIClient;
   surfaceId: string;
@@ -108,7 +112,9 @@ export function A2UIRenderer({
         const url = event.params?.url;
         if (typeof url === "string") {
           if (onOpenUrl) onOpenUrl(url, event, current);
-          else if (typeof window !== "undefined") window.open(url, "_blank", "noopener,noreferrer");
+          else if (typeof window !== "undefined" && !DANGEROUS_URI_RE.test(url)) {
+            window.open(url, "_blank", "noopener,noreferrer");
+          }
         }
         onAction?.(event, current);
         return;
