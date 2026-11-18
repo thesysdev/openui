@@ -3,6 +3,7 @@ import { css } from "goober";
 /** Class names inside the pending loader. The engine builds its cards from them. */
 export const pendingLoaderNames = {
   stage: "openui-artifact-pending-stage",
+  canvas: "openui-artifact-pending-canvas",
   card: "openui-artifact-pending-card",
   body: "openui-artifact-pending-card-body",
   bone: "openui-artifact-pending-bone",
@@ -47,7 +48,16 @@ export const pendingLoaderStyles = {
     flex: 1;
     width: 100%;
     min-height: 0;
+    overflow: hidden;
 
+    /* The drawing, at its own size, scaled by the engine to fit and centred, like an SVG. */
+    & .${n.canvas} {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+      scale: var(--openui-pending-scale, 1);
+    }
     & .${n.card} {
       position: absolute;
       top: 0;
@@ -55,16 +65,14 @@ export const pendingLoaderStyles = {
       z-index: 1;
       box-sizing: border-box;
       overflow: hidden;
-      border: 1px solid var(--openui-pending-border);
+      /* Everything scales but the border, which stays a hairline, like a non-scaling stroke. */
+      border: calc(1px / var(--openui-pending-scale, 1)) solid var(--openui-pending-border);
       border-radius: var(--openui-radius-l);
       background: var(--openui-pending-card);
       transition:
         translate 760ms ${ease},
         width 760ms ${ease},
         height 760ms ${ease};
-    }
-    &[data-resizing] .${n.card} {
-      transition-duration: 0s;
     }
     @media (prefers-reduced-motion: reduce) {
       & .${n.card} {
