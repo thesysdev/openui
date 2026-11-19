@@ -80,7 +80,6 @@ export interface DashboardRequestOptions extends RequestOptions {
   /**
    * Called as the build goes, to show its progress, for example in your tool's card:
    * forward each step to the browser and label it with `describeDashboardProgress`.
-   * Whatever it throws is ignored.
    */
   onProgress?: (step: DashboardProgress) => void;
 }

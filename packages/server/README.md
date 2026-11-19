@@ -173,5 +173,4 @@ const response = await dashboards.create({ title, prompt }, { userId }, {
 
 Steps are `{ type: "tool" | "script", name, status: "running" | "done" | "error" }`, then
 `{ type: "started", artifactId }` when the dashboard starts generating; render it from then on.
-Labels read like "Calling get_sales" or "Checking script revenue_by_month". Errors thrown by
-`onProgress` are ignored.
+Labels read like "Calling get_sales" or "Checking script revenue_by_month".

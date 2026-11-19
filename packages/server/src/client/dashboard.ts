@@ -75,14 +75,6 @@ export function defineDashboard<Context extends ExecutionContext>(
     signal?: AbortSignal,
     onProgress?: (step: DashboardProgress) => void,
   ): Promise<string> {
-    // Progress is for display: a callback that throws doesn't stop the build.
-    const progress = (step: DashboardProgress) => {
-      try {
-        onProgress?.(step);
-      } catch {
-        // ignored
-      }
-    };
     // The dashboard belongs to the user the context names, in the client's app if it has one,
     // as a frontend token minted for them would say.
     assertUserIdRequired(context);
@@ -92,28 +84,18 @@ export function defineDashboard<Context extends ExecutionContext>(
       { role: "system", content: config({ tools: definitions, ...call }) },
       { role: "user", content: prompt },
     ];
-    // Your data tools, which the model may call while it builds; OpenUI Cloud
-    // adds openui_create_script, whose saved scripts this server runs (see runToolRound).
-    const dataTools = definitions.map(({ name, description, parameters }) => ({
-      type: "function",
-      function: {
-        name,
-        ...(description !== undefined && { description }),
-        parameters: parameters ?? { type: "object", properties: {} },
-      },
-    }));
     // The dashboard's id, from the first tool-call reply: later rounds and saved scripts go by it.
     let artifactId: string | undefined;
     // No round limit: OpenUI Cloud decides when the model stops asking for tools.
     for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
-      // Tools go with every request: without them, earlier tool results are ignored.
+      // The model may call the data tools in the config block, and openui_create_script,
+      // whose saved scripts this server runs (see runToolRound).
       const reply = await api.post(
         "/v1/dashboard/chat/completions",
         {
           model,
           messages,
-          ...(dataTools.length > 0 && { tools: dataTools }),
           ...(artifactId !== undefined && { artifact_id: artifactId }),
           ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
           user_id: context.userId,
@@ -131,31 +113,18 @@ export function defineDashboard<Context extends ExecutionContext>(
         typeof message["content"] === "string" &&
         message["content"]
       ) {
-        if (typeof reply["artifact_id"] === "string") {
-          progress({ type: "started", artifactId: reply["artifact_id"] });
-        }
+        onProgress?.({ type: "started", artifactId: reply["artifact_id"] as string });
         return message["content"];
       }
       const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
-      if (
-        !Array.isArray(toolCalls) ||
-        !toolCalls.length ||
-        !toolCalls.every((toolCall) => isRecord(toolCall) && typeof toolCall["id"] === "string")
-      ) {
+      if (!Array.isArray(toolCalls) || !toolCalls.length) {
         throw new OpenUIApiError(
           "OpenUI Cloud didn't start a background artifact",
           "invalid_response",
           502,
         );
       }
-      if (typeof reply["artifact_id"] !== "string" || !reply["artifact_id"]) {
-        throw new OpenUIApiError(
-          "OpenUI Cloud's tool-call reply has no artifact_id",
-          "invalid_response",
-          502,
-        );
-      }
-      artifactId = reply["artifact_id"];
+      artifactId = reply["artifact_id"] as string;
       const results = await runToolRound(
         toolCalls,
         await loadTools(),
@@ -163,7 +132,7 @@ export function defineDashboard<Context extends ExecutionContext>(
         signal,
         interpreter,
         artifactId,
-        progress,
+        onProgress,
       );
       // OpenUI Cloud keeps the build's turns: send only the new results.
       messages = results;

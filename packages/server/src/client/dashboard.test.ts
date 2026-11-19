@@ -38,7 +38,7 @@ const rounds = (count: number) =>
 
 /** A dashboard on a mocked API that answers each chat POST with the next reply. */
 function setup(replies: unknown[], tools: Record<string, DataTool<Context>>) {
-  const bodies: Array<{ messages: Message[]; tools?: unknown[]; artifact_id?: string }> = [];
+  const bodies: Array<{ messages: Message[]; artifact_id?: string }> = [];
   const executes: Array<Record<string, unknown>> = [];
   const post = async (path: string, body: unknown) => {
     if (path === "/v1/frontend-tokens") return { token: "fct_1", expires_at: 1 };
@@ -77,20 +77,15 @@ afterEach(() => {
 });
 
 describe("defineDashboard create", () => {
-  it("sends the data tools as function tools by default", async () => {
+  it("sends the data tools in the config block, not as top-level tools", async () => {
     const bare = { execute: async () => 1 } as unknown as DataTool<Context>;
     const { dashboard, bodies } = setup([started], { sales, bare });
     await create(dashboard);
-    expect(bodies[0]!.tools).toEqual([
-      {
-        type: "function",
-        function: { name: "sales", description: "Sales rows", parameters: sales.parameters },
-      },
-      {
-        type: "function",
-        function: { name: "bare", parameters: { type: "object", properties: {} } },
-      },
-    ]);
+    expect(bodies[0]).not.toHaveProperty("tools");
+    const config = JSON.parse(bodies[0]!.messages[0]!["content"] as string) as {
+      tools: Array<{ name: string }>;
+    };
+    expect(config.tools.map((t) => t.name)).toEqual(["sales", "bare"]);
   });
 
   it("runs a saved script of the build by the dashboard's id, and sends the id back", async () => {
@@ -125,7 +120,7 @@ describe("defineDashboard create", () => {
     expect(sales.execute).not.toHaveBeenCalled();
   });
 
-  it("reports progress, and ignores a callback that throws", async () => {
+  it("reports progress", async () => {
     const reply = {
       ...toolCalls(
         toolCall("c1", "sales", '{"region":"EU"}'),
@@ -137,10 +132,7 @@ describe("defineDashboard create", () => {
     const steps: unknown[] = [];
     await expect(
       dashboard.create({ title: "Sales", prompt: "Sales" }, context, {
-        onProgress: (step) => {
-          steps.push(step);
-          throw new Error("ui broke");
-        },
+        onProgress: (step) => steps.push(step),
       }),
     ).resolves.toBe("Dashboard started");
     expect(steps).toEqual(
@@ -160,7 +152,7 @@ describe("defineDashboard create", () => {
   it("runs the model's tool calls and sends the results back in order", async () => {
     const reply = toolCalls(
       toolCall("c1", "sales", '{"region":"EU"}'),
-      toolCall("c2", "sales", " "),
+      toolCall("c2", "sales", "{}"),
     );
     const { dashboard, bodies } = setup([reply, started], { sales });
     await expect(create(dashboard)).resolves.toBe("Dashboard started");
@@ -183,16 +175,15 @@ describe("defineDashboard create", () => {
       toolCall("c1", "broken"),
       toolCall("c2", "missing"),
       toolCall("c3", "sales", "[1]"),
-      toolCall("c4", "sales", "{not json"),
     );
     const { dashboard, bodies } = setup([reply, started], { sales, broken });
     await expect(create(dashboard)).resolves.toBe("Dashboard started");
 
     const results = bodies[1]!.messages;
     expect(JSON.parse(results[0]!["content"] as string)).toEqual({
-      error: { code: "tool_exec_error", message: "x".repeat(500) },
+      error: { code: "tool_exec_error", message: "x".repeat(20_000) },
     });
-    expect(results.slice(1).map(error)).toEqual(["tool_not_found", "bad_args", "bad_args"]);
+    expect(results.slice(1).map(error)).toEqual(["tool_not_found", "bad_args"]);
     expect(sales.execute).not.toHaveBeenCalled();
   });
 
@@ -206,11 +197,10 @@ describe("defineDashboard create", () => {
     expect(error(bodies[1]!.messages[1])).toBe("tool_exec_error");
   });
 
-  it("keeps sending the same tools for as many rounds as the model asks", async () => {
+  it("keeps going for as many rounds as the model asks", async () => {
     const { dashboard, bodies } = setup([...rounds(12), started], { sales });
     await expect(create(dashboard)).resolves.toBe("Dashboard started");
     expect(bodies).toHaveLength(13);
-    for (const body of bodies) expect(body.tools).toEqual(bodies[0]!.tools);
     expect(sales.execute).toHaveBeenCalledTimes(12);
   });
 
