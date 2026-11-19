@@ -1,0 +1,95 @@
+---
+title: Manage dashboards from your server
+description: List, read, rename, pin, and delete saved dashboards on your server with openui.artifacts.
+---
+
+`openui.artifacts` reads and changes saved dashboards with your API key. Use it where there's no browser, such as a server route, a background job, or an admin tool.
+
+```ts title="app/api/dashboards/route.ts"
+import { openui } from "@/lib/openui";
+import { getSession } from "@/lib/auth"; // your session lookup
+
+export async function GET(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const page = await openui.artifacts.list({
+    userId: session.user.id,
+    kind: "dashboard",
+    signal: request.signal,
+  });
+  return Response.json(page.data.map(({ id, name, updatedAt }) => ({ id, name, updatedAt })));
+}
+```
+
+## Act as a user or as your org
+
+Every call takes an optional `userId`:
+
+| `userId`    | The call acts as | It sees                                                                 |
+| ----------- | ---------------- | ----------------------------------------------------------------------- |
+| Omitted     | Your org         | Every user's dashboards.                                                |
+| A user's id | That user        | What their [frontend token](/docs/dashboards/authentication) would see. |
+
+With a `userId`, the client also sends its `appId`, so the call stays in that user's app, as their frontend token does.
+
+<Callout type="warn">
+  Take `userId` from your session, as for [the user
+  id](/docs/dashboards/authentication#the-user-id). Never pass on a user id from the browser's query
+  string or request body, or anyone could read another user's dashboards. User ids show up in
+  request URLs and logs, so use opaque ids, not emails.
+</Callout>
+
+## Methods
+
+| Method                                      | Description                                                    |
+| ------------------------------------------- | -------------------------------------------------------------- |
+| `list(params?)`                             | One page of dashboards, newest first.                          |
+| `get(id, options?)`                         | One dashboard, with its program.                               |
+| `update(id, { name?, content? }, options?)` | Renames it, saves an edited program as a new version, or both. |
+| `delete(id, options?)`                      | Deletes it. A deleted dashboard can't be restored.             |
+| `pin(id, { userId })`                       | Pins it for that user.                                         |
+| `unpin(id, { userId })`                     | Unpins it for that user.                                       |
+
+`options` takes `userId`, and a `signal` that cancels the call. `pin` and `unpin` always need a `userId`, because pins belong to a user.
+
+## List
+
+| Param             | Description                                                   |
+| ----------------- | ------------------------------------------------------------- |
+| `kind`            | Only these kinds, such as `"dashboard"`.                      |
+| `name`            | Match on the name.                                            |
+| `pinned`          | `true` for pinned dashboards only, `false` for unpinned ones. |
+| `conversationId`  | Only the dashboards made in this conversation.                |
+| `limit`           | Page size, from 1 to 100. Default: 100.                       |
+| `after`, `before` | The page after `lastId`, or before `firstId`.                 |
+| `order`           | `"desc"` (newest first, the default) or `"asc"`.              |
+
+`list` returns `{ data, hasMore, firstId, lastId }`. To load every page, pass `lastId` back as `after`:
+
+```ts
+let after: string | undefined;
+do {
+  const page = await openui.artifacts.list({ userId, kind: "dashboard", after });
+  for (const dashboard of page.data) console.log(dashboard.name);
+  after = page.hasMore ? page.lastId : undefined;
+} while (after);
+```
+
+## The dashboard
+
+| Field                    | Description                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| `id`                     | `art_…`. Pass it to `LiveArtifactRenderer` or `dashboards.edit`.                |
+| `kind`                   | `"dashboard"`, `"slides"`, or `"report"`.                                       |
+| `name`                   | The title.                                                                      |
+| `content`                | The openui-lang program. Data scripts stay in OpenUI Cloud and aren't included. |
+| `version`                | Changes with every edit.                                                        |
+| `pinned`                 | Whether it's pinned.                                                            |
+| `userId`, `appId`        | The user it was made for, and their app.                                        |
+| `conversationId`         | The conversation it was made in, if any.                                        |
+| `createdAt`, `updatedAt` | Unix milliseconds.                                                              |
+
+## Errors
+
+A failed call throws `OpenUIApiError`, with a `code` and the HTTP `status`. A dashboard that doesn't exist, or that the user can't see, is a 404.

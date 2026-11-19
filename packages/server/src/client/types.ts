@@ -97,6 +97,88 @@ export interface FrontendToken {
   expires_at: number;
 }
 
+/**
+ * Who an artifact call is for. Without `userId` it's your org, which sees every
+ * user's artifacts. With it, the call acts as that user and gets what their
+ * frontend token would.
+ */
+export interface ArtifactRequestOptions extends RequestOptions {
+  /** The user to act as, from your session. Never take it from the browser. */
+  userId?: string;
+}
+
+/** Pins belong to a user, so pinning needs one. */
+export type ArtifactUserOptions = ArtifactRequestOptions & { userId: string };
+
+/** A saved artifact. Dashboards hold only their layout: scripts stay in OpenUI Cloud. */
+export interface CloudArtifact {
+  id: string;
+  kind: "dashboard" | "slides" | "report";
+  name?: string;
+  /** The openui-lang program, ready for the renderer. */
+  content: string;
+  version?: string;
+  pinned: boolean;
+  conversationId?: string;
+  /** The user it was made for. Absent when your org made it without one. */
+  userId?: string;
+  /** That user's app. */
+  appId?: string;
+  /** Unix milliseconds. */
+  createdAt: number;
+  /** Unix milliseconds. */
+  updatedAt?: number;
+}
+
+/** One page of artifacts, newest first unless you ask for `order: "asc"`. */
+export interface CloudArtifactList {
+  data: CloudArtifact[];
+  hasMore: boolean;
+  firstId?: string;
+  /** Pass as `after` for the next page. */
+  lastId?: string;
+}
+
+export interface ListArtifactsParams extends ArtifactRequestOptions {
+  /** Only these kinds. */
+  kind?: CloudArtifact["kind"] | CloudArtifact["kind"][];
+  /** Case-insensitive match on the name. */
+  name?: string;
+  /** `true` for pinned artifacts only, `false` for unpinned ones. */
+  pinned?: boolean;
+  /** Only the artifacts made in this conversation. */
+  conversationId?: string;
+  /** Page size, 1 to 100. */
+  limit?: number;
+  /** The page after this id: the last page's `lastId`. */
+  after?: string;
+  /** The page before this id: the last page's `firstId`. */
+  before?: string;
+  order?: "asc" | "desc";
+}
+
+export interface UpdateArtifactParams {
+  /** The new name. */
+  name?: string;
+  /** The edited openui-lang program. Omit it to rename only. */
+  content?: string;
+}
+
+/** Read and manage saved artifacts with the API key. */
+export interface Artifacts {
+  list(params?: ListArtifactsParams): Promise<CloudArtifactList>;
+  get(id: string, options?: ArtifactRequestOptions): Promise<CloudArtifact>;
+  update(
+    id: string,
+    params: UpdateArtifactParams,
+    options?: ArtifactRequestOptions,
+  ): Promise<CloudArtifact>;
+  /** Deleted artifacts can't be restored. */
+  delete(id: string, options?: ArtifactRequestOptions): Promise<void>;
+  pin(id: string, options: ArtifactUserOptions): Promise<CloudArtifact>;
+  unpin(id: string, options: ArtifactUserOptions): Promise<CloudArtifact>;
+}
+
 /** Failures from the OpenUI Cloud API expose a stable code and the HTTP status. */
 export class OpenUIApiError extends Error {
   constructor(
