@@ -162,6 +162,15 @@ export function buildSystemPromptConfigProjection(spec: PromptSpec): Json {
       name,
       signature: component.signature,
       description: component.description ?? null,
+      ...(Object.keys(component.propDescriptions ?? {}).length
+        ? {
+            propDescriptions: Object.fromEntries(
+              Object.entries(component.propDescriptions ?? {}).sort(([left], [right]) =>
+                left.localeCompare(right),
+              ),
+            ),
+          }
+        : {}),
     }));
 
   const componentGroups = (spec.componentGroups ?? [])
