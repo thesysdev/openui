@@ -48,22 +48,20 @@ jobs:
 
             // Issues linked with a closing keyword ("Fixes #123") or through
             // the Development sidebar.
-            // GitHub records the link a moment after the PR is opened, so retry a
-            // few times before deciding there is none.
-            for (let attempt = 0; attempt < 4; attempt++) {
-              if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 5000));
-              const result = await github.graphql(
-                `query ($owner: String!, $repo: String!, $number: Int!) {
-                  repository(owner: $owner, name: $repo) {
-                    pullRequest(number: $number) {
-                      closingIssuesReferences(first: 1) { totalCount }
-                    }
+            // GitHub records the link a moment after the PR is opened, so wait
+            // before checking.
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+            const result = await github.graphql(
+              `query ($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    closingIssuesReferences(first: 1) { totalCount }
                   }
-                }`,
-                { owner, repo, number },
-              );
-              if (result.repository.pullRequest.closingIssuesReferences.totalCount > 0) return;
-            }
+                }
+              }`,
+              { owner, repo, number },
+            );
+            if (result.repository.pullRequest.closingIssuesReferences.totalCount > 0) return;
 
             const repoUrl = context.payload.repository.html_url;
             const guideUrl = `${repoUrl}/blob/${context.payload.repository.default_branch}/CONTRIBUTING.md`;
