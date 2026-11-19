@@ -14,7 +14,7 @@ export const AGENT_SETUP_PROMPT = `Install the OpenUI skill with \`npx skills ad
 export const GATEWAY_SETUP_PROMPT = `Install the OpenUI skill with \`npx skills add thesysdev/skills\`. Ask me whether to build a new app on OpenUI Gateway or move my existing app onto it, then use the skill to complete it.`;
 
 /* The Dashboards page's prompt: the same skill, pointed at live dashboards. */
-export const DASHBOARDS_SETUP_PROMPT = `Install the OpenUI skill with \`npx skills add thesysdev/skills\`. Ask me whether to build a new app with live dashboards or add them to my existing one, then follow the skill's dashboards guide to complete it.`;
+export const DASHBOARDS_SETUP_PROMPT = `Install the OpenUI skill with \`npx skills add thesysdev/skills\`. Ask me whether to build a new app with live dashboards (scaffold it with \`npx @openuidev/cli@latest create --example assistant-ui-dashboards\`) or add them to my existing one, then follow the skill's dashboards guide to complete it.`;
 
 // The coding agents the prompt is written for; their marks ride along after
 // the label. `wideMark` is for marks drawn small in their own box, which need
