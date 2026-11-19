@@ -34,7 +34,7 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
   /** How much the model thinks, for models that can: as OpenAI's `reasoning_effort`. */
-  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high";
+  reasoningEffort?: "minimal" | "low" | "medium" | "high";
   promptOptions?: ArtifactPromptOptions;
 } & DashboardDataTools<Context>;
 
