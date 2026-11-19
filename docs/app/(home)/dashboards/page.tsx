@@ -5,7 +5,7 @@ import { Check, X } from "@phosphor-icons/react/dist/ssr";
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import gatewayStyles from "../cloud/gateway/page.module.css";
-import { AGENT_SETUP_PROMPT, AgentPicker } from "../components/AgentPicker/AgentPicker";
+import { AgentPicker, DASHBOARDS_SETUP_PROMPT } from "../components/AgentPicker/AgentPicker";
 import { BevelButton } from "../components/Button/BevelButton";
 import landing from "../components/ProductLanding.module.css";
 import homeStyles from "../page.module.css";
@@ -74,7 +74,7 @@ export default function DashboardsPage() {
           commandSlot={
             <div className={styles.heroActions}>
               <div className={styles.heroCtas}>
-                <AgentPicker command={AGENT_SETUP_PROMPT} runner={false} />
+                <AgentPicker command={DASHBOARDS_SETUP_PROMPT} runner={false} />
                 <BevelButton
                   href="https://zcal.co/t/thesys/demo"
                   external

@@ -1,6 +1,6 @@
 import { createPageMetadata } from "@/lib/page-metadata";
 import { ArrowUpRight } from "lucide-react";
-import { AGENT_SETUP_PROMPT, AgentPicker } from "../../components/AgentPicker/AgentPicker";
+import { AgentPicker, GATEWAY_SETUP_PROMPT } from "../../components/AgentPicker/AgentPicker";
 import { BevelButton } from "../../components/Button/BevelButton";
 import { FadedDither } from "../../components/FadedDither/FadedDither";
 import styles from "../../page.module.css";
@@ -49,7 +49,7 @@ export default function GatewayPage() {
           flushInnerInlinePadding
           commandSlot={
             <div className={gatewayStyles.ctaGroup}>
-              <AgentPicker command={AGENT_SETUP_PROMPT} runner={false} />
+              <AgentPicker command={GATEWAY_SETUP_PROMPT} runner={false} />
               <BevelButton
                 href="https://zcal.co/t/thesys/demo"
                 external
