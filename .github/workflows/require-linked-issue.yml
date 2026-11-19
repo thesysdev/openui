@@ -46,7 +46,7 @@ jobs:
             }
             if (EXEMPT_PERMISSIONS.includes(permission)) return;
 
-            // Issues linked with a closing keyword ("Fixes #123") or through
+            // Issues linked with a closing keyword ("Closes #123") or through
             // the Development sidebar.
             // GitHub records the link a moment after the PR is opened, so wait
             // before checking.
@@ -78,7 +78,7 @@ jobs:
                 'What to do next:',
                 '',
                 `1. Find or [open an issue](${repoUrl}/issues/new/choose) describing the problem or feature, and wait for a maintainer to approve it.`,
-                '2. Edit this PR\'s description to include a closing keyword, for example `Fixes #123`.',
+                '2. Edit this PR\'s description to include a closing keyword, for example `Closes #123`.',
                 '3. Leave a comment here tagging @vishxrad and a maintainer will reopen the PR.',
               ].join('\n'),
             });

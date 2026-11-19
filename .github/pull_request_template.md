@@ -2,7 +2,7 @@
 
 Describe the change and why it is needed.
 
-Fixes #<!-- issue number. PRs from outside contributors without a linked issue are closed automatically. -->
+Closes #<!-- issue number. PRs from outside contributors without a linked issue are closed automatically. -->
 
 ## Changes
 
@@ -17,6 +17,6 @@ Describe how you validated this change.
 
 ## Checklist
 
-- [ ] I linked a related issue (`Fixes #123`)
+- [ ] I linked a related issue (`Closes #123`)
 - [ ] I updated docs/README when needed
 - [ ] I considered backwards compatibility
