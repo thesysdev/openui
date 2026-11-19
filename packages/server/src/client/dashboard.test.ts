@@ -30,6 +30,7 @@ const toolCall = (id: string, name: string, args = "{}") => ({
   function: { name, arguments: args },
 });
 const toolCalls = (...calls: unknown[]) => ({
+  artifact_id: "art_1",
   choices: [{ message: { role: "assistant", content: null, tool_calls: calls } }],
 });
 const rounds = (count: number) =>
@@ -163,9 +164,8 @@ describe("defineDashboard create", () => {
     const options = { signal: expect.any(AbortSignal) };
     expect(sales.execute).toHaveBeenNthCalledWith(1, { region: "EU" }, context, options);
     expect(sales.execute).toHaveBeenNthCalledWith(2, {}, context, options);
+    // OpenUI Cloud keeps the build's turns: only the new results go back.
     expect(bodies[1]!.messages).toEqual([
-      ...bodies[0]!.messages,
-      reply.choices[0]!.message,
       { role: "tool", tool_call_id: "c1", content: '[{"region":"EU","total":10}]' },
       { role: "tool", tool_call_id: "c2", content: '[{"region":"EU","total":10}]' },
     ]);
@@ -184,7 +184,7 @@ describe("defineDashboard create", () => {
     const { dashboard, bodies } = setup([reply, started], { sales, broken });
     await expect(create(dashboard)).resolves.toBe("Dashboard started");
 
-    const results = bodies[1]!.messages.slice(3);
+    const results = bodies[1]!.messages;
     expect(JSON.parse(results[0]!["content"] as string)).toEqual({
       error: { code: "tool_exec_error", message: "x".repeat(500) },
     });
@@ -198,8 +198,8 @@ describe("defineDashboard create", () => {
     const tools = { big: tool(async () => rows), bigint: tool(async () => ({ id: 1n })) };
     const { dashboard, bodies } = setup([reply, started], tools);
     await expect(create(dashboard)).resolves.toBe("Dashboard started");
-    expect(bodies[1]!.messages[3]!["content"]).toBe(JSON.stringify(rows));
-    expect(error(bodies[1]!.messages[4])).toBe("tool_exec_error");
+    expect(bodies[1]!.messages[0]!["content"]).toBe(JSON.stringify(rows));
+    expect(error(bodies[1]!.messages[1])).toBe("tool_exec_error");
   });
 
   it("keeps sending the same tools for as many rounds as the model asks", async () => {
@@ -218,7 +218,7 @@ describe("defineDashboard create", () => {
     const created = create(dashboard);
     await vi.advanceTimersByTimeAsync(60_000);
     await expect(created).resolves.toBe("Dashboard started");
-    expect(bodies[1]!.messages.slice(3).map(error)).toEqual(["tool_timeout", undefined]);
+    expect(bodies[1]!.messages.map(error)).toEqual(["tool_timeout", undefined]);
   });
 
   it("rejects when the caller aborts while a tool runs", async () => {

@@ -1,6 +1,6 @@
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
-import { probeRound } from "../tools/probe";
+import { runToolRound } from "../tools/tool-round";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
@@ -28,7 +28,7 @@ export function defineDashboard<Context extends ExecutionContext>(
   options: DashboardOptions<Context>,
 ): Dashboard<Context> {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { library, model, promptOptions, tools, mcp } = options;
+  const { library, model, reasoningEffort, promptOptions, tools, mcp } = options;
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
@@ -93,7 +93,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       { role: "user", content: prompt },
     ];
     // Your data tools, which the model may call while it builds; OpenUI Cloud
-    // adds create_script, whose saved scripts this server runs (see probeRound).
+    // adds create_script, whose saved scripts this server runs (see runToolRound).
     const dataTools = definitions.map(({ name, description, parameters }) => ({
       type: "function",
       function: {
@@ -115,6 +115,7 @@ export function defineDashboard<Context extends ExecutionContext>(
           messages,
           ...(dataTools.length > 0 && { tools: dataTools }),
           ...(artifactId !== undefined && { artifact_id: artifactId }),
+          ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
           user_id: context.userId,
           ...(api.appId !== undefined && { app_id: api.appId }),
         },
@@ -147,10 +148,15 @@ export function defineDashboard<Context extends ExecutionContext>(
           502,
         );
       }
-      if (typeof reply["artifact_id"] === "string" && reply["artifact_id"]) {
-        artifactId = reply["artifact_id"];
+      if (typeof reply["artifact_id"] !== "string" || !reply["artifact_id"]) {
+        throw new OpenUIApiError(
+          "OpenUI Cloud's tool-call reply has no artifact_id",
+          "invalid_response",
+          502,
+        );
       }
-      const results = await probeRound(
+      artifactId = reply["artifact_id"];
+      const results = await runToolRound(
         toolCalls,
         await loadTools(),
         context,
@@ -160,7 +166,7 @@ export function defineDashboard<Context extends ExecutionContext>(
         progress,
       );
       // OpenUI Cloud keeps the build's turns: send only the new results.
-      messages = artifactId !== undefined ? results : [...messages, message, ...results];
+      messages = results;
     }
   }
 
@@ -175,6 +181,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       return start(context, prompt, { id }, signal, onProgress);
     },
 
-    interpreter,
+    // Its public part: the build's own draft runs stay inside this module.
+    interpreter: { execute: interpreter.execute },
   };
 }

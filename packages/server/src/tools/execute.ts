@@ -54,25 +54,34 @@ export function dataToolLoader<Context extends ExecutionContext>(
     );
 }
 
-/** Internal execute option: the dashboard whose build in progress holds the
- *  saved script to run (create_script), in place of its stored scripts. A
- *  symbol, so no request body can set it. */
-export const DRAFT_OF = Symbol("draftOf");
+/** The interpreter, plus what a dashboard build uses internally: running a
+ *  script saved with create_script in the build in progress. */
+export interface BuildInterpreter<Context extends ExecutionContext> extends Interpreter<Context> {
+  runDraft(
+    artifactId: string,
+    name: string,
+    args: Record<string, unknown>,
+    context: Context,
+    executionOptions?: InterpreterExecuteOptions,
+  ): Promise<unknown>;
+}
 
 /** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
 export function createInterpreter<Context extends ExecutionContext = ExecutionContext>(
   api: CloudApi,
   loadTools: () => Promise<Record<string, DataTool<Context>>>,
-): Interpreter<Context> {
+): BuildInterpreter<Context> {
   const handlers = async () =>
     Object.fromEntries(
       Object.entries(await loadTools()).map(([name, tool]) => [name, tool.execute]),
     );
 
-  async function execute(
+  async function run(
     input: InterpreterRequest,
     context: Context,
     executionOptions?: InterpreterExecuteOptions,
+    /** A draft run: the dashboard whose build in progress holds the script. */
+    draftOf?: string,
   ): Promise<unknown> {
     assertUserIdRequired(context);
     if (!input || typeof input.name !== "string" || !input.name) {
@@ -110,7 +119,6 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
 
     try {
       tools = await abortable(handlers(), signal);
-      const draftOf = (executionOptions as { [DRAFT_OF]?: string } | undefined)?.[DRAFT_OF];
       if (draftOf === undefined && Object.hasOwn(tools, input.name))
         return await dispatch(input.name, args);
       // Generated scripts run from the artifact OpenUI Cloud stores.
@@ -249,5 +257,9 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
     }
   }
 
-  return { execute };
+  return {
+    execute: (input, context, executionOptions) => run(input, context, executionOptions),
+    runDraft: (artifactId, name, args, context, executionOptions) =>
+      run({ name, arguments: args }, context, executionOptions, artifactId),
+  };
 }

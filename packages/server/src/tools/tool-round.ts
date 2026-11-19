@@ -1,19 +1,13 @@
 import { isRecord } from "../client/api";
 import type { DashboardProgress } from "../client/types";
 import { abortable } from "../shared/abort";
-import { DRAFT_OF } from "./execute";
-import {
-  ToolExecutionError,
-  type DataTool,
-  type ExecutionContext,
-  type Interpreter,
-} from "./types";
+import type { BuildInterpreter } from "./execute";
+import { ToolExecutionError, type DataTool, type ExecutionContext } from "./types";
 
 /** The model saves one of the dashboard's scripts and runs it once: `{ name, code, args? }`.
  *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */
 export const CREATE_SCRIPT_TOOL = "create_script";
 
-/** Runs one round of the model's tool calls, within 60 seconds. */
 /** The script a create_script call names, if its arguments say. */
 function scriptNameOf(call: { function?: { arguments?: string } }): string {
   try {
@@ -24,13 +18,15 @@ function scriptNameOf(call: { function?: { arguments?: string } }): string {
   }
 }
 
-export async function probeRound<Context extends ExecutionContext>(
+/** Runs one round of the model's tool calls, within 60 seconds. */
+export async function runToolRound<Context extends ExecutionContext>(
   calls: Array<{ id: string; function?: { name?: string; arguments?: string } }>,
   tools: Record<string, DataTool<Context>>,
   context: Context,
   callerSignal: AbortSignal | undefined,
-  interpreter: Interpreter<Context>,
-  artifactId: string | undefined,
+  interpreter: BuildInterpreter<Context>,
+  /** The dashboard being built: its saved scripts run by it. */
+  artifactId: string,
   onProgress: (step: DashboardProgress) => void = () => {},
 ) {
   callerSignal?.throwIfAborted();
@@ -68,15 +64,12 @@ export async function probeRound<Context extends ExecutionContext>(
             : ({ type: "tool", name } as const);
           onProgress({ ...step, status: "running" });
           const result = savesScript
-            ? await interpreter.execute(
-                {
-                  name: typeof scriptName === "string" ? scriptName : "",
-                  arguments: isRecord(args["args"]) ? args["args"] : {},
-                },
+            ? await interpreter.runDraft(
+                artifactId,
+                typeof scriptName === "string" ? scriptName : "",
+                isRecord(args["args"]) ? args["args"] : {},
                 context,
-                { signal, [DRAFT_OF]: artifactId ?? "" } as Parameters<
-                  Interpreter<Context>["execute"]
-                >[2],
+                { signal },
               )
             : await abortable(
                 Promise.resolve().then(() => tools[name]!.execute(args, context, { signal })),
