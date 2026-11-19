@@ -1,0 +1,90 @@
+name: Require linked issue
+
+# Closes PRs from outside contributors that are opened without a linked issue.
+# Anyone with write access to the repo, and bots, are exempt.
+#
+# Only runs on `opened`, so a PR a maintainer reopens by hand stays open and
+# nothing is ever reopened automatically.
+#
+# pull_request_target is used so the token can comment on and close PRs from
+# forks. This workflow must never check out or run code from the PR.
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const CLOSED_LABEL = 'needs-linked-issue';
+            const EXEMPT_PERMISSIONS = ['admin', 'write'];
+
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const number = pr.number;
+
+            if (pr.user.type === 'Bot') return;
+
+            // Anyone with write access to the repo is on the team. This is used
+            // instead of author_association, which reports org members with
+            // private membership as plain contributors.
+            let permission = 'none';
+            try {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner, repo, username: pr.user.login,
+              });
+              permission = data.permission;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            if (EXEMPT_PERMISSIONS.includes(permission)) return;
+
+            // Issues linked with a closing keyword ("Closes #123") or through
+            // the Development sidebar.
+            // GitHub records the link a moment after the PR is opened, so wait
+            // before checking.
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+            const result = await github.graphql(
+              `query ($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    closingIssuesReferences(first: 1) { totalCount }
+                  }
+                }
+              }`,
+              { owner, repo, number },
+            );
+            if (result.repository.pullRequest.closingIssuesReferences.totalCount > 0) return;
+
+            const repoUrl = context.payload.repository.html_url;
+            const guideUrl = `${repoUrl}/blob/${context.payload.repository.default_branch}/CONTRIBUTING.md`;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: [
+                `Thanks for the contribution, @${pr.user.login}!`,
+                '',
+                `This PR was closed automatically because it does not link an issue. As described in [CONTRIBUTING.md](${guideUrl}#start-with-an-issue), every PR needs to start from an issue that a maintainer has approved, so the change can be discussed first.`,
+                '',
+                'What to do next:',
+                '',
+                `1. Find or [open an issue](${repoUrl}/issues/new/choose) describing the problem or feature, and wait for a maintainer to approve it.`,
+                '2. Edit this PR\'s description to include a closing keyword, for example `Closes #123`.',
+                '3. Leave a comment here tagging @vishxrad and a maintainer will reopen the PR.',
+              ].join('\n'),
+            });
+            await github.rest.issues.addLabels({
+              owner, repo, issue_number: number, labels: [CLOSED_LABEL],
+            });
+            await github.rest.pulls.update({
+              owner, repo, pull_number: number, state: 'closed',
+            });

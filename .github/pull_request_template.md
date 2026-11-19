@@ -2,6 +2,8 @@
 
 Describe the change and why it is needed.
 
+Closes #<!-- issue number. PRs from outside contributors without a linked issue are closed automatically. -->
+
 ## Changes
 
 - 
@@ -15,6 +17,6 @@ Describe how you validated this change.
 
 ## Checklist
 
-- [ ] I linked a related issue, if applicable
+- [ ] I linked a related issue (`Closes #123`)
 - [ ] I updated docs/README when needed
 - [ ] I considered backwards compatibility
