@@ -16,6 +16,15 @@ jobs:
       HOST: www.openui.com
       KEY: 4f25f2ad0d9d91e5259b60fa7097f429
     steps:
+      # The deployment reports success a few seconds before the domain serves it,
+      # and IndexNow rejects the submission (403) until the key file is live.
+      - name: Wait for the key file on the domain
+        run: |
+          for _ in $(seq 30); do
+            [ "$(curl -fsS "https://$HOST/$KEY.txt" 2>/dev/null)" = "$KEY" ] && exit 0
+            sleep 10
+          done
+          echo "https://$HOST/$KEY.txt never served the key" && exit 1
       - name: Submit sitemap URLs
         run: |
           urls=$(curl -fsSL "https://$HOST/sitemap.xml" | grep -o '<loc>[^<]*' | sed 's/<loc>//')
