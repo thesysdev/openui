@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://www.openui.com" target="_blank" rel="noopener noreferrer">
-  <img 
+  <img
     src="./assets/banner.png" 
     alt="OpenUI - The Open Standard for Generative UI" 
     width="100%" 
