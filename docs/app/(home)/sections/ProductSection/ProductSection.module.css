@@ -369,6 +369,11 @@
     flex-direction: column;
     align-self: stretch;
   }
+
+  /* Product CTAs follow the artwork width, rather than the shared hero cap. */
+  .ctas > a {
+    max-width: none;
+  }
 }
 
 /* ---- The dark tone inverts with the page ----

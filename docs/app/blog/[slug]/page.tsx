@@ -12,6 +12,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogFaq } from "../components/BlogFaq";
 
+// Only prerendered slugs exist; anything else 404s without a render.
+export const dynamicParams = false;
+
 type BlogSourcePage = NonNullable<ReturnType<typeof blog.getPage>>;
 
 /* BlogPosting and breadcrumb structured data: gives Google the post's dates and author. */

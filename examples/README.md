@@ -43,6 +43,7 @@ through `openui create --example <name>`.
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
 | [Angular](./app-frameworks/angular)           | An NG-ZORRO X chat interface with the Angular OpenUI renderer                   |
 | [FastAPI](./app-frameworks/fastapi)           | A Python FastAPI streaming backend with a React OpenUI client                   |
+| [Lynx](./app-frameworks/lynx)                 | A ReactLynx chat app rendering streamed OpenUI Lang natively                    |
 | [React Native](./app-frameworks/react-native) | An Expo client rendering native OpenUI components from a Next.js backend stream |
 | [Svelte](./app-frameworks/svelte)             | OpenUI Lang parsing and rendering in SvelteKit                                  |
 | [Vue](./app-frameworks/vue)                   | OpenUI Lang parsing and rendering in Nuxt and Vue                               |
@@ -71,13 +72,14 @@ through `openui create --example <name>`.
 
 ### Miscellaneous
 
-| Example                                        | Demonstrates                                                         |
-| ---------------------------------------------- | -------------------------------------------------------------------- |
-| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair     |
-| [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
-| [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
-| [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |
-| [Supabase](./miscellaneous/supabase)           | Persisted OpenUI conversations and threads with Supabase             |
+| Example                                                                     | Demonstrates                                                                                        |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [Autofix](./miscellaneous/autofix)                                          | Direct OpenAI generation with `@openuidev/server` Autofix repair                                    |
+| [Handsontable](./miscellaneous/handsontable)                                | Generated spreadsheet interfaces backed by Handsontable                                             |
+| [HTML artifact](./miscellaneous/html-artifact)                              | Sandboxed HTML artifacts as an OpenUI capability                                                    |
+| [OpenUI x assistant-ui Dashboards](./miscellaneous/assistant-ui-dashboards) | Dashboard artifacts in a text-only assistant-ui chat, with data from npm, GitHub, and an MCP server |
+| [React Email](./miscellaneous/react-email)                                  | Generating and previewing emails with the OpenUI React Email library                                |
+| [Supabase](./miscellaneous/supabase)                                        | Persisted OpenUI conversations and threads with Supabase                                            |
 
 ## Run and verify
 
@@ -91,7 +93,7 @@ pnpm install --ignore-workspace
 # or: bun install
 ```
 
-The pnpm flag prevents the command from climbing to this repository's ancestor workspace; it is not needed after copying an example elsewhere. The scripts do not invoke pnpm internally, so the corresponding `pnpm dev`, `npm run dev`, and `bun run dev` commands are equivalent. FastAPI's JavaScript application is in `app-frameworks/fastapi/frontend`; React Native has separate applications in `app-frameworks/react-native/backend` and `app-frameworks/react-native/chat-app`.
+The pnpm flag prevents the command from climbing to this repository's ancestor workspace; it is not needed after copying an example elsewhere. The scripts do not invoke pnpm internally, so the corresponding `pnpm dev`, `npm run dev`, and `bun run dev` commands are equivalent. FastAPI's JavaScript application is in `app-frameworks/fastapi/frontend`; React Native has separate applications in `app-frameworks/react-native/backend` and `app-frameworks/react-native/chat-app`; Lynx has separate applications in `app-frameworks/lynx/backend` and `app-frameworks/lynx/app`.
 
 Repository maintainers can install every application from the repository root with:
 

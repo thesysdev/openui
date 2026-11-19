@@ -13,7 +13,6 @@ import {
   Monitor,
   PlugsConnected,
   PresentationChart,
-  Users,
   type Icon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -107,8 +106,48 @@ function dropdownColumns(item: NavDropdown): NavGroup[][] {
 }
 
 export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
+  {
+    title: "Products",
+    /* Narrower than the default track: four text-only cards read better
+       tight, and the panel stays compact. */
+    cardTrack: 168,
+    groups: [
+      {
+        label: "Open source",
+        children: [
+          {
+            title: "OpenUI",
+            description: "The open standard for generative UI.",
+            ...SITE_NAV_LINKS.openui,
+          },
+        ],
+      },
+      {
+        label: "Managed",
+        children: [
+          {
+            title: "Gateway",
+            description: "One endpoint for generative UI across every model.",
+            ...SITE_NAV_LINKS.gateway,
+          },
+          {
+            title: "Observability",
+            description: "Product analytics and user insights for AI agents.",
+            ...SITE_NAV_LINKS.observability,
+          },
+          {
+            title: "Dashboards",
+            description: "Live dashboards, built by your agent.",
+            ...SITE_NAV_LINKS.dashboards,
+            tag: "New",
+          },
+        ],
+      },
+    ],
+  },
   { title: "Demos", ...SITE_NAV_LINKS.demos },
   { title: "Documentation", ...SITE_NAV_LINKS.documentation },
+  { title: "Dashboards", ...SITE_NAV_LINKS.dashboards, badge: "New" },
   {
     title: "Resources",
     layout: "list",
@@ -120,6 +159,12 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
       {
         label: "Demos",
         children: [
+          {
+            title: "Sales Dashboard",
+            description: "Ask for a sales view and get a live dashboard over a Postgres database.",
+            ...SITE_NAV_LINKS.salesDashboard,
+            icon: PresentationChart,
+          },
           {
             title: "Open Intelligent UI",
             description: "Interactive maps, images, and editable itineraries built with OpenUI.",
@@ -138,12 +183,6 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
             description: "Plan a trip with visual itineraries, maps, and live hotel prices.",
             ...SITE_NAV_LINKS.tripPlanner,
             icon: DeviceMobileCamera,
-          },
-          {
-            title: "AI Dashboards",
-            description: "A demo built on GitHub data that answers with a dashboard",
-            ...SITE_NAV_LINKS.aiDashboards,
-            icon: ChartPieSlice,
           },
         ],
       },
@@ -171,10 +210,11 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
             icon: Monitor,
           },
           {
-            title: "By community",
-            description: "Tools, packages, plugins, and demos from the community",
-            ...SITE_NAV_LINKS.community,
-            icon: Users,
+            title: "Integrations",
+            description:
+              "How OpenUI integrates easily with your AI frameworks, UI libraries, SDKs etc.",
+            ...SITE_NAV_LINKS.integrations,
+            icon: PlugsConnected,
           },
         ],
       },
@@ -199,13 +239,6 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
               "Product updates, deep dives, and notes on building generative UI from our team.",
             ...SITE_NAV_LINKS.blog,
             icon: Book,
-          },
-          {
-            title: "Integrations",
-            description:
-              "How OpenUI integrates easily with your AI frameworks, UI libraries, SDKs etc.",
-            ...SITE_NAV_LINKS.integrations,
-            icon: PlugsConnected,
           },
         ],
       },

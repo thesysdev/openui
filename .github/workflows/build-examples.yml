@@ -6,18 +6,12 @@ on:
     paths:
       - "examples/**"
       - "scripts/manage-starters.mjs"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - ".npmrc"
       - ".github/workflows/build-examples.yml"
   pull_request:
     branches: [main]
     paths:
       - "examples/**"
       - "scripts/manage-starters.mjs"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - ".npmrc"
       - ".github/workflows/build-examples.yml"
 
 permissions:

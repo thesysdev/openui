@@ -14,6 +14,7 @@ import {
 import {
   addOrReplaceEvent,
   isLibraryEvent,
+  useCornerDrag,
   useDevtoolsConfig,
   useDevtoolsSingleton,
   type DevtoolsConfig,
@@ -28,10 +29,16 @@ import {
   type ThemeTokens,
 } from "./theme";
 import type { DevtoolsPosition, OpenUIDevtoolsWidgetProps } from "./types";
-import { ErrorBoundary, IconButton, INTER_FONT_FACE, ShiroLogo, ThemeSegmented } from "./ui";
+import {
+  ErrorBoundary,
+  IconButton,
+  INTER_FONT_FACE,
+  PositionSegmented,
+  ShiroLogo,
+  ThemeSegmented,
+} from "./ui";
 import { DeployBanner, DeployHint } from "./ui/DeployHint";
 import ReliabilityBanner from "./ui/ReliabilityBanner";
-import { useAvoidHostControls } from "./ui/avoidHostControls";
 
 export type { DevtoolsPosition, OpenUIDevtoolsProps, OpenUIDevtoolsWidgetProps } from "./types";
 
@@ -39,9 +46,9 @@ export type { DevtoolsPosition, OpenUIDevtoolsProps, OpenUIDevtoolsWidgetProps }
 const MENU_ROW_HEIGHT = 28;
 
 /**
- * Tray geometry. The two trays together fill a block anchored to the bottom
- * right — 85% of the viewport, capped so it stops growing on very large
- * displays. Inspect keeps a fixed width and Debug takes whatever is left,
+ * Tray geometry. The two trays together fill a block anchored to the
+ * launcher's corner — 85% of the viewport, capped so it stops growing on very
+ * large displays. Inspect keeps a fixed width and Debug takes whatever is left,
  * overlapping Inspect rather than collapsing once it hits its floor.
  */
 const TRAY_EDGE = 12;
@@ -77,12 +84,13 @@ export function OpenUIDevtoolsWidget({
       autoOpen: autoOpenOnError,
       onlyErrors: errorsOnly,
       theme: DEFAULT_COLOR_MODE,
+      position,
       helpSeen: false,
       editorPct: DEFAULT_EDITOR_PCT,
     },
     { theme: themeProp },
   );
-  const { onlyErrors, theme: mode } = config;
+  const { onlyErrors, theme: mode, position: corner } = config;
   const debug = useDebug({
     theme: mode,
     helpSeen: config.helpSeen,
@@ -90,6 +98,7 @@ export function OpenUIDevtoolsWidget({
     setConfig,
   });
   const styles = uiStyles(theme(mode));
+  const drag = useCornerDrag(corner, (position) => setConfig({ position }));
 
   // Read configRef inside the (stable) subscription without re-subscribing.
   useEffect(() => {
@@ -115,34 +124,32 @@ export function OpenUIDevtoolsWidget({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, debug.trayOpen, debug.retract]);
 
-  // Keep the launcher off the host app's own controls (e.g. a chat Send button
-  // on a narrow window) by moving it along its anchored edge.
-  const toggleRef = useRef<HTMLDivElement>(null);
-  const anchor = position.startsWith("top") ? "top" : "bottom";
-  const lift = useAvoidHostControls(toggleRef, anchor, isEnabled && isSingleton);
-
   if (!isEnabled || !isSingleton) return null;
 
   const errorCount = events.filter((event) => event.level === "error").length;
   const visibleEvents = onlyErrors ? events.filter((event) => event.level !== "info") : events;
 
-  // Inspect is pinned to the right edge; Debug fills the rest of the block and
-  // slides over to reclaim Inspect's slot whenever Inspect is out.
+  // Inspect is pinned to the launcher's side; Debug fills the rest of the
+  // block and slides over to reclaim Inspect's slot whenever Inspect is out.
+  const side = corner.endsWith("left") ? "left" : "right";
+  const edge = corner.startsWith("top") ? "top" : "bottom";
   const inspectSlot = open ? INSPECT_WIDTH + TRAY_GAP : 0;
   const inspectTray: CSSProperties = {
-    right: TRAY_EDGE,
-    bottom: TRAY_EDGE,
+    [side]: TRAY_EDGE,
+    [edge]: TRAY_EDGE,
     height: BLOCK_H,
     width: `min(${INSPECT_WIDTH}px, calc(100vw - ${TRAY_EDGE * 2}px))`,
-    transform: open ? "translateX(0)" : `translateX(calc(100% + ${TRAY_EDGE}px))`,
+    transform: open
+      ? "translateX(0)"
+      : `translateX(calc((100% + ${TRAY_EDGE}px) * ${side === "left" ? -1 : 1}))`,
   };
   // Debug is a workspace rather than a peek at the app behind it: it fills
   // everything Inspect leaves (left/right edges rather than a width, so the
   // inset matches top and bottom) and cuts straight in instead of sliding.
   // Overrides the shared UI, so it is spread last.
   const debugTray: CSSProperties = {
-    right: TRAY_EDGE + inspectSlot,
-    bottom: TRAY_EDGE,
+    [side]: TRAY_EDGE + inspectSlot,
+    [edge]: TRAY_EDGE,
     height: BLOCK_H,
     width: `max(${DEBUG_MIN_WIDTH}px, calc(${BLOCK_W} - ${inspectSlot}px))`,
     transform: "none",
@@ -153,23 +160,22 @@ export function OpenUIDevtoolsWidget({
   return (
     <DevtoolsModeProvider mode={mode}>
       <style>{INTER_FONT_FACE}</style>
-      <DeployHint position={position} hidden={open || debug.trayOpen} />
+      <DeployHint position={corner} hidden={open || debug.trayOpen || drag.dragging} />
       <div
-        ref={toggleRef}
-        style={{
-          ...styles.toggleWrap,
-          ...rootStyle(mode),
-          ...positionStyles[position],
-          ...(lift ? { [anchor]: 16 + lift } : null),
-        }}
+        ref={drag.ref}
+        style={{ ...styles.toggleWrap, ...rootStyle(mode), ...positionStyles[corner] }}
       >
         <button
           style={{
             ...styles.toggle,
             ...(errorCount > 0 ? styles.toggleError : null),
             ...(toggleHovered ? styles.toggleHover : null),
+            ...(drag.dragging ? styles.toggleDragging : null),
           }}
-          onClick={() => setOpen(true)}
+          {...drag.handlers}
+          onClick={() => {
+            if (!drag.consumeDrag()) setOpen(true);
+          }}
           onMouseEnter={() => setToggleHovered(true)}
           onMouseLeave={() => setToggleHovered(false)}
           aria-label="Open OpenUI Inspect"
@@ -374,6 +380,14 @@ function SettingsMenu({
             <span style={styles.menuLabel}>Theme</span>
             <ThemeSegmented value={config.theme} onChange={(theme) => onChange({ theme })} />
           </div>
+          <div style={styles.menuDivider} />
+          <div style={styles.menuRow}>
+            <span style={styles.menuLabel}>Position</span>
+            <PositionSegmented
+              value={config.position}
+              onChange={(position) => onChange({ position })}
+            />
+          </div>
         </div>
       ) : null}
     </div>
@@ -411,9 +425,14 @@ function uiStyles(t: ThemeTokens) {
       boxShadow: t.toggleShadow,
       fontFamily: FONT,
       padding: 0,
+      touchAction: "none",
       transition: "background 150ms ease, box-shadow 150ms ease, transform 150ms ease",
     },
     toggleHover: {
+      transform: "scale(1.08)",
+    },
+    toggleDragging: {
+      cursor: "grabbing",
       transform: "scale(1.08)",
     },
     // Errors swap the mark for a count on a red disc, held inside a light puck so
@@ -437,7 +456,7 @@ function uiStyles(t: ThemeTokens) {
       fontWeight: 700,
       lineHeight: 1,
     },
-    // Geometry (right/width/transform) is per-tray and set inline; this is the
+    // Geometry (side/width/transform) is per-tray and set inline; this is the
     // shared UI. Each tray hides itself when closed so the other can stay open
     // without a retracted tray remaining focusable.
     drawer: {
@@ -458,13 +477,13 @@ function uiStyles(t: ThemeTokens) {
       fontSize: 13,
       visibility: "hidden",
       transition:
-        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 220ms",
+        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), left 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 220ms",
       overflow: "hidden",
     },
     drawerOpen: {
       visibility: "visible",
       transition:
-        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s",
+        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), left 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s",
     },
     debugHost: {
       flex: 1,

@@ -8,6 +8,8 @@ export interface ComparisonExample {
   prompt: string;
   /* Leave out for a single, full-width "With OpenUI" panel. */
   left?: ComparisonSide;
+  /* Show the "Without" side on phones only; desktop keeps the single panel. */
+  leftOnPhonesOnly?: true;
   right: ComparisonSide;
 }
 
@@ -20,6 +22,9 @@ export interface ComparisonSide {
   /* Lay the answer out as separate cards on the panel instead of one white
      sheet (charts, metrics and tables each become a card). */
   sectioned?: boolean;
+  /* No white sheet and no inset: for an answer that brings its own frame,
+     such as a whole dashboard board. */
+  bare?: boolean;
   /* Scroll to keep the newest output in view once it outgrows the panel.
      Off by default, so the top of the answer stays put. */
   follow?: boolean;
@@ -37,7 +42,29 @@ export type Block =
   | { type: "bullets"; items: string[] }
   /* UI blocks pop in as whole pieces, one after another. */
   | { type: "divider" }
-  | { type: "cards"; cards: CardItem[] }
+  /* `variant: "poster"` fills each card with its photo, square: the tag
+     and an arrow button on the photo, the name and description on a white
+     panel inside. The row shows two and a half. */
+  | { type: "cards"; cards: CardItem[]; variant?: "poster" }
+  /* Small cards in a row, each an icon on a tinted tile beside a label and
+     a value, e.g. the weather. */
+  | { type: "tiles"; tiles: TileItem[] }
+  /* One featured item, as a card: a large photo on the left; an optional
+     tag, its name, rating, a short description, tags and a button on the
+     right. */
+  | {
+      type: "feature";
+      badge?: { label: string; icon?: ReactNode; tone?: "green" | "purple" | "blue" | "amber" };
+      image: string;
+      imageAlt: string;
+      title: string;
+      rating: string;
+      reviews: string;
+      description: string;
+      tags: string[];
+      price: string;
+      action: string;
+    }
   /* Icon tiles in a grid; `columns` defaults to 2. `layout: "rules"` drops
      the tinted tiles for react-ui's ValueLayout look: cells split by dashed
      rules. */
@@ -60,26 +87,54 @@ export type Block =
   | { type: "table"; columns: string[]; rows: (string | TableCell)[][] }
   /* A row of 16:9 slides. */
   | { type: "slides"; slides: SlideItem[] }
-  /* Bars for two or more series per category, e.g. spend vs sales. */
+  /* Bars for two or more series per category, e.g. spend vs sales. `labels`
+     captions the columns ("" leaves one bare). */
   | {
       type: "groupedBars";
       title?: string;
       categories: string[];
+      labels?: string[];
       series: { name: string; values: number[]; color?: string }[];
       /* Axis range and tick suffix, e.g. 2 to 10 with "M". */
       min?: number;
       max?: number;
       suffix?: string;
     }
-  /* A donut with a legend. */
+  /* A donut with a legend; `center` sets a figure in its hole. */
   | {
       type: "donut";
       title?: string;
       subtitle?: string;
       slices: { label: string; value: number; color?: string }[];
+      center?: { value: string; label?: string };
     }
-  /* A filled trend line. */
-  | { type: "area"; title?: string; subtitle?: string; values: number[]; labels?: string[] }
+  /* Layers stacked per category, bottom-up in series order, e.g. revenue by
+     market per month. `labels` captions the columns ("" leaves one bare). */
+  | {
+      type: "stackedBars";
+      title?: string;
+      categories: string[];
+      labels?: string[];
+      series: { name: string; values: number[]; color?: string }[];
+      max?: number;
+      suffix?: string;
+    }
+  /* A filled trend line. With `min`/`max` it plots on that range against
+     `yTicks`; `callout` pins a chip and a dot to one point. `compare` draws
+     a second, unfilled line on the same axis, and a legend names both. */
+  | {
+      type: "area";
+      title?: string;
+      subtitle?: string;
+      name?: string;
+      values: number[];
+      compare?: { name: string; values: number[]; color?: string };
+      labels?: string[];
+      yTicks?: string[];
+      min?: number;
+      max?: number;
+      callout?: { index: number; text: string };
+    }
   /* Dots for one or more series on x/y axes. */
   | {
       type: "scatter";
@@ -106,8 +161,8 @@ export type Block =
   | { type: "split"; columns: Block[][]; ratio?: string }
   /* A deck or document: a rail of page thumbnails and the selected page large. */
   | { type: "pager"; railLabel: string; thumbs: ThumbItem[]; selected: number; page: Block[] }
-  /* An interactive-looking form: fields land one by one, then the button. */
-  | { type: "form"; fields: FormField[]; submit: string }
+  /* An interactive-looking form: fields land one by one, then the buttons. */
+  | { type: "form"; fields: FormField[]; submit: string; secondary?: string }
   /* Anything else: any element, shown when the stream reaches it. `cost` is
      how many characters of streaming time it takes (default 40). */
   | { type: "custom"; node: ReactNode; cost?: number };
@@ -117,9 +172,24 @@ export interface CardItem {
   imageAlt: string;
   badge?: { label: string; icon?: ReactNode; tone?: "green" | "purple" | "blue" | "amber" };
   title: string;
-  description: string;
+  /* Left out on poster cards, where the photo carries the card. */
+  description?: string;
+  /* Poster cards: a star rating and a price level out of three (shown as
+     €€€ with the first `level` coloured), after the description. */
+  rating?: string;
+  priceLevel?: 1 | 2 | 3;
   /* Label of the black button along the card's foot, e.g. "Book". */
   action?: string;
+}
+
+export interface TileItem {
+  icon: ReactNode;
+  /* The tile's tint, by meaning: yellow for sun, blue for transport, and
+     so on. */
+  tone: "yellow" | "blue" | "green" | "pink";
+  /* Optional: without one the tile is just the icon and its value. */
+  label?: string;
+  value: string;
 }
 
 export interface FactItem {
@@ -158,28 +228,66 @@ export interface ThumbItem {
   chart?: boolean;
 }
 
+export interface FormOption {
+  label: string;
+  icon?: ReactNode;
+}
+
+/* What every labelled field can carry: a hint under the control, and an
+   info mark at the end of the label row. */
+interface FieldBase {
+  label: string;
+  hint?: string;
+  info?: boolean;
+}
+
 export type FormField =
-  | { kind: "text"; label: string; placeholder?: string; value?: string; icon?: ReactNode }
-  | { kind: "dates"; label: string; from: string; to: string }
-  | { kind: "stepper"; label: string; value: number; unit?: string }
-  | { kind: "chips"; label: string; options: string[]; selected?: string[] }
-  /* Big icon tiles to pick from; the selected ones are filled. */
-  | {
-      kind: "tiles";
-      label: string;
-      options: { label: string; icon: ReactNode }[];
+  /* Starts a new group of fields; groups after the first open on a hairline. */
+  | { kind: "section"; label: string }
+  /* Fields side by side; `columns` is their grid-template-columns. `wrap`
+     stacks them once the form is too narrow to hold them side by side.
+     `divided` sets a vertical hairline between them. */
+  | { kind: "row"; fields: FormField[]; columns?: string; wrap?: boolean; divided?: boolean }
+  /* `select` adds the up-down chevrons of a dropdown. */
+  | (FieldBase & {
+      kind: "text";
+      placeholder?: string;
+      value?: string;
+      icon?: ReactNode;
+      select?: boolean;
+    })
+  | (FieldBase & { kind: "dates"; from: string; to: string })
+  /* Picked values as removable tags inside a dropdown, each with a round
+     mark: `swatch` is its CSS background (e.g. a gradient), `icon` sits on it. */
+  | (FieldBase & {
+      kind: "tags";
+      tags: { label: string; swatch?: string; icon?: ReactNode }[];
+      placeholder: string;
+    })
+  | (FieldBase & { kind: "stepper"; value: number; unit?: string })
+  /* Pick any number; a picked chip trades its icon for a check. */
+  | (FieldBase & {
+      kind: "chips";
+      options: FormOption[];
       selected?: string[];
+      /* Lays the chips on a grid of equal-width columns instead of wrapping. */
       columns?: number;
-    }
-  /* A strip of days with the chosen range highlighted. */
-  | {
-      kind: "dateStrip";
-      label: string;
-      month: string;
-      days: { dow: string; day: number }[];
+    })
+  /* Pick any number, from square tiles: the icon top left, the label under
+     it. As tall as two rows of chips, so the two sit side by side evenly. */
+  | (FieldBase & { kind: "tiles"; options: FormOption[]; selected?: string[] })
+  /* Pick exactly one, from a connected bar. */
+  | (FieldBase & { kind: "segmented"; options: FormOption[]; selected: string })
+  /* A two-thumb slider: `from` and `to` are fractions of the track, `value`
+     reads them out opposite the label, `min` and `max` sit under its ends. */
+  | (FieldBase & {
+      kind: "range";
       from: number;
       to: number;
-    };
+      value: string;
+      min: string;
+      max: string;
+    });
 
 /* A richer table cell: an icon or avatar, a tinted badge, or a progress bar. */
 export interface TableCell {

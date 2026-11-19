@@ -96,7 +96,7 @@ export function LogoBubbles({ items, stagger = 0 }: { items: StackChipItem[]; st
             }}
           >
             <span className={styles.face}>
-              <StackChip item={item} iconOnly />
+              <StackChip item={item} iconOnly plain />
             </span>
           </span>
         );

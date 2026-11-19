@@ -23,6 +23,7 @@ import { ToolCallErrorFallback } from "./ToolCallErrorFallback";
 export type ToolDetailedViewPanel = ComponentType<{
   viewId: string;
   title?: string;
+  header?: boolean;
   children: ReactNode;
 }>;
 
@@ -161,7 +162,11 @@ export function ToolActivityRenderer<Props>({
   return (
     <>
       {renderer.preview(parsed.props, controls)}
-      <DetailedViewPanel viewId={viewId} title={meta?.heading ?? "Detailed view"}>
+      <DetailedViewPanel
+        viewId={viewId}
+        title={meta?.heading ?? "Detailed view"}
+        header={renderer.panelHeader ?? true}
+      >
         {renderer.actual(parsed.props, controls)}
       </DetailedViewPanel>
     </>

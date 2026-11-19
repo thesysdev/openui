@@ -5,6 +5,7 @@ import {
   STREAM_EVENT_KIND,
   STREAM_PHASE_SETTLED,
   STREAM_PHASE_STREAMING,
+  STREAM_PHASE_UNMOUNTED,
   type SettledStreamEventDetail,
   type StreamPhase,
 } from "./streamEvent";
@@ -114,6 +115,17 @@ export function advanceStreamingObservability(
   return { id: state.id, phase: STREAM_PHASE_SETTLED, updateIndex: state.updateIndex };
 }
 
+/** Ends a stream whose Renderer unmounted before it settled. */
+export function unmountStreamingObservability(
+  state: StreamingObservabilityState,
+): StreamingObservabilityUpdate | null {
+  if (!state.id || state.settled) return null;
+  state.updateIndex += 1;
+  // A StrictMode remount reuses this state; let it republish the stream it resumes.
+  state.hasPublishedStreamingSnapshot = false;
+  return { id: state.id, phase: STREAM_PHASE_UNMOUNTED, updateIndex: state.updateIndex };
+}
+
 function parserMetadata(result: ParseResult | null) {
   if (!result) return undefined;
   return {
@@ -138,6 +150,34 @@ export function useStreamingObservability({
   __libraryId,
 }: UseStreamingObservabilityOptions): void {
   const streamRef = useRef<StreamingObservabilityState>(createStreamingObservabilityState());
+  const lastStreamingRef = useRef<{ result: ParseResult | null; __libraryId?: string }>({
+    result: null,
+  });
+
+  useEffect(() => {
+    const stream = streamRef.current;
+    return () => {
+      const update = unmountStreamingObservability(stream);
+      if (!update) return;
+      const { result: lastResult, __libraryId: lastLibraryId } = lastStreamingRef.current;
+      const startedAt = stream.startedAt ?? Date.now();
+      const durationMs = Math.max(0, Date.now() - startedAt);
+      observability.warn({
+        id: update.id,
+        kind: STREAM_EVENT_KIND,
+        phase: update.phase,
+        updateIndex: update.updateIndex,
+        response: stream.lastResponse,
+        responseLength: stream.lastResponse?.length ?? 0,
+        parser: parserMetadata(lastResult),
+        startedAt,
+        elapsedMs: durationMs,
+        durationMs,
+        ...(lastLibraryId !== undefined ? { __libraryId: lastLibraryId } : {}),
+        message: "Stream interrupted",
+      });
+    };
+  }, []);
 
   useEffect(() => {
     if (!publish) return;
@@ -153,6 +193,7 @@ export function useStreamingObservability({
 
     if (isStreaming) {
       if (update) {
+        lastStreamingRef.current = { result, __libraryId };
         observability.info({
           id: update.id,
           kind: STREAM_EVENT_KIND,

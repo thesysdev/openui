@@ -1,0 +1,321 @@
+.section {
+  width: min(100%, var(--home-container-max));
+  /* On top of the content shell's own gap: this follows the black Cloud band
+     and needs more room than a gap between two light sections. */
+  margin-top: clamp(3rem, 6vw, 5.5rem);
+  margin-inline: auto;
+  padding-inline: var(--home-container-gutter);
+  box-sizing: border-box;
+}
+
+.header {
+  max-width: 46rem;
+  margin: 0 auto var(--home-header-gap);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ */
+/* Playlist on the left, the recording on the right.                    */
+/* ------------------------------------------------------------------ */
+.player {
+  display: grid;
+  grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 4.5vw, 4rem);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item,
+.itemActive {
+  position: relative;
+}
+
+/* The row: the project name opens it, the arrow beside it goes to its site. */
+.itemHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--openui-text-neutral-secondary);
+  transition: color 0.15s ease;
+}
+
+.itemHeader:hover,
+.itemActive .itemHeader {
+  color: var(--openui-text-neutral-primary);
+}
+
+.itemToggle {
+  padding: 1rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The whole row selects the project, not just the name. */
+.itemToggle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.itemToggle:focus-visible {
+  outline: 2px solid var(--openui-text-neutral-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.name {
+  font-family: var(--home-font-display);
+  font-size: var(--home-heading-size);
+  font-weight: var(--home-heading-weight);
+  letter-spacing: var(--home-heading-tracking);
+  line-height: var(--home-heading-leading);
+}
+
+/* Above the row's click layer, with a touch-sized hit area. */
+.visit {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.visit:hover {
+  background: var(--home-hairline);
+  color: var(--openui-text-neutral-primary);
+}
+
+.visit:focus-visible {
+  outline: 2px solid var(--openui-text-neutral-primary);
+  outline-offset: 2px;
+}
+
+/* Opens by animating the row from 0fr to 1fr, so no height is measured. Every
+   panel is the same height (see .description), so one closing while another
+   opens keeps the list's total height constant. */
+.panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.itemActive .panel {
+  grid-template-rows: 1fr;
+}
+
+.panelInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.meta {
+  margin: 0 0 0.5rem;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 0.8125rem;
+}
+
+.maker {
+  color: var(--openui-text-neutral-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--home-hairline);
+  text-underline-offset: 3px;
+}
+
+.maker:hover {
+  text-decoration-color: currentColor;
+}
+
+.description {
+  display: grid;
+  margin: 0 0 1.125rem;
+  color: var(--openui-text-neutral-secondary);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+}
+
+.description p {
+  grid-area: 1 / 1;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.sizer {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The divider under each row doubles as the active row's progress bar. */
+.progressTrack {
+  display: block;
+  height: 1px;
+  background: var(--home-hairline);
+}
+
+.progressFill {
+  display: block;
+  height: 2px;
+  margin-top: -0.5px;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--openui-text-neutral-primary);
+  transition: transform 0.25s linear;
+}
+
+/* The closing row under the five: on to the rest, or add your own. */
+.more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding-top: 1rem;
+  font-size: var(--home-body-size);
+}
+
+.moreLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--openui-text-neutral-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.moreLink svg {
+  transition: transform 0.2s ease;
+}
+
+.moreLink:hover svg {
+  transform: translateX(2px);
+}
+
+/* A small pill button: plus sign, then the label. */
+.addLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3125rem 0.75rem 0.3125rem 0.5rem;
+  border: 1px solid var(--home-hairline);
+  border-radius: 999px;
+  color: var(--openui-text-neutral-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.addLink:hover {
+  background: var(--home-hairline);
+}
+
+/* The recording in the same device the hero comparison uses: a page-coloured
+   rim, a hairline ring, and one soft drop shadow. */
+.stage {
+  --stage-rim: 0.5rem;
+  position: relative;
+  aspect-ratio: 1280 / 776;
+  margin: var(--stage-rim);
+  border-radius: 1rem;
+  background: var(--home-surface-raised);
+  box-shadow:
+    0 0 0 var(--stage-rim) var(--openui-foreground),
+    0 0 0 calc(var(--stage-rim) + 1px) rgba(0, 0, 0, 0.04),
+    0 1px 2px calc(var(--stage-rim) + 1px) rgba(0, 0, 0, 0.04),
+    0 16px 40px calc(var(--stage-rim) - 14px) rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] .stage {
+  background: #1f1f22;
+  box-shadow:
+    0 0 0 var(--stage-rim) var(--openui-foreground),
+    0 0 0 calc(var(--stage-rim) + 1px) rgba(255, 255, 255, 0.18),
+    0 16px 40px calc(var(--stage-rim) - 14px) rgba(0, 0, 0, 0.55);
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  animation: stageIn 0.3s ease;
+}
+
+@keyframes stageIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.playToggle {
+  position: absolute;
+  bottom: 0.625rem;
+  left: 0.625rem;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--home-hairline);
+  border-radius: 999px;
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.stage:hover .playToggle,
+.playToggle:focus-visible {
+  opacity: 1;
+}
+
+/* Tablet and down: the recording leads, the playlist follows. */
+@media (max-width: 899px) {
+  .player {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .stage {
+    order: -1;
+  }
+
+  /* Touch has no hover to reveal it. */
+  .playToggle {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .progressFill,
+  .moreLink svg {
+    transition: none;
+  }
+
+  .video {
+    animation: none;
+  }
+
+  .playToggle {
+    opacity: 1;
+  }
+}

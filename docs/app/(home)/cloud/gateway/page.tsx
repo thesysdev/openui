@@ -1,5 +1,6 @@
 import { createPageMetadata } from "@/lib/page-metadata";
 import { ArrowUpRight } from "lucide-react";
+import { AgentPicker, GATEWAY_SETUP_PROMPT } from "../../components/AgentPicker/AgentPicker";
 import { BevelButton } from "../../components/Button/BevelButton";
 import { FadedDither } from "../../components/FadedDither/FadedDither";
 import styles from "../../page.module.css";
@@ -48,13 +49,7 @@ export default function GatewayPage() {
           flushInnerInlinePadding
           commandSlot={
             <div className={gatewayStyles.ctaGroup}>
-              <BevelButton
-                href="https://console.thesys.dev/keys"
-                external
-                variant="primary"
-                label="Get API key"
-                badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
-              />
+              <AgentPicker command={GATEWAY_SETUP_PROMPT} runner={false} />
               <BevelButton
                 href="https://zcal.co/t/thesys/demo"
                 external

@@ -25,6 +25,8 @@ export type CliErrorMetadata = {
   cancellation_exit_code?: number;
   auth_failure_stage?: string;
   attempts?: number;
+  /** The step (prompt) that was open when the user cancelled. */
+  step_name?: string;
 };
 
 export class CreateError extends Error {

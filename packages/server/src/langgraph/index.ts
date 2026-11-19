@@ -1,9 +1,4 @@
-import {
-  isAIMessage,
-  isHumanMessage,
-  isToolMessage,
-  type BaseMessage,
-} from "@langchain/core/messages";
+import { AIMessage, HumanMessage, ToolMessage, type BaseMessage } from "@langchain/core/messages";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import {
   chatCompletionMessagesToItems,
@@ -19,7 +14,7 @@ export type StoreLangGraphHistoryOptions = Omit<StoreChatCompletionHistoryOption
 function toChatCompletionMessages(messages: readonly BaseMessage[]): ChatCompletionMessageParam[] {
   const result: ChatCompletionMessageParam[] = [];
   for (const message of messages) {
-    if (isHumanMessage(message)) {
+    if (HumanMessage.isInstance(message)) {
       // LangChain's text/image_url content blocks use the Chat Completions shape.
       const content: Extract<ChatCompletionMessageParam, { role: "user" }>["content"] =
         typeof message.content === "string" ? message.content : [];
@@ -52,7 +47,7 @@ function toChatCompletionMessages(messages: readonly BaseMessage[]): ChatComplet
         }
       }
       result.push({ role: "user", content });
-    } else if (isAIMessage(message)) {
+    } else if (AIMessage.isInstance(message)) {
       result.push({
         role: "assistant",
         content: message.text,
@@ -68,7 +63,7 @@ function toChatCompletionMessages(messages: readonly BaseMessage[]): ChatComplet
             },
           })),
       });
-    } else if (isToolMessage(message) && message.tool_call_id) {
+    } else if (ToolMessage.isInstance(message) && message.tool_call_id) {
       result.push({
         role: "tool",
         tool_call_id: message.tool_call_id,

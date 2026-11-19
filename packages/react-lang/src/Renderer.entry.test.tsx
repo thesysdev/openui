@@ -2,7 +2,7 @@
 import type { OpenUIError } from "@openuidev/lang-core";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { z } from "zod/v4";
 import { createLibrary, defineComponent } from "./library";
 import { Renderer } from "./Renderer";
@@ -45,4 +45,23 @@ it("reports no-root instead of parse-failed, and renders a ternary entry", () =>
     codes: [],
     text: "narrow",
   });
+});
+
+it("logs one console.error with every error and the reliability docs link when onError is not passed", () => {
+  const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    act(() =>
+      root.render(createElement(Renderer, { response: 'title = Title("Orders")', library })),
+    );
+    act(() => root.unmount());
+    expect(spy).toHaveBeenCalledTimes(1);
+    const message = String(spy.mock.calls[0]?.[0]);
+    expect(message).toContain("[openui] Rendered with 1 error:");
+    expect(message).toContain("parser/no-root:");
+    expect(message).toContain("https://www.openui.com/docs/openui-lang/reliability");
+  } finally {
+    spy.mockRestore();
+  }
 });

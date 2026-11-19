@@ -1,0 +1,577 @@
+/* The How it works film, drawn in a 1200x600 viewport that scales with the
+   stage like an image. Plain stage, white surfaces, near-black ink, one blue
+   accent, green once something resolves. One subject on screen at a time. */
+.viewport {
+  --illustration-width: 100cqw;
+  --ink: #0a0a0b;
+  --text: #1d1d1f;
+  --gray: #6e6e73;
+  --rule: #ededf0;
+  --faint: #a1a1a6;
+  --blue: #2f5bff;
+  --green: #1f9d55;
+  --red: #e5484d;
+  --edge: rgba(10, 10, 11, 0.08);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 20px -10px rgba(16, 24, 40, 0.22);
+  --surface: #fff;
+  --on-ink: #fff;
+  --ok-on-ink: #4ade80;
+  --miss-text: #c4282d;
+  --send-idle: #e5e5ea;
+  --spin-track: #d2d2d7;
+  --tabs-bg: #0a0a0b;
+  --tabs-pill: #fff;
+  --tabs-text: rgba(255, 255, 255, 0.92);
+  --tabs-on: #0a0a0b;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1200px;
+  height: 600px;
+  overflow: hidden;
+  font-family: var(--home-font-text), sans-serif;
+  color: var(--text);
+  text-align: left;
+  transform-origin: 0 0;
+  /* stage width / 1200px as a unitless ratio */
+  scale: tan(atan2(var(--illustration-width), 1200px));
+}
+
+/* On a dark page the film inverts: dark surfaces and light ink, and the
+   black pieces (the interpreter, the send button) turn light. */
+:global([data-theme="dark"]) .viewport {
+  --ink: #f5f5f7;
+  --text: #f2f2f4;
+  --gray: #a1a1a6;
+  --rule: #2a2a2e;
+  --faint: #6e6e73;
+  --edge: rgba(255, 255, 255, 0.1);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 20px -10px rgba(0, 0, 0, 0.7);
+  --surface: #161618;
+  --on-ink: #0a0a0b;
+  --ok-on-ink: #15803d;
+  --miss-text: #f87171;
+  --send-idle: #2a2a2e;
+  --spin-track: #3a3a3e;
+  --tabs-bg: #1c1c1f;
+  --tabs-pill: #f5f5f7;
+  --tabs-text: rgba(255, 255, 255, 0.85);
+  --tabs-on: #0a0a0b;
+}
+
+.world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.world > * {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.send {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--send-idle);
+  color: var(--surface);
+}
+
+.send svg {
+  width: 20px;
+  height: 20px;
+}
+
+.send[data-ready] {
+  background: var(--ink);
+}
+
+.send[data-pressed] {
+  background: var(--blue);
+}
+
+/* ---------- The question ---------- */
+
+/* The input, as a wide pill with one round button; it fades away and leaves
+   the question behind. */
+.input {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 14px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.queryText {
+  display: flex;
+  gap: 0.36em;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 30px;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  transform-origin: center;
+}
+
+.word {
+  position: relative;
+  display: inline-block;
+  margin: 0 -2px;
+  padding: 0 2px;
+  border-radius: 6px;
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
+}
+
+.word[data-lit] {
+  background: rgba(47, 91, 255, 0.1);
+  color: var(--blue);
+}
+
+/* A need's name on its way to its card, then the card's title. */
+.label {
+  margin-left: -2px;
+  padding: 0 2px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  transform-origin: 2px 50%;
+  transition:
+    background-color 250ms ease,
+    color 250ms ease;
+}
+
+.label[data-lit] {
+  background: rgba(47, 91, 255, 0.1);
+  color: var(--blue);
+}
+
+/* ---------- The data each need comes from ---------- */
+
+/* The needs as rows in one hairline list, like the AppLess models list. */
+.list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.row {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--rule);
+}
+
+.rowIcon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--edge);
+  border-radius: 50%;
+  color: var(--text);
+  transition:
+    color 300ms ease,
+    border-color 300ms ease;
+}
+
+.rowIcon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.row[data-state="ok"] .rowIcon {
+  border-color: rgba(31, 157, 85, 0.35);
+  color: var(--green);
+}
+
+.row[data-state="miss"] .rowIcon {
+  border-color: rgba(229, 72, 77, 0.35);
+  color: var(--red);
+}
+
+.rails {
+  top: 0;
+  left: 0;
+  overflow: visible;
+  stroke: var(--faint);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rails g[data-tone="ok"] {
+  stroke: var(--green);
+}
+
+.rails g[data-tone="miss"] {
+  stroke: var(--red);
+}
+
+.chip svg,
+.gapChip svg,
+.gapHead svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.4;
+}
+
+/* An endpoint on its line: in flight, then resolved. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 10px 24px -14px rgba(16, 24, 40, 0.3);
+  font-family: var(--home-font-mono), ui-monospace, monospace;
+  font-size: 12.5px;
+  white-space: nowrap;
+  transition: border-color 300ms ease;
+}
+
+.chip[data-ok] {
+  border-color: rgba(31, 157, 85, 0.35);
+}
+
+.chip[data-ok] svg {
+  color: var(--green);
+}
+
+/* The gap on the age-group line: no endpoint, then the interpreter as a black
+   pill that opens into a card while its script runs. */
+.gap {
+  overflow: hidden;
+  transform: translateX(-50%);
+  border: 1px solid rgba(229, 72, 77, 0.3);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--miss-text);
+}
+
+.gap[data-state="run"],
+.gap[data-state="ok"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.gap[data-open] {
+  border-radius: 16px;
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.12),
+    0 10px 24px -12px rgba(16, 24, 40, 0.4);
+}
+
+.gapChip {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.gap[data-state="ok"] .gapChip svg:last-child,
+.gap[data-state="ok"] .gapHead > svg,
+.gapStatus > span {
+  color: var(--ok-on-ink);
+}
+
+.gapCard {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  width: 268px;
+  height: 172px;
+  transform: translateX(-50%);
+}
+
+.gapHead {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--on-ink) 10%, transparent);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.gapHead > svg {
+  color: color-mix(in srgb, var(--on-ink) 60%, transparent);
+}
+
+.gapStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--on-ink) 55%, transparent);
+}
+
+.gapStatus > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The script, streaming in faintly: the point is that it runs, not what it
+   says. */
+.code {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  font-family: var(--home-font-mono), ui-monospace, monospace;
+  font-size: 11.5px;
+  line-height: 18px;
+  color: color-mix(in srgb, var(--on-ink) 50%, transparent);
+  white-space: pre;
+}
+
+.code > span {
+  display: block;
+}
+
+.spinner {
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid var(--spin-track);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.gap .spinner {
+  border-color: color-mix(in srgb, var(--on-ink) 25%, transparent);
+  border-top-color: var(--on-ink);
+}
+
+/* Your database: as much weight as the three needs it answers. */
+.dbTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+/* The PostgreSQL elephant, white on its brand blue, so it reads at this size
+   in light and dark. */
+.dbLogo {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: #336791;
+}
+
+.dbLogo svg {
+  width: 32px;
+  height: 32px;
+}
+
+.dbName {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.dbMeta {
+  margin-top: 3px;
+  font-family: var(--home-font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--gray);
+}
+
+/* ---------- Dashboard ---------- */
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* The chart being edited, lifted out over the blurred dashboard. */
+.lift {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.prompt {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 0 6px 0 18px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.promptText {
+  display: flex;
+  flex: 1;
+  gap: 0.28em;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.promptText > span {
+  display: inline-block;
+}
+
+.prompt .send {
+  width: 32px;
+  height: 32px;
+}
+
+.prompt .send svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ---------- Theme tabs: a compact pill, the choice in white ---------- */
+
+.tabs {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  box-sizing: border-box;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--tabs-bg);
+  box-shadow: 0 16px 36px -18px rgba(10, 10, 11, 0.55);
+}
+
+.tabPill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  border-radius: 999px;
+  background: var(--tabs-pill);
+}
+
+/* A reader's own pick moves the pill on its own. */
+.tabPill[data-user] {
+  transition: translate 450ms cubic-bezier(0.65, 0, 0.25, 1);
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-family: var(--home-font-display), var(--home-font-text), sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--tabs-text);
+  cursor: pointer;
+}
+
+.tab[data-on] {
+  color: var(--tabs-on);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -4px;
+}
+
+/* ---------- Cursor ---------- */
+
+.cursor {
+  position: absolute;
+  z-index: 3;
+  width: 28px;
+  height: 28px;
+  margin: -3px 0 0 -4px;
+  overflow: visible;
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  transform-origin: 4px 3px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+
+  .word,
+  .label,
+  .rowIcon,
+  .chip {
+    transition: none;
+  }
+}
+
+/* Phones show the central 900px of the 1200px film, where every subject sits. */
+@media (max-width: 767px) {
+  .viewport {
+    scale: none;
+    transform: scale(tan(atan2(var(--illustration-width), 900px))) translateX(-150px);
+  }
+}

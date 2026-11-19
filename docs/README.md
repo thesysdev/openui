@@ -17,33 +17,28 @@ pnpm --filter @openuidev/docs dev
 pnpm --filter @openuidev/docs build
 ```
 
-### Chat and comparison demo configuration
+### Demo gateway
 
-`/chat` remains the standalone OpenUI OSS and Cloud chat and starts in **OpenUI OSS** mode. Its
-selected mode is not stored across reloads.
+Set `DEMO_GATEWAY_ORIGIN` (for example `http://localhost:3200`) to serve every `/demo/*` path from
+the private demo gateway, which adds login and daily limits. The gateway is the only place the
+`/chat`, `/compare` and `/openui-vs-json` demos run; this app always redirects those paths to
+`/demo/<slug>`.
 
-`/compare` compares two visible response modes at a time and defaults to **Rendered Markdown vs
-OpenUI Cloud**. Use its page-level switcher to show **Markdown vs OSS** or **OSS vs Cloud**. The
-selected pair is stored in the `pair` query parameter. All three comparison providers remain
-mounted and receive each shared prompt; switching the visible pair resets the demo. Markdown and
-OSS generation use the existing server-side `OPENROUTER_API_KEY`.
+### Taking the hosted demos offline
 
-OpenUI Cloud requires the following server-side variables. If either is missing, Cloud requests
-show the unavailable state at runtime:
+Set this variable and redeploy to take the hosted demos offline:
 
 ```bash
-OPENUI_CLOUD_DEMO_ENABLED=true
-THESYS_API_KEY=your-cloud-key
+NEXT_PUBLIC_DEMOS_DISABLED=1
 ```
 
-Do not expose `THESYS_API_KEY` through a `NEXT_PUBLIC_*` variable. The browser generates an
-anonymous user ID, retains it in `sessionStorage`, and sends it with Cloud requests. Active
-comparison threads are not restored after a refresh.
+- The proxied demos (`/demo/f1-dashboard`, `/demo/trip-planner`, `/demo/intelligent-ui`,
+  `/demo/sales-dashboard`) show an offline page with the command to run them locally.
+- `proxy.ts` answers the demos' model API routes with a 402 for anyone calling them directly.
 
-The Cloud feature flag is intentionally fail-closed. Keep it disabled on public deployments until
-a shared, cross-instance session-and-IP rate limiter, Cloud organization budgets/token scopes, and
-an approved conversation retention/deletion process are in place. Same-origin validation is an
-additional browser safeguard, not a substitute for those cost controls.
+The flag is inlined at build time, so switching it needs a redeploy. The proxied demo slugs are
+listed both in `lib/demos-offline.ts` and in `proxiedDemos` in `next.config.mjs`, so keep the two
+lists in sync.
 
 ## Project structure
 
@@ -76,16 +71,10 @@ docs/
 │   │   └── theme-builder/                  # Theme creator interface
 │   │
 │   ├── blog/                               # Blog pages
-│   ├── chat/                               # Standalone OpenUI OSS and Cloud chat
-│   ├── compare/                            # Pairwise Markdown, OSS, and Cloud comparison
-│   ├── demo/                               # Demo route
 │   ├── playground/                         # Interactive playground
 │   │
 │   ├── api/                                # API routes
 │   │   ├── search/route.ts                 # Search endpoint
-│   │   ├── chat/route.ts                   # Chat API
-│   │   ├── demo/github/stream/route.ts     # GitHub demo stream
-│   │   └── playground/stream/route.ts      # Playground stream
 │   ├── og/docs/[...slug]/route.tsx         # OG image generation
 │   └── llms.txt/, llms-full.txt/, llms.mdx/  # LLM-friendly content endpoints
 │
@@ -125,9 +114,7 @@ docs/
 │   ├── source.ts                           # Fumadocs source config
 │   ├── layout.shared.tsx                   # Shared layout options
 │   ├── cn.ts                               # className merge utility
-│   ├── chat-library.ts                     # Chat library config
 │   ├── demo-credits.ts                     # Demo credits data
-│   └── playground-library.ts               # Playground library config
 │
 ├── imports/                                # Shared imported assets/components
 ├── types/                                  # TypeScript type declarations

@@ -1,0 +1,267 @@
+/* The motion stage: the flat feature stage from the OUI-1 cards, at the width
+   of the content column. The film inside scales with its width. */
+.stage {
+  container-type: inline-size;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1200 / 600;
+  margin-top: 64px;
+  border: 1px solid var(--dash-stage-stroke);
+  border-radius: 24px;
+  background: var(--dash-stage-stroke);
+}
+
+.scene {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+}
+
+.toggle {
+  position: absolute;
+  z-index: 2;
+  right: 20px;
+  bottom: 20px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 999px;
+  background: var(--openui-foreground);
+  box-shadow: var(--home-shadow-card);
+  color: var(--openui-text-neutral-primary);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  border-color: var(--openui-border-interactive);
+}
+
+/* Five points in a row, each under its own progress rule. */
+.points {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 24px;
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.point {
+  min-width: 0;
+}
+
+/* The whole point is the control that jumps the film to its step. */
+.pointButton {
+  display: block;
+  width: 100%;
+  padding: 0 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.pointButton:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--openui-border-accent-emphasis);
+  outline-offset: 6px;
+}
+
+.pointButton:hover .pointTitle,
+.pointButton:hover .pointIcon {
+  color: var(--openui-text-neutral-primary);
+}
+
+.track {
+  display: block;
+  overflow: hidden;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--home-hairline);
+}
+
+.fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--openui-text-neutral-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* Quiet until its step is active, like the progress rule above it. */
+.pointIcon {
+  display: block;
+  margin-top: 24px;
+  color: var(--openui-text-neutral-tertiary);
+  transition: color 300ms ease;
+}
+
+.pointTitle {
+  display: block;
+  margin: 14px 0 0;
+  font-family: var(--home-font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--openui-text-neutral-secondary);
+  transition: color 300ms ease;
+}
+
+.pointDescription {
+  display: block;
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: pretty;
+}
+
+.point[data-active] .pointIcon,
+.point[data-active] .pointTitle {
+  color: var(--openui-text-neutral-primary);
+}
+
+/* Below desktop the five points become one swipeable rail under the film,
+   bleeding to the screen edges and snapping card by card. The active card is
+   kept in view as the film plays; a tap still jumps the film to its step. */
+@media (max-width: 1199px) {
+  .points {
+    position: relative;
+    display: flex;
+    gap: 24px;
+    margin-inline: calc(-1 * var(--dash-gutter));
+    padding: 0 var(--dash-gutter) 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--dash-gutter);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .points::-webkit-scrollbar {
+    display: none;
+  }
+
+  .point {
+    flex: 0 0 280px;
+    scroll-snap-align: start;
+  }
+}
+
+/* Hidden everywhere but phones. */
+.stepNav,
+.stepSegs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  /* Phones: edge to edge, and a narrower frame (the film's central 900px),
+     so everything in it is about half as large again. */
+  .stage {
+    aspect-ratio: 900 / 600;
+    margin-top: 32px;
+    width: auto;
+    margin-inline: calc(-1 * var(--dash-gutter, 1rem));
+    border-inline: 0;
+    border-radius: 0;
+  }
+
+  .toggle {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .points {
+    gap: 16px;
+    margin-top: 24px;
+    overflow-x: hidden;
+  }
+
+  /* The film's progress as five segments, one per step; the card's own
+     single track steps aside for it. */
+  .stepSegs {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 6px;
+    margin-top: 24px;
+  }
+
+  .stepSeg {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    border-radius: 1px;
+    background: rgba(127, 127, 132, 0.25);
+  }
+
+  .stepSeg > span {
+    position: absolute;
+    inset: 0;
+    transform-origin: left;
+    background: var(--openui-text-neutral-primary);
+  }
+
+  .point .track {
+    display: none;
+  }
+
+  /* One point at a time: only the active card shows; the chevrons below
+     step through them. */
+  .point {
+    display: none;
+    flex-basis: 100%;
+  }
+
+  .point[data-active] {
+    display: block;
+  }
+
+  .stepNav {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .stepNavButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--home-hairline);
+    border-radius: 999px;
+    background: var(--openui-foreground, #fff);
+    color: var(--openui-text-neutral-primary);
+    cursor: pointer;
+  }
+
+  .pointIcon {
+    margin-top: 20px;
+  }
+
+  .pointTitle {
+    margin-top: 10px;
+  }
+
+  .pointDescription {
+    max-width: 32ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pointIcon,
+  .pointTitle {
+    transition: none;
+  }
+}

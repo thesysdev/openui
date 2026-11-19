@@ -1,6 +1,7 @@
 /* ---------- stream ---------- */
 /* Bezel and screen match the hero device (public/oui-1/hero.html). */
 .streamScene {
+  --illustration-width: 100cqw;
   position: absolute;
   top: 0;
   left: 0;
@@ -8,7 +9,7 @@
   height: 360px;
   transform-origin: 0 0;
   /* stage width / 588px as a unitless ratio */
-  transform: scale(tan(atan2(100cqw, 588px)));
+  transform: scale(tan(atan2(var(--illustration-width), 588px)));
 }
 /* The device palette. The pipeline scene shares it so its card matches. */
 .device,

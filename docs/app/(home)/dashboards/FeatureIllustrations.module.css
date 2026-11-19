@@ -1,0 +1,524 @@
+/* Scene parts this page adds to the OUI-1 and AppLess illustration styles.
+   Colours follow the OUI-1 device palette. */
+
+/* ---------- Interactive: the dashboard in the device ---------- */
+
+.dashScreen {
+  --ok: #30a46c;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+}
+
+/* The device bubble, as a dropdown a reader can also click. */
+.filter,
+.filterStatic {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px 0 12px;
+  border: 0;
+  border-radius: var(--device-radius-pill);
+  background: var(--device-bubble);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  color: var(--device-ink);
+  white-space: nowrap;
+}
+
+.filter {
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    color 200ms ease,
+    transform 120ms ease;
+}
+
+.filter:active {
+  transform: scale(0.96);
+}
+
+.filter svg {
+  opacity: 0.55;
+}
+
+.filter[data-on] {
+  background: var(--device-accent);
+  color: #fff;
+}
+
+.filter[data-on] svg {
+  opacity: 0.85;
+}
+
+.filterStatic {
+  padding-right: 12px;
+  color: color-mix(in srgb, var(--device-ink) 55%, transparent);
+}
+
+.filterLabel {
+  animation: swapIn 280ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.dashCard {
+  margin-top: 0;
+}
+
+/* A taller plot than the OUI-1 card, with wider bars. */
+.dashPlot.dashPlot {
+  height: 128px;
+  margin-top: 20px;
+}
+
+.dashBars {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  height: 100%;
+  border-top: 1px solid color-mix(in srgb, var(--device-ink) 8%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--device-ink) 8%, transparent);
+  background: linear-gradient(
+      color-mix(in srgb, var(--device-ink) 8%, transparent),
+      color-mix(in srgb, var(--device-ink) 8%, transparent)
+    )
+    0 50% / 100% 1px no-repeat;
+}
+
+.dashSlot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
+
+/* The bars only change height when a filter applies; they never empty out. */
+.dashBar {
+  width: 16px;
+  border-radius: var(--device-radius-bar) var(--device-radius-bar) 0 0;
+  background: var(--device-accent);
+  transition: height 650ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition-delay: calc(var(--i) * 18ms);
+}
+
+.swap {
+  display: inline-block;
+  animation: swapIn 360ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* The blocks under the chart run past the stage's bottom edge. */
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 560px;
+}
+
+.kpiCard,
+.tableCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: var(--device-radius-card);
+  background: var(--device-card);
+  font-size: 12px;
+  color: color-mix(in srgb, var(--device-ink) 60%, transparent);
+}
+
+.kpiCard b {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--device-ink);
+}
+
+.tableCard {
+  width: 560px;
+  height: 120px;
+  box-sizing: border-box;
+}
+
+.cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  transition: transform 900ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.cursor svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: #fff;
+  stroke: #16171c;
+  stroke-width: 1.75;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.2));
+  transition: transform 120ms ease;
+}
+
+.cursor svg[data-pressed] {
+  transform: scale(0.82);
+}
+
+@keyframes swapIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* ---------- Third-width scenes ---------- */
+
+/* A fixed 384x280 composition scaled to the stage, as the AppLess scenes are. */
+.third {
+  --illustration-width: 100cqw;
+  --tint: color-mix(in srgb, var(--feat-ink) 8%, transparent);
+  --tint-strong: color-mix(in srgb, var(--feat-ink) 28%, transparent);
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 384px;
+  height: 280px;
+  transform-origin: 0 0;
+  transform: scale(tan(atan2(var(--illustration-width), 384px)));
+  font-family: var(--home-font-mono);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--feat-ink);
+}
+
+/* ---------- Agent: three layers, the last one new ---------- */
+
+/* Set in the page's sans, not the scene's mono: these are names, not code. */
+.layers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 232px;
+  font-family: var(--home-font-text);
+  font-size: 13px;
+}
+
+.layer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 10px 0 14px;
+  border-radius: 10px;
+  /* White in light mode; dark keeps the tint. */
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 0.06);
+  color: var(--feat-muted);
+}
+
+:global([data-theme="dark"]) .layer {
+  background: var(--tint);
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+.layerHero {
+  background: var(--feat-ink);
+  color: var(--feat-panel);
+  font-weight: 500;
+  animation: ring 2.4s ease-out infinite;
+}
+
+/* In dark the hero layer flips to white, on web and phones alike. */
+:global([data-theme="dark"]) .layerHero {
+  background: #fff;
+  color: #111317;
+}
+
+/* A few examples of each kept layer, as an overlapping stack. */
+.layerMarks {
+  display: flex;
+  padding-left: 4px;
+}
+
+.layerMark {
+  --stack-logo-size: 24px;
+  --stack-logo-glyph: 13px;
+
+  display: flex;
+  margin-left: -5px;
+  border-radius: 999px;
+}
+
+.layerIcon {
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--feat-line);
+  background: var(--feat-panel);
+  color: var(--feat-ink);
+}
+
+.layerTag {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--feat-panel) 16%, transparent);
+  font-size: 11px;
+}
+
+/* ---------- Validated: a stream checked at one gate ---------- */
+
+.flow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 148px 32px 148px;
+  align-items: center;
+  height: 88px;
+}
+
+.lane {
+  overflow: hidden;
+}
+
+.laneIn {
+  mask-image: linear-gradient(to right, transparent, #000 35%);
+}
+
+.laneOut {
+  mask-image: linear-gradient(to left, transparent, #000 35%);
+}
+
+.tokens {
+  display: flex;
+  gap: 8px;
+  width: max-content;
+  animation: flow 6s linear infinite;
+}
+
+.tokens span {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--tint-strong);
+}
+
+/* A broken token: an outline with nothing inside. */
+.tokens span[data-broken] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--tint-strong);
+}
+
+.laneOut .tokens span {
+  background: var(--feat-ink);
+}
+
+.gate {
+  position: relative;
+  justify-self: center;
+  width: 0;
+  height: 88px;
+  border-left: 1.5px dashed var(--tint-strong);
+}
+
+.gate i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8.75px;
+  border-radius: 50%;
+  background: var(--feat-ink);
+  box-shadow: 0 0 0 6px var(--tint);
+  animation: halo 2.4s ease-in-out infinite;
+}
+
+.flowLabel {
+  position: absolute;
+  color: var(--feat-muted);
+}
+
+.flowLabel[data-side="in"] {
+  bottom: -30px;
+  left: -14px;
+}
+
+.flowLabel[data-side="gate"] {
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--feat-ink);
+  font-weight: 500;
+}
+
+.flowLabel[data-side="out"] {
+  right: -14px;
+  bottom: -30px;
+}
+
+/* ---------- Safety: requests checked at your registry ---------- */
+
+.sieve {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 316px;
+}
+
+/* pill | trail | gate | trail | tile */
+.sieveRow {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 24px minmax(0, 1fr) 32px;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.sievePill {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  /* White in light mode; dark keeps the tint. */
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 0.06);
+  color: var(--feat-ink);
+}
+
+:global([data-theme="dark"]) .sievePill {
+  background: var(--tint);
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+/* The AppLess caret run, sweeping toward the tile. */
+.trail {
+  display: flex;
+  justify-content: space-between;
+  color: var(--feat-ink);
+}
+
+.trail svg {
+  animation: sweep 2.4s ease-in-out infinite;
+  animation-delay: calc(var(--t) * 0.12s);
+}
+
+/* The dashed gate runs down the middle column, behind every row: the pill,
+   a gap, one trail and a gap, then half the 24px gate column. */
+.sieveGate,
+.sieveLabel {
+  position: absolute;
+  left: calc(112px + 8px + (316px - 112px - 24px - 32px - 32px) / 2 + 8px + 12px);
+}
+
+.sieveGate {
+  top: -8px;
+  bottom: -8px;
+  border-left: 1.5px dashed var(--tint-strong);
+}
+
+.sieveLabel {
+  top: -30px;
+  color: var(--feat-ink);
+  font-weight: 500;
+  transform: translateX(-50%);
+}
+
+.sieveStop {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  height: 24px;
+}
+
+.sieveStop svg {
+  box-sizing: content-box;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--stage-stroke);
+  color: var(--feat-ink);
+}
+
+/* What runs, as a bit: 1 for a registered request, 0 for a blocked one. */
+.sieveTile {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--feat-ink);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--feat-panel);
+}
+
+/* A blocked request: muted, its trail stops at the gate, nothing runs. */
+.sieveRow[data-blocked] .sievePill {
+  color: var(--feat-muted);
+}
+
+.sieveRow[data-blocked] .sieveTile {
+  color: var(--feat-muted);
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--tint-strong);
+}
+
+@keyframes sweep {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  40% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--feat-ink) 28%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+@keyframes halo {
+  0%,
+  100% {
+    box-shadow: 0 0 0 6px var(--tint);
+  }
+  50% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+@keyframes flow {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .third *,
+  .filterLabel,
+  .swap {
+    animation: none !important;
+  }
+
+  .dashBar {
+    transition: none;
+  }
+}

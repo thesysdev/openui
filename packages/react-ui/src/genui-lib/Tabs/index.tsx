@@ -1,6 +1,11 @@
 "use client";
 
-import { ComponentRenderProps, defineComponent, type SubComponentOf } from "@openuidev/react-lang";
+import {
+  ComponentRenderProps,
+  defineComponent,
+  useIsStreaming,
+  type SubComponentOf,
+} from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod/v4";
 import {
@@ -27,9 +32,10 @@ type TabsRenderProps = ComponentRenderProps<{
 /** Shared renderer — also used by the chat library's Tabs variant (wider content union). */
 export const TabsRenderer = ({ props, renderNode }: TabsRenderProps) => {
   const items = (props.items ?? []).filter((item) => item?.props?.value != null);
+  const isStreaming = useIsStreaming();
   const [activeTab, setActiveTab] = React.useState("");
   const userHasInteracted = React.useRef(false);
-  const prevContentSizes = React.useRef<Record<string, number>>({});
+  const prevContentSizes = React.useRef<Record<string, number> | null>(null);
 
   React.useEffect(() => {
     const first = items[0];
@@ -41,21 +47,24 @@ export const TabsRenderer = ({ props, renderNode }: TabsRenderProps) => {
   React.useEffect(() => {
     if (userHasInteracted.current) return;
 
+    // Follow the tab the model is writing into, and only while it streams: on
+    // the first pass every tab has "grown" from nothing, and after the stream a
+    // Query resolving inside another tab grows it without the model writing.
+    const baseline = prevContentSizes.current;
     let candidate: string | null = null;
     const nextSizes: Record<string, number> = {};
 
     for (const item of items) {
       const size = JSON.stringify(item.props.content).length;
-      const prevSize = prevContentSizes.current[item.props.value] ?? 0;
       nextSizes[item.props.value] = size;
-      if (size > prevSize) {
+      if (size > (baseline?.[item.props.value] ?? 0)) {
         candidate = item.props.value;
       }
     }
 
     prevContentSizes.current = nextSizes;
 
-    if (candidate && candidate !== activeTab) {
+    if (baseline && isStreaming && candidate && candidate !== activeTab) {
       setActiveTab(candidate);
     }
   });

@@ -32,6 +32,9 @@ const createFunnelSteps = {
 
 type CreateFunnelStep = keyof typeof createFunnelSteps;
 
+/** What is being scaffolded: a template (with its AI setup) or an example. */
+export type ScaffoldTelemetryProps = { template?: string; ai_setup?: string; example?: string };
+
 function createFunnelProps(stepKey: CreateFunnelStep): Record<string, string> {
   return {
     ...createFunnel,
@@ -67,6 +70,27 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_create_started", { ...createFunnelProps("create_started"), ...props });
   }
 
+  // Plain events, not funnel steps, so the create funnel stays as dashboards define it.
+
+  /** Template + example catalogs downloaded; `duration_ms` is the wait before the first prompt. */
+  trackCatalogLoaded(props: { duration_ms: number }) {
+    this.capture("cli_catalog_loaded", props);
+  }
+
+  trackProjectNameSelected(props: { name_source: "arg" | "prompt" | "default" | "current_dir" }) {
+    this.capture("cli_project_name_selected", props);
+  }
+
+  /** The selected template finished cloning; `duration_ms` is the wait inside "Scaffolding...". */
+  trackTemplateCloned(props: { template: string; duration_ms: number }) {
+    this.capture("cli_template_cloned", props);
+  }
+
+  /** Same as `cli_template_cloned`, for an example's source. */
+  trackExampleCloned(props: { example: string; duration_ms: number }) {
+    this.capture("cli_example_cloned", props);
+  }
+
   trackAiSetupSelected(props: { template: string; ai_setup: string }) {
     this.capture("cli_ai_setup_selected", { ...createFunnelProps("ai_setup_selected"), ...props });
   }
@@ -85,7 +109,7 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_example_selected", { ...createFunnelProps("example_selected"), ...props });
   }
 
-  trackEnvResolutionStarted(props: { template?: string; ai_setup?: string; example?: string }) {
+  trackEnvResolutionStarted(props: ScaffoldTelemetryProps) {
     this.capture("cli_env_resolution_started", {
       ...createFunnelProps("env_resolution_started"),
       ...props,
@@ -100,7 +124,7 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_immediate_selected", props);
   }
 
-  trackScaffoldStarted(props: { template?: string; ai_setup?: string; example?: string }) {
+  trackScaffoldStarted(props: ScaffoldTelemetryProps) {
     this.capture("cli_scaffold_started", { ...createFunnelProps("scaffold_started"), ...props });
   }
 
@@ -108,7 +132,7 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_scaffold_failed", { ...createFunnelProps("scaffold_failed"), ...props });
   }
 
-  trackScaffoldSucceeded(props: { template?: string; ai_setup?: string; example?: string }) {
+  trackScaffoldSucceeded(props: ScaffoldTelemetryProps) {
     this.capture("cli_scaffold_succeeded", {
       ...createFunnelProps("scaffold_succeeded"),
       ...props,
@@ -131,6 +155,11 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_dev_command_started", props);
   }
 
+  /** The dev server answered and the CLI tried to open it in the browser. */
+  trackDevServerReady(props: { time_to_ready_ms: number; browser_opened: boolean }) {
+    this.capture("cli_dev_server_ready", props);
+  }
+
   trackDevCommandStopped(props: {
     package_manager: string;
     duration_ms: number;
@@ -148,7 +177,15 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_cloud_auth_started", createFunnelProps("cloud_auth_started"));
   }
 
-  trackCloudAuthMethod(props: { auth_method: string; auth_succeeded: boolean }) {
+  trackCloudAuthMethod(props: {
+    auth_method: string;
+    auth_succeeded: boolean;
+    /**
+     * Why sign-in was skipped: `non_interactive`, `key_in_env`, `declined` (Esc)
+     * or `cancelled` (Ctrl+C).
+     */
+    skip_reason?: string;
+  }) {
     this.capture("cli_cloud_auth_method", {
       ...createFunnelProps("cloud_auth_resolved"),
       ...props,
@@ -170,18 +207,16 @@ export class CreateTelemetryClient extends Telemetry {
     this.capture("cli_dependency_install_skipped", props);
   }
 
-  trackDependencyInstallStarted(props: { template: string; ai_setup: string }) {
+  trackDependencyInstallStarted(props: ScaffoldTelemetryProps) {
     this.capture("cli_dependency_install_started", {
       ...createFunnelProps("dependency_install_started"),
       ...props,
     });
   }
 
-  trackDependencyInstallSucceeded(props: {
-    template: string;
-    ai_setup: string;
-    dependency_installed: boolean;
-  }) {
+  trackDependencyInstallSucceeded(
+    props: ScaffoldTelemetryProps & { dependency_installed: boolean },
+  ) {
     this.capture("cli_dependency_install_succeeded", {
       ...createFunnelProps("dependency_install_succeeded"),
       ...props,

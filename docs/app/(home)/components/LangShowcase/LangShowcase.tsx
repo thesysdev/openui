@@ -30,12 +30,12 @@ type Agent = {
 const AGENTS: Agent[] = [
   {
     id: "f1",
-    label: "F1",
+    label: "F1 AI Insights",
     mascot: "/homepage/shiro/shiro-f1.svg",
     mascotAlt: "Shiro in a racing helmet",
     demo: SITE_NAV_LINKS.f1Dashboard.href,
     answer: {
-      src: "/homepage/agents/f1-answer.gif",
+      src: "/homepage/agents/f1-answer.mp4",
       playMs: 10920,
       alt: "The F1 agent's answer: Antonelli against Russell on points, wins and podiums, the Mercedes drivers' standings, and follow-up questions.",
       width: 1100,
@@ -44,12 +44,12 @@ const AGENTS: Agent[] = [
   },
   {
     id: "travel",
-    label: "Travel",
+    label: "Travel Concierge",
     mascot: "/homepage/shiro/shiro-travel.svg",
     mascotAlt: "Shiro in a bucket hat",
     demo: SITE_NAV_LINKS.tripPlanner.href,
     answer: {
-      src: "/homepage/agents/travel-kyoto-november.gif",
+      src: "/homepage/agents/travel-kyoto-november.mp4",
       playMs: 4680,
       alt: "The Travel agent's answer streaming in: Kyoto in November, taken slowly, with temple and garden picks and three November date windows to choose from.",
       width: 1100,
@@ -63,7 +63,7 @@ const AGENTS: Agent[] = [
     mascotAlt: "Shiro the woodworker",
     demo: SITE_NAV_LINKS.openIntelligentUi.href,
     answer: {
-      src: "/homepage/agents/ikea-kallax.gif",
+      src: "/homepage/agents/ikea-kallax.mp4",
       playMs: 14250,
       alt: "The Intelligent UI answer streaming in: a step-by-step KALLAX guide with an exploded drawing of the shelf, a view toggle and a slider to separate the parts.",
       width: 1100,
@@ -77,7 +77,7 @@ const HOLD_MS = 3000;
 export function LangShowcase() {
   const [open, setOpen] = useState("f1");
   /* Counts openings, so a recording starts from its first frame each time its
-     panel opens: the GIFs play once and hold on their last frame. */
+     panel opens: the recordings play once and hold on their last frame. */
   const [plays, setPlays] = useState(0);
   /* The recordings load only once the band is on screen, so the first one
      plays where it can be seen rather than finishing above the fold. */
@@ -175,27 +175,28 @@ export function LangShowcase() {
             <div id={`agent-${agent.id}`} className={styles.card} aria-hidden={!isOpen}>
               {seen && isOpen && agent.answer && (
                 <div className={styles.answerClip}>
-                  <Image
+                  {/* Remounting on each opening restarts the recording from its
+                      first frame, served from the browser cache: no new download. */}
+                  <video
+                    key={plays}
                     className={styles.answer}
-                    src={
-                      agent.answer.src.endsWith(".gif")
-                        ? `${agent.answer.src}?play=${plays}`
-                        : agent.answer.src
-                    }
-                    alt={agent.answer.alt}
+                    src={agent.answer.src}
+                    aria-label={agent.answer.alt}
                     width={agent.answer.width}
                     height={agent.answer.height}
-                    sizes="(max-width: 767px) 80vw, 720px"
-                    /* A recording plays only as the original file. */
-                    unoptimized={agent.answer.src.endsWith(".gif")}
+                    autoPlay
+                    muted
+                    playsInline
+                    preload="auto"
                   />
                 </div>
               )}
             </div>
             {isOpen && (
               <div className={styles.demo}>
+                {/* Inverts with the theme: black on light pages, white on dark. */}
                 <BevelButton
-                  variant="secondary"
+                  variant="primary"
                   href={agent.demo}
                   label={agent.cta ?? "View demo"}
                   external

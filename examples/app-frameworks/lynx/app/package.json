@@ -1,0 +1,43 @@
+{
+  "name": "openui-lynx-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rspeedy dev",
+    "build": "rspeedy build",
+    "preview": "rspeedy preview",
+    "typecheck": "tsc -b",
+    "verify": "tsc -b && rspeedy build"
+  },
+  "dependencies": {
+    "@lynx-js/genui": "0.7.2",
+    "@lynx-js/luna-styles": "0.2.2",
+    "@lynx-js/lynx-ui": "3.141.0",
+    "@lynx-js/react": "0.129.1"
+  },
+  "devDependencies": {
+    "@lynx-js/config-rsbuild-plugin": "0.2.5",
+    "@lynx-js/qrcode-rsbuild-plugin": "0.7.3",
+    "@lynx-js/react-rsbuild-plugin": "0.22.1",
+    "@lynx-js/rspeedy": "0.18.4",
+    "@lynx-js/types": "4.4.2",
+    "@rsbuild/plugin-type-check": "1.6.1",
+    "@types/node": "^22.20.5",
+    "@types/react": "^18.3.28",
+    "typescript": "~6.0.3"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver"
+    ]
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "unrs-resolver": true
+  }
+}

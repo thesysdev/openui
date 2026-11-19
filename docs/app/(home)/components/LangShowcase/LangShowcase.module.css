@@ -22,7 +22,10 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  border-radius: 24px;
+  /* Same radius as the compatibility module's frame. */
+  border-radius: 20px;
+  /* Keep composited dither and animated cards inside the rounded frame in Safari. */
+  clip-path: inset(0 round 20px);
   isolation: isolate;
   transition: flex 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -41,6 +44,27 @@
 .dither > * {
   width: 100%;
   height: 100%;
+}
+
+/* Towards the bottom the panel dissolves into its own fill. In front of the
+   dither and the answer card (but under the View demo button), so the whole
+   lower edge fades, not just the pattern. */
+.panel::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 0 0;
+  height: 22%;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--accent) var(--tint-mix), #fff)
+  );
+}
+
+:global([data-theme="dark"]) .panel::after {
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 18%, #000));
 }
 
 /* ...tinted from the Shiro, except F1, which takes the faint teal of its
@@ -136,8 +160,7 @@
   transform: translate(-50%, 0);
 }
 
-/* Just the pill, lifted off the fade by a soft shadow: no bevel ring or
-   edge around it. */
+/* Just the pill, lifted off the content by a soft shadow: no ring or edge. */
 .demo > a {
   border-color: transparent;
   box-shadow:
@@ -216,29 +239,6 @@
   scale: 1.02;
 }
 
-/* A deeper fade over the card's lower part on hover, so the button reads. */
-.card::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 55%;
-  background: linear-gradient(to bottom, transparent, var(--ls-surface) 70%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 300ms ease;
-}
-
-.panelOpen:hover .card::after,
-.panelOpen:focus-within .card::after {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .card::after {
-    opacity: 1;
-  }
-}
-
 .panelOpen .card {
   display: block;
   animation: enter 420ms 120ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
@@ -247,8 +247,6 @@
 .answerClip {
   height: 100%;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 92%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 92%);
 }
 
 .answer {
@@ -275,12 +273,12 @@
   }
 }
 
-/* ── Phones: the panels stack, the closed two as short rows. The stack
-   bleeds a little into the band's side padding (16px gutters, matching the
-   hero demo), and everything in it is smaller, so the open answer reads like a zoomed-out page. ── */
+/* ── Phones: the panels stack, the closed two as short rows. Keep the same
+   gutters as the product CTAs above. Everything inside is smaller, so the
+   open answer reads like a zoomed-out page. ── */
 @media (max-width: 767px) {
   .showcase {
-    inset: 0 -0.25rem;
+    inset: 0;
     flex-direction: column;
     gap: 0.375rem;
   }
@@ -288,6 +286,7 @@
   .panel {
     flex: 0 0 3rem;
     border-radius: 16px;
+    clip-path: inset(0 round 16px);
   }
 
   /* No dither on phones: just the flat tint. */

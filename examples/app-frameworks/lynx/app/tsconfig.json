@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./src" }],
+  "files": []
+}

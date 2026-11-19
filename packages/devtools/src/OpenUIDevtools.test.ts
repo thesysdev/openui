@@ -347,6 +347,40 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).toContain("Orphaned: unused");
   });
 
+  it("marks a stream whose Renderer unmounted before it settled", () => {
+    render({ enabled: true, errorsOnly: false });
+
+    act(() =>
+      observability.info({
+        kind: "react-lang:stream",
+        id: "stream-1",
+        phase: "streaming",
+        updateIndex: 1,
+        response: "root = Car",
+        startedAt: Date.now() - 1500,
+      }),
+    );
+    expect(container.textContent).toContain("Streaming");
+
+    act(() =>
+      observability.warn({
+        kind: "react-lang:stream",
+        id: "stream-1",
+        phase: "unmounted",
+        updateIndex: 2,
+        response: "root = Car",
+        startedAt: Date.now() - 1500,
+        durationMs: 1500,
+        message: "Stream interrupted",
+      }),
+    );
+
+    expect(container.textContent?.match(/OpenUI Lang stream/g)).toHaveLength(1);
+    expect(container.textContent).not.toContain("Streaming");
+    expect(container.textContent).toContain("Interrupted");
+    expect(container.textContent).toContain("1.5s");
+  });
+
   it("replaces a stream update with its settled diagnostics", () => {
     render({ enabled: true, errorsOnly: false });
 

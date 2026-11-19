@@ -38,10 +38,37 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Side by side, the two panels share one grey ground, split by a hairline
+   down the middle that fades out towards the bottom. */
 @container sc (min-width: 720px) {
   .root:not(.rootSingle) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 0.5em;
+  }
+
+  .root:not(.rootSingle):not([data-left-phones]) {
+    position: relative;
+    column-gap: 0;
+    border-radius: 1.5em;
+    background: var(--sc-panel-bg);
+  }
+
+  .root:not(.rootSingle):not([data-left-phones])::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 1.5em;
+    left: 50%;
+    width: 1px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.12), transparent);
+    pointer-events: none;
+  }
+
+  [data-theme="dark"] .root:not(.rootSingle):not([data-left-phones])::after {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.14), transparent);
+  }
+
+  .root:not(.rootSingle):not([data-left-phones]) .panel {
+    background: none;
   }
 }
 
@@ -63,14 +90,19 @@
   background: var(--sc-panel-bg);
 }
 
-/* Phones: a small, scaled-down "Without" panel up top, with the full-size
-   "With OpenUI" panel overlapping its lower half, as the old hero art did. */
+/* Phones: the web-size "Without" panel scaled down (not reflowed), centred
+   and tucked behind the full-size "With OpenUI" panel. Both sizes are
+   fixed, and each panel clips its screen inside its own device. */
 @container sc (max-width: 719px) {
   .root {
     --sc-small-height: 30em;
     --sc-small-scale: 0.62;
-    --sc-height: 61em;
+    --sc-height: 56em;
     gap: 0;
+  }
+
+  .panel {
+    overflow: hidden;
   }
 
   .root:not(.rootSingle) .panel:first-child {
@@ -79,15 +111,14 @@
     justify-self: center;
     transform: scale(var(--sc-small-scale));
     transform-origin: top center;
-    /* Give back the space the scale-down frees, then tuck the big panel up
-       over the bottom of the small one. */
-    margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 7em);
+    /* Collapse the space the scale frees, then tuck the big panel up over
+       the small one. */
+    margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 9em);
   }
 
   .root:not(.rootSingle) .panel:last-child {
     position: relative;
     z-index: 1;
-    box-shadow: 0 -12px 40px -16px rgba(0, 0, 0, 0.25);
   }
 }
 
@@ -136,34 +167,24 @@
   );
 }
 
-/* The user's message: a bubble on the right, sized to its text. */
+/* The user's message: a bubble on the left with a subtle fill and no
+   stroke, the same on both sides. */
 .prompt {
   flex-shrink: 0;
-  align-self: flex-end;
+  align-self: flex-start;
   max-width: 80%;
   margin-top: 0.75em;
   padding: 0.55em 1.1em;
-  border-radius: 1.25em;
-  background: #000;
-  color: #fff;
+  /* 1.231em at the root scale, the response card's radius, restated against
+     this bubble's own 0.9375em font so the two compute to the same 16px. */
+  border-radius: 1.313em;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--sc-text);
   font-size: 0.9375em;
 }
 
 [data-theme="dark"] .prompt {
-  background: #fff;
-  color: #000;
-}
-
-/* The "Without" side stays quiet: an outlined bubble, so the eye goes to
-   the "With OpenUI" side. */
-.panel:not(.panelAccent) .prompt {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: transparent;
-  color: var(--sc-text);
-}
-
-[data-theme="dark"] .panel:not(.panelAccent) .prompt {
-  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .body {
@@ -175,11 +196,12 @@
   mask-image: linear-gradient(to bottom, #000 92%, transparent);
 }
 
+/* No fill of its own on either side; the cards and charts inside carry
+   their own surfaces. */
 .response {
   min-height: 100%;
   padding: 1.25em 1.25em 1.5em;
   border-radius: 1em 1em 0 0;
-  background: var(--sc-surface);
   opacity: 0;
   transform: translateY(8px);
   transition:
@@ -193,6 +215,19 @@
 }
 
 /* ── Text ── */
+
+/* The "Without" answer is plain text on its own surface; the body rests in
+   the secondary colour so the generated UI beside it carries the contrast,
+   while its titles stay in the primary colour. */
+.root:not(.rootSingle) .panel:first-child .response {
+  background: var(--sc-surface);
+  color: var(--sc-muted);
+}
+
+.root:not(.rootSingle) .panel:first-child .heading,
+.root:not(.rootSingle) .panel:first-child .subheading {
+  color: var(--sc-text);
+}
 
 .heading {
   margin: 0 0 0.5em;
@@ -401,6 +436,379 @@
   color: #000;
 }
 
+/* Poster cards: square, filled with the photo, two and a half across so
+   the third runs off the right edge. The text sits on a white panel inset
+   at the foot, its radius concentric with the card's. */
+.posterCard {
+  position: relative;
+  flex: 0 0 calc((100% - 1.5em) / 2.5);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 1.077em;
+  background: var(--sc-panel-bg);
+}
+
+.posterImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.posterPanel {
+  position: absolute;
+  right: 0.5em;
+  bottom: 0.5em;
+  left: 0.5em;
+  padding: 0.625em 0.75em 0.7em;
+  border-radius: 0.577em;
+  background: var(--sc-surface);
+  box-shadow: 0 4px 16px -6px rgba(0, 0, 0, 0.18);
+}
+
+.posterPanel .cardTitle {
+  margin: 0;
+}
+
+/* Two lines at most, so every panel stands the same height. */
+.posterDescription {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0.3em 0 0;
+  color: var(--sc-muted);
+  font-size: 0.8125em;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.posterRating {
+  white-space: nowrap;
+}
+
+.posterRating > svg {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.2em;
+  vertical-align: -0.08em;
+  fill: #f59e0b;
+  stroke: none;
+}
+
+/* The price level: the paid symbols in green, the rest faint. */
+.priceLevel {
+  color: color-mix(in oklch, var(--sc-muted) 45%, transparent);
+  font-weight: 560;
+  font-variation-settings: "wght" 560;
+  letter-spacing: 0.02em;
+}
+
+.priceLevel > b {
+  color: #16a34a;
+  font-weight: inherit;
+}
+
+[data-theme="dark"] .priceLevel > b {
+  color: #4ade80;
+}
+
+/* The tag on the photo's top left, opaque so it reads on any image: each
+   tone's tint mixed into white rather than laid over the photo. */
+.posterBadge {
+  position: absolute;
+  top: 0.5em;
+  left: 0.5em;
+  margin: 0;
+}
+
+.panelAccent .posterBadge.badge_green {
+  background: color-mix(in srgb, #16a34a 14%, #fff);
+}
+
+.panelAccent .posterBadge.badge_purple {
+  background: color-mix(in srgb, #8b5cf6 14%, #fff);
+}
+
+.panelAccent .posterBadge.badge_blue {
+  background: color-mix(in srgb, #3b82f6 14%, #fff);
+}
+
+.panelAccent .posterBadge.badge_amber {
+  background: color-mix(in srgb, #f59e0b 16%, #fff);
+}
+
+/* Dark: the same tints mixed into a near-black surface, still opaque. */
+[data-theme="dark"] .panelAccent .posterBadge.badge_green {
+  background: color-mix(in srgb, #16a34a 26%, #18181b);
+}
+
+[data-theme="dark"] .panelAccent .posterBadge.badge_purple {
+  background: color-mix(in srgb, #8b5cf6 26%, #18181b);
+}
+
+[data-theme="dark"] .panelAccent .posterBadge.badge_blue {
+  background: color-mix(in srgb, #3b82f6 26%, #18181b);
+}
+
+[data-theme="dark"] .panelAccent .posterBadge.badge_amber {
+  background: color-mix(in srgb, #f59e0b 24%, #18181b);
+}
+
+/* A round black button with an arrow, top right of the photo. */
+.posterGo {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  display: grid;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  border-radius: 999px;
+  background: var(--sc-surface);
+  color: var(--sc-text);
+}
+
+.posterGo > svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* Info tiles: three small cards, each an icon on a tinted tile beside a
+   label and its value. The tint carries the meaning. */
+.infoTiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.615em;
+  margin: 0.25em 0 0.875em;
+}
+
+/* Compact: the icon tile, padded evenly on its three outer sides, then
+   its value, with a little more room at the open end. */
+.infoTile {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 0;
+  padding: 0.35em 0.75em 0.35em 0.35em;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 0.75em;
+  background: var(--sc-surface);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.04);
+}
+
+.infoTileIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.85em;
+  height: 1.85em;
+  border-radius: 0.45em;
+}
+
+.infoTileIcon > svg {
+  width: 1em;
+  height: 1em;
+}
+
+.infoTileIcon[data-tone="yellow"] {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.infoTileIcon[data-tone="blue"] {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.infoTileIcon[data-tone="green"] {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.infoTileIcon[data-tone="pink"] {
+  background: #fce7f3;
+  color: #db2777;
+}
+
+.infoTileText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  min-width: 0;
+}
+
+.infoTileText > span {
+  color: var(--sc-muted);
+  font-size: 0.75em;
+}
+
+.infoTileText > b {
+  overflow: hidden;
+  font-size: 0.875em;
+  font-weight: 560;
+  font-variation-settings: "wght" 560;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .infoTile {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+/* Dark keeps each tone's colour: its tint over the dark card, its icon in
+   a lighter shade of the same hue. */
+[data-theme="dark"] .infoTileIcon[data-tone="yellow"] {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+
+[data-theme="dark"] .infoTileIcon[data-tone="blue"] {
+  background: rgba(59, 130, 246, 0.22);
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .infoTileIcon[data-tone="green"] {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+[data-theme="dark"] .infoTileIcon[data-tone="pink"] {
+  background: rgba(236, 72, 153, 0.2);
+  color: #f9a8d4;
+}
+
+/* The featured item, as a card filled with its photo, the text on a white
+   panel inset on the right, over the photo's open sky. Its radius is
+   concentric with the card's. */
+.feature {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.25em 0 1em;
+  padding: 0.5em;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 1.077em;
+  background: var(--sc-panel-bg);
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.04),
+    0 4px 16px -4px oklch(0 0 0 / 0.08);
+}
+
+[data-theme="dark"] .feature {
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+.featureBadge {
+  margin: 0 0 0.5em;
+}
+
+/* The photo under everything. It is pre-cropped (and flipped) so the
+   building stands on the left and the panel covers sky. */
+.featureImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 30% 50%;
+}
+
+.featureBody {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 36%;
+  min-width: 0;
+  padding: 0.75em 0.875em 0.875em;
+  border-radius: 0.577em;
+  background: var(--sc-surface);
+  box-shadow: 0 4px 16px -6px rgba(0, 0, 0, 0.18);
+}
+
+.featureTitle {
+  margin: 0;
+  font-size: 1.125em;
+  font-weight: 560;
+  font-variation-settings: "wght" 560;
+  letter-spacing: -0.01em;
+}
+
+.featureRating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  margin-top: 0.35em;
+  color: var(--sc-muted);
+  font-size: 0.8125em;
+}
+
+.featureRating > svg {
+  width: 1em;
+  height: 1em;
+  fill: #f59e0b;
+  stroke: none;
+}
+
+.featureRating > b {
+  color: var(--sc-text);
+  font-weight: 560;
+  font-variation-settings: "wght" 560;
+}
+
+.featureDescription {
+  margin: 0.5em 0 0;
+  color: var(--sc-muted);
+  font-size: 0.875em;
+  line-height: 1.55;
+}
+
+.featureTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  margin-top: 0.625em;
+}
+
+.featureTags > span {
+  padding: 0.25em 0.65em;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  font-size: 0.75em;
+}
+
+[data-theme="dark"] .featureTags > span {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.featureFoot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5em;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 0.75em;
+}
+
+/* Book spans the panel. */
+.featureFoot .cardAction {
+  justify-content: center;
+  padding-block: 0.5em;
+}
+
+.featurePrice {
+  font-size: 0.875em;
+  font-weight: 560;
+  font-variation-settings: "wght" 560;
+}
+
 /* Photo mosaic: one large image on the left, the rest in a 2x2 tile. */
 .gallery {
   display: grid;
@@ -509,6 +917,7 @@
    sizes. Variable Inter: Regular 440, Medium 560, -1% tracking. */
 .panelAccent .response {
   border-radius: 1.231em 1.231em 0 0;
+  background: var(--sc-surface);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
   font-variation-settings: "wght" 440;
   letter-spacing: -0.01em;
@@ -642,6 +1051,15 @@
   font-variation-settings: "wght" 420;
 }
 
+/* A bare answer brings its own frame, so the sheet steps aside: no fill,
+   no ring, no inset. */
+.panelAccent .response.responseBare,
+[data-theme="dark"] .panelAccent .response.responseBare {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 [data-theme="dark"] .panelAccent .card {
   border-color: rgba(255, 255, 255, 0.06);
   box-shadow: none;
@@ -749,7 +1167,7 @@
   color: #b91c1c;
 }
 
-/* ── Charts: no card, split from their neighbours by dashed rules ── */
+/* ── Charts: no card, split from their neighbours by hairline rules ── */
 .chart {
   margin: 0 0 1em;
   padding: 0;
@@ -758,18 +1176,36 @@
 .response > .chart,
 .response > .split {
   padding-top: 1em;
-  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .split > .splitColumn + .splitColumn {
   padding-left: 1em;
-  border-left: 1px dashed rgba(0, 0, 0, 0.12);
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 [data-theme="dark"] .response > .chart,
 [data-theme="dark"] .response > .split,
 [data-theme="dark"] .split > .splitColumn + .splitColumn {
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* A chart's caption row: the title, with its legend at the right end. The
+   row takes the title's spacing below it. */
+.chartHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  margin-bottom: 0.9em;
+}
+
+.chartHead > .chartTitle {
+  margin-bottom: 0;
+}
+
+.chartHead > .legend {
+  margin-top: 0;
 }
 
 .chartTitle {
@@ -941,23 +1377,38 @@
   width: fit-content;
   max-width: 100%;
   margin: 1.25rem auto 0;
-  padding: 0.25rem;
+  padding: 0.375rem;
   overflow-x: auto;
-  border: 1px solid var(--openui-border-default, rgba(0, 0, 0, 0.08));
+  /* The demo device's edge: its hairline ring and 1px-spread blur exactly,
+     and its drop shadow scaled down to the bar's height, since a 40px blur
+     on something this short all but vanishes. */
+  border: 1px solid transparent;
   border-radius: 999px;
   background: var(--openui-foreground, #fff);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 1px 2px 1px rgba(0, 0, 0, 0.04),
+    0 8px 20px -6px rgba(0, 0, 0, 0.12);
   scrollbar-width: none;
 }
 
+[data-theme="dark"] .tabs {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 8px 20px -6px rgba(0, 0, 0, 0.55);
+}
+
 .tab {
+  position: relative;
   flex-shrink: 0;
-  padding: 0.5rem 1.125rem;
+  overflow: hidden;
+  padding: 0.25rem 0.875rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--openui-text-neutral-secondary, rgba(0, 0, 0, 0.5));
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -972,11 +1423,45 @@
 .tabActive {
   background: var(--openui-background, #f4f4f4);
   color: var(--openui-text-neutral-primary, #111);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] .tabActive {
   background: #1f1f22;
+}
+
+/* The active tab fills left to right while its example plays: a white layer
+   on difference blend, so the covered part reads black in light mode and
+   white in dark without a second set of colours. animationend on the button
+   then opens the next tab, so this duration is the cycle's one source of
+   truth. Hovering or tabbing into the bar holds it; hosts can also hold it
+   through --tab-fill-play. */
+.tabActive {
+  isolation: isolate;
+}
+
+.tabActive::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  animation: tabFill 8s linear forwards;
+  animation-play-state: var(--tab-fill-play, running);
+}
+
+@keyframes tabFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabActive::before {
+    animation: none;
+  }
 }
 
 @media (max-width: 767px) {
@@ -1003,8 +1488,9 @@
   height: 1em;
 }
 
-.metricValue .metricChange {
+.metricLabel .metricChange {
   margin-left: 0.4em;
+  font-size: 1em;
 }
 
 /* ── Grouped bars ── */
@@ -1059,13 +1545,46 @@
   flex: 1;
   align-items: flex-end;
   justify-content: center;
-  gap: 0.2em;
+  gap: 0.25em;
   width: 100%;
 }
 
+/* Stacked charts run dense (a column a week), so columns sit close and each
+   label may spill past its narrow column, centred on it. */
+.stackGroups {
+  gap: 3px;
+}
+
+.stackLabel {
+  overflow: visible;
+  max-width: none;
+}
+
+/* A stacked column: layers bottom-up in series order, split by a thin line
+   of the surface showing through, rounded at the top and square on the
+   baseline. It fills its column, up to a cap for sparse charts. */
+.stack {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1px;
+  width: 100%;
+  max-width: 0.45em;
+  overflow: hidden;
+  border-radius: 0.2em 0.2em 0 0;
+  transform-origin: bottom;
+  animation: scGrow 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stackSegment {
+  flex-basis: 0;
+  min-height: 0;
+}
+
+/* Rounded at the top, square on the baseline. */
 .groupBar {
-  width: 0.45em;
-  border-radius: 999px 999px 0 0;
+  width: 0.5em;
+  border-radius: 0.2em 0.2em 0 0;
   transform-origin: bottom;
   animation: scGrow 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -1116,9 +1635,51 @@
 }
 
 .donut {
-  width: 10em;
-  height: 10em;
+  width: 12.5em;
+  height: 12.5em;
   flex-shrink: 0;
+  overflow: visible;
+}
+
+/* The disc in the donut's hole: the surface colour edged by a hairline. */
+.donutCenter {
+  fill: var(--sc-surface);
+  stroke: rgba(0, 0, 0, 0.06);
+  stroke-width: 0.5;
+}
+
+[data-theme="dark"] .donutCenter {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+/* The figure set in the hole: value over its label. */
+.donutRow {
+  position: relative;
+}
+
+.donutFigure {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.donutFigure b {
+  font-size: 1.25em;
+  font-weight: 560;
+  font-variation-settings: "wght" 560;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.donutFigure span {
+  color: var(--sc-muted);
+  font-size: 0.6875em;
 }
 
 .legendColumn {
@@ -1149,8 +1710,80 @@
   );
 }
 
-.areaFill {
-  fill: rgba(79, 70, 229, 0.12);
+/* The ticks beside the plot, the plot over its year labels. */
+.areaPlot {
+  display: flex;
+  gap: 0.5em;
+}
+
+/* The ticks span the plot's 10em (restated in their own 0.6875em font),
+   plus a line, pulled out by half a line at each end, so every label is
+   centred on its gridline. */
+.areaPlot > .yTicks {
+  height: calc(10em / 0.6875 + 1lh);
+  margin-block: -0.5lh;
+  padding-bottom: 0;
+}
+
+.areaBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.areaCanvas {
+  position: relative;
+}
+
+/* The second line on a trend: lighter, unfilled, under the main line. */
+.areaCompare {
+  fill: none;
+  stroke: #a5b4fc;
+  stroke-width: 1.5;
+}
+
+/* The fill fades out towards the axis. */
+.areaFadeTop {
+  stop-color: #4f46e5;
+  stop-opacity: 0.18;
+}
+
+.areaFadeBottom {
+  stop-color: #4f46e5;
+  stop-opacity: 0;
+}
+
+.areaDot {
+  position: absolute;
+  width: 0.6em;
+  height: 0.6em;
+  border: 2px solid var(--sc-surface);
+  border-radius: 999px;
+  background: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.25);
+  transform: translate(-50%, -50%);
+}
+
+/* A chip over one point of the line, calling out its value. */
+.areaChip {
+  position: absolute;
+  padding: 0.25em 0.6em;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.6875em;
+  font-weight: 560;
+  font-variation-settings: "wght" 560;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 0.9em));
+}
+
+.areaChipEnd {
+  transform: translate(calc(-100% + 0.5em), calc(-100% - 0.9em));
+}
+
+[data-theme="dark"] .areaChip {
+  background: rgba(129, 140, 248, 0.16);
+  color: #c7d2fe;
 }
 
 .areaLine {
@@ -1202,44 +1835,150 @@
   min-width: 0;
 }
 
-/* ── Form: sits straight in the answer, grouped by spacing ── */
+/* ── Form: groups split by hairlines, then the buttons ──
+   Controls are filled pills with no stroke, all one height (2.85em of the
+   0.875em control size); a pick is white raised on the fill, or black for
+   chips. Labels sit bold above, hints muted below. */
 .form {
+  --sc-form-fill: rgba(0, 0, 0, 0.045);
+  --sc-form-edge: rgba(0, 0, 0, 0.08);
+  --sc-form-rule: rgba(0, 0, 0, 0.07);
+  --sc-form-raised: #fff;
+  --sc-form-ink: #000;
+  container: sc-form / inline-size;
   display: flex;
   flex-direction: column;
-  gap: 1.15em;
+  gap: 1.54em;
+}
+
+[data-theme="dark"] .form {
+  --sc-form-fill: rgba(255, 255, 255, 0.06);
+  --sc-form-edge: rgba(255, 255, 255, 0.1);
+  --sc-form-rule: rgba(255, 255, 255, 0.08);
+  --sc-form-raised: rgba(255, 255, 255, 0.14);
+  --sc-form-ink: #fff;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.38em;
+}
+
+.formRule {
+  height: 1px;
+  background: var(--sc-form-rule);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.4em;
+  gap: 0.45em;
+  min-width: 0;
+}
+
+/* Fields side by side, their controls stretched to one height. */
+.formRow {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.62em;
+}
+
+/* A divided row: the form's separator turned upright between its fields,
+   with the same 1.54em either side of it as the horizontal ones. */
+.formRow[data-divided] {
+  column-gap: 3.08em;
+}
+
+.formRow[data-divided] > * + * {
+  position: relative;
+}
+
+.formRow[data-divided] > * + *::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1.54em;
+  width: 1px;
+  background: var(--sc-form-rule);
+}
+
+/* A row marked to wrap stacks when the form is too narrow for it, and its
+   divider goes with it. */
+@container sc-form (max-width: 480px) {
+  .formRow[data-wrap] {
+    grid-auto-flow: row;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .formRow[data-wrap] > * + *::before {
+    content: none;
+  }
+}
+
+.fieldHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
 .fieldLabel {
-  font-size: 0.8125em;
+  flex: 1;
+  font-size: 0.875em;
   font-weight: 560;
   font-variation-settings: "wght" 560;
+}
+
+.fieldSummary {
+  font-size: 0.8125em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fieldInfo {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  color: var(--sc-muted);
+}
+
+.fieldHint {
+  color: var(--sc-muted);
+  font-size: 0.8125em;
 }
 
 .input {
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  padding: 0.6em 0.75em;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 0.615em;
-  background: var(--sc-surface);
+  gap: 0.55em;
+  min-height: 2.85em;
+  box-sizing: border-box;
+  padding: 0 1em;
+  border-radius: 999px;
+  background: var(--sc-form-fill);
   font-size: 0.875em;
+  white-space: nowrap;
 }
 
-.input > svg {
+.input > svg,
+.chip > svg,
+.segment > svg {
+  flex: none;
   width: 1.1em;
   height: 1.1em;
+  stroke-width: 2;
   color: var(--sc-muted);
+}
+
+.input > .inputEnd {
+  margin-left: auto;
 }
 
 .inputPlaceholder {
+  overflow: hidden;
   color: var(--sc-muted);
+  text-overflow: ellipsis;
 }
 
 .dateRow {
@@ -1248,32 +1987,82 @@
   gap: 0.5em;
 }
 
+/* Tags: the picked values as raised pills inside the field, each with a
+   round mark and a cross. The field's inset matches the tags' gap. */
+.tagsInput {
+  gap: 0.35em;
+  padding-left: 0.3em;
+}
+
+.tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.3em 0.55em 0.3em 0.3em;
+  border-radius: 999px;
+  background: var(--sc-form-raised);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  font-weight: 500;
+  font-variation-settings: "wght" 500;
+}
+
+.tagMark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 999px;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.tagMark > svg {
+  width: 0.75em;
+  height: 0.75em;
+  stroke-width: 2.25;
+}
+
+.tag > svg {
+  width: 0.95em;
+  height: 0.95em;
+  color: var(--sc-muted);
+}
+
+[data-theme="dark"] .tag {
+  box-shadow: none;
+}
+
+/* Stepper: the value on the left, minus and plus on the right. */
 .stepper {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  align-self: flex-start;
-  gap: 0.9em;
-  padding: 0.3em;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  justify-content: space-between;
+  min-height: 2.85em;
+  box-sizing: border-box;
+  padding: 0 0.4em 0 1em;
   border-radius: 999px;
+  background: var(--sc-form-fill);
   font-size: 0.875em;
+  font-variant-numeric: tabular-nums;
 }
 
-.stepperButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.8em;
-  height: 1.8em;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.05);
+.stepperButtons {
+  display: flex;
+  gap: 0.15em;
 }
 
-.stepperButton > svg {
-  width: 0.9em;
-  height: 0.9em;
+.stepperButtons > svg {
+  box-sizing: content-box;
+  width: 1em;
+  height: 1em;
+  padding: 0.5em;
 }
 
+/* Chips: pick any number. A pick is ringed, with a check for its icon. */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -1283,38 +2072,200 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
-  padding: 0.35em 0.85em;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  gap: 0.4em;
+  min-height: 2.85em;
+  box-sizing: border-box;
+  padding: 0 0.85em 0 0.7em;
   border-radius: 999px;
-  font-size: 0.8125em;
+  background: var(--sc-form-fill);
+  font-size: 0.875em;
 }
 
-.chip > svg {
-  width: 1em;
-  height: 1em;
+/* Equal-width chips on a grid, their content centred. */
+.chipsGrid {
+  display: grid;
 }
 
+.chipsGrid > .chip {
+  justify-content: center;
+  min-width: 0;
+  padding-inline: 0.6em;
+}
+
+/* A pick: the fill a step darker, ringed in the ink. The ring is inset, so
+   picking never changes the chip's size. */
 .chipSelected {
-  border-color: #000;
-  background: #000;
-  color: #fff;
+  --sc-form-fill: rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 1px var(--sc-form-ink);
+  color: var(--sc-text);
+}
+
+.chipSelected > svg {
+  color: inherit;
+}
+
+[data-theme="dark"] .chipSelected {
+  --sc-form-fill: rgba(255, 255, 255, 0.1);
+}
+
+/* Tiles: square, as tall as two rows of chips (two 2.85em chips and the
+   chips' 0.4em gap, restated in the tile's own em). The icon sits top left,
+   the label at the bottom; a pick is ringed, like a picked chip. */
+.tiles {
+  display: flex;
+  gap: 0.4em;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 6.16em;
+  height: 6.16em;
+  padding: 0.7em;
+  border-radius: 0.9em;
+  background: var(--sc-form-fill);
+  font-size: 0.875em;
+  line-height: 1.15;
+}
+
+.tile > svg {
+  width: 1.1em;
+  height: 1.1em;
+  color: var(--sc-muted);
+}
+
+.tile > span {
+  font-size: 0.93em;
+}
+
+.tileSelected {
+  --sc-form-fill: rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 1px var(--sc-form-ink);
+  color: var(--sc-text);
+}
+
+.tileSelected > svg {
+  color: inherit;
+}
+
+[data-theme="dark"] .tileSelected {
+  --sc-form-fill: rgba(255, 255, 255, 0.1);
+}
+
+/* Segmented: pick exactly one. The pick is raised white on the fill. */
+.segmented {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.2em;
+  min-height: 2.85em;
+  box-sizing: border-box;
+  padding: 0.25em;
+  border-radius: 999px;
+  background: var(--sc-form-fill);
+  font-size: 0.875em;
+}
+
+.segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-width: 0;
+  border-radius: 999px;
+  color: var(--sc-muted);
+  white-space: nowrap;
+}
+
+.segmentSelected {
+  background: var(--sc-form-raised);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  color: var(--sc-text);
+  font-weight: 500;
+  font-variation-settings: "wght" 500;
+}
+
+[data-theme="dark"] .segmentSelected {
+  box-shadow: none;
+}
+
+/* Range: a two-thumb slider on a thin track, its ends labelled below. */
+.range {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+
+.rangeTrack {
+  position: relative;
+  height: 0.3em;
+  margin: 0.55em 0.6em;
+  border-radius: 999px;
+  background: var(--sc-form-fill);
+}
+
+.rangeFill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: var(--sc-form-ink);
+}
+
+.rangeTrack > i {
+  position: absolute;
+  top: 50%;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+  transform: translate(-50%, -50%);
+}
+
+.rangeScale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--sc-muted);
+  font-size: 0.8125em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The buttons: the primary black, the secondary white on a hairline. */
+.formActions {
+  display: flex;
+  gap: 0.5em;
+}
+
+.formSubmit,
+.formSecondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.85em;
+  box-sizing: border-box;
+  padding: 0 1.3em;
+  border-radius: 999px;
+  font-size: 0.875em;
+  font-weight: 500;
+  font-variation-settings: "wght" 500;
 }
 
 .formSubmit {
-  align-self: flex-start;
-  padding: 0.6em 1.3em;
-  border-radius: 999px;
-  background: #000;
-  color: #fff;
-  font-size: 0.875em;
-  font-weight: 560;
-  font-variation-settings: "wght" 560;
+  background: var(--sc-form-ink);
+  color: var(--sc-surface);
 }
 
-[data-theme="dark"] .chipSelected,
+.formSecondary {
+  box-shadow: inset 0 0 0 1px var(--sc-form-edge);
+}
+
 [data-theme="dark"] .formSubmit {
-  background: #fff;
   color: #000;
 }
 
@@ -1324,18 +2275,41 @@
   }
 }
 
-/* The example tabs float over the bottom edge of the visual, on its fade. */
+/* The selector straddles the visual's bottom edge: half in, half out. */
 .tabsHost {
   position: relative;
 }
 
-/* A full-width strip pinned to the bottom edge that centres the tab bar with
-   flexbox, so no transform can push it off centre. */
+/* The tabbed comparison sits in one device wrapped around both panels, with
+   a hairline edge and a soft natural shadow. Rim, the seam between the
+   panels, and the notch labels all share the page colour (white in light,
+   black in dark), so the bezel reads as one piece. */
+.tabsHost .root {
+  border-radius: 1.5em;
+  background: var(--sc-page);
+  box-shadow:
+    0 0 0 0.5em var(--sc-page),
+    0 0 0 calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+    0 1px 2px calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+    0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] .tabsHost .root {
+  box-shadow:
+    0 0 0 0.5em var(--sc-page),
+    0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.18),
+    0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.55);
+}
+
+/* A full-width strip that centres the tab bar with flexbox, so no transform
+   can push it off centre. Dropped 7px below the content edge so the bar's
+   midline sits on the device rim's hairline (0.5em rim + the stroke). */
 .tabsBar {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 1.25rem;
+  bottom: -7px;
+  transform: translateY(50%);
   z-index: 2;
   display: flex;
   justify-content: center;
@@ -1343,18 +2317,76 @@
   pointer-events: none;
 }
 
+/* The pause/play toggle for the tab rotation: a small circle tucked into
+   the device's bottom-left corner, 9px in from both edges (left of it is
+   the frame's side gutter). */
+.playToggle {
+  position: absolute;
+  z-index: 3;
+  bottom: 9px;
+  left: calc(clamp(0px, 3vw, 2.5rem) + 9px);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--openui-border-default, rgba(0, 0, 0, 0.08));
+  border-radius: 999px;
+  background: var(--openui-foreground, #fff);
+  color: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.playToggle:hover,
+.playToggle:focus-visible {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+[data-theme="dark"] .playToggle {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+[data-theme="dark"] .playToggle:hover,
+[data-theme="dark"] .playToggle:focus-visible {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* With a single example there is no rotation to stop. */
+.tabsHost:has(.tab:only-child) .playToggle {
+  display: none;
+}
+
 .tabsBar > .tabs {
   margin: 0;
   pointer-events: auto;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 8px 24px -6px rgba(0, 0, 0, 0.16);
+}
+
+/* A lone example needs no picker: the bar only draws with tabs to choose. */
+.tabsBar:has(.tab:only-child) {
+  display: none;
 }
 
 /* Metrics in ValueLayout style: flush cells, dashed rules between them. */
 .metricsRules {
   gap: 0 1.846em;
   clip-path: inset(0 -2px);
+}
+
+/* In a plain answer the summary row gets the same hairline above it as the
+   charts under it. */
+.response:not(.responseSectioned) > .metricsRules {
+  padding-top: 0.5em;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .response:not(.responseSectioned) > .metricsRules {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/* A title with a one-line summary under it sits close to it. */
+.panelAccent .response > .heading:has(+ .muted) {
+  margin-bottom: 0.2em;
 }
 
 .metricsRules .metric {
@@ -1370,11 +2402,11 @@
   top: 0.6em;
   bottom: 0.6em;
   left: -0.923em;
-  border-left: 1px dashed rgba(0, 0, 0, 0.12);
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 [data-theme="dark"] .metricsRules .metric::after {
-  border-left-color: rgba(255, 255, 255, 0.16);
+  border-left-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Charts side by side share one height. */
@@ -1382,97 +2414,6 @@
   box-sizing: border-box;
   height: 100%;
   margin: 0;
-}
-
-/* Choice tiles: icon over label, the picked ones filled. */
-.tiles {
-  display: grid;
-  gap: 0.5em;
-}
-
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.6em;
-  padding: 0.8em 0.85em;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.875em;
-  font-size: 0.8125em;
-  font-weight: 560;
-  font-variation-settings: "wght" 560;
-}
-
-.tile > svg {
-  width: 1.35em;
-  height: 1.35em;
-  stroke-width: 1.75;
-}
-
-.tileSelected {
-  border-color: #000;
-  background: #000;
-  color: #fff;
-}
-
-[data-theme="dark"] .tileSelected {
-  border-color: #fff;
-  background: #fff;
-  color: #000;
-}
-
-/* Date strip: a week of days with the trip range shaded and its ends filled. */
-.dateStrip {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4em;
-}
-
-.dateMonth {
-  color: var(--sc-muted);
-  font-size: 0.75em;
-}
-
-.days {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  border-radius: 0.75em;
-}
-
-.day {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1em;
-  padding: 0.45em 0;
-  font-size: 0.875em;
-  font-weight: 560;
-  font-variation-settings: "wght" 560;
-}
-
-.day small {
-  color: var(--sc-muted);
-  font-size: 0.75em;
-  font-weight: 400;
-}
-
-.dayInRange {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.dayEdge {
-  border-radius: 0.6em;
-  background: #000;
-  color: #fff;
-}
-
-.dayEdge small {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-[data-theme="dark"] .dayEdge {
-  background: #fff;
-  color: #000;
 }
 
 /* ── Tables: wrapped so a sectioned answer can card them ── */
@@ -1603,6 +2544,31 @@
     0 4px 16px -4px oklch(0 0 0 / 0.08);
 }
 
+/* On the "With OpenUI" answer's white surface the cards sit inset, white
+   on white, lifted by a faint hairline and a soft, wide, blurred shadow. */
+.panelAccent .responseSectioned {
+  padding: 1.25em 1.25em 1.5em;
+}
+
+.panelAccent .responseSectioned > .metrics,
+.panelAccent .responseSectioned > .chart,
+.panelAccent .responseSectioned > .tableWrap,
+.panelAccent .responseSectioned > .split > .splitColumn > .chart {
+  border-color: rgba(0, 0, 0, 0.04) !important;
+  background: var(--sc-surface);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.025),
+    0 4px 12px -6px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .panelAccent .responseSectioned > .metrics,
+[data-theme="dark"] .panelAccent .responseSectioned > .chart,
+[data-theme="dark"] .panelAccent .responseSectioned > .tableWrap,
+[data-theme="dark"] .panelAccent .responseSectioned > .split > .splitColumn > .chart {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.03);
+}
+
 /* A carded rules row keeps its clip at the content edge, not the padding
    edge, so no rule hangs off the first item of any row. */
 .responseSectioned > .metricsRules {
@@ -1622,8 +2588,13 @@
   padding-top: 0.75em;
 }
 
+/* Entries never break inside, but a long legend wraps onto a second row
+   instead of running past the column's edges. */
 .legend {
-  flex-wrap: nowrap;
+  row-gap: 0.4em;
+}
+
+.legend > span {
   white-space: nowrap;
 }
 
@@ -1733,10 +2704,6 @@
     padding-inline: 0;
   }
 
-  .tabsBar {
-    bottom: 0.75rem;
-  }
-
   .tab {
     padding: 0.375rem 0.75rem;
     font-size: 0.8125rem;
@@ -1745,21 +2712,48 @@
   /* Phones only, so tablets keep the stacked layout at its full size. */
   @container sc (max-width: 719px) {
     .root {
-      font-size: 0.625rem;
+      font-size: 0.5625rem;
       --sc-small-height: 28em;
-      --sc-height: 34em;
+      --sc-small-scale: 0.75;
+      /* Tall enough that the Cards answer ends 1.25em above the bottom edge,
+         the response's own side padding; the cards grow with the width,
+         hence the cqw. */
+      --sc-height: calc(37.85em + 40cqw);
     }
 
-    /* Tuck the big panel further up over the small one, so less of the
-       "Without" side's empty lower half shows. */
+    /* The fade stays inside that bottom inset, clear of the content. */
+    .panelAccent .body {
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25em), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25em), transparent);
+    }
+
+    /* The "Without" sits a touch lower and the big panel pulls up higher
+       over it, so only the small device's top peeks out. */
     .root:not(.rootSingle) .panel:first-child {
-      margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 9em);
+      margin-top: 1.5em;
+      margin-bottom: calc(var(--sc-small-height) * (var(--sc-small-scale) - 1) - 3em);
     }
 
-    /* A single-panel example (no "Without" side) takes the same total height
-       as the stacked pair, so switching tabs never shifts the page. */
+    /* The small device's notch reads at full size despite its scale, and
+       its answer rests directly on the panel, with no card behind it. */
+    .root:not(.rootSingle) .panel:first-child .label {
+      font-size: calc(0.93em / var(--sc-small-scale));
+    }
+
+    /* Its bubble and answer start lower, clear of the bigger notch. */
+    .root:not(.rootSingle) .panel:first-child .prompt {
+      margin-top: 2em;
+    }
+
+    /* A static "Without" shows its finished answer with no blur-in. */
+    .root[data-left-static] .panel:first-child .blurIn {
+      animation: none;
+    }
+
+    /* A single-panel example takes the same total height as the stacked
+       pair, so switching tabs never shifts the page. */
     .root.rootSingle {
-      --sc-height: calc(34em + var(--sc-small-height) * var(--sc-small-scale) - 9em);
+      --sc-height: calc(37.85em + 40cqw + var(--sc-small-height) * var(--sc-small-scale) - 3em);
     }
 
     /* More room inside the single-panel preview (Dashboards): a wider inset
@@ -1789,21 +2783,46 @@
   }
 }
 
-/* Form controls in dark: the light theme's black hairlines and tints vanish on
-   the dark card, so the fields, chips, tiles and range days take white ones. */
-[data-theme="dark"] .input,
-[data-theme="dark"] .stepper,
-[data-theme="dark"] .chip:not(.chipSelected),
-[data-theme="dark"] .tile:not(.tileSelected) {
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-[data-theme="dark"] .stepperButton,
-[data-theme="dark"] .dayInRange:not(.dayEdge),
+/* Form controls take their dark edges and tints from the .form tokens. */
 [data-theme="dark"] .cellIcon {
   background: rgba(255, 255, 255, 0.08);
 }
 
-[data-theme="dark"] .dayEdge small {
-  color: rgba(0, 0, 0, 0.6);
+/* On phones each panel is its own device: the rim moves from the shared
+   root to the panels. The dark reset repeats the light one at the dark
+   rule's own specificity, so no squared-off stroke survives there. */
+@container sc (max-width: 719px) {
+  .tabsHost .root,
+  [data-theme="dark"] .tabsHost .root {
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tabsHost .panel {
+    box-shadow:
+      0 0 0 0.5em var(--sc-page),
+      0 0 0 calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+      0 1px 2px calc(0.5em + 1px) rgba(0, 0, 0, 0.04),
+      0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.12);
+  }
+
+  [data-theme="dark"] .tabsHost .panel {
+    box-shadow:
+      0 0 0 0.5em var(--sc-page),
+      0 0 0 calc(0.5em + 1px) rgba(255, 255, 255, 0.18),
+      0 16px 40px calc(0.5em - 14px) rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* Examples whose "Without" side exists for phones only: desktop keeps the
+   single full-width panel. */
+@container sc (min-width: 720px) {
+  .root[data-left-phones] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .root[data-left-phones] .panel:first-child {
+    display: none;
+  }
 }

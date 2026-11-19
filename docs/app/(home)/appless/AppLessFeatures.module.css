@@ -1,5 +1,6 @@
 /* The --feat-* tokens come from the IllustratedFeatures grid these sit in. */
 .scene {
+  --illustration-width: 100cqw;
   position: absolute;
   top: 0;
   left: 0;
@@ -7,7 +8,7 @@
   height: 280px;
   transform-origin: 0 0;
   /* stage width / 384px as a unitless ratio */
-  transform: scale(tan(atan2(100cqw, 384px)));
+  transform: scale(tan(atan2(var(--illustration-width), 384px)));
   font-size: 12px;
   line-height: 16px;
   color: var(--feat-ink);
@@ -20,7 +21,7 @@
 @media (min-width: 768px) {
   article[data-span="half"] .scene {
     left: 8cqw;
-    transform: scale(tan(atan2(100cqw, 457.33px)));
+    transform: scale(tan(atan2(var(--illustration-width), 457.33px)));
   }
 }
 

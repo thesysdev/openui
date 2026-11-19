@@ -1,0 +1,26 @@
+name: IndexNow
+
+# Tells IndexNow search engines (Bing, Yandex, ...) to recrawl every sitemap URL
+# after each successful production deploy. The key is public by design: it is
+# served at https://www.openui.com/4f25f2ad0d9d91e5259b60fa7097f429.txt.
+on:
+  deployment_status:
+
+permissions: {}
+
+jobs:
+  submit:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    env:
+      HOST: www.openui.com
+      KEY: 4f25f2ad0d9d91e5259b60fa7097f429
+    steps:
+      - name: Submit sitemap URLs
+        run: |
+          urls=$(curl -fsSL "https://$HOST/sitemap.xml" | grep -o '<loc>[^<]*' | sed 's/<loc>//')
+          echo "Submitting $(echo "$urls" | wc -l) URLs"
+          jq -n --arg host "$HOST" --arg key "$KEY" --arg urls "$urls" \
+            '{host: $host, key: $key, keyLocation: "https://\($host)/\($key).txt", urlList: ($urls | split("\n"))}' \
+            | curl -fsS -o /dev/null -w 'IndexNow responded %{http_code}\n' -X POST https://api.indexnow.org/indexnow \
+                -H 'Content-Type: application/json; charset=utf-8' --data-binary @-

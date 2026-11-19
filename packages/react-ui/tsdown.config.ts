@@ -87,6 +87,40 @@ export default defineConfig([
     entry: { index: "src/genui-lib/index.ts" },
     plugins: [fixEsmExternalPaths],
   },
+  // cloud — CJS + .d.cts (own outDir so dts lands at dist/cloud/index.d.cts)
+  {
+    ...shared,
+    format: ["cjs"],
+    dts: true,
+    outDir: "dist/cloud",
+    entry: { index: "src/cloud/index.ts" },
+  },
+  // cloud — ESM + .d.mts
+  {
+    ...shared,
+    format: ["esm"],
+    dts: true,
+    outDir: "dist/cloud",
+    entry: { index: "src/cloud/index.ts" },
+    plugins: [fixEsmExternalPaths],
+  },
+  // cloud/agent-interface — CJS + .d.cts
+  {
+    ...shared,
+    format: ["cjs"],
+    dts: true,
+    outDir: "dist/cloud/agent-interface",
+    entry: { index: "src/cloud/agent-interface/index.ts" },
+  },
+  // cloud/agent-interface — ESM + .d.mts
+  {
+    ...shared,
+    format: ["esm"],
+    dts: true,
+    outDir: "dist/cloud/agent-interface",
+    entry: { index: "src/cloud/agent-interface/index.ts" },
+    plugins: [fixEsmExternalPaths],
+  },
   // Individual components — CJS only
   { ...shared, format: ["cjs"], entry: componentEntries },
 ]);

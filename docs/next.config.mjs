@@ -12,7 +12,20 @@ const proxiedDemos = {
   "f1-dashboard": "https://openui-f1-dashboard.vercel.app",
   "trip-planner": "https://openui-trip-planner.vercel.app",
   "intelligent-ui": "https://open-intelligent-ui.vercel.app",
+  "sales-dashboard": "https://openui-sales-dashboard.vercel.app",
 };
+
+// The demo gateway (a private app) serves every hosted demo under /demo, with login and daily
+// limits. Set DEMO_GATEWAY_ORIGIN to send /demo/* there. /chat, /compare and /openui-vs-json live
+// only on the gateway, so they always redirect.
+const demoGatewayOrigin = process.env.DEMO_GATEWAY_ORIGIN?.replace(/\/+$/, "");
+
+const demoGatewayRedirects = [
+  { source: "/chat", destination: "/demo/chat", permanent: false },
+  { source: "/chat/:path*", destination: "/demo/chat/:path*", permanent: false },
+  { source: "/compare", destination: "/demo/compare", permanent: false },
+  { source: "/openui-vs-json", destination: "/demo/openui-vs-json", permanent: false },
+];
 
 /** @type {import('next').NextConfig} */
 const config = {
@@ -53,6 +66,13 @@ const config = {
   },
   async redirects() {
     return [
+      ...demoGatewayRedirects,
+      // The GitHub dashboards demo was removed; its links open the Sales Dashboard demo.
+      {
+        source: "/demo/github/:path*",
+        destination: "/demo/sales-dashboard",
+        permanent: true,
+      },
       {
         source: "/favicon.svg",
         destination: "/shiro-logo.svg",
@@ -83,6 +103,23 @@ const config = {
       },
       {
         source: "/docs/examples",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
+      // The standalone /integrations pages were folded into the docs Integrations page.
+      {
+        source: "/integrations",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
+      {
+        source: "/integrations/:path*",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
+      // The Lab page was removed; it now sends visitors to the Integrations docs.
+      {
+        source: "/lab",
         destination: "/docs/integrations",
         permanent: true,
       },
@@ -121,8 +158,8 @@ const config = {
         permanent: false,
       },
       {
-        source: "/components/blocks/accordian",
-        destination: "/components/blocks/accordion",
+        source: "/components/:path*",
+        destination: "/docs",
         permanent: true,
       },
       {
@@ -143,6 +180,12 @@ const config = {
       {
         source: "/docs/openui-lang/how-it-works",
         destination: "/docs/openui-lang/architecture",
+        permanent: true,
+      },
+      // The legacy Prompts stub duplicated System Prompts.
+      {
+        source: "/docs/openui-lang/prompts",
+        destination: "/docs/openui-lang/system-prompts",
         permanent: true,
       },
       {
@@ -370,27 +413,25 @@ const config = {
       },
       {
         source: "/docs/add-ons",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/add-ons",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/ecosystem",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/registry",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
-      // Nav rename: Playground -> Demos, Projects -> Lab. Keep the old
-      // paths working for external links and search results.
-      // Product rename: Paste → Debug. Keep the old path working.
+            // Product rename: Paste → Debug. Keep the old path working.
       {
         source: "/paste",
         destination: "/debug",
@@ -403,12 +444,12 @@ const config = {
       },
       {
         source: "/projects",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
         source: "/showcase",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
@@ -431,11 +472,7 @@ const config = {
     ];
   },
   async rewrites() {
-    return [
-      ...Object.entries(proxiedDemos).flatMap(([path, origin]) => [
-        { source: `/demo/${path}`, destination: `${origin}/demo/${path}` },
-        { source: `/demo/${path}/:rest*`, destination: `${origin}/demo/${path}/:rest*` },
-      ]),
+    const docsRewrites = [
       {
         source: "/docs/:path*.mdx",
         destination: "/llms.mdx/docs/:path*",
@@ -449,6 +486,25 @@ const config = {
         destination: "/llms.mdx/docs/demos",
       },
     ];
+
+    if (!demoGatewayOrigin) {
+      return [
+        ...Object.entries(proxiedDemos).flatMap(([path, origin]) => [
+          { source: `/demo/${path}`, destination: `${origin}/demo/${path}` },
+          { source: `/demo/${path}/:rest*`, destination: `${origin}/demo/${path}/:rest*` },
+        ]),
+        ...docsRewrites,
+      ];
+    }
+
+    // beforeFiles, so the gateway also wins over the docs app's own /demo/github page.
+    return {
+      beforeFiles: [
+        { source: "/demo", destination: `${demoGatewayOrigin}/demo` },
+        { source: "/demo/:path*", destination: `${demoGatewayOrigin}/demo/:path*` },
+      ],
+      afterFiles: docsRewrites,
+    };
   },
 };
 

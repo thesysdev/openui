@@ -42,6 +42,11 @@ export async function writeEnv(
   }
 }
 
+/** `.env` values for an OpenUI Cloud app; the key stays empty until sign-in fills it. */
+export function cloudEnvVars(apiKey = ""): Record<string, string> {
+  return { THESYS_API_KEY: apiKey, DEMO_USER_ID: "demo-user" };
+}
+
 export async function resolveCloudEnv(
   name: string,
   options: CreateAppOptions,
@@ -50,10 +55,22 @@ export async function resolveCloudEnv(
   tel: CreateTelemetryClient,
 ): Promise<EnvResult> {
   const envFile = options.envFile ?? DEFAULT_ENV_FILE;
-  if (!interactive) {
-    console.info(
-      `${agent ? "Coding agent detected" : "Non-interactive run"} — skipping OpenUI Cloud sign-in.`,
-    );
+  // A key already exported in the shell (which the dev server inherits) makes
+  // sign-in pointless, so don't even show the prompt.
+  const skipReason = !interactive
+    ? "non_interactive"
+    : process.env["THESYS_API_KEY"]?.trim()
+      ? "key_in_env"
+      : undefined;
+  console.info();
+  if (skipReason) {
+    const why =
+      skipReason === "key_in_env"
+        ? "THESYS_API_KEY is already set"
+        : agent
+          ? "Coding agent detected"
+          : "Non-interactive run";
+    console.info(`${why} — skipping OpenUI Cloud sign-in.`);
   }
   let apiKey: string | null = null;
   let authMethod: EnvResult["authMethod"];
@@ -61,8 +78,7 @@ export async function resolveCloudEnv(
     tel.trackCloudAuthStarted();
     const resolved = await resolveCloudApiKey({
       projectName: name,
-      envFile,
-      interactive,
+      interactive: !skipReason,
       tel: tel.authClient(),
     });
     apiKey = resolved.key;
@@ -70,9 +86,18 @@ export async function resolveCloudEnv(
     tel.trackCloudAuthMethod({
       auth_method: resolved.method,
       auth_succeeded: apiKey != null,
+      // A skip that wasn't decided up front came from Esc at the prompt.
+      skip_reason: skipReason ?? (resolved.method === "skip" ? "declined" : undefined),
     });
   } catch (err) {
     if (err instanceof CliCancelledError) {
+      // Ctrl+C at sign-in is how you skip now, so count it as a skip like the
+      // old "Skip" choice did, then report the cancel itself.
+      tel.trackCloudAuthMethod({
+        auth_method: "skip",
+        auth_succeeded: false,
+        skip_reason: "cancelled",
+      });
       tel.trackCloudAuthCancelled({
         auth_succeeded: false,
         ...cliErrorProperties(err),
@@ -94,10 +119,7 @@ export async function resolveCloudEnv(
   }
   return {
     envWritten: apiKey != null,
-    envVars: {
-      THESYS_API_KEY: apiKey ?? "",
-      DEMO_USER_ID: "demo-user",
-    },
+    envVars: cloudEnvVars(apiKey ?? undefined),
     authMethod,
     authSucceeded: apiKey != null,
   };

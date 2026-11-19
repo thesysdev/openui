@@ -1,6 +1,18 @@
 "use client";
 
-import { CalendarDays, Check, CornerDownRight, Heart, Minus, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Check,
+  ChevronsUpDown,
+  CornerDownRight,
+  Heart,
+  Info,
+  Minus,
+  Plus,
+  Star,
+  X,
+} from "lucide-react";
 import {
   Fragment,
   type ReactNode,
@@ -17,6 +29,7 @@ import type {
   ComparisonExample,
   ComparisonSide,
   FactItem,
+  FormField,
   StreamMode,
   TableCell,
 } from "./types";
@@ -67,6 +80,10 @@ function partsOf(block: Block): number[] {
       return [COST.divider];
     case "cards":
       return block.cards.map(() => COST.card);
+    case "tiles":
+      return block.tiles.map(() => COST.fact);
+    case "feature":
+      return [COST.card * 2];
     case "facts":
       return block.facts.map(() => COST.fact);
     case "gallery":
@@ -83,6 +100,12 @@ function partsOf(block: Block): number[] {
       return block.slides.map(() => COST.slide);
     case "groupedBars":
       return block.categories.map(() => COST.bar * 2);
+    case "stackedBars":
+      // Dense series share the time a dozen grouped bars take, so a weekly
+      // chart sweeps in as fast as a monthly one.
+      return block.categories.map(() =>
+        Math.max(1, Math.round((COST.bar * 2 * 12) / block.categories.length)),
+      );
     case "funnel":
       return block.steps.map(() => COST.bar * 2);
     case "donut":
@@ -131,7 +154,14 @@ function partProgress(segment: Segment, progress: number) {
 /* Plays one example: the prompt, then both answers streaming in at once.
    Plays once when scrolled into view (pausing off screen) and then rests on
    the finished answers, which reduced motion shows straight away. */
-export function StreamingComparison({ example }: { example: ComparisonExample }) {
+export function StreamingComparison({
+  example,
+  leftStatic = false,
+}: {
+  example: ComparisonExample;
+  /* Shows the "Without" answer finished from the start instead of streaming. */
+  leftStatic?: boolean;
+}) {
   const left = useMemo(() => (example.left ? timeline(example.left) : null), [example.left]);
   const right = useMemo(() => timeline(example.right), [example.right]);
   // The plain-text side says more, so it would trail far behind. It starts at
@@ -203,14 +233,18 @@ export function StreamingComparison({ example }: { example: ComparisonExample })
 
   return (
     <div ref={rootRef} className={styles.frame}>
-      <div className={`${styles.root} ${example.left ? "" : styles.rootSingle}`.trim()}>
+      <div
+        className={`${styles.root} ${example.left ? "" : styles.rootSingle}`.trim()}
+        data-left-phones={example.leftOnPhonesOnly || undefined}
+        data-left-static={leftStatic || undefined}
+      >
         {example.left && left ? (
           <Panel
             side={example.left}
             prompt={example.prompt}
             segments={left.segments}
-            progress={leftProgressAt(progress)}
-            done={leftProgressAt(progress) >= left.total}
+            progress={leftStatic ? left.total : leftProgressAt(progress)}
+            done={leftStatic || leftProgressAt(progress) >= left.total}
           />
         ) : null}
         <Panel
@@ -265,7 +299,9 @@ function Panel({
         <div
           className={`${styles.response} ${started ? styles.responseVisible : ""} ${
             side.sectioned ? styles.responseSectioned : ""
-          }`.trim()}
+          } ${side.bare ? styles.responseBare : ""}`
+            .replace(/\s+/g, " ")
+            .trim()}
         >
           {segments.map((segment, index) => (
             <SegmentView
@@ -466,8 +502,67 @@ function SegmentView({
       return (
         <div className={styles.cards}>
           {block.cards.map((card, i) =>
-            shown[i] < 0 ? null : <Card key={card.title} card={card} />,
+            shown[i] < 0 ? null : block.variant === "poster" ? (
+              <PosterCard key={card.title} card={card} />
+            ) : (
+              <Card key={card.title} card={card} />
+            ),
           )}
+        </div>
+      );
+    case "tiles":
+      return (
+        <div className={styles.infoTiles}>
+          {block.tiles.map((tile, i) =>
+            shown[i] < 0 ? null : (
+              <div key={tile.value} className={`${styles.infoTile} ${styles.pop}`}>
+                <span className={styles.infoTileIcon} data-tone={tile.tone}>
+                  {tile.icon}
+                </span>
+                <span className={styles.infoTileText}>
+                  {tile.label ? <span>{tile.label}</span> : null}
+                  <b>{tile.value}</b>
+                </span>
+              </div>
+            ),
+          )}
+        </div>
+      );
+    case "feature":
+      return shown[0] < 0 ? null : (
+        <div className={`${styles.feature} ${styles.pop}`}>
+          <img
+            className={styles.featureImage}
+            src={block.image}
+            alt={block.imageAlt}
+            loading="lazy"
+          />
+          <div className={styles.featureBody}>
+            {block.badge ? (
+              <span
+                className={`${styles.badge} ${styles.featureBadge} ${styles[`badge_${block.badge.tone ?? "green"}`]}`}
+              >
+                {block.badge.icon}
+                {block.badge.label}
+              </span>
+            ) : null}
+            <h4 className={styles.featureTitle}>{block.title}</h4>
+            <span className={styles.featureRating}>
+              <Star aria-hidden="true" />
+              <b>{block.rating}</b>
+              <span>{block.reviews}</span>
+            </span>
+            <p className={styles.featureDescription}>{block.description}</p>
+            <span className={styles.featureTags}>
+              {block.tags.map((tag) => (
+                <span key={tag}>{tag}</span>
+              ))}
+            </span>
+            <span className={styles.featureFoot}>
+              <span className={styles.featurePrice}>{block.price}</span>
+              <span className={styles.cardAction}>{block.action}</span>
+            </span>
+          </div>
         </div>
       );
     case "facts":
@@ -524,8 +619,10 @@ function SegmentView({
             shown[i] < 0 ? null : (
               <div key={metric.label} className={`${styles.metric} ${styles.pop}`}>
                 {metric.icon ? <span className={styles.metricIcon}>{metric.icon}</span> : null}
-                <span className={styles.metricValue}>
-                  {metric.value}
+                <span className={styles.metricValue}>{metric.value}</span>
+                {/* The change reads with its label, at the label's size. */}
+                <span className={styles.metricLabel}>
+                  {metric.label}
                   {metric.change ? (
                     <span
                       className={`${styles.metricChange} ${
@@ -536,7 +633,6 @@ function SegmentView({
                     </span>
                   ) : null}
                 </span>
-                <span className={styles.metricLabel}>{metric.label}</span>
               </div>
             ),
           )}
@@ -550,8 +646,9 @@ function SegmentView({
             <figcaption className={styles.chartTitle}>{block.title}</figcaption>
           ) : null}
           <div className={styles.bars}>
+            {/* Keyed by position: month labels can repeat (J, M, A). */}
             {block.bars.map((bar, i) => (
-              <div key={bar.label} className={styles.barColumn}>
+              <div key={i} className={styles.barColumn}>
                 <span className={styles.barValue}>
                   {shown[i] < 0 ? "" : `${bar.value}${block.unit ?? ""}`}
                 </span>
@@ -628,17 +725,25 @@ function SegmentView({
       const max = block.max ?? Math.max(...block.series.flatMap((serie) => serie.values));
       const span = max - min || 1;
       const ticks = [max, min + (span * 3) / 4, min + span / 2, min + span / 4, min];
+      // The legend rides in the title row, at its right end.
       return (
         <figure className={styles.chart}>
-          {block.title ? (
-            <figcaption className={styles.chartTitle}>{block.title}</figcaption>
-          ) : null}
+          <figcaption className={styles.chartHead}>
+            {block.title ? <span className={styles.chartTitle}>{block.title}</span> : <span />}
+            <span className={styles.legend}>
+              {block.series.map((serie, k) => (
+                <span key={serie.name}>
+                  <i style={{ background: serie.color ?? PALETTE[k] }} />
+                  {serie.name}
+                </span>
+              ))}
+            </span>
+          </figcaption>
           <div className={styles.groupedPlot}>
             <div className={styles.yTicks}>
               {ticks.map((tick) => (
                 <span key={tick}>
-                  {Math.round(tick * 10) / 10}
-                  {block.suffix ?? ""}
+                  {tick === 0 ? "0" : `${Math.round(tick * 10) / 10}${block.suffix ?? ""}`}
                 </span>
               ))}
             </div>
@@ -659,7 +764,66 @@ function SegmentView({
                           />
                         ))}
                   </div>
-                  <span className={styles.barLabel}>{category}</span>
+                  {block.labels ? (
+                    // A bare column keeps a blank line, so every bar shares one baseline.
+                    <span className={`${styles.barLabel} ${styles.stackLabel}`}>
+                      {block.labels[i] || " "}
+                    </span>
+                  ) : (
+                    <span className={styles.barLabel}>{category}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </figure>
+      );
+    }
+    case "stackedBars": {
+      const totals = block.categories.map((_, i) =>
+        block.series.reduce((sum, serie) => sum + serie.values[i], 0),
+      );
+      const max = block.max ?? Math.max(...totals);
+      const ticks = [max, (max * 3) / 4, max / 2, max / 4, 0];
+      return (
+        <figure className={styles.chart}>
+          {block.title ? (
+            <figcaption className={styles.chartTitle}>{block.title}</figcaption>
+          ) : null}
+          <div className={styles.groupedPlot}>
+            <div className={styles.yTicks}>
+              {ticks.map((tick) => (
+                <span key={tick}>
+                  {tick === 0 ? "0" : `${Math.round(tick * 100) / 100}${block.suffix ?? ""}`}
+                </span>
+              ))}
+            </div>
+            <div className={`${styles.groups} ${styles.stackGroups}`}>
+              {block.categories.map((category, i) => (
+                <div key={category} className={styles.group}>
+                  <div className={styles.groupBars}>
+                    {shown[i] < 0 ? null : (
+                      <span
+                        className={styles.stack}
+                        style={{ height: `${(totals[i] / max) * 100}%` }}
+                      >
+                        {block.series.map((serie, k) => (
+                          <span
+                            key={serie.name}
+                            className={styles.stackSegment}
+                            style={{
+                              flexGrow: serie.values[i],
+                              background: serie.color ?? PALETTE[k],
+                            }}
+                          />
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                  {/* A bare column keeps a blank line, so every bar shares one baseline. */}
+                  <span className={`${styles.barLabel} ${styles.stackLabel}`}>
+                    {block.labels ? block.labels[i] || " " : category}
+                  </span>
                 </div>
               ))}
             </div>
@@ -698,14 +862,22 @@ function SegmentView({
                     r="38"
                     fill="none"
                     stroke={slice.color ?? PALETTE[k % PALETTE.length]}
-                    strokeWidth="14"
+                    strokeWidth="6"
                     strokeDasharray={dash}
                     strokeDashoffset={-offsets[k]}
                     transform="rotate(-90 50 50)"
                   />
                 );
               })}
+              {/* A white disc in the hole, edged with a hairline. */}
+              <circle cx="50" cy="50" r="29" className={styles.donutCenter} />
             </svg>
+            {block.center ? (
+              <span className={styles.donutFigure}>
+                <b>{block.center.value}</b>
+                {block.center.label ? <span>{block.center.label}</span> : null}
+              </span>
+            ) : null}
           </div>
           <div className={styles.legend}>
             {block.slices.map((slice, k) => (
@@ -719,33 +891,104 @@ function SegmentView({
       );
     }
     case "area": {
-      const max = Math.max(...block.values);
-      const min = Math.min(...block.values) * 0.8;
-      const points = block.values.map((value, i) => [
-        (i / (block.values.length - 1)) * 100,
-        40 - ((value - min) / (max - min || 1)) * 36,
-      ]);
+      // An explicit range fills the plot edge to edge, so the ticks land on
+      // the gridlines; without one the line keeps its old headroom.
+      const ranged = block.min !== undefined && block.max !== undefined;
+      const max = block.max ?? Math.max(...block.values);
+      const min = block.min ?? Math.min(...block.values) * 0.8;
+      const reach = ranged ? 40 : 36;
+      const plot = (values: number[]) =>
+        values.map((value, i) => [
+          (i / (values.length - 1)) * 100,
+          40 - ((value - min) / (max - min || 1)) * reach,
+        ]);
+      const points = plot(block.values);
       const line = points.map(([x, y]) => `${x},${y}`).join(" L");
+      const compareLine = block.compare
+        ? plot(block.compare.values)
+            .map(([x, y]) => `${x},${y}`)
+            .join(" L")
+        : null;
+      const gradientId = `area-fade-${block.title ?? "line"}`.replace(/\W+/g, "-");
+      const callout = block.callout ? points[block.callout.index] : null;
       return (
         <figure className={`${styles.chart} ${styles.pop}`}>
           {block.title ? (
             <figcaption className={styles.chartTitle}>{block.title}</figcaption>
           ) : null}
           {block.subtitle ? <span className={styles.chartSubtitle}>{block.subtitle}</span> : null}
-          <svg
-            viewBox="0 0 100 40"
-            preserveAspectRatio="none"
-            className={styles.area}
-            aria-hidden="true"
-          >
-            <path d={`M0,40 L${line} L100,40 Z`} className={styles.areaFill} />
-            <path d={`M${line}`} className={styles.areaLine} vectorEffect="non-scaling-stroke" />
-          </svg>
-          {block.labels ? (
-            <div className={styles.areaLabels}>
-              {block.labels.map((label) => (
-                <span key={label}>{label}</span>
-              ))}
+          <div className={styles.areaPlot}>
+            {block.yTicks ? (
+              <div className={styles.yTicks}>
+                {block.yTicks.map((tick) => (
+                  <span key={tick}>{tick}</span>
+                ))}
+              </div>
+            ) : null}
+            <div className={styles.areaBody}>
+              <div className={styles.areaCanvas}>
+                <svg
+                  viewBox="0 0 100 40"
+                  preserveAspectRatio="none"
+                  className={styles.area}
+                  aria-hidden="true"
+                >
+                  <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" className={styles.areaFadeTop} />
+                      <stop offset="1" className={styles.areaFadeBottom} />
+                    </linearGradient>
+                  </defs>
+                  <path d={`M0,40 L${line} L100,40 Z`} fill={`url(#${gradientId})`} />
+                  {compareLine && block.compare ? (
+                    <path
+                      d={`M${compareLine}`}
+                      className={styles.areaCompare}
+                      style={block.compare.color ? { stroke: block.compare.color } : undefined}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  ) : null}
+                  <path
+                    d={`M${line}`}
+                    className={styles.areaLine}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+                {callout && block.callout ? (
+                  <>
+                    <span
+                      className={styles.areaDot}
+                      style={{ left: `${callout[0]}%`, top: `${(callout[1] / 40) * 100}%` }}
+                    />
+                    {/* Near the right edge the chip hangs to the left of its point. */}
+                    <span
+                      className={`${styles.areaChip} ${callout[0] > 80 ? styles.areaChipEnd : ""}`.trim()}
+                      style={{ left: `${callout[0]}%`, top: `${(callout[1] / 40) * 100}%` }}
+                    >
+                      {block.callout.text}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+              {block.labels ? (
+                <div className={styles.areaLabels}>
+                  {block.labels.map((label) => (
+                    <span key={label}>{label}</span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          {block.compare ? (
+            <div className={styles.legend}>
+              <span>
+                <i style={{ background: "#4f46e5" }} />
+                {block.name ?? "Value"}
+              </span>
+              <span>
+                <i style={{ background: block.compare.color ?? "#a5b4fc" }} />
+                {block.compare.name}
+              </span>
             </div>
           ) : null}
         </figure>
@@ -939,112 +1182,242 @@ function SegmentView({
           )}
         </div>
       );
-    case "form":
+    case "form": {
+      /* Groups of fields with a hairline between each, then the buttons. */
+      const groups: number[][] = [];
+      block.fields.forEach((field, i) => {
+        if (field.kind === "section" || groups.length === 0) groups.push([]);
+        if (field.kind !== "section") groups[groups.length - 1].push(i);
+      });
+      const renderField = (field: FormField, key: number, pop: boolean): ReactNode => {
+        const popClass = pop ? styles.pop : "";
+        if (field.kind === "section") return null;
+        // Fields side by side; `columns` sets their widths.
+        if (field.kind === "row")
+          return (
+            <div
+              key={key}
+              className={`${styles.formRow} ${popClass}`}
+              style={{ gridTemplateColumns: field.columns }}
+              data-wrap={field.wrap || undefined}
+              data-divided={field.divided || undefined}
+            >
+              {field.fields.map((inner, j) => renderField(inner, j, false))}
+            </div>
+          );
+        return (
+          <div key={key} className={`${styles.field} ${popClass}`}>
+            <span className={styles.fieldHead}>
+              <span className={styles.fieldLabel}>{field.label}</span>
+              {field.kind === "range" ? (
+                <span className={styles.fieldSummary}>{field.value}</span>
+              ) : null}
+              {field.info ? <Info className={styles.fieldInfo} aria-hidden /> : null}
+            </span>
+            {field.kind === "text" ? (
+              <span
+                className={`${styles.input} ${field.value ? "" : styles.inputPlaceholder}`.trim()}
+              >
+                {field.icon}
+                {field.value ?? field.placeholder}
+                {field.select ? <ChevronsUpDown className={styles.inputEnd} aria-hidden /> : null}
+              </span>
+            ) : null}
+            {field.kind === "dates" ? (
+              <span className={styles.dateRow}>
+                <span className={styles.input}>
+                  <CalendarDays aria-hidden />
+                  {field.from}
+                </span>
+                <span className={styles.input}>
+                  <CalendarDays aria-hidden />
+                  {field.to}
+                </span>
+              </span>
+            ) : null}
+            {field.kind === "tags" ? (
+              <span className={`${styles.input} ${styles.tagsInput}`}>
+                {field.tags.map((tag) => (
+                  <span key={tag.label} className={styles.tag}>
+                    {tag.swatch || tag.icon ? (
+                      <i className={styles.tagMark} style={{ background: tag.swatch }}>
+                        {tag.icon}
+                      </i>
+                    ) : null}
+                    {tag.label}
+                    <X aria-hidden />
+                  </span>
+                ))}
+                <span className={styles.inputPlaceholder}>{field.placeholder}</span>
+                <ChevronsUpDown className={styles.inputEnd} aria-hidden />
+              </span>
+            ) : null}
+            {field.kind === "stepper" ? (
+              <span className={styles.stepper}>
+                <span>
+                  {field.value}
+                  {field.unit ? ` ${field.unit}` : ""}
+                </span>
+                <span className={styles.stepperButtons}>
+                  <Minus aria-hidden />
+                  <Plus aria-hidden />
+                </span>
+              </span>
+            ) : null}
+            {field.kind === "segmented" ? (
+              <span className={styles.segmented}>
+                {field.options.map((option) => (
+                  <span
+                    key={option.label}
+                    className={`${styles.segment} ${
+                      field.selected === option.label ? styles.segmentSelected : ""
+                    }`.trim()}
+                  >
+                    {option.icon}
+                    {option.label}
+                  </span>
+                ))}
+              </span>
+            ) : null}
+            {field.kind === "chips" ? (
+              <span
+                className={`${styles.chips} ${field.columns ? styles.chipsGrid : ""}`.trim()}
+                style={
+                  field.columns
+                    ? { gridTemplateColumns: `repeat(${field.columns}, minmax(0, 1fr))` }
+                    : undefined
+                }
+              >
+                {field.options.map((option) => {
+                  const picked = field.selected?.includes(option.label);
+                  return (
+                    <span
+                      key={option.label}
+                      className={`${styles.chip} ${picked ? styles.chipSelected : ""}`.trim()}
+                    >
+                      {picked ? <Check aria-hidden /> : option.icon}
+                      {option.label}
+                    </span>
+                  );
+                })}
+              </span>
+            ) : null}
+            {field.kind === "tiles" ? (
+              <span className={styles.tiles}>
+                {field.options.map((option) => (
+                  <span
+                    key={option.label}
+                    className={`${styles.tile} ${
+                      field.selected?.includes(option.label) ? styles.tileSelected : ""
+                    }`.trim()}
+                  >
+                    {option.icon}
+                    <span>{option.label}</span>
+                  </span>
+                ))}
+              </span>
+            ) : null}
+            {field.kind === "range" ? (
+              <span className={styles.range}>
+                <span className={styles.rangeTrack}>
+                  <span
+                    className={styles.rangeFill}
+                    style={{ left: `${field.from * 100}%`, right: `${(1 - field.to) * 100}%` }}
+                  />
+                  <i style={{ left: `${field.from * 100}%` }} />
+                  <i style={{ left: `${field.to * 100}%` }} />
+                </span>
+                <span className={styles.rangeScale}>
+                  <span>{field.min}</span>
+                  <span>{field.max}</span>
+                </span>
+              </span>
+            ) : null}
+            {field.hint ? <span className={styles.fieldHint}>{field.hint}</span> : null}
+          </div>
+        );
+      };
+      const actionsShown = shown[block.fields.length] >= 0;
       return (
         <div className={styles.form}>
-          {block.fields.map((field, i) =>
-            shown[i] < 0 ? null : (
-              <div key={field.label} className={`${styles.field} ${styles.pop}`}>
-                <span className={styles.fieldLabel}>{field.label}</span>
-                {field.kind === "text" ? (
-                  <span
-                    className={`${styles.input} ${field.value ? "" : styles.inputPlaceholder}`.trim()}
-                  >
-                    {field.icon}
-                    {field.value ?? field.placeholder}
-                  </span>
-                ) : null}
-                {field.kind === "dates" ? (
-                  <span className={styles.dateRow}>
-                    <span className={styles.input}>
-                      <CalendarDays aria-hidden />
-                      {field.from}
-                    </span>
-                    <span className={styles.input}>
-                      <CalendarDays aria-hidden />
-                      {field.to}
-                    </span>
-                  </span>
-                ) : null}
-                {field.kind === "stepper" ? (
-                  <span className={styles.stepper}>
-                    <span className={styles.stepperButton}>
-                      <Minus aria-hidden />
-                    </span>
-                    <span>
-                      {field.value} {field.unit}
-                    </span>
-                    <span className={styles.stepperButton}>
-                      <Plus aria-hidden />
-                    </span>
-                  </span>
-                ) : null}
-                {field.kind === "tiles" ? (
-                  <span
-                    className={styles.tiles}
-                    style={{ gridTemplateColumns: `repeat(${field.columns ?? 3}, minmax(0, 1fr))` }}
-                  >
-                    {field.options.map((option) => (
-                      <span
-                        key={option.label}
-                        className={`${styles.tile} ${
-                          field.selected?.includes(option.label) ? styles.tileSelected : ""
-                        }`.trim()}
-                      >
-                        {option.icon}
-                        {option.label}
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-                {field.kind === "dateStrip" ? (
-                  <span className={styles.dateStrip}>
-                    <span className={styles.dateMonth}>{field.month}</span>
-                    <span className={styles.days}>
-                      {field.days.map((day, d) => {
-                        const inRange = d >= field.from && d <= field.to;
-                        const edge = d === field.from || d === field.to;
-                        return (
-                          <span
-                            key={day.day}
-                            className={`${styles.day} ${inRange ? styles.dayInRange : ""} ${
-                              edge ? styles.dayEdge : ""
-                            }`.trim()}
-                          >
-                            <small>{day.dow}</small>
-                            {day.day}
-                          </span>
-                        );
-                      })}
-                    </span>
-                  </span>
-                ) : null}
-                {field.kind === "chips" ? (
-                  <span className={styles.chips}>
-                    {field.options.map((option) => (
-                      <span
-                        key={option}
-                        className={`${styles.chip} ${
-                          field.selected?.includes(option) ? styles.chipSelected : ""
-                        }`.trim()}
-                      >
-                        {field.selected?.includes(option) ? <Check aria-hidden /> : null}
-                        {option}
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-              </div>
+          {groups.map((group, g) =>
+            group.length === 0 || shown[group[0]] < 0 ? null : (
+              <Fragment key={group[0]}>
+                {g > 0 ? <span className={styles.formRule} aria-hidden="true" /> : null}
+                <div className={styles.formGroup}>
+                  {group.map((i) => (shown[i] < 0 ? null : renderField(block.fields[i], i, true)))}
+                </div>
+              </Fragment>
             ),
           )}
-          {shown[block.fields.length] < 0 ? null : (
-            <span className={`${styles.formSubmit} ${styles.pop}`}>{block.submit}</span>
-          )}
+          {actionsShown ? (
+            <>
+              <span className={styles.formRule} aria-hidden="true" />
+              <div className={`${styles.formActions} ${styles.pop}`}>
+                <span className={styles.formSubmit}>{block.submit}</span>
+                {block.secondary ? (
+                  <span className={styles.formSecondary}>{block.secondary}</span>
+                ) : null}
+              </div>
+            </>
+          ) : null}
         </div>
       );
+    }
     case "custom":
       return <div className={styles.pop}>{block.node}</div>;
   }
+}
+
+/* A square card filled with its photo. The tag sits on the photo's top
+   left and a round arrow button on its top right; the name and a short
+   description sit on a white panel inset at the bottom. */
+function PosterCard({ card }: { card: CardItem }) {
+  return (
+    <article className={`${styles.posterCard} ${styles.pop}`}>
+      <img className={styles.posterImage} src={card.image} alt={card.imageAlt} loading="lazy" />
+      {card.badge ? (
+        <span
+          className={`${styles.badge} ${styles.posterBadge} ${styles[`badge_${card.badge.tone ?? "green"}`]}`}
+        >
+          {card.badge.icon}
+          {card.badge.label}
+        </span>
+      ) : null}
+      <span className={styles.posterGo} aria-hidden="true">
+        <ArrowRight />
+      </span>
+      <div className={styles.posterPanel}>
+        <h4 className={styles.cardTitle}>{card.title}</h4>
+        {card.description ? (
+          <p className={styles.posterDescription}>
+            {card.description}
+            {card.rating ? (
+              <>
+                {" · "}
+                <span className={styles.posterRating}>
+                  <Star aria-hidden />
+                  {card.rating}
+                </span>
+              </>
+            ) : null}
+            {card.priceLevel ? (
+              <>
+                {" · "}
+                <span
+                  className={styles.priceLevel}
+                  aria-label={`Price level ${card.priceLevel} of 3`}
+                >
+                  <b>{"€".repeat(card.priceLevel)}</b>
+                  {"€".repeat(3 - card.priceLevel)}
+                </span>
+              </>
+            ) : null}
+          </p>
+        ) : null}
+      </div>
+    </article>
+  );
 }
 
 function Card({ card }: { card: CardItem }) {

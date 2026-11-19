@@ -7,6 +7,8 @@ on:
       - ".github/actions/cli-scaffold-e2e/action.yml"
       - ".github/workflows/cli-e2e.yml"
       - "packages/openui-cli/**"
+      - "scripts/copy-telemetry-state.mjs"
+      - "shared/telemetry/**"
       - "templates/**"
       - "tsconfig.json"
   pull_request:
@@ -15,6 +17,8 @@ on:
       - ".github/actions/cli-scaffold-e2e/action.yml"
       - ".github/workflows/cli-e2e.yml"
       - "packages/openui-cli/**"
+      - "scripts/copy-telemetry-state.mjs"
+      - "shared/telemetry/**"
       - "templates/**"
       - "tsconfig.json"
 

@@ -1,0 +1,1498 @@
+/* The film's newsletter dashboard in three design languages. One grid for
+   every look, so a theme switch restyles in place and nothing moves. World
+   units are px at camera scale 1 (the dashboard is 1000x700). */
+.dash {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 44px 120px 270px minmax(0, 1fr);
+  gap: 14px;
+  box-sizing: border-box;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid var(--frame);
+  border-radius: var(--radius-lg);
+  background: var(--page);
+  font-family: var(--font);
+  color: var(--text);
+  text-align: left;
+}
+
+.dash * {
+  box-sizing: border-box;
+}
+
+/* One card on its own: the look's variables without the dashboard frame. */
+.dash[data-solo] {
+  display: flex;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.dash[data-solo] > .card {
+  flex: 1;
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, calc(0.08 * var(--lift, 1))),
+    0 12px 28px -12px rgba(16, 24, 40, calc(0.3 * var(--lift, 1)));
+}
+
+/* Studio, after the Marketing dashboard: white cards on a near-white page,
+   indigo with sky and violet, green change badges. */
+.dash[data-look="studio"] {
+  --font: var(--home-font-text), sans-serif;
+  --value-font: var(--font);
+  --page: #f7f7f8;
+  --card: #fff;
+  --card-edge: transparent;
+  --frame: rgba(10, 10, 11, 0.06);
+  --edge: #e6e7eb;
+  --line: #f0f0f3;
+  --text: #111113;
+  --muted: #6b7280;
+  --faint: #a1a1aa;
+  --accent: #4f46e5;
+  --open: #4f46e5;
+  --click: #38bdf8;
+  --s0: #4f46e5;
+  --s1: #38bdf8;
+  --s2: #a78bfa;
+  --badge: rgba(22, 163, 74, 0.1);
+  --badge-text: #16a34a;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --value-size: 22px;
+  --value-weight: 500;
+}
+
+/* Vivid, after Support Analytics: pastel metric cards, mono numbers, soft
+   panels and pill rows. */
+.dash[data-look="vivid"] {
+  --font: var(--home-font-text), sans-serif;
+  --value-font: var(--home-font-mono), ui-monospace, monospace;
+  --page: #f2f3f5;
+  --card: #fff;
+  --card-edge: #e8eaee;
+  --frame: #e5e7eb;
+  --edge: #e5e7eb;
+  --line: #f0f1f3;
+  --text: #111827;
+  --muted: #6b7280;
+  --faint: #9ca3af;
+  --accent: #111827;
+  --open: #10b981;
+  --click: #3b82f6;
+  --s0: #10b981;
+  --s1: #3b82f6;
+  --s2: #f59e0b;
+  --badge: rgba(17, 24, 39, 0.08);
+  --badge-text: inherit;
+  --radius: 14px;
+  --radius-lg: 18px;
+  --value-size: 34px;
+  --value-weight: 500;
+}
+
+/* Midnight, after the dark overview: no cards, one grid of hairlines, square
+   cells for the chart. */
+.dash[data-look="midnight"] {
+  --font: var(--home-font-text), sans-serif;
+  --value-font: var(--font);
+  --page: #111317;
+  --card: transparent;
+  --card-edge: transparent;
+  --frame: #272b32;
+  --edge: #2e333b;
+  --line: #22262c;
+  --text: #f2f3f1;
+  --muted: #9ba1ab;
+  --faint: #6b717c;
+  --accent: #8050e8;
+  --open: #cbb8f6;
+  --click: #8050e8;
+  --s0: #b5e47d;
+  --s1: #eba542;
+  --s2: #6097eb;
+  --badge: #10301d;
+  --badge-text: #79c840;
+  --radius: 0;
+  --radius-lg: 20px;
+  --value-size: 23px;
+  --value-weight: 600;
+}
+
+/* ---------- Header ---------- */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The refresh line: a fixed slot, an icon that turns while it runs. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: 132px;
+  margin-right: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.statusIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+}
+
+.statusIcon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.statusIcon[data-spin] svg {
+  animation: spin 0.9s linear infinite;
+}
+
+.status[data-state="1"] {
+  color: var(--accent);
+}
+
+.status[data-state="2"] .statusIcon {
+  color: #16a34a;
+}
+
+.dash[data-look="midnight"] .status[data-state="1"] {
+  color: #b79cf7;
+}
+
+.dash[data-look="midnight"] .status[data-state="2"] .statusIcon {
+  color: #79c840;
+}
+
+.statusSlot {
+  display: inline-block;
+  height: 16px;
+  overflow: hidden;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.statusSlot > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.statusSlot > span > span {
+  height: 16px;
+}
+
+.select,
+.button,
+.ghost,
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.select svg,
+.button svg,
+.iconButton svg {
+  width: 13px;
+  height: 13px;
+}
+
+.select svg {
+  color: var(--muted);
+}
+
+.iconButton {
+  width: 30px;
+  padding: 0;
+}
+
+.button {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+}
+
+.ghost {
+  height: 28px;
+  font-size: 11.5px;
+}
+
+.dash[data-look="studio"] .select,
+.dash[data-look="studio"] .button,
+.dash[data-look="studio"] .iconButton {
+  height: 28px;
+}
+
+.dash[data-look="midnight"] .select,
+.dash[data-look="midnight"] .ghost {
+  border-radius: 5px;
+  background: #1a1d22;
+}
+
+.dash[data-look="midnight"] .button {
+  border-radius: 5px;
+}
+
+.segment {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 9px;
+  background: #e8eaee;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.segment span {
+  padding: 5px 10px;
+  border-radius: 7px;
+}
+
+.segment span[data-on] {
+  background: #fff;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.08);
+}
+
+/* ---------- Metrics ---------- */
+
+.kpis {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--card-edge);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.kpiTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpiChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+}
+
+.icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.kpiLabel {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.kpiAction {
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+}
+
+.kpiAction svg {
+  width: 15px;
+  height: 15px;
+}
+
+.kpiValue {
+  margin-top: 10px;
+  font-family: var(--value-font);
+  font-size: var(--value-size);
+  font-weight: var(--value-weight);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--badge);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--badge-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.delta svg {
+  width: 11px;
+  height: 11px;
+}
+
+.note {
+  font-size: 11px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+/* Studio: an outlined icon over the label, the value with its badge. */
+.dash[data-look="studio"] .kpi {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr auto;
+  column-gap: 8px;
+}
+
+.dash[data-look="studio"] .kpiTop {
+  grid-column: 1 / -1;
+  align-items: flex-start;
+}
+
+.dash[data-look="studio"] .kpiChip {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.dash[data-look="studio"] .icon {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+}
+
+.dash[data-look="studio"] .kpiAction,
+.dash[data-look="studio"] .note {
+  display: none;
+}
+
+.dash[data-look="studio"] .kpiFoot {
+  display: contents;
+}
+
+.dash[data-look="studio"] .kpiValue {
+  margin-top: 4px;
+}
+
+.dash[data-look="studio"] .delta {
+  align-self: center;
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.dash[data-look="studio"] .delta svg {
+  display: none;
+}
+
+/* Vivid: pastel cards, the label in a white pill, a link square. */
+.dash[data-look="vivid"] .kpi {
+  border-color: transparent;
+}
+
+.dash[data-look="vivid"] .kpi[data-i="0"] {
+  background: #b5f4ad;
+}
+
+.dash[data-look="vivid"] .kpi[data-i="1"] {
+  background: #74a9ff;
+}
+
+.dash[data-look="vivid"] .kpi[data-i="2"] {
+  border-color: var(--card-edge);
+  background: #fff;
+}
+
+.dash[data-look="vivid"] .kpi[data-i="3"] {
+  background: #f8cd70;
+}
+
+.dash[data-look="vivid"] .kpiChip {
+  gap: 5px;
+  padding: 3px 9px 3px 6px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.dash[data-look="vivid"] .kpi[data-i="2"] .kpiChip {
+  border: 1px solid var(--edge);
+}
+
+.dash[data-look="vivid"] .kpiLabel {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.dash[data-look="vivid"] .icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.dash[data-look="vivid"] .kpiAction {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+}
+
+.dash[data-look="vivid"] .kpiAction svg {
+  width: 12px;
+  height: 12px;
+}
+
+.dash[data-look="vivid"] .kpiValue {
+  margin-top: 6px;
+  letter-spacing: -0.04em;
+}
+
+.dash[data-look="vivid"] .note {
+  color: rgba(17, 24, 39, 0.6);
+}
+
+.dash[data-look="vivid"] .kpi[data-i="2"] .delta {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+/* Midnight: a coloured square icon, the change on the right, the note
+   centred under a rule with a node at each end. */
+.dash[data-look="midnight"] .kpi {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  padding: 10px 6px 0;
+}
+
+.dash[data-look="midnight"] .kpiTop {
+  grid-column: 1 / -1;
+}
+
+.dash[data-look="midnight"] .icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  color: #fff;
+}
+
+.dash[data-look="midnight"] .icon svg {
+  width: 11px;
+  height: 11px;
+}
+
+.dash[data-look="midnight"] .kpi[data-i="0"] .icon {
+  background: #8050e8;
+}
+
+.dash[data-look="midnight"] .kpi[data-i="1"] .icon {
+  background: #eba542;
+}
+
+.dash[data-look="midnight"] .kpi[data-i="2"] .icon {
+  background: #6097eb;
+}
+
+.dash[data-look="midnight"] .kpi[data-i="3"] .icon {
+  background: #79c840;
+}
+
+.dash[data-look="midnight"] .kpiLabel {
+  font-size: 13px;
+  color: #e3e5e8;
+}
+
+.dash[data-look="midnight"] .kpiFoot {
+  display: contents;
+}
+
+.dash[data-look="midnight"] .kpiValue {
+  align-self: center;
+  margin: 0 0 0 26px;
+}
+
+.dash[data-look="midnight"] .delta {
+  align-self: center;
+  border-radius: 4px;
+}
+
+.dash[data-look="midnight"] .note {
+  position: relative;
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  margin: 0 -6px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.dash[data-look="midnight"] .note::before,
+.dash[data-look="midnight"] .note::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border: 1px solid #3a3f47;
+  border-radius: 50%;
+}
+
+.dash[data-look="midnight"] .note::before {
+  left: 10px;
+}
+
+.dash[data-look="midnight"] .note::after {
+  right: 10px;
+}
+
+/* The grid: hairlines through the middle of every gap, edge to edge. */
+.dash[data-look="midnight"] .kpis::before,
+.dash[data-look="midnight"] .kpis::after,
+.dash[data-look="midnight"] .charts::after {
+  content: "";
+  position: absolute;
+  right: -20px;
+  left: -20px;
+  height: 1px;
+  background: var(--frame);
+}
+
+.dash[data-look="midnight"] .kpis::before {
+  top: -7px;
+}
+
+.dash[data-look="midnight"] .kpis::after,
+.dash[data-look="midnight"] .charts::after {
+  bottom: -7px;
+}
+
+.dash[data-look="midnight"] .kpi + .kpi::before,
+.dash[data-look="midnight"] .charts > .card + .card::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  bottom: -7px;
+  left: -8px;
+  width: 1px;
+  background: var(--frame);
+}
+
+.dash[data-look="midnight"] .charts > .card + .card::before {
+  bottom: -8px;
+}
+
+/* ---------- Cards ---------- */
+
+.charts {
+  position: relative;
+  display: grid;
+  grid-template-columns: 690px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 0;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  border: 1px solid var(--card-edge);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.dash[data-look="midnight"] .card {
+  padding: 12px 6px 8px;
+}
+
+.dash[data-look="midnight"][data-solo] > .card {
+  padding: calc(12px + 4px * var(--lift, 1)) calc(6px + 10px * var(--lift, 1))
+    calc(8px + 8px * var(--lift, 1));
+  border-color: rgb(39 43 50 / var(--lift, 1));
+  border-radius: calc(14px * var(--lift, 1));
+  background: var(--page);
+}
+
+/* While the revenue card is lifted out, its slot keeps its frame and grid
+   lines; only the contents go. */
+.card[data-emptied] > * {
+  visibility: hidden;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+}
+
+.cardTitle {
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.dash[data-look="studio"] .cardTitle {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.dash[data-look="vivid"] .cardTitle {
+  font-weight: 600;
+}
+
+.cardSide {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.legend i {
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-radius: 50%;
+}
+
+.dash[data-look="midnight"] .legend i {
+  width: 3px;
+  height: 9px;
+  border-radius: 1px;
+}
+
+.legend i[data-k="open"] {
+  background: var(--open);
+}
+
+.legend i[data-k="click"] {
+  background: var(--click);
+}
+
+.legend i[data-k="rest"] {
+  background: #f87171;
+}
+
+.dash[data-look="vivid"] .legend i[data-k="open"] {
+  background: #f59e0b;
+}
+
+.dash[data-look="vivid"] [data-block="chart"] .legend i[data-k="open"] {
+  background: var(--open);
+}
+
+.dash[data-look="vivid"] [data-block="table"] .legend i[data-k="click"] {
+  background: #10b981;
+}
+
+.dash[data-look="midnight"] .legend i[data-k="click"] {
+  background: var(--open);
+}
+
+.dash[data-look="midnight"] .legend i[data-k="open"] {
+  background: #d7d9dd;
+}
+
+/* ---------- Charts ---------- */
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: auto;
+  overflow: visible;
+}
+
+.gridLine {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.tick {
+  font-family: var(--font);
+  font-size: 10px;
+  fill: var(--faint);
+}
+
+.tickMark {
+  stroke: #3a3f47;
+  stroke-width: 1;
+}
+
+.square {
+  fill: #2a2f37;
+}
+
+.square[data-k="click"] {
+  fill: var(--open);
+}
+
+.square[data-k="hot"] {
+  fill: var(--click);
+}
+
+.cursor {
+  stroke: var(--faint);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.dash[data-look="midnight"] .cursor {
+  stroke: var(--accent);
+  opacity: 1;
+}
+
+.cursorDot {
+  fill: var(--accent);
+}
+
+.tip rect {
+  fill: #1a1d22;
+  stroke: #30353d;
+}
+
+.tip text {
+  font-family: var(--font);
+  font-size: 9.5px;
+  fill: #c9ccd2;
+}
+
+.tip text[data-b] {
+  font-weight: 600;
+  fill: #f2f3f1;
+}
+
+.bar {
+  fill: var(--open);
+}
+
+.panel {
+  fill: #f8f9fb;
+}
+
+.area {
+  fill: var(--open);
+  opacity: 0.12;
+}
+
+.line1,
+.line2 {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.line1 {
+  stroke: var(--open);
+}
+
+.line2 {
+  stroke: var(--click);
+}
+
+.dot1,
+.dot2 {
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.dot1 {
+  fill: var(--open);
+}
+
+.dot2 {
+  fill: var(--click);
+}
+
+/* ---------- Revenue ---------- */
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #79c840;
+}
+
+.trend svg {
+  width: 12px;
+  height: 12px;
+}
+
+.revenueValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.bigValue {
+  font-family: var(--value-font);
+  font-size: 24px;
+  font-weight: var(--value-weight);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash[data-look="vivid"] .bigValue {
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.revenueArea {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 10px 0;
+}
+
+.revenueChart {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+.groups {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  height: 100%;
+}
+
+.group {
+  display: flex;
+  flex: 1;
+  gap: 5px;
+}
+
+.group i {
+  position: relative;
+  flex: 1;
+  border-radius: 2px;
+  background: repeating-linear-gradient(135deg, #2c3138 0 2px, transparent 2px 5px);
+}
+
+.group b {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 2px;
+}
+
+.group b[data-s="0"] {
+  background: var(--s0);
+}
+
+.group b[data-s="1"] {
+  background: var(--s1);
+}
+
+.group b[data-s="2"] {
+  background: var(--s2);
+}
+
+.group b[data-prev] {
+  background: var(--fill);
+}
+
+.group b[data-prev][data-s="0"] {
+  --fill: #e6fcc4;
+}
+
+.group b[data-prev][data-s="1"] {
+  --fill: #f9ebcd;
+}
+
+.group b[data-prev][data-s="2"] {
+  --fill: #c7ddf8;
+}
+
+.gauge {
+  width: 100%;
+  height: 100%;
+}
+
+.gauge path {
+  fill: none;
+  stroke-width: 18;
+  stroke-linecap: round;
+}
+
+.gaugeValue {
+  font-family: var(--font);
+  font-size: 22px;
+  font-weight: 500;
+  fill: var(--text);
+}
+
+.gaugeLabel {
+  font-family: var(--font);
+  font-size: 9px;
+  fill: var(--muted);
+}
+
+.pills {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  height: 38px;
+  margin-bottom: 14px;
+}
+
+.pills i {
+  flex: 1;
+  border-radius: 4px;
+}
+
+.caption {
+  margin-bottom: 8px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  text-transform: uppercase;
+}
+
+.donut {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  rotate: -90deg;
+}
+
+.donut circle {
+  fill: none;
+  stroke-width: 13;
+}
+
+.donutTrack {
+  stroke: var(--line);
+}
+
+.dash [data-s="0"] {
+  background: var(--s0);
+  stroke: var(--s0);
+}
+
+.dash [data-s="1"] {
+  background: var(--s1);
+  stroke: var(--s1);
+}
+
+.dash [data-s="2"] {
+  background: var(--s2);
+  stroke: var(--s2);
+}
+
+.sources {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.sources i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dash[data-look="studio"] .sources i {
+  border-radius: 2px;
+}
+
+.sources span {
+  color: var(--muted);
+}
+
+.dash[data-look="midnight"] .sources span {
+  color: #e3e5e8;
+}
+
+.sources b {
+  display: inline-flex;
+  gap: 10px;
+  margin-left: auto;
+  font-weight: 500;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.sources em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+/* ---------- Campaigns ---------- */
+
+.tabs {
+  display: inline-flex;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.tabs span {
+  padding-bottom: 6px;
+}
+
+.tabs span[data-on] {
+  box-shadow: inset 0 -2px 0 var(--accent);
+  color: var(--accent);
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.th,
+.tr {
+  display: grid;
+  grid-template-columns: 2.6fr 1.2fr 1.2fr 1fr 0.8fr;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.th {
+  height: 26px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tr {
+  height: 34px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tr:last-child {
+  border-bottom: 0;
+}
+
+.right {
+  justify-self: end;
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.name i {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #79c840;
+  border-radius: 50%;
+}
+
+.name i[data-i="1"] {
+  border-color: #e8d44d;
+}
+
+.name i[data-i="2"] {
+  border-color: #4fd1c5;
+}
+
+.name svg {
+  width: 12px;
+  height: 12px;
+  color: var(--faint);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #1f2433;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #b9c3e8;
+}
+
+.pill i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pill[data-live] {
+  background: #10301d;
+  color: #79c840;
+}
+
+/* Midnight: a header band across the table. */
+.dash[data-look="midnight"] .th {
+  height: 30px;
+  margin: 0 -6px;
+  padding: 0 18px;
+  background: #171a1f;
+}
+
+.dash[data-look="midnight"] .tr {
+  height: 33px;
+}
+
+/* Vivid: each campaign a soft pill row, the outcome as one split bar. The
+   space under the last row matches the card's side padding. */
+.dash[data-look="vivid"] [data-block="table"] {
+  padding-bottom: 16px;
+}
+
+.dash[data-look="vivid"] .table {
+  margin-top: 8px;
+}
+
+.dash[data-look="vivid"] .th {
+  height: 24px;
+}
+
+.dash[data-look="vivid"] .tr {
+  height: 28px;
+  margin-bottom: 5px;
+  border: 0;
+  border-radius: 8px;
+  background: #f8f9fb;
+}
+
+.dash[data-look="vivid"] .tr:last-child {
+  margin-bottom: 0;
+}
+
+.split {
+  display: flex;
+  gap: 2px;
+  width: 88%;
+  height: 7px;
+}
+
+.split i {
+  border-radius: 4px;
+}
+
+.split i[data-k="click"] {
+  background: #10b981;
+}
+
+.split i[data-k="open"] {
+  background: #f59e0b;
+}
+
+.split i[data-k="rest"] {
+  background: #f87171;
+}
+
+/* Studio: campaigns as tinted bars, the way it lists channels. */
+.dash[data-look="studio"] .table {
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.dash[data-look="studio"] .tr {
+  grid-template-columns: 1fr 120px 90px 60px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+}
+
+.dash[data-look="studio"] .tr > :not(:first-child) {
+  justify-self: end;
+}
+
+.dash[data-look="studio"] .tr > span:nth-child(2) {
+  color: var(--muted);
+}
+
+.barName {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding-left: 10px;
+}
+
+.barName i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 6px;
+  background: #eef0ff;
+}
+
+.barName span {
+  position: relative;
+  font-weight: 500;
+}
+
+/* ---------- Rolling digits ---------- */
+
+.slot {
+  display: inline-block;
+  height: 1.2em;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.slot > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.slot > span > span {
+  height: 1.2em;
+}
+
+/* ---------- Each look in the other mode ---------- */
+
+/* Indigo, dark. */
+.dash[data-look="studio"][data-mode="dark"] {
+  --page: #0f1012;
+  --card: #17181b;
+  --frame: rgba(255, 255, 255, 0.08);
+  --edge: #2a2b30;
+  --line: #222327;
+  --text: #f2f2f4;
+  --muted: #9ca3af;
+  --faint: #6b6f78;
+  --accent: #6d64f0;
+  --open: #6d64f0;
+  --s0: #6d64f0;
+  --badge: rgba(34, 197, 94, 0.14);
+  --badge-text: #4ade80;
+}
+
+.dash[data-look="studio"][data-mode="dark"] .barName i {
+  background: rgba(109, 100, 240, 0.2);
+}
+
+/* Pastel, dark: dark surfaces, the metric cards keep their pastel fills and
+   dark ink. */
+.dash[data-look="vivid"][data-mode="dark"] {
+  --page: #0f1012;
+  --card: #17181b;
+  --card-edge: #2a2b30;
+  --frame: #2a2b30;
+  --edge: #2a2b30;
+  --line: #222327;
+  --text: #f2f2f4;
+  --muted: #9ca3af;
+  --faint: #6b6f78;
+  --accent: #60a5fa;
+}
+
+.dash[data-look="vivid"][data-mode="dark"] .kpi {
+  --text: #111827;
+  --muted: #4b5563;
+  --faint: #6b7280;
+
+  color: #111827;
+}
+
+.dash[data-look="vivid"][data-mode="dark"] .segment {
+  background: #26272c;
+}
+
+.dash[data-look="vivid"][data-mode="dark"] .segment span[data-on] {
+  background: #3a3b40;
+  box-shadow: none;
+}
+
+.dash[data-look="vivid"][data-mode="dark"] .panel {
+  fill: #1d1e22;
+}
+
+.dash[data-look="vivid"][data-mode="dark"] .tr {
+  background: #1d1e22;
+}
+
+.dash[data-mode="dark"] .dot1,
+.dash[data-mode="dark"] .dot2 {
+  stroke: var(--card);
+}
+
+/* Graphite, light: the same grid of hairlines on white. */
+.dash[data-look="midnight"][data-mode="light"] {
+  --page: #fff;
+  --frame: #e9e9ee;
+  --edge: #e3e4e9;
+  --line: #efeff3;
+  --text: #111317;
+  --muted: #6b7280;
+  --faint: #9aa0a8;
+  --badge: #eaf6e2;
+  --badge-text: #3b8a1d;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .select,
+.dash[data-look="midnight"][data-mode="light"] .ghost {
+  background: #fff;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .kpiLabel,
+.dash[data-look="midnight"][data-mode="light"] .sources span {
+  color: var(--text);
+}
+
+.dash[data-look="midnight"][data-mode="light"] .note::before,
+.dash[data-look="midnight"][data-mode="light"] .note::after {
+  border-color: #d5d7dc;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .legend i[data-k="open"] {
+  background: #d5d7dc;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .tickMark {
+  stroke: #d5d7dc;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .square {
+  fill: #e6e7eb;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .square[data-k="click"] {
+  fill: var(--open);
+}
+
+.dash[data-look="midnight"][data-mode="light"] .square[data-k="hot"] {
+  fill: var(--click);
+}
+
+.dash[data-look="midnight"][data-mode="light"] .tip rect {
+  fill: #fff;
+  stroke: #e5e7eb;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .tip text {
+  fill: #4b5563;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .tip text[data-b] {
+  fill: #111317;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .group i {
+  background: repeating-linear-gradient(135deg, #e4e4e9 0 2px, transparent 2px 5px);
+}
+
+.dash[data-look="midnight"][data-mode="light"] .pill {
+  background: #eef1fb;
+  color: #3f4a8a;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .pill[data-live] {
+  background: #eaf6e2;
+  color: #3b8a1d;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .th {
+  background: #f7f7f9;
+}
+
+.dash[data-look="midnight"][data-mode="light"] .status[data-state="1"] {
+  color: var(--click);
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusIcon[data-spin] svg {
+    animation: none;
+  }
+}

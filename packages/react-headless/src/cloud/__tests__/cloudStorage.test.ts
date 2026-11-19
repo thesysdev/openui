@@ -286,3 +286,39 @@ describe("cloud item conversion", () => {
     ]);
   });
 });
+
+describe("cloud artifact query result cache", () => {
+  it("reads the saved results, and a failed write neither throws nor rejects", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(json({ results: { k: { total: 1 } } }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockRejectedValueOnce(new Error("offline"));
+    const storage = cloudArtifactStorage({ baseUrl, fetch });
+    const url = "https://cloud.example.com/v1/artifacts/a%2F1/query-results";
+
+    expect(await storage.getQueryResults!("a/1")).toEqual({ k: { total: 1 } });
+    expect(fetch.mock.calls[0]![0]).toBe(url);
+
+    const entry = { key: "k", value: { total: 2 } };
+    storage.putQueryResult!("a/1", entry);
+    expect(fetch.mock.calls[1]).toEqual([
+      url,
+      {
+        method: "PUT",
+        body: JSON.stringify(entry),
+        headers: { "Content-Type": "application/json" },
+      },
+    ]);
+    // An unhandled rejection would fail the test.
+    expect(() => storage.putQueryResult!("a/1", entry)).not.toThrow();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("has no query result calls when cacheQueryResults is false", () => {
+    const storage = cloudArtifactStorage({ baseUrl, fetch: vi.fn(), cacheQueryResults: false });
+    expect(storage.getQueryResults).toBeUndefined();
+    expect(storage.putQueryResult).toBeUndefined();
+  });
+});

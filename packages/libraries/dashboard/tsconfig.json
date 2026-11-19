@@ -1,0 +1,25 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": [
+      "react"
+    ],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable",
+      "ES2023.Intl"
+    ]
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}

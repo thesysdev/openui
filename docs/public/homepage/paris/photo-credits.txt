@@ -1,0 +1,6 @@
+Hotel photos in the homepage Cards example (Unsplash License):
+hotel-1.jpg: Simone Hutsch, https://unsplash.com/photos/QXBJ1G3DEWQ
+hotel-2.jpg: Guillaume Bolduc, https://unsplash.com/photos/alu2MCufI0g
+hotel-3.jpg: Bernard Hermant, https://unsplash.com/photos/KqOLr8OiQLU
+hotel-4.jpg: Icarus Chu, https://unsplash.com/photos/ybOmujH-g6Y
+hotel-feature.jpg: Amir Hosseini, https://unsplash.com/photos/3cl6impBd_8 (flipped)

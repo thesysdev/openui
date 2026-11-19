@@ -3,6 +3,9 @@ import { isTopLevelSection, source } from "@/lib/source";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+// Only prerendered slugs exist; anything else 404s without a render.
+export const dynamicParams = false;
+
 // Sections like cookbooks live at their own top-level path, so /docs does not serve them.
 function getPage(slug: string[] | undefined) {
   return isTopLevelSection(slug) ? undefined : source.getPage(slug);

@@ -85,7 +85,7 @@ export const OBSERVABILITY_PRODUCT: ProductSectionProps = {
   headline: "Product analytics for Generative UI.",
   description:
     "See what your agent generated, what users experienced, and where your product needs to improve.",
-  secondaryCta: { label: "View docs", href: "/docs/agent/getting-started/openui-cloud" },
+  secondaryCta: { label: "View docs", href: "/docs/agent/getting-started/quickstart" },
   tone: "dark",
   shot: "/homepage/observability",
   fullBleedArt: true,

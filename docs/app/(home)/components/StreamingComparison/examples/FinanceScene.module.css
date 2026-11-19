@@ -1,0 +1,17 @@
+/* The board is drawn at 1600px wide (SCENE_WIDTH in FinanceScene.tsx) and
+   scaled to the width it is given, the same way the hero stage scales its
+   scene. The frame's aspect ratio follows the board's measured height. */
+.frame {
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+.scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1600px;
+  transform-origin: 0 0;
+  transform: scale(tan(atan2(100cqw, 1600px)));
+}

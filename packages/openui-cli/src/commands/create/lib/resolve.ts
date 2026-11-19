@@ -132,6 +132,7 @@ export async function resolveCreateSelection(params: {
   const featured = featuredExamples(examples);
   const { select, Separator } = await import("@inquirer/prompts");
   const prompt = async <T extends string>(
+    stepName: string,
     message: string,
     choices: unknown[],
     pageSize: number,
@@ -146,7 +147,7 @@ export async function resolveCreateSelection(params: {
     } catch (err) {
       const { ExitPromptError } = await import("@inquirer/core");
       if (err instanceof ExitPromptError) {
-        throw new CliCancelledError("args_resolution");
+        throw new CliCancelledError("args_resolution", 0, { step_name: stepName });
       }
       throw err;
     }
@@ -177,6 +178,7 @@ export async function resolveCreateSelection(params: {
     }
 
     const selected = await prompt<string>(
+      "backend_framework",
       "Choose your backend framework",
       starterChoices,
       starterChoices.length,
@@ -192,6 +194,7 @@ export async function resolveCreateSelection(params: {
     }
 
     const exampleSelected = await prompt<string>(
+      "example",
       "Select an OpenUI example",
       [
         { value: GO_BACK_CHOICE, name: "← Back" },

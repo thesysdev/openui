@@ -1,0 +1,3297 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "id": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "definitions": {
+    "Action.Execute": {
+      "description": "Gathers input fields, merges with optional data field, and sends an event to the client. Clients process the event by sending an Invoke activity of type adaptiveCard/action to the target Bot. The inputs that are gathered are those on the current card, and in the case of a show card those on any parent cards. See [Universal Action Model](https://docs.microsoft.com/en-us/adaptive-cards/authoring-cards/universal-action-model) documentation for more details.",
+      "version": "1.4",
+      "properties": {
+        "type": {
+          "enum": [
+            "Action.Execute"
+          ],
+          "description": "Must be `Action.Execute`"
+        },
+        "verb": {
+          "type": "string",
+          "description": "The card author-defined verb associated with this action."
+        },
+        "data": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Initial data that input fields will be combined with. These are essentially ‘hidden’ properties."
+        },
+        "associatedInputs": {
+          "$ref": "#/definitions/AssociatedInputs",
+          "description": "Controls which inputs are associated with the action.",
+          "default": "auto"
+        },
+        "title": {},
+        "iconUrl": {},
+        "id": {},
+        "style": {},
+        "fallback": {},
+        "tooltip": {},
+        "isEnabled": {},
+        "mode": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Action"
+        }
+      ]
+    },
+    "Action.OpenUrl": {
+      "description": "When invoked, show the given url either by launching it in an external web browser or showing within an embedded web browser.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Action.OpenUrl"
+          ],
+          "description": "Must be `Action.OpenUrl`"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "The URL to open."
+        },
+        "title": {},
+        "iconUrl": {},
+        "id": {},
+        "style": {},
+        "fallback": {},
+        "tooltip": {},
+        "isEnabled": {},
+        "mode": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Action"
+        }
+      ]
+    },
+    "Action.ShowCard": {
+      "description": "Defines an AdaptiveCard which is shown to the user when the button or link is clicked.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Action.ShowCard"
+          ],
+          "description": "Must be `Action.ShowCard`"
+        },
+        "card": {
+          "$ref": "#/definitions/AdaptiveCard",
+          "description": "The Adaptive Card to show. Inputs in ShowCards will not be submitted if the submit button is located on a parent card. See https://docs.microsoft.com/en-us/adaptive-cards/authoring-cards/input-validation for more details."
+        },
+        "title": {},
+        "iconUrl": {},
+        "id": {},
+        "style": {},
+        "fallback": {},
+        "tooltip": {},
+        "isEnabled": {},
+        "mode": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Action"
+        }
+      ]
+    },
+    "Action.Submit": {
+      "description": "Gathers input fields, merges with optional data field, and sends an event to the client. It is up to the client to determine how this data is processed. For example: With BotFramework bots, the client would send an activity through the messaging medium to the bot. The inputs that are gathered are those on the current card, and in the case of a show card those on any parent cards. See https://docs.microsoft.com/en-us/adaptive-cards/authoring-cards/input-validation for more details.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Action.Submit"
+          ],
+          "description": "Must be `Action.Submit`"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Initial data that input fields will be combined with. These are essentially ‘hidden’ properties."
+        },
+        "associatedInputs": {
+          "$ref": "#/definitions/AssociatedInputs",
+          "description": "Controls which inputs are associated with the submit action.",
+          "default": "auto",
+          "version": "1.3"
+        },
+        "title": {},
+        "iconUrl": {},
+        "id": {},
+        "style": {},
+        "fallback": {},
+        "tooltip": {},
+        "isEnabled": {},
+        "mode": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Action"
+        }
+      ]
+    },
+    "Action.ToggleVisibility": {
+      "description": "An action that toggles the visibility of associated card elements.",
+      "version": "1.2",
+      "properties": {
+        "type": {
+          "enum": [
+            "Action.ToggleVisibility"
+          ],
+          "description": "Must be `Action.ToggleVisibility`"
+        },
+        "targetElements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TargetElement"
+          },
+          "description": "The array of TargetElements. It is not recommended to include Input elements with validation under Action.Toggle due to confusion that can arise from invalid inputs that are not currently visible. See https://docs.microsoft.com/en-us/adaptive-cards/authoring-cards/input-validation for more information."
+        },
+        "title": {},
+        "iconUrl": {},
+        "id": {},
+        "style": {},
+        "fallback": {},
+        "tooltip": {},
+        "isEnabled": {},
+        "mode": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetElements"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Action"
+        }
+      ]
+    },
+    "TargetElement": {
+      "description": "Represents an entry for Action.ToggleVisibility's targetElements property",
+      "anyOf": [
+        {
+          "type": "string",
+          "description": "Element ID of element to toggle"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "TargetElement"
+              ],
+              "description": "Must be `TargetElement`"
+            },
+            "elementId": {
+              "type": "string",
+              "description": "Element ID of element to toggle"
+            },
+            "isVisible": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "If `true`, always show target element. If `false`, always hide target element. If not supplied, toggle target element's visibility. "
+            }
+          },
+          "required": [
+            "elementId"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "AdaptiveCard": {
+      "description": "An Adaptive Card, containing a free-form body of card elements, and an optional set of actions.",
+      "properties": {
+        "type": {
+          "enum": [
+            "AdaptiveCard"
+          ],
+          "description": "Must be `AdaptiveCard`"
+        },
+        "version": {
+          "type": "string",
+          "description": "Schema version that this card requires. If a client is **lower** than this version, the `fallbackText` will be rendered. NOTE: Version is not required for cards within an `Action.ShowCard`. However, it *is* required for the top-level card.",
+          "examples": [
+            "1.0",
+            "1.1",
+            "1.2"
+          ]
+        },
+        "refresh": {
+          "$ref": "#/definitions/Refresh",
+          "description": "Defines how the card can be refreshed by making a request to the target Bot.",
+          "version": "1.4"
+        },
+        "authentication": {
+          "$ref": "#/definitions/Authentication",
+          "description": "Defines authentication information to enable on-behalf-of single sign on or just-in-time OAuth.",
+          "version": "1.4"
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImplementationsOf.Element"
+          },
+          "description": "The card elements to show in the primary card region."
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImplementationsOf.Action"
+          },
+          "description": "The Actions to show in the card's action bar."
+        },
+        "selectAction": {
+          "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+          "description": "An Action that will be invoked when the card is tapped or selected. `Action.ShowCard` is not supported.",
+          "version": "1.1"
+        },
+        "fallbackText": {
+          "type": "string",
+          "description": "Text shown when the client doesn't support the version specified (may contain markdown)."
+        },
+        "backgroundImage": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/BackgroundImage"
+            },
+            {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "The URL (or data url) to use as the background image. Supports data URI in version 1.2+",
+              "version": "1.0"
+            }
+          ],
+          "description": "Specifies the background image of the card.",
+          "version": "1.2"
+        },
+        "minHeight": {
+          "type": "string",
+          "description": "Specifies the minimum height of the card.",
+          "examples": [
+            "50px"
+          ],
+          "version": "1.2",
+          "features": [
+            2293
+          ]
+        },
+        "rtl": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description":  "When `true` content in this Adaptive Card should be presented right to left. When 'false' content in this Adaptive Card should be presented left to right. If unset, the default platform behavior will apply.",
+          "version": "1.5"
+        },
+        "speak": {
+          "type": "string",
+          "description": "Specifies what should be spoken for this entire card. This is simple text or SSML fragment."
+        },
+        "lang": {
+          "type": "string",
+          "description": "The 2-letter ISO-639-1 language used in the card. Used to localize any date/time functions.",
+          "examples": [
+            "en",
+            "fr",
+            "es"
+          ]
+        },
+        "verticalContentAlignment": {
+          "$ref": "#/definitions/VerticalContentAlignment",
+          "description": "Defines how the content should be aligned vertically within the container. Only relevant for fixed-height cards, or cards with a `minHeight` specified.",
+          "version": "1.1"
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri",
+          "description": "The Adaptive Card schema."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    },
+    "ActionSet": {
+      "description": "Displays a set of actions.",
+      "properties": {
+        "type": {
+          "enum": [
+            "ActionSet"
+          ],
+          "description": "Must be `ActionSet`"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImplementationsOf.Action"
+          },
+          "description": "The array of `Action` elements to show."
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "version": "1.2",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actions"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "Column": {
+      "description": "Defines a container that is part of a ColumnSet.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Column"
+          ],
+          "description": "Must be `Column`"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImplementationsOf.Element"
+          },
+          "description": "The card elements to render inside the `Column`."
+        },
+        "backgroundImage": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/BackgroundImage"
+            },
+            {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "The URL (or data url) to use as the background image. Supports data URI."
+            }
+          ],
+          "description": "Specifies the background image. Acceptable formats are PNG, JPEG, and GIF",
+          "version": "1.2"
+        },
+        "bleed": {
+          "type": "boolean",
+          "description": "Determines whether the column should bleed through its parent's padding.",
+          "version": "1.2",
+          "features": [
+            2109
+          ]
+        },
+        "fallback": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Column"
+            },
+            {
+              "$ref": "#/definitions/FallbackOption"
+            }
+          ],
+          "description": "Describes what to do when an unknown item is encountered or the requires of this or any children can't be met.",
+          "version": "1.2"
+        },
+        "minHeight": {
+          "type": "string",
+          "description": "Specifies the minimum height of the column in pixels, like `\"80px\"`.",
+          "examples": [
+            "50px"
+          ],
+          "version": "1.2",
+          "features": [
+            2293
+          ]
+        },
+        "rtl": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When `true` content in this column should be presented right to left. When 'false' content in this column should be presented left to right. When unset layout direction will inherit from parent container or column. If unset in all ancestors, the default platform behavior will apply.",
+          "version": "1.5"
+        },
+        "separator": {
+          "type": "boolean",
+          "description": "When `true`, draw a separating line between this column and the previous column."
+        },
+        "spacing": {
+          "$ref": "#/definitions/Spacing",
+          "description": "Controls the amount of spacing between this column and the preceding column."
+        },
+        "selectAction": {
+          "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+          "description": "An Action that will be invoked when the `Column` is tapped or selected. `Action.ShowCard` is not supported.",
+          "version": "1.1"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContainerStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Style hint for `Column`."
+        },
+        "verticalContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerticalContentAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Defines how the content should be aligned vertically within the column. When not specified, the value of verticalContentAlignment is inherited from the parent container. If no parent container has verticalContentAlignment set, it defaults to Top.",
+          "version": "1.1"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "`\"auto\"`, `\"stretch\"`, a number representing relative width of the column in the column group, or in version 1.1 and higher, a specific pixel width, like `\"50px\"`."
+        },
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.ToggleableItem"
+        }
+      ]
+    },
+    "ColumnSet": {
+      "description": "ColumnSet divides a region into Columns, allowing elements to sit side-by-side.",
+      "properties": {
+        "type": {
+          "enum": [
+            "ColumnSet"
+          ],
+          "description": "Must be `ColumnSet`"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Column"
+          },
+          "description": "The array of `Columns` to divide the region into."
+        },
+        "selectAction": {
+          "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+          "description": "An Action that will be invoked when the `ColumnSet` is tapped or selected. `Action.ShowCard` is not supported.",
+          "version": "1.1"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContainerStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Style hint for `ColumnSet`.",
+          "version": "1.2"
+        },
+        "bleed": {
+          "type": "boolean",
+          "description": "Determines whether the element should bleed through its parent's padding.",
+          "version": "1.2",
+          "features": [
+            2109
+          ]
+        },
+        "minHeight": {
+          "type": "string",
+          "description": "Specifies the minimum height of the column set in pixels, like `\"80px\"`.",
+          "examples": [
+            "50px"
+          ],
+          "version": "1.2",
+          "features": [
+            2293
+          ]
+        },
+        "horizontalAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/HorizontalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls the horizontal alignment of the ColumnSet. When not specified, the value of horizontalAlignment is inherited from the parent container. If no parent container has horizontalAlignment set, it defaults to Left."
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "Container": {
+      "description": "Containers group items together.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Container"
+          ],
+          "description": "Must be `Container`"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImplementationsOf.Element"
+          },
+          "description": "The card elements to render inside the `Container`."
+        },
+        "selectAction": {
+          "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+          "description": "An Action that will be invoked when the `Container` is tapped or selected. `Action.ShowCard` is not supported.",
+          "version": "1.1"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContainerStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Style hint for `Container`."
+        },
+        "verticalContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerticalContentAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Defines how the content should be aligned vertically within the container. When not specified, the value of verticalContentAlignment is inherited from the parent container. If no parent container has verticalContentAlignment set, it defaults to Top.",
+          "version": "1.1"
+        },
+        "bleed": {
+          "type": "boolean",
+          "description": "Determines whether the element should bleed through its parent's padding.",
+          "version": "1.2",
+          "features": [
+            2109
+          ]
+        },
+        "backgroundImage": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/BackgroundImage"
+            },
+            {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "The URL (or data url) to use as the background image. Supports data URI."
+            }
+          ],
+          "description": "Specifies the background image. Acceptable formats are PNG, JPEG, and GIF",
+          "version": "1.2"
+        },
+        "minHeight": {
+          "type": "string",
+          "description": "Specifies the minimum height of the container in pixels, like `\"80px\"`.",
+          "examples": [
+            "50px"
+          ],
+          "version": "1.2",
+          "features": [
+            2293
+          ]
+        },
+        "rtl?": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When `true` content in this container should be presented right to left. When 'false' content in this container should be presented left to right. When unset layout direction will inherit from parent container or column. If unset in all ancestors, the default platform behavior will apply.",
+          "version": "1.5"
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "Fact": {
+      "description": "Describes a Fact in a FactSet as a key/value pair.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Fact"
+          ],
+          "description": "Must be `Fact`"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the fact."
+        },
+        "value": {
+          "type": "string",
+          "description": "The value of the fact."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "value"
+      ]
+    },
+    "FactSet": {
+      "description": "The FactSet element displays a series of facts (i.e. name/value pairs) in a tabular form.",
+      "properties": {
+        "type": {
+          "enum": [
+            "FactSet"
+          ],
+          "description": "Must be `FactSet`"
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Fact"
+          },
+          "description": "The array of `Fact`'s."
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "facts"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "Image": {
+      "description": "Displays an image. Acceptable formats are PNG, JPEG, and GIF",
+      "properties": {
+        "type": {
+          "enum": [
+            "Image"
+          ],
+          "description": "Must be `Image`"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "The URL to the image. Supports data URI in version 1.2+"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternate text describing the image."
+        },
+        "backgroundColor": {
+          "type": "string",
+          "description": "Applies a background to a transparent image. This property will respect the image style.",
+          "example": "#DDDDDD",
+          "version": "1.1"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/BlockElementHeight"
+            }
+          ],
+          "description": "The desired height of the image. If specified as a pixel value, ending in 'px', E.g., 50px, the image will distort to fit that exact height. This overrides the `size` property.",
+          "examples": [
+            "50px"
+          ],
+          "default": "auto",
+          "version": "1.1"
+        },
+        "horizontalAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/HorizontalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how this element is horizontally positioned within its parent. When not specified, the value of horizontalAlignment is inherited from the parent container. If no parent container has horizontalAlignment set, it defaults to Left."
+        },
+        "selectAction": {
+          "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+          "description": "An Action that will be invoked when the `Image` is tapped or selected. `Action.ShowCard` is not supported.",
+          "version": "1.1"
+        },
+        "size": {
+          "$ref": "#/definitions/ImageSize",
+          "description": "Controls the approximate size of the image. The physical dimensions will vary per host."
+        },
+        "style": {
+          "$ref": "#/definitions/ImageStyle",
+          "description": "Controls how this `Image` is displayed."
+        },
+        "width": {
+          "type": "string",
+          "description": "The desired on-screen width of the image, ending in 'px'. E.g., 50px. This overrides the `size` property.",
+          "examples": [
+            "50px"
+          ],
+          "version": "1.1"
+        },
+        "fallback": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ImplementationsOf.Element"
+            },
+            {
+              "$ref": "#/definitions/FallbackOption"
+            }
+          ],
+          "description": "Describes what to do when an unknown element is encountered or the requires of this or any children can't be met.",
+          "version": "1.2"
+        },
+        "separator": {
+          "type": "boolean",
+          "description": "When `true`, draw a separating line at the top of the element."
+        },
+        "spacing": {
+          "$ref": "#/definitions/Spacing",
+          "description": "Controls the amount of spacing between this element and the preceding element."
+        },
+        "id": {
+          "type": "string",
+          "description": "A unique identifier associated with the item."
+        },
+        "isVisible": {
+          "type": "boolean",
+          "description": "If `false`, this item will be removed from the visual tree.",
+          "default": true,
+          "version": "1.2"
+        },
+        "requires": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "A series of key/value pairs indicating features that the item requires with corresponding minimum version. When a feature is missing or of insufficient version, fallback is triggered.",
+          "version": "1.2"
+        }
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url"
+      ]
+    },
+    "ImageSet": {
+      "description": "The ImageSet displays a collection of Images similar to a gallery. Acceptable formats are PNG, JPEG, and GIF",
+      "properties": {
+        "type": {
+          "enum": [
+            "ImageSet"
+          ],
+          "description": "Must be `ImageSet`"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Image"
+          },
+          "description": "The array of `Image` elements to show."
+        },
+        "imageSize": {
+          "$ref": "#/definitions/ImageSize",
+          "default": "medium",
+          "description": "Controls the approximate size of each image. The physical dimensions will vary per host. Auto and stretch are not supported for ImageSet. The size will default to medium if those values are set."
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "images"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "TextRun": {
+      "description": "Defines a single run of formatted text. A TextRun with no properties set can be represented in the json as string containing the text as a shorthand for the json object. These two representations are equivalent.",
+      "version": "1.2",
+      "anyOf": [
+        {
+          "type": "string",
+          "description": "Text to display. Markdown is not supported."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "TextRun"
+              ],
+              "description": "Must be `TextRun`"
+            },
+            "text": {
+              "type": "string",
+              "description": "Text to display. Markdown is not supported."
+            },
+            "color": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Colors"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Controls the color of the text."
+            },
+            "fontType": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/FontType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The type of font to use"
+            },
+            "highlight": {
+              "type": "boolean",
+              "description": "If `true`, displays the text highlighted."
+            },
+            "isSubtle": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "If `true`, displays text slightly toned down to appear less prominent.",
+              "default": false
+            },
+            "italic": {
+              "type": "boolean",
+              "description": "If `true`, displays the text using italic font."
+            },
+            "selectAction": {
+              "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+              "description": "Action to invoke when this text run is clicked. Visually changes the text run into a hyperlink. `Action.ShowCard` is not supported."
+            },
+            "size": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/FontSize"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Controls size of text."
+            },
+            "strikethrough": {
+              "type": "boolean",
+              "description": "If `true`, displays the text with strikethrough."
+            },
+            "underline": {
+              "type": "boolean",
+              "description": "If `true`, displays the text with an underline.",
+              "version": "1.3"
+            },
+            "weight": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/FontWeight"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Controls the weight of the text."
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Input.Choice": {
+      "description": "Describes a choice for use in a ChoiceSet.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Input.Choice"
+          ],
+          "description": "Must be `Input.Choice`"
+        },
+        "title": {
+          "type": "string",
+          "description": "Text to display."
+        },
+        "value": {
+          "type": "string",
+          "description": "The raw value for the choice. **NOTE:** do not use a `,` in the value, since a `ChoiceSet` with `isMultiSelect` set to `true` returns a comma-delimited string of choice values."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "value"
+      ]
+    },
+    "Input.ChoiceSet": {
+      "description": "Allows a user to input a Choice.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Input.ChoiceSet"
+          ],
+          "description": "Must be `Input.ChoiceSet`"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Input.Choice"
+          },
+          "description": "`Choice` options."
+        },
+        "isMultiSelect": {
+          "type": "boolean",
+          "description": "Allow multiple choices to be selected.",
+          "default": false
+        },
+        "style": {
+          "$ref": "#/definitions/ChoiceInputStyle"
+        },
+        "value": {
+          "type": "string",
+          "description": "The initial choice (or set of choices) that should be selected. For multi-select, specify a comma-separated string of values."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Description of the input desired. Only visible when no selection has been made, the `style` is `compact` and `isMultiSelect` is `false`"
+        },
+        "wrap": {
+          "type": "boolean",
+          "description": "If `true`, allow text to wrap. Otherwise, text is clipped.",
+          "version": "1.2"
+        },
+        "id": {},
+        "errorMessage": {},
+        "isRequired": {},
+        "label": {},
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Input"
+        }
+      ]
+    },
+    "Input.Date": {
+      "description": "Lets a user choose a date.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Input.Date"
+          ],
+          "description": "Must be `Input.Date`"
+        },
+        "max": {
+          "type": "string",
+          "description": "Hint of maximum value expressed in YYYY-MM-DD(may be ignored by some clients)."
+        },
+        "min": {
+          "type": "string",
+          "description": "Hint of minimum value expressed in YYYY-MM-DD(may be ignored by some clients)."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Description of the input desired. Displayed when no selection has been made."
+        },
+        "value": {
+          "type": "string",
+          "description": "The initial value for this field expressed in YYYY-MM-DD."
+        },
+        "id": {},
+        "errorMessage": {},
+        "isRequired": {},
+        "label": {},
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Input"
+        }
+      ]
+    },
+    "Input.Number": {
+      "description": "Allows a user to enter a number.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Input.Number"
+          ],
+          "description": "Must be `Input.Number`"
+        },
+        "max": {
+          "type": "number",
+          "description": "Hint of maximum value (may be ignored by some clients)."
+        },
+        "min": {
+          "type": "number",
+          "description": "Hint of minimum value (may be ignored by some clients)."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Description of the input desired. Displayed when no selection has been made."
+        },
+        "value": {
+          "type": "number",
+          "description": "Initial value for this field."
+        },
+        "id": {},
+        "errorMessage": {},
+        "isRequired": {},
+        "label": {},
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Input"
+        }
+      ]
+    },
+    "Input.Text": {
+      "description": "Lets a user enter text.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Input.Text"
+          ],
+          "description": "Must be `Input.Text`"
+        },
+        "isMultiline": {
+          "type": "boolean",
+          "description": "If `true`, allow multiple lines of input.",
+          "default": false
+        },
+        "maxLength": {
+          "type": "number",
+          "description": "Hint of maximum length characters to collect (may be ignored by some clients)."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Description of the input desired. Displayed when no text has been input."
+        },
+        "regex": {
+          "type": "string",
+          "description": "Regular expression indicating the required format of this text input.",
+          "version": "1.3"
+        },
+        "style": {
+          "$ref": "#/definitions/TextInputStyle",
+          "description": "Style hint for text input."
+        },
+        "inlineAction": {
+          "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+          "description": "The inline action for the input. Typically displayed to the right of the input. It is strongly recommended to provide an icon on the action (which will be displayed instead of the title of the action).",
+          "version": "1.2"
+        },
+        "value": {
+          "type": "string",
+          "description": "The initial value for this field."
+        },
+        "id": {},
+        "errorMessage": {},
+        "isRequired": {},
+        "label": {},
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Input"
+        }
+      ]
+    },
+    "Input.Time": {
+      "description": "Lets a user select a time.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Input.Time"
+          ],
+          "description": "Must be `Input.Time`"
+        },
+        "max": {
+          "type": "string",
+          "description": "Hint of maximum value expressed in HH:MM (may be ignored by some clients)."
+        },
+        "min": {
+          "type": "string",
+          "description": "Hint of minimum value expressed in HH:MM (may be ignored by some clients)."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Description of the input desired. Displayed when no time has been selected."
+        },
+        "value": {
+          "type": "string",
+          "description": "The initial value for this field expressed in HH:MM."
+        },
+        "id": {},
+        "errorMessage": {},
+        "isRequired": {},
+        "label": {},
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Input"
+        }
+      ]
+    },
+    "Input.Toggle": {
+      "description": "Lets a user choose between two options.",
+      "properties": {
+        "type": {
+          "enum": [
+            "Input.Toggle"
+          ],
+          "description": "Must be `Input.Toggle`"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title for the toggle"
+        },
+        "value": {
+          "type": "string",
+          "description": "The initial selected value. If you want the toggle to be initially on, set this to the value of `valueOn`'s value.",
+          "default": "false"
+        },
+        "valueOff": {
+          "type": "string",
+          "description": "The value when toggle is off",
+          "default": "false"
+        },
+        "valueOn": {
+          "type": "string",
+          "description": "The value when toggle is on",
+          "default": "true"
+        },
+        "wrap": {
+          "type": "boolean",
+          "description": "If `true`, allow text to wrap. Otherwise, text is clipped.",
+          "version": "1.2"
+        },
+        "id": {},
+        "errorMessage": {},
+        "isRequired": {},
+        "label": {},
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Input"
+        }
+      ]
+    },
+    "Media": {
+      "description": "Displays a media player for audio or video content.",
+      "version": "1.1",
+      "features": [
+        196
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "Media"
+          ],
+          "description": "Must be `Media`"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MediaSource"
+          },
+          "description": "Array of media sources to attempt to play."
+        },
+        "poster": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "URL of an image to display before playing. Supports data URI in version 1.2+"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternate text describing the audio or video."
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sources"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "MediaSource": {
+      "description": "Defines a source for a Media element",
+      "version": "1.1",
+      "features": [
+        196
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "MediaSource"
+          ],
+          "description": "Must be `MediaSource`"
+        },
+        "mimeType": {
+          "type": "string",
+          "description": "Mime type of associated media (e.g. `\"video/mp4\"`)."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "URL to media. Supports data URI in version 1.2+"
+        }
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mimeType",
+        "url"
+      ]
+    },
+    "RichTextBlock": {
+      "description": "Defines an array of inlines, allowing for inline text formatting.",
+      "version": "1.2",
+      "features": [
+        1933
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "RichTextBlock"
+          ],
+          "description": "Must be `RichTextBlock`"
+        },
+        "inlines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImplementationsOf.Inline"
+          },
+          "description": "The array of inlines."
+        },
+        "horizontalAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/HorizontalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls the horizontal text alignment. When not specified, the value of horizontalAlignment is inherited from the parent container. If no parent container has horizontalAlignment set, it defaults to Left."
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inlines"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "Table": {
+      "description": "Provides a way to display data in a tabular form.",
+      "version": "1.5",
+      "properties": {
+        "type": {
+          "enum": [
+            "Table"
+          ],
+          "description": "Must be `Table`"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TableColumnDefinition"
+          },
+          "description": "Defines the number of columns in the table, their sizes, and more."
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TableRow"
+          },
+          "description": "Defines the rows of the table."
+        },
+        "firstRowAsHeader": {
+          "type": "boolean",
+          "description": "Specifies whether the first row of the table should be treated as a header row, and be announced as such by accessibility software.",
+          "default": true
+        },
+        "showGridLines": {
+          "type": "boolean",
+          "description": "Specifies whether grid lines should be displayed.",
+          "default": true
+        },
+        "gridStyle": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContainerStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Defines the style of the grid. This property currently only controls the grid's color.",
+          "default": "default"
+        },
+        "horizontalCellContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/HorizontalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how the content of all cells is horizontally aligned by default. When not specified, horizontal alignment is defined on a per-cell basis."
+        },
+        "verticalCellContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerticalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how the content of all cells is vertically aligned by default. When not specified, vertical alignment is defined on a per-cell basis."
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "TableCell": {
+      "description": "Represents a cell within a row of a Table element.",
+      "version": "1.5",
+      "properties": {
+        "type": {
+          "enum": [
+            "TableCell"
+          ],
+          "description": "Must be `TableCell`"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImplementationsOf.Element"
+          },
+          "description": "The card elements to render inside the `TableCell`."
+        },
+        "selectAction": {
+          "$ref": "#/definitions/ImplementationsOf.ISelectAction",
+          "description": "An Action that will be invoked when the `TableCell` is tapped or selected. `Action.ShowCard` is not supported.",
+          "version": "1.1"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContainerStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Style hint for `TableCell`."
+        },
+        "verticalContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerticalContentAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Defines how the content should be aligned vertically within the container. When not specified, the value of verticalContentAlignment is inherited from the parent container. If no parent container has verticalContentAlignment set, it defaults to Top.",
+          "version": "1.1"
+        },
+        "bleed": {
+          "type": "boolean",
+          "description": "Determines whether the element should bleed through its parent's padding.",
+          "version": "1.2",
+          "features": [
+            2109
+          ]
+        },
+        "backgroundImage": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/BackgroundImage"
+            },
+            {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "The URL (or data url) to use as the background image. Supports data URI."
+            }
+          ],
+          "description": "Specifies the background image. Acceptable formats are PNG, JPEG, and GIF",
+          "version": "1.2"
+        },
+        "minHeight": {
+          "type": "string",
+          "description": "Specifies the minimum height of the container in pixels, like `\"80px\"`.",
+          "examples": [
+            "50px"
+          ],
+          "version": "1.2",
+          "features": [
+            2293
+          ]
+        },
+        "rtl?": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When `true` content in this container should be presented right to left. When 'false' content in this container should be presented left to right. When unset layout direction will inherit from parent container or column. If unset in all ancestors, the default platform behavior will apply.",
+          "version": "1.5"
+        }
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items"
+      ]
+    },
+    "TableColumnDefinition": {
+      "description": "Defines the characteristics of a column in a Table element.",
+      "version": "1.5",
+      "properties": {
+        "type": {
+          "enum": [
+            "TableColumnDefinition"
+          ],
+          "description": "Must be `TableColumnDefinition`"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Specifies the width of the column. If expressed as a number, width represents the weight a the column relative to the other columns in the table. If expressed as a string, width must by in the format \"<number>px\" (for instance, \"50px\") and represents an explicit number of pixels.",
+          "default": 1
+        },
+        "horizontalCellContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/HorizontalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how the content of all cells in the column is horizontally aligned by default. When specified, this value overrides the setting at the table level. When not specified, horizontal alignment is defined at the table, row or cell level."
+        },
+        "verticalCellContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerticalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how the content of all cells in the column is vertically aligned by default. When specified, this value overrides the setting at the table level. When not specified, vertical alignment is defined at the table, row or cell level."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TableRow": {
+      "description": "Represents a row of cells within a Table element.",
+      "version": "1.5",
+      "properties": {
+        "type": {
+          "enum": [
+            "TableRow"
+          ],
+          "description": "Must be `TableRow`"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TableCell"
+          },
+          "description": "The cells in this row. If a row contains more cells than there are columns defined on the Table element, the extra cells are ignored."
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContainerStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Defines the style of the entire row."
+        },
+        "horizontalCellContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/HorizontalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how the content of all cells in the row is horizontally aligned by default. When specified, this value overrides both the setting at the table and columns level. When not specified, horizontal alignment is defined at the table, column or cell level."
+        },
+        "verticalCellContentAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerticalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how the content of all cells in the column is vertically aligned by default. When specified, this value overrides the setting at the table and column level. When not specified, vertical alignment is defined either at the table, column or cell level."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TextBlock": {
+      "description": "Displays text, allowing control over font sizes, weight, and color.",
+      "properties": {
+        "type": {
+          "enum": [
+            "TextBlock"
+          ],
+          "description": "Must be `TextBlock`"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text to display. A subset of markdown is supported (https://aka.ms/ACTextFeatures)"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Colors"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls the color of `TextBlock` elements."
+        },
+        "fontType": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FontType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Type of font to use for rendering",
+          "version": "1.2"
+        },
+        "horizontalAlignment": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/HorizontalAlignment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls the horizontal text alignment. When not specified, the value of horizontalAlignment is inherited from the parent container. If no parent container has horizontalAlignment set, it defaults to Left."
+        },
+        "isSubtle": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "If `true`, displays text slightly toned down to appear less prominent.",
+          "default": false
+        },
+        "maxLines": {
+          "type": "number",
+          "description": "Specifies the maximum number of lines to display."
+        },
+        "size": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FontSize"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls size of text."
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FontWeight"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls the weight of `TextBlock` elements."
+        },
+        "wrap": {
+          "type": "boolean",
+          "description": "If `true`, allow text to wrap. Otherwise, text is clipped.",
+          "default": false
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TextBlockStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The style of this TextBlock for accessibility purposes.",
+          "default": "default"
+        },
+        "fallback": {},
+        "height": {},
+        "separator": {},
+        "spacing": {},
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Element"
+        }
+      ]
+    },
+    "ActionMode": {
+      "description": "Determines whether an action is displayed with a button or is moved to the overflow menu.",
+      "features": [
+        4715
+      ],
+      "version": "1.5",
+      "anyOf": [
+        {
+          "enum": [
+            "primary",
+            "secondary"
+          ]
+        },
+        {
+          "pattern": "^([p|P][r|R][i|I][m|M][a|A][r|R][y|Y])|([s|S][e|E][c|C][o|O][n|N][d|D][a|A][r|R][y|Y])$"
+        }
+      ]
+    },
+    "ActionStyle": {
+      "description": "Controls the style of an Action, which influences how the action is displayed, spoken, etc.",
+      "features": [
+        861
+      ],
+      "version": "1.2",
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "positive",
+            "destructive"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([p|P][o|O][s|S][i|I][t|T][i|I][v|V][e|E])|([d|D][e|E][s|S][t|T][r|R][u|U][c|C][t|T][i|I][v|V][e|E])$"
+        }
+      ]
+    },
+    "AssociatedInputs": {
+      "anyOf": [
+        {
+          "enum": [
+            "Auto",
+            "None"
+          ]
+        },
+        {
+          "pattern": "^([a|A][u|U][t|T][o|O])|([n|N][o|O][n|N][e|E])$"
+        }
+      ]
+    },
+    "BlockElementHeight": {
+      "anyOf": [
+        {
+          "enum": [
+            "auto",
+            "stretch"
+          ]
+        },
+        {
+          "pattern": "^([a|A][u|U][t|T][o|O])|([s|S][t|T][r|R][e|E][t|T][c|C][h|H])$"
+        }
+      ]
+    },
+    "ChoiceInputStyle": {
+      "description": "Style hint for `Input.ChoiceSet`.",
+      "anyOf": [
+        {
+          "enum": [
+            "compact",
+            "expanded"
+          ]
+        },
+        {
+          "pattern": "^([c|C][o|O][m|M][p|P][a|A][c|C][t|T])|([e|E][x|X][p|P][a|A][n|N][d|D][e|E][d|D])$"
+        }
+      ]
+    },
+    "Colors": {
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "dark",
+            "light",
+            "accent",
+            "good",
+            "warning",
+            "attention"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([d|D][a|A][r|R][k|K])|([l|L][i|I][g|G][h|H][t|T])|([a|A][c|C][c|C][e|E][n|N][t|T])|([g|G][o|O][o|O][d|D])|([w|W][a|A][r|R][n|N][i|I][n|N][g|G])|([a|A][t|T][t|T][e|E][n|N][t|T][i|I][o|O][n|N])$"
+        }
+      ]
+    },
+    "ContainerStyle": {
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "emphasis",
+            "good",
+            "attention",
+            "warning",
+            "accent"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([e|E][m|M][p|P][h|H][a|A][s|S][i|I][s|S])|([g|G][o|O][o|O][d|D])|([a|A][t|T][t|T][e|E][n|N][t|T][i|I][o|O][n|N])|([w|W][a|A][r|R][n|N][i|I][n|N][g|G])|([a|A][c|C][c|C][e|E][n|N][t|T])$"
+        }
+      ]
+    },
+    "FallbackOption": {
+      "anyOf": [
+        {
+          "enum": [
+            "drop"
+          ]
+        },
+        {
+          "pattern": "^([d|D][r|R][o|O][p|P])$"
+        }
+      ]
+    },
+    "FontSize": {
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "small",
+            "medium",
+            "large",
+            "extraLarge"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([s|S][m|M][a|A][l|L][l|L])|([m|M][e|E][d|D][i|I][u|U][m|M])|([l|L][a|A][r|R][g|G][e|E])|([e|E][x|X][t|T][r|R][a|A][l|L][a|A][r|R][g|G][e|E])$"
+        }
+      ]
+    },
+    "FontType": {
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "monospace"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([m|M][o|O][n|N][o|O][s|S][p|P][a|A][c|C][e|E])$"
+        }
+      ]
+    },
+    "FontWeight": {
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "lighter",
+            "bolder"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([l|L][i|I][g|G][h|H][t|T][e|E][r|R])|([b|B][o|O][l|L][d|D][e|E][r|R])$"
+        }
+      ]
+    },
+    "HorizontalAlignment": {
+      "description": "Controls how content is horizontally positioned within its container.",
+      "anyOf": [
+        {
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        {
+          "pattern": "^([l|L][e|E][f|F][t|T])|([c|C][e|E][n|N][t|T][e|E][r|R])|([r|R][i|I][g|G][h|H][t|T])$"
+        }
+      ]
+    },
+    "ImageFillMode": {
+      "anyOf": [
+        {
+          "enum": [
+            "cover",
+            "repeatHorizontally",
+            "repeatVertically",
+            "repeat"
+          ]
+        },
+        {
+          "pattern": "^([c|C][o|O][v|V][e|E][r|R])|([r|R][e|E][p|P][e|E][a|A][t|T][h|H][o|O][r|R][i|I][z|Z][o|O][n|N][t|T][a|A][l|L][l|L][y|Y])|([r|R][e|E][p|P][e|E][a|A][t|T][v|V][e|E][r|R][t|T][i|I][c|C][a|A][l|L][l|L][y|Y])|([r|R][e|E][p|P][e|E][a|A][t|T])$"
+        }
+      ]
+    },
+    "ImageSize": {
+      "description": "Controls the approximate size of the image. The physical dimensions will vary per host. Every option preserves aspect ratio.",
+      "anyOf": [
+        {
+          "enum": [
+            "auto",
+            "stretch",
+            "small",
+            "medium",
+            "large"
+          ]
+        },
+        {
+          "pattern": "^([a|A][u|U][t|T][o|O])|([s|S][t|T][r|R][e|E][t|T][c|C][h|H])|([s|S][m|M][a|A][l|L][l|L])|([m|M][e|E][d|D][i|I][u|U][m|M])|([l|L][a|A][r|R][g|G][e|E])$"
+        }
+      ]
+    },
+    "ImageStyle": {
+      "description": "Controls how this `Image` is displayed.",
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "person"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([p|P][e|E][r|R][s|S][o|O][n|N])$"
+        }
+      ]
+    },
+    "Spacing": {
+      "description": "Specifies how much spacing. Hosts pick the exact pixel amounts for each of these.",
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "none",
+            "small",
+            "medium",
+            "large",
+            "extraLarge",
+            "padding"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([n|N][o|O][n|N][e|E])|([s|S][m|M][a|A][l|L][l|L])|([m|M][e|E][d|D][i|I][u|U][m|M])|([l|L][a|A][r|R][g|G][e|E])|([e|E][x|X][t|T][r|R][a|A][l|L][a|A][r|R][g|G][e|E])|([p|P][a|A][d|D][d|D][i|I][n|N][g|G])$"
+        }
+      ]
+    },
+    "TextBlockStyle": {
+      "description": "Controls how a TextBlock behaves.",
+      "version": "1.5",
+      "anyOf": [
+        {
+          "enum": [
+            "default",
+            "heading"
+          ]
+        },
+        {
+          "pattern": "^([d|D][e|E][f|F][a|A][u|U][l|L][t|T])|([h|H][e|E][a|A][d|D][i|I][n|N][g|G])$"
+        }
+      ]
+    },
+    "TextInputStyle": {
+      "description": "Style hint for text input.",
+      "anyOf": [
+        {
+          "enum": [
+            "text",
+            "tel",
+            "url",
+            "email",
+            "password"
+          ]
+        },
+        {
+          "pattern": "^([t|T][e|E][x|X][t|T])|([t|T][e|E][l|L])|([u|U][r|R][l|L])|([e|E][m|M][a|A][i|I][l|L])|([p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D])$"
+        }
+      ]
+    },
+    "VerticalAlignment": {
+      "anyOf": [
+        {
+          "enum": [
+            "top",
+            "center",
+            "bottom"
+          ]
+        },
+        {
+          "pattern": "^([t|T][o|O][p|P])|([c|C][e|E][n|N][t|T][e|E][r|R])|([b|B][o|O][t|T][t|T][o|O][m|M])$"
+        }
+      ]
+    },
+    "VerticalContentAlignment": {
+      "anyOf": [
+        {
+          "enum": [
+            "top",
+            "center",
+            "bottom"
+          ]
+        },
+        {
+          "pattern": "^([t|T][o|O][p|P])|([c|C][e|E][n|N][t|T][e|E][r|R])|([b|B][o|O][t|T][t|T][o|O][m|M])$"
+        }
+      ]
+    },
+    "AuthCardButton": {
+      "description": "Defines a button as displayed when prompting a user to authenticate. This maps to the cardAction type defined by the Bot Framework (https://docs.microsoft.com/dotnet/api/microsoft.bot.schema.cardaction).",
+      "version": "1.4",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The type of the button."
+        },
+        "title": {
+          "type": "string",
+          "description": "The caption of the button."
+        },
+        "image": {
+          "type": "string",
+          "description": "A URL to an image to display alongside the button's caption."
+        },
+        "value": {
+          "type": "string",
+          "description": "The value associated with the button. The meaning of value depends on the button's type."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "value"
+      ]
+    },
+    "Authentication": {
+      "description": "Defines authentication information associated with a card. This maps to the OAuthCard type defined by the Bot Framework (https://docs.microsoft.com/dotnet/api/microsoft.bot.schema.oauthcard)",
+      "version": "1.4",
+      "properties": {
+        "type": {
+          "enum": [
+            "Authentication"
+          ],
+          "description": "Must be `Authentication`"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text that can be displayed to the end user when prompting them to authenticate."
+        },
+        "connectionName": {
+          "type": "string",
+          "description": "The identifier for registered OAuth connection setting information."
+        },
+        "tokenExchangeResource": {
+          "$ref": "#/definitions/TokenExchangeResource",
+          "description": "Provides information required to enable on-behalf-of single sign-on user authentication."
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthCardButton"
+          },
+          "description": "Buttons that should be displayed to the user when prompting for authentication. The array MUST contain one button of type \"signin\". Other button types are not currently supported."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    },
+    "BackgroundImage": {
+      "description": "Specifies a background image. Acceptable formats are PNG, JPEG, and GIF",
+      "properties": {
+        "type": {
+          "enum": [
+            "BackgroundImage"
+          ],
+          "description": "Must be `BackgroundImage`"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "The URL (or data url) of the image. Acceptable formats are PNG, JPEG, and GIF"
+        },
+        "fillMode": {
+          "$ref": "#/definitions/ImageFillMode",
+          "description": "Describes how the image should fill the area."
+        },
+        "horizontalAlignment": {
+          "$ref": "#/definitions/HorizontalAlignment",
+          "description": "Describes how the image should be aligned if it must be cropped or if using repeat fill mode."
+        },
+        "verticalAlignment": {
+          "$ref": "#/definitions/VerticalAlignment",
+          "description": "Describes how the image should be aligned if it must be cropped or if using repeat fill mode."
+        }
+      },
+      "version": "1.2",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url"
+      ]
+    },
+    "Refresh": {
+      "description": "Defines how a card can be refreshed by making a request to the target Bot.",
+      "version": "1.4",
+      "properties": {
+        "type": {
+          "enum": [
+            "Refresh"
+          ],
+          "description": "Must be `Refresh`"
+        },
+        "action": {
+          "$ref": "#/definitions/Action.Execute",
+          "description": "The action to be executed to refresh the card. Clients can run this refresh action automatically or can provide an affordance for users to trigger it manually."
+        },
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of user Ids informing the client for which users should the refresh action should be run automatically. Some clients will not run the refresh action automatically unless this property is specified. Some clients may ignore this property and always run the refresh action automatically."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TokenExchangeResource": {
+      "description": "Defines information required to enable on-behalf-of single sign-on user authentication. Maps to the TokenExchangeResource type defined by the Bot Framework (https://docs.microsoft.com/dotnet/api/microsoft.bot.schema.tokenexchangeresource)",
+      "version": "1.4",
+      "properties": {
+        "type": {
+          "enum": [
+            "TokenExchangeResource"
+          ],
+          "description": "Must be `TokenExchangeResource`"
+        },
+        "id": {
+          "type": "string",
+          "description": "The unique identified of this token exchange instance."
+        },
+        "uri": {
+          "type": "string",
+          "description": "An application ID or resource identifier with which to exchange a token on behalf of. This property is identity provider- and application-specific."
+        },
+        "providerId": {
+          "type": "string",
+          "description": "An identifier for the identity provider with which to attempt a token exchange."
+        }
+      },
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "uri",
+        "providerId"
+      ]
+    },
+    "ImplementationsOf.Action": {
+      "anyOf": [
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.Execute"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.OpenUrl"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.ShowCard"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.Submit"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.ToggleVisibility"
+            }
+          ]
+        }
+      ]
+    },
+    "ImplementationsOf.Item": {
+      "anyOf": [
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.Execute"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.OpenUrl"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.ShowCard"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.Submit"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.ToggleVisibility"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ActionSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Column"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ColumnSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Container"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/FactSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Image"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ImageSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.ChoiceSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Date"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Number"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Text"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Time"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Toggle"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Media"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/RichTextBlock"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Table"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/TextBlock"
+            }
+          ]
+        }
+      ]
+    },
+    "ImplementationsOf.ISelectAction": {
+      "anyOf": [
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.Execute"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.OpenUrl"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.Submit"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Action.ToggleVisibility"
+            }
+          ]
+        }
+      ]
+    },
+    "ImplementationsOf.Element": {
+      "anyOf": [
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ActionSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ColumnSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Container"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/FactSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Image"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ImageSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.ChoiceSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Date"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Number"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Text"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Time"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Toggle"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Media"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/RichTextBlock"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Table"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/TextBlock"
+            }
+          ]
+        }
+      ]
+    },
+    "ImplementationsOf.ToggleableItem": {
+      "anyOf": [
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ActionSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Column"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ColumnSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Container"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/FactSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Image"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/ImageSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.ChoiceSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Date"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Number"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Text"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Time"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Toggle"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Media"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/RichTextBlock"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Table"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/TextBlock"
+            }
+          ]
+        }
+      ]
+    },
+    "ImplementationsOf.Inline": {
+      "anyOf": [
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/TextRun"
+            }
+          ]
+        }
+      ]
+    },
+    "ImplementationsOf.Input": {
+      "anyOf": [
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.ChoiceSet"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Date"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Number"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Text"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Time"
+            }
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/Input.Toggle"
+            }
+          ]
+        }
+      ]
+    },
+    "Extendable.Action": {
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Label for button or link that represents this action."
+        },
+        "iconUrl": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "Optional icon to be shown on the action in conjunction with the title. Supports data URI in version 1.2+",
+          "version": "1.1"
+        },
+        "id": {
+          "type": "string",
+          "description": "A unique identifier associated with this Action."
+        },
+        "style": {
+          "$ref": "#/definitions/ActionStyle",
+          "description": "Controls the style of an Action, which influences how the action is displayed, spoken, etc.",
+          "version": "1.2"
+        },
+        "fallback": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ImplementationsOf.Action"
+            },
+            {
+              "$ref": "#/definitions/FallbackOption"
+            }
+          ],
+          "description": "Describes what to do when an unknown element is encountered or the requires of this or any children can't be met.",
+          "version": "1.2"
+        },
+        "tooltip": {
+          "type": "string",
+          "description": "Defines text that should be displayed to the end user as they hover the mouse over the action, and read when using narration software.",
+          "version": "1.5"
+        },
+        "isEnabled": {
+          "type": "boolean",
+          "description": "Determines whether the action should be enabled.",
+          "default": true,
+          "version": "1.5"
+        },
+        "mode": {
+          "$ref": "#/definitions/ActionMode",
+          "description": "Determines whether the action should be displayed as a button or in the overflow menu.",
+          "version": "1.5",
+          "default": "primary"
+        },
+        "requires": {}
+      },
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Item"
+        }
+      ]
+    },
+    "Extendable.Element": {
+      "properties": {
+        "fallback": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ImplementationsOf.Element"
+            },
+            {
+              "$ref": "#/definitions/FallbackOption"
+            }
+          ],
+          "description": "Describes what to do when an unknown element is encountered or the requires of this or any children can't be met.",
+          "version": "1.2"
+        },
+        "height": {
+          "$ref": "#/definitions/BlockElementHeight",
+          "description": "Specifies the height of the element.",
+          "version": "1.1"
+        },
+        "separator": {
+          "type": "boolean",
+          "description": "When `true`, draw a separating line at the top of the element."
+        },
+        "spacing": {
+          "$ref": "#/definitions/Spacing",
+          "description": "Controls the amount of spacing between this element and the preceding element."
+        },
+        "id": {},
+        "isVisible": {},
+        "requires": {}
+      },
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.ToggleableItem"
+        }
+      ]
+    },
+    "Extendable.Input": {
+      "description": "Base input class",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the value. Used to identify collected input when the Submit action is performed."
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "Error message to display when entered input is invalid",
+          "version": "1.3"
+        },
+        "isRequired": {
+          "type": "boolean",
+          "description": "Whether or not this input is required",
+          "version": "1.3"
+        },
+        "label": {
+          "type": "string",
+          "description": "Label for this input",
+          "version": "1.3"
+        },
+        "fallback": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ImplementationsOf.Element"
+            },
+            {
+              "$ref": "#/definitions/FallbackOption"
+            }
+          ],
+          "description": "Describes what to do when an unknown element is encountered or the requires of this or any children can't be met.",
+          "version": "1.2"
+        },
+        "height": {
+          "$ref": "#/definitions/BlockElementHeight",
+          "description": "Specifies the height of the element.",
+          "version": "1.1"
+        },
+        "separator": {
+          "type": "boolean",
+          "description": "When `true`, draw a separating line at the top of the element."
+        },
+        "spacing": {
+          "$ref": "#/definitions/Spacing",
+          "description": "Controls the amount of spacing between this element and the preceding element."
+        },
+        "isVisible": {
+          "type": "boolean",
+          "description": "If `false`, this item will be removed from the visual tree.",
+          "default": true,
+          "version": "1.2"
+        },
+        "requires": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "A series of key/value pairs indicating features that the item requires with corresponding minimum version. When a feature is missing or of insufficient version, fallback is triggered.",
+          "version": "1.2"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id"
+      ]
+    },
+    "Extendable.Item": {
+      "properties": {
+        "requires": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "A series of key/value pairs indicating features that the item requires with corresponding minimum version. When a feature is missing or of insufficient version, fallback is triggered.",
+          "version": "1.2"
+        }
+      },
+      "type": "object"
+    },
+    "Extendable.ToggleableItem": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "A unique identifier associated with the item."
+        },
+        "isVisible": {
+          "type": "boolean",
+          "description": "If `false`, this item will be removed from the visual tree.",
+          "default": true,
+          "version": "1.2"
+        },
+        "requires": {}
+      },
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Extendable.Item"
+        }
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "allOf": [
+        {
+          "$ref": "#/definitions/AdaptiveCard"
+        }
+      ]
+    }
+  ]
+}

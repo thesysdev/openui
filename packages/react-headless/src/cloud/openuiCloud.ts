@@ -6,8 +6,8 @@ import type { ChatStorage } from "../adapters/types";
 import { cloudArtifactStorage } from "./artifactStorage";
 import {
   createFctFetch,
-  createFrontendTokenManager,
-  type FrontendTokenManager,
+  toFrontendTokenManager,
+  type FrontendTokenSource,
 } from "./frontendTokenManager";
 import { cloudThreadStorage } from "./threadStorage";
 
@@ -32,9 +32,14 @@ export interface OpenuiCloudOptions {
    * rides the `x-thesys-frontend-token` header on every /v1 call. The frontend
    * token is minted server-side; the master key never reaches the browser.
    */
-  token: string | (() => Promise<string>);
+  token: FrontendTokenSource;
   /** Which storage surfaces to wire. Omit to enable all. */
   features?: OpenuiCloudFeatures;
+  /**
+   * Dashboards show each query's last result while it reloads; the results are
+   * kept in OpenUI Cloud for 24 hours, per user. `false` turns this off. Default true.
+   */
+  cacheQueryResults?: boolean;
   /** fetch override (tests / SSR). Defaults to globalThis.fetch. */
   fetch?: typeof fetch;
   /** Refresh the cached token this many seconds before expiry (URL form). Default 60. */
@@ -60,7 +65,7 @@ const DEFAULT_API_BASE_URL = "https://api.thesys.dev";
  * with the master key).
  */
 export function useOpenuiCloudStorage(options: OpenuiCloudOptions): ChatStorage {
-  const { apiBaseUrl, token, fetch, refreshSkewSeconds } = options;
+  const { apiBaseUrl, token, fetch, refreshSkewSeconds, cacheQueryResults } = options;
   const artifactOn = options.features?.artifact ?? true;
   return useMemo(
     () =>
@@ -69,16 +74,20 @@ export function useOpenuiCloudStorage(options: OpenuiCloudOptions): ChatStorage 
         token,
         fetch,
         refreshSkewSeconds,
+        cacheQueryResults,
         features: { artifact: artifactOn },
       }),
-    [apiBaseUrl, token, fetch, refreshSkewSeconds, artifactOn],
+    [apiBaseUrl, token, fetch, refreshSkewSeconds, cacheQueryResults, artifactOn],
   );
 }
 
 /** The actual storage wiring — a pure factory with no React, memoised by the
  *  hook above. */
 function createCloudStorage(options: OpenuiCloudOptions): ChatStorage {
-  const tokens = toTokenManager(options);
+  const tokens = toFrontendTokenManager(options.token, {
+    fetch: options.fetch,
+    refreshSkewSeconds: options.refreshSkewSeconds,
+  });
   const fctFetch = createFctFetch(tokens, options.fetch);
   const artifactOn = options.features?.artifact ?? true;
   const baseUrl = options.apiBaseUrl ?? DEFAULT_API_BASE_URL;
@@ -87,29 +96,11 @@ function createCloudStorage(options: OpenuiCloudOptions): ChatStorage {
     thread: cloudThreadStorage({ baseUrl, fetch: fctFetch }),
   };
   if (artifactOn) {
-    storage.artifact = cloudArtifactStorage({ baseUrl, fetch: fctFetch });
-  }
-  return storage;
-}
-
-/** Normalize the `token` option into a FrontendTokenManager. */
-function toTokenManager(options: OpenuiCloudOptions): FrontendTokenManager {
-  if (typeof options.token === "string") {
-    return createFrontendTokenManager({
-      mintUrl: options.token,
-      fetch: options.fetch,
-      refreshSkewSeconds: options.refreshSkewSeconds,
+    storage.artifact = cloudArtifactStorage({
+      baseUrl,
+      fetch: fctFetch,
+      cacheQueryResults: options.cacheQueryResults,
     });
   }
-  const provider = options.token;
-  let current: string | null = null;
-  return {
-    async getToken(): Promise<string> {
-      current = await provider();
-      return current;
-    },
-    invalidate(staleToken?: string): void {
-      if (staleToken === undefined || staleToken === current) current = null;
-    },
-  };
+  return storage;
 }

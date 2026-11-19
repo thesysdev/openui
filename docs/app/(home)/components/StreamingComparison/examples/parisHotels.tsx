@@ -1,17 +1,8 @@
-import {
-  CalendarHeart,
-  Coins,
-  Heart,
-  Sparkles,
-  TrainFront,
-  UtensilsCrossed,
-  Waves,
-  Wifi,
-} from "lucide-react";
+import { Award, Coins, Heart, Sparkles, Sun, TrainFront, Waves, Wifi } from "lucide-react";
 import type { ComparisonExample } from "../types";
 
 /* The homepage's first example: a modern hotel in Paris, as a wall of text
-   versus hotel cards and quick facts. */
+   versus photo cards, quick-fact tiles and a featured hotel card. */
 export const PARIS_HOTELS: ComparisonExample = {
   prompt: "I need a hotel with a modern design in Paris",
   left: {
@@ -26,8 +17,8 @@ export const PARIS_HOTELS: ComparisonExample = {
       {
         type: "bullets",
         items: [
-          "Hotel Plaza Athénée — Situated near the Champs-Élysées, this property combines classic Parisian prestige with refined modern upgrades. Guests often choose it for its courtyard dining spaces, luxury spa, and polished service.",
-          "Four Seasons Hotel George V — A historic landmark that has been carefully modernized, offering spacious rooms, world-class dining, and extensive wellness offerings, with a blend of heritage architecture and modern interiors.",
+          "Le Horizon — A slim glass tower on the edge of the city centre, pairing minimal suites with a rooftop bar that looks out over Paris at sunset. Guests often choose it for its calm design, attentive service, and sweeping views.",
+          "Hôtel Atelier — A light-filled modern building a short walk from the Louvre, offering spacious rooms with private balconies, family suites, and a relaxed all-day restaurant, with clean contemporary interiors throughout.",
         ],
       },
       {
@@ -44,83 +35,78 @@ export const PARIS_HOTELS: ComparisonExample = {
       },
     ],
   },
+  /* Photos: Unsplash License, modern hotel-style buildings; see
+     public/homepage/paris/photo-credits.txt. */
   right: {
     label: "With OpenUI",
     blocks: [
       { type: "heading", text: "Modern Hotels in Paris" },
       {
+        type: "muted",
+        text: "Our best recommendations for a modern stay, picked for your trip.",
+      },
+      {
         type: "cards",
+        variant: "poster",
         cards: [
           {
-            image: "/appless/hotel-casa.jpg",
-            imageAlt: "Hotel Plaza Athénée",
+            image: "/homepage/paris/hotel-1.jpg",
+            imageAlt: "A glass tower against a sunset sky",
             badge: { label: "Free Wifi", icon: <Wifi aria-hidden />, tone: "green" },
-            title: "Hotel Plaza Athénée",
-            description: "Haute couture suites; courtyard dining; Dior spa; near Champs-Élysées.",
-            action: "Book",
+            title: "Le Horizon",
+            description: "Rooftop",
+            rating: "4.7",
+            priceLevel: 3,
           },
           {
-            image: "/appless/hotel-larch.jpg",
-            imageAlt: "Four Seasons George V",
+            image: "/homepage/paris/hotel-2.jpg",
+            imageAlt: "A white gridded tower seen from below",
             badge: { label: "Family-friendly", icon: <Heart aria-hidden />, tone: "purple" },
-            title: "Four Seasons George V",
-            description: "Landmark hotel with opulent rooms, Michelin dining, and a lavish spa.",
-            action: "Book",
+            title: "Hôtel Atelier",
+            description: "Central",
+            rating: "4.5",
+            priceLevel: 1,
           },
           {
-            image: "/appless/hotel-harbor.jpg",
-            imageAlt: "Shangri-La Paris",
+            image: "/homepage/paris/hotel-3.jpg",
+            imageAlt: "A brick and timber building under a pale sky",
             badge: { label: "Spa", icon: <Waves aria-hidden />, tone: "blue" },
-            title: "Shangri-La Paris",
-            description: "Eiffel Tower views from a former palace; pool and two-star dining.",
-            action: "Book",
+            title: "Maison Bois",
+            description: "Timber",
+            rating: "4.6",
+            priceLevel: 2,
           },
           {
-            image: "/appless/hotel-mill.jpg",
-            imageAlt: "Le Royal Monceau",
+            image: "/homepage/paris/hotel-4.jpg",
+            imageAlt: "A lit glass tower against an evening sky",
             badge: { label: "Design pick", icon: <Sparkles aria-hidden />, tone: "amber" },
-            title: "Le Royal Monceau",
-            description: "Philippe Starck interiors, an art gallery and a private cinema.",
-            action: "Book",
-          },
-          {
-            image: "/appless/hotel-palm.jpg",
-            imageAlt: "Hôtel Lutetia",
-            badge: { label: "Free Wifi", icon: <Wifi aria-hidden />, tone: "green" },
-            title: "Hôtel Lutetia",
-            description: "Left Bank Art Deco icon, renovated with a calm, modern edge.",
-            action: "Book",
+            title: "Verre Seine",
+            description: "Riverside",
+            rating: "4.8",
+            priceLevel: 3,
           },
         ],
       },
       {
-        type: "gallery",
-        images: [
-          { src: "/appless/hotel-larch.jpg", alt: "A design hotel facade in timber and stone" },
-          { src: "/appless/hotel-casa.jpg", alt: "A modern hotel with a pool" },
-          { src: "/appless/hotel-harbor.jpg", alt: "A waterfront hotel terrace at dusk" },
-          { src: "/appless/hotel-mill.jpg", alt: "A white modernist hotel" },
-          { src: "/appless/hotel-palm.jpg", alt: "A hotel with palm-lined grounds" },
+        type: "tiles",
+        tiles: [
+          { icon: <Sun aria-hidden />, tone: "yellow", value: "Sunny, 24° all week" },
+          { icon: <TrainFront aria-hidden />, tone: "blue", value: "Metro within 5 minutes" },
+          { icon: <Coins aria-hidden />, tone: "green", value: "All prices in euros" },
         ],
       },
-      { type: "subheading", text: "Highlights" },
       {
-        type: "facts",
-        layout: "rules",
-        facts: [
-          { icon: <Coins aria-hidden />, label: "Currency", value: "Euro (€)" },
-          {
-            icon: <UtensilsCrossed aria-hidden />,
-            label: "Local cuisine",
-            value: "Macarons, Crêpes",
-          },
-          { icon: <TrainFront aria-hidden />, label: "Getting around", value: "Metro, Bus" },
-          {
-            icon: <CalendarHeart aria-hidden />,
-            label: "Best time to visit",
-            value: "April to October",
-          },
-        ],
+        type: "feature",
+        badge: { label: "Top pick", icon: <Award aria-hidden />, tone: "amber" },
+        image: "/homepage/paris/hotel-feature.jpg",
+        imageAlt: "A rounded building wrapped in terracotta fins under a blue sky",
+        title: "Villa Lumière",
+        rating: "4.9",
+        reviews: "(812 reviews)",
+        description: "A terracotta boutique hotel in Montmartre, just twelve suites.",
+        tags: ["Free Wifi", "Spa", "Montmartre"],
+        price: "From €540 / night",
+        action: "Book",
       },
     ],
   },

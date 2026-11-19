@@ -1,5 +1,13 @@
 # @openuidev/browser-bundle
 
+## 0.2.2
+
+### Patch Changes
+
+- [#1480](https://github.com/thesysdev/openui/pull/1480) [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Bundles @openuidev/react-lang and @openuidev/lang-core 1.1.
+- Updated dependencies [[`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868), [`eaac246`](https://github.com/thesysdev/openui/commit/eaac2468cb7248f69bcd2097c017a40ac5280868)]:
+  - @openuidev/react-lang@1.1.0
+
 ## 0.2.1
 
 ### Patch Changes

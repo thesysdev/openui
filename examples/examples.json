@@ -84,6 +84,15 @@
       }
     },
     {
+      "title": "Lynx",
+      "description": "A ReactLynx chat app rendering streamed OpenUI Lang with the official Lynx runtime.",
+      "path": "app-frameworks/lynx",
+      "env": {
+        "file": "backend/.env.local",
+        "key": "THESYS_API_KEY"
+      }
+    },
+    {
       "title": "Svelte",
       "description": "OpenUI Lang parsing and rendering in SvelteKit.",
       "path": "app-frameworks/svelte",
@@ -187,6 +196,15 @@
       "path": "miscellaneous/html-artifact",
       "env": {
         "file": ".env",
+        "key": "THESYS_API_KEY"
+      }
+    },
+    {
+      "title": "OpenUI x assistant-ui Dashboards",
+      "description": "A text-only assistant-ui chat whose model builds live dashboard artifacts in OpenUI Cloud from @openuidev/dashboard-kit, with data from npm, GitHub, and an OSV.dev MCP server.",
+      "path": "miscellaneous/assistant-ui-dashboards",
+      "env": {
+        "file": ".env.local",
         "key": "THESYS_API_KEY"
       }
     },

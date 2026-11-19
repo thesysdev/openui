@@ -81,7 +81,7 @@ export interface ArtifactRendererConfig<Props = unknown> {
    *  - `response` as `null` (the tool result hasn't arrived yet — see
    *    {@link ArtifactRendererControls.isStreaming}).
    *
-   * Storage path (artifact browser): receives `{ args: undefined, response: artifact.content }` —
+   * Storage path (artifact browser): receives `{ args: undefined, response: artifact.content, id: artifact.id }` —
    * stored `content` must therefore have the same shape as the tool-call response.
    *
    * Return `null` to skip rendering. Return `meta: null` to render without
@@ -90,13 +90,18 @@ export interface ArtifactRendererConfig<Props = unknown> {
    * when `(id, version)` changes, the registry entry is re-registered.
    */
   parser: (
-    raw: { args: unknown; response: unknown },
+    raw: { args: unknown; response: unknown; id?: string },
     ctx: { isStreaming: boolean },
   ) => ParsedArtifact<Props> | null;
   /** Renders the inline preview shown in the chat message. */
   preview: (props: Props, controls: ArtifactRendererControls) => ReactNode;
   /** Renders the full artifact view (side panel in-thread, full page in the artifact browser). */
   actual: (props: Props, controls: ArtifactRendererControls) => ReactNode;
+  /**
+   * `false`: the side panel draws no header (title and close) around `actual`, for a renderer
+   * that brings its own and closes with `controls.close`. Defaults to `true`.
+   */
+  panelHeader?: boolean;
   /**
    * Icon for this artifact type, used by the artifact nav for the category this
    * type belongs to. A platform-neutral node (a web element or a React Native

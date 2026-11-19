@@ -1,0 +1,49 @@
+---
+title: Edit a dashboard
+description: Change a saved dashboard in place with dashboards.edit.
+---
+
+`dashboards.edit()` changes a saved dashboard from a prompt that describes the change. It patches only the parts the prompt describes, and the rest of the dashboard stays as it is.
+
+```ts
+import { dashboards } from "@/lib/openui";
+
+const response = await dashboards.edit(
+  {
+    id: dashboardId,
+    prompt: "Add a pie chart of revenue by payment method next to the line chart.",
+  },
+  { userId: session.user.id },
+  { signal: request.signal },
+);
+```
+
+| Parameter | Description                                |
+| --------- | ------------------------------------------ |
+| `id`      | The dashboard's id.                        |
+| `prompt`  | The change to make, and any data it needs. |
+
+Only the dashboard's owner can edit it: `context.userId` must match the user who created it.
+
+`edit` resolves with a response, like [`create`](/docs/dashboards/generate#the-response). Return it as the tool result, or pass it to the renderer.
+
+## Get the id
+
+The id comes from one of two places:
+
+- **The tool result:** In a chat, the model reads the id from the earlier `create_dashboard` result and passes it to `edit_dashboard`. See [Add to your agent](/docs/dashboards/add-to-your-agent#add-the-edit-tool).
+- **The list:** Each item from [`useArtifactList`](/docs/dashboards/list) has an `id`.
+
+## Write the prompt
+
+The model applies the change to the saved dashboard, so describe only what changes:
+
+- "Add a table of failed payments below the chart."
+- "Switch the revenue chart to weekly totals."
+- "Remove the refunds section."
+
+## What the user sees
+
+1. The open dashboard stays on screen.
+2. When the new version is ready, every renderer showing the dashboard switches to it, including renderers opened from the list.
+3. The dashboard loads its data again for the new version.

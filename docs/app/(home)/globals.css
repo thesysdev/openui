@@ -144,3 +144,10 @@
   font-display: swap;
   src: url("/fonts/inter-display/InterDisplay-Bold.woff2") format("woff2");
 }
+/* Resolve container units to a length before using them in illustration
+   scaling math. Safari can miscalculate atan2() with mixed cqw/px units. */
+@property --illustration-width {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
