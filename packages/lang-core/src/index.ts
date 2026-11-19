@@ -37,6 +37,12 @@ export type { ActionRef } from "./parser/builtins";
 export { enrichErrors } from "./parser/enrich-errors";
 export { parseExpression } from "./parser/expressions";
 export { tokenize } from "./parser/lexer";
+export { toMarkdown } from "./parser/markdown";
+export type {
+  MarkdownComponentRenderer,
+  MarkdownRenderContext,
+  ToMarkdownOptions,
+} from "./parser/markdown";
 export { mergeStatements } from "./parser/merge";
 export { generatePrompt, generateSystemPrompt } from "./parser/prompt";
 export type {

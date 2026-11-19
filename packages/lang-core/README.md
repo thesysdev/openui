@@ -120,6 +120,27 @@ const merged = mergeStatements(original, patch);
 // header and tbl kept from original, root replaced, chart added
 ```
 
+### Convert a response to Markdown
+
+```ts
+import { createParser, toMarkdown } from "@openuidev/lang-core";
+
+const parser = createParser(library.toJSONSchema(), library.root);
+const markdown = toMarkdown(parser.parse(response));
+// Headings, text, lists, tables, code and form values; layout and buttons are dropped
+```
+
+Unknown components print their text props in order. Override a component, or drop it with `false`:
+
+```ts
+toMarkdown(result, {
+  components: {
+    Image: (node, ctx) => `[image: ${ctx.inline(node.props.alt)}]`,
+    Separator: false,
+  },
+});
+```
+
 ## API
 
 ### Parser
@@ -128,6 +149,7 @@ const merged = mergeStatements(original, patch);
 | :--- | :--- |
 | `createParser(schema, rootName?)` | One-shot parser for complete text |
 | `createStreamingParser(schema, rootName?)` | Incremental parser: `push(chunk)`, `set(fullText, complete?)`, `getResult()` |
+| `toMarkdown(result, options?)` | Convert a `ParseResult` or `ElementNode` tree to Markdown |
 
 ### Library and messages
 
