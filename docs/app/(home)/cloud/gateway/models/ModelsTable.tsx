@@ -25,6 +25,7 @@ const MODELS_URL = "https://openrouter.ai/api/v1/models";
 
 // Must match the free-model allowlist in the Billing promotion config.
 const FREE_MODELS = [
+  { id: "google/gemini-4-argon-free", base: "google/gemini-4-argon" },
   { id: "google/gemini-3.6-flash-free", base: "google/gemini-3.6-flash" },
   { id: "google/gemini-3.5-flash-free", base: "google/gemini-3.5-flash" },
   { id: "google/gemini-3.1-pro-free", base: "google/gemini-3.1-pro-preview" },
