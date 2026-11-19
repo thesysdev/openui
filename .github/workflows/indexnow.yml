@@ -1,9 +1,8 @@
 name: IndexNow
 
-# After each production deploy, tells IndexNow search engines (Bing, Yandex, ...) which sitemap URLs
-# were added, changed or removed since the last run. Each run keeps its page hashes as an artifact
-# for the next run to compare against. The key is the INDEXNOW_KEY secret; the docs site serves it
-# at /<key>.txt from the INDEXNOW_KEY env var on Vercel.
+# After each production deploy, tells IndexNow search engines (Bing, Yandex, ...) to recrawl the
+# docs and blog pages the deployed commit added, changed or removed. The key is the INDEXNOW_KEY
+# secret; the docs site serves it at /<key>.txt from the INDEXNOW_KEY env var on Vercel.
 on:
   deployment_status:
 
@@ -12,38 +11,32 @@ permissions: {}
 jobs:
   submit:
     if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
-    # One submission at a time, so each compares against the hashes the previous one saved. Set on
-    # the job, not the workflow, so skipped preview-deploy runs never cancel a queued production run.
-    concurrency:
-      group: indexnow
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
+    env:
+      HOST: www.openui.com
+      KEY: ${{ secrets.INDEXNOW_KEY }}
     steps:
       - uses: actions/checkout@v6
         with:
-          sparse-checkout: docs/scripts
+          ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 2
 
-      - name: Download the previous run's page hashes
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Submit changed pages
         run: |
-          run_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=indexnow-page-hashes&per_page=1" \
-            --jq '.artifacts[] | select(.expired | not) | .workflow_run.id')
-          if [ -n "$run_id" ]; then
-            gh run download "$run_id" -R "$GITHUB_REPOSITORY" -n indexnow-page-hashes -D previous
-          else
-            echo "No previous page hashes; submitting every URL"
+          # docs/content/docs/a/index.mdx -> /docs/a. Cookbooks and demos are served at the top level
+          # (TOP_LEVEL_SECTIONS in docs/lib/source.ts).
+          urls=$(git diff --name-only --no-renames HEAD~1 HEAD -- 'docs/content/*.mdx' \
+            | sed -E 's#^docs/content/##; s#\.mdx$##; s#/index$##; s#^docs/(cookbooks|demos)(/|$)#\1\2#' \
+            | sed "s#^#https://$HOST/#")
+          if [ -z "$urls" ]; then
+            echo "No docs or blog pages changed"
+            exit 0
           fi
-
-      - name: Submit changed URLs
-        env:
-          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
-        run: node docs/scripts/submit-indexnow.mjs previous/page-hashes.json page-hashes.json
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: indexnow-page-hashes
-          path: page-hashes.json
-          retention-days: 90
+          echo "Submitting $(echo "$urls" | wc -l) URLs:"
+          echo "$urls"
+          jq -n --arg host "$HOST" --arg key "$KEY" --arg urls "$urls" \
+            '{host: $host, key: $key, keyLocation: "https://\($host)/\($key).txt", urlList: ($urls | split("\n"))}' \
+            | curl -fsS -o /dev/null -w 'IndexNow responded %{http_code}\n' -X POST https://api.indexnow.org/indexnow \
+                -H 'Content-Type: application/json; charset=utf-8' --data-binary @-
