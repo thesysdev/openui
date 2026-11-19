@@ -79,7 +79,7 @@ jobs:
                 '',
                 `1. Find or [open an issue](${repoUrl}/issues/new/choose) describing the problem or feature, and wait for a maintainer to approve it.`,
                 '2. Edit this PR\'s description to include a closing keyword, for example `Fixes #123`.',
-                '3. Leave a comment here and a maintainer will reopen the PR.',
+                '3. Leave a comment here tagging @vishxrad and a maintainer will reopen the PR.',
               ].join('\n'),
             });
             await github.rest.issues.addLabels({
