@@ -3,7 +3,8 @@ import { pendingLoaderNames as names } from "./pendingLoader.styles";
 /*
  * The pending loader: skeleton dashboard cards that split, merge and slide on
  * a grid while the artifact is on its way. The layout is a tree of cuts, so
- * the cards always tile the stage edge to edge, with no gaps or overlaps.
+ * the cards always tile the drawing edge to edge, with no gaps or overlaps.
+ * The drawing has its own size and scales to fit the stage, like an SVG.
  */
 
 /** Milliseconds between layout changes, give or take a quarter. */
@@ -17,23 +18,52 @@ export const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
 interface Grid {
-  /** Used below this stage width. */
-  max: number;
   cols: number;
   rows: number;
   /** A card's smallest size, in grid units. */
   minW: number;
   minH: number;
   gap: number;
-  /** How many cards the stage keeps. */
+  /** How many cards the drawing keeps. */
   count: [number, number];
 }
 
+/** Portrait, square-ish and landscape: the one nearest the stage's shape is used. */
 const GRIDS: Grid[] = [
-  { max: 560, cols: 4, rows: 8, minW: 2, minH: 2, gap: 10, count: [3, 5] },
-  { max: 900, cols: 8, rows: 6, minW: 2, minH: 2, gap: 12, count: [4, 7] },
-  { max: Infinity, cols: 12, rows: 6, minW: 3, minH: 2, gap: 14, count: [5, 8] },
+  { cols: 4, rows: 8, minW: 2, minH: 2, gap: 10, count: [3, 5] },
+  { cols: 8, rows: 6, minW: 2, minH: 2, gap: 12, count: [4, 7] },
+  { cols: 12, rows: 6, minW: 3, minH: 2, gap: 14, count: [5, 8] },
 ];
+
+/** A grid cell in the drawing, before it's scaled to fit. */
+const CELL_W = 80;
+const CELL_H = 90;
+/** How far past its own size the drawing grows on a big stage. */
+const MAX_SCALE = 1.5;
+
+/** The drawing's own size for a grid, in pixels before scaling. */
+const sizeOf = ({ cols, rows, gap }: Grid) => ({
+  w: cols * CELL_W + (cols - 1) * gap,
+  h: rows * CELL_H + (rows - 1) * gap,
+});
+
+/** How far a grid's shape is from the stage's: 0 when they match, the same for twice as wide or tall. */
+const misfit = (g: Grid, aspect: number) => {
+  const { w, h } = sizeOf(g);
+  return Math.abs(Math.log(aspect / (w / h)));
+};
+
+/** The host's own grid, with smallest card sizes and a card count worked out from its size. */
+function customGrid(columns: number, rowCount: number): Grid {
+  const size = (v: number) => clamp(Math.round(v) || 2, 2, 24);
+  const cols = size(columns);
+  const rows = size(rowCount);
+  const minW = cols >= 12 ? 3 : 2;
+  const minH = rows < 4 ? 1 : 2;
+  const fits = Math.floor(cols / minW) * Math.floor(rows / minH);
+  const most = clamp(Math.round(fits * 0.6), 2, 8);
+  return { cols, rows, minW, minH, gap: 12, count: [Math.max(2, most - 2), most] };
+}
 
 type Kind = "kpi" | "area" | "line" | "bars" | "hbars" | "donut" | "rows";
 /** One card. */
@@ -140,14 +170,25 @@ const KINDS: Record<Kind, () => string> = {
 const GRAPHS: Kind[] = ["line", "area", "bars", "hbars", "donut"];
 const isGraph = (kind: Kind | undefined) => kind !== undefined && GRAPHS.includes(kind);
 
-/** Fills `stage`, a positioned element, with moving cards. Returns a function that stops it. */
-export function startPendingLoader(stage: HTMLElement): () => void {
+/**
+ * Fills `stage`, a positioned element, with moving cards. With a `fixed` grid it always uses
+ * that one; otherwise the built-in grid nearest the stage's shape. Returns a function that stops it.
+ */
+export function startPendingLoader(
+  stage: HTMLElement,
+  fixed?: { cols: number; rows: number },
+): () => void {
   if (typeof ResizeObserver === "undefined") return () => {};
   const reduced = prefersReducedMotion();
+  const grids = fixed ? [customGrid(fixed.cols, fixed.rows)] : GRIDS;
   const cards = new Map<number, HTMLElement>();
   const timers = new Set<ReturnType<typeof setTimeout>>();
-  let resizeTimer: ReturnType<typeof setTimeout> | undefined;
-  let grid = GRIDS[0]!;
+  // The drawing: the cards are laid out at its own size, and it's scaled to fit the stage.
+  const container = document.createElement("div");
+  container.className = names.container;
+  stage.append(container);
+  let grid = grids[0]!;
+  /** The drawing's own size, before scaling. */
   let width = 0;
   let height = 0;
   let tree: Node | null = null;
@@ -313,7 +354,7 @@ export function startPendingLoader(stage: HTMLElement): () => void {
     el.style.zIndex = "0";
     setBox(el, p);
     el.innerHTML = `<div class="${names.body}">${KINDS[kind]()}</div>`;
-    stage.append(el);
+    container.append(el);
     cards.set(n.id, el);
     if (!reduced) {
       el.animate?.(
@@ -460,30 +501,27 @@ export function startPendingLoader(stage: HTMLElement): () => void {
     ensureGraphs();
   }
 
+  // A new stage size only rescales the drawing, like an SVG's viewBox: whole, centred, and no
+  // bigger than MAX_SCALE. The cards move only when the stage's shape calls for another grid.
   const observer = new ResizeObserver(([entry]) => {
     const { width: w = 0, height: h = 0 } = entry?.contentRect ?? {};
     if (!w || !h) return;
-    width = w;
-    height = h;
-    const fits = GRIDS.find((g) => w < g.max)!;
+    const fits = grids.reduce((a, b) => (misfit(b, w / h) < misfit(a, w / h) ? b : a));
     if (fits !== grid || !tree) {
       grid = fits;
+      ({ w: width, h: height } = sizeOf(grid));
+      container.style.width = `${width}px`;
+      container.style.height = `${height}px`;
       rebuild();
-      return;
     }
-    // Same grid, new size: snap instead of chasing the edge with transitions.
-    stage.setAttribute("data-resizing", "");
-    const L = layout(tree);
-    if (L) render(L);
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => stage.removeAttribute("data-resizing"), 120);
+    const scale = Math.min(w / width, h / height, MAX_SCALE);
+    container.style.setProperty("--openui-pending-scale", scale.toFixed(4));
   });
   observer.observe(stage);
   schedule();
 
   return () => {
     observer.disconnect();
-    clearTimeout(resizeTimer);
     timers.forEach(clearTimeout);
     timers.clear();
     // The stage outlives a re-run effect (React's strict mode runs it twice).

@@ -18,6 +18,14 @@ export interface PendingLoaderProps {
   cardColor?: string;
   /** The cards' border. Defaults to `color` at 10%. */
   borderColor?: string;
+  /**
+   * Columns in the grid the cards sit on. With `rows`, it fixes the grid and so the drawing's
+   * shape, which scales to fit. Without both, a portrait, square or landscape grid is picked to
+   * suit the space. Rounded, from 2 to 24.
+   */
+  cols?: number;
+  /** Rows in the grid the cards sit on. See `cols`. */
+  rows?: number;
 }
 
 const NOTES = [
@@ -36,12 +44,18 @@ export function PendingLoader({
   shapeColor,
   cardColor,
   borderColor,
+  cols,
+  rows,
 }: PendingLoaderProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const stage = stageRef.current;
-    return stage ? startPendingLoader(stage) : undefined;
-  }, []);
+    if (!stage) return;
+    return startPendingLoader(
+      stage,
+      cols !== undefined && rows !== undefined ? { cols, rows } : undefined,
+    );
+  }, [cols, rows]);
 
   // Only the colors given: the others are mixed from `color` in CSS.
   const style = {
