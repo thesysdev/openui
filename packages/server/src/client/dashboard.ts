@@ -93,7 +93,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       { role: "user", content: prompt },
     ];
     // Your data tools, which the model may call while it builds; OpenUI Cloud
-    // adds create_script, whose saved scripts this server runs (see runToolRound).
+    // adds openui_create_script, whose saved scripts this server runs (see runToolRound).
     const dataTools = definitions.map(({ name, description, parameters }) => ({
       type: "function",
       function: {

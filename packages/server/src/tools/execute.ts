@@ -55,7 +55,7 @@ export function dataToolLoader<Context extends ExecutionContext>(
 }
 
 /** The interpreter, plus what a dashboard build uses internally: running a
- *  script saved with create_script in the build in progress. */
+ *  script saved with openui_create_script in the build in progress. */
 export interface BuildInterpreter<Context extends ExecutionContext> extends Interpreter<Context> {
   runDraft(
     artifactId: string,

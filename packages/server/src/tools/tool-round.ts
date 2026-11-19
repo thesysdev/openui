@@ -6,9 +6,9 @@ import { ToolExecutionError, type DataTool, type ExecutionContext } from "./type
 
 /** The model saves one of the dashboard's scripts and runs it once: `{ name, code, args? }`.
  *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */
-export const CREATE_SCRIPT_TOOL = "create_script";
+export const CREATE_SCRIPT_TOOL = "openui_create_script";
 
-/** The script a create_script call names, if its arguments say. */
+/** The script a openui_create_script call names, if its arguments say. */
 function scriptNameOf(call: { function?: { arguments?: string } }): string {
   try {
     const args: unknown = JSON.parse(call.function?.arguments || "{}");

@@ -96,7 +96,11 @@ describe("defineDashboard create", () => {
   it("runs a saved script of the build by the dashboard's id, and sends the id back", async () => {
     const reply = {
       ...toolCalls(
-        toolCall("c1", "create_script", '{"name":"revenue","code":"async () => 1","args":{"d":7}}'),
+        toolCall(
+          "c1",
+          "openui_create_script",
+          '{"name":"revenue","code":"async () => 1","args":{"d":7}}',
+        ),
       ),
       artifact_id: "art_build",
     };
@@ -125,7 +129,7 @@ describe("defineDashboard create", () => {
     const reply = {
       ...toolCalls(
         toolCall("c1", "sales", '{"region":"EU"}'),
-        toolCall("c2", "create_script", '{"name":"revenue","code":"async () => 1"}'),
+        toolCall("c2", "openui_create_script", '{"name":"revenue","code":"async () => 1"}'),
       ),
       artifact_id: "art_build",
     };
