@@ -7,9 +7,9 @@ export interface SectionProps {
 export function Section({ title, description, children }: SectionProps) {
   return (
     <section className="openui-dashboard-section">
-      {title ? (
+      {title || description ? (
         <div className="openui-dashboard-section-head">
-          <h2 className="openui-dashboard-section-title">{title}</h2>
+          {title ? <h2 className="openui-dashboard-section-title">{title}</h2> : null}
           {description ? (
             <p className="openui-dashboard-section-description">{description}</p>
           ) : null}

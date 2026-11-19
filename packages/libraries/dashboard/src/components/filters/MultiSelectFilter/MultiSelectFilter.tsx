@@ -21,10 +21,14 @@ export function MultiSelectFilter(props: MultiSelectFilterProps) {
   const chosen = list.filter((option) => stored.includes(option.value));
   // One encoding of "All": the empty array. Every box shows ticked then, and
   // ticking the last remaining box writes [] again rather than the full list.
-  const all = chosen.length === 0 || chosen.length === list.length;
-  useReportFilter(props.name, all ? [] : chosen.map((option) => option.value));
+  // A stored value that isn't an option still filters the data, so it counts
+  // as a selection and shows by its own name.
+  const all = stored.length === 0 || chosen.length === list.length;
+  useReportFilter(props.name, all ? [] : stored);
   const isChecked = (value: string) => all || chosen.some((option) => option.value === value);
-  const names = chosen.map((option) => option.label ?? option.value);
+  const names = stored.map(
+    (value) => list.find((option) => option.value === value)?.label ?? value,
+  );
   // All, the one value by name, or a count once there are several.
   const summary = all ? (
     "All"

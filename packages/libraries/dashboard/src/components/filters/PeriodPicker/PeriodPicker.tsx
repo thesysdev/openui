@@ -13,7 +13,10 @@ export interface PeriodPickerProps {
 
 export function PeriodPicker(props: PeriodPickerProps) {
   const list = props.options;
-  const current = props.value ?? list[0]?.value;
+  // The $variable's own value: with none, no option is selected.
+  const current = props.value ?? undefined;
+  // The Tab stop is the selected option, or the first while nothing is selected.
+  const chosen = list.findIndex((option) => option.value === current);
   return (
     <div
       className="openui-dashboard-segmented"
@@ -21,13 +24,13 @@ export function PeriodPicker(props: PeriodPickerProps) {
       aria-label="Date range"
       onKeyDown={(event) => !props.streaming && radioKeys(event, list, current, props.onChange)}
     >
-      {list.map((option) => (
+      {list.map((option, i) => (
         <button
           key={option.value}
           type="button"
           role="radio"
           aria-checked={option.value === current}
-          tabIndex={option.value === current ? 0 : -1}
+          tabIndex={(chosen < 0 ? i === 0 : i === chosen) ? 0 : -1}
           disabled={props.streaming}
           onClick={() => props.onChange(option.value)}
         >

@@ -9,7 +9,7 @@ export const ChipFilterComponent = defineComponent({
   name: "ChipFilter",
   props: chipFilterPropsSchema,
   description:
-    "Pills for 2–6 segments; one is always selected. value takes the $variable that holds the selected option's value. In a FilterBar for a dashboard-wide segment, or in a Card's controls to switch that card's breakdown (leave label out there: the card title names it).",
+    "Pills for 2–6 segments, one selected at a time. value takes the $variable that holds the selected option's value. In a FilterBar for a dashboard-wide segment, or in a Card's controls to switch that card's breakdown (leave label out there: the card title names it).",
   component: ChipFilterView,
 });
 function ChipFilterView({ props }: ComponentRenderProps<ChipFilterSchemaProps>) {

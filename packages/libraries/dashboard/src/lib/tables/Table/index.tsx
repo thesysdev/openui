@@ -12,7 +12,7 @@ export const TableComponent = defineComponent({
   name: "Table",
   props: tablePropsSchema,
   description:
-    "Sortable, paged table (default pageSize 10). totals adds a totals row for Columns that set total. search is the text to keep matching rows for. groupBy names a column (usually a chip or badge column) to group rows under a heading with their count.",
+    "Sortable, paged table (default pageSize 10). totals true adds a totals row, and only when a Column sets total: it takes both. search is the text to keep matching rows for. groupBy names a column by its label (usually a chip or badge column) to group rows under a heading with their count.",
   component: function TableView({ props }: ComponentRenderProps<TableSchemaProps>) {
     // Filtered values can be null for a render while $state settles; treat them as empty.
     const columns = useMemo(
