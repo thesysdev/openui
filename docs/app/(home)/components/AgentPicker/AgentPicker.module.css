@@ -394,6 +394,15 @@
   .runnerWrap {
     display: none;
   }
+
+  /* A command label is longer than any prompt label. */
+  .build:has(.labelCode) {
+    max-width: 100%;
+  }
+
+  .labelCode {
+    font-size: 0.75rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
