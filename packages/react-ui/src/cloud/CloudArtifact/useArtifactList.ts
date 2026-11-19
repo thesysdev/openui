@@ -27,7 +27,7 @@ export interface ArtifactListState {
   /** Whether there are more to load. */
   hasMore: boolean;
   loadMore: () => void;
-  /** Loads the list again from the first page. */
+  /** Loads the list again from the first page, showing the current list until it arrives. */
   refresh: () => void;
 }
 
@@ -94,14 +94,21 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
     [storage, cache, typeKey, pinned, search, limit],
   );
 
+  // A new filter or storage starts the list over. A refresh keeps showing the current list until
+  // its first page arrives and replaces it: emptied meanwhile, a list filtered by `pinned` would
+  // show every cached artifact as `joined` below, in the cache's order, then snap back.
+  const listedBy = useRef(load);
   useEffect(() => {
     if (!storage) {
       setError(NO_STORAGE);
       setIsLoading(false);
       return;
     }
-    setIds([]);
-    setCursor(undefined);
+    if (listedBy.current !== load) {
+      listedBy.current = load;
+      setIds([]);
+      setCursor(undefined);
+    }
     void load(undefined);
   }, [storage, load, reloads]);
 
