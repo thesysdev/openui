@@ -1,12 +1,10 @@
 type PostHog = (typeof import("posthog-js"))["default"];
 
-export const POSTHOG_KEY = "phc_3OLW53x09ZTVZSV6BEpj5uycj3ooqR6KOemOjx04e3D";
-
 let posthogPromise: Promise<PostHog> | undefined;
 
 export function loadPostHog(): Promise<PostHog> {
   posthogPromise ??= import("posthog-js").then(({ default: posthog }) => {
-    posthog.init(POSTHOG_KEY, {
+    posthog.init("phc_3OLW53x09ZTVZSV6BEpj5uycj3ooqR6KOemOjx04e3D", {
       api_host: "https://dgoeivjus9jfp.cloudfront.net",
       capture_pageview: "history_change",
       disable_session_recording: false,
