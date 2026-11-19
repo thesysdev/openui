@@ -1,7 +1,7 @@
 import { SITE_OPEN_GRAPH } from "@/lib/page-metadata";
 import { BASE_URL } from "@/lib/site-url";
 import type { Metadata } from "next";
-import { AGENT_SETUP_PROMPT, AgentPicker } from "./components/AgentPicker/AgentPicker";
+import { HomeAgentSetup } from "./components/AgentPicker/HomeAgentSetup";
 import { LangShowcase } from "./components/LangShowcase/LangShowcase";
 import { RendererProofLine } from "./components/RendererProofLine/RendererProofLine";
 import {
@@ -128,7 +128,7 @@ export default function HomePage() {
           /* Replaces the command pill outright: the agent button and the
              runner button carry both paths, and the runner menu holds the
              commands. */
-          commandSlot={<AgentPicker command={AGENT_SETUP_PROMPT} />}
+          commandSlot={<HomeAgentSetup />}
           proofSlot={<RendererProofLine lead="One spec, rendered in" />}
           /* No GitHub CTA in the hero on either breakpoint: the header carries
              the star count already. Dropping githubRepoUrl takes the desktop

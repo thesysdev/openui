@@ -131,6 +131,15 @@
   white-space: nowrap;
 }
 
+.labelCode {
+  font-family: var(--home-font-mono);
+  font-size: 0.875em;
+}
+
+.pending {
+  visibility: hidden;
+}
+
 .marks {
   display: inline-flex;
   align-items: center;

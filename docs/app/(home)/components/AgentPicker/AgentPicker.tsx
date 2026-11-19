@@ -6,14 +6,6 @@ import { Check, CheckCheck, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import styles from "./AgentPicker.module.css";
 
-/* What the button puts on the clipboard. A prompt to paste into an agent, not
-   a shell command: it is copied verbatim, with nothing appended. */
-export const AGENT_SETUP_PROMPT = `Set up my first Generative UI agent using the recommended OpenUI stack.
-
-1. Scaffold: run \`npx @openuidev/cli@latest create\`. It runs without prompts, creates the project folder, and installs dependencies.
-2. Tell me if there are any steps required of me to complete.
-3. First message: start the app, open its local URL, send one message, and tell me what the server log actually returned.`;
-
 /* The Gateway page's prompt: the same scaffold, pointed at the Gateway docs. */
 export const GATEWAY_SETUP_PROMPT = `Set up my first Generative UI agent using OpenUI Gateway ([openui.com/docs/gateway](https://openui.com/docs/gateway)).
 
@@ -81,6 +73,9 @@ export function AgentPicker({
   onCopy,
   runner = true,
   analyticsSource = "homepage_hero",
+  label = "Setup for agents",
+  kind = "prompt",
+  pending = false,
 }: {
   command: string;
   className?: string;
@@ -89,6 +84,11 @@ export function AgentPicker({
   runner?: boolean;
   /* The `source` sent with the create command copy event. */
   analyticsSource?: string;
+  label?: string;
+  /* A prompt is pasted into an agent; a command is run in a terminal. */
+  kind?: "prompt" | "command";
+  /* Holds the button's space but hides it, until its label is known. */
+  pending?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const [copiedRunner, setCopiedRunner] = useState<string | null>(null);
@@ -133,12 +133,18 @@ export function AgentPicker({
       <button
         type="button"
         onClick={handleClick}
-        className={`${styles.build} ${className}`.trim()}
-        aria-label="Copy the setup prompt for your coding agent"
+        className={`${styles.build} ${pending ? styles.pending : ""} ${className}`
+          .replace(/\s+/g, " ")
+          .trim()}
+        aria-label={
+          kind === "command" ? `Copy ${command}` : "Copy the setup prompt for your coding agent"
+        }
         /* Drives the tooltip's copied message; the button itself holds still. */
         data-copied={copied || undefined}
       >
-        <span className={styles.label}>Setup for agents</span>
+        <span className={`${styles.label} ${kind === "command" ? styles.labelCode : ""}`.trim()}>
+          {label}
+        </span>
         <span className={styles.marks} aria-hidden="true">
           {AGENTS.map((agent) => (
             <span key={agent.id} className={styles.markRing} data-agent={agent.id}>
@@ -163,7 +169,13 @@ export function AgentPicker({
             <Copy className={styles.tipCopy} size={13} strokeWidth={2} />
             <CheckCheck className={styles.tipCheck} size={14} strokeWidth={2.5} />
           </span>
-          {copied ? "Paste prompt in agent" : "Copy prompt for agent"}
+          {kind === "command"
+            ? copied
+              ? "Run in your terminal"
+              : "Copy command"
+            : copied
+              ? "Paste prompt in agent"
+              : "Copy prompt for agent"}
         </span>
       </button>
       {/* The hand-run pairing: the same shape as the agent button, with the
