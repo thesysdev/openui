@@ -61,7 +61,7 @@ const context = { userId: session.user.id, groupIds: session.user.teamIds };
 
 `context` can carry more than the user id. Your data tools receive the whole object, which is useful for scoping data to what the user may see. See [Connect data](/docs/dashboards/connect-data#use-the-context).
 
-To list, read, or change a user's saved dashboards from your server, pass the same id as `userId` to `openui.artifacts`. See [Manage dashboards from your server](/docs/dashboards/manage-from-server).
+To list, read, change, or share a user's saved dashboards from your server, pass the same `userId` and `groupIds` to `openui.artifacts`. See [Manage dashboards from your server](/docs/dashboards/manage-from-server).
 
 ## Frontend token route
 

@@ -44,10 +44,9 @@ export async function apiError(response: Response): Promise<OpenUIApiError> {
   }
   const error = isRecord(result) && isRecord(result["error"]) ? result["error"] : undefined;
   const message = error?.["message"] ?? (isRecord(result) ? result["message"] : undefined);
-  const code = error?.["code"] ?? (isRecord(result) ? result["code"] : undefined);
   return new OpenUIApiError(
     typeof message === "string" ? message : `OpenUI Cloud request failed: HTTP ${response.status}`,
-    typeof code === "string" ? code : "http_error",
+    typeof error?.["code"] === "string" ? error["code"] : "http_error",
     response.status,
   );
 }
