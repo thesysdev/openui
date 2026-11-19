@@ -1,8 +1,6 @@
 import { POSTHOG_KEY } from "@/lib/analytics";
 import { after } from "next/server";
 
-/* The homepage setup prompt links here. Each arm of the homepage experiment
-   links its own path (/v1, /v2), so fetches are counted per arm. */
 const AGENT_SETUP_SKILL = `Set up my first Generative UI agent using the recommended OpenUI stack.
 
 1. Scaffold: run \`npx @openuidev/cli@latest create\`. It runs without prompts, creates the project folder, and installs dependencies.

@@ -20,7 +20,6 @@ type Arm = keyof typeof ARMS;
 
 const isArm = (value: unknown): value is Arm => typeof value === "string" && value in ARMS;
 
-/** The homepage hero's agent button, with its arm of the setup experiment. */
 export function HomeAgentSetup() {
   const [arm, setArm] = useState<Arm | null>(null);
 
