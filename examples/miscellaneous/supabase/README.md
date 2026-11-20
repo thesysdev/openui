@@ -62,11 +62,11 @@ The migration creates:
 cp .env.local.example .env.local
 ```
 
-| Variable                        | Where to find it                                      |
-| ------------------------------- | ----------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase dashboard → Settings → API → Project URL     |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard → Settings → API → anon/public key |
-| `THESYS_API_KEY`            | [console.thesys.dev/keys](https://console.thesys.dev/keys) |
+| Variable                        | Where to find it                                           |
+| ------------------------------- | ---------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase dashboard → Settings → API → Project URL          |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard → Settings → API → anon/public key      |
+| `THESYS_API_KEY`                | [console.thesys.dev/keys](https://console.thesys.dev/keys) |
 
 ### 5. Install and run
 
@@ -81,6 +81,16 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000).
 
 ---
+
+## Component library and theme
+
+Answers use `@openuidev/intelligent-ui-library` (pinned to `0.0.2`), rooted at `Col`. `src/library.ts` re-exports its `library` and extends its `promptOptions` and `additionalRules` with form submission and conditional field rules, preserving the default examples.
+
+`pnpm generate` runs `openui generate src/library.ts --spec --out src/generated/spec.json` before development, builds and verification. `cloudInstructions()` passes the library and prompt options separately to `generateSystemPrompt({ cloud: true, ... })`, preserving the Cloud prompt flow.
+
+The frontend keeps `AgentInterface`, adapters, theming and styles from `@openuidev/react-ui`. The new library's `ThemeProvider` and the chat's `theme` receive the same `useSystemThemeMode()` value, so answers follow the chat in light and dark mode.
+
+Previously saved answers using old components cannot render with this library. Start a new chat to generate answers with `Col`, `Title`, `Text`, `Chart` and the other current components.
 
 ## How it works
 

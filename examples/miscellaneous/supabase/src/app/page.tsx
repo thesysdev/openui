@@ -1,6 +1,7 @@
 "use client";
 
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { useThreadList } from "@openuidev/react-headless";
 import {
   AgentInterface,
@@ -8,8 +9,8 @@ import {
   openAIAdapter,
   openAIMessageFormat,
   restStorage,
+  useSystemThemeMode,
 } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import type { RealtimeChannel, Session } from "@supabase/supabase-js";
 import { useEffect, useMemo } from "react";
 
@@ -77,6 +78,7 @@ function ThreadListSync() {
 }
 
 export default function Page() {
+  const mode = useSystemThemeMode();
   // Thread persistence stays server-backed (Supabase) via the same /api/threads
   // REST contract the legacy `threadApiUrl` used — restStorage reproduces those
   // conventions and keeps loadThread deserialization aligned with OpenAI format.
@@ -99,14 +101,17 @@ export default function Page() {
 
   return (
     <div className="h-screen w-screen overflow-hidden">
-      <AgentInterface
-        storage={storage}
-        llm={llm}
-        componentLibrary={openuiLibrary}
-        agentName="Supabase Chat"
-      >
-        <ThreadListSync />
-      </AgentInterface>
+      <ThemeProvider mode={mode}>
+        <AgentInterface
+          storage={storage}
+          llm={llm}
+          componentLibrary={library}
+          agentName="Supabase Chat"
+          theme={{ mode }}
+        >
+          <ThreadListSync />
+        </AgentInterface>
+      </ThemeProvider>
     </div>
   );
 }

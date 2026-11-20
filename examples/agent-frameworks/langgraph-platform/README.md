@@ -25,7 +25,7 @@ browser ──fetch /api/chat──▶ Next.js route ──protocol v2──▶ 
 | Graph             | `src/agent/agent.ts`        | `createDeepAgent` with the generated OpenUI system prompt, the mock tools, and `openUIStreamTransformer`.                                                                        |
 | Integration       | `@openuidev/langchain`      | Maps LangGraph protocol `messages` and `tools` into AG-UI events, adds run lifecycle events, starts stateless runs, and relays `custom:openui`.                                  |
 | Tools             | `src/agent/tools.ts`        | Mock `get_weather` / `get_stock_price` / `search_web` (no external keys needed).                                                                                                 |
-| Component library | `src/library.ts`            | Re-exports `openuiLibrary`. `pnpm generate` writes `src/generated/spec.json`.                                                                    |
+| Component library | `src/library.ts`            | Re-exports `library` from `@openuidev/intelligent-ui-library`. `pnpm generate` writes `src/generated/spec.json`.                                                                 |
 
 The shared integration package uses Web-standard requests, responses, fetch,
 and streams. It does not depend on Next.js or DeepAgents.
@@ -37,6 +37,8 @@ requires agent-protocol-v2 `custom:*` and root `lifecycle` event channels.
 
 This example runs **two processes**: the LangGraph server (runs the model) and
 the Next.js app (serves the UI). The default dev script starts both.
+
+Install dependencies from this standalone example directory with `pnpm install --ignore-workspace`.
 
 1. Create a `.env` from the template:
 
@@ -97,6 +99,16 @@ Restart `pnpm dev` after changing `.env`.
   API calls.
 - **Change what the model can render:** edit `src/library.ts`, then re-run
   `pnpm generate` (the dev scripts do this for you).
+
+## Component library and theme
+
+Answers use `@openuidev/intelligent-ui-library` (pinned to `0.0.2`), rooted at `Col`. `src/library.ts` re-exports its `library` and extends its `promptOptions` and `additionalRules` with form submission and conditional field rules, preserving the default examples.
+
+`pnpm generate` runs `openui generate src/library.ts --spec --out src/generated/spec.json` before development, builds and verification. `cloudInstructions()` passes the library and prompt options separately to `generateSystemPrompt({ cloud: true, ... })`, preserving the Cloud prompt flow.
+
+The frontend keeps `AgentInterface`, adapters, theming and styles from `@openuidev/react-ui`. The new library's `ThemeProvider` and the chat's `theme` receive the same `useSystemThemeMode()` value, so answers follow the chat in light and dark mode.
+
+Previously saved answers using old components cannot render with this library. Start a new chat to generate answers with `Col`, `Title`, `Text`, `Chart` and the other current components.
 
 ## Learn more
 
