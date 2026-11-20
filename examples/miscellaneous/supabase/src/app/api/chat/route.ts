@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
   const client = new OpenAI({
     apiKey: process.env.THESYS_API_KEY,
     baseURL: "https://api.thesys.dev/v1/embed",
+    // The chat's thread ID groups its turns into one session on the Gateway.
+    defaultHeaders:
+      typeof threadId === "string" && threadId ? { "x-thesys-session-id": threadId } : undefined,
   });
 
   const createStream = () =>

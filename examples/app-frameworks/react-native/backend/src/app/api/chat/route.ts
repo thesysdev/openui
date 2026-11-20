@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     apiKey,
     baseURL: "https://api.thesys.dev/v1/embed",
   });
-  const { messages } = await req.json();
+  const { messages, sessionId } = await req.json();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lastUserMsg = (messages as any[]).filter((m: any) => m.role === "user").pop();
@@ -68,11 +68,20 @@ export async function POST(req: NextRequest) {
   // Return it as JSON so the app can show the real reason.
   let completion;
   try {
-    completion = await openai.chat.completions.create({
-      model: "google/gemini-3.6-flash-free",
-      stream: true,
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-    });
+    completion = await openai.chat.completions.create(
+      {
+        model: "google/gemini-3.6-flash-free",
+        stream: true,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+      },
+      // The app's conversation ID groups its turns into one session on the Gateway.
+      {
+        headers:
+          typeof sessionId === "string" && sessionId
+            ? { "x-thesys-session-id": sessionId }
+            : undefined,
+      },
+    );
   } catch (error) {
     const status = (error as { status?: number }).status ?? 500;
     return Response.json(

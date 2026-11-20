@@ -5,7 +5,7 @@ A chat application built with [Nuxt 3](https://nuxt.com), [Vercel AI SDK](https:
 ## How it works
 
 1. **User sends a message** via the chat input
-2. **Server streams a response** using the Vercel AI SDK with OpenAI, guided by a system prompt written in openui-lang syntax
+2. **Server streams a response** using the Vercel AI SDK with OpenAI, guided by a system prompt written in openui-lang syntax. The server sends the conversation's ID in the `x-thesys-session-id` header, so the console shows the conversation as one session. **New chat** starts a new ID.
 3. **`@openuidev/vue-lang` Renderer** parses the streaming openui-lang text and renders it as Vue components in real time
 4. **Tool calls** (weather, stocks, math, web search) are displayed inline with status indicators
 

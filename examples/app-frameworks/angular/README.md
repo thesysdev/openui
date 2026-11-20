@@ -37,7 +37,7 @@ pnpm dev
 # or: bun run dev
 ```
 
-Open **http://127.0.0.1:4200**. The development command generates the Cloud library configuration, starts the loopback-only Cloud proxy on port 4300, and starts Angular with an `/api` proxy. Only the backend reads the key; browser requests contain conversation messages. The proxy calls `https://api.thesys.dev/v1/embed/chat/completions`.
+Open **http://127.0.0.1:4200**. The development command generates the Cloud library configuration, starts the loopback-only Cloud proxy on port 4300, and starts Angular with an `/api` proxy. Only the backend reads the key; browser requests contain the conversation's ID and messages. The proxy calls `https://api.thesys.dev/v1/embed/chat/completions`.
 
 For different ports, pass `PORT` and `API_PORT` to the development command:
 
@@ -68,7 +68,7 @@ follow-up / form action → the same Angular send() path
 - `src/app/app.ts` and `app.html` connect `NxConversations`, `NxBubbleList`, and `NxSender` to Angular state. The assistant bubble's `messageRender` template contains `<openui-renderer>`.
 - `src/app/openui/schema.ts` is the shared source of component names, ordered Zod props, and prompt options. `library.ts` binds those definitions to Angular components. `server/library.mjs` uses the same schemas with the framework-independent Lang Core package to generate the managed Cloud configuration and validate final output.
 - `src/app/openui/components.ts` implements the small component library. Follow-ups call `triggerAction`; forms serialize their title and edited, labeled values into the same action path. `(action)` becomes one ordinary user turn and one backend request.
-- `server/index.mjs` validates the conversation envelope, streams a Cloud Chat Completion, and checks the final OpenUI program. Cloud owns prompt assembly and output correction; the proxy makes one Cloud request per user turn. Disconnects abort upstream work.
+- `server/index.mjs` validates the conversation envelope, streams a Cloud Chat Completion, and checks the final OpenUI program. Cloud owns prompt assembly and output correction; the proxy makes one Cloud request per user turn. It sends the conversation's ID in the `x-thesys-session-id` header, so the console shows the conversation as one session. Disconnects abort upstream work.
 - `server/transport.mjs` handles Cloud SSE framing, Unicode, aborts, truncation, and provider errors without forwarding private diagnostic bodies.
 - `src/styles.css` supplies a shared CSS variable theme to the chat shell and rendered Angular descendants. Angular Lang has no React `ThemeProvider` or `AgentInterface`; NG-ZORRO X supplies the native Angular shell.
 

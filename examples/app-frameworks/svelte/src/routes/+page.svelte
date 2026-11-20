@@ -21,11 +21,24 @@
   }
   const chat = new Chat({ messages: loadMessages() });
 
+  // One ID per conversation. The server sends it to the Gateway as the session ID.
+  const SESSION_KEY = "openui-svelte:session";
+  function loadSessionId(): string {
+    try {
+      const id = localStorage.getItem(SESSION_KEY) ?? crypto.randomUUID();
+      localStorage.setItem(SESSION_KEY, id);
+      return id;
+    } catch {
+      return crypto.randomUUID();
+    }
+  }
+  let sessionId = loadSessionId();
+
   const isLoading = $derived(chat.status === "submitted" || chat.status === "streaming");
 
   function handleSend(text: string) {
     if (!text.trim() || isLoading) return;
-    chat.sendMessage({ text: text.trim() });
+    chat.sendMessage({ text: text.trim() }, { body: { sessionId } });
   }
 
   function startNewChat() {
@@ -33,7 +46,9 @@
     chat.clearError();
     try {
       localStorage.removeItem(MESSAGES_KEY);
+      localStorage.removeItem(SESSION_KEY);
     } catch {}
+    sessionId = loadSessionId();
   }
 
   function handleAction(event: ActionEvent) {

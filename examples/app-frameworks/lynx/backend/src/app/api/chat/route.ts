@@ -39,10 +39,12 @@ function isChatMessage(value: unknown): value is ChatMessage {
   );
 }
 
-async function readMessages(request: Request): Promise<ChatMessage[]> {
+async function readMessages(
+  request: Request,
+): Promise<{ messages: ChatMessage[]; sessionId?: string }> {
   const payload: unknown = await request.json();
-  const messages =
-    payload && typeof payload === "object" ? (payload as Record<string, unknown>).messages : null;
+  const body = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+  const { messages, sessionId } = body;
 
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
     throw new Error("messages must be a non-empty array containing at most 50 items");
@@ -52,7 +54,10 @@ async function readMessages(request: Request): Promise<ChatMessage[]> {
     throw new Error("each message must contain a user or assistant role and non-empty content");
   }
 
-  return messages;
+  return {
+    messages,
+    sessionId: typeof sessionId === "string" && sessionId ? sessionId : undefined,
+  };
 }
 
 function errorResponse(message: string, status: number) {
@@ -69,8 +74,9 @@ export async function POST(request: Request) {
   }
 
   let messages: ChatMessage[];
+  let sessionId: string | undefined;
   try {
-    messages = await readMessages(request);
+    ({ messages, sessionId } = await readMessages(request));
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Invalid request body", 400);
   }
@@ -93,7 +99,11 @@ export async function POST(request: Request) {
         messages: chatMessages,
         stream: true,
       },
-      { signal: request.signal },
+      {
+        signal: request.signal,
+        // The app's conversation ID groups its turns into one session on the Gateway.
+        headers: sessionId ? { "x-thesys-session-id": sessionId } : undefined,
+      },
     );
   } catch (error) {
     console.error("Failed to start the OpenUI model stream", error);

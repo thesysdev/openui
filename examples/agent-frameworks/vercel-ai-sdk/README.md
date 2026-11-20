@@ -32,7 +32,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the chat interface.
 
 ## How it works
 
-The server (`src/app/api/chat/route.ts`) uses `streamText` with Cloud Completions (`POST /v1/embed/chat/completions`), `cloudInstructions()` (generated `openuiLibrary` spec), and the tools in `src/lib/tools.ts`. It returns `toUIMessageStreamResponse()` — the Vercel AI SDK's native UIMessage stream.
+The server (`src/app/api/chat/route.ts`) uses `streamText` with Cloud Completions (`POST /v1/embed/chat/completions`), `cloudInstructions()` (generated `openuiLibrary` spec), and the tools in `src/lib/tools.ts`. It returns `toUIMessageStreamResponse()` — the Vercel AI SDK's native UIMessage stream. It also sends the chat's `threadId` in the `x-thesys-session-id` header, so the console shows the thread as one session.
 
 The frontend (`src/app/page.tsx`) renders `<AgentInterface />` with `fetchLLM({ streamAdapter: vercelAIAdapter(), messageFormat: vercelAIMessageFormat })`. Storage is omitted, so AgentInterface uses its built-in in-memory default (wiped on reload).
 

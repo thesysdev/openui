@@ -19,6 +19,8 @@ This is the first example in the repo using a non-Node.js backend — the same f
 
 The Vite dev server proxies `/api/*` to FastAPI, so CORS is handled transparently.
 
+The frontend sends each chat's `threadId` with its messages. The backend sends it to OpenUI Cloud in the `x-thesys-session-id` header, so the console shows the chat as one session.
+
 ## Project Structure
 
 ```

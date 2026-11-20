@@ -103,7 +103,7 @@ function toolOptions(): { tools?: string[] } {
   return {};
 }
 
-async function createSession(cwd: string): Promise<PiSessionEntry> {
+async function createSession(cwd: string, conversationId: string): Promise<PiSessionEntry> {
   const apiKey = process.env.THESYS_API_KEY?.trim();
   if (!apiKey) {
     throw new Error("Missing required env var: THESYS_API_KEY");
@@ -150,7 +150,8 @@ async function createSession(cwd: string): Promise<PiSessionEntry> {
     resourceLoader,
     authStorage,
     modelRegistry,
-    model,
+    // The conversation id groups the thread's turns into one session on the Gateway.
+    model: { ...model, headers: { ...model.headers, "x-thesys-session-id": conversationId } },
     ...toolOptions(),
   });
 
@@ -175,7 +176,7 @@ export async function getOrCreateSession(
   const inFlight = CREATING.get(conversationId);
   if (inFlight) return inFlight;
 
-  const creation = createSession(cwd)
+  const creation = createSession(cwd, conversationId)
     .then((entry) => {
       SESSIONS.set(conversationId, entry);
       return entry;

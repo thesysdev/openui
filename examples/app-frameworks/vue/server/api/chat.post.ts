@@ -22,7 +22,7 @@ const systemPrompt = generateSystemPrompt({
 });
 
 export default defineEventHandler(async (event) => {
-  const { messages } = await readBody(event);
+  const { messages, sessionId } = await readBody(event);
 
   const result = streamText({
     model: openai.chat("google/gemini-3.6-flash-free"),
@@ -30,6 +30,9 @@ export default defineEventHandler(async (event) => {
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: stepCountIs(5),
+    // The client's conversation ID groups its turns into one session on the Gateway.
+    headers:
+      typeof sessionId === "string" && sessionId ? { "x-thesys-session-id": sessionId } : undefined,
   });
 
   return result.toUIMessageStreamResponse({

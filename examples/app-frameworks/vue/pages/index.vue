@@ -25,6 +25,19 @@ function loadMessages(): UIMessage[] {
 }
 const chat = new Chat({ api: "/api/chat", messages: loadMessages() });
 
+// One ID per conversation. The server sends it to the Gateway as the session ID.
+const SESSION_KEY = "openui-vue:session";
+function loadSessionId(): string {
+  try {
+    const id = localStorage.getItem(SESSION_KEY) ?? crypto.randomUUID();
+    localStorage.setItem(SESSION_KEY, id);
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+let sessionId = loadSessionId();
+
 // Reactive wrappers - Chat's VueChatState uses internal Vue refs
 // We need to access them through computed properties
 const messages = computed(() => chat.messages);
@@ -34,7 +47,7 @@ const isLoading = computed(() => status.value === "submitted" || status.value ==
 
 function handleSend(text: string) {
   if (!text.trim() || isLoading.value) return;
-  chat.sendMessage({ text: text.trim() });
+  chat.sendMessage({ text: text.trim() }, { body: { sessionId } });
 }
 
 function startNewChat() {
@@ -42,7 +55,9 @@ function startNewChat() {
   chat.clearError();
   try {
     localStorage.removeItem(MESSAGES_KEY);
+    localStorage.removeItem(SESSION_KEY);
   } catch {}
+  sessionId = loadSessionId();
 }
 
 function handleAction(event: ActionEvent) {

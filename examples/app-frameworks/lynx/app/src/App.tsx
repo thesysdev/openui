@@ -42,6 +42,7 @@ const STARTERS = [
 
 let messageCounter = 0;
 const nextMessageId = (role: "assistant" | "user") => `${role}-${Date.now()}-${++messageCounter}`;
+const newSessionId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
 function patchAssistant(messages: ChatMessage[], id: string, patch: Partial<AssistantMessage>) {
   return messages.map((message) =>
@@ -58,6 +59,8 @@ export function App() {
   const [notice, setNotice] = useState<string | null>(null);
 
   const historyRef = useRef<ApiChatMessage[]>([]);
+  // One ID per conversation. The backend sends it to the Gateway as the session ID.
+  const sessionIdRef = useRef(newSessionId());
   const activeAssistantIdRef = useRef<string | null>(null);
   const listRef = useRef<NodesRef>(null);
   const messageCountRef = useRef(0);
@@ -120,9 +123,13 @@ export function App() {
       setIsStreaming(true);
 
       try {
-        const result = await streamMessage(requestHistory, (content) => {
-          setMessages((current) => patchAssistant(current, assistantId, { content }));
-        });
+        const result = await streamMessage(
+          requestHistory,
+          (content) => {
+            setMessages((current) => patchAssistant(current, assistantId, { content }));
+          },
+          sessionIdRef.current,
+        );
 
         if (result.status === "cancelled") {
           setMessages((current) =>
@@ -217,6 +224,7 @@ export function App() {
     "background only";
     cancelStream();
     historyRef.current = [];
+    sessionIdRef.current = newSessionId();
     activeAssistantIdRef.current = null;
     autoFollowRef.current = true;
     setMessages([]);

@@ -27,6 +27,10 @@ browser ──fetch /api/chat──▶ Next.js route ──protocol v2──▶ 
 | Tools             | `src/agent/tools.ts`        | Mock `get_weather` / `get_stock_price` / `search_web` (no external keys needed).                                                                                                 |
 | Component library | `src/library.ts`            | Re-exports `openuiLibrary`. `pnpm generate` writes `src/generated/spec.json`.                                                                    |
 
+The route also puts the chat's `threadId` in the run input as `sessionId`. A middleware in
+`src/agent/agent.ts` sends it to OpenUI Cloud in the `x-thesys-session-id` header, so the console
+shows the thread as one session.
+
 The shared integration package uses Web-standard requests, responses, fetch,
 and streams. It does not depend on Next.js or DeepAgents.
 

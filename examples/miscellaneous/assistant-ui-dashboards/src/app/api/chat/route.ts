@@ -11,13 +11,18 @@ export const runtime = "nodejs";
 const dashboardTools = new AISDKToolkit({ toolkit });
 
 export async function POST(request: Request) {
-  // assistant-ui sends the whole thread; the browser keeps it.
-  const { messages } = (await request.json()) as { messages: UIMessage[] };
+  // assistant-ui sends the whole thread and its ID; the browser keeps it.
+  const { messages, id } = (await request.json()) as { messages: UIMessage[]; id?: unknown };
   const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey) throw new Error("Set THESYS_API_KEY in .env.local, then restart.");
 
   // The chat runs on OpenUI Gateway's Chat Completions API, with the same key as the dashboards.
-  const gateway = createOpenAI({ apiKey, baseURL: `${baseUrl}/v1/embed` });
+  // The thread ID groups the thread's turns into one session on the Gateway.
+  const gateway = createOpenAI({
+    apiKey,
+    baseURL: `${baseUrl}/v1/embed`,
+    headers: typeof id === "string" && id ? { "x-thesys-session-id": id } : undefined,
+  });
   const tools = await dashboardTools.tools();
 
   const result = streamText({
