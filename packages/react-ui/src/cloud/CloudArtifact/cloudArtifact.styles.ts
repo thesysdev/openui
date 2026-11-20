@@ -24,6 +24,7 @@ export const names = {
   previewDescription: "openui-artifact-preview-description",
   loader: "openui-artifact-loader",
   spinner: "openui-artifact-spinner",
+  edited: "openui-artifact-edited",
   chrome: "openui-artifact-chrome",
   chromeBar: "openui-artifact-chrome-bar",
   chromeTitle: "openui-artifact-chrome-title",

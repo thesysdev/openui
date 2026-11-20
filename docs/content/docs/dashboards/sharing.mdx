@@ -92,6 +92,18 @@ A user who removes the share that let them open a dashboard keeps seeing it in t
 
 The hooks must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser).
 
+## Open dashboards stay current
+
+An open dashboard checks for changes every 30 seconds while it's shown and the tab is visible. A check that finds nothing is a cheap empty response.
+
+| When someone…                      | The open dashboard                                                                |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
+| Saves or edits it with a prompt    | Swaps in the new version, keeping the user's filters, and says "Edited just now". |
+| Renames it, or changes your access | Updates its title, `isOwner`, and `isEditable`, and every list.                   |
+| Deletes it, or removes your access | Shows an error and leaves every list until it's shared with you again.            |
+
+Read `isOwner` and `isEditable` from [`useArtifactRenderer()`](/docs/dashboards/render#renderer-state) to hide Edit and Share as soon as access changes. Set `pollInterval` on the renderer to check more or less often (at least every 10 seconds), or `false` to turn checks off. A user removed from a group still waits for their next token.
+
 ## Lists
 
 Dashboards shared with a user show in their [lists](/docs/dashboards/list) next to their own. Filter with `isOwner` to show them apart, and read `isOwner` and `isEditable` on each one to choose which actions to show. Dashboards the user can edit also carry their `shares`, for a "Shared with 3" badge on each row.

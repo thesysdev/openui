@@ -147,6 +147,7 @@ export function Chrome({ title, actions, className, children }: ChromeProps) {
         <div className={clsx(styles.chromeBar, names.chromeBar)}>
           <ChromeTitle />
           <ChromeLoader />
+          <EditedNotice />
           <ChromeActions />
         </div>
         <Content />
@@ -177,6 +178,24 @@ export function ChromeLoader({ label, children }: LoaderProps) {
     <span className={clsx(styles.loader, names.loader)} role="status">
       <Spinner />
       {label ?? loadingLabel(state)}
+    </span>
+  );
+}
+
+export interface EditedNoticeProps {
+  label?: string;
+  children?: ReactNode;
+}
+
+/** "Edited just now", for a few seconds after a newer version replaces the one on screen. */
+export function EditedNotice({ label, children }: EditedNoticeProps) {
+  const inside = useInRegion("chrome");
+  const state = useArtifactRenderer();
+  if (!inside || !state.justEdited || state.isLoading) return null;
+  if (children !== undefined) return <>{children}</>;
+  return (
+    <span className={clsx(styles.loader, names.edited)} role="status">
+      {label ?? "Edited just now"}
     </span>
   );
 }

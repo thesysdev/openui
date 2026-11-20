@@ -71,6 +71,7 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
     async (after: string | undefined) => {
       if (!storage || !cache) return;
       const request = ++requestRef.current;
+      const listedAt = cache.listStarted();
       setIsLoading(true);
       setError(null);
       try {
@@ -83,7 +84,7 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
           ...(after !== undefined && { cursor: after }),
         });
         if (request !== requestRef.current) return;
-        cache.put(page.artifacts);
+        cache.put(page.artifacts, listedAt);
         const pageIds = page.artifacts.map((artifact) => artifact.id);
         setIds((current) => (after === undefined ? pageIds : [...current, ...pageIds]));
         setCursor(page.nextCursor);
