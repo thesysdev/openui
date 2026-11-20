@@ -40,7 +40,7 @@ await openui.createFrontendToken({ userId: session.user.id, groupIds });
 await dashboards.edit({ id, prompt }, { userId: session.user.id, groupIds });
 ```
 
-Group ids are strings you choose, such as `team:sales` or a UUID. A user can be in up to 10 groups, and a group id is up to 36 characters. OpenUI doesn't check that a user or group exists.
+Group ids are strings you choose, such as `team:sales` or an account id. A user can be in up to 10 groups, a dashboard can be shared with up to 10 groups, and the user and group ids you share with are up to 64 characters. OpenUI doesn't check that a user or group exists.
 
 To share with everyone, put every user in one group, such as `everyone`, and share with that group.
 
@@ -98,10 +98,10 @@ Dashboards shared with a user show in their [lists](/docs/dashboards/list) next 
 
 ## Limits
 
-| Limit                          | Value            | Error                                                     |
-| ------------------------------ | ---------------- | --------------------------------------------------------- |
-| Groups per user                | 10               | 400 `invalid_input`                                       |
-| Length of a group id           | 1–36 characters  | 400 `invalid_input` (`invalid_share_target` when sharing) |
-| Length of a user id in a share | 1–256 characters | 400 `invalid_input`                                       |
-| Shares per dashboard           | 100              | 409 `share_limit_reached`                                 |
-| Pins per user                  | 500              | 409 `pin_limit_reached`                                   |
+| Limit                        | Value           | Error                     |
+| ---------------------------- | --------------- | ------------------------- |
+| Groups per user              | 10              | 400 `invalid_input`       |
+| Length of a user or group id | 1–64 characters | 400 `invalid_input`       |
+| Shares per dashboard         | 100             | 409 `share_limit_reached` |
+| Groups per dashboard         | 10              | 409 `share_limit_reached` |
+| Pins per user                | 500             | 409 `pin_limit_reached`   |

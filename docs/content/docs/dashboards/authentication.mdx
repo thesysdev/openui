@@ -53,7 +53,7 @@ await dashboards.interpreter.execute(request, context);
 
 `create` makes the dashboard belong to `context.userId`. `edit` and `interpreter.execute` run for its owner and anyone it's [shared with](/docs/dashboards/sharing). `edit` is only available to users who have edit access.
 
-To share dashboards with groups, add the groups the user is in, from your own system, as `groupIds`. Up to 10, each up to 36 characters:
+To share dashboards with groups, add the groups the user is in, from your own system, as `groupIds`. Up to 10, each up to 64 characters:
 
 ```ts
 const context = { userId: session.user.id, groupIds: session.user.teamIds };
