@@ -14,15 +14,10 @@ interface Sources {
   state: string[];
 }
 
-/** A prop's sources, with its expression and, for a plain read of one query, the cell it shows. */
+/** A prop's sources, with its expression. */
 interface PropSources extends Sources {
   /** The argument as written, e.g. `now.revenue`. */
   expr: string;
-  /**
-   * Where in the query's result the value sits, when the prop only reads it: `path` walks the
-   * result, a number is a row and `-1` the last row, e.g. `["rows", 0, "revenue"]`.
-   */
-  cell?: { query: string; path: (string | number)[] };
 }
 
 /**
@@ -155,44 +150,6 @@ export function dataSources(
       Object.fromEntries(via.map((name) => [name, text(statements.get(name)!)]));
     const text = (node: ASTNode) => serializeASTNode(node, calls);
 
-    // The query, and the path into its result, a plain read ends in: `now.revenue` with
-    // `now = @First(totals.rows)` is `totals` at `rows, 0, revenue`. Null for anything else.
-    const cellOf = (node: ASTNode, seen = new Set<string>()): PropSources["cell"] | null => {
-      const step = (inner: ASTNode, key: string | number) => {
-        const cell = cellOf(inner, seen);
-        return cell && { query: cell.query, path: [...cell.path, key] };
-      };
-      switch (node.k) {
-        case "Member":
-          // `.length` counts a list: not a cell.
-          return node.field === "length" ? null : step(node.obj, node.field);
-        case "Index":
-          // A literal row from the start; a negative one renders nothing.
-          return node.index.k === "Num" && Number.isInteger(node.index.v) && node.index.v >= 0
-            ? step(node.obj, node.index.v)
-            : null;
-        case "Comp":
-          if (node.args.length !== 1) return null;
-          return node.name === "First"
-            ? step(node.args[0], 0)
-            : node.name === "Last"
-              ? step(node.args[0], -1)
-              : null;
-        case "Ref": {
-          const target = statements.get(node.n);
-          if (!target || bound.has(node.n) || seen.has(node.n)) return null;
-          if (target.k === "Comp" && target.name === RESERVED_CALLS.Query) {
-            return { query: node.n, path: [] };
-          }
-          if (target.k === "Comp" && isComponent(target)) return null;
-          seen.add(node.n);
-          return cellOf(target, seen);
-        }
-        default:
-          return null;
-      }
-    };
-
     if (start.k !== "Comp" || !isComponent(start)) {
       const sources = collect(own);
       return { ...sources, formulas: formulas(sources.via) };
@@ -205,8 +162,7 @@ export function dataSources(
     const all = { queries: new Set<string>(), via: new Set<string>(), state: new Set<string>() };
     names.forEach((name, i) => {
       if (i >= args.length) return;
-      const cell = cellOf(args[i]);
-      props[name] = { ...collect(args[i]), expr: text(args[i]), ...(cell ? { cell } : {}) };
+      props[name] = { ...collect(args[i]), expr: text(args[i]) };
       for (const key of ["queries", "via", "state"] as const) {
         props[name][key].forEach((n) => all[key].add(n));
       }

@@ -19,11 +19,9 @@ interface Sources<Q> {
   state: Record<string, unknown>;
 }
 
-/** A prop's sources: its expression and, for a plain read of one query, the cell it shows. */
+/** A prop's sources, with its expression as written. */
 interface PropSources extends Sources<string> {
   expr: string;
-  /** `path` walks the query's result: a number is a row, `-1` the last one. */
-  cell?: { query: string; path: (string | number)[] };
 }
 
 /**

@@ -524,8 +524,6 @@ function useDataSources(statementId: string | undefined): {
       state: Record<string, unknown>;
       /** The argument as written, e.g. `now.revenue`. */
       expr: string;
-      /** For a plain read of one query, where the value sits in its result (-1 = last row). */
-      cell?: { query: string; path: (string | number)[] };
     }
   >;
 } | null;
