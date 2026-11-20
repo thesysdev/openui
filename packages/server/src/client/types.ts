@@ -34,7 +34,7 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
   /** How much the model thinks, for models that can: as OpenAI's `reasoning_effort`. */
-  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  reasoningEffort?: "minimal" | "low" | "medium" | "high";
   /**
    * How many rounds of tool calls the model may make before it must write the dashboard
    * (OpenUI Cloud's default: 20). Each round can call several of your tools. `0` turns tool
