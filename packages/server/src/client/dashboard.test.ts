@@ -88,7 +88,7 @@ describe("defineDashboard create", () => {
     expect(config.tools.map((t) => t.name)).toEqual(["sales", "bare"]);
   });
 
-  it("runs a saved script of the build by the dashboard's id, and sends the id back", async () => {
+  it("runs a saved script of the build by the dashboard's id and version, and sends the id back", async () => {
     const reply = {
       ...toolCalls(
         toolCall(
@@ -98,13 +98,14 @@ describe("defineDashboard create", () => {
         ),
       ),
       artifact_id: "art_build",
+      artifact_version: "v_build",
     };
     const { dashboard, bodies, executes } = setup([reply, started], { sales });
     await expect(create(dashboard)).resolves.toBe("Dashboard started");
     expect(executes).toEqual([
       {
         artifact_id: "art_build",
-        draft: true,
+        artifact_version: "v_build",
         user_id: "user_1",
         name: "revenue",
         arguments: { d: 7 },

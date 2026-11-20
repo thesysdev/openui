@@ -1,6 +1,10 @@
 import { isRecord } from "../client/api";
-import type { BuildInterpreter } from "./execute";
-import { ToolExecutionError, type DataTool, type ExecutionContext } from "./types";
+import {
+  ToolExecutionError,
+  type DataTool,
+  type ExecutionContext,
+  type Interpreter,
+} from "./types";
 
 /** The model saves one of the dashboard's scripts and runs it once: `{ name, code, args? }`.
  *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */
@@ -12,9 +16,11 @@ export async function runToolRound<Context extends ExecutionContext>(
   tools: Record<string, DataTool<Context>>,
   context: Context,
   callerSignal: AbortSignal | undefined,
-  interpreter: BuildInterpreter<Context>,
+  interpreter: Interpreter<Context>,
   /** The dashboard being built: its saved scripts run by it. */
   artifactId: string,
+  /** The build's version: OpenUI Cloud runs a saved script from the build in progress. */
+  version: string | undefined,
 ) {
   callerSignal?.throwIfAborted();
   const executionOptions = callerSignal ? { signal: callerSignal } : {};
@@ -32,10 +38,13 @@ export async function runToolRound<Context extends ExecutionContext>(
           throw new ToolExecutionError("Tool arguments must be a JSON object", "bad_args");
         }
         const result = savesScript
-          ? await interpreter.executeDraft(
-              artifactId,
-              args["name"] as string,
-              args["args"] as Record<string, unknown>,
+          ? await interpreter.execute(
+              {
+                name: args["name"] as string,
+                arguments: args["args"] as Record<string, unknown>,
+                id: artifactId,
+                version,
+              },
               context,
               executionOptions,
             )

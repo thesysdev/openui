@@ -54,34 +54,20 @@ export function dataToolLoader<Context extends ExecutionContext>(
     );
 }
 
-/** The interpreter, plus what a dashboard build uses internally: running a
- *  script saved with openui_create_script in the build in progress. */
-export interface BuildInterpreter<Context extends ExecutionContext> extends Interpreter<Context> {
-  executeDraft(
-    artifactId: string,
-    name: string,
-    args: Record<string, unknown>,
-    context: Context,
-    executionOptions?: InterpreterExecuteOptions,
-  ): Promise<unknown>;
-}
-
 /** A dashboard's interpreter: runs its data tools and generated scripts on the client's API key. */
 export function createInterpreter<Context extends ExecutionContext = ExecutionContext>(
   api: CloudApi,
   loadTools: () => Promise<Record<string, DataTool<Context>>>,
-): BuildInterpreter<Context> {
+): Interpreter<Context> {
   const handlers = async () =>
     Object.fromEntries(
       Object.entries(await loadTools()).map(([name, tool]) => [name, tool.execute]),
     );
 
-  async function run(
+  async function execute(
     input: InterpreterRequest,
     context: Context,
     executionOptions?: InterpreterExecuteOptions,
-    /** A draft run: the dashboard whose build in progress holds the script. */
-    draftOf?: string,
   ): Promise<unknown> {
     assertUserIdRequired(context);
     if (!input || typeof input.name !== "string" || !input.name) {
@@ -119,10 +105,9 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
 
     try {
       tools = await abortable(handlers(), signal);
-      if (draftOf === undefined && Object.hasOwn(tools, input.name))
-        return await dispatch(input.name, args);
+      if (Object.hasOwn(tools, input.name)) return await dispatch(input.name, args);
       // Generated scripts run from the artifact OpenUI Cloud stores.
-      if (draftOf === undefined && (typeof input.id !== "string" || !input.id)) {
+      if (typeof input.id !== "string" || !input.id) {
         throw new ToolExecutionError(
           `Unknown tool: ${input.name}. Send the artifact's id to run its scripts.`,
           "tool_not_found",
@@ -131,13 +116,9 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
       }
       // Only the artifact's owner can run its scripts.
       const source = {
-        ...(draftOf !== undefined
-          ? { artifact_id: draftOf, draft: true }
-          : {
-              artifact_id: input.id,
-              ...(typeof input.version === "string" &&
-                input.version && { artifact_version: input.version }),
-            }),
+        artifact_id: input.id,
+        ...(typeof input.version === "string" &&
+          input.version && { artifact_version: input.version }),
         user_id: context.userId,
         ...(api.appId !== undefined && { app_id: api.appId }),
       };
@@ -257,9 +238,5 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
     }
   }
 
-  return {
-    execute: (input, context, executionOptions) => run(input, context, executionOptions),
-    executeDraft: (artifactId, name, args, context, executionOptions) =>
-      run({ name, arguments: args }, context, executionOptions, artifactId),
-  };
+  return { execute };
 }

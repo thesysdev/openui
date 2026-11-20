@@ -107,6 +107,8 @@ export function defineDashboard<Context extends ExecutionContext>(
     let messages = await firstMessages(context, prompt, call);
     // The dashboard's id, from the first tool-call reply: later rounds and saved scripts go by it.
     let artifactId: string | undefined;
+    // The build's version, from the same reply: a saved script runs from the build by it.
+    let version: string | undefined;
     // OpenUI Cloud ends the rounds: the model writes once it's done, or at maxToolRounds.
     for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
@@ -136,6 +138,7 @@ export function defineDashboard<Context extends ExecutionContext>(
         );
       }
       artifactId = reply["artifact_id"] as string;
+      version = reply["artifact_version"] as string | undefined;
       // OpenUI Cloud keeps the build's turns: send only the new results.
       messages = await runToolRound(
         toolCalls,
@@ -144,6 +147,7 @@ export function defineDashboard<Context extends ExecutionContext>(
         signal,
         interpreter,
         artifactId,
+        version,
       );
     }
   }
@@ -161,6 +165,7 @@ export function defineDashboard<Context extends ExecutionContext>(
   ): AsyncGenerator<string> {
     let messages = await firstMessages(context, prompt, call);
     let artifactId: string | undefined;
+    let version: string | undefined;
     for (;;) {
       const calls: Array<{ id: string; function: { name: string; arguments: string } }> = [];
       let finish: unknown;
@@ -170,6 +175,7 @@ export function defineDashboard<Context extends ExecutionContext>(
         signal,
       )) {
         if (typeof chunk["artifact_id"] === "string") artifactId = chunk["artifact_id"];
+        if (typeof chunk["artifact_version"] === "string") version = chunk["artifact_version"];
         const choice: unknown = Array.isArray(chunk["choices"]) ? chunk["choices"][0] : undefined;
         if (!isRecord(choice)) continue;
         const delta = isRecord(choice["delta"]) ? choice["delta"] : {};
@@ -208,6 +214,7 @@ export function defineDashboard<Context extends ExecutionContext>(
         signal,
         interpreter,
         artifactId,
+        version,
       );
     }
   }
@@ -249,7 +256,6 @@ export function defineDashboard<Context extends ExecutionContext>(
       );
     },
 
-    // Its public part: the build's own draft runs stay inside this module.
-    interpreter: { execute: interpreter.execute },
+    interpreter,
   };
 }
