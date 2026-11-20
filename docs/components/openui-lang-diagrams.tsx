@@ -35,7 +35,7 @@ export function LangGlanceDiagram() {
     <DiagramFrame
       id={m}
       title="OpenUI Lang at a glance"
-      description="Your frontend sends the user's message to your backend. Your backend adds the prompt generated from your component library and calls the model. The model writes OpenUI Lang, for example root = Stack([chart]). Your backend streams it to your frontend, where the Renderer turns each line into your components."
+      description="Your frontend sends the user's message to your backend. Your backend adds the prompt generated from your component library and calls the model. The model writes OpenUI Lang, for example root = Col([chart]). Your backend streams it to your frontend, where the Renderer turns each line into your components."
       width={1020}
       height={400}
       minWidth={640}
@@ -95,7 +95,7 @@ export function LangGlanceDiagram() {
         height={120}
         icon={FileCode}
         title="Example output"
-        code={["root = Stack([chart])", "chart = PieChart(...)"]}
+        code={["root = Col([chart])", "chart = Chart('donut', [], 'status', ['count'])"]}
       />
     </DiagramFrame>
   );
@@ -251,7 +251,7 @@ export function ReactivityDiagram() {
     <DiagramFrame
       id={m}
       title="How a $variable change spreads"
-      description="The user picks 30 days in a Select. The Select is bound to $days, which changes from 7 to 30. The TextContent that reads $days shows the new text. The Query that takes $days in its arguments fetches again with days 30, and the Chart that reads the Query's rows re-renders."
+      description="The user picks 30 days in a Select. The Select is bound to $days, which changes from 7 to 30. The Text that reads $days shows the new text. The Query that takes $days in its arguments fetches again with days 30, and the Chart that reads the Query's rows re-renders."
       width={1020}
       height={450}
       minWidth={640}
@@ -296,7 +296,7 @@ export function ReactivityDiagram() {
         width={280}
         height={150}
         icon={Type}
-        title="TextContent"
+        title="Text"
         lines={['"Showing last', '30 days"']}
       />
       <Node
@@ -542,10 +542,10 @@ export function IncrementalEditDiagram() {
         icon={FileCode}
         title="Previous program"
         code={[
-          "root = Stack([header, tbl])",
-          'header = CardHeader("Tickets")',
-          "tickets = Query(...)",
-          "tbl = Table([...])",
+          "root = Col([header, tbl])",
+          'header = Title("Tickets")',
+          "tickets = Query('list_tickets', {}, {rows: []})",
+          "tbl = Table(['Title'], [])",
         ]}
       />
       <CodeNode
@@ -555,7 +555,10 @@ export function IncrementalEditDiagram() {
         height={114}
         icon={Bot}
         title="Model patch"
-        code={["root = Stack([header, chart, tbl])", "chart = PieChart(...)"]}
+        code={[
+          "root = Col([header, chart, tbl])",
+          "chart = Chart('donut', [], 'status', ['count'])",
+        ]}
         highlight
       />
       <Node
@@ -580,11 +583,11 @@ export function IncrementalEditDiagram() {
         icon={FileCode}
         title="Merged program"
         code={[
-          { text: "root = Stack([header, chart, tbl])", tag: "Replaced" },
-          { text: 'header = CardHeader("Tickets")', tag: "Kept" },
-          { text: "tickets = Query(...)", tag: "Kept" },
-          { text: "tbl = Table([...])", tag: "Kept" },
-          { text: "chart = PieChart(...)", tag: "Added" },
+          { text: "root = Col([header, chart, tbl])", tag: "Replaced" },
+          { text: 'header = Title("Tickets")', tag: "Kept" },
+          { text: "tickets = Query('list_tickets', {}, {rows: []})", tag: "Kept" },
+          { text: "tbl = Table(['Title'], [])", tag: "Kept" },
+          { text: "chart = Chart('donut', [], 'status', ['count'])", tag: "Added" },
         ]}
       />
     </DiagramFrame>

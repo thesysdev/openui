@@ -4,7 +4,8 @@ description: Full language specification for OpenUI Lang v0.5 - reactive state, 
 ---
 
 <Callout type="info">
-  This is the **v0.5** specification, kept as it was released. For the current version, see the
+  This is the **v0.5** specification, with examples using today's
+  `@openuidev/intelligent-ui-library` vocabulary. For the current language version, see the
   [Specification](/docs/openui-lang/specification).
 </Callout>
 
@@ -22,27 +23,27 @@ Three types of statements:
 
 | Statement         | Syntax                                       | Example                                |
 | ----------------- | -------------------------------------------- | -------------------------------------- |
-| Component         | `name = Component(args...)`                  | `header = CardHeader("Title")`         |
+| Component         | `name = Component(args...)`                  | `header = Title("Title")`              |
 | State declaration | `$name = defaultValue`                       | `$days = "7"`                          |
 | Data statement    | `name = Query(...)` / `name = Mutation(...)` | `data = Query("tool", {}, {rows: []})` |
 
 ## Expressions & Types
 
-| Type           | Syntax              | Example                       |
-| -------------- | ------------------- | ----------------------------- |
-| Component call | `Type(arg1, arg2)`  | `Header("Title", "Subtitle")` |
-| Built-in call  | `@Name(args)`       | `@Count(data.rows)`           |
-| String         | `"text"`            | `"Hello"`                     |
-| Number         | `123`, `12.5`, `-5` | `42`                          |
-| Boolean        | `true` / `false`    | `true`                        |
-| Null           | `null`              | `null`                        |
-| Array          | `[a, b, c]`         | `["Jan", "Feb"]`              |
-| Object         | `{key: val}`        | `{sql: "SELECT *"}`           |
-| Reference      | `identifier`        | `myHeader`                    |
-| State ref      | `$identifier`       | `$days`                       |
-| Member access  | `a.b.c`             | `data.rows.title`             |
-| Ternary        | `cond ? a : b`      | `$show ? form : null`         |
-| Binary ops     | `a + b`, `a == b`   | `"" + $days + " days"`        |
+| Type           | Syntax              | Example                |
+| -------------- | ------------------- | ---------------------- |
+| Component call | `Type(arg1, arg2)`  | `Title("Title", "lg")` |
+| Built-in call  | `@Name(args)`       | `@Count(data.rows)`    |
+| String         | `"text"`            | `"Hello"`              |
+| Number         | `123`, `12.5`, `-5` | `42`                   |
+| Boolean        | `true` / `false`    | `true`                 |
+| Null           | `null`              | `null`                 |
+| Array          | `[a, b, c]`         | `["Jan", "Feb"]`       |
+| Object         | `{key: val}`        | `{sql: "SELECT *"}`    |
+| Reference      | `identifier`        | `myHeader`             |
+| State ref      | `$identifier`       | `$days`                |
+| Member access  | `a.b.c`             | `data.rows.title`      |
+| Ternary        | `cond ? a : b`      | `$show ? form : null`  |
+| Binary ops     | `a + b`, `a == b`   | `"" + $days + " days"` |
 
 ### Operators
 
@@ -59,18 +60,18 @@ Three types of statements:
 
 ```text
 data = Query("list", {}, {rows: []})
-tbl = Table([Col("Title", data.rows.title)])   // plucks title from each row
-kpi = TextContent("" + data.total)              // access a single field
+tbl = Table(["Title"], @Each(data.rows, "r", [r.title]))   // plucks title from each row
+kpi = Text("" + data.total)              // access a single field
 ```
 
 ## Core Rules
 
 1. **One statement per line:** `identifier = Expression`
-2. **Root entry point:** `root = Root([children])`. If missing, nothing renders. The root component name comes from your library definition.
+2. **Root entry point:** `root = Col([children])`. If missing, nothing renders. The root component name comes from your library definition.
 3. **Top-down generation:** Layout → Components → Data for progressive streaming.
 4. **Positional arguments:** Mapped to props by Zod schema key order.
-5. **Forward references allowed:** `root = Stack([chart])` can appear before `chart = ...` is defined.
-6. **Positional only:** Write `Stack([children], "row", "l")` NOT `Stack([children], direction: "row", gap: "l")`.
+5. **Forward references allowed:** `root = Col([chart])` can appear before `chart = ...` is defined.
+6. **Positional only:** Write `Row([children], 4)` NOT `Row([children], gap: 4)`.
 
 ## Reactive State (`$variables`)
 
@@ -82,7 +83,7 @@ $title = ""
 $showEdit = false
 ```
 
-Two-way binding: passing `$days` to `Select("days", $days, [...])` binds the variable to the input. User changes → variable updates → all expressions referencing it re-evaluate.
+Two-way binding: passing `$days` to `Select($days, [...], "Days")` binds the variable to the input. User changes → variable updates → all expressions referencing it re-evaluate.
 
 ## Built-in Functions
 

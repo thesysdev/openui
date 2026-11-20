@@ -101,14 +101,15 @@ In OpenUI Lang, `$variables` hold reactive state that components can read and wr
 For component authors building custom libraries, the `useStateField` hook provides this binding:
 
 ```tsx
-import { useStateField, reactive } from "@openuidev/react-lang";
+import { defineComponent, useStateField, reactive } from "@openuidev/react-lang";
+import { z } from "zod/v4";
 
 const MySelect = defineComponent({
   name: "MySelect",
   props: z.object({
     name: z.string(),
     value: reactive(z.string().optional()), // reactive() marks this prop as accepting $variable binding
-    items: z.array(SelectItem.ref),
+    options: z.array(z.object({ value: z.string(), label: z.string() })),
   }),
   component: ({ props }) => {
     const field = useStateField(props.name, props.value);
@@ -116,7 +117,11 @@ const MySelect = defineComponent({
     // field.setValue(val): updates the $variable and triggers re-evaluation
     return (
       <select value={field.value ?? ""} onChange={(e) => field.setValue(e.target.value)}>
-        {/* ... */}
+        {props.options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
       </select>
     );
   },

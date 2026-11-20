@@ -9,38 +9,24 @@ const steps = [
   {
     title: "Define Library",
     description: "Create your component library with Zod schemas and generate the system prompt",
-    code: `import { defineComponent, createLibrary } from '@openuidev/react-lang';
-import { z } from 'zod/v4';
-
-const Card = defineComponent({
-  name: 'Card',
-  description: 'Displays a titled content card.',
-  props: z.object({
-    title: z.string(),
-  }),
-  component: ({ props }) => <div>{props.title}</div>,
-});
-
-export const library = createLibrary({
-  components: [Card, ...otherComponents],
-});
-
-export const systemPrompt = library.prompt(); // Generated system prompt
-`,
+    code: `// lib/intelligent-ui-library.ts
+export { library, promptOptions } from "@openuidev/intelligent-ui-library";`,
   },
   {
     title: "LLM Generates OpenUI Syntax",
     description: "LLM outputs token-efficient, line-oriented syntax",
-    code: `root = Stack([welcomeCard])
-welcomeCard = Card([welcomeHeader, welcomeBody], "card")
-welcomeHeader = CardHeader("Welcome", "Get started with our platform")
-welcomeBody = Stack([signupForm], "column", "m")
-signupForm = Form("signup", actions, [nameField, emailField])
-nameField = FormControl("Name", Input("name", "Your name", "text", {required: true, minLength: 2}))
-emailField = FormControl("Email", Input("email", "you@example.com", "email", {required: true, email: true}))
-actions = Buttons([signUpBtn, learnMoreBtn], "row")
-signUpBtn = Button("Sign up", @ToAssistant("Sign me up"), "primary")
-learnMoreBtn = Button("Learn more", @ToAssistant("Tell me more about the platform"), "secondary")
+    code: `root = Col([welcomeCard])
+welcomeCard = Card([welcomeHeader, welcomeBody])
+$name = ""
+$email = ""
+welcomeHeader = Col([Title("Welcome"), Text("Get started with our platform", "sm", "muted")], 1)
+welcomeBody = Col([signupForm], 4)
+signupForm = Form([nameField, emailField, actions])
+nameField = Input($name, "Name", "text", "Your name", {required: true, minLength: 2})
+emailField = Input($email, "Email", "text", "you@example.com", {required: true, email: true})
+actions = Row([signUpBtn, learnMoreBtn], 2)
+signUpBtn = Button("Sign up", @ToAssistant("Sign me up"), "solid")
+learnMoreBtn = Button("Learn more", @ToAssistant("Tell me more about the platform"), "outline")
 `,
   },
 ];
