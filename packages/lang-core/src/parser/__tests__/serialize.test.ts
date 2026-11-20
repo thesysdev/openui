@@ -534,6 +534,24 @@ describe("jsonToOpenUI", () => {
       const { result1, result2 } = roundTrip('root = Card("Main Title")');
       expect(stripDynamic(result2.root!)).toEqual(stripDynamic(result1.root!));
     });
+
+    // Spec section 9.2: parens wherever parsing back would change the grouping.
+    it.each([
+      "$a - ($b - $c)",
+      "$a / ($b * $c)",
+      "-($a + $b)",
+      "!($a && $b)",
+      '"n: " + ($n > 0 ? $n : "none")',
+      "($a ? $b : $c) ? 1 : 2",
+      "($a + $b).x",
+      "($a + $b) * $c",
+      "$a + $b + $c",
+      "$a ? 1 : $b ? 2 : 3",
+    ])("keeps the grouping of %s", (expr) => {
+      const { result1, result2, serialized } = roundTrip(`root = Title(${expr})`);
+      expect(serialized).toBe(`root = Title(${expr})`);
+      expect(result2.root!.props).toEqual(result1.root!.props);
+    });
   });
 
   // ── Integration with mergeStatements ───────────────────────────────────
