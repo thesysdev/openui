@@ -1,10 +1,9 @@
 export { OpenUIClient } from "./client/client";
-export { OpenUIApiError, describeDashboardProgress } from "./client/types";
+export { OpenUIApiError } from "./client/types";
 export type {
   Dashboard,
   DashboardOptions,
-  DashboardProgress,
-  DashboardRequestOptions,
+  DashboardStreamOptions,
   OpenUIClientOptions,
 } from "./client/types";
 export type { McpConfig, McpToolClient } from "./tools/mcp";

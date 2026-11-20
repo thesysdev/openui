@@ -15,6 +15,8 @@ export interface ArtifactCall {
   title?: string;
   /** The artifact an edit changes. */
   id?: string;
+  /** Tool rounds before the model must write the dashboard. */
+  maxToolRounds?: number;
 }
 
 /**

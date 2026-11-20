@@ -35,6 +35,11 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   model: string;
   /** How much the model thinks, for models that can: as OpenAI's `reasoning_effort`. */
   reasoningEffort?: "minimal" | "low" | "medium" | "high";
+  /**
+   * How many rounds of tool calls the model may make before it must write the dashboard
+   * (OpenUI Cloud's default: 20). Each round can call several of your tools.
+   */
+  maxToolRounds?: number;
   promptOptions?: ArtifactPromptOptions;
 } & DashboardDataTools<Context>;
 
@@ -57,36 +62,17 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
-/**
- * One step of a dashboard build: a data tool the model called, a script it saved and ran,
- * or the dashboard starting to generate (render it from then on).
- */
-export type DashboardProgress =
-  | { type: "tool"; name: string; status: "running" | "done" | "error" }
-  | { type: "script"; name: string; status: "running" | "done" | "error" }
-  | { type: "started"; artifactId: string };
-
-/** A short line for a progress step, such as "Checking script revenue_by_month". */
-export function describeDashboardProgress(step: DashboardProgress): string {
-  if (step.type === "started") return "Building the dashboard";
-  const what = step.type === "script" ? `script ${step.name}` : step.name;
-  if (step.status === "error") return `${what} failed`;
-  if (step.type === "script")
-    return step.status === "running" ? `Checking ${what}` : `Checked ${what}`;
-  return step.status === "running" ? `Calling ${what}` : `Called ${what}`;
-}
-
-export interface DashboardRequestOptions extends RequestOptions {
-  /**
-   * Called as the build goes, to show its progress, for example in your tool's card:
-   * forward each step to the browser and label it with `describeDashboardProgress`.
-   */
-  onProgress?: (step: DashboardProgress) => void;
+export interface DashboardStreamOptions extends RequestOptions {
+  /** Yield the build's messages as they come instead of resolving with one. */
+  stream: true;
 }
 
 /**
- * Creates and edits live dashboards. Each call resolves, as soon as the artifact has an id,
- * with the tool's response: return it from your tool as is, and pass it to the renderer.
+ * Creates and edits live dashboards. Each call resolves, as soon as the dashboard starts
+ * generating, with the tool's response: return it from your tool as is, and pass it to the
+ * renderer. With `{ stream: true }` it yields two messages instead: one as soon as the
+ * dashboard has an id (render it from then on), and the last once the dashboard is saved or
+ * failed, saying which. Each carries the dashboard's reference; return the last one to your model.
  */
 export interface Dashboard<Context extends ExecutionContext = ExecutionContext> {
   /**
@@ -96,13 +82,23 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
   create(
     params: CreateDashboardParams,
     context: Context,
-    options?: DashboardRequestOptions,
+    options: DashboardStreamOptions,
+  ): AsyncIterable<string>;
+  create(
+    params: CreateDashboardParams,
+    context: Context,
+    options?: RequestOptions & { stream?: false },
   ): Promise<string>;
   /** Edits in place, for its owner. Renderers keep the current version until the edit is ready. */
   edit(
     params: EditDashboardParams,
     context: Context,
-    options?: DashboardRequestOptions,
+    options: DashboardStreamOptions,
+  ): AsyncIterable<string>;
+  edit(
+    params: EditDashboardParams,
+    context: Context,
+    options?: RequestOptions & { stream?: false },
   ): Promise<string>;
   /** Runs this dashboard's data tools and generated scripts on your server. */
   readonly interpreter: Interpreter<Context>;

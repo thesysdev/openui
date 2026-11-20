@@ -156,21 +156,29 @@ text and user `image_url` blocks are supported. Use `langGraphMessagesToItems`
 for conversion without a network request. `apiBaseUrl` and `fetch` work as in
 `storeChatCompletionHistory`; storage failures reject the returned promise.
 
-## Dashboard build progress
+## Showing a dashboard while it builds
 
 `dashboards.create` and `dashboards.edit` resolve once the dashboard starts generating. Before
-that, the model may call your data tools and check its scripts. Pass `onProgress` to show those
-steps, for example in your tool's card while it runs:
+that, the model may call your data tools and check its scripts, which takes a while. If your
+agent framework streams tool output, pass `{ stream: true }` to get two messages instead of
+one: the first as soon as the dashboard has an id, so the renderer can show it building, and the
+last once it is saved or failed, saying which. Each carries the dashboard's reference, so give
+each to the renderer; the last is what your model should read.
 
 ```ts
-import { describeDashboardProgress } from "@openuidev/server";
-
-const response = await dashboards.create({ title, prompt }, { userId }, {
-  // Forward each step to the browser the way your agent streams tool updates.
-  onProgress: (step) => send({ label: describeDashboardProgress(step), step }),
-});
+// For example, an AI SDK tool whose execute streams its output.
+async *execute({ title, prompt }) {
+  for await (const message of dashboards.create({ title, prompt }, { userId }, { stream: true })) {
+    yield message;
+  }
+}
 ```
 
-Steps are `{ type: "tool" | "script", name, status: "running" | "done" | "error" }`, then
-`{ type: "started", artifactId }` when the dashboard starts generating; render it from then on.
-Labels read like "Calling get_sales" or "Checking script revenue_by_month".
+Without `stream`, nothing changes: the call resolves with one message when the dashboard starts.
+
+With `stream: true` the call lasts until the dashboard is saved, often a minute or more. On
+serverless hosts, give the route enough time (for example `export const maxDuration = 300` on
+Vercel), or use the plain call.
+
+The model may call your data tools for up to 20 rounds before it must write the dashboard. Set
+`maxToolRounds` in `defineDashboard` to change that.

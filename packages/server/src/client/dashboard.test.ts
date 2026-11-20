@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DataTool } from "../tools/types";
 import type { CloudApi } from "./api";
 import { defineDashboard } from "./dashboard";
-import { describeDashboardProgress, type ArtifactLibrary, type Dashboard } from "./types";
+import type { ArtifactLibrary, Dashboard } from "./types";
 
 // The config block is lang-core's; these tests are about the requests around it.
 vi.mock("./config", () => ({
@@ -120,33 +120,49 @@ describe("defineDashboard create", () => {
     expect(sales.execute).not.toHaveBeenCalled();
   });
 
-  it("reports progress", async () => {
-    const reply = {
-      ...toolCalls(
-        toolCall("c1", "sales", '{"region":"EU"}'),
-        toolCall("c2", "openui_create_script", '{"name":"revenue","code":"async () => 1"}'),
-      ),
-      artifact_id: "art_build",
+  it("streams: the started message at once, the round's calls run, then how it ended", async () => {
+    const chunk = (delta: unknown, finish: string | null = null) => ({
+      artifact_id: "art_1",
+      choices: [{ index: 0, delta, finish_reason: finish }],
+    });
+    const streams = [
+      [
+        chunk({ role: "assistant", content: "Started ref" }),
+        chunk({ tool_calls: [{ index: 0, ...toolCall("c1", "sales", '{"region":"EU"}') }] }),
+        chunk({}, "tool_calls"),
+      ],
+      [{ artifact_id: "art_1", choices: [] }, chunk({ content: "Created ref" }), chunk({}, "stop")],
+    ];
+    const bodies: Array<Record<string, unknown>> = [];
+    const api = {
+      post: async () => ({}),
+      async *stream(_path: string, body: unknown) {
+        bodies.push(JSON.parse(JSON.stringify(body)));
+        yield* streams[bodies.length - 1]!;
+      },
     };
-    const { dashboard } = setup([reply, { ...started, artifact_id: "art_build" }], { sales });
-    const steps: unknown[] = [];
-    await expect(
-      dashboard.create({ title: "Sales", prompt: "Sales" }, context, {
-        onProgress: (step) => steps.push(step),
-      }),
-    ).resolves.toBe("Dashboard started");
-    expect(steps).toEqual(
-      expect.arrayContaining([
-        { type: "tool", name: "sales", status: "running" },
-        { type: "tool", name: "sales", status: "done" },
-        { type: "script", name: "revenue", status: "running" },
-        { type: "script", name: "revenue", status: "done" },
-        { type: "started", artifactId: "art_build" },
-      ]),
-    );
-    expect(describeDashboardProgress({ type: "script", name: "revenue", status: "running" })).toBe(
-      "Checking script revenue",
-    );
+    const dashboard = defineDashboard<Context>(api as unknown as CloudApi, {
+      library: { components: {} } as unknown as ArtifactLibrary,
+      model: "provider/model",
+      tools: { sales },
+    });
+    const messages: string[] = [];
+    for await (const message of dashboard.create({ title: "T", prompt: "P" }, context, {
+      stream: true,
+    })) {
+      messages.push(message);
+    }
+    expect(messages).toEqual(["Started ref", "Created ref"]);
+    expect(bodies[1]).toMatchObject({
+      artifact_id: "art_1",
+      messages: [{ role: "tool", tool_call_id: "c1" }],
+    });
+    expect(sales.execute).toHaveBeenCalledWith({ region: "EU" }, context, expect.anything());
+  });
+
+  it("without stream, still resolves with the started message", async () => {
+    const { dashboard } = setup([started], { sales });
+    await expect(create(dashboard)).resolves.toBe("Dashboard started");
   });
 
   it("runs the model's tool calls and sends the results back in order", async () => {

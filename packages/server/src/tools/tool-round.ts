@@ -1,5 +1,4 @@
 import { isRecord } from "../client/api";
-import type { DashboardProgress } from "../client/types";
 import type { BuildInterpreter } from "./execute";
 import { ToolExecutionError, type DataTool, type ExecutionContext } from "./types";
 
@@ -16,7 +15,6 @@ export async function runToolRound<Context extends ExecutionContext>(
   interpreter: BuildInterpreter<Context>,
   /** The dashboard being built: its saved scripts run by it. */
   artifactId: string,
-  onProgress: (step: DashboardProgress) => void = () => {},
 ) {
   callerSignal?.throwIfAborted();
   const executionOptions = callerSignal ? { signal: callerSignal } : {};
@@ -24,7 +22,6 @@ export async function runToolRound<Context extends ExecutionContext>(
     calls.map(async (call) => {
       const name = call.function?.name as string;
       const savesScript = name === CREATE_SCRIPT_TOOL;
-      let step: { type: "tool" | "script"; name: string } = { type: "tool", name };
       let content: string;
       try {
         if (!savesScript && !Object.hasOwn(tools, name)) {
@@ -34,8 +31,6 @@ export async function runToolRound<Context extends ExecutionContext>(
         if (!isRecord(args)) {
           throw new ToolExecutionError("Tool arguments must be a JSON object", "bad_args");
         }
-        if (savesScript) step = { type: "script", name: args["name"] as string };
-        onProgress({ ...step, status: "running" });
         const result = savesScript
           ? await interpreter.runDraft(
               artifactId,
@@ -46,11 +41,9 @@ export async function runToolRound<Context extends ExecutionContext>(
             )
           : await interpreter.execute({ name, arguments: args }, context, executionOptions);
         content = JSON.stringify(result ?? null);
-        onProgress({ ...step, status: "done" });
       } catch (error) {
         callerSignal?.throwIfAborted();
         // A failing tool is an answer for the model, not a failed build.
-        onProgress({ ...step, status: "error" });
         content = JSON.stringify({
           error: {
             code: error instanceof ToolExecutionError ? error.code : "tool_exec_error",

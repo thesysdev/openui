@@ -4,12 +4,7 @@ import { runToolRound } from "../tools/tool-round";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { artifactConfig } from "./config";
-import {
-  OpenUIApiError,
-  type Dashboard,
-  type DashboardOptions,
-  type DashboardProgress,
-} from "./types";
+import { OpenUIApiError, type Dashboard, type DashboardOptions } from "./types";
 
 function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
@@ -28,7 +23,7 @@ export function defineDashboard<Context extends ExecutionContext>(
   options: DashboardOptions<Context>,
 ): Dashboard<Context> {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { library, model, reasoningEffort, promptOptions, tools, mcp } = options;
+  const { library, model, reasoningEffort, maxToolRounds, promptOptions, tools, mcp } = options;
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
@@ -63,44 +58,61 @@ export function defineDashboard<Context extends ExecutionContext>(
     invalidLibrary(error);
   }
 
+  /** The first request of a build: the config block and the user's prompt. */
+  async function firstMessages(
+    context: Context,
+    prompt: string,
+    call: { title?: string; id?: string },
+  ) {
+    // The dashboard belongs to the user the context names, in the client's app if it has one,
+    // as a frontend token minted for them would say.
+    assertUserIdRequired(context);
+    // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
+    // The model may call these data tools, and openui_create_script, whose saved scripts
+    // this server runs (see runToolRound).
+    const definitions = await toolDefinitions();
+    return [
+      {
+        role: "system",
+        content: config({
+          tools: definitions,
+          ...call,
+          ...(maxToolRounds !== undefined && { maxToolRounds }),
+        }),
+      },
+      { role: "user", content: prompt },
+    ] as unknown[];
+  }
+
+  const request = (context: Context, messages: unknown[], artifactId: string | undefined) => ({
+    model,
+    messages,
+    ...(artifactId !== undefined && { artifact_id: artifactId }),
+    ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
+    user_id: context.userId,
+    ...(api.appId !== undefined && { app_id: api.appId }),
+  });
+
   /**
    * Starts generating the user's dashboard in the background. Resolves as
-   * soon as OpenUI Cloud has the artifact, with the tool response it writes:
-   * a sentence for the model and the artifact's header line for the renderer.
+   * soon as it starts, with the tool response OpenUI Cloud writes: a sentence
+   * for the model and the artifact's header line for the renderer.
    */
   async function start(
     context: Context,
     prompt: string,
     call: { title?: string; id?: string },
     signal?: AbortSignal,
-    onProgress?: (step: DashboardProgress) => void,
   ): Promise<string> {
-    // The dashboard belongs to the user the context names, in the client's app if it has one,
-    // as a frontend token minted for them would say.
-    assertUserIdRequired(context);
-    // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
-    const definitions = await toolDefinitions();
-    let messages: unknown[] = [
-      { role: "system", content: config({ tools: definitions, ...call }) },
-      { role: "user", content: prompt },
-    ];
+    let messages = await firstMessages(context, prompt, call);
     // The dashboard's id, from the first tool-call reply: later rounds and saved scripts go by it.
     let artifactId: string | undefined;
     // No round limit: OpenUI Cloud decides when the model stops asking for tools.
     for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
-      // The model may call the data tools in the config block, and openui_create_script,
-      // whose saved scripts this server runs (see runToolRound).
       const reply = await api.post(
         "/v1/dashboard/chat/completions",
-        {
-          model,
-          messages,
-          ...(artifactId !== undefined && { artifact_id: artifactId }),
-          ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
-          user_id: context.userId,
-          ...(api.appId !== undefined && { app_id: api.appId }),
-        },
+        request(context, messages, artifactId),
         signal,
       );
       const choice: unknown = Array.isArray(reply["choices"]) ? reply["choices"][0] : undefined;
@@ -113,7 +125,6 @@ export function defineDashboard<Context extends ExecutionContext>(
         typeof message["content"] === "string" &&
         message["content"]
       ) {
-        onProgress?.({ type: "started", artifactId: reply["artifact_id"] as string });
         return message["content"];
       }
       const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
@@ -125,29 +136,117 @@ export function defineDashboard<Context extends ExecutionContext>(
         );
       }
       artifactId = reply["artifact_id"] as string;
-      const results = await runToolRound(
+      // OpenUI Cloud keeps the build's turns: send only the new results.
+      messages = await runToolRound(
         toolCalls,
         await loadTools(),
         context,
         signal,
         interpreter,
         artifactId,
-        onProgress,
       );
-      // OpenUI Cloud keeps the build's turns: send only the new results.
-      messages = results;
     }
   }
 
+  /**
+   * The same build, streamed: yields each message OpenUI Cloud sends. The
+   * first says the dashboard started, as soon as it has an id; the last says
+   * whether it was saved. Each is a whole message.
+   */
+  async function* streamed(
+    context: Context,
+    prompt: string,
+    call: { title?: string; id?: string },
+    signal?: AbortSignal,
+  ): AsyncGenerator<string> {
+    let messages = await firstMessages(context, prompt, call);
+    let artifactId: string | undefined;
+    for (;;) {
+      const calls: Array<{ id: string; function: { name: string; arguments: string } }> = [];
+      let finish: unknown;
+      for await (const chunk of api.stream(
+        "/v1/dashboard/chat/completions",
+        request(context, messages, artifactId),
+        signal,
+      )) {
+        if (typeof chunk["artifact_id"] === "string") artifactId = chunk["artifact_id"];
+        const choice: unknown = Array.isArray(chunk["choices"]) ? chunk["choices"][0] : undefined;
+        if (!isRecord(choice)) continue;
+        const delta = isRecord(choice["delta"]) ? choice["delta"] : {};
+        if (typeof delta["content"] === "string" && delta["content"]) yield delta["content"];
+        if (Array.isArray(delta["tool_calls"])) {
+          for (const part of delta["tool_calls"]) {
+            const index = Number(part.index ?? calls.length);
+            const call = (calls[index] ??= { id: "", function: { name: "", arguments: "" } });
+            call.id ||= part.id ?? "";
+            call.function.name += part.function?.name ?? "";
+            call.function.arguments += part.function?.arguments ?? "";
+          }
+        }
+        if (choice["finish_reason"]) finish = choice["finish_reason"];
+      }
+      if (finish === "stop") return;
+      if (finish === undefined) {
+        throw new OpenUIApiError(
+          "OpenUI Cloud's stream ended before the build did",
+          "invalid_response",
+          502,
+        );
+      }
+      if (finish !== "tool_calls" || !calls.length || artifactId === undefined) {
+        throw new OpenUIApiError(
+          "OpenUI Cloud didn't start a background artifact",
+          "invalid_response",
+          502,
+        );
+      }
+      // OpenUI Cloud keeps the build's turns: send only the new results.
+      messages = await runToolRound(
+        calls,
+        await loadTools(),
+        context,
+        signal,
+        interpreter,
+        artifactId as string,
+      );
+    }
+  }
+
+  /** Bad arguments fail the call like any other error: the promise rejects, or the stream
+   *  throws when read. */
+  const call = (
+    stream: boolean | undefined,
+    plain: () => Promise<string>,
+    streamed: () => AsyncGenerator<string>,
+  ) =>
+    (stream
+      ? (async function* () {
+          yield* streamed();
+        })()
+      : (async () => plain())()) as never;
+
   return {
-    async create({ title, prompt }, context, { signal, onProgress } = {}) {
-      return start(context, prompt, { title }, signal, onProgress);
+    create(params, context, options = {}) {
+      const stream = (options as { stream?: boolean } | undefined)?.stream;
+      return call(
+        stream,
+        () => start(context, params.prompt, { title: params.title }, options?.signal),
+        () => streamed(context, params.prompt, { title: params.title }, options?.signal),
+      );
     },
 
     // OpenUI Cloud edits the version it stores.
-    async edit({ id, prompt }, context, { signal, onProgress } = {}) {
-      if (typeof id !== "string" || !id) invalidInput("id is required");
-      return start(context, prompt, { id }, signal, onProgress);
+    edit(params, context, options = {}) {
+      const stream = (options as { stream?: boolean } | undefined)?.stream;
+      const id = () => {
+        if (typeof params.id !== "string" || !params.id) invalidInput("id is required");
+        return params.id;
+      };
+      return call(
+        stream,
+        () => start(context, params.prompt, { id: id() }, options?.signal),
+        () => streamed(context, params.prompt, { id: id() }, options?.signal),
+      );
     },
 
     // Its public part: the build's own draft runs stay inside this module.
