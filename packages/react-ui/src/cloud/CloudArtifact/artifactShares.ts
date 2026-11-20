@@ -5,6 +5,7 @@ import {
   type ArtifactAccess,
   type ArtifactShare,
   type ArtifactShareTarget,
+  type ArtifactStorage,
   type ArtifactSummary,
 } from "@openuidev/react-headless";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -28,23 +29,59 @@ function targetKey(target: ArtifactShareTarget): string {
   return `${target.type}:${target.id}`;
 }
 
+/** The artifact as lists cache it: without its content. */
+async function loadSummary(storage: ArtifactStorage, id: string): Promise<ArtifactSummary> {
+  const { content: _content, ...summary } = await storage.get(id);
+  return summary;
+}
+
+/** Share changes still saving, per artifact, and whether two of them overlapped. */
+const savingByCache = new WeakMap<
+  ArtifactCache,
+  Map<string, { count: number; overlapped: boolean }>
+>();
+
 /**
- * Changes the cached artifact's shares at once, then saves the change and caches the artifact
- * the storage returns. Puts the shares back if the save fails.
+ * Changes the cached artifact's shares at once, then saves the change. A change saved on its own
+ * caches the artifact the storage returns, or puts the shares back if it fails. Overlapping
+ * changes can answer out of order, and one failing says nothing about the others, so the last of
+ * them to finish loads the artifact again instead.
  */
 async function changeShares(
+  storage: ArtifactStorage,
   cache: ArtifactCache,
   id: string,
   change: (shares: ArtifactShare[]) => ArtifactShare[],
   save: () => Promise<ArtifactSummary>,
 ) {
+  let savingById = savingByCache.get(cache);
+  if (!savingById) savingByCache.set(cache, (savingById = new Map()));
+  const saving = savingById.get(id) ?? { count: 0, overlapped: false };
+  saving.count += 1;
+  saving.overlapped ||= saving.count > 1;
+  savingById.set(id, saving);
+
   const previous = cache.get(id)?.shares;
   cache.patch(id, { shares: change(previous ?? []) });
+  let saved: ArtifactSummary | undefined;
   try {
-    cache.put([await save()]);
-  } catch (cause) {
-    cache.patch(id, { shares: previous });
-    throw cause;
+    saved = await save();
+  } finally {
+    saving.count -= 1;
+    if (saving.count === 0) {
+      savingById.delete(id);
+      if (saving.overlapped) {
+        // If this fails too, the shares stay as changed until the next load.
+        void loadSummary(storage, id).then(
+          (summary) => cache.put([summary]),
+          () => {},
+        );
+      } else if (saved) {
+        cache.put([saved]);
+      } else {
+        cache.patch(id, { shares: previous });
+      }
+    }
   }
 }
 
@@ -74,7 +111,7 @@ export function useArtifactShares(id: string): ArtifactSharesState {
     setIsLoading(true);
     setError(null);
     try {
-      const { content: _content, ...loaded } = await storage.get(id);
+      const loaded = await loadSummary(storage, id);
       if (request === requestRef.current) cache.put([loaded]);
     } catch (cause) {
       if (request === requestRef.current) {
@@ -113,6 +150,7 @@ export function useArtifactShare(): ArtifactActionState & {
       if (!share) throw new Error("This storage can't share artifacts.");
       const key = targetKey(target);
       await changeShares(
+        storage,
         cache,
         id,
         (shares) =>
@@ -144,6 +182,7 @@ export function useArtifactUnshare(): ArtifactActionState & {
       if (!unshare) throw new Error("This storage can't unshare artifacts.");
       const key = targetKey(target);
       await changeShares(
+        storage,
         cache,
         id,
         (shares) => shares.filter((existing) => targetKey(existing) !== key),

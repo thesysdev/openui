@@ -33,11 +33,11 @@ import { OpenUIClient } from "@openuidev/server";
 export const openui = new OpenUIClient();
 ```
 
-| Option    | Description                                                                                  |
-| --------- | -------------------------------------------------------------------------------------------- |
-| `apiKey`  | The API key. Default: `process.env.THESYS_API_KEY`.                                          |
-| `baseUrl` | The API origin, without `/v1`. Default: `https://api.thesys.dev`.                            |
-| `appId`   | Separates apps that share one API key. Users' tokens and dashboards belong to the given app. |
+| Option    | Description                                                                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apiKey`  | The API key. Default: `process.env.THESYS_API_KEY`.                                                                                                       |
+| `baseUrl` | The API origin, without `/v1`. Default: `https://api.thesys.dev`.                                                                                         |
+| `appId`   | Separates apps that share one API key. Users' tokens and dashboards belong to the given app. Without it, users only reach dashboards made without an app. |
 
 ## The user id
 
@@ -53,7 +53,7 @@ await dashboards.interpreter.execute(request, context);
 
 `create` makes the dashboard belong to `context.userId`. `edit` and `interpreter.execute` run for its owner and anyone it's [shared with](/docs/dashboards/sharing). `edit` is only available to users who have edit access.
 
-To share dashboards with groups, add the groups the user is in, from your own system, as `groupIds`. Up to 50:
+To share dashboards with groups, add the groups the user is in, from your own system, as `groupIds`. Up to 10, each up to 36 characters:
 
 ```ts
 const context = { userId: session.user.id, groupIds: session.user.teamIds };
