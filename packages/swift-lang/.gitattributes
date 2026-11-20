@@ -1,0 +1,5 @@
+# Generated from the TypeScript packages (see Scripts/); collapsed in diffs.
+Tests/OpenUILangTests/Fixtures/*.json linguist-generated=true
+Tests/OpenUISwiftUITests/Fixtures/*.json linguist-generated=true
+Sources/OpenUILang/ChatComponents.swift linguist-generated=true
+Sources/OpenUILang/OpenUIComponents.swift linguist-generated=true
