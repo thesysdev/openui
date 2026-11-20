@@ -121,7 +121,7 @@ export interface ArtifactRequestOptions extends RequestOptions {
   userId?: string;
   /**
    * That user's groups, as on their frontend token, so artifacts shared with
-   * those groups count too. Only with `userId`. Up to 50.
+   * those groups count too. Only with `userId`. Up to 10, each up to 64 characters.
    */
   groupIds?: string[];
 }
