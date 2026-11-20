@@ -21,7 +21,8 @@ export interface ExecutionContext {
   userId: string;
   /**
    * The groups the user is in, from your own system: dashboards shared with any of them are
-   * theirs to open. Pass the same value everywhere you pass `userId`. Up to 50.
+   * theirs to open. Pass the same value everywhere you pass `userId`. Up to 10, each up to 64
+   * characters.
    */
   groupIds?: string[];
 }

@@ -83,8 +83,8 @@ export interface CreateFrontendTokenParams {
   userId: string;
   /**
    * The groups the user is in, from your own system: artifacts shared with any of them are
-   * readable too. Up to 50. The token carries them until it expires, so a change shows on the
-   * next token.
+   * readable too. Up to 10, each up to 64 characters. The token carries them until it expires,
+   * so a change shows on the next token.
    */
   groupIds?: string[];
 }
