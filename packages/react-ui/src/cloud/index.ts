@@ -25,8 +25,8 @@ export type {
   StaticArtifactRendererProps,
 } from "./CloudArtifact/ArtifactRenderer";
 export type { ArtifactRendererBaseProps } from "./CloudArtifact/ArtifactRendererRoot";
-export { useArtifactRenderer } from "./CloudArtifact/contexts";
-export type { ArtifactRendererState } from "./CloudArtifact/contexts";
+export { useArtifactProvenance, useArtifactRenderer } from "./CloudArtifact/contexts";
+export type { ArtifactProvenanceState, ArtifactRendererState } from "./CloudArtifact/contexts";
 export type { ArtifactError, ArtifactErrorCode } from "./CloudArtifact/errors";
 export type {
   ChromeProps,
@@ -36,6 +36,8 @@ export type {
   PartProps,
   PendingProps,
   PreviewProps,
+  ProvenanceProps,
+  ProvenanceToggleProps,
 } from "./CloudArtifact/slots";
 export { useArtifactList } from "./CloudArtifact/useArtifactList";
 export type {

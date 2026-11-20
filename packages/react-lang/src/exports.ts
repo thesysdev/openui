@@ -16,6 +16,8 @@ export type {
 } from "./library";
 
 // openui-lang renderer
+export { readSourceTarget } from "./provenance";
+export type { BindSource, SourceBinding, SourceTarget } from "./provenance";
 export { Renderer, useRendererQuery } from "./Renderer";
 export type {
   RendererContentSlotProps,

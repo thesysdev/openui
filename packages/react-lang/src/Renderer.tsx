@@ -21,6 +21,7 @@ import { Button, Spinner, View, type ButtonProps, type ViewProps } from "./compo
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
+import { createBindSource, renderNodeTypes } from "./provenance";
 
 export interface RendererQueryState {
   /** Whether any query is waiting for generation or fetching data. */
@@ -187,6 +188,7 @@ function rendersSame(a: unknown, b: unknown, depth = 0): boolean {
       isElementNode(b) &&
       a.typeName === b.typeName &&
       a.statementId === b.statementId &&
+      a.inlineId === b.inlineId &&
       rendersSame(a.props, b.props, depth + 1)
     );
   }
@@ -238,8 +240,18 @@ const RenderNode = React.memo(
  */
 function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRenderer<any> }) {
   const renderNode = useRenderNode();
-  return <Comp props={el.props} renderNode={renderNode} statementId={el.statementId} />;
+  const id = el.statementId ?? el.inlineId;
+  const bindSource = useMemo(() => createBindSource(id), [id]);
+  return (
+    <Comp
+      props={el.props}
+      renderNode={renderNode}
+      statementId={el.statementId}
+      bindSource={bindSource}
+    />
+  );
 }
+renderNodeTypes.add(RenderNodeInner);
 
 // ─── Public component ───
 
@@ -422,6 +434,8 @@ function DefaultRenderer<L extends Library = Library>({ children, ...props }: Re
 export const Renderer = Object.assign(DefaultRenderer, {
   Root: RendererRoot,
   Content: RendererContent,
+  /** What `Renderer` shows without children, to compose with your own. */
+  DefaultContent: DefaultRendererContent,
   QueryLoading: RendererQueryLoading,
   QueryError: RendererQueryError,
   Retry: RendererRetry,

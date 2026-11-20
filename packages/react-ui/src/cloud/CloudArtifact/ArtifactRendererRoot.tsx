@@ -6,7 +6,12 @@ import {
   useArtifactStream,
   type Interpreter,
 } from "@openuidev/react-headless";
-import type { McpClientLike, OpenUIError } from "@openuidev/react-lang";
+import {
+  readSourceTarget,
+  type McpClientLike,
+  type OpenUIError,
+  type SourceTarget,
+} from "@openuidev/react-lang";
 import clsx from "clsx";
 import {
   Children,
@@ -19,6 +24,7 @@ import {
   useSyncExternalStore,
   type ReactElement,
   type ReactNode,
+  type SyntheticEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import { cacheFor } from "./artifactCache";
@@ -26,9 +32,12 @@ import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ContentConfigContext,
+  ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
   type ContentConfig,
+  type ProvenanceContextValue,
+  type ProvenanceSources,
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
 import {
@@ -45,6 +54,8 @@ import {
   PreviewDescription,
   PreviewLoader,
   PreviewTitle,
+  Provenance,
+  ProvenanceToggle,
   RegionProvider,
 } from "./slots";
 import { useQueryResultCache } from "./useQueryResultCache";
@@ -99,6 +110,8 @@ export interface RenderContentArgs {
 
 export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
   interpreter?: Interpreter;
+  /** Inspect mode, its toggle and panel. Live renderers only. */
+  enableProvenance?: boolean;
   renderContent: (args: RenderContentArgs) => ReactNode;
 }
 
@@ -148,6 +161,7 @@ export function ArtifactRendererRoot({
   children,
   interpreter,
   onError,
+  enableProvenance = false,
   renderContent,
 }: ArtifactRendererRootProps) {
   const reference = useMemo(() => parseArtifactReference(response), [response]);
@@ -345,6 +359,62 @@ export function ArtifactRendererRoot({
     ],
   );
 
+  // ── Provenance: inspect mode and the selected component ──
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [isInspecting, setInspecting] = useState(false);
+  const [selection, setSelection] = useState<SourceTarget | null>(null);
+  // The bridge inside `Renderer` resolves the selection's sources; they count only for that statement.
+  const [resolved, setResolved] = useState<{ statementId?: string; sources: ProvenanceSources }>({
+    sources: null,
+  });
+  const setSources = useCallback(
+    (sources: ProvenanceSources, statementId: string | undefined) =>
+      setResolved((prev) =>
+        prev.statementId === statementId && prev.sources === sources
+          ? prev
+          : { statementId, sources },
+      ),
+    [],
+  );
+  const sources =
+    selection && resolved.statementId === selection.statementId ? resolved.sources : null;
+  const clearSelection = useCallback(() => setSelection(null), []);
+  const provenance = useMemo<ProvenanceContextValue | null>(
+    () =>
+      enableProvenance
+        ? { isInspecting, setInspecting, selection, clearSelection, sources, setSources }
+        : null,
+    [enableProvenance, isInspecting, selection, clearSelection, sources, setSources],
+  );
+  const inspecting = enableProvenance && isInspecting;
+  // While inspecting, pressing a component selects it instead of acting: buttons, links,
+  // inputs and menus (some open on pointer down) all stay still.
+  const onInspectCapture = useCallback(
+    (event: SyntheticEvent) => {
+      if (!inspecting) return;
+      // Bounded by this artifact: its bar and panel are not components of an outer Renderer.
+      const target = readSourceTarget(event.target, rootRef.current);
+      if (!target) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.type === "click") setSelection(target);
+    },
+    [inspecting],
+  );
+  // Another artifact: start over. (Closing or a remount for live data unmounts the bridge,
+  // which clears the selection too.)
+  // An edit can give an inline id (`lead.2`) to another component: start over too.
+  useEffect(() => setSelection(null), [id, program]);
+  // Outline the selected component and prop.
+  useEffect(() => {
+    if (!enableProvenance || !selection) return;
+    const marked = [selection.element, selection.propElement].filter(
+      (el): el is Element => el !== undefined,
+    );
+    marked.forEach((el) => el.setAttribute("data-openui-selected", ""));
+    return () => marked.forEach((el) => el.removeAttribute("data-openui-selected"));
+  }, [enableProvenance, selection]);
+
   // ── Slots and layout ──
   const regions = useMemo(() => extractRegions(children), [children]);
   const chrome = (
@@ -355,21 +425,29 @@ export function ArtifactRendererRoot({
 
   return (
     <RendererStateContext.Provider value={state}>
-      <ContentConfigContext.Provider value={contentConfig}>
-        <div className={clsx(styles.root, names.root, className)}>
-          {preview ? (
-            <>
-              <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
-              {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
-              {isOpen &&
-                renderInHtmlElement !== null &&
-                (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
-            </>
-          ) : (
-            <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
-          )}
-        </div>
-      </ContentConfigContext.Provider>
+      <ProvenanceContext.Provider value={provenance}>
+        <ContentConfigContext.Provider value={contentConfig}>
+          <div
+            ref={rootRef}
+            className={clsx(styles.root, names.root, className)}
+            onClickCapture={inspecting ? onInspectCapture : undefined}
+            onPointerDownCapture={inspecting ? onInspectCapture : undefined}
+            onMouseDownCapture={inspecting ? onInspectCapture : undefined}
+          >
+            {preview ? (
+              <>
+                <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
+                {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
+                {isOpen &&
+                  renderInHtmlElement !== null &&
+                  (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
+              </>
+            ) : (
+              <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
+            )}
+          </div>
+        </ContentConfigContext.Provider>
+      </ProvenanceContext.Provider>
     </RendererStateContext.Provider>
   );
 }
@@ -385,8 +463,10 @@ export const slots = {
   ChromeLoader,
   ChromeActions,
   CloseButton,
+  ProvenanceToggle,
   Content,
   Pending,
   Loading,
   Error: ErrorSlot,
+  Provenance,
 };

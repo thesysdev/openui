@@ -19,42 +19,59 @@ interface Sources<Q> {
   state: Record<string, unknown>;
 }
 
+/** A prop's sources: its expression and, for a plain read of one query, the cell it shows. */
+interface PropSources extends Sources<string> {
+  expr: string;
+  /** `path` walks the query's result: a number is a row, `-1` the last one. */
+  cell?: { query: string; path: (string | number)[] };
+}
+
 /**
  * Where a component's data comes from, for a "where did this number come from" view: its
  * queries, the statements in between and the `$variables` it reads, also by prop. A prop with no
- * queries and no state is written in the program. Pass the `statementId` the component gets;
- * null for an inline component (no statement). It reads the values when the component renders
- * and does not subscribe to changes.
+ * queries and no state is written in the program; `formulas` holds the text of the statements in
+ * between. Pass the `statementId` the component gets, or an inline component's `inlineId`. It
+ * reads the values when the component renders
+ * and does not subscribe to changes. The result keeps its identity until the program, a store
+ * value or a query result changes, so it can be passed to effects.
  */
-export function useDataSources(
-  statementId: string | undefined,
-): (Sources<DataSourceQuery> & { props?: Record<string, Sources<string>> }) | null {
-  const { getParseResult, queryManager, evaluationContext } = useOpenUI();
-  const result = getParseResult();
+export function useDataSources(statementId: string | undefined):
+  | (Sources<DataSourceQuery> & {
+      formulas: Record<string, string>;
+      props?: Record<string, PropSources>;
+    })
+  | null {
+  const context = useOpenUI();
+  const result = context.getParseResult();
   const found = useMemo(
     () => (result && statementId ? dataSources(result, statementId) : null),
     [result, statementId],
   );
-  if (!found) return null;
-  const values = (names: string[]) =>
-    Object.fromEntries(names.map((name) => [name, evaluationContext.getState(name)]));
-  return {
-    queries: found.queries.map((id) => {
-      const call = queryManager.getCall(id);
-      return {
-        statementId: id,
-        toolName: call?.toolName,
-        args: call?.args,
-        loading: queryManager.isLoading(id),
-        data: queryManager.getResult(id),
-      };
-    }),
-    via: found.via,
-    state: values(found.state),
-    props:
-      found.props &&
-      Object.fromEntries(
-        Object.entries(found.props).map(([name, s]) => [name, { ...s, state: values(s.state) }]),
-      ),
-  };
+  // The context changes on every store write and query result.
+  return useMemo(() => {
+    if (!found) return null;
+    const { queryManager, evaluationContext } = context;
+    const values = (names: string[]) =>
+      Object.fromEntries(names.map((name) => [name, evaluationContext.getState(name)]));
+    return {
+      queries: found.queries.map((id) => {
+        const call = queryManager.getCall(id);
+        return {
+          statementId: id,
+          toolName: call?.toolName,
+          args: call?.args,
+          loading: queryManager.isLoading(id),
+          data: queryManager.getResult(id),
+        };
+      }),
+      via: found.via,
+      formulas: found.formulas,
+      state: values(found.state),
+      props:
+        found.props &&
+        Object.fromEntries(
+          Object.entries(found.props).map(([name, s]) => [name, { ...s, state: values(s.state) }]),
+        ),
+    };
+  }, [found, context]);
 }

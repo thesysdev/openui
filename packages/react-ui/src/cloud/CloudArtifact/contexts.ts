@@ -1,4 +1,4 @@
-import type { OpenUIError } from "@openuidev/react-lang";
+import type { OpenUIError, SourceTarget, useDataSources } from "@openuidev/react-lang";
 import { createContext, useContext, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
@@ -68,3 +68,48 @@ export const ChromeOverridesContext = createContext<ChromeOverrides>({});
 export type Region = "preview" | "chrome" | "content";
 
 export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
+
+// ─── Provenance ──────────────────────────────────────────────────────────
+
+/** Where the selected component's data comes from: `useDataSources` for its statement. */
+export type ProvenanceSources = ReturnType<typeof useDataSources>;
+
+/** Inspect mode and the selected component, from `useArtifactProvenance()`. */
+export interface ArtifactProvenanceState {
+  /** While on, a click on a component selects it instead of acting. */
+  isInspecting: boolean;
+  setInspecting: (on: boolean) => void;
+  /** The component, and prop, last clicked in inspect mode. */
+  selection: SourceTarget | null;
+  clearSelection: () => void;
+  /** Where the selection's data comes from. Null without a selection. */
+  sources: ProvenanceSources;
+}
+
+/** The renderer's provenance state; `setSources` is for the bridge inside `Renderer`. */
+export interface ProvenanceContextValue extends ArtifactProvenanceState {
+  setSources: (sources: ProvenanceSources, statementId: string | undefined) => void;
+}
+
+/** Null when `enableProvenance` is off. */
+export const ProvenanceContext = createContext<ProvenanceContextValue | null>(null);
+
+const noop = () => {};
+const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
+  isInspecting: false,
+  setInspecting: noop,
+  selection: null,
+  clearSelection: noop,
+  sources: null,
+});
+
+/**
+ * Inspect mode and where the selected component's data comes from, for a live artifact with
+ * `enableProvenance`. Call it inside the renderer, such as in a slot's children. With provenance
+ * off it returns an inert state: not inspecting, nothing selected, and setters that do nothing.
+ *
+ * @category Hooks
+ */
+export function useArtifactProvenance(): ArtifactProvenanceState {
+  return useContext(ProvenanceContext) ?? INERT_PROVENANCE;
+}
