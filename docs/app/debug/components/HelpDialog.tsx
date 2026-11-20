@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@openuidev/react-ui";
+import styles from "@paste/paste.module.css";
 import { HelpCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import styles from "@paste/paste.module.css";
 
 export function HelpDialog() {
   const [open, setOpen] = useState(false);
@@ -65,8 +65,8 @@ export function HelpDialog() {
                   version. Every published npm version is available and loaded on demand.
                 </li>
                 <li>
-                  Switch the component <strong>Library</strong> (openui, openui chat) to validate
-                  and render against a different component set.
+                  Validation and rendering use the <strong>Intelligent UI</strong> component
+                  library, with <code>Col</code> as the root.
                 </li>
               </ol>
 

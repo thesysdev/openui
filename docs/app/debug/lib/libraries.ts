@@ -1,8 +1,7 @@
+import { library } from "@openuidev/intelligent-ui-library";
 import type { Library } from "@openuidev/react-lang";
-import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
-import { chatLibrary } from "@openuidev/thesys";
 
-export type LibraryId = "openui" | "chat" | "thesys";
+export type LibraryId = "intelligent-ui";
 
 export interface LibraryEntry {
   id: LibraryId;
@@ -11,9 +10,7 @@ export interface LibraryEntry {
 }
 
 export const LIBRARIES: LibraryEntry[] = [
-  { id: "openui", label: "openui", library: openuiLibrary as Library },
-  { id: "chat", label: "openui chat", library: openuiChatLibrary as Library },
-  { id: "thesys", label: "openui thesys", library: chatLibrary as Library },
+  { id: "intelligent-ui", label: "Intelligent UI", library },
 ];
 
 export function getLibrary(id: LibraryId): LibraryEntry {
