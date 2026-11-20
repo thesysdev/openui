@@ -24,7 +24,12 @@ export async function POST(req: NextRequest) {
     // The agent sends sessionId to the Gateway, so it groups the thread's turns into one session.
     prepareInput: ({ messages, requestBody }) => ({
       messages,
-      sessionId: typeof requestBody.threadId === "string" ? requestBody.threadId : undefined,
+      sessionId:
+        typeof requestBody.threadId === "string" &&
+        requestBody.threadId.trim() &&
+        !/\p{Cc}/u.test(requestBody.threadId)
+          ? requestBody.threadId
+          : undefined,
     }),
   });
 }

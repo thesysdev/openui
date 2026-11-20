@@ -21,7 +21,10 @@ export async function POST(request: Request) {
   const gateway = createOpenAI({
     apiKey,
     baseURL: `${baseUrl}/v1/embed`,
-    headers: typeof id === "string" && id ? { "x-thesys-session-id": id } : undefined,
+    headers:
+      typeof id === "string" && id.trim() && !/\p{Cc}/u.test(id)
+        ? { "x-thesys-session-id": id }
+        : undefined,
   });
   const tools = await dashboardTools.tools();
 

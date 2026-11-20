@@ -34,7 +34,10 @@ export async function POST(request: Request) {
   const gateway = new OpenAI({
     apiKey,
     baseURL: "https://api.thesys.dev/v1/embed",
-    defaultHeaders: { "x-thesys-session-id": threadId },
+    defaultHeaders:
+      threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
   const searchTool = searchStaysTool();
 

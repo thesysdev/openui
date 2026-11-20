@@ -58,7 +58,9 @@ export async function POST(req: Request) {
     stopWhen: stepCountIs(5),
     // The chat's thread ID groups its turns into one session on the Gateway.
     headers:
-      typeof threadId === "string" && threadId ? { "x-thesys-session-id": threadId } : undefined,
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
 
   result.text.then((text) => {

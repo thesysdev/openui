@@ -8,7 +8,7 @@ if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
 const openai = createOpenAI({
   apiKey,
   baseURL: "https://api.thesys.dev/v1/embed",
-  // Sends the session ID, so the Gateway groups a chat's turns into one session.
+  // Sends the OpenUI thread ID, so the Gateway groups a chat's turns into one session.
   fetch: (input, init) => {
     let sessionId = "";
     try {

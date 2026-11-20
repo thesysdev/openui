@@ -9,6 +9,7 @@ import {
   openAIMessageFormat,
   useThread,
   useThreadList,
+  type ChatStorage,
   type Message,
 } from "@openuidev/react-headless";
 import {
@@ -62,6 +63,42 @@ function readSavedMessages(): Message[] {
   }
 }
 
+const THREAD_KEY = "openui-handsontable:thread";
+
+function readSavedThreadId(): string | null {
+  try {
+    return localStorage.getItem(THREAD_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Keeps the chat's thread ID with its saved messages, so reopening the panel or the page
+ * continues the same thread, and the same Gateway session.
+ */
+const chatStorage: ChatStorage = {
+  thread: {
+    async listThreads() {
+      return { threads: [] };
+    },
+    async createThread() {
+      const thread = { id: crypto.randomUUID(), title: "Chat", createdAt: Date.now() };
+      try {
+        localStorage.setItem(THREAD_KEY, thread.id);
+      } catch {}
+      return thread;
+    },
+    async getMessages(threadId) {
+      return threadId === readSavedThreadId() ? readSavedMessages() : [];
+    },
+    async updateThread(thread) {
+      return thread;
+    },
+    async deleteThread() {},
+  },
+};
+
 function messageText(message: Message): string {
   if (typeof message.content !== "string") return "";
   // A form submission carries the entries in a context block; show only the label.
@@ -80,14 +117,18 @@ function ChatBody({ onClose }: { onClose: () => void }) {
   const setMessages = useThread((s) => s.setMessages);
   const threadError = useThread((s) => s.threadError);
   const switchToNewThread = useThreadList((s) => s.switchToNewThread);
+  const selectThread = useThreadList((s) => s.selectThread);
   const [input, setInput] = useState("");
 
   // The chat saved by an earlier visit, or before the panel was closed.
   const [restored] = useState(readSavedMessages);
   const restoredIds = useMemo(() => new Set(restored.map((m) => m.id)), [restored]);
   useEffect(() => {
-    if (restored.length > 0) setMessages(restored);
-  }, [restored, setMessages]);
+    // Reopen the saved thread (chatStorage loads its messages), so it keeps its session ID.
+    const threadId = readSavedThreadId();
+    if (threadId) selectThread(threadId);
+    else if (restored.length > 0) setMessages(restored);
+  }, [restored, selectThread, setMessages]);
   useEffect(() => {
     if (isRunning || messages.length === 0) return;
     try {
@@ -115,6 +156,7 @@ function ChatBody({ onClose }: { onClose: () => void }) {
     switchToNewThread();
     try {
       localStorage.removeItem(MESSAGES_KEY);
+      localStorage.removeItem(THREAD_KEY);
     } catch {}
   };
 
@@ -275,7 +317,7 @@ export function ChatPanel({ onClose }: { onClose: () => void }) {
   return (
     <ThemeProvider mode="dark" cssSelector=".chat-panel">
       <div className="chat-panel">
-        <ChatProvider llm={llm}>
+        <ChatProvider llm={llm} storage={chatStorage}>
           <IntelligentThemeProvider mode="dark">
             <ChatBody onClose={onClose} />
           </IntelligentThemeProvider>

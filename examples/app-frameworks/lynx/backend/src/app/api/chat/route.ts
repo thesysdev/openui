@@ -56,7 +56,10 @@ async function readMessages(
 
   return {
     messages,
-    sessionId: typeof sessionId === "string" && sessionId ? sessionId : undefined,
+    sessionId:
+      typeof sessionId === "string" && sessionId.trim() && !/\p{Cc}/u.test(sessionId)
+        ? sessionId
+        : undefined,
   };
 }
 
