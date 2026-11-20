@@ -4,7 +4,7 @@ Documentation site for the OpenUI SDK, built with [Next.js](https://nextjs.org) 
 
 ## Setup
 
-This project lives at `docs` inside the pnpm workspace. It links `@openuidev/lang-core`, `@openuidev/react-lang`, `@openuidev/react-headless`, `@openuidev/react-ui`, and `@openuidev/cli` from the monorepo via `workspace:*` / `workspace:^`.
+This project lives at `docs` inside the pnpm workspace. It links `@openuidev/lang-core`, `@openuidev/react-lang`, `@openuidev/react-headless`, `@openuidev/react-ui`, `@openuidev/intelligent-ui-library`, and `@openuidev/cli` from the monorepo via `workspace:*` / `workspace:^`.
 
 ```bash
 # Install from workspace root
@@ -23,6 +23,25 @@ Set `DEMO_GATEWAY_ORIGIN` (for example `http://localhost:3200`) to serve every `
 the private demo gateway, which adds login and daily limits. The gateway is the only place the
 `/chat`, `/compare` and `/openui-vs-json` demos run; this app always redirects those paths to
 `/demo/<slug>`.
+
+### Intelligent UI previews
+
+The overview sample and the retained demos preview/catalog use
+`@openuidev/intelligent-ui-library`. Rendered answers receive the site's resolved light/dark mode
+through that library's `ThemeProvider`; react-ui continues to provide the chat UI and its theme.
+
+Regenerate the checked-in chat library specification after changing its library export:
+
+```bash
+pnpm --filter @openuidev/docs generate:spec
+```
+
+This runs `openui generate lib/intelligent-ui-library.ts --spec` and writes
+`generated/chat-system-prompt.spec.json`, including the library's default prompt options. Server
+consumers use `generateSystemPrompt({ library: spec, promptOptions })` from `@openuidev/lang-core`.
+The chat/compare model routes and hosted demos are in the private gateway, not this checkout;
+the `/demos` route here is a listing. Running this docs site needs no model API key. To live-test
+model answers, run the gateway separately with its own credentials and set `DEMO_GATEWAY_ORIGIN`.
 
 ### Taking the hosted demos offline
 
