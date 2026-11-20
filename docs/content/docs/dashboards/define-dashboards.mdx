@@ -35,7 +35,7 @@ Define it once and import `dashboards` wherever the app creates, edits, or loads
 | `mcp`           | One or more MCP servers whose tools dashboards can call. See [Connect data](/docs/dashboards/connect-data#mcp-servers).                          |
 | `promptOptions` | `preamble`, `examples`, and `additionalRules` added to the prompt the model builds dashboards from.                                              |
 
-`tools`, `mcp`, or both are required.
+`tools`, `mcp`, or both are required. While a dashboard is built, the model calls your data tools to see their real output, so have them return small results or accept a limit parameter. Tools given to a dashboard are called without a prompt, while it is built and every time it opens, so register only tools that are safe for that.
 
 ## Component library
 

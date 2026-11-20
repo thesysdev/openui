@@ -33,6 +33,14 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   library: ArtifactLibrary;
   /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
+  /** How much the model thinks, for models that can: as OpenAI's `reasoning_effort`. */
+  reasoningEffort?: "minimal" | "low" | "medium" | "high";
+  /**
+   * How many rounds of tool calls the model may make before it must write the dashboard
+   * (OpenUI Cloud's default: 20). Each round can call several of your tools. With `0` the model
+   * calls none of your tools directly; it still saves and runs its data scripts, which call them.
+   */
+  maxToolRounds?: number;
   promptOptions?: ArtifactPromptOptions;
 } & DashboardDataTools<Context>;
 
@@ -56,8 +64,11 @@ export interface RequestOptions {
 }
 
 /**
- * Creates and edits live dashboards. Each call resolves, as soon as the artifact has an id,
- * with the tool's response: return it from your tool as is, and pass it to the renderer.
+ * Creates and edits live dashboards. Each call resolves, as soon as the dashboard starts
+ * generating, with the tool's response: return it from your tool as is, and pass it to the
+ * renderer. With `{ stream: true }` it yields two messages instead: one as soon as the
+ * dashboard has an id (render it from then on), and the last once the dashboard is saved or
+ * failed, saying which. Each carries the dashboard's reference; return the last one to your model.
  */
 export interface Dashboard<Context extends ExecutionContext = ExecutionContext> {
   /**
@@ -67,10 +78,24 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
   create(
     params: CreateDashboardParams,
     context: Context,
-    options?: RequestOptions,
+    options: RequestOptions & { stream: true },
+  ): AsyncIterable<string>;
+  create(
+    params: CreateDashboardParams,
+    context: Context,
+    options?: RequestOptions & { stream?: false },
   ): Promise<string>;
   /** Edits in place, for its owner. Renderers keep the current version until the edit is ready. */
-  edit(params: EditDashboardParams, context: Context, options?: RequestOptions): Promise<string>;
+  edit(
+    params: EditDashboardParams,
+    context: Context,
+    options: RequestOptions & { stream: true },
+  ): AsyncIterable<string>;
+  edit(
+    params: EditDashboardParams,
+    context: Context,
+    options?: RequestOptions & { stream?: false },
+  ): Promise<string>;
   /** Runs this dashboard's data tools and generated scripts on your server. */
   readonly interpreter: Interpreter<Context>;
 }
