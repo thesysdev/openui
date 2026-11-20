@@ -65,8 +65,8 @@ export function HelpDialog() {
                   version. Every published npm version is available and loaded on demand.
                 </li>
                 <li>
-                  Validation and rendering use the <strong>Intelligent UI</strong> component
-                  library, with <code>Col</code> as the root.
+                  Switch the component <strong>Library</strong> (Intelligent UI, Dashboard, openui,
+                  openui chat) to validate and render against a different component set.
                 </li>
               </ol>
 

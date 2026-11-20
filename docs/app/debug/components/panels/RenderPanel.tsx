@@ -1,6 +1,5 @@
 "use client";
 
-import { ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { Renderer } from "@openuidev/react-lang";
 import { useTheme } from "@openuidev/react-ui";
 import { getLibrary, type LibraryId } from "@paste/lib/libraries";
@@ -9,7 +8,7 @@ import { BUNDLED_LANG_CORE_VERSION } from "@paste/lib/versions/loader";
 import type { OpenUIError } from "@paste/lib/versions/types";
 import styles from "@paste/paste.module.css";
 import { FlaskConical } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
 
 const TOOL_CALL_LOG_CAP = 20;
@@ -42,7 +41,10 @@ export function RenderPanel({
   }
   // Mounted with key={libraryId}, so switching library remounts the panel and
   // clears stale runtime errors / form state / logs naturally.
-  const library = getLibrary(libraryId).library;
+  const { library, ThemeProvider } = getLibrary(libraryId);
+  // openui and openui chat read react-ui's theme from the page directly.
+  const Theme = ThemeProvider ?? Fragment;
+  const themeProps = ThemeProvider ? { mode } : {};
 
   const toolProvider = useMemo(
     () =>
@@ -74,7 +76,7 @@ export function RenderPanel({
       )}
       <div className={styles.renderCanvas}>
         <RenderErrorBoundary resetKey={`${libraryId}:${code}`}>
-          <ThemeProvider mode={mode}>
+          <Theme {...themeProps}>
             <Renderer
               response={code || null}
               library={library}
@@ -84,7 +86,7 @@ export function RenderPanel({
               onStateUpdate={setFormState}
               onAction={(event) => setActionLog((log) => [...log.slice(-19), safeDescribe(event)])}
             />
-          </ThemeProvider>
+          </Theme>
         </RenderErrorBoundary>
       </div>
       {toolCalls.length > 0 && (

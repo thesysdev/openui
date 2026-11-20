@@ -1,16 +1,43 @@
-import { library } from "@openuidev/intelligent-ui-library";
+import {
+  library as dashboardLibrary,
+  ThemeProvider as DashboardThemeProvider,
+} from "@openuidev/dashboard-library";
+import {
+  library as intelligentUiLibrary,
+  ThemeProvider as IntelligentUiThemeProvider,
+} from "@openuidev/intelligent-ui-library";
 import type { Library } from "@openuidev/react-lang";
+import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import type { ComponentType, ReactNode } from "react";
 
-export type LibraryId = "intelligent-ui";
+export type LibraryId = "intelligent-ui" | "dashboard" | "openui" | "chat";
 
 export interface LibraryEntry {
   id: LibraryId;
   label: string;
   library: Library;
+  /**
+   * Libraries that don't read react-ui's theme bring their own provider; the
+   * render panel wraps output in it and passes the page's light/dark mode.
+   */
+  ThemeProvider?: ComponentType<{ mode?: "light" | "dark"; children?: ReactNode }>;
 }
 
 export const LIBRARIES: LibraryEntry[] = [
-  { id: "intelligent-ui", label: "Intelligent UI", library },
+  {
+    id: "intelligent-ui",
+    label: "Intelligent UI",
+    library: intelligentUiLibrary,
+    ThemeProvider: IntelligentUiThemeProvider,
+  },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    library: dashboardLibrary,
+    ThemeProvider: DashboardThemeProvider,
+  },
+  { id: "openui", label: "openui", library: openuiLibrary as Library },
+  { id: "chat", label: "openui chat", library: openuiChatLibrary as Library },
 ];
 
 export function getLibrary(id: LibraryId): LibraryEntry {
