@@ -158,17 +158,20 @@ jobs:
           package-manager: ${{ matrix.package-manager }}
           package-manager-version: ${{ matrix.package-manager-version }}
 
-  # LangGraph is covered above across operating systems and package
-  # manager majors; overlays only change dependencies and app code, so one
-  # current Linux configuration per package manager is enough.
+  # Cover both templates and every backend on current package managers.
+  # Cloud LangGraph also has the broader compatibility matrix above.
   cli-e2e-overlays:
-    name: ${{ matrix.overlay }} (${{ matrix.package-manager }}@11, ubuntu, Node 24)
+    name: ${{ matrix.template }} / ${{ matrix.overlay }} (${{ matrix.package-manager }}@11, ubuntu, Node 24)
     needs: package-cli
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        template:
+          - openui-cloud
+          - openui-self-hosted
         overlay:
+          - langgraph
           - vercel-ai-sdk
           - vercel-eve
         package-manager:
@@ -180,6 +183,7 @@ jobs:
 
       - uses: ./.github/actions/cli-scaffold-e2e
         with:
+          template: ${{ matrix.template }}
           backend-framework: ${{ matrix.overlay }}
           node-version: 24
           package-manager: ${{ matrix.package-manager }}
