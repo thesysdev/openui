@@ -107,7 +107,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     let messages = await firstMessages(context, prompt, call);
     // The dashboard's id, from the first tool-call reply: later rounds and saved scripts go by it.
     let artifactId: string | undefined;
-    // No round limit: OpenUI Cloud decides when the model stops asking for tools.
+    // OpenUI Cloud ends the rounds: the model writes once it's done, or at maxToolRounds.
     for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
       const reply = await api.post(
@@ -207,7 +207,7 @@ export function defineDashboard<Context extends ExecutionContext>(
         context,
         signal,
         interpreter,
-        artifactId as string,
+        artifactId,
       );
     }
   }
