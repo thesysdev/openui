@@ -7,6 +7,8 @@ This example connects a [DeepAgents](https://docs.langchain.com/oss/javascript/d
 agent running on LangGraph to `<AgentInterface />`. The supported `@openuidev/langchain`
 integration converts LangGraph protocol events into the AG-UI stream consumed by Agent Interface.
 
+Answers use `@openuidev/intelligent-ui-library` (root `Col`). `@openuidev/react-ui` supplies the chat window, adapters, theming and styles.
+
 [View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/langgraph-platform)
 
 <div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
@@ -116,16 +118,60 @@ The proxy already returns AG-UI, so no LangChain-specific browser adapter or
 message conversion is needed:
 
 ```tsx
-import { AgentInterface, agUIAdapter, fetchLLM } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+"use client";
+
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { AgentInterface, agUIAdapter, fetchLLM, useSystemThemeMode } from "@openuidev/react-ui";
+import "@openuidev/react-ui/styles/index.css";
 
 const llm = fetchLLM({
   url: "/api/chat",
   streamAdapter: agUIAdapter(),
 });
 
-<AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI + DeepAgents Chat" />;
+export default function Page() {
+  const mode = useSystemThemeMode();
+
+  return (
+    <ThemeProvider mode={mode}>
+      <AgentInterface
+        llm={llm}
+        componentLibrary={library}
+        agentName="OpenUI + DeepAgents Chat"
+        theme={{ mode }}
+      />
+    </ThemeProvider>
+  );
+}
 ```
+
+Pass the same mode to the library's `ThemeProvider` and the chat's `theme`: the component library cannot read react-ui's theme. Start a new chat if you have saved answers from the old component library. This snippet uses in-memory storage; the full example persists threads and messages in browser local storage.
+
+## Component library and prompt
+
+Install `@openuidev/intelligent-ui-library` alongside the chat packages (the standalone example pins `0.0.2`). The CLI reads `src/library.ts`:
+
+```ts
+export { library, promptOptions } from "@openuidev/intelligent-ui-library";
+```
+
+The full example extends these prompt options with two form rules, preserving the library's examples and `additionalRules`. Generate the spec before running the server:
+
+```bash
+openui generate src/library.ts --spec --out src/generated/spec.json
+```
+
+`src/lib/cloud-prompt.ts` loads the generated spec and builds the system prompt in cloud mode:
+
+```ts
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import spec from "@/generated/spec.json";
+
+const { promptOptions, ...library } = spec;
+const systemPrompt = generateSystemPrompt({ cloud: true, library, promptOptions });
+```
+
+The example's `cloudInstructions()` performs this step on the server. Its `predev`, `prebuild` and `preverify` scripts regenerate the spec automatically.
 
 ## Project layout
 
@@ -147,7 +193,7 @@ From `examples/agent-frameworks/langgraph-platform`, install dependencies and co
 template:
 
 ```bash tab="pnpm" tab-group="pkg"
-pnpm install
+pnpm install --ignore-workspace
 cp .env.example .env
 ```
 

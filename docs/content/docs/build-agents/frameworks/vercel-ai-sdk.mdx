@@ -5,6 +5,8 @@ description: Connect Agent Interface to a Vercel AI SDK streamText backend.
 
 This example uses the [Vercel AI SDK](https://ai-sdk.dev/) (`streamText`, `tool()`, `toUIMessageStreamResponse()`) as the agent backend and OpenUI's `<AgentInterface />` as the chat UI. The browser decodes the AI SDK UIMessage stream with `vercelAIAdapter()`.
 
+Answers use `@openuidev/intelligent-ui-library` (root `Col`). `@openuidev/react-ui` supplies the chat window, adapters, theming and styles.
+
 [View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/vercel-ai-sdk)
 
 <div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
@@ -27,13 +29,17 @@ The API route calls `streamText` through OpenUI Gateway with OpenUI Lang instruc
 The page passes that stream to `<AgentInterface />`:
 
 ```tsx
+"use client";
+
 import {
   AgentInterface,
   fetchLLM,
+  useSystemThemeMode,
   vercelAIAdapter,
   vercelAIMessageFormat,
 } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import "@openuidev/react-ui/styles/index.css";
 
 const llm = fetchLLM({
   url: "/api/chat",
@@ -41,10 +47,49 @@ const llm = fetchLLM({
   messageFormat: vercelAIMessageFormat,
 });
 
-<AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI + Vercel AI SDK" />;
+export default function Page() {
+  const mode = useSystemThemeMode();
+
+  return (
+    <ThemeProvider mode={mode}>
+      <AgentInterface
+        llm={llm}
+        componentLibrary={library}
+        agentName="OpenUI + Vercel AI SDK"
+        theme={{ mode }}
+      />
+    </ThemeProvider>
+  );
+}
 ```
 
-Storage is omitted, so AgentInterface uses its built-in in-memory default (wiped on reload).
+Pass the same mode to the library's `ThemeProvider` and the chat's `theme`: the component library cannot read react-ui's theme. This snippet uses in-memory storage; the full example adds browser local storage for threads and messages. Start a new chat for current components if you have saved answers from the old library.
+
+## Component library and prompt
+
+Install `@openuidev/intelligent-ui-library` alongside the chat packages (the standalone example pins `0.0.2`). The CLI reads `src/library.ts`:
+
+```ts
+export { library, promptOptions } from "@openuidev/intelligent-ui-library";
+```
+
+The full example extends these prompt options with two form rules, preserving the library's examples and `additionalRules`. Generate the spec before running the server:
+
+```bash
+openui generate src/library.ts --spec --out src/generated/spec.json
+```
+
+`src/lib/cloud-prompt.ts` loads that spec and builds the system prompt in cloud mode:
+
+```ts
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import spec from "@/generated/spec.json";
+
+const { promptOptions, ...library } = spec;
+const systemPrompt = generateSystemPrompt({ cloud: true, library, promptOptions });
+```
+
+The example's `cloudInstructions()` performs this step on the server. Its `predev`, `prebuild` and `preverify` scripts regenerate the spec automatically.
 
 ## Backend
 
@@ -93,7 +138,7 @@ Run these commands from `examples/agent-frameworks/vercel-ai-sdk`.
 
 ```bash tab="pnpm" tab-group="pkg"
 cd examples/agent-frameworks/vercel-ai-sdk
-pnpm install
+pnpm install --ignore-workspace
 ```
 
 ```bash tab="bun" tab-group="pkg"

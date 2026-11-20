@@ -64,7 +64,7 @@ approveBtn = Button("Approve", @ToAssistant("Approve this order", {orderId: 42})
 }
 ```
 
-With no context, or `null`, `params` is `{}`. The host decides how the context reaches the model. The chat in `@openuidev/react-ui` adds it to the stored user turn, after the form state. See [Message Protocol](/docs/openui-lang/message-protocol#the-react-ui-chat-format).
+With no context, or `null`, `params` is `{}`. The host decides how the context reaches the model. The chat in `@openuidev/intelligent-ui-library` adds it to the stored user turn, after the form state. See [Message Protocol](/docs/openui-lang/message-protocol#the-react-ui-chat-format).
 
 ## Custom actions
 
@@ -79,13 +79,14 @@ This file, `message.tsx`, defines a button, a custom action, the library, and th
 
 import {
   action,
-  createLibrary,
   defineAction,
   defineComponent,
   Renderer,
   useTriggerAction,
 } from "@openuidev/react-lang";
 import { z } from "zod/v4";
+
+import { library as baseLibrary, ThemeProvider } from "@openuidev/intelligent-ui-library";
 
 // 1. A component with an action prop.
 const Button = defineComponent({
@@ -116,24 +117,25 @@ export const copyToClipboard = defineAction({
 });
 
 // 3. The library the model writes against.
-export const library = createLibrary({
-  root: "Button",
-  components: [Button],
-  actions: [copyToClipboard],
+export const library = baseLibrary.extend({
+  components: { override: [Button] },
+  actions: { add: [copyToClipboard] },
 });
 
 // 4. Your app handles the event.
-export function Message({ response }: { response: string }) {
+export function Message({ response, mode }: { response: string; mode: "light" | "dark" }) {
   return (
-    <Renderer
-      library={library}
-      response={response}
-      onAction={(event) => {
-        if (event.type === "CopyToClipboard") {
-          void navigator.clipboard.writeText(event.params.text);
-        }
-      }}
-    />
+    <ThemeProvider mode={mode}>
+      <Renderer
+        library={library}
+        response={response}
+        onAction={(event) => {
+          if (event.type === "CopyToClipboard") {
+            void navigator.clipboard.writeText(event.params.text);
+          }
+        }}
+      />
+    </ThemeProvider>
   );
 }
 ```
@@ -141,10 +143,10 @@ export function Message({ response }: { response: string }) {
 The model can now write:
 
 ```text
-root = Button("Copy order ID", @CopyToClipboard("ORD-1042"))
+root = Col([Button("Copy order ID", @CopyToClipboard("ORD-1042"))])
 ```
 
-The user sees a "Copy order ID" button. On click, the renderer sends a `CopyToClipboard` event to `onAction`, and your handler copies "ORD-1042". The `Button` in `@openuidev/react-ui` takes an action prop the same way.
+The user sees a "Copy order ID" button. On click, the renderer sends a `CopyToClipboard` event to `onAction`, and your handler copies "ORD-1042". The `Button` in `@openuidev/intelligent-ui-library` takes an action prop the same way.
 
 ### Fields
 
@@ -240,7 +242,7 @@ function handleAction(event: LibraryActionEvent<typeof library>) {
 
 ### `onAction` on `AgentInterface`
 
-`AgentInterface` from `@openuidev/react-ui` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Its `onAction` prop receives the events the chat does not handle, such as the events from your custom actions:
+`AgentInterface` from `@openuidev/intelligent-ui-library` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Its `onAction` prop receives the events the chat does not handle, such as the events from your custom actions:
 
 ```tsx
 import { AgentInterface } from "@openuidev/react-ui";
@@ -266,43 +268,47 @@ Custom actions work in the React `Renderer` from `@openuidev/react-lang`. The Vu
 
 ## Complete example
 
-An order card where one button approves the order and another copies its ID. It adds `copyToClipboard` from [Define an action](#define-an-action) to `openuiLibrary`. `sendMessage` stands for your chat's send function:
+An order card where one button approves the order and another copies its ID. It adds `copyToClipboard` from [Define an action](#define-an-action) to `library`. `sendMessage` stands for your chat's send function:
 
 ```tsx
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library as baseLibrary, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { copyToClipboard } from "./message";
 
-const library = openuiLibrary.extend({ actions: { add: [copyToClipboard] } });
+const library = baseLibrary.extend({ actions: { add: [copyToClipboard] } });
 
 export function OrderMessage({
   response,
   sendMessage,
+  mode,
 }: {
   response: string;
+  mode: "light" | "dark";
   sendMessage: (text: string) => void;
 }) {
   return (
-    <Renderer
-      library={library}
-      response={response}
-      toolProvider={{
-        approve_order: async (args) =>
-          fetch("/api/orders/approve", { method: "POST", body: JSON.stringify(args) }).then((r) =>
-            r.json(),
-          ),
-      }}
-      onAction={(event) => {
-        if (event.type === "CopyToClipboard") {
-          void navigator.clipboard.writeText(event.params.text);
-        }
-        if (event.type === "continue_conversation") {
-          sendMessage(event.humanFriendlyMessage);
-        }
-      }}
-    />
+    <ThemeProvider mode={mode}>
+      <Renderer
+        library={library}
+        response={response}
+        toolProvider={{
+          approve_order: async (args) =>
+            fetch("/api/orders/approve", { method: "POST", body: JSON.stringify(args) }).then((r) =>
+              r.json(),
+            ),
+        }}
+        onAction={(event) => {
+          if (event.type === "CopyToClipboard") {
+            void navigator.clipboard.writeText(event.params.text);
+          }
+          if (event.type === "continue_conversation") {
+            sendMessage(event.humanFriendlyMessage);
+          }
+        }}
+      />
+    </ThemeProvider>
   );
 }
 ```
@@ -310,16 +316,16 @@ export function OrderMessage({
 The model writes:
 
 ```text
-root = Stack([card])
-card = Card([CardHeader("Order ORD-1042", "3 items, $120"), status, buttons])
+root = Col([card])
+card = Card([Col([Title("Order ORD-1042"), Text("3 items, $120", "sm", "muted")], 1), status, buttons])
 approveOrder = Mutation("approve_order", {orderId: "ORD-1042"})
-status = approveOrder.status == "success" ? Callout("success", "Approved", "The order is approved.") : null
-buttons = Buttons([approveBtn, copyBtn])
-approveBtn = Button("Approve", Action([@Run(approveOrder), @ToAssistant("I approved order ORD-1042")]), "primary")
-copyBtn = Button("Copy ID", @CopyToClipboard("ORD-1042"), "secondary")
+status = approveOrder.status == "success" ? Card([Title("Approved", "sm"), Text("The order is approved.", "sm", "success")], "soft") : null
+buttons = Row([approveBtn, copyBtn], 2)
+approveBtn = Button("Approve", Action([@Run(approveOrder), @ToAssistant("I approved order ORD-1042")]), "solid")
+copyBtn = Button("Copy ID", @CopyToClipboard("ORD-1042"), "outline")
 ```
 
-The user sees an order card with two buttons. "Approve" runs the mutation, shows the "Approved" callout, and sends "I approved order ORD-1042" to the model. "Copy ID" copies "ORD-1042" through your handler. If `approve_order` fails, the message is not sent.
+The user sees an order card with two buttons. "Approve" runs the mutation, shows the "Approved" status card, and sends "I approved order ORD-1042" to the model. "Copy ID" copies "ORD-1042" through your handler. If `approve_order` fails, the message is not sent.
 
 ## When to use it
 

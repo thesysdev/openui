@@ -268,11 +268,27 @@ export function DgCrossLibrary() {
 
 export function DgErrorExample() {
   const LINES: Array<{ code: string; note?: string; kind?: "grammar" | "wiring" }> = [
-    { code: 'header = CardHeader("Spending", "last 7 days")' },
-    { code: 'total  = Heading("$24,180", "h9")', note: "schema: h9 is not a heading level", kind: "grammar" },
-    { code: 'chart  = AreaChart(days, [spend], "wavy")', note: 'schema: "wavy" is not a curve type', kind: "grammar" },
-    { code: 'footer = TextContent("Updated today")', note: "wiring: defined, never attached to root", kind: "wiring" },
-    { code: "root   = Card([header, total, chart, summary])", note: "wiring: summary is never defined", kind: "wiring" },
+    { code: 'header = Title("Spending")' },
+    {
+      code: 'total  = Title("$24,180", "huge")',
+      note: "schema: huge is not a title size",
+      kind: "grammar",
+    },
+    {
+      code: 'chart  = Chart("wavy", [])',
+      note: 'schema: "wavy" is not a chart type',
+      kind: "grammar",
+    },
+    {
+      code: 'footer = Text("Updated today")',
+      note: "wiring: defined, never attached to root",
+      kind: "wiring",
+    },
+    {
+      code: "root   = Col([header, total, chart, summary])",
+      note: "wiring: summary is never defined",
+      kind: "wiring",
+    },
   ];
   const COLOR = { grammar: "#e5484d", wiring: "#d97706" } as const;
   return (

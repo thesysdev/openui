@@ -12,30 +12,43 @@ The change is in one place: the assistant message's text part. The thread, compo
 Skip this step if the chat UI and the backend share a package and you already installed these in [Set up UI generation](/docs/build-agents/ui-generation#1-install-the-packages).
 
 ```bash tab="pnpm" tab-group="pkg"
-pnpm add @openuidev/react-lang @openuidev/react-ui
+pnpm add @openuidev/react-lang @openuidev/react-ui @openuidev/intelligent-ui-library
 ```
 
 ```bash tab="bun" tab-group="pkg"
-bun add @openuidev/react-lang @openuidev/react-ui
+bun add @openuidev/react-lang @openuidev/react-ui @openuidev/intelligent-ui-library
 ```
 
 ```bash tab="yarn" tab-group="pkg"
-yarn add @openuidev/react-lang @openuidev/react-ui
+yarn add @openuidev/react-lang @openuidev/react-ui @openuidev/intelligent-ui-library
 ```
 
 ```bash tab="npm" tab-group="pkg"
-npm install @openuidev/react-lang @openuidev/react-ui
+npm install @openuidev/react-lang @openuidev/react-ui @openuidev/intelligent-ui-library
 ```
 
-`@openuidev/react-lang` renders OpenUI Lang. `@openuidev/react-ui` provides the built-in component library and its styles; if the agent uses only your own components, skip it and the styles import below.
+`@openuidev/react-lang` renders OpenUI Lang and `@openuidev/intelligent-ui-library` provides the
+components for generated answers. Keep `@openuidev/react-ui` for any chat components, adapters,
+and chat theming your app uses.
 
-When using the built-in library, import its styles once, from the application's global stylesheet:
+If your app uses react-ui chat components, retain its stylesheet in the application's global entry point:
 
 ```css title="app/globals.css"
 @import "@openuidev/react-ui/styles/index.css";
 ```
 
 The examples below import `library` from `src/lib/openui.tsx`, the file created in [Set up UI generation](/docs/build-agents/ui-generation#2-define-a-component-library). If the chat UI lives in a separate package, define the same library there so it renders every component the agent can write.
+
+Wrap your existing chat at the application boundary in the answer library's `ThemeProvider`, passing
+the host chat's current `"light"` or `"dark"` mode. It cannot read react-ui's theme:
+
+```tsx
+import { ThemeProvider } from "@openuidev/intelligent-ui-library";
+
+<ThemeProvider mode={mode}>
+  {/* Your existing chat; the assistant message renderers below inherit this mode. */}
+</ThemeProvider>;
+```
 
 ## Render OpenUI Lang
 

@@ -5,8 +5,8 @@ description: The original OpenUI Lang specification for declarative UI generatio
 
 <Callout type="info">
   This is the **v0.1** specification, the original language for generating static UI from LLM
-  output, kept as it was released. For the current version, see the
-  [Specification](/docs/openui-lang/specification).
+  output. Examples below use today's `@openuidev/intelligent-ui-library` vocabulary. For the current
+  language version, see the [Specification](/docs/openui-lang/specification).
 </Callout>
 
 OpenUI Lang is the output format the LLM generates. It is a compact, declarative, line-oriented DSL designed specifically for streaming and token efficiency.
@@ -18,12 +18,10 @@ While you rarely write this language manually, understanding the syntax is helpf
 The language consists of a series of **assignment statements**. Every line binds a unique identifier to an expression.
 
 ```text
-root = Root([header, chart])           // 1. Entry Point
-header = Header("Q4 Revenue", "YTD")   // 2. Component Call
-chart = BarChart(labels, [s1, s2])     // 3. Forward Reference
-labels = ["Jan", "Feb", "Mar"]         // 4. Data Definition
-s1 = Series("Product A", [10, 20, 30])
-s2 = Series("Product B", [5, 15, 25])
+root = Col([header, chart])            // 1. Entry Point
+header = Title("Q4 Revenue", "lg")     // 2. Component Call
+chart = Chart("bar", data, "month", ["Product A", "Product B"])
+data = [{month: "Jan", "Product A": 10, "Product B": 5}, {month: "Feb", "Product A": 20, "Product B": 15}, {month: "Mar", "Product A": 30, "Product B": 25}]
 ```
 
 ## Core Rules
@@ -39,16 +37,16 @@ s2 = Series("Product B", [5, 15, 25])
 
 OpenUI Lang supports a strict subset of JavaScript values.
 
-| Type               | Syntax              | Example                       |
-| :----------------- | :------------------ | :---------------------------- |
-| **Component Call** | `Type(arg1, arg2)`  | `Header("Title", "Subtitle")` |
-| **String**         | `"text"`            | `"Hello world"`               |
-| **Number**         | `123`, `12.5`, `-5` | `42`                          |
-| **Boolean**        | `true` / `false`    | `true`                        |
-| **Null**           | `null`              | `null`                        |
-| **Array**          | `[a, b, c]`         | `["Jan", "Feb", "Mar"]`       |
-| **Object**         | `{key: val}`        | `{variant: "info", id: 1}`    |
-| **Reference**      | `identifier`        | `myTableData`                 |
+| Type               | Syntax              | Example                    |
+| :----------------- | :------------------ | :------------------------- |
+| **Component Call** | `Type(arg1, arg2)`  | `Title("Dashboard", "lg")` |
+| **String**         | `"text"`            | `"Hello world"`            |
+| **Number**         | `123`, `12.5`, `-5` | `42`                       |
+| **Boolean**        | `true` / `false`    | `true`                     |
+| **Null**           | `null`              | `null`                     |
+| **Array**          | `[a, b, c]`         | `["Jan", "Feb", "Mar"]`    |
+| **Object**         | `{key: val}`        | `{variant: "info", id: 1}` |
+| **Reference**      | `identifier`        | `myTableData`              |
 
 ---
 
@@ -63,24 +61,25 @@ The order of keys in your `z.object` schema defines the expected argument order.
 **1. The Schema (Zod)**
 
 ```typescript
-const HeaderSchema = z.object({
-  title: z.string(), // Position 0
-  subtitle: z.string().optional(), // Position 1
+const TitleSchema = z.object({
+  text: z.string(), // Position 0
+  size: z.enum(["sm", "md", "lg", "xl", "2xl", "3xl"]).optional(), // Position 1
+  color: z.string().optional(), // Position 2
 });
 ```
 
 **2. The Output (OpenUI Lang)**
 
 ```text
-h1 = Header("Dashboard", "Overview")
+h1 = Title("Dashboard", "lg")
 ```
 
 **3. The Result (React Props)**
 
 ```json
 {
-  "title": "Dashboard",
-  "subtitle": "Overview"
+  "text": "Dashboard",
+  "size": "lg"
 }
 ```
 
@@ -95,8 +94,8 @@ h1 = Header("Dashboard", "Overview")
 Optional arguments (trailing) can be omitted.
 
 ```text
-// Valid: subtitle is undefined
-h1 = Header("Dashboard")
+// Valid: size and color are undefined
+h1 = Title("Dashboard")
 ```
 
 ---
@@ -108,9 +107,10 @@ OpenUI Lang allows **Forward References** (Hoisting). An identifier can be used 
 ## How it works
 
 ```text
-root = Root([table]) // "table" is referenced here...
+root = Col([table]) // "table" is referenced here...
 // ... (network latency) ...
-table = Table(rows)  // ...but defined here.
+table = Table(["Name"], rows) // ...but defined here.
+rows = [["Ava"], ["Marcus"]]
 ```
 
 1. **Step 1:** The renderer parses `root`. It sees `table` is undefined. It renders a **Skeleton/Placeholder** for the table.
@@ -122,18 +122,13 @@ table = Table(rows)  // ...but defined here.
 A complex example showing nesting, arrays, and mixed types.
 
 ```text
-root = Root([nav, dashboard])
-nav  = Navbar("Acme Corp", [link1, link2])
+root = Col([nav, dashboard])
+nav = Row([Title("Acme Corp"), link1, link2], 3)
 link1 = Link("Home", "/")
 link2 = Link("Settings", "/settings")
-
-dashboard = Section([kpi_row, main_chart])
-kpi_row   = Grid([stat1, stat2])
-stat1     = StatCard("Revenue", "$1.2M", "up")
-stat2     = StatCard("Users", "450k", "flat")
-
-main_chart = LineChart(
-  ["Mon", "Tue", "Wed"],
-  [Series("Visits", [100, 450, 320])]
-)
+dashboard = Col([kpiRow, mainChart])
+kpiRow = Grid([stat1, stat2], 2)
+stat1 = Card([Caption("Revenue"), Title("$1.2M", "lg"), Badge("Up", "success")])
+stat2 = Card([Caption("Users"), Title("450k", "lg"), Badge("Flat")])
+mainChart = Chart("line", [{day: "Mon", visits: 100}, {day: "Tue", visits: 450}, {day: "Wed", visits: 320}], "day", ["visits"])
 ```

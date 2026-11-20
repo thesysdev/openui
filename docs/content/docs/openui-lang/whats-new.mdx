@@ -10,19 +10,23 @@ OpenUI Lang 1.0 adds ways for a library to grow (custom functions, custom action
 A library can add its own `@` functions with `defineFunction`. The model calls them like the built-ins, and the client runs them.
 
 ```ts
+import { defineFunction } from "@openuidev/react-lang";
+import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
+import { z } from "zod/v4";
+
 const percent = defineFunction({
-  name: "Percent",
+  name: "PercentLabel",
   description: "Formats part / total as a percentage",
   params: z.object({ part: z.number(), total: z.number().default(100) }),
   returns: z.string(),
   fn: ({ part, total }) => `${((part / total) * 100).toFixed(1)}%`,
 });
 
-const library = createLibrary({ root: "Card", components, functions: [percent] });
+const library = baseLibrary.extend({ functions: { add: [percent] } });
 ```
 
 ```text
-share = TextContent("Share: " + @Percent(done, total))
+share = Text("Share: " + @PercentLabel(done, total))
 ```
 
 Arguments are checked like component props, and a failed call evaluates to `null` instead of breaking the page. The built-in functions are now defined the same way, so their prompt lines carry types, for example `@Sum(numbers: number[]) → number`. See [Functions](/docs/openui-lang/functions#custom-functions).
@@ -79,11 +83,13 @@ See [Actions](/docs/openui-lang/actions#action-props-in-your-components).
 Derive a library from an existing one. Add, override, or remove components, and add functions and actions:
 
 ```ts
-const shopLibrary = openuiChatLibrary.extend({
+import { library } from "@openuidev/intelligent-ui-library";
+
+const shopLibrary = library.extend({
   components: {
-    add: [{ component: ProductCard, slots: ["Card"] }],
-    override: [CodeBlock],
-    remove: ["RadarChart"],
+    add: [ProductCard],
+    override: [Code],
+    remove: ["YouTube"],
   },
   functions: { add: [formatCurrency] },
   actions: { add: [addToCart] },
@@ -110,8 +116,8 @@ const parser = createParser(library.toJSONSchema(), library.root);
 
 ```text
 ]]>openui:content
-root = Card([title])
-title = TextContent("Order 42")
+root = Col([Card([title])])
+title = Text("Order 42")
 ]]>openui:context
 {"formState":{"note":"rush"}}
 ]]>openui:end

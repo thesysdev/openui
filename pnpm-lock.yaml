@@ -159,6 +159,12 @@ importers:
       '@openuidev/cli':
         specifier: workspace:*
         version: link:../packages/openui-cli
+      '@openuidev/dashboard-library':
+        specifier: workspace:^
+        version: link:../packages/libraries/dashboard
+      '@openuidev/intelligent-ui-library':
+        specifier: workspace:^
+        version: link:../packages/libraries/intelligent-ui
       '@openuidev/lang-core':
         specifier: workspace:^
         version: link:../packages/lang-core

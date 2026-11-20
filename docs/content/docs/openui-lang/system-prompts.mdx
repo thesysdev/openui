@@ -133,9 +133,9 @@ The prompt lists the built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, 
 If you're generating prompts client-side or in a Next.js route that already imports your library:
 
 ```ts
-import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
+import { library, promptOptions } from "@openuidev/intelligent-ui-library";
 
-const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
+const systemPrompt = library.prompt(promptOptions);
 ```
 
 This is convenient but imports React components. Prefer the generated spec plus `generateSystemPrompt` for backend routes.
