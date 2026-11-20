@@ -20,10 +20,3 @@ body {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-
-/* Show each stay's photo across its card instead of as a small thumbnail. */
-.openui-option-card__top--image {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 3 / 2;
-}
