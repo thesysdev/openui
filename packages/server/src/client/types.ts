@@ -34,7 +34,7 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   /** The model that builds and edits dashboards, as `provider/model`. */
   model: string;
   /** How much the model thinks, for models that can: as OpenAI's `reasoning_effort`. */
-  reasoningEffort?: "minimal" | "low" | "medium" | "high";
+  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
   /**
    * How many rounds of tool calls the model may make before it must write the dashboard
    * (OpenUI Cloud's default: 20). Each round can call several of your tools.
@@ -62,11 +62,6 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
-export interface DashboardStreamOptions extends RequestOptions {
-  /** Yield the build's messages as they come instead of resolving with one. */
-  stream: true;
-}
-
 /**
  * Creates and edits live dashboards. Each call resolves, as soon as the dashboard starts
  * generating, with the tool's response: return it from your tool as is, and pass it to the
@@ -82,7 +77,7 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
   create(
     params: CreateDashboardParams,
     context: Context,
-    options: DashboardStreamOptions,
+    options: RequestOptions & { stream: true },
   ): AsyncIterable<string>;
   create(
     params: CreateDashboardParams,
@@ -93,7 +88,7 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
   edit(
     params: EditDashboardParams,
     context: Context,
-    options: DashboardStreamOptions,
+    options: RequestOptions & { stream: true },
   ): AsyncIterable<string>;
   edit(
     params: EditDashboardParams,
