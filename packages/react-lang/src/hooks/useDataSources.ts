@@ -4,9 +4,10 @@ import { useOpenUI } from "../context";
 import { useRendererQuery } from "../Renderer";
 
 /** A query a component reads: the call it last ran with, whether it is loading, and its result. */
-interface DataSourceQuery {
+export interface DataSourceQuery {
   statementId: string;
   toolName: string | undefined;
+  /** The call it last ran, or is running: while `loading`, `data` is still the previous result (or the query's defaults). */
   args: unknown;
   loading: boolean;
   data: unknown;
@@ -21,25 +22,27 @@ interface Sources<Q> {
 }
 
 /** A prop's sources, with its expression as written. */
-interface PropSources extends Sources<string> {
+export interface PropDataSources extends Sources<string> {
+  /** The argument as written, e.g. `now.revenue`. */
   expr: string;
+}
+
+/** Where a component's data comes from: what `useDataSources` returns. */
+export interface DataSources extends Sources<DataSourceQuery> {
+  /** The text of each statement in `via`, e.g. `{ now: "@First(totals.rows)" }`. */
+  formulas: Record<string, string>;
+  props?: Record<string, PropDataSources>;
 }
 
 /**
  * Where a component's data comes from, for a "where did this number come from" view: its
  * queries, the statements in between and the `$variables` it reads, also by prop. A prop with no
  * queries and no state is written in the program; `formulas` holds the text of the statements in
- * between. Pass a statement's name (the `statementId` a component gets), or an inline id. It
- * reads the values when the Renderer updates
- * and does not subscribe to changes. The result keeps its identity until the program, a store
- * value or a query result changes, so it can be passed to effects.
+ * between. Pass a statement's name (the `statementId` a component gets), or an inline id.
+ * It reads the values whenever the Renderer updates. The result keeps its identity until the
+ * program, a store value or a query result changes, so it can be passed to effects.
  */
-export function useDataSources(id: string | undefined):
-  | (Sources<DataSourceQuery> & {
-      formulas: Record<string, string>;
-      props?: Record<string, PropSources>;
-    })
-  | null {
+export function useDataSources(id: string | undefined): DataSources | null {
   const context = useOpenUI();
   // Re-render on every Renderer update, so a new parse is read even when the caller's own props
   // did not change.

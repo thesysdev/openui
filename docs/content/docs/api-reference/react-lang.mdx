@@ -509,6 +509,7 @@ function useDataSources(id: string | undefined): {
   queries: {
     statementId: string;
     toolName: string | undefined;
+    /** The call it last ran, or is running: while `loading`, `data` is still the previous result (or the query's defaults). */
     args: unknown;
     loading: boolean;
     data: unknown;
@@ -528,6 +529,7 @@ function useDataSources(id: string | undefined): {
     }
   >;
 } | null;
+// Its return type is exported as DataSources; one query is DataSourceQuery, one prop PropDataSources.
 function useGetFieldValue(): (formName: string | undefined, name: string) => any;
 function useSetFieldValue(): (
   formName: string | undefined,

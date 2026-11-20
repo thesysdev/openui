@@ -1,4 +1,4 @@
-import type { OpenUIError, SourceTarget, useDataSources } from "@openuidev/react-lang";
+import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
 import { createContext, useContext, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
@@ -72,7 +72,7 @@ export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
 // ─── Provenance ──────────────────────────────────────────────────────────
 
 /** Where the selected component's data comes from: `useDataSources` for its statement. */
-export type ProvenanceSources = ReturnType<typeof useDataSources>;
+export type ProvenanceSources = DataSources | null;
 
 /** Inspect mode and the selected component, from `useArtifactProvenance()`. */
 export interface ArtifactProvenanceState {
