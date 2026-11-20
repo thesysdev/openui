@@ -5,5 +5,5 @@
  * this file (stubbing asset imports) and reads the `library` + `promptOptions`
  * exports to write `src/generated/spec.json`.
  */
-export { openuiLibrary as library } from "@openuidev/react-ui/genui-lib";
+export { library } from "@openuidev/intelligent-ui-library";
 export { promptOptions } from "./lib/prompt-options";

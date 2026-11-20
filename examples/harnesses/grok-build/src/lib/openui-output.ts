@@ -13,10 +13,7 @@ function startsSingleQuotedString(value: string, index: number): boolean {
   return /[([{:?,=+\-*/%!<>]/.test(value[previous]);
 }
 
-function scanQuoteState(
-  value: string,
-  initialQuote?: '"' | "'",
-): '"' | "'" | undefined {
+function scanQuoteState(value: string, initialQuote?: '"' | "'"): '"' | "'" | undefined {
   let quote = initialQuote;
   let escaped = false;
 
@@ -31,10 +28,7 @@ function scanQuoteState(
 
     if (character === '"') {
       quote = character;
-    } else if (
-      character === "'" &&
-      startsSingleQuotedString(value, index)
-    ) {
+    } else if (character === "'" && startsSingleQuotedString(value, index)) {
       // Ignore prose apostrophes and possessives while still
       // protecting fenced-looking text inside single-quoted OpenUI strings.
       quote = character;
@@ -204,7 +198,7 @@ export function isRenderableOpenUI(value: string): boolean {
   try {
     const result = parser.parse(value);
     return (
-      result.root?.typeName === "Stack" &&
+      result.root?.typeName === "Col" &&
       !result.meta.incomplete &&
       result.meta.errors.length === 0 &&
       result.meta.unresolved.length === 0
@@ -214,14 +208,11 @@ export function isRenderableOpenUI(value: string): boolean {
   }
 }
 
-export function createOpenUIStatus(
-  variant: "neutral" | "info" | "warning" | "success" | "error",
-  title: string,
-  description: string,
-): string {
+export function createOpenUIStatus(title: string, description: string): string {
   return [
-    "root = Stack([notice])",
-    `notice = Callout(${JSON.stringify(variant)}, ${JSON.stringify(title)}, ${JSON.stringify(description)})`,
+    "root = Col([heading, description])",
+    `heading = Text(${JSON.stringify(title)}, "md", null, "semibold")`,
+    `description = Text(${JSON.stringify(description)})`,
   ].join("\n");
 }
 
@@ -242,8 +233,8 @@ export function describeOpenUIProblems(value: string): string[] {
     const issues = result.meta.errors.map(issueText);
     issues.push(...result.meta.unresolved.map((name) => `Unresolved reference: ${name}`));
     if (!result.root) issues.push("No renderable root component was produced.");
-    else if (result.root.typeName !== "Stack") {
-      issues.push(`The root component must be Stack, not ${result.root.typeName}.`);
+    else if (result.root.typeName !== "Col") {
+      issues.push(`The root component must be Col, not ${result.root.typeName}.`);
     }
     if (result.meta.incomplete) issues.push("The OpenUI program is incomplete.");
     return [...new Set(issues)];
@@ -255,7 +246,6 @@ export function describeOpenUIProblems(value: string): string[] {
 function fallbackOpenUI(value: string): string {
   const detail = describeOpenUIProblems(value)[0] ?? "The final program was invalid.";
   return createOpenUIStatus(
-    "warning",
     "Unable to render Grok Build response",
     `The final OpenUI response did not pass validation. ${detail}`,
   );
@@ -387,7 +377,6 @@ export class OpenUIOutputAccumulator {
     if (this.lastRenderable) return this.lastRenderable;
     if (!candidate) {
       return createOpenUIStatus(
-        "warning",
         "No final response",
         "Grok Build completed without producing an assistant response.",
       );
@@ -399,10 +388,7 @@ export class OpenUIOutputAccumulator {
 /** Split validated output into at most ~72 pieces for a short, frame-paced reveal. */
 export function chunkOpenUIOutput(value: string): string[] {
   if (!value) return [];
-  const targetSize = Math.max(
-    MIN_STREAM_CHUNK_SIZE,
-    Math.ceil(value.length / MAX_STREAM_CHUNKS),
-  );
+  const targetSize = Math.max(MIN_STREAM_CHUNK_SIZE, Math.ceil(value.length / MAX_STREAM_CHUNKS));
   const chunks: string[] = [];
 
   for (let start = 0; start < value.length; ) {
