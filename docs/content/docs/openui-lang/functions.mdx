@@ -210,7 +210,7 @@ Your app adds the function to `library` and renders with the extended library:
 "use client";
 
 import { defineFunction, Renderer } from "@openuidev/react-lang";
-import { library as baseLibrary, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
 import { z } from "zod/v4";
 
 const percent = defineFunction({
@@ -224,12 +224,8 @@ const percent = defineFunction({
 // Create the library once, at module scope.
 const library = baseLibrary.extend({ functions: { add: [percent] } });
 
-export function Summary({ response, mode }: { response: string; mode: "light" | "dark" }) {
-  return (
-    <ThemeProvider mode={mode}>
-      <Renderer library={library} response={response} />
-    </ThemeProvider>
-  );
+export function Summary({ response }: { response: string }) {
+  return <Renderer library={library} response={response} />;
 }
 ```
 

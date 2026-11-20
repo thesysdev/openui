@@ -3,10 +3,7 @@ title: "@openuidev/react-ui"
 description: API reference for the AgentInterface chat surface and default component library exports.
 ---
 
-Use this package for the prebuilt `AgentInterface` chat surface, adapters, theming, and styles.
-For generated answers, use [`@openuidev/intelligent-ui-library`](/docs/build-agents/ui-generation),
-whose root is `Col`. The component libraries bundled with react-ui are **legacy**; they remain
-available for existing applications.
+Use this package for the prebuilt `AgentInterface` chat surface and default component library primitives.
 
 ## Import
 
@@ -66,7 +63,7 @@ The layered variant requires browser support for [CSS cascade layers](https://de
 
 ```tsx
 import { AgentInterface, fetchLLM, openAIAdapter, openAIMessageFormat } from "@openuidev/react-ui";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 
 const llm = fetchLLM({
   url: "/api/chat",
@@ -74,9 +71,7 @@ const llm = fetchLLM({
   messageFormat: openAIMessageFormat,
 });
 
-<ThemeProvider mode={mode}>
-  <AgentInterface llm={llm} componentLibrary={library} theme={{ mode }} />
-</ThemeProvider>;
+<AgentInterface llm={llm} componentLibrary={openuiChatLibrary} />;
 ```
 
 ## Props (`AgentInterfaceProps`)
@@ -137,15 +132,7 @@ interface ConversationStartersConfig {
 
 ## Component library exports
 
-### Legacy component sets
-
-The exports below are **legacy** and remain available unchanged for existing apps. For new code,
-import `library`, `promptOptions`, `examples`, `additionalRules`, `componentGroups`, and
-`ThemeProvider` from `@openuidev/intelligent-ui-library`. Follow the
-[UI generation guide](/docs/build-agents/ui-generation) to export its spec and build the prompt.
-The new library cannot read react-ui's theme, so pass the chat's `mode` to its `ThemeProvider`.
-
-Two legacy libraries ship with `@openuidev/react-ui`. Import from the `genui-lib` subpath:
+Two ready-to-use libraries ship with `@openuidev/react-ui`. Import from the `genui-lib` subpath:
 
 ```ts
 import {
@@ -190,10 +177,10 @@ npx @openuidev/cli@latest generate ./src/library.ts --out src/generated/system-p
 ```
 
 ```tsx
-// Legacy chat interface — system prompt stays on the server
+// Chat interface — system prompt stays on the server
 <AgentInterface componentLibrary={openuiChatLibrary} ... />
 
-// Legacy standalone renderer
+// Standalone renderer
 <Renderer response={message} library={openuiLibrary} />
 ```
 

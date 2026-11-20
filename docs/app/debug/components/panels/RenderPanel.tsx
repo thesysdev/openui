@@ -2,14 +2,14 @@
 
 import { Renderer } from "@openuidev/react-lang";
 import { useTheme } from "@openuidev/react-ui";
+import { FlaskConical } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
 import { getLibrary, type LibraryId } from "@paste/lib/libraries";
 import { createMockToolProvider, type MockToolCall } from "@paste/lib/mockTools";
 import { BUNDLED_LANG_CORE_VERSION } from "@paste/lib/versions/loader";
 import type { OpenUIError } from "@paste/lib/versions/types";
-import styles from "@paste/paste.module.css";
-import { FlaskConical } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
+import styles from "@paste/paste.module.css";
 
 const TOOL_CALL_LOG_CAP = 20;
 

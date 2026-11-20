@@ -64,7 +64,7 @@ approveBtn = Button("Approve", @ToAssistant("Approve this order", {orderId: 42})
 }
 ```
 
-With no context, or `null`, `params` is `{}`. The host decides how the context reaches the model. The chat in `@openuidev/intelligent-ui-library` adds it to the stored user turn, after the form state. See [Message Protocol](/docs/openui-lang/message-protocol#the-react-ui-chat-format).
+With no context, or `null`, `params` is `{}`. The host decides how the context reaches the model. The chat in `@openuidev/react-ui` adds it to the stored user turn, after the form state. See [Message Protocol](/docs/openui-lang/message-protocol#the-react-ui-chat-format).
 
 ## Custom actions
 
@@ -79,14 +79,13 @@ This file, `message.tsx`, defines a button, a custom action, the library, and th
 
 import {
   action,
+  createLibrary,
   defineAction,
   defineComponent,
   Renderer,
   useTriggerAction,
 } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-
-import { library as baseLibrary, ThemeProvider } from "@openuidev/intelligent-ui-library";
 
 // 1. A component with an action prop.
 const Button = defineComponent({
@@ -117,25 +116,24 @@ export const copyToClipboard = defineAction({
 });
 
 // 3. The library the model writes against.
-export const library = baseLibrary.extend({
-  components: { override: [Button] },
-  actions: { add: [copyToClipboard] },
+export const library = createLibrary({
+  root: "Button",
+  components: [Button],
+  actions: [copyToClipboard],
 });
 
 // 4. Your app handles the event.
-export function Message({ response, mode }: { response: string; mode: "light" | "dark" }) {
+export function Message({ response }: { response: string }) {
   return (
-    <ThemeProvider mode={mode}>
-      <Renderer
-        library={library}
-        response={response}
-        onAction={(event) => {
-          if (event.type === "CopyToClipboard") {
-            void navigator.clipboard.writeText(event.params.text);
-          }
-        }}
-      />
-    </ThemeProvider>
+    <Renderer
+      library={library}
+      response={response}
+      onAction={(event) => {
+        if (event.type === "CopyToClipboard") {
+          void navigator.clipboard.writeText(event.params.text);
+        }
+      }}
+    />
   );
 }
 ```
@@ -143,7 +141,7 @@ export function Message({ response, mode }: { response: string; mode: "light" | 
 The model can now write:
 
 ```text
-root = Col([Button("Copy order ID", @CopyToClipboard("ORD-1042"))])
+root = Button("Copy order ID", @CopyToClipboard("ORD-1042"))
 ```
 
 The user sees a "Copy order ID" button. On click, the renderer sends a `CopyToClipboard` event to `onAction`, and your handler copies "ORD-1042". The `Button` in `@openuidev/intelligent-ui-library` takes an action prop the same way.
@@ -242,7 +240,7 @@ function handleAction(event: LibraryActionEvent<typeof library>) {
 
 ### `onAction` on `AgentInterface`
 
-`AgentInterface` from `@openuidev/intelligent-ui-library` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Its `onAction` prop receives the events the chat does not handle, such as the events from your custom actions:
+`AgentInterface` from `@openuidev/react-ui` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Its `onAction` prop receives the events the chat does not handle, such as the events from your custom actions:
 
 ```tsx
 import { AgentInterface } from "@openuidev/react-ui";
@@ -274,7 +272,7 @@ An order card where one button approves the order and another copies its ID. It 
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
-import { library as baseLibrary, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
 import { copyToClipboard } from "./message";
 
 const library = baseLibrary.extend({ actions: { add: [copyToClipboard] } });
@@ -282,33 +280,29 @@ const library = baseLibrary.extend({ actions: { add: [copyToClipboard] } });
 export function OrderMessage({
   response,
   sendMessage,
-  mode,
 }: {
   response: string;
-  mode: "light" | "dark";
   sendMessage: (text: string) => void;
 }) {
   return (
-    <ThemeProvider mode={mode}>
-      <Renderer
-        library={library}
-        response={response}
-        toolProvider={{
-          approve_order: async (args) =>
-            fetch("/api/orders/approve", { method: "POST", body: JSON.stringify(args) }).then((r) =>
-              r.json(),
-            ),
-        }}
-        onAction={(event) => {
-          if (event.type === "CopyToClipboard") {
-            void navigator.clipboard.writeText(event.params.text);
-          }
-          if (event.type === "continue_conversation") {
-            sendMessage(event.humanFriendlyMessage);
-          }
-        }}
-      />
-    </ThemeProvider>
+    <Renderer
+      library={library}
+      response={response}
+      toolProvider={{
+        approve_order: async (args) =>
+          fetch("/api/orders/approve", { method: "POST", body: JSON.stringify(args) }).then((r) =>
+            r.json(),
+          ),
+      }}
+      onAction={(event) => {
+        if (event.type === "CopyToClipboard") {
+          void navigator.clipboard.writeText(event.params.text);
+        }
+        if (event.type === "continue_conversation") {
+          sendMessage(event.humanFriendlyMessage);
+        }
+      }}
+    />
   );
 }
 ```

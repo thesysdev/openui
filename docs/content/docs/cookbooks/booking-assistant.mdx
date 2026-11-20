@@ -224,13 +224,6 @@ export const DatePicker = defineComponent({
 
 Spreading it after the new library's components replaces the built-in `DatePicker`. The [complete component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/components/date-picker.tsx) also registers validation rules, displays errors, enforces date bounds, and manages the calendar's open state. Generate the specification with `npm run generate`, which also runs before development and builds.
 
-```text
-root = Col([trip])
-trip = Form([check_in, submit])
-submit = Button("Find stays", @ToAssistant("Find stays"), "solid", "primary")
-check_in = DatePicker("2026-12-04", "Check-in", "2026-12-01", null, {required: true})
-```
-
 ### 4. Describe the booking flow
 
 The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/prompt.ts) gives the model today's date and trivago's filter options, then describes each step. The first rule starts every new request with a form:
@@ -278,7 +271,7 @@ function Chat() {
 }
 ```
 
-The new ThemeProvider receives the chat mode so answer text follows light and dark mode. The prompt extends the new library’s `promptOptions`, `additionalRules`, and `examples`, keeping `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`.
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
 
 Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their searches and results, and sends them with every turn.
 

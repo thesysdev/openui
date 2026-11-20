@@ -69,7 +69,6 @@ Two prompt options control this behavior. Pass them to `generateSystemPrompt` in
 ```ts
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import librarySpec from "./generated/system-prompt.spec.json";
-import { promptOptions } from "@openuidev/intelligent-ui-library";
 
 const systemPrompt = generateSystemPrompt({
   library: librarySpec as LibrarySpec,
@@ -94,25 +93,19 @@ Your backend builds the prompt with `editMode: true` as shown above and sends th
 "use client";
 
 import { mergeStatements, Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { library } from "@openuidev/intelligent-ui-library";
 
 export function Dashboard({
   previous,
   latest,
   isStreaming,
-  mode,
 }: {
-  mode: "light" | "dark";
   previous: string; // the program shown before this turn
   latest: string; // the model's patch for this turn
   isStreaming: boolean;
 }) {
   const program = isStreaming ? previous : mergeStatements(previous, latest);
-  return (
-    <ThemeProvider mode={mode}>
-      <Renderer library={library} response={program} isStreaming={isStreaming} />
-    </ThemeProvider>
-  );
+  return <Renderer library={library} response={program} isStreaming={isStreaming} />;
 }
 ```
 

@@ -7,8 +7,6 @@ OpenUI can render output from a [Vercel Eve](https://github.com/vercel/eve) agen
 
 The agent receives the OpenUI component-library prompt when a session starts, so its responses use OpenUI Lang and render as cards, tables, charts, forms, and other interactive components.
 
-Answers use `@openuidev/intelligent-ui-library` (root `Col`). `@openuidev/react-ui` supplies the chat window, adapters, theming and styles.
-
 [View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/vercel-eve)
 
 <div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
@@ -26,12 +24,12 @@ Answers use `@openuidev/intelligent-ui-library` (root `Col`). `@openuidev/react-
 
 ## How it connects
 
-| Piece              | File                           | Role                                                                                  |
-| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------- |
+| Piece              | File                           | Role                                                                                 |
+| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------ |
 | OpenUI chat        | `src/app/page.tsx`             | Renders `<AgentInterface />` with `library` from `@openuidev/intelligent-ui-library`. |
-| Session bridge     | `src/eve-chat.ts`              | Delivers turns through Eve's HTTP API and returns Eve's raw NDJSON stream.            |
-| Event adapter      | `eveAdapter()`                 | Maps Eve text, tool-call, and failure events to AG-UI (`@openuidev/react-headless`).  |
-| Agent instructions | `agent/instructions/openui.ts` | Adds the Gateway-compatible OpenUI instructions when each Eve session starts.         |
+| Session bridge     | `src/eve-chat.ts`              | Delivers turns through Eve's HTTP API and returns Eve's raw NDJSON stream.           |
+| Event adapter      | `eveAdapter()`                 | Maps Eve text, tool-call, and failure events to AG-UI (`@openuidev/react-headless`). |
+| Agent instructions | `agent/instructions/openui.ts` | Adds the Gateway-compatible OpenUI instructions when each Eve session starts.        |
 
 The Next.js app and Eve development server start together through `withEve()`. The browser uses
 Eve's same-origin session endpoints directly, so the integration does not need a custom backend
@@ -43,33 +41,24 @@ stream cursor, preserving multi-turn context and resumable delivery.
 The page creates Eve-backed chat callbacks and passes them to `<AgentInterface />`. `eveAdapter()` consumes Eve's NDJSON session stream:
 
 ```tsx
-"use client";
-
+import { AgentInterface } from "@openuidev/react-ui";
 import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
-import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
-import "@openuidev/react-ui/styles/index.css";
-import { useMemo } from "react";
 import { createEveChatProps } from "../eve-chat";
 
-export default function Page() {
-  const mode = useSystemThemeMode();
-  const { llm, storage } = useMemo(() => createEveChatProps(), []);
+const { llm, storage } = createEveChatProps();
 
-  return (
-    <ThemeProvider mode={mode}>
-      <AgentInterface
-        llm={llm}
-        storage={storage}
-        componentLibrary={library}
-        agentName="Eve + OpenUI"
-        theme={{ mode }}
-      />
-    </ThemeProvider>
-  );
-}
+<ThemeProvider mode={mode}>
+  <AgentInterface
+    llm={llm}
+    storage={storage}
+    componentLibrary={library}
+    agentName="Eve + OpenUI"
+    theme={{ mode }}
+  />
+</ThemeProvider>;
 ```
 
-Pass the same mode to the library's `ThemeProvider` and the chat's `theme`: the component library cannot read react-ui's theme. Start a new chat if you have saved answers from the old component library.
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
 
 `createEveChatProps()` sets `llm.streamProtocol` to `eveAdapter()` and provides OpenUI's thread callbacks. The example stores thread metadata, transcripts, Eve session IDs, continuation tokens, and stream cursors in `localStorage`, so each OpenUI thread resumes the corresponding Eve conversation.
 
@@ -91,34 +80,8 @@ export default defineDynamic({
 });
 ```
 
-`cloudInstructions()` loads the generated specification for the same Intelligent UI `library` used by the
+`cloudInstructions()` loads the generated specification for the same `library` used by the
 renderer and wraps it for OpenUI Gateway.
-
-## Component library and prompt
-
-Install `@openuidev/intelligent-ui-library` alongside the chat packages (the standalone example pins `0.0.2`). The CLI reads `src/library.ts`:
-
-```ts
-export { library, promptOptions } from "@openuidev/intelligent-ui-library";
-```
-
-The full example extends these prompt options with two form rules, preserving the library's examples and `additionalRules`. Generate the spec before running the server:
-
-```bash
-openui generate src/library.ts --spec --out src/generated/spec.json
-```
-
-`src/lib/cloud-prompt.ts` loads the generated spec and builds the system prompt in cloud mode:
-
-```ts
-import { generateSystemPrompt } from "@openuidev/lang-core";
-import spec from "@/generated/spec.json";
-
-const { promptOptions, ...library } = spec;
-const systemPrompt = generateSystemPrompt({ cloud: true, library, promptOptions });
-```
-
-The example's `cloudInstructions()` performs this step on the server. Its `predev`, `prebuild` and `preverify` scripts regenerate the spec automatically.
 
 ## The session bridge
 
@@ -197,14 +160,14 @@ examples/agent-frameworks/vercel-eve/
 
 ## Run the example
 
-Eve 0.11 requires Node.js 24. Enter the standalone example and install its dependencies:
+Eve 0.11 requires Node.js 24. From the repository root, follow these steps:
 
 ```bash tab="pnpm" tab-group="pkg"
-# 1. Enter the example.
-cd examples/agent-frameworks/vercel-eve
+# 1. Install workspace dependencies.
+pnpm install
 
-# 2. Install dependencies.
-pnpm install --ignore-workspace
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
 
 # 3. Configure OpenUI Gateway.
 cp .env.example .env
@@ -215,11 +178,11 @@ pnpm dev
 ```
 
 ```bash tab="bun" tab-group="pkg"
-# 1. Enter the example.
-cd examples/agent-frameworks/vercel-eve
-
-# 2. Install dependencies.
+# 1. Install workspace dependencies.
 bun install
+
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
 
 # 3. Configure OpenUI Gateway.
 cp .env.example .env
@@ -230,11 +193,11 @@ bun dev
 ```
 
 ```bash tab="yarn" tab-group="pkg"
-# 1. Enter the example.
-cd examples/agent-frameworks/vercel-eve
-
-# 2. Install dependencies.
+# 1. Install workspace dependencies.
 yarn install
+
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
 
 # 3. Configure OpenUI Gateway.
 cp .env.example .env
@@ -245,11 +208,11 @@ yarn dev
 ```
 
 ```bash tab="npm" tab-group="pkg"
-# 1. Enter the example.
-cd examples/agent-frameworks/vercel-eve
-
-# 2. Install dependencies.
+# 1. Install workspace dependencies.
 npm install
+
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
 
 # 3. Configure OpenUI Gateway.
 cp .env.example .env

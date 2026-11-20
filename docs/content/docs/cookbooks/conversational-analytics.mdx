@@ -148,9 +148,7 @@ export { library, promptOptions } from "@openuidev/intelligent-ui-library";
 
 Every answer starts with `Col`. Group related content in `Card`, use `Table(columns, rows)` for rankings, and `Chart("line", rows, "Lap", series)` for lap-by-lap comparisons. Chart rows are objects with a lap and numeric series values. Follow-up `Button` actions use `@ToAssistant("Compare their final ten laps")` to send the next question.
 
-`src/lib/prompt.ts` extends the library's `promptOptions`, `additionalRules`, and `examples` with the analytics rules and sample program.
-
-Install the pinned library with `npm install @openuidev/intelligent-ui-library@0.0.2`, then generate the server specification from the same library used by the renderer:
+Generate the server specification from the same library used by the renderer:
 
 ```bash
 npm run generate
@@ -193,7 +191,7 @@ const storage = useOpenuiCloudStorage({
 </ThemeProvider>;
 ```
 
-The Intelligent UI `ThemeProvider` receives the chat's current `mode`, following the operating system, so answers stay readable in light and dark mode.
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
 
 Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their tool calls and results, and sends them with every question. That is what lets a follow-up build on the previous answer.
 

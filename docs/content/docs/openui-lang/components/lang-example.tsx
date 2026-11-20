@@ -39,22 +39,41 @@ export const LangExample = () => {
           <CodeBlock
             className="h-full"
             title="Component Library Definition"
-            code={`// lib/intelligent-ui-library.ts
-export { library, promptOptions } from "@openuidev/intelligent-ui-library";`}
+            code={`import { defineComponent, createLibrary } from '@openuidev/react-lang';
+import { z } from 'zod/v4';
+
+const MyCard = defineComponent({
+  name: 'MyCard',
+  description: 'Display a card with multiple children',
+  props: z.object({
+    children: z.array(z.any()),
+  }),
+  component: ({ props, renderNode }) => <div>{renderNode(props.children)}</div>,
+  ...
+});
+
+export const myLibrary = createLibrary({
+  components: [MyCard, ...otherComponents],
+});`}
           />
         </TabsContent>
 
         <TabsContent value="render-code" className="mt-3 flex-1">
           <CodeBlock
             title="Rendering Code"
-            code={`import { Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+            code={`import { Renderer } from '@openuidev/react-lang';
+import { myLibrary } from './library';
 
-export function AssistantMessage({ content, isStreaming, mode }) {
+// Inside your Chat Message component
+export function AssistantMessage({ content, isStreaming }) {
   return (
-    <ThemeProvider mode={mode}>
-      <Renderer library={library} response={content} isStreaming={isStreaming} />
-    </ThemeProvider>
+    <div className="prose dark:prose-invert max-w-none">
+      <Renderer
+        library={myLibrary}
+        response={content}
+        isStreaming={isStreaming}
+      />
+    </div>
   );
 }`}
           />
@@ -63,16 +82,13 @@ export function AssistantMessage({ content, isStreaming, mode }) {
           <div className="mb-3 text-sm font-medium">Generate System Prompt with CLI</div>
           <CodeBlock
             title=""
-            code={`npx @openuidev/cli@latest generate lib/intelligent-ui-library.ts --spec --out generated/spec.json`}
+            code={`npx @openuidev/cli@latest generate path/to/library.ts --out system-prompt.txt`}
           />
           <div className="my-3 text-sm font-medium">Send system prompt to the LLM</div>
           <CodeBlock
             title=""
-            code={`import { generateSystemPrompt } from "@openuidev/lang-core";
-import { promptOptions } from "@openuidev/intelligent-ui-library";
-import library from "./generated/spec.json";
-
-const systemPrompt = generateSystemPrompt({ library, promptOptions });
+            code={`import fs from "fs";
+const systemPrompt = fs.readFileSync("system-prompt.txt", "utf8");
 const completion = await client.chat.completions.create({
   model: "gpt-5.2",
   stream: true,

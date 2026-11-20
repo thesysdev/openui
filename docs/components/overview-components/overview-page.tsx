@@ -12,16 +12,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/overview-components";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
-import { Renderer } from "@openuidev/react-lang";
 import { ArrowUpRight, Code2, MessageSquare, Package } from "lucide-react";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import { genuiOutput } from "./genui";
 
 export function OverviewPage() {
-  const { resolvedTheme } = useTheme();
-  const mode = resolvedTheme === "dark" ? "dark" : "light";
   return (
     <div className="mx-auto max-w-4xl px-3 py-8 font-sans text-slate-900 sm:px-4 sm:py-12 lg:px-8 dark:text-slate-100">
       {/* Introduction */}
@@ -49,7 +44,7 @@ export function OverviewPage() {
           />
           <FeatureCard
             icon={<Package />}
-            title="Intelligent UI Library"
+            title="Default Component Library"
             description="50+ pre-built components optimized for LLM generation, ready to use"
             href="#library"
           />
@@ -124,22 +119,41 @@ export function OverviewPage() {
               <CodeBlock
                 className="h-full"
                 title="Component Library Definition"
-                code={`// lib/intelligent-ui-library.ts
-export { library, promptOptions } from "@openuidev/intelligent-ui-library";`}
+                code={`import { defineComponent, createLibrary } from '@openuidev/react-lang';
+import { z } from 'zod/v4';
+
+const MyCard = defineComponent({
+  name: 'MyCard',
+  description: 'Display a card with multiple children',
+  props: z.object({
+    children: z.array(z.any()),
+  }),
+  component: ({ props, renderNode }) => <div>{renderNode(props.children)}</div>,
+  ...
+});
+
+export const myLibrary = createLibrary({
+  components: [MyCard, ...otherComponents],
+});`}
               />
             </TabsContent>
 
             <TabsContent value="render-code" className="mt-3 flex-1">
               <CodeBlock
                 title="Rendering Code"
-                code={`import { Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+                code={`import { Renderer } from '@openuidev/react-lang';
+import { myLibrary } from './library';
 
-export function AssistantMessage({ content, isStreaming, mode }) {
+// Inside your Chat Message component
+export function AssistantMessage({ content, isStreaming }) {
   return (
-    <ThemeProvider mode={mode}>
-      <Renderer library={library} response={content} isStreaming={isStreaming} />
-    </ThemeProvider>
+    <div className="prose dark:prose-invert max-w-none">
+      <Renderer
+        library={myLibrary}
+        response={content}
+        isStreaming={isStreaming}
+      />
+    </div>
   );
 }`}
               />
@@ -154,9 +168,7 @@ export function AssistantMessage({ content, isStreaming, mode }) {
               <span className="text-sm font-medium">Output Preview</span>
             </div>
             <div className="p-6">
-              <ThemeProvider mode={mode}>
-                <Renderer library={library} response={genuiOutput} />
-              </ThemeProvider>
+              <img src="/images/openui-lang/example.png" alt="Quick Example" />
             </div>
           </SimpleCard>
         </div>
@@ -237,26 +249,27 @@ export function AssistantMessage({ content, isStreaming, mode }) {
             code={`import "@openuidev/react-ui/styles/index.css";
 import {
   AgentInterface,
-  fetchLLM,
-  openAIReadableStreamAdapter,
+  openAIAdapter,
   openAIMessageFormat,
 } from "@openuidev/react-ui";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { library } from "@openuidev/intelligent-ui-library";
 
-const llm = fetchLLM({
-  url: "/api/chat",
-  streamAdapter: openAIReadableStreamAdapter(),
-  messageFormat: openAIMessageFormat,
-});
+const llm = {
+  send: ({ messages, signal }) =>
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: openAIMessageFormat.toApi(messages) }),
+      signal,
+    }),
+  streamProtocol: openAIAdapter(),
+};
 
-// Pass the same light/dark mode to both providers.
-export function Chat({ mode }) {
-  return (
-    <ThemeProvider mode={mode}>
-      <AgentInterface llm={llm} componentLibrary={library} theme={{ mode }} />
-    </ThemeProvider>
-  );
-}`}
+<AgentInterface
+  llm={llm}
+  componentLibrary={library}
+/>
+`}
           />
         </div>
       </div>
@@ -270,7 +283,9 @@ export function Chat({ mode }) {
             <Package className="size-5 text-fd-foreground sm:size-6" />
           </div>
           <div>
-            <h2 className="mb-1 text-2xl font-bold sm:mb-2 sm:text-3xl">Intelligent UI Library</h2>
+            <h2 className="mb-1 text-2xl font-bold sm:mb-2 sm:text-3xl">
+              Default Component Library
+            </h2>
             <p className="text-sm text-slate-500 sm:text-base dark:text-slate-400">
               Pre-built components defined using OpenUI language
             </p>
@@ -284,17 +299,13 @@ export function Chat({ mode }) {
 
         <FeatureCards direction="horizontal" cols={4} className="mb-4 sm:mb-6">
           <FeatureCard direction="horizontal" title="Layout" description="Col, Row, Grid" />
-          <FeatureCard
-            direction="horizontal"
-            title="Forms"
-            description="Input, Select, RadioGroup"
-          />
+          <FeatureCard direction="horizontal" title="Forms" description="Input, Select, Radio" />
           <FeatureCard
             direction="horizontal"
             title="Data Display"
             description="Table, Card, Badge"
           />
-          <FeatureCard direction="horizontal" title="Charts" description="Chart" />
+          <FeatureCard direction="horizontal" title="Charts" description="Line, Bar, Pie" />
         </FeatureCards>
 
         <div className="mb-4">
@@ -311,48 +322,54 @@ export function Chat({ mode }) {
             <TabsContent value="quick-example" className="mt-4">
               <CodeBlock
                 title="Quick example"
-                code={`import { defineComponent } from "@openuidev/react-lang";
-import { library } from "@openuidev/intelligent-ui-library";
-import { z } from "zod/v4";
+                code={`import { defineComponent } from '@openuidev/react-lang';
+import { library } from '@openuidev/intelligent-ui-library';
+import { z } from 'zod/v4';
+
+// Generate prompt with CLI: openui generate ./src/library.ts
 
 const CustomWidget = defineComponent({
-  name: "CustomWidget",
-  description: "A simple custom widget",
-  props: z.object({ title: z.string() }),
-  component: ({ props }) => <div>{props.title}</div>,
+  name: 'CustomWidget',
+  description: 'A simple custom widget',
+  props: z.object({
+    title: z.string(),
+  }),
+  component: () => null,
 });
 
-// Keeps Col, the component groups and the library's functions.
-export const customLibrary = library.extend({ components: { add: [CustomWidget] } });
-
-// openui generate ./src/library.ts --export customLibrary --spec --out generated/spec.json`}
+const customLibrary = library.extend({
+  components: { add: [CustomWidget] },
+});`}
               />
             </TabsContent>
 
             <TabsContent value="usage-with-chat" className="mt-4">
               <CodeBlock
                 title="Using with Chat UI"
-                code={`import "@openuidev/react-ui/styles/index.css";
-import {
+                code={`import {
   AgentInterface,
-  fetchLLM,
-  openAIReadableStreamAdapter,
+  openAIAdapter,
   openAIMessageFormat,
-} from "@openuidev/react-ui";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+} from '@openuidev/react-ui';
+import { library } from '@openuidev/intelligent-ui-library';
 
-const llm = fetchLLM({
-  url: "/api/chat",
-  streamAdapter: openAIReadableStreamAdapter(),
-  messageFormat: openAIMessageFormat,
-});
+const llm = {
+  send: ({ messages, signal }) =>
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: openAIMessageFormat.toApi(messages) }),
+      signal,
+    }),
+  streamProtocol: openAIAdapter(),
+};
 
-// Pass the same light/dark mode to both providers.
-export function Chat({ mode }) {
+function App() {
   return (
-    <ThemeProvider mode={mode}>
-      <AgentInterface llm={llm} componentLibrary={library} theme={{ mode }} />
-    </ThemeProvider>
+    <AgentInterface
+      llm={llm}
+      componentLibrary={library}
+    />
   );
 }`}
               />

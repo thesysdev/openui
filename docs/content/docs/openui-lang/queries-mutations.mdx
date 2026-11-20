@@ -117,23 +117,21 @@ Your app gives the renderer two tools. Each calls an API route on your server:
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { library } from "@openuidev/intelligent-ui-library";
 
-export function Tickets({ response, mode }: { response: string; mode: "light" | "dark" }) {
+export function Tickets({ response }: { response: string }) {
   return (
-    <ThemeProvider mode={mode}>
-      <Renderer
-        library={library}
-        response={response}
-        toolProvider={{
-          list_tickets: async () => fetch("/api/tickets").then((r) => r.json()),
-          create_ticket: async (args) =>
-            fetch("/api/tickets", { method: "POST", body: JSON.stringify(args) }).then((r) =>
-              r.json(),
-            ),
-        }}
-      />
-    </ThemeProvider>
+    <Renderer
+      library={library}
+      response={response}
+      toolProvider={{
+        list_tickets: async () => fetch("/api/tickets").then((r) => r.json()),
+        create_ticket: async (args) =>
+          fetch("/api/tickets", { method: "POST", body: JSON.stringify(args) }).then((r) =>
+            r.json(),
+          ),
+      }}
+    />
   );
 }
 ```

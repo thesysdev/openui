@@ -143,9 +143,6 @@ The prompt prints `rules?: ValidationRules` instead of `rules?: Record<string, a
 A library can also add its own `@` functions and actions:
 
 ```ts
-import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
-
-const { Col, Card, Text, Button } = baseLibrary.components;
 const library = createLibrary({
   root: "Col",
   components: [Col, Card, Text, Button],
@@ -161,9 +158,6 @@ See [Functions](/docs/openui-lang/functions) and [Actions](/docs/openui-lang/act
 The `root` option in `createLibrary` specifies which component the LLM must use as the entry point. The generated system prompt instructs the model to always start with `root = <RootName>(...)`.
 
 ```ts
-import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
-
-const { Col, Card, Text } = baseLibrary.components;
 const library = createLibrary({
   root: "Col", // → prompt tells LLM: "every program must define root = Col(...)"
   components: [Col, Card, Text],

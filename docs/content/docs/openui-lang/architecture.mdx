@@ -146,14 +146,13 @@ The prompt must list your tools, so your backend builds it with `generateSystemP
 import OpenAI from "openai";
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import componentSpec from "./generated/component-spec.json";
-import { promptOptions } from "@openuidev/intelligent-ui-library";
 import { tools } from "./tools";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const systemPrompt = generateSystemPrompt({
   library: componentSpec as LibrarySpec,
-  promptOptions: { ...promptOptions, tools, toolCalls: true, bindings: true },
+  promptOptions: { tools, toolCalls: true, bindings: true },
 });
 
 const completion = await client.chat.completions.create({

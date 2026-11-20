@@ -191,7 +191,7 @@ table = Table(["Criterion", "Company A"], [["Revenue", "$10.0 billion (p. 12)"]]
 sources = Col([Title("Sources", "sm"), Card([Quote("Revenue for the fiscal year was $10.0 billion.", "Company A · Page 12"), Link("Company A · Page 12", "https://example.com/company-a.pdf#page=12")])])
 ```
 
-Each source shows the company, page, and quote, with a link that opens the report at that page. `src/lib/prompt.ts` extends the library's `promptOptions`, `additionalRules`, and `examples` with comparison rules and sample programs. Install the pinned library with `npm install @openuidev/intelligent-ui-library@0.0.2`, then generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
+Each source shows the company, page, and quote, with a link that opens the report at that page. The prompt names the components an answer uses and rules out form controls. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
 
 ### 4. Customize Agent Interface
 

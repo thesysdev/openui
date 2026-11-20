@@ -93,13 +93,8 @@ The `title` and `description` aren't used to load anything. They are what a read
 `files/index.html` is plain HTML, CSS and JavaScript that Claude writes. What it leaves out matters more than what it contains: Claude never types a number into it. Every number on screen starts as a placeholder that names where its value comes from. This tile is from the signups dashboard:
 
 ```html
-<span
-  class="ws-big dash-skeleton"
-  data-draw="tile-signups"
-  data-source="latest"
-  data-field="signups"
-  >—</span
->
+<span class="ws-big dash-skeleton"
+      data-draw="tile-signups" data-source="latest" data-field="signups">—</span>
 ```
 
 `data-source` picks the source, `data-field` picks one column of it, and `data-draw` names the draw that writes the value. Here is the whole path for the tile, and for the chart beside it:
@@ -121,16 +116,16 @@ A dataset returns raw rows, but a tile needs one formatted number. Something has
 A **calc** derives a new source from datasets or other calcs. The signups tile reads `latest`, a calc over the `weekly` dataset:
 
 ```js
-dash.calc("latest", {
-  inputs: ["weekly"],
-  title: "Last week vs week before",
+dash.calc('latest', {
+  inputs: ['weekly'],
+  title: 'Last week vs week before',
   fn: (weekly) => {
     const rows = weekly
       .map((r) => ({ week_start: String(r.week_start).slice(0, 10), signups: Number(r.signups) }))
       .sort((a, b) => (a.week_start < b.week_start ? -1 : 1));
     const cur = rows[rows.length - 1];
     const prev = rows[rows.length - 2];
-    return [{ signups: cur.signups, change: cur.signups - prev.signups /* … */ }];
+    return [{ signups: cur.signups, change: cur.signups - prev.signups, /* … */ }];
   },
 });
 ```
@@ -140,10 +135,10 @@ The calc converts the CSV's text cells to numbers, sorts the weeks, and returns 
 A **draw** doesn't return anything. It writes into its element: a single value for an element marked down to one cell, like the tile, or a whole chart for a container marked with only `data-source`, like the signups bar chart. It is registered under the name a placeholder gives in `data-draw`, and runs again whenever its data changes:
 
 ```js
-dash.draw("tile-signups", (el) => {
-  const d = dash.data("latest");
-  const row = d.status === "ok" && d.data.length ? d.data[0] : null;
-  el.textContent = row ? d3.format(",")(row.signups) : "—";
+dash.draw('tile-signups', (el) => {
+  const d = dash.data('latest');
+  const row = d.status === 'ok' && d.data.length ? d.data[0] : null;
+  el.textContent = row ? d3.format(',')(row.signups) : '—';
 });
 ```
 
@@ -169,12 +164,12 @@ The page sets the param from a control, and the draw reads it:
   <option value="8" selected>Last 8 weeks</option>
 </select>
 <script>
-  const sel = document.querySelector(".ws-weeks");
-  sel.addEventListener("change", () => dash.setParams({ weeks: Number(sel.value) }));
+  const sel = document.querySelector('.ws-weeks');
+  sel.addEventListener('change', () => dash.setParams({ weeks: Number(sel.value) }));
 
-  dash.draw("chart", (el) => {
-    const d = dash.data("weekly");
-    const rows = d.status === "ok" ? d.data.slice(-dash.params().weeks) : [];
+  dash.draw('chart', (el) => {
+    const d = dash.data('weekly');
+    const rows = d.status === 'ok' ? d.data.slice(-dash.params().weeks) : [];
     // … draw the bars for `rows` with d3
   });
 </script>
@@ -216,10 +211,7 @@ A number on a dashboard is only useful if a reader can trust it without asking. 
 
 ![A test build of the weekly signups dashboard with the Sources panel open on a calc named "Change on the week before", showing the value 1,544, a Formula section with the calc's JavaScript, and a Result section.](/images/blog/claude-dashboards/sources-panel-formula.jpg)
 
-<figcaption>
-  The Sources panel on a test build of the signups dashboard, open on the calc behind the
-  highlighted 1,544. Marked numbers are underlined and the chart outlined, both dotted.
-</figcaption>
+<figcaption>The Sources panel on a test build of the signups dashboard, open on the calc behind the highlighted 1,544. Marked numbers are underlined and the chart outlined, both dotted.</figcaption>
 
 </figure>
 
@@ -241,7 +233,7 @@ The signups dashboard started from one message in a claude.ai chat:
 
 > Build me a dashboard of weekly signups from this data. Show last week's number, the change on the week before, and a bar chart per week. Data (week start, signups): 2026-09-07 1180, 2026-09-14 1245, …
 
-Claude builds a dashboard with tools from a built-in connector, `claude-artifacts`, and each call appears in the chat (with approvals on, on an approval card). "Dashboard" is an _artifact type_ on claude.ai: a template that ships the viewer along with written instructions for Claude.
+Claude builds a dashboard with tools from a built-in connector, `claude-artifacts`, and each call appears in the chat (with approvals on, on an approval card). "Dashboard" is an *artifact type* on claude.ai: a template that ships the viewer along with written instructions for Claude.
 
 <BuildTimeline />
 
@@ -301,21 +293,21 @@ The consent click is the real boundary.
 
 Claude Dashboards arrive at the same architecture as [OpenUI Lang](/docs/openui-lang/overview). The model writes the wiring once, at build time: which tool to call, how to shape the answer, and where each value goes. A runtime then executes that wiring for every reader, with no model call. Nearly every concept in this post has a direct counterpart:
 
-|                                      | Claude Dashboards                                                        | OpenUI Lang                                                                                                                               |
-| ------------------------------------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Data binding**                     | A dataset document: `{connector, tool, args}`                            | [`data = Query("tool", args, default, refreshSecs)`](/docs/openui-lang/queries-mutations) in the program                                  |
-| **Who runs it at view time**         | The viewer → claude.ai page → claude.ai backend → the reader's connector | The app's `toolProvider` in the browser: a function map that calls your API routes, or an MCP client                                      |
-| **Credentials**                      | claude.ai holds each reader's connector token                            | Your app's backend and auth; the browser calls your routes                                                                                |
-| **Parameters**                       | `{{name}}` filled in as one literal value; `dash.setParams`              | [`$variables`](/docs/openui-lang/reactive-state) in args; the query runs again when they change                                           |
-| **Refresh**                          | Every visit, drawn first from a 24-hour copy in the reader's browser     | 4th argument, in seconds                                                                                                                  |
-| **Derived values**                   | Hand-written JS in a `dash.calc`                                         | [`@` functions](/docs/openui-lang/functions) such as `@Filter`, `@Sort` and `@Last`, or your own                                          |
-| **Data into UI**                     | Hand-written JS: `dash.data(id)` inside `dash.draw`                      | `data.rows.signups` passed straight into components                                                                                       |
-| **Writes**                           | No write step in the format; any tool the reader grants can write        | [`Mutation(...)`](/docs/openui-lang/queries-mutations#writing-data-with-mutation) run with `@Run`                                         |
-| **What the model's output can call** | Any tool of the reader's connectors, each after the reader's consent     | Only the tools in `toolProvider`                                                                                                          |
-| **Read-only guard**                  | SQL check in the viewer, for datasets only                               | Whatever your tools enforce                                                                                                               |
-| **Building blocks**                  | Tokens + d3; Claude writes the HTML                                      | A component library, such as [`@openuidev/dashboard-library`](https://github.com/thesysdev/openui/tree/main/packages/libraries/dashboard) |
-| **Edits**                            | `db_str_replace` patches to stored documents                             | [Incremental editing](/docs/openui-lang/incremental-editing): only the changed statements                                                 |
-| **Error feedback**                   | The verification loop writes faults back for Claude                      | [`onError`](/docs/openui-lang/renderer) returns structured errors to send back to the model                                               |
+| | Claude Dashboards | OpenUI Lang |
+| --- | --- | --- |
+| **Data binding** | A dataset document: `{connector, tool, args}` | [`data = Query("tool", args, default, refreshSecs)`](/docs/openui-lang/queries-mutations) in the program |
+| **Who runs it at view time** | The viewer → claude.ai page → claude.ai backend → the reader's connector | The app's `toolProvider` in the browser: a function map that calls your API routes, or an MCP client |
+| **Credentials** | claude.ai holds each reader's connector token | Your app's backend and auth; the browser calls your routes |
+| **Parameters** | `{{name}}` filled in as one literal value; `dash.setParams` | [`$variables`](/docs/openui-lang/reactive-state) in args; the query runs again when they change |
+| **Refresh** | Every visit, drawn first from a 24-hour copy in the reader's browser | 4th argument, in seconds |
+| **Derived values** | Hand-written JS in a `dash.calc` | [`@` functions](/docs/openui-lang/functions) such as `@Filter`, `@Sort` and `@Last`, or your own |
+| **Data into UI** | Hand-written JS: `dash.data(id)` inside `dash.draw` | `data.rows.signups` passed straight into components |
+| **Writes** | No write step in the format; any tool the reader grants can write | [`Mutation(...)`](/docs/openui-lang/queries-mutations#writing-data-with-mutation) run with `@Run` |
+| **What the model's output can call** | Any tool of the reader's connectors, each after the reader's consent | Only the tools in `toolProvider` |
+| **Read-only guard** | SQL check in the viewer, for datasets only | Whatever your tools enforce |
+| **Building blocks** | Tokens + d3; Claude writes the HTML | A component library, such as [`@openuidev/dashboard-library`](https://github.com/thesysdev/openui/tree/main/packages/libraries/dashboard) |
+| **Edits** | `db_str_replace` patches to stored documents | [Incremental editing](/docs/openui-lang/incremental-editing): only the changed statements |
+| **Error feedback** | The verification loop writes faults back for Claude | [`onError`](/docs/openui-lang/renderer) returns structured errors to send back to the model |
 
 Here is the signups dashboard's core in OpenUI Lang, using components from the default OpenUI library and a `weekly_signups` tool your app provides:
 

@@ -9,8 +9,24 @@ const steps = [
   {
     title: "Define Library",
     description: "Create your component library with Zod schemas and generate the system prompt",
-    code: `// lib/intelligent-ui-library.ts
-export { library, promptOptions } from "@openuidev/intelligent-ui-library";`,
+    code: `import { defineComponent, createLibrary } from '@openuidev/react-lang';
+import { z } from 'zod/v4';
+
+const Card = defineComponent({
+  name: 'Card',
+  description: 'Displays a titled content card.',
+  props: z.object({
+    title: z.string(),
+  }),
+  component: ({ props }) => <div>{props.title}</div>,
+});
+
+export const library = createLibrary({
+  components: [Card, ...otherComponents],
+});
+
+export const systemPrompt = library.prompt(); // Generated system prompt
+`,
   },
   {
     title: "LLM Generates OpenUI Syntax",

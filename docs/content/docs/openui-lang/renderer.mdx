@@ -9,22 +9,16 @@ description: Parse and render OpenUI Lang streams in React.
 
 ```tsx
 import { Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { library } from "@openuidev/intelligent-ui-library";
 
 export function AssistantMessage({
   content,
   isStreaming,
-  mode,
 }: {
   content: string | null;
-  mode: "light" | "dark";
   isStreaming: boolean;
 }) {
-  return (
-    <ThemeProvider mode={mode}>
-      <Renderer library={library} response={content} isStreaming={isStreaming} />
-    </ThemeProvider>
-  );
+  return <Renderer library={library} response={content} isStreaming={isStreaming} />;
 }
 ```
 

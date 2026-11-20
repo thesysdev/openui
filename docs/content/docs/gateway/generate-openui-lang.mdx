@@ -11,11 +11,16 @@ OpenUI Gateway natively supports Generative UI with OpenUI Lang. It validates mo
 
 ## 1. Create a component library
 
-Install `@openuidev/intelligent-ui-library` alongside `@openuidev/react-lang`.
-Start with the built-in `@openuidev/intelligent-ui-library`, whose root is `Col`:
+Create a library containing the components the model can use:
 
 ```tsx title="src/lib/openui.tsx"
-export { library, promptOptions } from "@openuidev/intelligent-ui-library";
+import { createLibrary } from "@openuidev/react-lang";
+import { Chart, Metric, Stack } from "./components";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [Stack, Metric, Chart],
+});
 ```
 
 Learn more about defining components in the [OpenUI Lang documentation](/docs/openui-lang/defining-components).
@@ -47,7 +52,6 @@ Both endpoints accept a system prompt generated from the exported library specif
 ```ts title="server.ts" tab="Chat Completions" tab-group="gateway-endpoint"
 import OpenAI from "openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { promptOptions } from "@openuidev/intelligent-ui-library";
 import library from "./openui.spec.json";
 
 const gateway = new OpenAI({
@@ -58,7 +62,7 @@ const gateway = new OpenAI({
 const completion = await gateway.chat.completions.create({
   model: "openai/gpt-5",
   messages: [
-    { role: "system", content: generateSystemPrompt({ cloud: true, library, promptOptions }) },
+    { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
     { role: "user", content: "Compare quarterly revenue by region." },
   ],
   stream: true,
@@ -68,7 +72,6 @@ const completion = await gateway.chat.completions.create({
 ```ts title="server.ts" tab="Responses API" tab-group="gateway-endpoint"
 import OpenAI from "openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { promptOptions } from "@openuidev/intelligent-ui-library";
 import library from "./openui.spec.json";
 
 const gateway = new OpenAI({
@@ -79,7 +82,7 @@ const gateway = new OpenAI({
 const response = await gateway.responses.create({
   model: "openai/gpt-5",
   input: "Compare quarterly revenue by region.",
-  instructions: generateSystemPrompt({ cloud: true, library, promptOptions }),
+  instructions: generateSystemPrompt({ cloud: true, library }),
   stream: true,
 });
 ```

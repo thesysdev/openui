@@ -112,19 +112,17 @@ Your app renders the response with `library` and gives the renderer one tool:
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { library } from "@openuidev/intelligent-ui-library";
 
-export function Dashboard({ response, mode }: { response: string; mode: "light" | "dark" }) {
+export function Dashboard({ response }: { response: string }) {
   return (
-    <ThemeProvider mode={mode}>
-      <Renderer
-        library={library}
-        response={response}
-        toolProvider={{
-          get_usage: async ({ days }) => fetch(`/api/usage?days=${days}`).then((r) => r.json()),
-        }}
-      />
-    </ThemeProvider>
+    <Renderer
+      library={library}
+      response={response}
+      toolProvider={{
+        get_usage: async ({ days }) => fetch(`/api/usage?days=${days}`).then((r) => r.json()),
+      }}
+    />
   );
 }
 ```
