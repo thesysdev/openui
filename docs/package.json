@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "fetch:tweets": "node scripts/fetch-static-tweets.mjs",
-    "build": "pnpm run generate:spec && node scripts/generate-og-map.mjs && next build --no-mangling",
+    "build": "node scripts/generate-og-map.mjs && next build --no-mangling",
     "dev": "node scripts/generate-og-map.mjs && { node scripts/generate-og-map.mjs --watch & next dev; }",
     "start": "next start",
     "types:check": "fumadocs-mdx && node scripts/generate-og-map.mjs && next typegen && tsc --noEmit",
@@ -14,8 +14,7 @@
     "format:check": "prettier --check .",
     "check:benchmark-agents": "node scripts/check-benchmark-agent-readability.mjs && node scripts/check-benchmark-answer-contracts.mjs",
     "check:benchmark-answer-contracts": "node scripts/check-benchmark-answer-contracts.mjs",
-    "audit:benchmark-publication": "node scripts/audit-benchmark-publication.mjs",
-    "generate:spec": "openui generate lib/intelligent-ui-library.ts --spec --out generated/chat-system-prompt.spec.json"
+    "audit:benchmark-publication": "node scripts/audit-benchmark-publication.mjs"
   },
   "dependencies": {
     "@codemirror/language": "^6.12.4",
@@ -23,8 +22,6 @@
     "@codemirror/view": "^6.43.6",
     "@fontsource/inter": "5.3.0",
     "@openuidev/cli": "workspace:*",
-    "@openuidev/dashboard-library": "workspace:^",
-    "@openuidev/intelligent-ui-library": "workspace:^",
     "@openuidev/lang-core": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
     "@openuidev/react-lang": "workspace:^",

@@ -12,65 +12,60 @@ identifier = Expression
 Example:
 
 ```text
-root = Col([title, form])
-$name = ""
-$email = ""
-title = Title("Sign up", "lg")
-form = Form([nameField, emailField, actions])
-nameField = Input($name, "Name", "text", "Your name", {required: true})
-emailField = Input($email, "Email", "text", "you@example.com", {required: true, email: true})
-actions = Row([submitBtn, cancelBtn], 2)
-submitBtn = Button("Submit", @ToAssistant("Sign me up"), "solid")
-cancelBtn = Button("Cancel", @ToAssistant("Cancel sign up"), "outline")
+root = Stack([title, form])
+title = TextContent("Sign up", "large-heavy")
+form = Form("signup", actions, [nameField, emailField])
+nameField = FormControl("Name", Input("name", "Your name", "text", {required: true}))
+emailField = FormControl("Email", Input("email", "you@example.com", "email", {required: true, email: true}))
+actions = Buttons([submitBtn, cancelBtn], "row")
+submitBtn = Button("Submit", @ToAssistant("Sign me up"), "primary")
+cancelBtn = Button("Cancel", @ToAssistant("Cancel sign up"), "secondary")
 ```
 
 ## Supported expression types
 
-| Type           | Syntax                 | Example                |
-| -------------- | ---------------------- | ---------------------- |
-| Component call | `TypeName(arg1, arg2)` | `Title("Hello", "lg")` |
-| String         | `"text"`               | `"hello"`              |
-| Number         | `42`, `3.14`, `-1`     | `3.14`                 |
-| Boolean        | `true` / `false`       | `true`                 |
-| Null           | `null`                 | `null`                 |
-| Array          | `[a, b, c]`            | `[col1, col2]`         |
-| Object         | `{key: value}`         | `{variant: "info"}`    |
-| Reference      | `identifier`           | `nameField`            |
+| Type           | Syntax                 | Example                           |
+| -------------- | ---------------------- | --------------------------------- |
+| Component call | `TypeName(arg1, arg2)` | `CardHeader("Title", "Subtitle")` |
+| String         | `"text"`               | `"hello"`                         |
+| Number         | `42`, `3.14`, `-1`     | `3.14`                            |
+| Boolean        | `true` / `false`       | `true`                            |
+| Null           | `null`                 | `null`                            |
+| Array          | `[a, b, c]`            | `[col1, col2]`                    |
+| Object         | `{key: value}`         | `{variant: "info"}`               |
+| Reference      | `identifier`           | `nameField`                       |
 
 ## Rules
 
 - `root` is the entry point. Without it, the first statement that calls the root component is used.
-- For OpenUI library prompts, start with `root = Col(...)`.
+- For OpenUI library prompts, start with `root = Stack(...)`.
 - Arguments are positional, based on Zod key order.
 - Optional args can be omitted from the end.
 - Forward references are allowed.
 
-## Common component-library signatures
+## Common default-library signatures
 
-These are the signatures in `library` from `@openuidev/intelligent-ui-library`. `Col` is the root;
-`Row` lays children out horizontally. Gaps and padding count 4px steps.
+These are the signatures in `openuiLibrary` from `@openuidev/react-ui`.
 
-| Component | Signature                                                                            |
-| --------- | ------------------------------------------------------------------------------------ |
-| `Col`     | `Col(children, gap?, align?)`                                                        |
-| `Row`     | `Row(children, gap?, align?, justify?, wrap?)`                                       |
-| `Card`    | `Card(children, variant?, gap?, padding?)`                                           |
-| `Title`   | `Title(text, size?, color?)`                                                         |
-| `Text`    | `Text(text, size?, color?, weight?, italic?, lineThrough?, tabularNums?, maxLines?)` |
-| `Form`    | `Form(children)`                                                                     |
-| `Input`   | `Input(value, label?, type?, placeholder?, rules?)`                                  |
-| `Select`  | `Select(value, options, label?, placeholder?, rules?)`                               |
-| `Button`  | `Button(label, action?, variant?, color?, size?, icon?, disabled?, block?)`          |
-| `Table`   | `Table(columns, rows)`                                                               |
-| `Chart`   | `Chart(type, data, x?, series?, format?, stacked?, height?)`                         |
-
-Inputs take their value first, usually a `$variable`. Select options are strings or `{value, label}`
-objects. Tables take column labels and arrays of cells; charts take records and field names.
+| Component     | Signature                                                             |
+| ------------- | --------------------------------------------------------------------- |
+| `Stack`       | `Stack(children, direction?, gap?, align?, justify?, wrap?)`          |
+| `Card`        | `Card(children, variant?, direction?, gap?, align?, justify?, wrap?)` |
+| `TextContent` | `TextContent(text, size?)`                                            |
+| `Form`        | `Form(name, buttons, fields?)`                                        |
+| `FormControl` | `FormControl(label, input, hint?)`                                    |
+| `Input`       | `Input(name, placeholder?, type?, rules?, value?)`                    |
+| `Select`      | `Select(name, items, placeholder?, rules?, value?, size?)`            |
+| `Button`      | `Button(label, action?, variant?, type?, size?)`                      |
+| `Buttons`     | `Buttons(buttons, direction?)`                                        |
+| `Tabs`        | `Tabs(items)`                                                         |
+| `TabItem`     | `TabItem(value, trigger, content)`                                    |
+| `Table`       | `Table(columns)`                                                      |
+| `Col`         | `Col(label, data, type?)`                                             |
+| `BarChart`    | `BarChart(labels, series, variant?, xLabel?, yLabel?, height?)`       |
 
 For full generated signatures, inspect:
 
 ```ts
-import { library, promptOptions } from "@openuidev/intelligent-ui-library";
-
-library.prompt(promptOptions);
+openuiLibrary.prompt(openuiPromptOptions);
 ```

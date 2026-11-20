@@ -32,8 +32,8 @@ The default value lets the UI render while the data loads.
 Query results are data. Access fields with dot notation:
 
 ```text
-tbl = Table(["Title", "Status"], @Each(data.rows, "r", [r.title, r.status]))
-chart = Chart("line", data.rows, "day", ["views"])
+tbl = Table([Col("Title", data.rows.title), Col("Status", data.rows.status)])
+chart = LineChart(data.rows.day, [Series("Views", data.rows.views)])
 ```
 
 `data.rows.title` takes the `title` field from every row, like a column pluck.
@@ -45,7 +45,7 @@ Pass a `$variable` in the query arguments. The query runs again when the variabl
 ```text
 $days = "7"
 data = Query("analytics", {days: $days}, {rows: []})
-filter = Select($days, [{value: "7", label: "7 days"}, {value: "30", label: "30 days"}], "Date range")
+filter = Select("days", [SelectItem("7", "7 days"), SelectItem("30", "30 days")], null, null, $days)
 ```
 
 The user picks "30", `$days` updates, the Query fetches again with `{days: "30"}`, and the chart updates.
@@ -85,8 +85,8 @@ If the mutation fails, the actions after it do not run.
 Check `result.status` to show feedback. Assign each check to a statement and place it in the layout:
 
 ```text
-createError = createResult.status == "error" ? Card([Title("Failed", "sm"), Text(createResult.error, "sm", "danger")], "soft") : null
-createDone = createResult.status == "success" ? Card([Title("Created", "sm"), Text("Ticket added.", "sm", "success")], "soft") : null
+createError = createResult.status == "error" ? Callout("error", "Failed", createResult.error) : null
+createDone = createResult.status == "success" ? Callout("success", "Created", "Ticket added.") : null
 ```
 
 ## How tools connect to the runtime
@@ -117,23 +117,21 @@ Your app gives the renderer two tools. Each calls an API route on your server:
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { openuiLibrary } from "@openuidev/react-ui";
 
-export function Tickets({ response, mode }: { response: string; mode: "light" | "dark" }) {
+export function Tickets({ response }: { response: string }) {
   return (
-    <ThemeProvider mode={mode}>
-      <Renderer
-        library={library}
-        response={response}
-        toolProvider={{
-          list_tickets: async () => fetch("/api/tickets").then((r) => r.json()),
-          create_ticket: async (args) =>
-            fetch("/api/tickets", { method: "POST", body: JSON.stringify(args) }).then((r) =>
-              r.json(),
-            ),
-        }}
-      />
-    </ThemeProvider>
+    <Renderer
+      library={openuiLibrary}
+      response={response}
+      toolProvider={{
+        list_tickets: async () => fetch("/api/tickets").then((r) => r.json()),
+        create_ticket: async (args) =>
+          fetch("/api/tickets", { method: "POST", body: JSON.stringify(args) }).then((r) =>
+            r.json(),
+          ),
+      }}
+    />
   );
 }
 ```
@@ -141,17 +139,17 @@ export function Tickets({ response, mode }: { response: string; mode: "light" | 
 The model writes:
 
 ```text
-root = Col([Title("Tickets"), form, createError, tbl])
+root = Stack([CardHeader("Tickets"), form, createError, tbl])
 $title = ""
 $priority = "medium"
 tickets = Query("list_tickets", {}, {rows: []})
 createResult = Mutation("create_ticket", {title: $title, priority: $priority})
-form = Form([titleField, priorityField, Row([submitBtn], 2)])
-titleField = Input($title, "Title", "text", "Ticket title", {required: true})
-priorityField = Select($priority, [{value: "low", label: "Low"}, {value: "medium", label: "Medium"}, {value: "high", label: "High"}], "Priority")
-submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title, $priority)]), "solid")
-createError = createResult.status == "error" ? Card([Title("Could not create the ticket", "sm"), Text(createResult.error, "sm", "danger")], "soft") : null
-tbl = Table(["Title", "Priority"], @Each(tickets.rows, "r", [r.title, r.priority]))
+form = Form("create", Buttons([submitBtn]), [titleField, priorityField])
+titleField = FormControl("Title", Input("title", "Ticket title", "text", {required: true}, $title))
+priorityField = FormControl("Priority", Select("priority", [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")], null, null, $priority))
+submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title, $priority)]), "primary")
+createError = createResult.status == "error" ? Callout("error", "Could not create the ticket", createResult.error) : null
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
 ```
 
 The user sees a form and a table with the current tickets. The user types a title, picks a priority, and clicks "Create". The renderer calls `create_ticket`, then `list_tickets`, and the new ticket appears in the table. The form clears. If `create_ticket` fails, an error callout appears above the table.

@@ -7,67 +7,68 @@ export interface Example {
 export const EXAMPLES: Example[] = [
   {
     id: "valid",
-    label: "Valid: basic column",
-    code: `root = Col([title, body])
+    label: "Valid: basic stack",
+    code: `root = Card([title, body])
 
-title = Title("Quarterly Overview")
-body = Text("Revenue up 12% QoQ; headcount at 128.")
+title = TextContent("Quarterly Overview")
+body = TextContent("Revenue up 12% QoQ; headcount at 128.")
 `,
   },
   {
     id: "invalid",
     label: "Validation errors",
-    code: `root = Col([heading, Table(5, []), missingRef])
+    code: `root = Stack([heading, Table(5, []), missingRef])
 
-heading = Title("Broken example")
-stray = Text("nobody references me")
+heading = TextContent("Broken example")
+stray = TextContent("nobody references me")
 `,
   },
   {
     id: "partial",
     label: "Truncated / incomplete",
-    code: `root = Col([title, body, chart])
+    code: `root = Stack([title, body, chart])
 
-title = Title("Live streaming demo")
-body = Text("This program is truncated mid-statement to show partial parsing.")
-chart = Chart("bar", [{quarter: "Q1", revenue: 120}, {quarter: "Q2", revenue:`,
+title = TextContent("Live streaming demo")
+body = TextContent("This program is truncated mid-statement to show partial parsing.")
+chart = BarChart(["Q1", "Q2", "Q3"], [series`,
   },
   {
     id: "missing-required",
     label: "Missing required props",
-    code: `root = Col([title, code, chart, pic])
+    code: `root = Stack([title, code, chart, pic])
 
-title = Title()
-code = Code()
-chart = Chart("bar")
+title = TextContent()
+code = CodeBlock("typescript")
+chart = BarChart(["Q1", "Q2", "Q3"])
 pic = Image()
 `,
   },
   {
     id: "kitchen-sink",
     label: "Kitchen sink (form + table + chart)",
-    code: `root = Col([title, note, form, tbl, chart])
+    code: `root = Stack([title, note, form, tbl, chart])
 
-$name = ""
-$email = ""
-title = Title("Debug playground", "lg")
-note = Card([Text("A form with validation, a table and a chart — rendered fully client-side.")], "soft")
-form = Form([nameField, emailField, Button("Submit", @ToAssistant("Submit my contact details"))])
-nameField = Input($name, "Name", "text", "Your name", {required: true, minLength: 2})
-emailField = Input($email, "Email", "text", "you@example.com", {required: true, email: true})
-tbl = Table(["Language", "Users (M)"], [["Python", 15.7], ["JavaScript", 14.2], ["Go", 5.2]])
-chart = Chart("bar", [{quarter: "Q1", revenue: 120}, {quarter: "Q2", revenue: 150}, {quarter: "Q3", revenue: 180}], "quarter", ["revenue"])
+title = TextContent("debug playground", "large-heavy")
+note = Callout("info", "Demo", "A form with validation, a table and a chart — rendered fully client-side.")
+form = Form("contact", btns, [nameField, emailField])
+nameField = FormControl("Name", Input("name", "Your name", "text", { required: true, minLength: 2 }))
+emailField = FormControl("Email", Input("email", "you@example.com", "email", { required: true, email: true }))
+btns = Buttons([Button("Submit", Action([@ToAssistant("Submit")]), "primary")])
+tbl = Table([Col("Language", langs), Col("Users (M)", users)])
+langs = ["Python", "JavaScript", "Go"]
+users = [15.7, 14.2, 5.2]
+chart = BarChart(["Q1", "Q2", "Q3"], [Series("Revenue", [120, 150, 180])], "grouped")
 `,
   },
   {
     id: "mock-tools",
     label: "Query() with mock tools",
-    code: `root = Col([title, note, tickets])
+    code: `root = Stack([title, note, tickets])
 
-title = Title("Ticket dashboard", "lg")
-note = Text("The Query() below hits the playground's mock tool provider: any tool name resolves with sample data.")
+title = TextContent("Ticket dashboard", "large-heavy")
+note = TextContent("The Query() below hits the playground's mock tool provider: any tool name resolves with sample data.")
 data = Query("list_tickets", {}, {items: []})
-tickets = Table(["Ticket", "Priority"], @Each(data.items, "item", [item.label, item.value]))
+tickets = Table([Col("Ticket", data.items.label), Col("Priority", data.items.value)])
 `,
   },
 ];

@@ -39,13 +39,13 @@ This only affects prompt signatures. Validation behavior stays the same.
 Providing more arguments than the schema defines causes the extra arguments to be dropped or the statement to fail validation.
 
 ```text
-// Schema: z.object({ children: z.array(z.any()), gap: z.number().optional(), align: z.enum(["start", "center", "end", "stretch"]).optional() })
+// Schema: z.object({ title: z.string(), subtitle: z.string() })
 
-// Wrong: 4 args for a 3-prop schema
-layout = Col([], 2, "start", "extra")
+// Wrong: 3 args for a 2-prop schema
+h1 = Header("Title", "Sub", "extra")
 
 // Correct
-layout = Col([], 2, "start")
+h1 = Header("Title", "Sub")
 ```
 
 ### Why is a component not appearing?
@@ -57,7 +57,7 @@ The LLM may invent component names that are not in the library. The parser drops
 text = Paragraph("Hello world")
 
 // Correct: use the registered name
-text = Text("Hello world")
+text = TextContent("Hello world")
 ```
 
 ### Can I nest children inline or do I need references?
@@ -66,12 +66,12 @@ Both are valid. Inline children or references work.
 
 ```text
 // Inline
-root = Col([Title("Title"), Text("Body")])
+root = Stack([Header("Title"), TextContent("Body")])
 
 // References
-root = Col([h, t])
-h = Title("Title")
-t = Text("Body")
+root = Stack([h, t])
+h = Header("Title")
+t = TextContent("Body")
 ```
 
 ### Why doesn't `Count(arr)` work?
@@ -98,11 +98,11 @@ Check `onError` for `no-root`. A response without a `root` statement renders onl
 
 ```text
 // Wrong: Query inside Table
-tbl = Table(["Title"], @Each(@Range(0, @Count(Query("list", {}).rows.title)), "i", [Query("list", {}).rows.title[i]]))
+tbl = Table([Col("Title", Query("list", {}).rows.title)])
 
 // Correct: Query as a separate statement
 data = Query("list", {}, {rows: []})
-tbl = Table(["Title"], @Each(data.rows, "r", [r.title]))
+tbl = Table([Col("Title", data.rows.title)])
 ```
 
 ---
@@ -120,8 +120,8 @@ Use the `onError` callback. It receives structured errors from the parser, runti
   toolProvider={tp}
   onError={(errors) => {
     for (const e of errors) {
-      console.info(`[${e.source}] ${e.message}`);
-      if (e.hint) console.info(`Hint: ${e.hint}`);
+      console.log(`[${e.source}] ${e.message}`);
+      if (e.hint) console.log(`Hint: ${e.hint}`);
     }
   }}
 />
@@ -166,10 +166,10 @@ Error codes:
 <Renderer
   onParseResult={(result) => {
     if (result) {
-      console.info("Statements:", result.meta.statementCount);
-      console.info("Unresolved:", result.meta.unresolved);
-      console.info("Orphaned:", result.meta.orphaned);
-      console.info("Errors:", result.meta.errors);
+      console.log("Statements:", result.meta.statementCount);
+      console.log("Unresolved:", result.meta.unresolved);
+      console.log("Orphaned:", result.meta.orphaned);
+      console.log("Errors:", result.meta.errors);
     }
   }}
 />

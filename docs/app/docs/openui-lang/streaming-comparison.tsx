@@ -4,178 +4,203 @@ import { Check, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const JSON_CODE = `{
-  "state": {
-    "name": "",
-    "email": "",
-    "phone": "",
-    "subject": "",
-    "message": ""
-  },
   "component": {
-    "component": "Col",
+    "component": "Stack",
     "props": {
       "children": [
         {
-          "component": "Title",
+          "component": "TextContent",
           "props": {
             "text": "Contact Us",
-            "size": "lg"
+            "size": "large-heavy"
           }
         },
         {
           "component": "Form",
           "props": {
-            "children": [
+            "name": "contact",
+            "fields": [
               {
-                "component": "Input",
+                "component": "FormControl",
                 "props": {
-                  "value": "$name",
                   "label": "Name",
-                  "type": "text",
-                  "placeholder": "Your full name",
-                  "rules": {
-                    "required": true,
-                    "minLength": 2
+                  "input": {
+                    "component": "Input",
+                    "props": {
+                      "name": "name",
+                      "placeholder": "Your full name",
+                      "type": "text",
+                      "rules": [
+                        "required",
+                        "minLength:2"
+                      ]
+                    }
                   }
                 }
               },
               {
-                "component": "Input",
+                "component": "FormControl",
                 "props": {
-                  "value": "$email",
                   "label": "Email",
-                  "type": "text",
-                  "placeholder": "you@example.com",
-                  "rules": {
-                    "required": true,
-                    "email": true
+                  "input": {
+                    "component": "Input",
+                    "props": {
+                      "name": "email",
+                      "placeholder": "you@example.com",
+                      "type": "email",
+                      "rules": [
+                        "required",
+                        "email"
+                      ]
+                    }
                   }
                 }
               },
               {
-                "component": "Input",
+                "component": "FormControl",
                 "props": {
-                  "value": "$phone",
                   "label": "Phone",
-                  "type": "text",
-                  "placeholder": "e.g., +1 555 123 4567",
-                  "rules": {
-                    "required": true,
-                    "minLength": 7,
-                    "maxLength": 20
+                  "input": {
+                    "component": "Input",
+                    "props": {
+                      "name": "phone",
+                      "placeholder": "e.g., +1 555 123 4567",
+                      "type": "text",
+                      "rules": [
+                        "required",
+                        "minLength:7",
+                        "maxLength:20"
+                      ]
+                    }
                   }
                 }
               },
               {
-                "component": "Select",
+                "component": "FormControl",
                 "props": {
-                  "value": "$subject",
-                  "options": [
-                    {
-                      "value": "general",
-                      "label": "General inquiry"
-                    },
-                    {
-                      "value": "support",
-                      "label": "Support"
-                    },
-                    {
-                      "value": "sales",
-                      "label": "Sales"
-                    },
-                    {
-                      "value": "billing",
-                      "label": "Billing"
-                    },
-                    {
-                      "value": "feedback",
-                      "label": "Feedback"
-                    }
-                  ],
                   "label": "Subject",
-                  "placeholder": "Select a subject...",
-                  "rules": {
-                    "required": true
-                  }
-                }
-              },
-              {
-                "component": "TextArea",
-                "props": {
-                  "value": "$message",
-                  "label": "Message",
-                  "placeholder": "How can we help?",
-                  "rows": 6,
-                  "rules": {
-                    "required": true,
-                    "minLength": 10
-                  }
-                }
-              },
-              {
-                "component": "Row",
-                "props": {
-                  "children": [
-                    {
-                      "component": "Button",
-                      "props": {
-                        "label": "Submit",
-                        "action": {
-                          "type": "ToAssistant",
-                          "message": "Submit my contact details"
+                  "input": {
+                    "component": "Select",
+                    "props": {
+                      "name": "subject",
+                      "items": [
+                        {
+                          "component": "SelectItem",
+                          "props": {
+                            "value": "general",
+                            "label": "General inquiry"
+                          }
                         },
-                        "variant": "solid",
-                        "color": "primary"
-                      }
-                    },
-                    {
-                      "component": "Button",
-                      "props": {
-                        "label": "Cancel",
-                        "action": {
-                          "type": "ToAssistant",
-                          "message": "Cancel the contact form"
+                        {
+                          "component": "SelectItem",
+                          "props": {
+                            "value": "support",
+                            "label": "Support"
+                          }
                         },
-                        "variant": "outline"
-                      }
+                        {
+                          "component": "SelectItem",
+                          "props": {
+                            "value": "sales",
+                            "label": "Sales"
+                          }
+                        },
+                        {
+                          "component": "SelectItem",
+                          "props": {
+                            "value": "billing",
+                            "label": "Billing"
+                          }
+                        },
+                        {
+                          "component": "SelectItem",
+                          "props": {
+                            "value": "feedback",
+                            "label": "Feedback"
+                          }
+                        }
+                      ],
+                      "placeholder": "Select a subject...",
+                      "rules": [
+                        "required"
+                      ]
                     }
-                  ]
+                  }
+                }
+              },
+              {
+                "component": "FormControl",
+                "props": {
+                  "label": "Message",
+                  "input": {
+                    "component": "TextArea",
+                    "props": {
+                      "name": "message",
+                      "placeholder": "How can we help?",
+                      "rows": 6,
+                      "rules": [
+                        "required",
+                        "minLength:10"
+                      ]
+                    }
+                  }
                 }
               }
-            ]
+            ],
+            "buttons": {
+              "component": "Buttons",
+              "props": {
+                "buttons": [
+                  {
+                    "component": "Button",
+                    "props": {
+                      "label": "Submit",
+                      "action": "submit:contact",
+                      "variant": "primary"
+                    }
+                  },
+                  {
+                    "component": "Button",
+                    "props": {
+                      "label": "Cancel",
+                      "action": "action:cancel_contact",
+                      "variant": "secondary"
+                    }
+                  }
+                ],
+                "direction": "row"
+              }
+            }
           }
         }
-      ]
+      ],
+      "direction": "column",
+      "gap": "l"
     }
   },
   "error": null
 }`;
 
-const OPENUI_CODE = `root = Col([title, form])
-$name = ""
-$email = ""
-$phone = ""
-$subject = ""
-$message = ""
-title = Title("Contact Us", "lg")
-form = Form([nameField, emailField, phoneField, subjectField, messageField, formButtons])
-nameField = Input($name, "Name", "text", "Your full name", {required: true, minLength: 2})
-emailField = Input($email, "Email", "text", "you@example.com", {required: true, email: true})
-phoneField = Input($phone, "Phone", "text", "e.g., +1 555 123 4567", {required: true, minLength: 7, maxLength: 20})
-subjectField = Select($subject, subjectOptions, "Subject", "Select a subject...", {required: true})
-messageField = TextArea($message, "Message", "How can we help?", 6, {required: true, minLength: 10})
-subjectOptions = [{value: "general", label: "General inquiry"}, {value: "support", label: "Support"}, {value: "sales", label: "Sales"}, {value: "billing", label: "Billing"}, {value: "feedback", label: "Feedback"}]
-formButtons = Row([submitBtn, cancelBtn])
-submitBtn = Button("Submit", @ToAssistant("Submit my contact details"), "solid", "primary")
-cancelBtn = Button("Cancel", @ToAssistant("Cancel the contact form"), "outline")`;
+const OPENUI_CODE = `root = Stack([title, form], "column", "l")
+title = TextContent("Contact Us", "large-heavy")
+form = Form("contact", [nameField, emailField, phoneField, subjectField, messageField], formButtons)
+nameField = FormControl("Name", Input("name", "Your full name", "text", ["required", "minLength:2"]))
+emailField = FormControl("Email", Input("email", "you@example.com", "email", ["required", "email"]))
+phoneField = FormControl("Phone", Input("phone", "e.g., +1 555 123 4567", "text", ["required", "minLength:7", "maxLength:20"]))
+subjectField = FormControl("Subject", Select("subject", subjectOptions, "Select a subject...", ["required"]))
+messageField = FormControl("Message", TextArea("message", "How can we help?", 6, ["required", "minLength:10"]))
+subjectOptions = [SelectItem("general", "General inquiry"), SelectItem("support", "Support"), SelectItem("sales", "Sales"), SelectItem("billing", "Billing"), SelectItem("feedback", "Feedback")]
+formButtons = Buttons([submitBtn, cancelBtn], "row")
+submitBtn = Button("Submit", "submit:contact", "primary")
+cancelBtn = Button("Cancel", "action:cancel_contact", "secondary")`;
 
 // Calculated using openai tokenizer, https://platform.openai.com/tokenizer
-const JSON_TOKENS = 717;
-const OPENUI_TOKENS = 323;
+const JSON_TOKENS = 849;
+const OPENUI_TOKENS = 294;
 const TOKEN_RATE = 60; // tokens per second
 
-const JSON_DURATION = JSON_TOKENS / TOKEN_RATE; // ~11.9s
-const OPENUI_DURATION = OPENUI_TOKENS / TOKEN_RATE; // ~5.4s
+const JSON_DURATION = JSON_TOKENS / TOKEN_RATE; // ~5.7s
+const OPENUI_DURATION = OPENUI_TOKENS / TOKEN_RATE; // ~2.0s
 
 type StreamState = "idle" | "streaming" | "done";
 

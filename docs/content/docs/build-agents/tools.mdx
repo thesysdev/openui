@@ -23,7 +23,7 @@ get_weather({ city: "Tokyo" })  →  { tempC: 22, sky: "Clear" }
 ```
 
 ```text title="OpenUI Lang response"
-root = Col([Card([Col([Title("Tokyo"), Text("Clear", "sm", "muted")], 1), Title("22°C", "lg")])])
+root = Card([CardHeader("Tokyo", "Clear"), TextContent("22°C", "large-heavy")])
 ```
 
 The values are written into the response, so the card shows the weather at the time of the answer.
@@ -36,8 +36,8 @@ The model doesn't fetch the data. It writes OpenUI Lang that calls the tool from
 
 ```text
 tickets = Query("list_tickets", {}, {rows: []})
-tbl = Table(["Title", "Priority"], @Each(tickets.rows, "r", [r.title, r.priority]))
-root = Col([Title("Open tickets"), tbl])
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
+root = Stack([CardHeader("Open tickets"), tbl])
 ```
 
 `Query` takes the tool name, its arguments, and a default value. The table renders immediately with the default (`{rows: []}`) and fills in when `list_tickets` responds.
@@ -49,11 +49,11 @@ $priority = "high"
 $title = ""
 tickets = Query("list_tickets", {priority: $priority}, {rows: []})
 createTicket = Mutation("create_ticket", {title: $title, priority: $priority})
-filter = Select($priority, [{value: "high", label: "High"}, {value: "low", label: "Low"}], "priority", null, null)
+filter = Select("priority", [SelectItem("high", "High"), SelectItem("low", "Low")], null, null, $priority)
 addBtn = Button("Add", Action([@Run(createTicket), @Run(tickets), @Reset($title)]))
-form = Form([Input($title, "Title", "text", "Ticket title", null), Row([addBtn], 2)])
-tbl = Table(["Title", "Priority"], @Each(tickets.rows, "r", [r.title, r.priority]))
-root = Col([Title("Tickets"), filter, form, tbl])
+form = Form("create", Buttons([addBtn]), [FormControl("Title", Input("title", "Ticket title", "text", null, $title))])
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
+root = Stack([CardHeader("Tickets"), filter, form, tbl])
 ```
 
 Changing the filter re-runs `list_tickets` with the new priority. Clicking **Add** runs `create_ticket`, re-fetches the list, and clears the title. None of this involves the model. See [Queries & Mutations](/docs/openui-lang/queries-mutations) for auto-refresh, error states, and the rest of the language.

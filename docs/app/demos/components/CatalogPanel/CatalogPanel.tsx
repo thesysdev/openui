@@ -1,12 +1,12 @@
 "use client";
 
-import { componentGroups, library } from "@openuidev/intelligent-ui-library";
 import type { ComponentGroup } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui";
 import { ChevronLeft, ChevronRight, LayoutList } from "lucide-react";
 import { useState } from "react";
 import "./CatalogPanel.css";
 
-const jsonSchemas = library.toJSONSchema() as Record<string, any>;
+const jsonSchemas = openuiLibrary.toJSONSchema() as Record<string, any>;
 
 function getPropType(schemaProp: any): string {
   if (!schemaProp) return "any";
@@ -66,9 +66,9 @@ export function CatalogPanel() {
   return (
     <aside className={`catalog-panel${isCollapsed ? " catalog-panel--collapsed" : ""}`}>
       <div className="catalog-panel-header">
-        {!isCollapsed && <span className="catalog-panel-title">Library: Intelligent UI</span>}
+        {!isCollapsed && <span className="catalog-panel-title">Library: OpenUI Library</span>}
         {isCollapsed && (
-          <span className="catalog-panel-icon-only" title="Library: Intelligent UI">
+          <span className="catalog-panel-icon-only" title="Library: OpenUI Library">
             <LayoutList size={16} />
           </span>
         )}
@@ -82,7 +82,7 @@ export function CatalogPanel() {
         </button>
       </div>
       <div className={`catalog-panel-body${isCollapsed ? " catalog-panel-body--hidden" : ""}`}>
-        {componentGroups.map((group: ComponentGroup) => {
+        {openuiLibrary.componentGroups!.map((group: ComponentGroup) => {
           const groupExpanded = expandedComp !== null && group.components.includes(expandedComp);
           const props = groupExpanded ? getPropsForComponent(expandedComp!) : [];
 
@@ -91,7 +91,7 @@ export function CatalogPanel() {
               <div className="catalog-group-name">{group.name}</div>
               <div className="catalog-chips">
                 {group.components.map((comp: string) => {
-                  const desc = library.components[comp]?.description;
+                  const desc = openuiLibrary.components[comp]?.description;
                   const isActive = expandedComp === comp;
                   return (
                     <span
@@ -110,9 +110,9 @@ export function CatalogPanel() {
                 <div className="catalog-prop-panel">
                   <div className="catalog-prop-panel-header">
                     <span className="catalog-prop-comp-name">{expandedComp}</span>
-                    {library.components[expandedComp!]?.description && (
+                    {openuiLibrary.components[expandedComp!]?.description && (
                       <p className="catalog-prop-desc">
-                        {library.components[expandedComp!].description}
+                        {openuiLibrary.components[expandedComp!].description}
                       </p>
                     )}
                   </div>

@@ -143,12 +143,9 @@ The prompt prints `rules?: ValidationRules` instead of `rules?: Record<string, a
 A library can also add its own `@` functions and actions:
 
 ```ts
-import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
-
-const { Col, Card, Text, Button } = baseLibrary.components;
 const library = createLibrary({
-  root: "Col",
-  components: [Col, Card, Text, Button],
+  root: "Stack",
+  components: [Stack, Card, TextContent, Button],
   functions: [percent], // defineFunction(...)
   actions: [copyToClipboard], // defineAction(...)
 });
@@ -161,12 +158,9 @@ See [Functions](/docs/openui-lang/functions) and [Actions](/docs/openui-lang/act
 The `root` option in `createLibrary` specifies which component the LLM must use as the entry point. The generated system prompt instructs the model to always start with `root = <RootName>(...)`.
 
 ```ts
-import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
-
-const { Col, Card, Text } = baseLibrary.components;
 const library = createLibrary({
-  root: "Col", // → prompt tells LLM: "every program must define root = Col(...)"
-  components: [Col, Card, Text],
+  root: "Stack", // → prompt tells LLM: "every program must define root = Stack(...)"
+  components: [Stack, Card, TextContent],
 });
 ```
 
@@ -179,7 +173,7 @@ The `root` must match the `name` of one of the components in your library. If om
 
 The root component also decides the fallback when a program has no `root` statement. See [Entry Statement](/docs/openui-lang/specification#entry-statement).
 
-The built-in `library` from `@openuidev/intelligent-ui-library` uses `Col` as its root in both chat answers and standalone renderers.
+For the built-in libraries: `openuiLibrary` uses `Stack` (flexible layout container), while `openuiChatLibrary` uses `Card` (vertical container optimized for chat responses).
 
 ## Notes on schema metadata
 
@@ -190,9 +184,11 @@ The built-in `library` from `@openuidev/intelligent-ui-library` uses `Col` as it
 
 ```ts
 const library = createLibrary({
-  root: "Col",
+  root: "Stack",
   components: [/* ... */],
-  componentGroups: [{ name: "Forms", components: ["Form", "Input", "Select", "Button"] }],
+  componentGroups: [
+    { name: "Forms", components: ["Form", "FormControl", "Input", "Button", "Buttons"] },
+  ],
 });
 ```
 
@@ -200,7 +196,7 @@ const library = createLibrary({
 
 `componentGroups` organize the generated system prompt into named sections (e.g., Layout, Forms, Charts). This helps the LLM locate relevant components quickly instead of scanning a flat list. Without groups, all component signatures appear under a single "Ungrouped" heading.
 
-Groups also let you co-locate related components so the LLM understands which components work together (e.g., `Form` with `Input`, `Select`, `Button`).
+Groups also let you co-locate related components so the LLM understands which components work together (e.g., `Form` with `FormControl`, `Input`, `Select`).
 
 ### Adding group notes
 
@@ -210,18 +206,18 @@ Each group can include a `notes` array. These strings are appended directly afte
 componentGroups: [
   {
     name: "Forms",
-    components: ["Form", "Input", "TextArea", "Select", "Button"],
+    components: ["Form", "FormControl", "Input", "TextArea", "Select"],
     notes: [
-      "- Define each input as its own reference for progressive streaming.",
+      "- Define EACH FormControl as its own reference for progressive streaming.",
       "- NEVER nest Form inside Form.",
-      "- Form takes children: fields and a submit Button.",
+      "- Form requires explicit buttons: Form(name, buttons, fields).",
     ],
   },
   {
     name: "Layout",
-    components: ["Col", "Row", "Grid", "Card", "Popover"],
+    components: ["Stack", "Tabs", "TabItem", "Accordion", "AccordionItem"],
     notes: [
-      '- Use Grid for a grid, or Row(children, gap, align, justify, true) to wrap.',
+      '- For grid-like layouts, use Stack with direction "row" and wrap=true.',
     ],
   },
 ],
@@ -231,12 +227,12 @@ Notes appear in the prompt output like this:
 
 ```
 ### Forms
-Form(children: Node[]) — Form container
-Input(value: string | number, label?: string, type?: "text" | "number", placeholder?: string, rules?: Rules) — Input
+Form(id: string, buttons: Buttons, controls: FormControl[]) — Form container
+FormControl(label: string, field: Input | TextArea | Select) — Single field
 ...
-- Define each input as its own reference for progressive streaming.
+- Define EACH FormControl as its own reference for progressive streaming.
 - NEVER nest Form inside Form.
-- Form takes children: fields and a submit Button.
+- Form requires explicit buttons: Form(name, buttons, fields).
 ```
 
 ### Prompt options
@@ -248,8 +244,8 @@ import type { PromptOptions } from "@openuidev/react-lang";
 
 const options: PromptOptions = {
   preamble: "You are an assistant that outputs only OpenUI Lang.",
-  additionalRules: ["Always use Col as the root."],
-  examples: [`root = Col([title])\ntitle = Title("Hello", "lg")`],
+  additionalRules: ["Always use Card as the root for chat responses."],
+  examples: [`root = Stack([title])\ntitle = TextContent("Hello", "large-heavy")`],
 };
 
 const prompt = library.prompt(options);
@@ -259,24 +255,21 @@ See [System Prompts](/docs/openui-lang/system-prompts) for full details on promp
 
 ## Extending a library
 
-`library.extend(...)` derives a new library from an existing one, such as `library` from `@openuidev/intelligent-ui-library`. The base library is not changed.
+`library.extend(...)` derives a new library from an existing one, such as `openuiChatLibrary` from `@openuidev/react-ui`. The base library is not changed.
 
 ```tsx
-import { library } from "@openuidev/intelligent-ui-library";
-
-export const shopLibrary = library.extend({
+export const shopLibrary = openuiChatLibrary.extend({
   components: {
-    add: [ProductCard],
-    override: [Code],
-    remove: ["YouTube"],
+    add: [{ component: ProductCard, slots: ["Card.children"] }],
+    override: [CodeBlock],
+    remove: ["RadarChart"],
   },
   functions: { add: [formatCurrency] },
   actions: { add: [addToCart] },
 });
 ```
 
-- `add` takes new component definitions. The intelligent UI library's containers already accept any registered component, so adding `ProductCard` needs no slot declaration.
-- For a custom library whose parent uses a union of component refs, pass `{ component: ProductCard, slots: ["Parent.prop"] }` to add it to that union.
+- `add` takes new components. `slots` puts one in a parent's signature, as `"Parent.prop"`.
 - The shorthand `"Card"` works when the parent has exactly one content slot.
 - `override` replaces a component of the same name. `remove` drops it from the library and from every parent.
 - Create the derived library once, at module scope. A new library on every render makes the `Renderer` parse again from the start.
@@ -311,4 +304,4 @@ One or two concrete examples dramatically improve output quality, especially for
 
 ### Use `componentGroups` with notes
 
-Group related components and add notes like 'Use Chart("bar", ...) for comparisons and Chart("line", ...) for trends' to guide the LLM's choices. See [Grouping components](#grouping-components-in-prompt-output) above.
+Group related components and add notes like "Use BarChart for comparisons, LineChart for trends" to guide the LLM's choices. See [Grouping components](#grouping-components-in-prompt-output) above.

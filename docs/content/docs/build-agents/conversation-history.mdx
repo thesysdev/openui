@@ -14,8 +14,8 @@ const messages = [
   { role: "user", content: "Show revenue by region" },
   {
     role: "assistant",
-    content: `root = Col([Title("Revenue by region"), chart])
-chart = Chart("bar", [{region: "NA", Revenue: 420}, {region: "EU", Revenue: 310}, {region: "APAC", Revenue: 180}], "region", ["Revenue"])`,
+    content: `root = Stack([CardHeader("Revenue by region"), chart])
+chart = BarChart(["NA", "EU", "APAC"], [Series("Revenue", [420, 310, 180])])`,
   },
   { role: "user", content: "Make it a pie chart" },
 ];

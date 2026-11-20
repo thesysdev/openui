@@ -29,7 +29,7 @@ If you're starting a new chat UI, use Agent Interface. If you already have one, 
 Whichever chat UI you pick, these pieces come up:
 
 - **The same component library as the agent.** Import `library` from the file created in [Set up UI generation](/docs/build-agents/ui-generation#2-define-a-component-library), so the renderer knows every component the agent can write.
-- **The answer theme.** Wrap rendered answers in `ThemeProvider` from `@openuidev/intelligent-ui-library` and pass the chat's current mode. Keep `@openuidev/react-ui/styles/index.css` for react-ui chat components.
+- **The component styles.** Import `@openuidev/react-ui/styles/index.css` once when using the built-in components.
 - **`isStreaming`.** Keep it true until the response stream closes, so the interface builds up as lines arrive.
 - **`onAction`.** Send `continue_conversation` events back as a user turn with the form values, and open `open_url` events in a new tab. See [Conversation history](/docs/build-agents/conversation-history#user-actions).
 - **`toolProvider` (optional).** Pass it when generated interfaces load live data with `Query()`. See [Tools](/docs/build-agents/tools#ui-side-tools).

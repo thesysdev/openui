@@ -17,8 +17,8 @@ An OpenUI agent is a regular agent with one change: it writes its responses in O
 4. **The model streams OpenUI Lang.** Instead of a Markdown answer, it writes OpenUI Lang that composes your components:
 
    ```text
-   root = Col([Col([Title("Q3 revenue"), Text("Up 18% on Q2", "sm", "muted")], 1), chart])
-   chart = Chart("bar", [{month: "Jul", Revenue: 380}, {month: "Aug", Revenue: 410}, {month: "Sep", Revenue: 440}], "month", ["Revenue"])
+   root = Stack([CardHeader("Q3 revenue", "Up 18% on Q2"), chart])
+   chart = BarChart(["Jul", "Aug", "Sep"], [Series("Revenue", [380, 410, 440])])
    ```
 
 5. **The chat UI renders it.** The chat UI passes the accumulated text to the OpenUI renderer, which draws each component as soon as its line arrives. The renderer uses the same component library as the agent's prompt, so every component the agent writes is one the chat UI can draw.

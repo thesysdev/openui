@@ -25,10 +25,10 @@ For example, a user has a ticket dashboard and says "add a pie chart". The model
 **First response.** The model writes the full program:
 
 ```text
-root = Col([header, tbl])
-header = Title("Tickets")
+root = Stack([header, tbl])
+header = CardHeader("Tickets")
 tickets = Query("list_tickets", {}, {rows: []})
-tbl = Table(["Title", "Status"], @Each(tickets.rows, "r", [r.title, r.status]))
+tbl = Table([Col("Title", tickets.rows.title), Col("Status", tickets.rows.status)])
 ```
 
 **The user says:** _"add a pie chart showing ticket status breakdown"_
@@ -36,8 +36,8 @@ tbl = Table(["Title", "Status"], @Each(tickets.rows, "r", [r.title, r.status]))
 **The model writes only the patch:**
 
 ```text
-root = Col([header, chart, tbl])
-chart = Chart("donut", [{status: "Open", count: @Count(@Filter(tickets.rows, "status", "==", "open"))}, {status: "Closed", count: @Count(@Filter(tickets.rows, "status", "==", "closed"))}], "status", ["count"])
+root = Stack([header, chart, tbl])
+chart = PieChart(["Open", "Closed"], [@Count(@Filter(tickets.rows, "status", "==", "open")), @Count(@Filter(tickets.rows, "status", "==", "closed"))], "donut")
 ```
 
 `mergeStatements` merges by statement name:
@@ -69,7 +69,6 @@ Two prompt options control this behavior. Pass them to `generateSystemPrompt` in
 ```ts
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import librarySpec from "./generated/system-prompt.spec.json";
-import { promptOptions } from "@openuidev/intelligent-ui-library";
 
 const systemPrompt = generateSystemPrompt({
   library: librarySpec as LibrarySpec,
@@ -94,25 +93,19 @@ Your backend builds the prompt with `editMode: true` as shown above and sends th
 "use client";
 
 import { mergeStatements, Renderer } from "@openuidev/react-lang";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { openuiLibrary } from "@openuidev/react-ui";
 
 export function Dashboard({
   previous,
   latest,
   isStreaming,
-  mode,
 }: {
-  mode: "light" | "dark";
   previous: string; // the program shown before this turn
   latest: string; // the model's patch for this turn
   isStreaming: boolean;
 }) {
   const program = isStreaming ? previous : mergeStatements(previous, latest);
-  return (
-    <ThemeProvider mode={mode}>
-      <Renderer library={library} response={program} isStreaming={isStreaming} />
-    </ThemeProvider>
-  );
+  return <Renderer library={openuiLibrary} response={program} isStreaming={isStreaming} />;
 }
 ```
 

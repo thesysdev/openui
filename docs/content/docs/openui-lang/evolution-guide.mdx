@@ -21,7 +21,7 @@ OpenUI Lang started as a way to generate static UI from LLM output, a token-effi
 | **Interactivity**   | Send message back to LLM      | Buttons call tools directly via `@Run`, update state via `@Set` |
 | **LLM role**        | Generates UI on every turn    | Generates UI once, then gets out of the way                     |
 | **Data transforms** | None                          | `@Count`, `@Filter`, `@Sort`, `@Each`, `@Sum`, etc.             |
-| **Components**      | Layout + content              | Reactive props on library components                            |
+| **Components**      | Layout + content              | + `Modal`, auto-dismiss `Callout`                               |
 
 ## From chat response to standalone app
 
@@ -30,9 +30,9 @@ OpenUI Lang started as a way to generate static UI from LLM output, a token-effi
 The LLM generates a component tree. It renders once. User wants changes? Ask the LLM again.
 
 ```text
-root = Col([header, chart])
-header = Title("Q4 Revenue")
-chart = Chart("bar", [{month: "Oct", Revenue: 120}, {month: "Nov", Revenue: 150}, {month: "Dec", Revenue: 180}], "month", ["Revenue"])
+root = Stack([header, chart])
+header = CardHeader("Q4 Revenue")
+chart = BarChart(["Oct", "Nov", "Dec"], [Series("Revenue", [120, 150, 180])])
 ```
 
 Data is hardcoded. No interactivity beyond clicking a button to send a message back to the LLM.
@@ -43,11 +43,11 @@ The LLM generates code that **connects to your tools**. The runtime fetches data
 
 ```text
 $days = "7"
-filter = Select($days, [{value: "7", label: "7 days"}, {value: "30", label: "30 days"}], "Date range")
+filter = Select("days", [SelectItem("7", "7 days"), SelectItem("30", "30 days")], null, null, $days)
 data = Query("analytics", {days: $days}, {rows: []})
-chart = Chart("line", data.rows, "day", ["revenue"])
-kpi = Card([Text("Total", "sm"), Title("" + @Sum(data.rows.revenue), "lg")])
-root = Col([Title("Revenue Dashboard"), filter, Row([kpi]), chart])
+chart = LineChart(data.rows.day, [Series("Revenue", data.rows.revenue)])
+kpi = Card([TextContent("Total", "small"), TextContent("" + @Sum(data.rows.revenue), "large-heavy")])
+root = Stack([CardHeader("Revenue Dashboard"), filter, Stack([kpi], "row"), chart])
 ```
 
 What's different:
@@ -65,7 +65,7 @@ Declare variables, bind them to inputs, and reference them in expressions. A cha
 
 ```text
 $search = ""
-searchBox = Input($search, "search", "text", "Search...", null)
+searchBox = Input("search", "Search...", "text", null, $search)
 filtered = @Filter(data.rows, "title", "contains", $search)
 ```
 
@@ -103,7 +103,7 @@ submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Set($su
 
 ### Reactive component props (`$binding`)
 
-Components can accept `$variables` as props for reactive binding. For example, an Input's `value` prop or a Checkbox's `checked` prop can be bound to a `$variable`, and the component reads and writes the variable directly.
+Components can accept `$variables` as props for reactive binding. For example, a Modal's `open` prop or a Callout's `visible` prop can be bound to a `$variable`, and the component reads and writes the variable directly.
 
 This is a library-level feature (component authors use `useStateField`), not a language change. The language passes the `$variable` as a positional argument.
 

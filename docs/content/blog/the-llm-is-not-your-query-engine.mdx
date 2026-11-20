@@ -49,11 +49,11 @@ In [OpenUI Lang](/docs/openui-lang/overview), the response to "show revenue by r
 
 ```text
 $days = "7"
-root = Col([filter, chart, tbl])
-filter = Select($days, [{value: "7", label: "Last 7 days"}, {value: "30", label: "Last 30 days"}, {value: "90", label: "Last 90 days"}], "days", null, null)
+root = Stack([filter, chart, tbl])
+filter = Select("days", [SelectItem("7", "Last 7 days"), SelectItem("30", "Last 30 days"), SelectItem("90", "Last 90 days")], null, null, $days)
 metrics = Query("query_orders", {days: $days, groupBy: "region"}, {rows: []})
-chart = Chart("bar", metrics.rows, "region", ["revenue"])
-tbl = Table(["Region", "Revenue"], @Each(metrics.rows, "r", [r.region, r.revenue]))
+chart = BarChart(metrics.rows.region, [Series("Revenue", metrics.rows.revenue)])
+tbl = Table([Col("Region", metrics.rows.region), Col("Revenue", metrics.rows.revenue, "number")])
 ```
 
 Six statements, a few hundred output tokens, and no data anywhere in them. `metrics.rows.revenue` is a reference the runtime resolves, not a value the model typed. Three pieces make it work:
@@ -76,8 +76,8 @@ The output is a delta. The spec language is assignment-based and the last defini
 
 ```text
 metrics = Query("query_orders", {days: $days, groupBy: "category"}, {rows: []})
-chart = Chart("bar", metrics.rows, "category", ["revenue"])
-tbl = Table(["Category", "Revenue"], @Each(metrics.rows, "r", [r.category, r.revenue]))
+chart = BarChart(metrics.rows.category, [Series("Revenue", metrics.rows.revenue)])
+tbl = Table([Col("Category", metrics.rows.category), Col("Revenue", metrics.rows.revenue, "number")])
 ```
 
 The runtime merges these into the running program ([incremental editing](/docs/openui-lang/incremental-editing)). `$days`, `filter`, and `root` are untouched and keep working, and the new query runs outside the model, same as a filter change.
@@ -137,4 +137,5 @@ Generative UI takes the model off that path. It compiles intent into an interfac
 
 We have argued before that [specification syntax matters](/blog/stop-making-ai-write-json) for token efficiency at the format level. The architectural version of that argument is larger: the dominant token expense in an interactive data application was never the output format. It was routing data through a language model on every interaction. The model decides what the interface should be. The runtime does the rest.
 
-[^1]: Complex questions follow the same pattern. If the answer is a join, the model can declare one richer SQL query. If it does not fit a single SQL statement, the model can generate a small ephemeral script, bind the widget's filters to its parameters, and the runtime executes it on later interactions without the model, the way a dashboard binds its controls to a saved query.
+[^1]:
+    Complex questions follow the same pattern. If the answer is a join, the model can declare one richer SQL query. If it does not fit a single SQL statement, the model can generate a small ephemeral script, bind the widget's filters to its parameters, and the runtime executes it on later interactions without the model, the way a dashboard binds its controls to a saved query.

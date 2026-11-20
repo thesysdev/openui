@@ -101,16 +101,13 @@ Categories group artifacts in the artifact browser. They do not depend on whethe
 
 ### `componentLibrary`
 
-Pass a library (e.g. `library` from `@openuidev/intelligent-ui-library`) to enable Generative UI: the LLM renders rich, interactive components **inline in chat messages**, beyond markdown. This is distinct from artifacts (durable outputs in panels and pages). See [Generative UI](/docs/agent/core-concepts/generative-ui).
+Pass a library (e.g. `openuiLibrary` from `@openuidev/react-ui/genui-lib`) to enable Generative UI: the LLM renders rich, interactive components **inline in chat messages**, beyond markdown. This is distinct from artifacts (durable outputs in panels and pages). See [Generative UI](/docs/agent/core-concepts/generative-ui).
 
 ```tsx
 import { AgentInterface } from "@openuidev/react-ui";
-import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
-// Use the same mode for the chat and the answer library.
-<ThemeProvider mode={mode}>
-  <AgentInterface llm={llm} componentLibrary={library} theme={{ mode }} />
-</ThemeProvider>;
+<AgentInterface llm={llm} componentLibrary={openuiLibrary} />;
 ```
 
 ### `onAction`

@@ -137,8 +137,8 @@ Create `src/lib/recipe-library.tsx`:
 <div className="[&_.fd-scroll-container]:overflow-x-hidden [&_.fd-scroll-container]:overflow-y-auto [&_pre]:!w-full [&_pre]:!min-w-0 [&_pre]:whitespace-pre-wrap [&_code]:break-words">
 
 ```tsx
-import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
-import { library } from "@openuidev/intelligent-ui-library";
+import { createLibrary, defineComponent, useTriggerAction } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui";
 import { z } from "zod/v4";
 
 const cardStyle = {
@@ -249,8 +249,10 @@ const RecipeRemix = defineComponent({
   },
 });
 
-export const recipeLibrary = library.extend({
-  components: { add: [RecipeRemix] },
+export const recipeLibrary = createLibrary({
+  root: openuiLibrary.root ?? "Stack",
+  componentGroups: openuiLibrary.componentGroups,
+  components: [...Object.values(openuiLibrary.components), RecipeRemix],
 });
 ```
 
@@ -284,7 +286,7 @@ For each recipe, set imageUrl to an HTTPS URL returned by image search when avai
 Call get_recipe_profile when the user asks what they can cook from their pantry.
 Use the profile's servings value for every recipe.
 Return exactly three concise recipes and clearly label substitutions.
-Wrap the final answer in Col and render exactly one RecipeRemix component inside it.
+Render the final recipe recommendations using exactly one RecipeRemix component.
 Do not return recipe recommendations as a prose-only response.
 Never claim that a recipe is allergen-safe.
 `;
@@ -313,10 +315,10 @@ Remove the unused `chatLibrary` import, then update the `componentLibrary` prop:
 />
 
 <Callout type="info">
-  `recipeLibrary` extends `library` from `@openuidev/intelligent-ui-library`, using `Col` as its
-  root. The standard components are available alongside `RecipeRemix`. Gateway's search tools and
-  artifact renderers also remain available. See the [component library
-  setup](/docs/build-agents/ui-generation).
+  `recipeLibrary` extends the standard `openuiLibrary` from `@openuidev/react-ui`, using `Stack` as
+  its root. The standard components are available alongside `RecipeRemix`. Gateway's search tools
+  and artifact renderers also remain available. See the [built-in component
+  libraries](/docs/api-reference/react-ui#component-library-exports).
 </Callout>
 
 ## 5. Try it

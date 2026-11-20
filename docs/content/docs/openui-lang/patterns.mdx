@@ -3,7 +3,7 @@ title: Patterns
 description: Complete examples showing how Query, $variables, @builtins, and actions compose together.
 ---
 
-Real dashboards combine multiple features. These patterns show complete, copy-paste-ready openui-lang snippets using the built-in `library` components from `@openuidev/intelligent-ui-library` (Col, Card, Table, Chart, etc.). The same code works with a custom library once the component names match your own definitions.
+Real dashboards combine multiple features. These patterns show complete, copy-paste-ready openui-lang snippets using the built-in `openuiLibrary` components (Stack, Card, Table, etc.). The same code works with a custom library once the component names match your own definitions.
 
 ## Searchable, sortable table
 
@@ -15,12 +15,12 @@ $sortBy = "stars"
 data = Query("get_repos", {}, {rows: []})
 filtered = @Filter(data.rows, "name", "contains", $search)
 sorted = @Sort(filtered, $sortBy, "desc")
-searchBox = Input($search, "Search", "text", "Filter repos...", null)
-sortSelect = Select($sortBy, [{value: "stars", label: "Stars"}, {value: "forks", label: "Forks"}, {value: "updated", label: "Recent"}], "Sort by")
-controls = Row([searchBox, sortSelect], 4)
-tbl = Table(["Name", "Stars", "Forks"], @Each(sorted, "r", [r.name, r.stars, r.forks]))
-emptyState = @Count(filtered) > 0 ? tbl : Text("No results match your search.")
-root = Col([Title("Repositories"), controls, emptyState])
+searchBox = FormControl("Search", Input("search", "Filter repos...", "text", null, $search))
+sortSelect = FormControl("Sort by", Select("sortBy", [SelectItem("stars", "Stars"), SelectItem("forks", "Forks"), SelectItem("updated", "Recent")], null, null, $sortBy))
+controls = Stack([searchBox, sortSelect], "row", "m")
+tbl = Table([Col("Name", sorted.name), Col("Stars", sorted.stars, "number"), Col("Forks", sorted.forks, "number")])
+emptyState = @Count(filtered) > 0 ? tbl : TextContent("No results match your search.")
+root = Stack([CardHeader("Repositories"), controls, emptyState])
 ```
 
 What's happening:
@@ -29,9 +29,9 @@ What's happening:
 - `$sortBy` binds to the Select. User picks a field, `@Sort` re-evaluates.
 - `@Count(filtered) > 0` shows an empty state when nothing matches.
 
-## CRUD with an edit section
+## CRUD with edit modal
 
-Create tickets with a form, edit them in a conditional card, refresh the table after each action.
+Create tickets with a form, edit them in a modal, refresh the table after each action.
 
 ```text
 $title = ""
@@ -44,21 +44,31 @@ createResult = Mutation("create_ticket", {title: $title, priority: $priority})
 updateResult = Mutation("update_ticket", {id: $editId, title: $editTitle, priority: $editPriority})
 tickets = Query("list_tickets", {}, {rows: []})
 createBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title, $priority)]))
-createForm = Form([Input($title, "Title", "text", "Ticket title", {required: true}), Select($priority, [{value: "low", label: "Low"}, {value: "medium", label: "Medium"}, {value: "high", label: "High"}], "Priority"), createBtn])
-tbl = Table(["Title", "Priority", "Edit"], @Each(tickets.rows, "r", [r.title, Badge(r.priority), Button("Edit", Action([@Set($editId, r.id), @Set($editTitle, r.title), @Set($editPriority, r.priority), @Set($showEdit, true)]), "outline", null, "sm")]))
-saveBtn = Button("Save", Action([@Run(updateResult), @Run(tickets), @Set($showEdit, false)]), "solid")
-cancelBtn = Button("Cancel", Action([@Set($showEdit, false)]), "outline")
-editForm = Form([Input($editTitle, "Title", "text", "", {required: true}), Select($editPriority, [{value: "low", label: "Low"}, {value: "medium", label: "Medium"}, {value: "high", label: "High"}], "Priority"), Row([saveBtn, cancelBtn], 2)])
-editSection = $showEdit ? Card([Title("Edit Ticket", "sm"), editForm]) : null
-root = Col([Title("Tickets"), createForm, tbl, editSection])
+createForm = Form("create", createBtn, [
+  FormControl("Title", Input("title", "Ticket title", "text", {required: true}, $title)),
+  FormControl("Priority", Select("priority", [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")], null, null, $priority))
+])
+tbl = Table([
+  Col("Title", tickets.rows.title),
+  Col("Priority", @Each(tickets.rows, "t", Tag(t.priority, null, "sm", t.priority == "high" ? "danger" : "neutral"))),
+  Col("Edit", @Each(tickets.rows, "t", Button("Edit", Action([@Set($editId, t.id), @Set($editTitle, t.title), @Set($editPriority, t.priority), @Set($showEdit, true)]), "secondary", "normal", "small")))
+])
+saveBtn = Button("Save", Action([@Run(updateResult), @Run(tickets), @Set($showEdit, false)]), "primary")
+cancelBtn = Button("Cancel", Action([@Set($showEdit, false)]), "secondary")
+editForm = Form("edit", Buttons([saveBtn, cancelBtn]), [
+  FormControl("Title", Input("editTitle", "", "text", {required: true}, $editTitle)),
+  FormControl("Priority", Select("editPriority", [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")], null, null, $editPriority))
+])
+editModal = Modal("Edit Ticket", $showEdit, [editForm])
+root = Stack([CardHeader("Tickets"), createForm, tbl, editModal])
 ```
 
 What's happening:
 
 - Create form uses `Mutation` + `@Run` + `@Reset` to create and clear.
-- Edit button uses `@Set` to populate the edit fields and show the card.
-- Save button runs the update mutation, refreshes the query, and hides the edit card.
-- `@Each` renders per-row Badges and Edit buttons.
+- Edit button uses `@Set` to populate modal fields and open it.
+- Save button runs the update mutation, refreshes the query, and closes the modal.
+- `@Each` renders per-row Tag colors and Edit buttons.
 
 ## Dashboard with KPI cards
 
@@ -67,21 +77,21 @@ Aggregate query results into KPI cards using `@Count`, `@Sum`, and `@Filter`.
 ```text
 $days = "7"
 data = Query("get_usage_metrics", {days: $days}, {totalEvents: 0, totalUsers: 0, data: []})
-filter = Select($days, [{value: "7", label: "7 days"}, {value: "14", label: "14 days"}, {value: "30", label: "30 days"}], "Date Range")
-kpiRow = Row([
-  Card([Text("Events", "sm"), Title("" + data.totalEvents, "lg")]),
-  Card([Text("Users", "sm"), Title("" + data.totalUsers, "lg")]),
-  Card([Text("Avg/Day", "sm"), Title("" + @Round(@Avg(data.data.events), 0), "lg")])
-], 4)
-chart = Card([Title("Daily Trend"), Chart("line", data.data, "day", ["events", "users"])])
-root = Col([Title("Analytics"), filter, kpiRow, chart])
+filter = FormControl("Date Range", Select("days", [SelectItem("7", "7 days"), SelectItem("14", "14 days"), SelectItem("30", "30 days")], null, null, $days))
+kpiRow = Stack([
+  Card([TextContent("Events", "small"), TextContent("" + data.totalEvents, "large-heavy")]),
+  Card([TextContent("Users", "small"), TextContent("" + data.totalUsers, "large-heavy")]),
+  Card([TextContent("Avg/Day", "small"), TextContent("" + @Round(@Avg(data.data.events), 0), "large-heavy")])
+], "row", "m", "stretch", "start", true)
+chart = Card([CardHeader("Daily Trend"), LineChart(data.data.day, [Series("Events", data.data.events), Series("Users", data.data.users)])])
+root = Stack([CardHeader("Analytics"), filter, kpiRow, chart])
 ```
 
 What's happening:
 
 - One `$days` variable drives the Query args. Changing the Select re-fetches everything.
 - KPIs use direct field access (`data.totalEvents`) and computed values (`@Round(@Avg(...))`).
-- The chart reads records from `data.data`, with `day` as its x field and `events` and `users` as series.
+- The chart uses array pluck (`data.data.day`) to extract columns from the query result.
 
 ## Auto-refresh monitoring
 
@@ -89,15 +99,15 @@ The 4th argument to `Query` sets a refresh interval in seconds.
 
 ```text
 health = Query("get_server_health", {}, {cpu: 0, memory: 0, latencyP95: 0, errorRate: 0, timeseries: []}, 30)
-kpiRow = Row([
-  Card([Text("CPU", "sm"), Title("" + @Round(health.cpu, 1) + "%", "lg")]),
-  Card([Text("Memory", "sm"), Title("" + @Round(health.memory, 1) + "%", "lg")]),
-  Card([Text("P95 Latency", "sm"), Title("" + health.latencyP95 + "ms", "lg")]),
-  Card([Text("Error Rate", "sm"), Title("" + @Round(health.errorRate, 2) + "%", "lg")])
-], 4)
-chart = Card([Title("24h Trend"), Chart("line", health.timeseries, "time", ["cpu", "memory"])])
-refreshBtn = Button("Refresh Now", Action([@Run(health)]), "outline")
-root = Col([Title("Server Health"), refreshBtn, kpiRow, chart])
+kpiRow = Stack([
+  Card([TextContent("CPU", "small"), TextContent("" + @Round(health.cpu, 1) + "%", "large-heavy")]),
+  Card([TextContent("Memory", "small"), TextContent("" + @Round(health.memory, 1) + "%", "large-heavy")]),
+  Card([TextContent("P95 Latency", "small"), TextContent("" + health.latencyP95 + "ms", "large-heavy")]),
+  Card([TextContent("Error Rate", "small"), TextContent("" + @Round(health.errorRate, 2) + "%", "large-heavy")])
+], "row", "m", "stretch", "start", true)
+chart = Card([CardHeader("24h Trend"), LineChart(health.timeseries.time, [Series("CPU", health.timeseries.cpu), Series("Memory", health.timeseries.memory)])])
+refreshBtn = Button("Refresh Now", Action([@Run(health)]), "secondary")
+root = Stack([CardHeader("Server Health"), refreshBtn, kpiRow, chart])
 ```
 
 What's happening:
@@ -106,25 +116,27 @@ What's happening:
 - `@Run(health)` on the button triggers an immediate manual refresh.
 - KPIs use `@Round` for clean number formatting.
 
-## Shared filter across views
+## Shared filter across tabs
 
-One `$days` variable feeds both queries. A `SegmentedControl` selects which view to show.
+One `$days` variable works across all tab content because tabs share the same reactive scope.
 
 ```text
 $days = "7"
-filter = Select($days, [{value: "7", label: "7 days"}, {value: "14", label: "14 days"}, {value: "30", label: "30 days"}], "Date Range")
+filter = FormControl("Date Range", Select("days", [SelectItem("7", "7 days"), SelectItem("14", "14 days"), SelectItem("30", "30 days")], null, null, $days))
 usage = Query("get_usage_metrics", {days: $days}, {data: []})
 endpoints = Query("get_top_endpoints", {days: $days}, {endpoints: []})
-$view = "overview"
-viewPicker = SegmentedControl($view, [{value: "overview", label: "Overview"}, {value: "endpoints", label: "Top endpoints"}])
-overview = Chart("line", usage.data, "day", ["events"])
-endpointTable = Table(["Path", "Requests", "Latency"], @Each(endpoints.endpoints, "r", [r.path, r.requests, r.avgLatency]))
-view = $view == "overview" ? overview : endpointTable
-root = Col([Title("Dashboard"), filter, viewPicker, view])
+overviewTab = TabItem("overview", "Overview", [
+  LineChart(usage.data.day, [Series("Events", usage.data.events)])
+])
+endpointsTab = TabItem("endpoints", "Top Endpoints", [
+  Table([Col("Path", endpoints.endpoints.path), Col("Requests", endpoints.endpoints.requests, "number"), Col("Latency", endpoints.endpoints.avgLatency, "number")])
+])
+tabs = Tabs([overviewTab, endpointsTab])
+root = Stack([CardHeader("Dashboard"), filter, tabs])
 ```
 
 What's happening:
 
 - Both `usage` and `endpoints` queries reference `$days` in their args.
-- Changing the filter re-fetches both queries, updating both views.
-- Each view renders different data but shares the same reactive variable.
+- Changing the filter re-fetches both queries, updating both tabs.
+- Each tab renders different data but shares the same reactive variable.

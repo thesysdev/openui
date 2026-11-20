@@ -140,17 +140,15 @@ The query in the same file uses parameterized SQL. Missing times are left out of
 
 ### 3. Choose the components
 
-Use `@openuidev/intelligent-ui-library` for generated answers. React UI supplies Agent Interface, the transport, and chat theming:
+Use the chat library, React UI's built-in library for Agent Interface answers. Its tables, charts, and follow-up suggestions cover every answer, so the example uses it as is:
 
 ```ts title="src/library.ts"
-export { library, promptOptions } from "@openuidev/intelligent-ui-library";
+export { openuiChatLibrary as library } from "@openuidev/react-ui/genui-lib";
 ```
 
-Every answer starts with `Col`. Group related content in `Card`, use `Table(columns, rows)` for rankings, and `Chart("line", rows, "Lap", series)` for lap-by-lap comparisons. Chart rows are objects with a lap and numeric series values. Follow-up `Button` actions use `@ToAssistant("Compare their final ten laps")` to send the next question.
+Every answer is one `Card`: a `Table` or `BarChart` for a ranking, a `LineChart` for a lap-by-lap comparison, and a `FollowUpBlock` at the end. Clicking a follow-up sends its text as the next question.
 
-`src/lib/prompt.ts` extends the library's `promptOptions`, `additionalRules`, and `examples` with the analytics rules and sample program.
-
-Install the pinned library with `npm install @openuidev/intelligent-ui-library@0.0.2`, then generate the server specification from the same library used by the renderer:
+Generate the server specification from the same library used by the renderer:
 
 ```bash
 npm run generate
@@ -163,11 +161,6 @@ This runs `openui generate src/library.ts --spec --out src/generated/spec.json`.
 Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `openAIReadableStreamAdapter()`:
 
 ```tsx title="src/components/analytics-chat.tsx"
-import { ThemeProvider } from "@openuidev/intelligent-ui-library";
-import { useSystemThemeMode } from "@openuidev/react-ui";
-
-const mode = useSystemThemeMode();
-
 const llm = fetchLLM({
   url: "/api/chat",
   streamAdapter: openAIReadableStreamAdapter(),
@@ -179,21 +172,17 @@ const storage = useOpenuiCloudStorage({
   features: { artifact: false },
 });
 
-<ThemeProvider mode={mode}>
-  <AgentInterface
-    llm={llm}
-    storage={storage}
-    componentLibrary={library}
-    agentName="Data analyst"
-    theme={{ mode }}
-  >
-    <AgentInterface.Welcome title="Explore your data through conversation" />
-    <AgentInterface.Composer placeholder="Ask a question about your data…" />
-  </AgentInterface>
-</ThemeProvider>;
+<AgentInterface
+  llm={llm}
+  storage={storage}
+  componentLibrary={library}
+  agentName="Data analyst"
+  theme={{ mode: "light" }}
+>
+  <AgentInterface.Welcome title="Explore your data through conversation" />
+  <AgentInterface.Composer placeholder="Ask a question about your data…" />
+</AgentInterface>;
 ```
-
-The Intelligent UI `ThemeProvider` receives the chat's current `mode`, following the operating system, so answers stay readable in light and dark mode.
 
 Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their tool calls and results, and sends them with every question. That is what lets a follow-up build on the previous answer.
 
@@ -265,7 +254,7 @@ This example runs locally without authentication. Before deploying it, add [auth
 
 ## References
 
-- [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface`, transport, and chat theming.
+- [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface` and the chat library.
 - [`@openuidev/react-headless`](/docs/api-reference/react-headless): `fetchLLM()`, `openAIReadableStreamAdapter()`, and `useOpenuiCloudStorage()`, which the example imports through `@openuidev/react-ui`.
 - [`@openuidev/lang-core`](/docs/openui-lang/system-prompts): `generateSystemPrompt()`.
 - [`@openuidev/server`](/docs/api-reference/server#conversation-history): `storeChatCompletionHistory()`.
