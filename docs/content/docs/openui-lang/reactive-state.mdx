@@ -5,7 +5,7 @@ description: Keep UI state in $variables so the generated UI updates without ano
 
 import { ReactivityDiagram } from "@/components/openui-lang-diagrams";
 
-Reactive state makes a generated UI interactive: filters, tabs, and inputs respond to the user without another model call. The model declares a `$variable` and uses it in several places. When the user changes it, the renderer updates every place that reads it.
+Reactive state makes a generated UI interactive: filters, segmented controls, and inputs respond to the user without another model call. The model declares a `$variable` and uses it in several places. When the user changes it, the renderer updates every place that reads it.
 
 For example, a dashboard has a date range picker, a heading, and a chart. The user picks "30 days". The heading changes to "Showing last 30 days" and the chart fetches 30 days of data. The model wrote that wiring once, in the first response.
 
@@ -36,17 +36,17 @@ When a `$variable` is passed to an input's `value` prop, the two stay in sync. W
 
 ```text
 $days = "7"
-filter = Select("days", [SelectItem("7", "7 days"), SelectItem("30", "30 days")], null, null, $days)
+filter = Select($days, [{value: "7", label: "7 days"}, {value: "30", label: "30 days"}], "Date range")
 ```
 
-In `openuiLibrary`, `value` is the fifth argument of `Select` and `Input`, so the model writes `null` for the placeholder and rules it skips.
+In `library` from `@openuidev/intelligent-ui-library`, `value` is the first argument of `Select` and `Input`. Options are strings or `{value, label}` objects; each input carries its own label.
 
 ## Using variables in expressions
 
 Any expression can read a `$variable`:
 
 ```text
-title = TextContent("Showing last " + $days + " days")
+title = Text("Showing last " + $days + " days")
 data = Query("analytics", {days: $days}, {rows: []})
 ```
 
@@ -85,8 +85,8 @@ A ternary shows or hides part of the UI based on state. The result must be assig
 ```text
 $showHelp = false
 helpBtn = Button("Help", @Set($showHelp, true))
-help = $showHelp ? Callout("info", "Tip", "Pick a range to update the chart.") : null
-root = Stack([helpBtn, help])
+help = $showHelp ? Card([Title("Tip", "sm"), Text("Pick a range to update the chart.", "sm", "info")], "soft") : null
+root = Col([helpBtn, help])
 ```
 
 ## How reactivity works
@@ -106,23 +106,25 @@ The model declares the variable and uses it. The renderer keeps everything in sy
 
 A usage dashboard where the date range drives the heading and the chart.
 
-Your app renders the response with `openuiLibrary` and gives the renderer one tool:
+Your app renders the response with `library` and gives the renderer one tool:
 
 ```tsx
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 
-export function Dashboard({ response }: { response: string }) {
+export function Dashboard({ response, mode }: { response: string; mode: "light" | "dark" }) {
   return (
-    <Renderer
-      library={openuiLibrary}
-      response={response}
-      toolProvider={{
-        get_usage: async ({ days }) => fetch(`/api/usage?days=${days}`).then((r) => r.json()),
-      }}
-    />
+    <ThemeProvider mode={mode}>
+      <Renderer
+        library={library}
+        response={response}
+        toolProvider={{
+          get_usage: async ({ days }) => fetch(`/api/usage?days=${days}`).then((r) => r.json()),
+        }}
+      />
+    </ThemeProvider>
   );
 }
 ```
@@ -130,20 +132,20 @@ export function Dashboard({ response }: { response: string }) {
 The model writes:
 
 ```text
-root = Stack([header, filter, summary, chart])
-header = CardHeader("Usage")
+root = Col([header, filter, summary, chart])
+header = Title("Usage")
 $days = "7"
-filter = FormControl("Date range", Select("days", [SelectItem("7", "7 days"), SelectItem("30", "30 days")], null, null, $days))
+filter = Select($days, [{value: "7", label: "7 days"}, {value: "30", label: "30 days"}], "Date range")
 usage = Query("get_usage", {days: $days}, {rows: []})
-summary = TextContent("Showing last " + $days + " days, " + @Sum(usage.rows.events) + " events")
-chart = LineChart(usage.rows.day, [Series("Events", usage.rows.events)])
+summary = Text("Showing last " + $days + " days, " + @Sum(usage.rows.events) + " events")
+chart = Chart("line", usage.rows, "day", ["events"])
 ```
 
-The user sees a "Usage" card with a date range picker set to "7 days", a summary line, and a line chart. When the user picks "30 days", the summary changes to "Showing last 30 days" and the renderer calls `get_usage` with `{ days: "30" }`. The chart redraws with the new rows. The model is not called again.
+The user sees a "Usage" dashboard with a date range picker set to "7 days", a summary line, and a line chart. When the user picks "30 days", the summary changes to "Showing last 30 days" and the renderer calls `get_usage` with `{ days: "30" }`. The chart redraws with the new rows. The model is not called again.
 
 ## What your component must do
 
-The components in `openuiLibrary` already support `$variable` binding. A component in your own library supports it when it:
+The components in `library` already support `$variable` binding. A component in your own library supports it when it:
 
 1. Marks the prop with `reactive(...)`, for example `value: reactive(z.string().optional())`.
 2. Reads and writes the value through `useStateField(props.name, props.value)` instead of local React state.
@@ -154,9 +156,9 @@ The components in `openuiLibrary` already support `$variable` binding. A compone
 
 Use reactive state when:
 
-- A filter, tab, or toggle should change what the UI shows.
+- A filter, segmented control, or toggle should change what the UI shows.
 - Form inputs feed a `Query` or `Mutation`.
-- A button should open a modal or show a section.
+- A button should show or hide a section.
 
 Do not use it when:
 

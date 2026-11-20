@@ -44,8 +44,8 @@ The LLM doesn't have to get it right the first time. With [incremental editing](
 ```
 Turn 1:                              Turn 2 (patch only):
 
-root = Stack([header, tbl])          root = Stack([header, chart, tbl])  ← updated
-header = CardHeader("Tickets")       chart = PieChart(...)               ← new
+root = Col([header, tbl])          root = Col([header, chart, tbl])  ← updated
+header = Title("Tickets")       chart = Chart("donut", rows, "status", ["count"])               ← new
 tickets = Query(...)
 tbl = Table([...])
 ```
@@ -146,13 +146,14 @@ The prompt must list your tools, so your backend builds it with `generateSystemP
 import OpenAI from "openai";
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import componentSpec from "./generated/component-spec.json";
+import { promptOptions } from "@openuidev/intelligent-ui-library";
 import { tools } from "./tools";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const systemPrompt = generateSystemPrompt({
   library: componentSpec as LibrarySpec,
-  promptOptions: { tools, toolCalls: true, bindings: true },
+  promptOptions: { ...promptOptions, tools, toolCalls: true, bindings: true },
 });
 
 const completion = await client.chat.completions.create({
@@ -186,19 +187,16 @@ The `Renderer` runs in the browser, and so does the `toolProvider`. Each tool ca
 ### What the LLM generates
 
 ```text
-root = Stack([CardHeader("Ticket Tracker"), form, tbl])
+root = Col([Title("Ticket Tracker"), form, tbl])
 $title = ""
 $priority = "medium"
 createResult = Mutation("create_ticket", {title: $title, priority: $priority})
 tickets = Query("list_tickets", {}, {rows: []})
-submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title, $priority)]), "primary")
-form = Form("create", Buttons([submitBtn]), [
-  FormControl("Title", Input("title", "Ticket title", "text", {required: true}, $title)),
-  FormControl("Priority", Select("priority", [
-    SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")
-  ], null, null, $priority))
-])
-tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
+submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title, $priority)]), "solid")
+form = Form([Input($title, "Title", "text", "Ticket title", {required: true}), Select($priority, [
+    {value: "low", label: "Low"}, {value: "medium", label: "Medium"}, {value: "high", label: "High"}
+  ], "Priority"), Row([submitBtn], 2)])
+tbl = Table(["Title", "Priority"], @Each(tickets.rows, "r", [r.title, r.priority]))
 ```
 
 <LazyVideo

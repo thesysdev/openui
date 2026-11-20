@@ -1,15 +1,15 @@
 "use client";
 
+import { ThemeProvider, library } from "@openuidev/intelligent-ui-library";
 import { Renderer } from "@openuidev/react-lang";
-import { ThemeProvider, openuiLibrary } from "@openuidev/react-ui";
 
 // The spec "the model wrote". No data in it; the runtime resolves the references.
 const SPEC = `$days = "7"
-root = Stack([filter, chart, tbl])
-filter = Select("days", [SelectItem("7", "Last 7 days"), SelectItem("30", "Last 30 days"), SelectItem("90", "Last 90 days")], null, null, $days)
+root = Col([filter, chart, tbl])
+filter = Select($days, [{value: "7", label: "Last 7 days"}, {value: "30", label: "Last 30 days"}, {value: "90", label: "Last 90 days"}], "Date range")
 metrics = Query("query_revenue", {days: $days}, {trend: [], rows: []})
-chart = LineChart(metrics.trend.day, [Series("North America", metrics.trend.na), Series("Europe", metrics.trend.eu), Series("Asia Pacific", metrics.trend.apac), Series("Latin America", metrics.trend.latam)], "natural")
-tbl = Table([Col("Region", metrics.rows.region), Col("Revenue", metrics.rows.revenue)])
+chart = Chart("line", metrics.trend, "day", ["na", "eu", "apac", "latam"])
+tbl = Table(["Region", "Revenue"], @Each(metrics.rows, "r", [r.region, r.revenue]))
 `;
 
 // ─── Deterministic mock data ─────────────────────────────────────────────────
@@ -114,11 +114,8 @@ function Panel({
 
 export const LiveFilterDemo = () => {
   return (
-    // Scoped light theme: the widget's --openui-* tokens stay light even when the site
-    // is dark, so the demo matches the post's light diagrams. The explicit cssSelector
-    // keeps the override inside the demo; the provider's portal class carries it to the
-    // Select menu, which portals to <body>.
-    <ThemeProvider mode="light" cssSelector=".openui-demo-light">
+    // The answer library scopes its own light theme, including portaled controls.
+    <ThemeProvider mode="light">
       <div className="openui-demo-light not-prose my-8 grid grid-cols-1 gap-3 lg:grid-cols-2">
         {/* The Select menu portals to <body>, escaping the widget's zoom. This page's only
             Select is the demo's, so scale the portal to match; min-width is divided back up
@@ -171,7 +168,7 @@ export const LiveFilterDemo = () => {
               style={{ zoom: 0.875 }}
             >
               <Renderer
-                library={openuiLibrary}
+                library={library}
                 response={SPEC}
                 isStreaming={false}
                 toolProvider={toolProvider}

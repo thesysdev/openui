@@ -38,16 +38,17 @@ The entry is the statement named `root`. Its value must be a component: a call, 
 
 ```text
 $compact = false
-root = $compact ? compactView : fullView
-compactView = TextContent("3 open")
-fullView = Card([TextContent("3 open tickets")])
+root = Col([view])
+view = $compact ? compactView : fullView
+compactView = Text("3 open")
+fullView = Card([Text("3 open tickets")])
 ```
 
 With no `root` statement, the first statement that calls the library's root component is the entry, wherever it is. It renders, with a `no-root` warning:
 
 ```text
-title = TextContent("Orders")
-page = Card([title])
+title = Text("Orders")
+page = Col([title])
 ```
 
 In every other case nothing renders. The parser reports `no-root` on every parse. Renderers, such as the React `Renderer`, hold errors back until the stream ends, so a missing entry is not shown as an error while streaming.
@@ -70,8 +71,8 @@ Custom functions must be pure and synchronous. The client may call them any numb
 A call to an `@Name` that is not a built-in function, an action, or a library function reports `unknown-function` and evaluates to `null`. The rest of the statement still renders:
 
 ```text
-root = Card([total])
-total = TextContent("Total: " + @Total(items))
+root = Col([Card([total])])
+total = Text("Total: " + @Total(items))
 ```
 
 See [Functions](/docs/openui-lang/functions).
@@ -130,8 +131,8 @@ A host stores a response as text, with marker lines that start with `]]>openui:`
 
 ```text
 ]]>openui:content?library=support%401.2.0
-root = Card([title])
-title = TextContent("Order 42")
+root = Col([Card([title])])
+title = Text("Order 42")
 ]]>openui:context
 {"formState":{"note":"rush"}}
 ]]>openui:end

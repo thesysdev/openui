@@ -23,16 +23,11 @@ Add OpenUI to an existing application: define the components the model can use, 
 
 ### 1. Create a component library
 
-Create a library containing the components the model can use:
+Install `@openuidev/intelligent-ui-library` alongside `@openuidev/react-lang`.
+Start with the built-in `@openuidev/intelligent-ui-library`, whose root is `Col`:
 
 ```tsx title="src/lib/openui.tsx"
-import { createLibrary } from "@openuidev/react-lang";
-import { Chart, Metric, Stack } from "./components";
-
-export const library = createLibrary({
-  root: "Stack",
-  components: [Stack, Metric, Chart],
-});
+export { library, promptOptions } from "@openuidev/intelligent-ui-library";
 ```
 
 Learn more about defining components in the [OpenUI Lang documentation](/docs/openui-lang/defining-components).
@@ -54,6 +49,7 @@ Generate the system prompt from the library specification and send it with the u
 ```ts title="server.ts"
 import OpenAI from "openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
+import { promptOptions } from "@openuidev/intelligent-ui-library";
 import library from "./lib/openui.spec.json";
 
 const gateway = new OpenAI({
@@ -64,7 +60,7 @@ const gateway = new OpenAI({
 const completion = await gateway.chat.completions.create({
   model: "openai/gpt-5",
   messages: [
-    { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
+    { role: "system", content: generateSystemPrompt({ cloud: true, library, promptOptions }) },
     { role: "user", content: "Compare quarterly revenue by region." },
   ],
   stream: true,
@@ -87,21 +83,25 @@ Pass the accumulated OpenUI Lang text to `<Renderer />`. Set `isStreaming` until
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
+import { ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { library } from "@/lib/openui";
 
-export function GeneratedInterface({ response, isStreaming }) {
+export function GeneratedInterface({ response, isStreaming, mode }) {
   return (
-    <Renderer
-      response={response}
-      library={library}
-      isStreaming={isStreaming}
-      onAction={(action) => console.log(action)}
-    />
+    <ThemeProvider mode={mode}>
+      <Renderer
+        response={response}
+        library={library}
+        isStreaming={isStreaming}
+        onAction={(action) => console.info(action)}
+      />
+    </ThemeProvider>
   );
 }
 ```
 
-The renderer displays the interface progressively as the response arrives.
+The renderer displays the interface progressively as the response arrives. Pass the app's current
+`"light"` or `"dark"` mode to `ThemeProvider`; it cannot read the chat theme from react-ui.
 
 ## Next steps
 
