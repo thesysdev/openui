@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { mergeStatements } from "../merge";
 import { createStreamParser, parse } from "../parser";
 import type { ParamMap } from "../types";
 
@@ -368,5 +369,44 @@ a = Title("y")`;
     sp.push(`root = Stack([a])\na = Title("x")\n`);
     expect(titleText(sp.push(`a = Title("y`))).toBe("x");
     expect(titleText(sp.push(`")\n`))).toBe("y");
+  });
+});
+
+// ── multi-line ternary ending in `:` ────────────────────────────────────────
+
+describe("ternary with its else branch on the next line", () => {
+  const code = `root = Stack([a])
+a = Title(label)
+label = $on ? "yes" :
+  "no"
+$on = true`;
+
+  const labelNode = (result: ReturnType<typeof parse>) => {
+    const children = result.root?.props?.children as any[] | undefined;
+    return children?.[0]?.props?.text;
+  };
+
+  const expected = {
+    k: "Ternary",
+    cond: { k: "StateRef", n: "$on" },
+    then: { k: "Str", v: "yes" },
+    else: { k: "Str", v: "no" },
+  };
+
+  it("parse() keeps the else branch after a trailing `:`", () => {
+    const result = parse(code, schema);
+    expect(result.meta.errors).toHaveLength(0);
+    expect(labelNode(result)).toEqual(expected);
+  });
+
+  it("stream parser keeps the else branch, character by character", () => {
+    const sp = createStreamParser(schema);
+    for (const ch of code) sp.push(ch);
+    expect(labelNode(sp.getResult(true))).toEqual(expected);
+  });
+
+  it("mergeStatements keeps the else branch of an edited program", () => {
+    const merged = mergeStatements(code, "root = Stack([a])");
+    expect(merged).toContain('label = $on ? "yes" :\n  "no"');
   });
 });
