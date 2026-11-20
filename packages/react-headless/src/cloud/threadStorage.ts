@@ -115,5 +115,13 @@ export function cloudThreadStorage({
         method: "DELETE",
       });
     },
+
+    /** POST /v1/conversations/:id/items/:itemId — persist edited content. */
+    async updateMessage(threadId: string, message: Message): Promise<void> {
+      await request(
+        `/v1/conversations/${encodeURIComponent(threadId)}/items/${encodeURIComponent(message.id)}`,
+        { method: "POST", body: JSON.stringify({ content: message.content }) },
+      );
+    },
   };
 }

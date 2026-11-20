@@ -78,6 +78,7 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
     const decoder = new TextDecoder();
     let fallbackMessageId = crypto.randomUUID();
     let currentMessageId: string | null = null;
+    let currentWireMessageId: string | null = null;
     let currentGraphStep: number | undefined;
     const toolCallIdsByIndex = new Map<number, string>();
     const startedToolCallIds = new Set<string>();
@@ -154,6 +155,7 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
               }
               messageStarted = false;
               currentMessageId = null;
+              currentWireMessageId = null;
               sawToolsOnCurrentMessage = false;
               currentGraphStep = undefined;
               fallbackMessageId = crypto.randomUUID();
@@ -190,7 +192,7 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
 
             const isNewModelStep =
               !messageStarted ||
-              nextMessageId !== currentMessageId ||
+              nextMessageId !== currentWireMessageId ||
               graphStepChanged ||
               splitAfterTools;
 
@@ -199,8 +201,11 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
             // spent on a closed segment needs a fresh one for consumers to keep
             // both. Only when opening a segment: mid-message chunks must keep
             // streaming into currentMessageId.
-            if (isNewModelStep && usedMessageIds.has(nextMessageId)) {
-              nextMessageId = `${nextMessageId}#${++duplicateMessageIds}`;
+            if (isNewModelStep) {
+              currentWireMessageId = nextMessageId;
+              if (usedMessageIds.has(nextMessageId)) {
+                nextMessageId = `${nextMessageId}#${++duplicateMessageIds}`;
+              }
             }
 
             if (isNewModelStep) {
