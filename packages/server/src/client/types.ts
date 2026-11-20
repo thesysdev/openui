@@ -37,7 +37,8 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
   /**
    * How many rounds of tool calls the model may make before it must write the dashboard
-   * (OpenUI Cloud's default: 20). Each round can call several of your tools.
+   * (OpenUI Cloud's default: 20). Each round can call several of your tools. `0` turns tool
+   * calls off: the model writes the dashboard from your tool descriptions alone.
    */
   maxToolRounds?: number;
   promptOptions?: ArtifactPromptOptions;
