@@ -25,10 +25,13 @@ followUps = Col([Button("Compare operating margin", @ToAssistant("Compare operat
 sources = Col([Title("Sources", "sm"), Card([Quote("Revenue was $10.0 billion, $9.5 billion, and $8.1 billion in fiscal 2025, 2024, and 2023.", "Company A · Page 45"), Link("Company A · Page 45", "https://example.com/company-a.pdf#page=45")]), Card([Quote("Net revenue was $8.0 billion in 2025 and $7.9 billion in 2024.", "Company B · Page 52"), Link("Company B · Page 52", "https://example.com/company-b.pdf#page=52")]), Card([Quote("Revenue (USD billions): Data center 6.0; Client 4.0.", "Company A · Page 47"), Link("Company A · Page 47", "https://example.com/company-a.pdf#page=47")]), Card([Quote("Revenue (USD billions): Client 4.1; Data center 3.1; Embedded 0.8.", "Company B · Page 55"), Link("Company B · Page 55", "https://example.com/company-b.pdf#page=55")])])
 `;
 
+// The generated spec also carries promptOptions. Cloud rejects them inside chatLibrary,
+// so the library goes without them and the options are passed beside it below.
+const { promptOptions: _specPromptOptions, ...library } = spec;
 export function comparisonPrompt(documents: Document[]) {
   return generateSystemPrompt({
     cloud: true,
-    library: spec,
+    library,
     promptOptions: {
       ...promptOptions,
       additionalRules: [

@@ -12,10 +12,13 @@ chart = Chart("line", [{Lap: "1", "Driver B minus Driver A (seconds)": 0.9}, {La
 followUps = Col([Button("Compare their final ten laps", @ToAssistant("Compare their final ten laps"), "outline"), Button("Add a third driver", @ToAssistant("Add a third driver"), "outline")])
 `;
 
+// The generated spec also carries promptOptions. Cloud rejects them inside chatLibrary,
+// so the library goes without them and the options are passed beside it below.
+const { promptOptions: _specPromptOptions, ...library } = spec;
 export function analyticsPrompt(drivers: Driver[]) {
   return generateSystemPrompt({
     cloud: true,
-    library: spec,
+    library,
     promptOptions: {
       ...promptOptions,
       additionalRules: [
