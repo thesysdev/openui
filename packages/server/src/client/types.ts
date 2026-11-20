@@ -49,6 +49,10 @@ export interface EditDashboardParams {
   prompt: string;
 }
 
+export interface GetDashboardParams {
+  id: string;
+}
+
 /** How to make a call, apart from what it asks for. */
 export interface RequestOptions {
   /** Cancels the call while it waits for OpenUI Cloud. */
@@ -74,6 +78,16 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
    * `context.userId` or `context.groupIds`. Renderers keep the current version until the edit is ready.
    */
   edit(params: EditDashboardParams, context: Context, options?: RequestOptions): Promise<string>;
+  /**
+   * Reads a dashboard the user can open: their own, or one shared with them through
+   * `context.userId` or `context.groupIds`. Give the model its `name` and `content`, or the
+   * renderer its `id`.
+   */
+  get(
+    params: GetDashboardParams,
+    context: Context,
+    options?: RequestOptions,
+  ): Promise<CloudArtifact>;
   /** Runs this dashboard's data tools and generated scripts on your server. */
   readonly interpreter: Interpreter<Context>;
 }

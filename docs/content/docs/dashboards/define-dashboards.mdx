@@ -3,7 +3,7 @@ title: Define dashboards
 description: Choose the component library, the model, and the data tools that every dashboard is built from.
 ---
 
-`openui.defineDashboard()` sets up how every dashboard in the app is built: the components it's made of, the model that builds it, and the data tools it can call. It returns an object with `create`, `edit`, and `interpreter`, which the rest of the integration uses.
+`openui.defineDashboard()` sets up how every dashboard in the app is built: the components it's made of, the model that builds it, and the data tools it can call. It returns an object with `create`, `edit`, `get`, and `interpreter`, which the rest of the integration uses.
 
 ```ts title="lib/openui.ts"
 import { promptOptions } from "@openuidev/dashboard-library";

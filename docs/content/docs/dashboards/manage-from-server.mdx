@@ -3,7 +3,7 @@ title: Manage dashboards from your server
 description: List, read, rename, pin, share, and delete saved dashboards on your server with openui.artifacts.
 ---
 
-`openui.artifacts` reads, changes, and shares saved dashboards with your API key. Use it where there's no browser, such as a server route, a background job, or an admin tool.
+`openui.artifacts` reads, changes, and shares saved dashboards with your API key. Use it where there's no browser, such as a server route, a background job, or an admin tool. For an agent's tool, use [`dashboards.get()`](/docs/dashboards/add-to-your-agent#add-the-get-tool), which always reads as the signed-in user.
 
 ```ts title="app/api/dashboards/route.ts"
 import { openui } from "@/lib/openui";
