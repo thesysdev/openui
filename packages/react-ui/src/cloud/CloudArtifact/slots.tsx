@@ -17,7 +17,6 @@ import {
   type Region,
 } from "./contexts";
 import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
-import { ProvenancePanel } from "./ProvenancePanel";
 
 /*
  * Slots, following AgentInterface's three modes:
@@ -269,7 +268,6 @@ export function Content({ className, children }: PartProps) {
             <Pending />
             <Loading />
             <ErrorSlot />
-            <Provenance />
           </>
         ) : (
           children
@@ -343,11 +341,13 @@ export interface ProvenanceProps {
   children?: ReactNode;
 }
 
-/** Where the selected component's data comes from. Shows only while something is selected. */
+/**
+ * Your panel for the selected component: pass it as children, and read the selection and its
+ * sources with `useArtifactProvenance()`. Renders only while something is selected.
+ */
 export function Provenance({ children }: ProvenanceProps) {
   const inside = useInRegion("content");
   const provenance = useContext(ProvenanceContext);
   if (!inside || !provenance?.selection) return null;
-  if (children !== undefined) return <>{children}</>;
-  return <ProvenancePanel />;
+  return <>{children}</>;
 }

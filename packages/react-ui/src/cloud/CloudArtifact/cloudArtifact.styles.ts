@@ -37,7 +37,6 @@ export const names = {
   panel: "openui-artifact-panel",
   inspecting: "openui-artifact-inspecting",
   provenanceToggle: "openui-artifact-provenance-toggle",
-  provenancePanel: "openui-artifact-provenance",
 } as const;
 
 export const styles = {
@@ -180,93 +179,5 @@ export const styles = {
       outline: 1px dashed var(--openui-interactive-accent-default);
       outline-offset: -2px;
     }
-  `,
-  // A zero-height row that sticks to the top of the scrolling content, so the panel stays in
-  // view and above the artifact's own sticky parts.
-  provenanceDock: css`
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    height: 0;
-  `,
-  provenancePanel: css`
-    position: absolute;
-    top: var(--openui-space-xs);
-    right: var(--openui-space-xs);
-    box-sizing: border-box;
-    width: min(360px, calc(100% - 2 * var(--openui-space-xs)));
-    max-height: min(640px, 80vh);
-    overflow: auto;
-    padding: var(--openui-space-s) var(--openui-space-m);
-    border: 1px solid var(--openui-border-default);
-    border-radius: var(--openui-radius-m);
-    background: var(--openui-background);
-    box-shadow: var(--openui-shadow-m, var(--openui-shadow-s));
-    color: var(--openui-text-neutral-primary);
-  `,
-  provenanceHeader: css`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--openui-space-s);
-  `,
-  provenanceTitle: css`
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    ${bodyHeavy}
-  `,
-  provenanceSection: css`
-    margin-top: var(--openui-space-s);
-    padding-top: var(--openui-space-s);
-    border-top: 1px solid var(--openui-border-default);
-  `,
-  provenanceLabel: css`
-    ${bodyHeavy}
-  `,
-  provenanceNote: css`
-    margin: 0;
-    ${bodySmall}
-    color: var(--openui-text-neutral-secondary);
-  `,
-  provenanceTableWrap: css`
-    max-height: 220px;
-    margin-top: var(--openui-space-2xs);
-    overflow: auto;
-  `,
-  provenanceTable: css`
-    border-collapse: collapse;
-    ${bodySmall}
-    & th,
-    & td {
-      padding: 2px var(--openui-space-xs);
-      border-bottom: 1px solid var(--openui-border-default);
-      text-align: left;
-      white-space: nowrap;
-    }
-    & th {
-      color: var(--openui-text-neutral-secondary);
-    }
-    & td[data-cited] {
-      outline: 2px solid var(--openui-interactive-accent-default);
-      outline-offset: -2px;
-      font-weight: 600;
-    }
-  `,
-  provenanceCode: css`
-    max-height: 200px;
-    margin: var(--openui-space-2xs) 0 0;
-    overflow: auto;
-    padding: var(--openui-space-xs);
-    border-radius: var(--openui-radius-s);
-    background: var(--openui-sunk, rgba(127, 127, 127, 0.08));
-    font:
-      12px/1.4 ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      monospace;
-    white-space: pre-wrap;
-    word-break: break-word;
   `,
 };

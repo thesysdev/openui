@@ -26,19 +26,19 @@ The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentica
 
 ## Props
 
-| Prop                                    | Description                                                                                                   |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `response`                              | The response from `create` or `edit`, unchanged.                                                              |
-| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.       |
-| `library`                               | The component library. Use the same library the spec on the server came from.                                 |
-| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.              |
-| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                   |
-| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                            |
-| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                          |
-| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                |
-| `enableProvenance`                      | Show where the data comes from: an inspect toggle in the bar, and a panel. See [Data sources](#data-sources). |
-| `onError`                               | Receives rendering, query, and loading errors.                                                                |
-| `className`                             | Added to the root element.                                                                                    |
+| Prop                                    | Description                                                                                                      |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `response`                              | The response from `create` or `edit`, unchanged.                                                                 |
+| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.          |
+| `library`                               | The component library. Use the same library the spec on the server came from.                                    |
+| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                 |
+| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                      |
+| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                               |
+| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                             |
+| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                   |
+| `enableProvenance`                      | Show where the data comes from: an inspect toggle in the bar, and your panel. See [Data sources](#data-sources). |
+| `onError`                               | Receives rendering, query, and loading errors.                                                                   |
+| `className`                             | Added to the root element.                                                                                       |
 
 ## Layouts
 
@@ -108,7 +108,7 @@ Each part of the renderer is a slot, passed as a child. A slot can be left out t
 | `ProvenanceToggle`                                            | Chrome  | Turns inspect mode on and off. Only with `enableProvenance`.                                                 |
 | `Content`                                                     | Chrome  | The dashboard itself.                                                                                        |
 | `Pending`, `Loading`, `Error`                                 | Content | Shown only before the tool returns, while the dashboard loads, or after it fails, even with custom children. |
-| `Provenance`                                                  | Content | The data sources panel, shown while a component is selected. Only with `enableProvenance`.                   |
+| `Provenance`                                                  | Content | Your data sources panel, shown while a component is selected. Only with `enableProvenance`.                  |
 
 For example, a full-height panel with its own header:
 
@@ -174,13 +174,13 @@ function DashboardError() {
 
 ## Data sources
 
-With `enableProvenance`, the bar shows an inspect toggle. While it's on, clicking a component selects it instead of acting, and a panel shows where its data comes from: its queries with their tool calls and results, the statements in between, and the filters it reads.
+With `enableProvenance`, the bar shows an inspect toggle. While it's on, clicking a component, or a number in it, selects it instead of acting. Your panel, passed to `Provenance`, shows where its data comes from with `useArtifactProvenance()`: its queries with their tool calls and results, the cell the number shows, the formula in between, and the filters it reads.
 
 ```tsx
 <LiveArtifactRenderer id={id} library={library} interpreter={interpreter} enableProvenance />
 ```
 
-Place the toggle yourself with `ProvenanceToggle`, as with `CloseButton`. Replace the panel by passing children to `Provenance`, and read the selection with `useArtifactProvenance()`:
+Place the toggle yourself with `ProvenanceToggle`, as with `CloseButton`. Pass your panel as children of `Provenance`, inside `Content`:
 
 ```tsx
 import { useArtifactProvenance } from "@openuidev/react-ui/cloud";
@@ -192,6 +192,17 @@ function SourcesPanel() {
   const shown = selection.prop ? sources.props?.[selection.prop] : sources;
   return <aside>{/* your UI */}</aside>;
 }
+
+<LiveArtifactRenderer id={id} library={library} interpreter={interpreter} enableProvenance>
+  <LiveArtifactRenderer.Chrome>
+    <LiveArtifactRenderer.ChromeActions />
+    <LiveArtifactRenderer.Content>
+      <LiveArtifactRenderer.Provenance>
+        <SourcesPanel />
+      </LiveArtifactRenderer.Provenance>
+    </LiveArtifactRenderer.Content>
+  </LiveArtifactRenderer.Chrome>
+</LiveArtifactRenderer>;
 ```
 
 | Field                           | Description                                                                                                                     |
