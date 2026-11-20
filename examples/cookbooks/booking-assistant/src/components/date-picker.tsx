@@ -33,7 +33,7 @@ export const DatePicker = defineComponent({
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
     const id = useId();
-    const field = useStateField(statementId ?? props.label ?? id, props.value);
+    const field = useStateField(statementId ?? id, props.value);
     const rules = useMemo(() => parseStructuredRules(props.rules), [props.rules]);
     const [isOpen, setIsOpen] = useState(false);
     const [rangeError, setRangeError] = useState<string>();
