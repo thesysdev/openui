@@ -1,7 +1,7 @@
 import { none } from "eve/channels/auth";
 import { defaultEveAuth, eveChannel } from "eve/channels/eve";
 
-import { THREAD_ID_ATTRIBUTE } from "../hooks/gateway-session";
+import { THREAD_ID_ATTRIBUTE } from "../hooks/gateway-session.ts";
 
 /** Header the browser sends with the OpenUI thread ID; see src/eve-chat.ts. */
 const THREAD_ID_HEADER = "x-openui-thread-id";
