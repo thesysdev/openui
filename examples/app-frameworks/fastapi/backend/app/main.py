@@ -1,6 +1,7 @@
 """Minimal FastAPI backend — streams OpenUI Cloud completions as NDJSON."""
 import json
 import os
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -56,7 +57,11 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 async def chat(body: dict):
     messages = body.get("messages") or []
     thread_id = body.get("threadId")
-    has_thread = isinstance(thread_id, str) and bool(thread_id)
+    has_thread = (
+        isinstance(thread_id, str)
+        and bool(thread_id.strip())
+        and not re.search(r"[\x00-\x1f\x7f-\x9f]", thread_id)
+    )
     # A rejected key, rate limit, or bad request fails here, before streaming starts.
     # Return it as JSON so the chat shows the real reason instead of a bare 500.
     try:

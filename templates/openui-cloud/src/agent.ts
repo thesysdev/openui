@@ -40,7 +40,8 @@ function cloudModel(model: string, sessionId?: string) {
     configuration: {
       baseURL: "https://api.thesys.dev/v1/embed",
       // The thread id groups the thread's turns into one session on the Gateway.
-      defaultHeaders: sessionId ? { "x-thesys-session-id": sessionId } : undefined,
+      defaultHeaders:
+        sessionId && !/\p{Cc}/u.test(sessionId) ? { "x-thesys-session-id": sessionId } : undefined,
     },
   });
 }

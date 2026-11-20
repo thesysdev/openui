@@ -22,7 +22,9 @@ export async function POST(req: NextRequest) {
     baseURL: "https://api.thesys.dev/v1/embed",
     // The chat's thread ID groups its turns into one session on the Gateway.
     defaultHeaders:
-      typeof threadId === "string" && threadId ? { "x-thesys-session-id": threadId } : undefined,
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
 
   // A rejected key, rate limit, or bad request fails here, before streaming starts.

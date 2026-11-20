@@ -60,7 +60,10 @@ function extractText(content: unknown): string {
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as ChatBody;
-  const conversationId = body.threadId?.trim() || crypto.randomUUID();
+  const threadId = typeof body.threadId === "string" ? body.threadId.trim() : "";
+  const conversationId = threadId || crypto.randomUUID();
+  // Only a thread ID the client sent goes to the Gateway as the session ID.
+  const sessionId = threadId && !/\p{Cc}/u.test(threadId) ? threadId : undefined;
   const cwd = process.env.PI_AGENT_CWD || process.cwd();
 
   // The frontend re-sends the full thread, but Pi keeps its own transcript, so
@@ -71,7 +74,7 @@ export async function POST(req: NextRequest) {
   let session: Awaited<ReturnType<typeof getOrCreateSession>>["session"];
   let modelFallbackMessage: string | undefined;
   try {
-    const entry = await getOrCreateSession(conversationId, { cwd });
+    const entry = await getOrCreateSession(conversationId, { cwd, sessionId });
     session = entry.session;
     modelFallbackMessage = entry.modelFallbackMessage;
   } catch (err) {

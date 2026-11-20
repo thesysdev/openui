@@ -48,7 +48,9 @@ export async function POST({ request }: { request: Request }) {
     experimental_transform: smoothStream({ chunking: "line" }),
     // The client's conversation ID groups its turns into one session on the Gateway.
     headers:
-      typeof sessionId === "string" && sessionId ? { "x-thesys-session-id": sessionId } : undefined,
+      typeof sessionId === "string" && sessionId.trim() && !/\p{Cc}/u.test(sessionId)
+        ? { "x-thesys-session-id": sessionId }
+        : undefined,
   });
 
   return result.toUIMessageStreamResponse({

@@ -50,6 +50,8 @@ export interface PiSessionEntry {
 interface GetOrCreateOptions {
   /** Workspace the coding agent operates in. */
   cwd: string;
+  /** The client's thread ID, sent to the Gateway as the session ID. */
+  sessionId?: string;
 }
 
 const IDLE_TTL_MS = 30 * 60 * 1000; // evict sessions idle for 30 min
@@ -103,7 +105,7 @@ function toolOptions(): { tools?: string[] } {
   return {};
 }
 
-async function createSession(cwd: string, conversationId: string): Promise<PiSessionEntry> {
+async function createSession(cwd: string, sessionId?: string): Promise<PiSessionEntry> {
   const apiKey = process.env.THESYS_API_KEY?.trim();
   if (!apiKey) {
     throw new Error("Missing required env var: THESYS_API_KEY");
@@ -150,8 +152,10 @@ async function createSession(cwd: string, conversationId: string): Promise<PiSes
     resourceLoader,
     authStorage,
     modelRegistry,
-    // The conversation id groups the thread's turns into one session on the Gateway.
-    model: { ...model, headers: { ...model.headers, "x-thesys-session-id": conversationId } },
+    // The thread ID groups the thread's turns into one session on the Gateway.
+    model: sessionId
+      ? { ...model, headers: { ...model.headers, "x-thesys-session-id": sessionId } }
+      : model,
     ...toolOptions(),
   });
 
@@ -160,7 +164,7 @@ async function createSession(cwd: string, conversationId: string): Promise<PiSes
 
 export async function getOrCreateSession(
   conversationId: string,
-  { cwd }: GetOrCreateOptions,
+  { cwd, sessionId }: GetOrCreateOptions,
 ): Promise<PiSessionEntry> {
   const now = Date.now();
   evictIdle(now);
@@ -176,7 +180,7 @@ export async function getOrCreateSession(
   const inFlight = CREATING.get(conversationId);
   if (inFlight) return inFlight;
 
-  const creation = createSession(cwd, conversationId)
+  const creation = createSession(cwd, sessionId)
     .then((entry) => {
       SESSIONS.set(conversationId, entry);
       return entry;

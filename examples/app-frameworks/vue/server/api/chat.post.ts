@@ -32,7 +32,9 @@ export default defineEventHandler(async (event) => {
     stopWhen: stepCountIs(5),
     // The client's conversation ID groups its turns into one session on the Gateway.
     headers:
-      typeof sessionId === "string" && sessionId ? { "x-thesys-session-id": sessionId } : undefined,
+      typeof sessionId === "string" && sessionId.trim() && !/\p{Cc}/u.test(sessionId)
+        ? { "x-thesys-session-id": sessionId }
+        : undefined,
   });
 
   return result.toUIMessageStreamResponse({

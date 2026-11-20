@@ -7,6 +7,7 @@ import {
   openAIAdapter,
   openAIMessageFormat,
   useThread,
+  useThreadList,
 } from "@openuidev/react-headless";
 
 import { ComposePage } from "@/components/composePage";
@@ -15,8 +16,9 @@ import {
   saveView,
   loadView,
   saveMessages,
-  loadMessages,
+  loadThreadId,
   clearSession,
+  emailStorage,
 } from "@/components/session";
 
 // ── Main App (manages view state) ──
@@ -25,18 +27,18 @@ function EmailApp() {
   const [view, setView] = useState<"compose" | "chat">("compose");
   const messages = useThread((s) => s.messages);
   const processMessage = useThread((s) => s.processMessage);
-  const setMessages = useThread((s) => s.setMessages);
+  const selectThread = useThreadList((s) => s.selectThread);
+  const switchToNewThread = useThreadList((s) => s.switchToNewThread);
   const restoredRef = useRef<boolean | null>(null);
 
-  // Restore view and messages synchronously on first render (not in effect)
+  // Restore view and thread on first render (not in effect)
   if (restoredRef.current === null) {
     restoredRef.current = true;
     const savedView = loadView();
     if (savedView === "chat") setView("chat");
-    const saved = loadMessages();
-    if (saved && saved.length > 0) {
-      setMessages(saved as Parameters<typeof setMessages>[0]);
-    }
+    // Reopen the saved email's thread: emailStorage loads its messages.
+    const savedThreadId = loadThreadId();
+    if (savedThreadId) selectThread(savedThreadId);
   }
 
   // Persist messages to session whenever they change
@@ -56,10 +58,11 @@ function EmailApp() {
   );
 
   const handleNewEmail = useCallback(() => {
-    setMessages([]);
+    // A new thread, so the next email gets its own session ID.
+    switchToNewThread();
     setView("compose");
     clearSession();
-  }, [setMessages]);
+  }, [switchToNewThread]);
 
   if (view === "compose") {
     return <ComposePage onSend={handleSend} />;
@@ -85,7 +88,7 @@ export default function Page() {
 
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      <ChatProvider llm={llm}>
+      <ChatProvider llm={llm} storage={emailStorage}>
         <EmailApp />
       </ChatProvider>
     </div>

@@ -28,13 +28,14 @@ const chat = new Chat({ api: "/api/chat", messages: loadMessages() });
 // One ID per conversation. The server sends it to the Gateway as the session ID.
 const SESSION_KEY = "openui-vue:session";
 function loadSessionId(): string {
+  // Not crypto.randomUUID(): it is missing on plain-HTTP origins, such as a LAN address.
+  const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
   try {
-    const id = localStorage.getItem(SESSION_KEY) ?? crypto.randomUUID();
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) return saved;
     localStorage.setItem(SESSION_KEY, id);
-    return id;
-  } catch {
-    return crypto.randomUUID();
-  }
+  } catch {}
+  return id;
 }
 let sessionId = loadSessionId();
 

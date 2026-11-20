@@ -1,7 +1,7 @@
 import { cloudInstructions } from "@/lib/cloud-prompt";
 import { ChatOpenAI } from "@langchain/openai";
 import { openUIStreamTransformer } from "@openuidev/langchain/transformer";
-import { createDeepAgent } from "deepagents";
+import { createDeepAgent, GENERAL_PURPOSE_SUBAGENT } from "deepagents";
 import { createMiddleware } from "langchain";
 import { z } from "zod";
 
@@ -33,9 +33,11 @@ const sessionHeader = createMiddleware({
   },
 });
 
+const tools = [getWeather, getStockPrice, searchWeb];
+
 export const graph = createDeepAgent({
   model: cloudModel(),
-  tools: [getWeather, getStockPrice, searchWeb],
+  tools,
   systemPrompt: cloudInstructions(
     [
       "You are an OpenUI assistant with weather, finance, and research tools.",
@@ -43,5 +45,8 @@ export const graph = createDeepAgent({
     ].join("\n"),
   ),
   middleware: [sessionHeader],
+  // The built-in general-purpose subagent with the same middleware, so the model calls of the
+  // `task` tool also send the session ID.
+  subagents: [{ ...GENERAL_PURPOSE_SUBAGENT, tools, middleware: [sessionHeader] }],
   streamTransformers: [openUIStreamTransformer],
 });

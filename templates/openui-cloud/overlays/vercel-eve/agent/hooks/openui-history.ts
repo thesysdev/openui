@@ -36,7 +36,8 @@ function threadIdOf(ctx: HookContext): string | undefined {
 export default defineHook({
   events: {
     "turn.started"(_event, ctx) {
-      gatewaySessionId.update(() => threadIdOf(ctx) ?? "");
+      const threadId = threadIdOf(ctx) ?? "";
+      gatewaySessionId.update(() => (/\p{Cc}/u.test(threadId) ? "" : threadId));
     },
     "message.received"(event) {
       turn.update(() => [{ role: "user", content: event.data.message }]);

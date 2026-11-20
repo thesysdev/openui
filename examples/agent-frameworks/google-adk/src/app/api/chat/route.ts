@@ -54,12 +54,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Without a threadId, start a fresh session rather than sharing one across callers.
-    const resolvedThreadId =
-      typeof threadId === "string" && threadId ? threadId : crypto.randomUUID();
+    const resolvedThreadId = threadId || crypto.randomUUID();
     const sessionId = await ensureSession(resolvedThreadId);
+    // Only a thread ID the client sent goes to the Gateway as the session ID.
+    const gatewaySessionId =
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? threadId
+        : undefined;
     const runner = new Runner({
       appName: APP_NAME,
-      agent: createAgent(resolvedThreadId),
+      agent: createAgent(gatewaySessionId),
       sessionService,
     });
     const encoder = new TextEncoder();

@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     stopWhen: stepCountIs(5),
     abortSignal: req.signal,
     // The thread id groups the thread's turns into one session on the Gateway.
-    headers: { "x-thesys-session-id": threadId },
+    headers: !/\p{Cc}/u.test(threadId) ? { "x-thesys-session-id": threadId } : undefined,
     // Save the completed turn so OpenUI Cloud storage can reload the thread.
     // Only the new user message and this turn's replies; never the replayed history.
     onEnd: async ({ responseMessages }) => {

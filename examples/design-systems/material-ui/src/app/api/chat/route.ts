@@ -24,7 +24,9 @@ export async function POST(req: Request) {
     apiKey: requiredEnv("THESYS_API_KEY"),
     // The chat's thread ID groups its turns into one session on the Gateway.
     defaultHeaders:
-      typeof threadId === "string" && threadId ? { "x-thesys-session-id": threadId } : undefined,
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
 
   // Resolves on the first chunk, or with the error if the run fails before any output,

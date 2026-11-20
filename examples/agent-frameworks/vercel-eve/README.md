@@ -61,8 +61,9 @@ Eve session events ──► eveAdapter() ──► OpenUI renderer
   stream, and persists session cursors per OpenUI thread. `eveAdapter()` maps that stream to AG-UI.
 - `agent/instructions/openui.ts` injects the generated OpenUI Lang prompt when an Eve session
   starts. `agent/instructions/identity.md` is the agent's standing identity.
-- `agent/hooks/gateway-session.ts` keeps the Eve session ID. `agent/agent.ts` sends it to
-  OpenUI Cloud in the `x-thesys-session-id` header, so the console shows each chat as one session.
+- `src/eve-chat.ts` sends the OpenUI thread ID with each turn. `agent/channels/eve.ts` and
+  `agent/hooks/gateway-session.ts` keep it for the turn, and `agent/agent.ts` sends it to OpenUI
+  Cloud in the `x-thesys-session-id` header, so the console shows each chat as one session.
 - `agent/tools/get_weather.ts` is an example Eve tool (Open-Meteo). Eve's built-in
   `ask_question` is disabled so clarifying questions stay in chat text.
 - `src/thread-store.ts` stores thread metadata, transcripts, continuation tokens, and stream
