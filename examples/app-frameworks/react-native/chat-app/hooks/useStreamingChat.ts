@@ -24,6 +24,8 @@ function errorMessage(status: number, body: string): string {
  */
 export function useStreamingChat(apiUrl: string) {
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+  // One ID for this conversation. The backend sends it to the Gateway as the session ID.
+  const sessionIdRef = useRef(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
 
   function cancelStream() {
     xhrRef.current?.abort();
@@ -82,7 +84,7 @@ export function useStreamingChat(apiUrl: string) {
       };
 
       console.log(`[${ts()}][stream] → POST`, apiUrl);
-      xhr.send(JSON.stringify({ messages: history }));
+      xhr.send(JSON.stringify({ sessionId: sessionIdRef.current, messages: history }));
     });
   }
 

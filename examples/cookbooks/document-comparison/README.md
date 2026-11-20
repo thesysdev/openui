@@ -35,7 +35,7 @@ Try:
 
 ## How it works
 
-1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API.
+1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API. The route sends the thread ID in the `x-thesys-session-id` header, so the console shows the thread as one session.
 2. The model calls `search_documents` once per criterion, with a short description of the information to find.
 3. The server embeds the description, ranks each document's passages by similarity, and returns the closest ones with page numbers, links to those pages, and a `found` flag.
 4. `runTools()` returns the passages to the model, and the route streams the tool calls and generated OpenUI Lang to the browser.

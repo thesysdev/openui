@@ -39,8 +39,9 @@ export const getWeather = new FunctionTool({
 /**
  * ADK still owns tools, sessions, and the Runner. Custom() speaks Chat
  * Completions (POST /v1/embed/chat/completions) via the embed base URL.
+ * `sessionId` groups a chat thread's turns into one session on the Gateway.
  */
-export function createAgent() {
+export function createAgent(sessionId?: string) {
   const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
 
@@ -50,6 +51,7 @@ export function createAgent() {
       name: "openui-adk-agent",
       baseURL: "https://api.thesys.dev/v1/embed",
       apiKey,
+      headers: sessionId ? { "x-thesys-session-id": sessionId } : undefined,
     }),
     instruction: cloudInstructions(
       "If a tool returns an error or no data, say so plainly. Never make up values a tool did not return.",

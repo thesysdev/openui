@@ -33,7 +33,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the chat interface.
 
 ## How it works
 
-The server (`src/app/api/chat/route.ts`) wraps a Mastra `Agent` with `@ag-ui/mastra`'s `MastraAgent`, which emits AG-UI protocol events. These events are serialized as SSE and streamed to the client.
+The server (`src/app/api/chat/route.ts`) wraps a Mastra `Agent` with `@ag-ui/mastra`'s `MastraAgent`, which emits AG-UI protocol events. These events are serialized as SSE and streamed to the client. The route also sends the chat's `threadId` to OpenUI Cloud in the `x-thesys-session-id` header, so the console shows the thread as one session.
 
 Mastra's built-in model router treats `google/...` as Gemini and strips the provider. `src/openui-cloud-gateway.ts` registers an `openui-cloud` gateway so the agent model `openui-cloud/thesys/google/gemini-3.6-flash-free` is sent to OpenUI Cloud Completions as `google/gemini-3.6-flash-free`. The gateway is registered on the `Mastra` instance in `src/mastra.ts`. The provider id is `thesys` (not `google`) so Mastra does not apply native-Gemini message rewrites on the OpenAI-compatible Cloud path.
 

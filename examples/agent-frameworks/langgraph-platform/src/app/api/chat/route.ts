@@ -21,5 +21,10 @@ export async function POST(req: NextRequest) {
     assistantId: ASSISTANT_ID,
     apiKey: process.env.LANGSMITH_API_KEY,
     debug: process.env.NODE_ENV !== "production",
+    // The agent sends sessionId to the Gateway, so it groups the thread's turns into one session.
+    prepareInput: ({ messages, requestBody }) => ({
+      messages,
+      sessionId: typeof requestBody.threadId === "string" ? requestBody.threadId : undefined,
+    }),
   });
 }

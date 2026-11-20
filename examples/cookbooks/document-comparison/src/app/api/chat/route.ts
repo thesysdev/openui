@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     messages?: ChatCompletionMessageParam[];
   };
   const question = sent?.at(-1);
-  if (!threadId || question?.role !== "user")
+  if (typeof threadId !== "string" || !threadId || question?.role !== "user")
     return Response.json(
       { error: "Send a threadId and the thread's messages, ending with the user's." },
       { status: 400 },
@@ -36,7 +36,12 @@ export async function POST(request: Request) {
   const documents = listDocuments(db);
   db.close();
 
-  const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
+  // The thread id also groups the thread's turns into one session on the Gateway.
+  const gateway = new OpenAI({
+    apiKey,
+    baseURL: "https://api.thesys.dev/v1/embed",
+    defaultHeaders: { "x-thesys-session-id": threadId },
+  });
   const searchTool = searchDocumentsTool(documents);
 
   const thread = [...(await conversation(apiKey, threadId, request.signal)), question];

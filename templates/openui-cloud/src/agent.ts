@@ -31,13 +31,17 @@ const CloudAgentState = new StateSchema({
   model: z.string().default(DEFAULT_MODEL),
 });
 
-function cloudModel(model: string) {
+function cloudModel(model: string, sessionId?: string) {
   return new ChatOpenAI({
     model,
     apiKey: requiredEnv("THESYS_API_KEY"),
     streaming: true,
     useResponsesApi: false,
-    configuration: { baseURL: "https://api.thesys.dev/v1/embed" },
+    configuration: {
+      baseURL: "https://api.thesys.dev/v1/embed",
+      // The thread id groups the thread's turns into one session on the Gateway.
+      defaultHeaders: sessionId ? { "x-thesys-session-id": sessionId } : undefined,
+    },
   });
 }
 
@@ -45,8 +49,11 @@ const selectedModel = createMiddleware({
   name: "OpenUICloudModel",
   stateSchema: CloudAgentState,
   wrapModelCall: async (request, handler) => {
-    const { model } = request.state as unknown as { model: string };
-    return handler({ ...request, model: cloudModel(model) });
+    const { model, conversationId } = request.state as unknown as {
+      model: string;
+      conversationId: string;
+    };
+    return handler({ ...request, model: cloudModel(model, conversationId) });
   },
 });
 

@@ -7,8 +7,9 @@ import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 export async function POST(req: Request) {
-  const { messages } = (await req.json()) as {
+  const { messages, threadId } = (await req.json()) as {
     messages?: ChatCompletionMessageParam[];
+    threadId?: unknown;
   };
 
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -21,6 +22,9 @@ export async function POST(req: Request) {
   const client = new OpenAI({
     baseURL: "https://api.thesys.dev/v1/embed",
     apiKey: requiredEnv("THESYS_API_KEY"),
+    // The chat's thread ID groups its turns into one session on the Gateway.
+    defaultHeaders:
+      typeof threadId === "string" && threadId ? { "x-thesys-session-id": threadId } : undefined,
   });
 
   // Resolves on the first chunk, or with the error if the run fails before any output,

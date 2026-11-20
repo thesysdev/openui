@@ -73,6 +73,7 @@ export function useStreamingChat(apiUrl: string) {
     async (
       messages: ApiChatMessage[],
       onChunk: (accumulated: string) => void,
+      sessionId: string,
     ): Promise<StreamResult> => {
       const requestVersion = requestVersionRef.current + 1;
       requestVersionRef.current = requestVersion;
@@ -85,7 +86,7 @@ export function useStreamingChat(apiUrl: string) {
       const request = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ sessionId, messages }),
       };
       const response = __IS_WEB__
         ? await fetch(apiUrl, request)

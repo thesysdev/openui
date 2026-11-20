@@ -18,7 +18,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-The generated component is defined in `src/html-artifact.tsx`, its OpenUI library and prompt rules are in `src/library.tsx`, and the model route is in `src/app/api/chat/route.ts`. The route proxies Chat Completions through OpenUI Cloud.
+The generated component is defined in `src/html-artifact.tsx`, its OpenUI library and prompt rules are in `src/library.tsx`, and the model route is in `src/app/api/chat/route.ts`. The route proxies Chat Completions through OpenUI Cloud. It sends the chat's `threadId` in the `x-thesys-session-id` header, so the console shows the thread as one session.
 
 ## Learn More
 
