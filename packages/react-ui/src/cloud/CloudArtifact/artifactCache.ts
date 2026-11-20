@@ -7,8 +7,11 @@ import type { ArtifactStorage, ArtifactSummary } from "@openuidev/react-headless
 export class ArtifactCache {
   private readonly summaries = new Map<string, ArtifactSummary>();
   private readonly deleted = new Set<string>();
+  /** Artifacts the user lost access to, by when: the `listStarted()` count. */
+  private readonly evicted = new Map<string, number>();
   private readonly listeners = new Set<() => void>();
   private version = 0;
+  private lists = 0;
 
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -31,9 +34,24 @@ export class ArtifactCache {
     return this.deleted.has(id);
   }
 
-  put(summaries: ArtifactSummary[]): void {
+  /** Call as a list request starts, and pass the result to `put` with its page. */
+  listStarted(): number {
+    return ++this.lists;
+  }
+
+  /**
+   * Adds or replaces artifacts. An evicted one comes back from an action's
+   * result, or from a list that started after it was evicted.
+   */
+  put(summaries: ArtifactSummary[], listedAt?: number): void {
     for (const summary of summaries) {
-      if (!this.deleted.has(summary.id)) this.summaries.set(summary.id, summary);
+      if (this.deleted.has(summary.id)) continue;
+      const evictedAt = this.evicted.get(summary.id);
+      if (evictedAt !== undefined) {
+        if (listedAt !== undefined && listedAt <= evictedAt) continue;
+        this.evicted.delete(summary.id);
+      }
+      this.summaries.set(summary.id, summary);
     }
     this.notify();
   }
@@ -41,6 +59,17 @@ export class ArtifactCache {
   patch(id: string, patch: Partial<ArtifactSummary>): void {
     const current = this.summaries.get(id);
     if (current) this.summaries.set(id, { ...current, ...patch });
+    this.notify();
+  }
+
+  /**
+   * Drops an artifact the user can no longer see (deleted elsewhere, or
+   * unshared). Unlike `remove`, it comes back if it's shared again.
+   */
+  evict(id: string): void {
+    if (!this.summaries.has(id) && this.evicted.has(id)) return;
+    this.evicted.set(id, this.lists);
+    this.summaries.delete(id);
     this.notify();
   }
 

@@ -4,6 +4,7 @@ import {
   createInterpreterToolProvider,
   useArtifactStorage,
   useArtifactStream,
+  type ArtifactSummary,
   type Interpreter,
 } from "@openuidev/react-headless";
 import type { McpClientLike, OpenUIError } from "@openuidev/react-lang";
@@ -38,6 +39,7 @@ import {
   ChromeTitle,
   CloseButton,
   Content,
+  EditedNotice,
   Error as ErrorSlot,
   Loading,
   Pending,
@@ -80,6 +82,12 @@ export interface ArtifactRendererBaseProps {
   onError?: (errors: Array<OpenUIError | ArtifactError>) => void;
   /** Buttons in the open artifact's bar, next to its close button. A `Chrome` slot's `actions` win. */
   actions?: ReactNode;
+  /**
+   * How often the shown artifact checks for a newer version, a rename or an access change, in ms
+   * (at least 10s). A newer version replaces the one on screen; a deleted or unshared artifact
+   * shows an error. Hidden tabs don't check. `false`: never. Default 30s.
+   */
+  pollInterval?: number | false;
   /** Slots: `Preview` and `Chrome`. */
   children?: ReactNode;
 }
@@ -115,7 +123,9 @@ const DELETED_ERROR: ArtifactError = {
 
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
-const noTitle = () => undefined;
+const notCached = () => undefined;
+/** How long `justEdited` stays true after a newer version replaces the one on screen. */
+const EDITED_NOTICE_MS = 10_000;
 
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
 function extractRegions(children: ReactNode) {
@@ -145,6 +155,7 @@ export function ArtifactRendererRoot({
   defaultOpen = false,
   className,
   actions,
+  pollInterval = 30_000,
   children,
   interpreter,
   onError,
@@ -156,7 +167,31 @@ export function ArtifactRendererRoot({
   // No artifact yet: the tool call that makes it hasn't returned. A response
   // without a reference (even "") is a result, so it's an error instead.
   const isPending = !idProp && response == null && !ownStorage;
-  const stream = useArtifactStream({ id, version: reference?.version, content });
+
+  // ── Open state ──
+  const [openState, setOpenState] = useState(defaultOpen);
+  const isOpen = isOpenProp ?? openState;
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const controlled = isOpenProp !== undefined;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (!controlled) setOpenState(next);
+      onOpenChangeRef.current?.(next);
+    },
+    [controlled],
+  );
+  const open = useCallback(() => setOpen(true), [setOpen]);
+  const close = useCallback(() => setOpen(false), [setOpen]);
+  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
+
+  const stream = useArtifactStream({
+    id,
+    version: reference?.version,
+    content,
+    // Only while the content is shown.
+    pollInterval: showsContent && pollInterval,
+  });
 
   // A delete from `useArtifactList` reaches every renderer showing the artifact.
   const storage = useArtifactStorage();
@@ -166,11 +201,60 @@ export function ArtifactRendererRoot({
     cache && id ? () => cache.isDeleted(id) : notDeleted,
     notDeleted,
   );
-  const cachedTitle = useSyncExternalStore(
+  const cached = useSyncExternalStore<ArtifactSummary | undefined>(
     cache?.subscribe ?? noopSubscribe,
-    cache && id ? () => cache.get(id)?.title : noTitle,
-    noTitle,
+    cache && id ? () => cache.get(id) : notCached,
+    notCached,
   );
+
+  // A rename or access change the stream picked up reaches the lists. Only changes: on mount,
+  // the cache may already be newer than a stream that loaded earlier.
+  const { title: streamTitle, isOwner: streamIsOwner, isEditable: streamIsEditable } = stream;
+  const streamedRef = useRef({
+    id,
+    title: streamTitle,
+    isOwner: streamIsOwner,
+    isEditable: streamIsEditable,
+  });
+  useEffect(() => {
+    const last = streamedRef.current;
+    streamedRef.current = {
+      id,
+      title: streamTitle,
+      isOwner: streamIsOwner,
+      isEditable: streamIsEditable,
+    };
+    const current = cache && id ? cache.get(id) : undefined;
+    if (!cache || !id || !current || last.id !== id) return;
+    const fresh = (key: "title" | "isOwner" | "isEditable", value: unknown) =>
+      value !== undefined && value !== last[key] && value !== current[key];
+    const patch: Partial<ArtifactSummary> = {
+      ...(fresh("title", streamTitle) && { title: streamTitle }),
+      ...(fresh("isOwner", streamIsOwner) && { isOwner: streamIsOwner }),
+      ...(fresh("isEditable", streamIsEditable) && { isEditable: streamIsEditable }),
+    };
+    if (Object.keys(patch).length > 0) cache.patch(id, patch);
+  }, [cache, id, streamTitle, streamIsOwner, streamIsEditable]);
+
+  // Deleted elsewhere or unshared: it leaves the lists too, until it's shared again.
+  const lostAccess = stream.error?.code === "not-found";
+  useEffect(() => {
+    if (lostAccess && cache && id) cache.evict(id);
+  }, [lostAccess, cache, id]);
+
+  // A newer version replaced the one on screen: say so for a while.
+  const [justEdited, setJustEdited] = useState(false);
+  const shownRef = useRef({ id, version: stream.version });
+  useEffect(() => {
+    const last = shownRef.current;
+    shownRef.current = { id, version: stream.version };
+    if (last.id !== id || !last.version || !stream.version || last.version === stream.version) {
+      return;
+    }
+    setJustEdited(true);
+    const timer = setTimeout(() => setJustEdited(false), EDITED_NOTICE_MS);
+    return () => clearTimeout(timer);
+  }, [id, stream.version]);
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
   const [inFlight, setInFlight] = useState(0);
@@ -276,39 +360,27 @@ export function ArtifactRendererRoot({
     onErrorRef.current?.([...artifactErrorsRef.current, ...rendererErrorsRef.current]);
   }, [artifactError]);
 
-  // ── Open state ──
-  const [openState, setOpenState] = useState(defaultOpen);
-  const isOpen = isOpenProp ?? openState;
-  const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
-  const controlled = isOpenProp !== undefined;
-  const setOpen = useCallback(
-    (next: boolean) => {
-      if (!controlled) setOpenState(next);
-      onOpenChangeRef.current?.(next);
-    },
-    [controlled],
-  );
-  const open = useCallback(() => setOpen(true), [setOpen]);
-  const close = useCallback(() => setOpen(false), [setOpen]);
-
   // A reopened dashboard shows its last results while its queries run.
-  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
   const queryResultCache = useQueryResultCache({ toolProvider, storage, requestRef, showsContent });
 
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
   // A rename from useArtifactUpdate reaches the cache before the stream.
-  const title = cachedTitle ?? stream.title ?? reference?.title;
+  const title = cached?.title ?? streamTitle ?? reference?.title;
+  const isOwner = cached?.isOwner ?? streamIsOwner;
+  const isEditable = cached?.isEditable ?? streamIsEditable;
   const state = useMemo<ArtifactRendererState>(
     () => ({
       id,
       title,
+      isOwner,
+      isEditable,
       isPending,
       isStreaming,
       isFetching,
       isLoading: isPending || isStreaming || isFetching,
+      justEdited,
       error,
       retry,
       isOpen,
@@ -316,7 +388,22 @@ export function ArtifactRendererRoot({
       close,
       preview,
     }),
-    [id, title, isPending, isStreaming, isFetching, error, retry, isOpen, open, close, preview],
+    [
+      id,
+      title,
+      isOwner,
+      isEditable,
+      isPending,
+      isStreaming,
+      isFetching,
+      justEdited,
+      error,
+      retry,
+      isOpen,
+      open,
+      close,
+      preview,
+    ],
   );
 
   const program = isDeleted ? null : stream.program;
@@ -384,6 +471,7 @@ export const slots = {
   ChromeTitle,
   ChromeLoader,
   ChromeActions,
+  EditedNotice,
   CloseButton,
   Content,
   Pending,

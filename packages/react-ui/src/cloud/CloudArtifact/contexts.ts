@@ -6,6 +6,10 @@ import type { ArtifactError } from "./errors";
 export interface ArtifactRendererState {
   id: string | null;
   title?: string;
+  /** Whether the user created it. Only its owner can delete it. Undefined until the storage says. */
+  isOwner?: boolean;
+  /** Whether the user can edit, rename, and share it. Undefined until the storage says. */
+  isEditable?: boolean;
   /** No artifact yet: the tool call that makes it is still running. */
   isPending: boolean;
   /** The artifact's content is being generated. */
@@ -14,6 +18,8 @@ export interface ArtifactRendererState {
   isFetching: boolean;
   /** Any of the three. */
   isLoading: boolean;
+  /** A newer version replaced the one on screen in the last few seconds. */
+  justEdited: boolean;
   /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
   error: ArtifactError | OpenUIError | null;
   /** Retries what failed. Undefined when there's nothing to retry. */

@@ -53,6 +53,7 @@ function toSummary(artifact: CloudArtifact): ArtifactSummary {
     ...(artifact.is_owner !== undefined && { isOwner: artifact.is_owner }),
     ...(artifact.is_editable !== undefined && { isEditable: artifact.is_editable }),
     ...(artifact.shares !== undefined && { shares: artifact.shares.map(toShare) }),
+    ...(artifact.version !== undefined && { version: artifact.version }),
   };
 }
 
@@ -180,16 +181,23 @@ export function cloudArtifactStorage({
       },
     }),
 
-    /** GET /v1/artifacts/:id/stream (SSE). Replays a finished artifact the
-     *  same way; every connection starts from the whole program. */
+    /** GET /v1/artifacts/:id/stream[?fetch_latest=] (SSE). Replays a finished artifact
+     *  the same way; every connection starts from the whole program. 304: unchanged. */
     async *stream(
       id: string,
       options?: ArtifactStreamOptions,
     ): AsyncGenerator<ArtifactStreamEvent> {
-      const res = await fetchImpl(`${base}/v1/artifacts/${encodeURIComponent(id)}/stream`, {
+      const query = options?.fetchLatest
+        ? `?${new URLSearchParams({ fetch_latest: options.fetchLatest }).toString()}`
+        : "";
+      const res = await fetchImpl(`${base}/v1/artifacts/${encodeURIComponent(id)}/stream${query}`, {
         headers: { Accept: "text/event-stream" },
         signal: options?.signal,
       });
+      if (res.status === 304) {
+        yield { type: "unchanged" };
+        return;
+      }
       if (res.status === 404) {
         yield {
           type: "error",

@@ -26,18 +26,19 @@ The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentica
 
 ## Props
 
-| Prop                                    | Description                                                                                             |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `response`                              | The response from `create` or `edit`, unchanged.                                                        |
-| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list. |
-| `library`                               | The component library. Use the same library the spec on the server came from.                           |
-| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.        |
-| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.             |
-| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                      |
-| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                    |
-| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                          |
-| `onError`                               | Receives rendering, query, and loading errors.                                                          |
-| `className`                             | Added to the root element.                                                                              |
+| Prop                                    | Description                                                                                                                                                                                         |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `response`                              | The response from `create` or `edit`, unchanged.                                                                                                                                                    |
+| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.                                                                                             |
+| `library`                               | The component library. Use the same library the spec on the server came from.                                                                                                                       |
+| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                                                                                                    |
+| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                                                                                                         |
+| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                                                                                                                  |
+| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                                                                                                                |
+| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                                                                                                      |
+| `onError`                               | Receives rendering, query, and loading errors.                                                                                                                                                      |
+| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 10s). `false`: never. Default 30s. See [Share dashboards](/docs/dashboards/sharing#open-dashboards-stay-current). |
+| `className`                             | Added to the root element.                                                                                                                                                                          |
 
 ## Layouts
 
@@ -98,14 +99,14 @@ Unmount it if the call stops or fails without a result, or it stays pending. In 
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
 
-| Slot                                                          | Region  | What it is                                                                                                   |
-| ------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
-| `Preview`                                                     | Preview | The card that opens the dashboard.                                                                           |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`         | Preview | The card's parts.                                                                                            |
-| `Chrome`                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                                |
-| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                             |
-| `Content`                                                     | Chrome  | The dashboard itself.                                                                                        |
-| `Pending`, `Loading`, `Error`                                 | Content | Shown only before the tool returns, while the dashboard loads, or after it fails, even with custom children. |
+| Slot                                                                          | Region  | What it is                                                                                                                 |
+| ----------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                                         |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`                         | Preview | The card's parts.                                                                                                          |
+| `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                                              |
+| `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts. `EditedNotice` says "Edited just now" for a few seconds after a newer version replaces the one on screen. |
+| `Content`                                                                     | Chrome  | The dashboard itself.                                                                                                      |
+| `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the tool returns, while the dashboard loads, or after it fails, even with custom children.               |
 
 For example, a full-height panel with its own header:
 
@@ -157,17 +158,19 @@ function DashboardError() {
 }
 ```
 
-| Field                     | Description                                                                  |
-| ------------------------- | ---------------------------------------------------------------------------- |
-| `id`, `title`             | The dashboard's id and title.                                                |
-| `isPending`               | No dashboard yet: the tool call that makes it is still running.              |
-| `isStreaming`             | The dashboard is being generated.                                            |
-| `isFetching`              | Its queries are running.                                                     |
-| `isLoading`               | Any of the three.                                                            |
-| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`). |
-| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                |
-| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                               |
-| `preview`                 | Whether the renderer has a card.                                             |
+| Field                     | Description                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `id`, `title`             | The dashboard's id and title.                                                                            |
+| `isOwner`, `isEditable`   | Whether the user owns it, and whether they can edit, rename, and share it. Kept current while it's open. |
+| `isPending`               | No dashboard yet: the tool call that makes it is still running.                                          |
+| `isStreaming`             | The dashboard is being generated.                                                                        |
+| `isFetching`              | Its queries are running.                                                                                 |
+| `isLoading`               | Any of the three.                                                                                        |
+| `justEdited`              | A newer version replaced the one on screen in the last few seconds.                                      |
+| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                             |
+| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                            |
+| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                           |
+| `preview`                 | Whether the renderer has a card.                                                                         |
 
 ## Theme
 

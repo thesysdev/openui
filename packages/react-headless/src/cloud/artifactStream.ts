@@ -24,6 +24,10 @@ export interface ArtifactStreamSnapshot {
   program: string | null;
   /** The stored version `program` is, so a script runs against the one on screen. */
   version?: string;
+  /** Whether the user created it. Only its owner can delete it. */
+  isOwner?: boolean;
+  /** Whether the user can edit, rename, and share it. */
+  isEditable?: boolean;
   isStreaming: boolean;
   error: ArtifactStreamError | null;
 }
@@ -48,6 +52,15 @@ interface Entry {
   /** A re-read started by `versionMismatch`, and its pending answer. */
   reread: { version: string; answer: Promise<"rerun" | "show">; settle: Settle } | null;
   rereadAt: number;
+  /** The last reference's `tag`: what a poll asks the server to compare. */
+  tag?: string;
+  /** Each polling renderer's interval. The shortest one wins. */
+  pollers: Map<symbol, number>;
+  pollTimer: ReturnType<typeof setTimeout> | null;
+  /** Polls failed in a row; each one doubles the wait. */
+  pollFailures: number;
+  /** A poll came due while the tab was hidden. */
+  pollDue: boolean;
 }
 
 type Settle = (answer: "rerun" | "show") => void;
@@ -57,6 +70,8 @@ const MAX_RECONNECTS = 3;
 const REREAD_INTERVAL_MS = 10_000;
 /** A connection that stayed open this long was healthy, so its drop doesn't count against `MAX_RECONNECTS`. */
 const STABLE_CONNECTION_MS = 10_000;
+const MIN_POLL_INTERVAL_MS = 10_000;
+const MAX_POLL_BACKOFF_MS = 5 * 60_000;
 const ERROR_CODES = new Set<string>([
   "not-found",
   "generation-failed",
@@ -115,6 +130,22 @@ export class ArtifactStreamStore {
         entry.controller = null;
         entry.started = false;
       }, 0);
+    };
+  }
+
+  /**
+   * Checks for a newer version, a rename or an access change every
+   * `intervalMs` while the artifact is shown, without a loading state unless
+   * there's a new version. Returns a function that stops it.
+   */
+  poll(id: string, intervalMs: number): () => void {
+    const entry = this.entry(id);
+    const key = Symbol();
+    entry.pollers.set(key, Math.max(intervalMs, MIN_POLL_INTERVAL_MS));
+    this.schedulePoll(id);
+    return () => {
+      entry.pollers.delete(key);
+      this.schedulePoll(id);
     };
   }
 
@@ -208,6 +239,10 @@ export class ArtifactStreamStore {
         idleTimer: null,
         reread: null,
         rereadAt: -Infinity,
+        pollers: new Map(),
+        pollTimer: null,
+        pollFailures: 0,
+        pollDue: false,
       };
       this.entries.set(id, entry);
     }
@@ -220,15 +255,18 @@ export class ArtifactStreamStore {
     entry.listeners.forEach((listener) => listener());
   }
 
-  private async connect(id: string): Promise<void> {
+  /** With `fetchLatest`, a poll: it stays quiet until the server sends something new. */
+  private async connect(id: string, fetchLatest?: string): Promise<void> {
     const entry = this.entry(id);
     entry.controller?.abort();
     const controller = new AbortController();
     entry.controller = controller;
-    this.update(id, { isStreaming: true, error: null });
+    const poll = fetchLatest !== undefined;
+    if (!poll) this.update(id, { isStreaming: true, error: null });
 
     const connectedAt = Date.now();
     let finished = false;
+    let referenced = false;
     let failure: unknown;
     try {
       if (!this.storage.stream) {
@@ -236,13 +274,17 @@ export class ArtifactStreamStore {
         await this.load(id);
         return;
       }
-      for await (const event of this.storage.stream(id, { signal: controller.signal })) {
+      for await (const event of this.storage.stream(id, {
+        signal: controller.signal,
+        ...(poll && { fetchLatest }),
+      })) {
         if (controller.signal.aborted) return;
-        if (event.type === "end" || event.type === "error") {
+        if (event.type === "end" || event.type === "error" || event.type === "unchanged") {
           finished = true;
           this.onEvent(id, event);
           break;
         }
+        if (event.type === "reference") referenced = true;
         this.onEvent(id, event);
         entry.reconnects = 0;
       }
@@ -252,7 +294,18 @@ export class ArtifactStreamStore {
     } finally {
       if (entry.controller === controller) entry.controller = null;
     }
-    if (finished || controller.signal.aborted) return;
+    if (controller.signal.aborted) return;
+    if (finished) {
+      entry.pollFailures = 0;
+      this.schedulePoll(id);
+      return;
+    }
+    // A poll that failed before anything changed leaves what's on screen, and tries again later.
+    if (poll && !referenced) {
+      entry.pollFailures += 1;
+      this.schedulePoll(id);
+      return;
+    }
 
     // The stream dropped before it ended: resume after a backoff, then give up.
     // Proxies cut streams that go quiet, as an edit's does until it's done, so a
@@ -297,6 +350,49 @@ export class ArtifactStreamStore {
     this.afterRead(id);
   }
 
+  /** Sets the next poll, if a renderer polls and the last read went well enough to compare against. */
+  private schedulePoll(id: string): void {
+    const entry = this.entry(id);
+    if (entry.pollTimer) clearTimeout(entry.pollTimer);
+    entry.pollTimer = null;
+    const code = entry.snapshot.error?.code;
+    if (entry.pollers.size === 0 || !entry.tag || code === "not-found" || code === "unauthorized") {
+      return;
+    }
+    const interval = Math.min(...entry.pollers.values());
+    const backoff = Math.max(
+      interval,
+      Math.min(interval * 2 ** entry.pollFailures, MAX_POLL_BACKOFF_MS),
+    );
+    // Jitter, so renderers opened together don't poll together.
+    const wait = backoff * (0.9 + Math.random() * 0.2);
+    entry.pollTimer = setTimeout(() => this.pollNow(id), wait);
+  }
+
+  private pollNow(id: string): void {
+    const entry = this.entry(id);
+    entry.pollTimer = null;
+    // A read in progress schedules the next poll when it ends.
+    if (entry.pollers.size === 0 || !entry.tag || entry.controller) return;
+    if (typeof document !== "undefined" && document.hidden) {
+      entry.pollDue = true;
+      document.addEventListener("visibilitychange", this.onVisible);
+      return;
+    }
+    void this.connect(id, entry.tag);
+  }
+
+  /** The tab is back: run the polls that came due while it was hidden. */
+  private readonly onVisible = (): void => {
+    if (document.hidden) return;
+    document.removeEventListener("visibilitychange", this.onVisible);
+    for (const [id, entry] of this.entries) {
+      if (!entry.pollDue) continue;
+      entry.pollDue = false;
+      this.pollNow(id);
+    }
+  };
+
   /** Fetches a revision noted while the stream that just ended was running. */
   private catchUp(id: string): void {
     const entry = this.entry(id);
@@ -310,9 +406,10 @@ export class ArtifactStreamStore {
     const snapshot = entry.snapshot;
     switch (event.type) {
       case "reference": {
-        const version = event.data?.version;
+        const { version, tag, is_owner, is_editable } = event.data ?? {};
         // Seen, so an edit's version noted later counts as newer.
         if (version) entry.versions.add(version);
+        entry.tag = tag;
         // A reconnect into the version being streamed sends it whole again.
         entry.replace = version !== undefined && version === entry.version;
         entry.version = version;
@@ -323,10 +420,18 @@ export class ArtifactStreamStore {
         this.update(id, {
           type: event.data?.type ?? snapshot.type,
           title: event.data?.title ?? snapshot.title,
+          isOwner: is_owner ?? snapshot.isOwner,
+          isEditable: is_editable ?? snapshot.isEditable,
+          // A poll that found only a rename or an access change doesn't show as loading.
+          isStreaming: snapshot.isStreaming || version !== snapshot.version,
+          error: null,
           ...(entry.target === "program" ? { program: "", version } : {}),
         });
         return;
       }
+      case "unchanged":
+        this.afterRead(id);
+        return;
       case "delta": {
         const text = event.data?.text;
         if (typeof text !== "string") return;
@@ -379,6 +484,20 @@ const storeFor = (storage: ArtifactStorage): ArtifactStreamStore => {
   return store;
 };
 
+/**
+ * Tells every renderer showing `id` that `version` was just saved, so they load
+ * it now instead of on their next poll.
+ *
+ * @internal Used by `@openuidev/react-ui/cloud`'s `useArtifactUpdate`.
+ */
+export function noteArtifactVersion(
+  storage: ArtifactStorage,
+  id: string,
+  version: string | undefined,
+): void {
+  stores.get(storage)?.noteVersion(id, version);
+}
+
 /** @category Types */
 export interface UseArtifactStreamOptions {
   /** The artifact to show. */
@@ -387,6 +506,12 @@ export interface UseArtifactStreamOptions {
   version?: string;
   /** The artifact's saved content, when you keep artifacts in your own storage. Never streams. */
   content?: string;
+  /**
+   * Checks for a newer version, a rename or an access change this often, in ms
+   * (at least 10s), while the artifact is shown and the tab is visible.
+   * Unset or `false`: never.
+   */
+  pollInterval?: number | false;
 }
 
 /** @category Types */
@@ -407,6 +532,8 @@ const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: nu
  * - After a reload, it replays everything generated so far, then continues.
  * - During an edit, `program` keeps the current version until the new one ends.
  * - Storages without `stream` are read once with `get`.
+ * - With `pollInterval`, it picks up a newer version, a rename or an access
+ *   change, and the `not-found` error once the artifact is deleted or unshared.
  *
  * @internal Used by the `@openuidev/react-ui/cloud` renderers.
  */
@@ -414,6 +541,7 @@ export function useArtifactStream({
   id,
   version,
   content,
+  pollInterval,
 }: UseArtifactStreamOptions): ArtifactStreamState {
   const storage = useArtifactStorage();
   const ownContent = content !== undefined;
@@ -429,6 +557,10 @@ export function useArtifactStream({
   useEffect(() => {
     if (store && id) store.noteVersion(id, version);
   }, [store, id, version]);
+  useEffect(() => {
+    if (!store || !id || !pollInterval) return;
+    return store.poll(id, pollInterval);
+  }, [store, id, pollInterval]);
   // During render: noteVersion's effect runs after the renderer's queries start.
   const awaiting = store && id ? store.awaits(id, version) : false;
   const reportVersionMismatch = useMemo(
