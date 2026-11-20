@@ -12,8 +12,15 @@ export const StatComponent = defineComponent({
   component: StatView,
 });
 
-function StatView({ props }: ComponentRenderProps<StatSchemaProps>) {
-  return <Stat {...props} />;
+function StatView({ props, bindSource }: ComponentRenderProps<StatSchemaProps>) {
+  return (
+    <Stat
+      {...props}
+      sourceAttributes={bindSource?.()}
+      valueAttributes={bindSource?.("value")}
+      previousAttributes={bindSource?.("previous")}
+    />
+  );
 }
 
 // Every schema field reaches Stat.

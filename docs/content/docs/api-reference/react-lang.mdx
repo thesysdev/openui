@@ -48,6 +48,22 @@ interface DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> {
 }
 ```
 
+The `component` receives `{ props, renderNode, statementId, bindSource }`. `bindSource()` returns data attributes that mark the component's root element, and `bindSource("value")` marks the element that shows that prop, for an inspect mode such as `LiveArtifactRenderer`'s `enableProvenance`. Spread them onto existing elements. They change nothing visible. A component written inside a statement is marked with its inline id (`lead.2`).
+
+```tsx
+const Metric = defineComponent({
+  name: "Metric",
+  props: z.object({ label: z.string(), value: z.number() }),
+  description: "A number with a label.",
+  component: ({ props, bindSource }) => (
+    <div {...bindSource()}>
+      <span {...bindSource("label")}>{props.label}</span>
+      <strong {...bindSource("value")}>{props.value}</strong>
+    </div>
+  ),
+});
+```
+
 ## `createLibrary(input)`
 
 Creates a `Library` from an array of defined components.
@@ -242,12 +258,13 @@ interface RendererProps<L extends Library = Library> {
 
 `Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. A spinner is shown while queries load; provide `queryLoader` to customize it. No error/retry view is shown by default. To customize loading feedback and opt into an error/retry presentation, use `Renderer.Root` with these slots:
 
-| Slot                    | Purpose                                                                                                |
-| ----------------------- | ------------------------------------------------------------------------------------------------------ |
-| `Renderer.Content`      | Generated UI; accepts div props and stays mounted during query failures.                               |
-| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader` or the default spinner. |
-| `Renderer.QueryError`   | Children shown when queries fail; renders nothing without children.                                    |
-| `Renderer.Retry`        | A retry button; accepts standard button props.                                                         |
+| Slot                      | Purpose                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `Renderer.Content`        | Generated UI; accepts div props and stays mounted during query failures.                               |
+| `Renderer.DefaultContent` | What `Renderer` shows without children, to render next to your own children.                           |
+| `Renderer.QueryLoading`   | Children shown while queries wait or fetch; omitted children use `queryLoader` or the default spinner. |
+| `Renderer.QueryError`     | Children shown when queries fail; renders nothing without children.                                    |
+| `Renderer.Retry`          | A retry button; accepts standard button props.                                                         |
 
 Root accepts the same runtime props as Renderer and renders only its children. Put overlays in your own positioned container. Slots share context through wrappers and React portals. `useRendererQuery()` returns `{ isLoading, errors, retry, isRetrying }` within that root. `Renderer.Content` renders defaults or cached data while queries load and hides content on failure while preserving mounted state through retries.
 
@@ -442,6 +459,27 @@ interface ParseResult {
 }
 ```
 
+## `readSourceTarget(target, boundary?)`
+
+The component, and prop, under a clicked element, for an inspect mode. It walks React's tree up to the nearest component that has a statement, so a component without `bindSource()` is found too, as is content it renders into a portal. If React's internals can't be read, it reads the `bindSource` attributes only.
+
+```ts
+function readSourceTarget(
+  target: EventTarget | null,
+  /** The element of the UI that owns the inspect mode: components above it are not returned. */
+  boundary?: Element | null,
+): {
+  statementId: string;
+  /** Set when the click landed on an element marked with bindSource("prop"). */
+  prop?: string;
+  /** The component's bindSource() element, or else its first element. */
+  element: Element;
+  propElement?: Element;
+} | null;
+```
+
+A component written inside a statement resolves to its inline id, such as `lead.2`: the third component call inside `lead`. Every item of an `@Each` shares its template's id.
+
 ## Context hooks (inside renderer components)
 
 ```ts
@@ -464,8 +502,8 @@ function useTriggerAction(): (
 function useIsStreaming(): boolean;
 function useIsQueryLoading(): boolean;
 // Where a component's data comes from: its queries (tool, arguments, loading, result), the
-// statements in between and the $variables it reads, also by prop. Pass the statementId the
-// component receives; null for an inline component.
+// statements in between with their text, and the $variables it reads, also by prop. Pass the
+// statementId the component receives, or an inline component's id (`lead.2`).
 function useDataSources(statementId: string | undefined): {
   queries: {
     statementId: string;
@@ -476,7 +514,20 @@ function useDataSources(statementId: string | undefined): {
   }[];
   via: string[];
   state: Record<string, unknown>;
-  props?: Record<string, { queries: string[]; via: string[]; state: Record<string, unknown> }>;
+  /** The text of each statement in `via`, e.g. `{ now: "@First(totals.rows)" }`. */
+  formulas: Record<string, string>;
+  props?: Record<
+    string,
+    {
+      queries: string[];
+      via: string[];
+      state: Record<string, unknown>;
+      /** The argument as written, e.g. `now.revenue`. */
+      expr: string;
+      /** For a plain read of one query, where the value sits in its result (-1 = last row). */
+      cell?: { query: string; path: (string | number)[] };
+    }
+  >;
 } | null;
 function useGetFieldValue(): (formName: string | undefined, name: string) => any;
 function useSetFieldValue(): (
