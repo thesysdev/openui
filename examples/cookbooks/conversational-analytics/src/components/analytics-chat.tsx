@@ -1,12 +1,13 @@
 "use client";
 
+import { ThemeProvider } from "@openuidev/intelligent-ui-library";
 import {
   AgentInterface,
   fetchLLM,
   openAIMessageFormat,
   openAIReadableStreamAdapter,
   useOpenuiCloudStorage,
-  type ThemeProps,
+  useSystemThemeMode,
 } from "@openuidev/react-ui";
 import { library } from "../library";
 
@@ -17,7 +18,6 @@ const llm = fetchLLM({
   messageFormat: openAIMessageFormat,
 });
 
-const theme: ThemeProps = { mode: "light" };
 const starters = [
   {
     displayText: "Which five drivers set the fastest laps in Miami?",
@@ -37,6 +37,7 @@ const starters = [
 ];
 
 export default function AnalyticsChat() {
+  const mode = useSystemThemeMode();
   // Store threads as Gateway conversations, which the browser reaches with a short-lived token
   // from /api/frontend-token. The chat route appends each turn to the thread's conversation, so
   // a thread opened again loads its messages.
@@ -46,21 +47,23 @@ export default function AnalyticsChat() {
   });
   return (
     <div className="analytics-app">
-      <AgentInterface
-        llm={llm}
-        storage={storage}
-        componentLibrary={library}
-        agentName="Data analyst"
-        theme={theme}
-        starters={starters}
-      >
-        <AgentInterface.MobileHeader agentName="Data analyst" />
-        <AgentInterface.Welcome
-          title="Explore your data through conversation"
-          description="Ask about recorded lap times from the 2024 Miami Grand Prix, provided by OpenF1. Follow up to explore a different angle."
-        />
-        <AgentInterface.Composer placeholder="Ask a question about your data…" />
-      </AgentInterface>
+      <ThemeProvider mode={mode}>
+        <AgentInterface
+          llm={llm}
+          storage={storage}
+          componentLibrary={library}
+          agentName="Data analyst"
+          theme={{ mode }}
+          starters={starters}
+        >
+          <AgentInterface.MobileHeader agentName="Data analyst" />
+          <AgentInterface.Welcome
+            title="Explore your data through conversation"
+            description="Ask about recorded lap times from the 2024 Miami Grand Prix, provided by OpenF1. Follow up to explore a different angle."
+          />
+          <AgentInterface.Composer placeholder="Ask a question about your data…" />
+        </AgentInterface>
+      </ThemeProvider>
     </div>
   );
 }

@@ -50,7 +50,7 @@ The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_tim
 | `scripts/prepare-data.ts`             | Download OpenF1's race snapshot and prepare SQLite            |
 | `src/lib/f1-data.ts`                  | Source validation, importer, database, and driver catalog     |
 | `src/lib/tools/lap-times.ts`          | Function schema, argument validation, and read-only query     |
-| `src/library.ts`                      | The chat library, shared by the prompt and renderer           |
+| `src/library.ts`                      | Intelligent UI library, shared by the prompt and renderer     |
 | `src/lib/prompt.ts`                   | Gateway instructions and the supported data scope             |
 | `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages   |
 | `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage          |
@@ -92,3 +92,5 @@ In the browser, inspect `query_lap_times` under **Behind the scenes**, watch par
 Replace `queryLapTimes` with a query to your database or API and update the function schema and prompt. Add your own components to `src/library.ts` for other presentations, then regenerate the specification.
 
 To run the tool and prompt on an agent framework instead, see the [LangGraph Platform](../../agent-frameworks/langgraph-platform), [Vercel AI SDK](../../agent-frameworks/vercel-ai-sdk), [Vercel Eve](../../agent-frameworks/vercel-eve), [Mastra](../../agent-frameworks/mastra), and [Google ADK](../../agent-frameworks/google-adk) examples.
+
+Generated answers use `@openuidev/intelligent-ui-library`: root `Col`, `Card`, `Table`, and `Chart`. The prompt extends its default rules and examples. React UI keeps the chat shell and transport; the Intelligent UI `ThemeProvider` receives the same system light/dark mode as the chat. Follow-up buttons send questions with `@ToAssistant(...)`.
