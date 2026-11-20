@@ -1,14 +1,16 @@
 "use client";
 
+import { ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { Renderer } from "@openuidev/react-lang";
-import { FlaskConical } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useTheme } from "@openuidev/react-ui";
 import { getLibrary, type LibraryId } from "@paste/lib/libraries";
 import { createMockToolProvider, type MockToolCall } from "@paste/lib/mockTools";
 import { BUNDLED_LANG_CORE_VERSION } from "@paste/lib/versions/loader";
 import type { OpenUIError } from "@paste/lib/versions/types";
-import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import styles from "@paste/paste.module.css";
+import { FlaskConical } from "lucide-react";
+import { useMemo, useState } from "react";
+import { RenderErrorBoundary } from "../RenderErrorBoundary";
 
 const TOOL_CALL_LOG_CAP = 20;
 
@@ -23,6 +25,7 @@ export function RenderPanel({
   isStreaming: boolean;
   selectedVersion: string;
 }) {
+  const { mode } = useTheme();
   const [runtimeErrors, setRuntimeErrors] = useState<OpenUIError[]>([]);
   const [formState, setFormState] = useState<Record<string, unknown>>({});
   const [actionLog, setActionLog] = useState<string[]>([]);
@@ -71,15 +74,17 @@ export function RenderPanel({
       )}
       <div className={styles.renderCanvas}>
         <RenderErrorBoundary resetKey={`${libraryId}:${code}`}>
-          <Renderer
-            response={code || null}
-            library={library}
-            isStreaming={isStreaming}
-            toolProvider={toolProvider}
-            onError={setRuntimeErrors}
-            onStateUpdate={setFormState}
-            onAction={(event) => setActionLog((log) => [...log.slice(-19), safeDescribe(event)])}
-          />
+          <ThemeProvider mode={mode}>
+            <Renderer
+              response={code || null}
+              library={library}
+              isStreaming={isStreaming}
+              toolProvider={toolProvider}
+              onError={setRuntimeErrors}
+              onStateUpdate={setFormState}
+              onAction={(event) => setActionLog((log) => [...log.slice(-19), safeDescribe(event)])}
+            />
+          </ThemeProvider>
         </RenderErrorBoundary>
       </div>
       {toolCalls.length > 0 && (
