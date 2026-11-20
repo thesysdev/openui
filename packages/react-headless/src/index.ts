@@ -1,4 +1,4 @@
-export { useArtifactStream } from "./cloud/artifactStream";
+export { noteArtifactVersion, useArtifactStream } from "./cloud/artifactStream";
 export type {
   ArtifactStreamError,
   ArtifactStreamErrorCode,

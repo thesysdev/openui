@@ -34,6 +34,7 @@ export const names = {
   loader: "openui-artifact-loader",
   loaderText: "openui-artifact-loader-text",
   spinner: "openui-artifact-spinner",
+  edited: "openui-artifact-edited",
   chrome: "openui-artifact-chrome",
   chromeBar: "openui-artifact-chrome-bar",
   chromeTitle: "openui-artifact-chrome-title",
