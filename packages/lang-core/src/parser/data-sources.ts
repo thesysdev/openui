@@ -1,6 +1,7 @@
 import { walkAST, type ASTNode } from "./ast";
 import { getCallDefs, RESERVED_CALLS } from "./builtins";
 import { parsedStatements } from "./parser";
+import { serializeASTNode } from "./serialize";
 import type { ParseResult } from "./types";
 
 /** Where a value comes from. */
@@ -13,23 +14,64 @@ interface Sources {
   state: string[];
 }
 
+/** A prop's sources, with its expression and, for a plain read of one query, the cell it shows. */
+interface PropSources extends Sources {
+  /** The argument as written, e.g. `now.revenue`. */
+  expr: string;
+  /**
+   * Where in the query's result the value sits, when the prop only reads it: `path` walks the
+   * result, a number is a row and `-1` the last row, e.g. `["rows", 0, "revenue"]`.
+   */
+  cell?: { query: string; path: (string | number)[] };
+}
+
 /**
  * Find the queries a statement's value is read from, for a "where did this come from" view.
  * For a component, `props` gives the same for each prop; one with no queries and no state is
  * written in the program (or reads a Mutation result). Inline child components count toward
  * the statement. A named one does not (ask for it by its name), nor does a Mutation or an
- * action. A query counts what its tool name and arguments read. Null when `result` is not one
- * the parser returned, or has no such statement.
+ * action. A query counts what its tool name and arguments read.
+ *
+ * `id` is a statement's name, or an inline component's `inlineId` (`name.n`): then only that
+ * component counts, and a name an `@Each` binds reads the list it iterates. Null when `result`
+ * is not one the parser returned, or has no such statement or component.
  */
 export function dataSources(
   result: ParseResult,
-  statementId: string,
-): (Sources & { props?: Record<string, Sources> }) | null {
+  id: string,
+): (Sources & { formulas: Record<string, string>; props?: Record<string, PropSources> }) | null {
   const parsed = parsedStatements.get(result);
-  const own = parsed?.statements.get(statementId);
-  if (!parsed || !own) return null;
+  if (!parsed) return null;
   const { statements } = parsed;
   const calls = getCallDefs(parsed.cat);
+  const dot = id.lastIndexOf(".");
+  const statementId = statements.has(id) || dot < 0 ? id : id.slice(0, dot);
+  const statement = statements.get(statementId);
+  if (!statement) return null;
+  let own: ASTNode | undefined = statement;
+  // Names `@Each` binds around an inline component: the list each iterates, read with the
+  // names bound outside that loop.
+  let bound: Bindings = new Map();
+  if (statementId !== id) {
+    own = undefined;
+    walkAST(statement, (node) => {
+      if (node.k === "Comp" && node.id === id) own = node;
+      const def = node.k === "Comp" ? calls.get(node.name) : undefined;
+      if (node.k !== "Comp" || def?.kind !== "function" || !def.lazy || node.args.length < 3)
+        return;
+      const name = boundName(node.args[1]);
+      const encloses = node.args.slice(2).some((arg) => {
+        let found = false;
+        walkAST(arg, (inner) => {
+          if (inner.k === "Comp" && inner.id === id) found = true;
+        });
+        return found;
+      });
+      // Outer loops are visited first, so an inner one binding the same name wins.
+      if (name && encloses) bound = new Map(bound).set(name, { list: node.args[0], outer: bound });
+    });
+    if (!own) return null;
+  }
 
   const isComponent = (node: ASTNode) =>
     node.k === "Comp" &&
@@ -54,14 +96,15 @@ export function dataSources(
       let found = false;
       if (target?.k === "Comp" && target.name === RESERVED_CALLS.Query) {
         queries.add(name);
-        target.args.slice(0, 2).forEach((arg) => walk(arg, new Set()));
+        target.args.slice(0, 2).forEach((arg) => walk(arg, new Set(), NO_BINDINGS));
         found = true;
       } else if (target && !(target.k === "Comp" && target.name === RESERVED_CALLS.Mutation)) {
         let holdsComponent = false;
         walkAST(target, (node) => {
           if (isComponent(node)) holdsComponent = true;
         });
-        if (!holdsComponent) found = walk(target, new Set());
+        // Another statement: the loops around the component do not reach into it.
+        if (!holdsComponent) found = walk(target, new Set(), NO_BINDINGS);
         if (found) via.add(name);
       }
       reaches.set(name, found);
@@ -69,7 +112,7 @@ export function dataSources(
     };
 
     // `scope` holds names an `@Each` binds, which shadow statements of the same name.
-    const walk = (start: ASTNode, scope: ReadonlySet<string>): boolean => {
+    const walk = (start: ASTNode, scope: ReadonlySet<string>, binds = bound): boolean => {
       let found = false;
       const skipped = new Set<ASTNode>();
       const skip = (node: ASTNode) => walkAST(node, (n) => void skipped.add(n));
@@ -78,18 +121,20 @@ export function dataSources(
         if (isAction(node)) return skip(node);
         const def = node.k === "Comp" ? calls.get(node.name) : undefined;
         if (node.k === "Comp" && def?.kind === "function" && def.lazy && node.args.length >= 3) {
-          const bound = node.args[1];
-          const name = bound.k === "Ref" ? bound.n : bound.k === "Str" ? bound.v : undefined;
+          const name = boundName(node.args[1]);
           const inner = name ? new Set([...scope, name]) : scope;
+          // The list is read outside the loop, so its own name does not shadow it.
           node.args.forEach((arg, i) => {
-            if (i !== 1 && walk(arg, inner)) found = true;
+            if (i !== 1 && walk(arg, i === 0 ? scope : inner, binds)) found = true;
           });
           return skip(node);
         }
         if (node.k === "StateRef" && Object.hasOwn(result.stateDeclarations, node.n)) {
           state.add(node.n);
         }
-        if (node.k === "Ref" && !scope.has(node.n) && follow(node.n)) found = true;
+        if (node.k !== "Ref" || scope.has(node.n)) return;
+        const binding = binds.get(node.n);
+        if (binding ? walk(binding.list, new Set(), binding.outer) : follow(node.n)) found = true;
       });
       return found;
     };
@@ -105,24 +150,86 @@ export function dataSources(
       seen.add(start.n);
       start = statements.get(start.n) ?? start;
     }
-    if (start.k !== "Comp" || !isComponent(start)) return collect(own);
+    // The text of each statement in between, e.g. `now = @First(totals.rows)`.
+    const formulas = (via: string[]) =>
+      Object.fromEntries(via.map((name) => [name, text(statements.get(name)!)]));
+    const text = (node: ASTNode) => serializeASTNode(node, calls);
+
+    // The query, and the path into its result, a plain read ends in: `now.revenue` with
+    // `now = @First(totals.rows)` is `totals` at `rows, 0, revenue`. Null for anything else.
+    const cellOf = (node: ASTNode, seen = new Set<string>()): PropSources["cell"] | null => {
+      const step = (inner: ASTNode, key: string | number) => {
+        const cell = cellOf(inner, seen);
+        return cell && { query: cell.query, path: [...cell.path, key] };
+      };
+      switch (node.k) {
+        case "Member":
+          // `.length` counts a list: not a cell.
+          return node.field === "length" ? null : step(node.obj, node.field);
+        case "Index":
+          // A literal row from the start; a negative one renders nothing.
+          return node.index.k === "Num" && Number.isInteger(node.index.v) && node.index.v >= 0
+            ? step(node.obj, node.index.v)
+            : null;
+        case "Comp":
+          if (node.args.length !== 1) return null;
+          return node.name === "First"
+            ? step(node.args[0], 0)
+            : node.name === "Last"
+              ? step(node.args[0], -1)
+              : null;
+        case "Ref": {
+          const target = statements.get(node.n);
+          if (!target || bound.has(node.n) || seen.has(node.n)) return null;
+          if (target.k === "Comp" && target.name === RESERVED_CALLS.Query) {
+            return { query: node.n, path: [] };
+          }
+          if (target.k === "Comp" && isComponent(target)) return null;
+          seen.add(node.n);
+          return cellOf(target, seen);
+        }
+        default:
+          return null;
+      }
+    };
+
+    if (start.k !== "Comp" || !isComponent(start)) {
+      const sources = collect(own);
+      return { ...sources, formulas: formulas(sources.via) };
+    }
 
     // Positional arguments map to props in the library's order.
     const args = start.args;
     const names = parsed.cat?.get(start.name)?.params.map((p) => p.name) ?? [];
-    const props: Record<string, Sources> = {};
+    const props: Record<string, PropSources> = {};
     const all = { queries: new Set<string>(), via: new Set<string>(), state: new Set<string>() };
     names.forEach((name, i) => {
       if (i >= args.length) return;
-      props[name] = collect(args[i]);
+      const cell = cellOf(args[i]);
+      props[name] = { ...collect(args[i]), expr: text(args[i]), ...(cell ? { cell } : {}) };
       for (const key of ["queries", "via", "state"] as const) {
         props[name][key].forEach((n) => all[key].add(n));
       }
     });
-    return { queries: [...all.queries], via: [...all.via], state: [...all.state], props };
+    const via = [...all.via];
+    return {
+      queries: [...all.queries],
+      via,
+      state: [...all.state],
+      formulas: formulas(via),
+      props,
+    };
   } catch (error) {
     // A chain of statements too long to walk.
     if (error instanceof RangeError) return null;
     throw error;
   }
+}
+
+type Bindings = ReadonlyMap<string, { list: ASTNode; outer: Bindings }>;
+const NO_BINDINGS: Bindings = new Map();
+
+/** The name an `@Each` binds: `"r"` or `r`. */
+function boundName(arg: ASTNode): string | undefined {
+  return arg.k === "Ref" ? arg.n : arg.k === "Str" ? arg.v : undefined;
 }

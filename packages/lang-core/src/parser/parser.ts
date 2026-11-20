@@ -309,7 +309,15 @@ function buildResult(
 
   const syms = new Map<string, ASTNode>();
   for (const [id, stmt] of stmtMap) {
-    syms.set(id, stmt.kind === "state" ? stmt.init : stmt.expr);
+    const expr = stmt.kind === "state" ? stmt.init : stmt.expr;
+    syms.set(id, expr);
+    // Component calls get ids, so a "where did this come from" view can name them: the
+    // statement's own call its name (it may be rendered from an expression, without a
+    // statementId), an inline one its position.
+    let n = 0;
+    walkAST(expr, (node) => {
+      if (isComponentCall(node)) node.id = node === expr ? id : `${id}.${n++}`;
+    });
   }
   const unres: string[] = [];
   const errors: ValidationError[] = [];
