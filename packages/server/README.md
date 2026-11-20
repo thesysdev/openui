@@ -181,4 +181,5 @@ serverless hosts, give the route enough time (for example `export const maxDurat
 Vercel), or use the plain call.
 
 The model may call your data tools for up to 20 rounds before it must write the dashboard. Set
-`maxToolRounds` in `defineDashboard` to change that; `0` turns tool calls off.
+`maxToolRounds` in `defineDashboard` to change that. With `0` the model calls none of your tools
+directly; it still saves and runs its data scripts, which call them.

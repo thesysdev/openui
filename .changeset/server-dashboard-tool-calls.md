@@ -8,4 +8,4 @@ Dashboards are built on `/v1/dashboard/chat/completions`, which needs an OpenUI 
 
 `defineDashboard` takes `reasoningEffort` (`"minimal" | "low" | "medium" | "high"`), sent as `reasoning_effort` with every round, for models that can think.
 
-`defineDashboard` takes `maxToolRounds`: how many rounds of tool calls the model may make before it must write the dashboard (OpenUI Cloud's default: 20; `0` turns tool calls off).
+`defineDashboard` takes `maxToolRounds`: how many rounds of tool calls the model may make before it must write the dashboard (OpenUI Cloud's default: 20). With `0` the model calls none of your tools directly; it still saves and runs its data scripts, which call them.
