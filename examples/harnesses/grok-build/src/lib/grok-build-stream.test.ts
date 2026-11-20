@@ -355,6 +355,14 @@ describe("OpenUI output safety", () => {
     expect(isRenderableOpenUI(status)).toBe(true);
   });
 
+  it("marks warning status text with a warning badge", () => {
+    const status = createOpenUIStatus("No final response", "Nothing came back.", "warning");
+    expect(status).toBe(
+      'root = Col([badge, heading, description])\nbadge = Badge("Warning", "warning")\nheading = Text("No final response", "md", null, "semibold")\ndescription = Text("Nothing came back.")',
+    );
+    expect(isRenderableOpenUI(status)).toBe(true);
+  });
+
   it("chunks without changing the validated program", () => {
     const source = `root = Col([answer])\nanswer = Text(${JSON.stringify("smooth ".repeat(300))})`;
     const chunks = chunkOpenUIOutput(source);
@@ -406,8 +414,7 @@ describe("OpenUI output safety", () => {
 
     const events = bridge.fail("[object Object]");
     const result = terminal.find((event) => event.type === EventType.TOOL_CALL_RESULT) as
-      | (AGUIEvent & { content?: string })
-      | undefined;
+      (AGUIEvent & { content?: string }) | undefined;
     expect(result?.content).toBe("Service temporarily unavailable.");
     expect(emittedText(events)).toBe("");
   });
@@ -430,8 +437,7 @@ describe("OpenUI output safety", () => {
       agent_result: "Provider unavailable.",
     });
     const result = terminal.find((event) => event.type === EventType.TOOL_CALL_RESULT) as
-      | (AGUIEvent & { content?: string; isError?: boolean })
-      | undefined;
+      (AGUIEvent & { content?: string; isError?: boolean }) | undefined;
 
     expect(result?.content).toBe("Provider unavailable.");
     expect(result?.isError).toBe(true);
@@ -482,8 +488,7 @@ describe("OpenUI output safety", () => {
     const argsIndex = events.findIndex((event) => event.type === EventType.TOOL_CALL_ARGS);
     const endIndex = events.findIndex((event) => event.type === EventType.TOOL_CALL_END);
     const result = events.find((event) => event.type === EventType.TOOL_CALL_RESULT) as
-      | (AGUIEvent & { content?: string })
-      | undefined;
+      (AGUIEvent & { content?: string }) | undefined;
 
     expect(argsIndex).toBeGreaterThan(-1);
     expect(endIndex).toBeGreaterThan(argsIndex);

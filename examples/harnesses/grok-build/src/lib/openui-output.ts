@@ -208,11 +208,22 @@ export function isRenderableOpenUI(value: string): boolean {
   }
 }
 
-export function createOpenUIStatus(title: string, description: string): string {
-  return [
-    "root = Col([heading, description])",
+/** A warning or danger status leads with a matching Badge so it stands apart from a plain notice. */
+export function createOpenUIStatus(
+  title: string,
+  description: string,
+  tone?: "warning" | "danger",
+): string {
+  const lines = [
     `heading = Text(${JSON.stringify(title)}, "md", null, "semibold")`,
     `description = Text(${JSON.stringify(description)})`,
+  ];
+  if (!tone) return ["root = Col([heading, description])", ...lines].join("\n");
+  const label = tone === "warning" ? "Warning" : "Error";
+  return [
+    "root = Col([badge, heading, description])",
+    `badge = Badge(${JSON.stringify(label)}, ${JSON.stringify(tone)})`,
+    ...lines,
   ].join("\n");
 }
 
@@ -248,6 +259,7 @@ function fallbackOpenUI(value: string): string {
   return createOpenUIStatus(
     "Unable to render Grok Build response",
     `The final OpenUI response did not pass validation. ${detail}`,
+    "warning",
   );
 }
 
@@ -379,6 +391,7 @@ export class OpenUIOutputAccumulator {
       return createOpenUIStatus(
         "No final response",
         "Grok Build completed without producing an assistant response.",
+        "warning",
       );
     }
     return fallbackOpenUI(candidate);
@@ -391,7 +404,7 @@ export function chunkOpenUIOutput(value: string): string[] {
   const targetSize = Math.max(MIN_STREAM_CHUNK_SIZE, Math.ceil(value.length / MAX_STREAM_CHUNKS));
   const chunks: string[] = [];
 
-  for (let start = 0; start < value.length; ) {
+  for (let start = 0; start < value.length;) {
     let end = Math.min(start + targetSize, value.length);
     const nearbyNewline = value.indexOf("\n", end);
     if (nearbyNewline !== -1 && nearbyNewline - end <= 96) end = nearbyNewline + 1;
