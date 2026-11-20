@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { defineAgent } from "eve";
-import { gatewaySessionId } from "./hooks/gateway-session";
+import { gatewaySessionId } from "./hooks/gateway-session.ts";
 
 const apiKey = process.env.THESYS_API_KEY;
 if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
