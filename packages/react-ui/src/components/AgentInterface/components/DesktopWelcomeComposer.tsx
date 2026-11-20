@@ -6,7 +6,7 @@ import { useLayoutContext } from "../../../context/LayoutContext";
 import { useAutoFocus } from "../../../hooks/useAutoFocus";
 import { useComposerState } from "../../../hooks/useComposerState";
 import { IconButton } from "../../IconButton";
-import { shouldSubmitOnEnter } from "../_shared/utils/composerKeyboard";
+import { useComposerComposition } from "../_shared/utils/useComposerComposition";
 
 export interface DesktopWelcomeComposerProps {
   className?: string;
@@ -54,18 +54,23 @@ export const DesktopWelcomeComposer = ({
     focusKey: selectedThreadId,
   });
 
-  const handleSubmit = () => {
-    if (!textContent.trim() || isRunning || isLoadingMessages) {
-      return;
-    }
-
-    processMessage({
-      role: "user",
-      content: textContent,
-    });
-
-    setTextContent("");
-  };
+  const {
+    handleSubmit,
+    handleChange,
+    handleCompositionStart,
+    handleCompositionEnd,
+    handleBlur,
+    handleFocus,
+    handleKeyDown,
+  } = useComposerComposition({
+    textContent,
+    setTextContent,
+    processMessage,
+    isRunning,
+    isLoadingMessages,
+    textareaRef,
+    resetKey: selectedThreadId,
+  });
 
   useLayoutEffect(() => {
     const input = textareaRef.current;
@@ -84,16 +89,15 @@ export const DesktopWelcomeComposer = ({
       <textarea
         ref={textareaRef}
         value={textContent}
-        onChange={(e) => setTextContent(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         className="openui-agent-desktop-welcome-composer__input"
         placeholder={placeholder}
         rows={1}
-        onKeyDown={(e) => {
-          if (shouldSubmitOnEnter(e)) {
-            e.preventDefault();
-            handleSubmit();
-          }
-        }}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
+        onKeyDown={handleKeyDown}
       />
       <div className="openui-agent-desktop-welcome-composer__action-bar">
         <IconButton
