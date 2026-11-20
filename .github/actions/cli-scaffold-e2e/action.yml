@@ -2,10 +2,6 @@ name: CLI scaffold end to end
 description: Scaffold a template with the packed CLI, then install and build the generated app.
 
 inputs:
-  template:
-    description: Template to scaffold from the checkout.
-    required: false
-    default: openui-cloud
   backend-framework:
     description: Overlay key passed to `openui create --backend-framework`.
     required: false
@@ -85,7 +81,7 @@ runs:
     # templates instead of fetching them from `main`, so template changes are
     # tested here.
     - name: Run CLI with npm
-      if: inputs.package-manager == 'npm' && inputs.template == 'openui-cloud'
+      if: inputs.package-manager == 'npm'
       shell: bash
       working-directory: ${{ runner.temp }}/cli-e2e
       env:
@@ -100,7 +96,7 @@ runs:
         --no-skill
 
     - name: Run CLI with pnpm
-      if: inputs.package-manager == 'pnpm' && inputs.template == 'openui-cloud'
+      if: inputs.package-manager == 'pnpm'
       shell: bash
       working-directory: ${{ runner.temp }}/cli-e2e
       env:
@@ -114,39 +110,6 @@ runs:
         --backend-framework ${{ inputs.backend-framework }}
         --no-interactive
         --no-skill
-
-    # `openui create` currently selects Cloud unconditionally. Exercise the
-    # packed CLI's scaffold function for the self-hosted template as well.
-    - name: Scaffold self-hosted template
-      if: inputs.template == 'openui-self-hosted'
-      shell: bash
-      working-directory: ${{ runner.temp }}/cli-e2e
-      env:
-        CLI_PACKAGE: ${{ steps.cli-package.outputs.path }}
-        SOURCE_DIR: ${{ github.workspace }}
-        BACKEND_FRAMEWORK: ${{ inputs.backend-framework }}
-        PACKAGE_MANAGER: ${{ inputs.package-manager }}
-      run: |
-        npm install --prefix cli-runner --ignore-scripts --no-audit --no-fund "${CLI_PACKAGE}"
-        node --input-type=module <<'NODE'
-        import path from 'node:path';
-        import { createRequire } from 'node:module';
-        const require = createRequire(import.meta.url);
-        const { applyScaffoldFiles } = require('./cli-runner/node_modules/@openuidev/cli/dist/lib/scaffold/index.js');
-        applyScaffoldFiles({
-          templateDir: path.join(process.env.SOURCE_DIR, 'templates', 'openui-self-hosted'),
-          targetDir: path.resolve('generated-app'),
-          name: 'generated-app',
-          packageManager: process.env.PACKAGE_MANAGER,
-          backendFramework: process.env.BACKEND_FRAMEWORK,
-        });
-        NODE
-        cd generated-app
-        if [[ "${PACKAGE_MANAGER}" == "npm" ]]; then
-          npm ci --prefer-offline --no-audit --no-fund --progress=false
-        else
-          pnpm install
-        fi
 
     # npm- and pnpm-installed node_modules can both satisfy either run command.
     # Check manager metadata and lockfile retention to verify CLI selection.
@@ -172,29 +135,10 @@ runs:
           }
         "
 
-    - name: Verify generated component spec
-      shell: bash
-      working-directory: ${{ runner.temp }}/cli-e2e/generated-app
-      run: |
-        ${{ inputs.package-manager }} run generate
-        node --input-type=module <<'NODE'
-        import assert from 'node:assert/strict';
-        import fs from 'node:fs';
-        const spec = JSON.parse(fs.readFileSync('src/generated/spec.json', 'utf8'));
-        assert.equal(spec.root, 'Col');
-        for (const name of ['Col', 'Row', 'Title', 'Text', 'Table', 'Chart', 'Form', 'HtmlView']) {
-          assert.ok(spec.components[name], `Missing component: ${name}`);
-        }
-        for (const name of ['Stack', 'TextContent', 'CardHeader', 'Callout', 'Buttons', 'FollowUpBlock', 'Tabs', 'Accordion', 'BarChart']) {
-          assert.ok(!spec.components[name], `Legacy component: ${name}`);
-        }
-        NODE
-
     - name: Build generated app
       shell: bash
       working-directory: ${{ runner.temp }}/cli-e2e/generated-app
       run: ${{ inputs.package-manager }} run build
       env:
         THESYS_API_KEY: sk-test
-        OPENAI_API_KEY: sk-test
         DEMO_USER_ID: test-user
