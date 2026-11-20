@@ -18,8 +18,8 @@ export type BindSource<P = Record<string, unknown>> = (
 
 /** The component, and prop, a click landed on. */
 export interface SourceTarget {
-  /** The component's statement, or its inline id (`lead.1`) when it is written inside one. */
-  statementId: string;
+  /** The component's statement name, or its inline id (`lead.1`) when it is written inside one. */
+  id: string;
   /** The prop whose element was clicked, when the component marks it with `bindSource("prop")`. */
   prop?: string;
   /** The component's root: its `bindSource()` element, or else its first element. */
@@ -30,10 +30,10 @@ export interface SourceTarget {
 
 const NONE: SourceBinding = Object.freeze({});
 
-export function createBindSource(statementId: string | undefined): BindSource<any> {
-  if (!statementId) return () => NONE;
-  const root: SourceBinding = Object.freeze({ [SOURCE]: statementId });
-  return (prop) => (prop === undefined ? root : { [SOURCE]: statementId, [PROP]: prop });
+export function createBindSource(id: string | undefined): BindSource<any> {
+  if (!id) return () => NONE;
+  const root: SourceBinding = Object.freeze({ [SOURCE]: id });
+  return (prop) => (prop === undefined ? root : { [SOURCE]: id, [PROP]: prop });
 }
 
 /** Renderer's per-element mount component, so a fiber walk can recognize it. */
@@ -42,10 +42,10 @@ export const renderNodeTypes = new WeakSet<object>();
 /** An element, also from another frame (an iframe has its own `Element`). */
 const isElement = (value: unknown): value is Element => (value as Node | null)?.nodeType === 1;
 
-/** The nearest element marked for `statementId`: its root (no prop) or any of its props. */
-function closestBound(from: Element, statementId: string, prop: boolean): Element | undefined {
+/** The nearest element marked for `id`: its root (no prop) or any of its props. */
+function closestBound(from: Element, id: string, prop: boolean): Element | undefined {
   for (let el: Element | null = from; el; el = el.parentElement) {
-    if (el.getAttribute(SOURCE) === statementId && el.hasAttribute(PROP) === prop) return el;
+    if (el.getAttribute(SOURCE) === id && el.hasAttribute(PROP) === prop) return el;
   }
   return undefined;
 }
@@ -68,12 +68,12 @@ export function readSourceTarget(
   const node = nearestRenderedComponent(start, boundary);
   if (node === "boundary") return null;
   if (!node) return readFromAttributes(start, boundary);
-  const propElement = closestBound(start, node.statementId, true);
-  const root = closestBound(start, node.statementId, false);
+  const propElement = closestBound(start, node.id, true);
+  const root = closestBound(start, node.id, false);
   const element = root ?? node.firstElement ?? propElement;
   if (!element) return null;
   return {
-    statementId: node.statementId,
+    id: node.id,
     prop: propElement?.getAttribute(PROP) ?? undefined,
     element,
     propElement,
@@ -82,15 +82,15 @@ export function readSourceTarget(
 
 function readFromAttributes(start: Element, boundary?: Element | null): SourceTarget | null {
   const bound = start.closest(`[${SOURCE}]`);
-  const statementId = bound?.getAttribute(SOURCE);
+  const id = bound?.getAttribute(SOURCE);
   // A marked element around the boundary belongs to an outer UI; inside it, or portaled out of it
   // (renderInHtmlElement), it belongs to this one.
-  if (!bound || !statementId || (boundary && bound.contains(boundary))) return null;
+  if (!bound || !id || (boundary && bound.contains(boundary))) return null;
   const isProp = bound.hasAttribute(PROP);
   return {
-    statementId,
+    id,
     prop: isProp ? (bound.getAttribute(PROP) ?? undefined) : undefined,
-    element: (isProp && closestBound(bound, statementId, false)) || bound,
+    element: (isProp && closestBound(bound, id, false)) || bound,
     propElement: isProp ? bound : undefined,
   };
 }
@@ -132,14 +132,14 @@ function currentOf(fiber: Fiber): Fiber {
 function nearestRenderedComponent(
   start: Element,
   boundary?: Element | null,
-): { statementId: string; firstElement?: Element } | "boundary" | null {
+): { id: string; firstElement?: Element } | "boundary" | null {
   for (let fiber = fiberOf(start); fiber; fiber = fiber.return) {
     if (boundary && fiber.stateNode === boundary) return "boundary";
     if (!renderNodeTypes.has(fiber.type as object)) continue;
     const el = (fiber.memoizedProps as { el?: { statementId?: string; inlineId?: string } } | null)
       ?.el;
-    const statementId = el?.statementId ?? el?.inlineId;
-    if (statementId) return { statementId, firstElement: firstElement(fiber) };
+    const id = el?.statementId ?? el?.inlineId;
+    if (id) return { id, firstElement: firstElement(fiber) };
   }
   return null;
 }

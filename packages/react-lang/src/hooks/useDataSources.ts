@@ -1,6 +1,7 @@
 import { dataSources } from "@openuidev/lang-core";
 import { useMemo } from "react";
 import { useOpenUI } from "../context";
+import { useRendererQuery } from "../Renderer";
 
 /** A query a component reads: the call it last ran with, whether it is loading, and its result. */
 interface DataSourceQuery {
@@ -28,23 +29,23 @@ interface PropSources extends Sources<string> {
  * Where a component's data comes from, for a "where did this number come from" view: its
  * queries, the statements in between and the `$variables` it reads, also by prop. A prop with no
  * queries and no state is written in the program; `formulas` holds the text of the statements in
- * between. Pass the `statementId` the component gets, or an inline component's `inlineId`. It
- * reads the values when the component renders
+ * between. Pass a statement's name (the `statementId` a component gets), or an inline id. It
+ * reads the values when the Renderer updates
  * and does not subscribe to changes. The result keeps its identity until the program, a store
  * value or a query result changes, so it can be passed to effects.
  */
-export function useDataSources(statementId: string | undefined):
+export function useDataSources(id: string | undefined):
   | (Sources<DataSourceQuery> & {
       formulas: Record<string, string>;
       props?: Record<string, PropSources>;
     })
   | null {
   const context = useOpenUI();
+  // Re-render on every Renderer update, so a new parse is read even when the caller's own props
+  // did not change.
+  useRendererQuery();
   const result = context.getParseResult();
-  const found = useMemo(
-    () => (result && statementId ? dataSources(result, statementId) : null),
-    [result, statementId],
-  );
+  const found = useMemo(() => (result && id ? dataSources(result, id) : null), [result, id]);
   // The context changes on every store write and query result.
   return useMemo(() => {
     if (!found) return null;
@@ -52,14 +53,14 @@ export function useDataSources(statementId: string | undefined):
     const values = (names: string[]) =>
       Object.fromEntries(names.map((name) => [name, evaluationContext.getState(name)]));
     return {
-      queries: found.queries.map((id) => {
-        const call = queryManager.getCall(id);
+      queries: found.queries.map((query) => {
+        const call = queryManager.getCall(query);
         return {
-          statementId: id,
+          statementId: query,
           toolName: call?.toolName,
           args: call?.args,
-          loading: queryManager.isLoading(id),
-          data: queryManager.getResult(id),
+          loading: queryManager.isLoading(query),
+          data: queryManager.getResult(query),
         };
       }),
       via: found.via,

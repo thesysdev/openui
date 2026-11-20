@@ -88,7 +88,7 @@ export interface ArtifactProvenanceState {
 
 /** The renderer's provenance state; `setSources` is for the bridge inside `Renderer`. */
 export interface ProvenanceContextValue extends ArtifactProvenanceState {
-  setSources: (sources: ProvenanceSources, statementId: string | undefined) => void;
+  setSources: (sources: ProvenanceSources, id: string | undefined) => void;
 }
 
 /** Null when `enableProvenance` is off. */

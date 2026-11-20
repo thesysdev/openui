@@ -469,7 +469,8 @@ function readSourceTarget(
   /** The element of the UI that owns the inspect mode: components above it are not returned. */
   boundary?: Element | null,
 ): {
-  statementId: string;
+  /** The component's statement name, or its inline id (`lead.2`). */
+  id: string;
   /** Set when the click landed on an element marked with bindSource("prop"). */
   prop?: string;
   /** The component's bindSource() element, or else its first element. */
@@ -504,7 +505,7 @@ function useIsQueryLoading(): boolean;
 // Where a component's data comes from: its queries (tool, arguments, loading, result), the
 // statements in between with their text, and the $variables it reads, also by prop. Pass the
 // statementId the component receives, or an inline component's id (`lead.2`).
-function useDataSources(statementId: string | undefined): {
+function useDataSources(id: string | undefined): {
   queries: {
     statementId: string;
     toolName: string | undefined;

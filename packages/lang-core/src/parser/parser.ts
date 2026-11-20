@@ -316,7 +316,7 @@ function buildResult(
     // statementId), an inline one its position.
     let n = 0;
     walkAST(expr, (node) => {
-      if (isComponentCall(node)) node.id = node === expr ? id : `${id}.${n++}`;
+      if (isComponentCall(node)) node.inlineId = node === expr ? id : `${id}.${n++}`;
     });
   }
   const unres: string[] = [];

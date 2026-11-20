@@ -50,7 +50,7 @@ export function dataSources(
   if (statementId !== id) {
     own = undefined;
     walkAST(statement, (node) => {
-      if (node.k === "Comp" && node.id === id) own = node;
+      if (node.k === "Comp" && node.inlineId === id) own = node;
       const def = node.k === "Comp" ? calls.get(node.name) : undefined;
       if (node.k !== "Comp" || def?.kind !== "function" || !def.lazy || node.args.length < 3)
         return;
@@ -58,7 +58,7 @@ export function dataSources(
       const encloses = node.args.slice(2).some((arg) => {
         let found = false;
         walkAST(arg, (inner) => {
-          if (inner.k === "Comp" && inner.id === id) found = true;
+          if (inner.k === "Comp" && inner.inlineId === id) found = true;
         });
         return found;
       });
@@ -94,12 +94,9 @@ export function dataSources(
         target.args.slice(0, 2).forEach((arg) => walk(arg, new Set(), NO_BINDINGS));
         found = true;
       } else if (target && !(target.k === "Comp" && target.name === RESERVED_CALLS.Mutation)) {
-        let holdsComponent = false;
-        walkAST(target, (node) => {
-          if (isComponent(node)) holdsComponent = true;
-        });
-        // Another statement: the loops around the component do not reach into it.
-        if (!holdsComponent) found = walk(target, new Set(), NO_BINDINGS);
+        // Another statement: only its data counts, not components in it (ask for those by
+        // name), and the loops around the component do not reach into it.
+        found = walk(target, new Set(), NO_BINDINGS, false);
         if (found) via.add(name);
       }
       reaches.set(name, found);
@@ -107,20 +104,26 @@ export function dataSources(
     };
 
     // `scope` holds names an `@Each` binds, which shadow statements of the same name.
-    const walk = (start: ASTNode, scope: ReadonlySet<string>, binds = bound): boolean => {
+    // Without `components`, component calls are skipped.
+    const walk = (
+      start: ASTNode,
+      scope: ReadonlySet<string>,
+      binds = bound,
+      components = true,
+    ): boolean => {
       let found = false;
       const skipped = new Set<ASTNode>();
       const skip = (node: ASTNode) => walkAST(node, (n) => void skipped.add(n));
       walkAST(start, (node) => {
         if (skipped.has(node)) return;
-        if (isAction(node)) return skip(node);
+        if (isAction(node) || (!components && isComponent(node))) return skip(node);
         const def = node.k === "Comp" ? calls.get(node.name) : undefined;
         if (node.k === "Comp" && def?.kind === "function" && def.lazy && node.args.length >= 3) {
           const name = boundName(node.args[1]);
           const inner = name ? new Set([...scope, name]) : scope;
           // The list is read outside the loop, so its own name does not shadow it.
           node.args.forEach((arg, i) => {
-            if (i !== 1 && walk(arg, i === 0 ? scope : inner, binds)) found = true;
+            if (i !== 1 && walk(arg, i === 0 ? scope : inner, binds, components)) found = true;
           });
           return skip(node);
         }
@@ -129,7 +132,9 @@ export function dataSources(
         }
         if (node.k !== "Ref" || scope.has(node.n)) return;
         const binding = binds.get(node.n);
-        if (binding ? walk(binding.list, new Set(), binding.outer) : follow(node.n)) found = true;
+        if (binding ? walk(binding.list, new Set(), binding.outer, components) : follow(node.n)) {
+          found = true;
+        }
       });
       return found;
     };
@@ -152,6 +157,10 @@ export function dataSources(
 
     if (start.k !== "Comp" || !isComponent(start)) {
       const sources = collect(own);
+      // A query statement is its own source.
+      if (own.k === "Comp" && own.name === RESERVED_CALLS.Query) {
+        sources.queries = [statementId, ...sources.queries.filter((q) => q !== statementId)];
+      }
       return { ...sources, formulas: formulas(sources.via) };
     }
 

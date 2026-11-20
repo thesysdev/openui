@@ -1,13 +1,7 @@
 "use client";
 
 import type { Interpreter } from "@openuidev/react-headless";
-import {
-  Renderer,
-  useDataSources,
-  useRendererQuery,
-  type Library,
-  type RendererProps,
-} from "@openuidev/react-lang";
+import { Renderer, useDataSources, type Library, type RendererProps } from "@openuidev/react-lang";
 import { useCallback, useContext, useEffect } from "react";
 import {
   ArtifactRendererRoot,
@@ -49,18 +43,16 @@ const NO_QUERY_LOADER = <></>;
  * selection's sources up to the renderer's root for the panel.
  */
 function ProvenanceBridge() {
-  // Every Renderer update, such as a new parse, renders this again.
-  useRendererQuery();
   const provenance = useContext(ProvenanceContext);
-  const statementId = provenance?.selection?.statementId;
-  const sources = useDataSources(statementId);
+  const id = provenance?.selection?.id;
+  const sources = useDataSources(id);
   const setSources = provenance?.setSources;
   const clearSelection = provenance?.clearSelection;
   useEffect(() => {
-    setSources?.(sources, statementId);
+    setSources?.(sources, id);
     // The selected statement is no longer in the program, e.g. after an edit.
-    if (statementId && !sources) clearSelection?.();
-  }, [setSources, clearSelection, sources, statementId]);
+    if (id && !sources) clearSelection?.();
+  }, [setSources, clearSelection, sources, id]);
   // Closed, or remounted for live data: the selected elements are gone.
   useEffect(() => () => clearSelection?.(), [clearSelection]);
   return null;

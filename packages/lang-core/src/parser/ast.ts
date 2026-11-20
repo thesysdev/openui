@@ -36,7 +36,7 @@ export type ASTNode =
       /** Set on an `@Name(...)` call whose name is not a built-in or action step. */
       fn?: true;
       /** A component call's id: its statement's name, or `name.n` for the nth call inside it. */
-      id?: string;
+      inlineId?: string;
     }
   | { k: "Str"; v: string }
   | { k: "Num"; v: number }

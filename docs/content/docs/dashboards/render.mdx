@@ -205,14 +205,14 @@ function SourcesPanel() {
 </LiveArtifactRenderer>;
 ```
 
-| Field                           | Description                                                                                                                     |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `isInspecting`, `setInspecting` | Inspect mode. For a `Chrome` with your own children and no bar.                                                                 |
-| `selection`                     | The clicked component's `statementId` (or `lead.1` for a component written inside `lead`), `prop`, `element` and `propElement`. |
-| `clearSelection`                | Closes the panel.                                                                                                               |
-| `sources`                       | [`useDataSources`](/docs/api-reference/react-lang#context-hooks-inside-renderer-components) for the selection.                  |
+| Field                           | Description                                                                                                                                  |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isInspecting`, `setInspecting` | Inspect mode. For a `Chrome` with your own children and no bar.                                                                              |
+| `selection`                     | The clicked component's `id` (its statement's name, or `lead.1` for a component written inside `lead`), `prop`, `element` and `propElement`. |
+| `clearSelection`                | Closes the panel.                                                                                                                            |
+| `sources`                       | [`useDataSources`](/docs/api-reference/react-lang#context-hooks-inside-renderer-components) for the selection.                               |
 
-In React on the web, components are found without any change to the library, through React's own tree. Where that tree can't be read, only components marked with `bindSource()` are found. To make a prop clickable on its own, mark its element with `bindSource("prop")` in the component (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component written inside a statement, such as one Kpi among several, selects on its own.
+In React on the web, components are found without any change to the library, through React's own tree. Where that tree can't be read, only components marked with `bindSource()` are found. To make a prop clickable on its own, mark its element with `bindSource("prop")` in the component (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component written inside a statement, such as one Kpi among several, selects on its own. Its id is its position inside the statement (`lead.1`), so an edit to the dashboard can renumber it, and clears the selection; every item an `@Each` draws shares one id.
 
 ## Theme
 

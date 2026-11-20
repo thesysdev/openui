@@ -364,20 +364,15 @@ export function ArtifactRendererRoot({
   const [isInspecting, setInspecting] = useState(false);
   const [selection, setSelection] = useState<SourceTarget | null>(null);
   // The bridge inside `Renderer` resolves the selection's sources; they count only for that statement.
-  const [resolved, setResolved] = useState<{ statementId?: string; sources: ProvenanceSources }>({
+  const [resolved, setResolved] = useState<{ id?: string; sources: ProvenanceSources }>({
     sources: null,
   });
   const setSources = useCallback(
-    (sources: ProvenanceSources, statementId: string | undefined) =>
-      setResolved((prev) =>
-        prev.statementId === statementId && prev.sources === sources
-          ? prev
-          : { statementId, sources },
-      ),
+    (sources: ProvenanceSources, id: string | undefined) =>
+      setResolved((prev) => (prev.id === id && prev.sources === sources ? prev : { id, sources })),
     [],
   );
-  const sources =
-    selection && resolved.statementId === selection.statementId ? resolved.sources : null;
+  const sources = selection && resolved.id === selection.id ? resolved.sources : null;
   const clearSelection = useCallback(() => setSelection(null), []);
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
@@ -392,6 +387,13 @@ export function ArtifactRendererRoot({
   const onInspectCapture = useCallback(
     (event: SyntheticEvent) => {
       if (!inspecting) return;
+      // Touch keeps scrolling: a tap still selects on its click.
+      if (
+        event.type === "pointerdown" &&
+        (event.nativeEvent as PointerEvent).pointerType !== "mouse"
+      ) {
+        return;
+      }
       // Bounded by this artifact: its bar and panel are not components of an outer Renderer.
       const target = readSourceTarget(event.target, rootRef.current);
       if (!target) return;
