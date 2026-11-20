@@ -1,10 +1,15 @@
 "use client";
 
 import { useSpreadsheetSync } from "@/app/useSpreadsheetSync";
-import { createLibrary, defineComponent } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import {
+  additionalRules,
+  componentGroups,
+  examples,
+  library,
+  promptOptions as intelligentPromptOptions,
+} from "@openuidev/intelligent-ui-library";
 import { z } from "zod";
-import type { PromptOptions } from "@openuidev/react-lang";
+import { createLibrary, defineComponent, type PromptOptions } from "@openuidev/react-lang";
 
 export const SpreadsheetTable = defineComponent({
   name: "SpreadsheetTable",
@@ -16,12 +21,9 @@ export const SpreadsheetTable = defineComponent({
     data: z
       .array(z.array(z.union([z.string(), z.number(), z.null()])))
       .describe(
-        "2D array of cell values. Each inner array is a row. Values can be numbers, strings, or Excel-like formulas starting with ="
+        "2D array of cell values. Each inner array is a row. Values can be numbers, strings, or Excel-like formulas starting with =",
       ),
-    colHeaders: z
-      .array(z.string())
-      .optional()
-      .describe("Array of column header names"),
+    colHeaders: z.array(z.string()).optional().describe("Array of column header names"),
   }),
   component: function SpreadsheetSync({ props }) {
     useSpreadsheetSync(props.data, props.colHeaders);
@@ -30,24 +32,35 @@ export const SpreadsheetTable = defineComponent({
 });
 
 export const spreadsheetLibrary = createLibrary({
-  root: openuiLibrary.root ?? "Stack",
-  componentGroups: openuiLibrary.componentGroups,
-  components: [...Object.values(openuiLibrary.components), SpreadsheetTable],
+  root: "Col",
+  componentGroups,
+  functions: Object.values(library.functions),
+  components: [...Object.values(library.components), SpreadsheetTable],
 });
 
 export const promptOptions: PromptOptions = {
+  ...intelligentPromptOptions,
   preamble:
-    "You are a spreadsheet assistant. The user sees a live spreadsheet on the left panel. Always respond in OpenUI Lang (root = Stack([...])). For read-only requests use TextContent, Table, charts. For write requests, after using tools emit SpreadsheetTable to sync changes to the live spreadsheet.",
+    "You are a spreadsheet assistant. The user sees a live spreadsheet on the left panel. For read-only requests use Text, Markdown, Table, and Chart. For write requests, after using tools emit SpreadsheetTable to sync changes to the live spreadsheet.",
   additionalRules: [
-    "ALWAYS output valid OpenUI Lang with root = Stack([...]). Never output plain text or markdown outside of OpenUI Lang.",
-    "For READ-ONLY requests: use TextContent, MarkDownRenderer, Table, BarChart, LineChart, PieChart. Do NOT use SpreadsheetTable.",
-    "For WRITE requests: after calling modification tools and get_table_data, emit SpreadsheetTable with the full updated data and colHeaders to sync changes to the live spreadsheet. Also include a TextContent explaining what changed.",
+    ...additionalRules,
+    "ALWAYS output valid OpenUI Lang with root = Col([...]). Never output plain text or markdown outside of OpenUI Lang.",
+    "For READ-ONLY requests: use Text, Markdown, Table, and Chart. Do NOT use SpreadsheetTable.",
+    "For WRITE requests: after calling modification tools and get_table_data, emit SpreadsheetTable with the full updated data and colHeaders to sync changes to the live spreadsheet. Also include Text explaining what changed.",
     "Only call modification tools when the user explicitly requests changes.",
   ],
   examples: [
-    `root = Stack([title, info, followups])\ntitle = TextContent("Sales Summary", "large-heavy")\ninfo = TextContent("Your spreadsheet has 5 products with quarterly sales data. Total revenue across all products is $45,350.")\nfollowups = Buttons([Button("Visualize sales trends", null, "secondary"), Button("Add a new product", null, "secondary"), Button("Show top performers", null, "secondary")])`,
-    `root = Stack([title, chart, followups])\ntitle = TextContent("Q1-Q4 Revenue Comparison", "large-heavy")\nchart = BarChart(["Q1", "Q2", "Q3", "Q4"], [s1, s2], "grouped", "Quarter", "Revenue ($)")\ns1 = Series("Widget A", [1500, 1800, 2100, 2400])\ns2 = Series("Widget B", [1200, 1400, 1600, 1900])\nfollowups = Buttons([Button("Show as a table", null, "secondary"), Button("Compare Q1 vs Q4", null, "secondary")])`,
-    `root = Stack([title, pie, followups])\ntitle = TextContent("Revenue by Category", "large-heavy")\npie = PieChart(["Laptops", "Phones", "Audio", "Tablets"], [236800, 521700, 149200, 104100], "donut")\nfollowups = Buttons([Button("Show as a bar chart", null, "secondary"), Button("Break down by quarter", null, "secondary")])`,
-    `root = Stack([msg, sheet, followups])\nmsg = TextContent("Done! I added Widget C with Q1=500, Q2=600, Q3=700, Q4=800 and a SUM formula for Total.")\nsheet = SpreadsheetTable([["Widget A", 1500, 1800, 2100, 2400, "=SUM(B1:E1)"], ["Widget B", 1200, 1400, 1600, 1900, "=SUM(B2:E2)"], ["Widget C", 500, 600, 700, 800, "=SUM(B3:E3)"]], ["Product", "Q1 Sales", "Q2 Sales", "Q3 Sales", "Q4 Sales", "Total"])\nfollowups = Buttons([Button("Add another product", null, "secondary"), Button("Show updated totals", null, "secondary"), Button("Visualize the data", null, "secondary")])`,
+    ...examples,
+    `root = Col([Title("Sales Summary"), Text("Your spreadsheet has 5 products with quarterly sales data. Total revenue across all products is $45,350."), followups])
+followups = Row([Button("Visualize sales trends", @ToAssistant("Visualize sales trends"), "outline"), Button("Add a new product", @ToAssistant("Add a new product"), "outline")])`,
+    `root = Col([Title("Q1-Q4 Revenue Comparison"), chart, followups])
+chart = Chart("bar", [{quarter: "Q1", WidgetA: 1500, WidgetB: 1200}, {quarter: "Q2", WidgetA: 1800, WidgetB: 1400}, {quarter: "Q3", WidgetA: 2100, WidgetB: 1600}, {quarter: "Q4", WidgetA: 2400, WidgetB: 1900}], "quarter", ["WidgetA", "WidgetB"])
+followups = Row([Button("Show as a table", @ToAssistant("Show as a table"), "outline"), Button("Compare Q1 vs Q4", @ToAssistant("Compare Q1 vs Q4"), "outline")])`,
+    `root = Col([Title("Revenue by Category"), chart, followups])
+chart = Chart("donut", [{category: "Laptops", revenue: 236800}, {category: "Phones", revenue: 521700}, {category: "Audio", revenue: 149200}, {category: "Tablets", revenue: 104100}], "category", ["revenue"])
+followups = Row([Button("Show as a bar chart", @ToAssistant("Show as a bar chart"), "outline"), Button("Break down by quarter", @ToAssistant("Break down by quarter"), "outline")])`,
+    `root = Col([Text("Done! I added Widget C with quarterly sales and a SUM formula for Total."), followups, sheet])
+followups = Row([Button("Add another product", @ToAssistant("Add another product"), "outline"), Button("Show updated totals", @ToAssistant("Show updated totals"), "outline")])
+sheet = SpreadsheetTable([["Widget A", 1500, 1800, 2100, 2400, "=SUM(B1:E1)"], ["Widget B", 1200, 1400, 1600, 1900, "=SUM(B2:E2)"], ["Widget C", 500, 600, 700, 800, "=SUM(B3:E3)"]], ["Product", "Q1 Sales", "Q2 Sales", "Q3 Sales", "Q4 Sales", "Total"])`,
   ],
 };

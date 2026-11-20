@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeProvider as IntelligentThemeProvider } from "@openuidev/intelligent-ui-library";
 import { spreadsheetLibrary } from "@/lib/spreadsheet-library";
 import {
   ChatProvider,
@@ -275,7 +276,9 @@ export function ChatPanel({ onClose }: { onClose: () => void }) {
     <ThemeProvider mode="dark" cssSelector=".chat-panel">
       <div className="chat-panel">
         <ChatProvider llm={llm}>
-          <ChatBody onClose={onClose} />
+          <IntelligentThemeProvider mode="dark">
+            <ChatBody onClose={onClose} />
+          </IntelligentThemeProvider>
         </ChatProvider>
       </div>
     </ThemeProvider>

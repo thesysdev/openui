@@ -15,6 +15,11 @@ An AI-powered spreadsheet app that pairs a full-featured [Handsontable](https://
 - **Aggregate recalculation** — Total/Average/Sum/Count/Max/Min rows auto-update their formula ranges after structural changes
 - **Dark theme** — Fully dark UI for both the spreadsheet and chat panel
 
+Answers use `@openuidev/intelligent-ui-library` with `Col` as the root and a custom
+`SpreadsheetTable` to sync edits. The library's `ThemeProvider` receives the chat's forced
+`dark` mode; react-ui still supplies chat theming and styles. Prompt generation keeps the
+`openui generate` → spec → `generateSystemPrompt` flow with OpenUI Cloud.
+
 ## Architecture
 
 ```
@@ -70,7 +75,7 @@ An AI-powered spreadsheet app that pairs a full-featured [Handsontable](https://
 cd examples/miscellaneous/handsontable
 
 # Copy the environment template and add your API key
-cp env.example .env
+cp .env.example .env
 # Edit .env and set THESYS_API_KEY=sk-th-...
 
 # Install dependencies
@@ -84,9 +89,9 @@ Open [http://localhost:3000](http://localhost:3000) to see the spreadsheet with 
 
 ### Environment Variables
 
-| Variable         | Required | Default   | Description                       |
-| ---------------- | -------- | --------- | --------------------------------- |
-| `THESYS_API_KEY` | Yes      | —         | Your OpenUI Cloud API key               |
+| Variable         | Required | Default | Description               |
+| ---------------- | -------- | ------- | ------------------------- |
+| `THESYS_API_KEY` | Yes      | —       | Your OpenUI Cloud API key |
 
 ## Project Structure
 
@@ -122,16 +127,17 @@ hands-on-table-chat/
 
 ## Key Dependencies
 
-| Package                                                                                    | Purpose                                            |
-| ------------------------------------------------------------------------------------------ | -------------------------------------------------- |
-| [`handsontable`](https://handsontable.com/)                                                | Excel-like data grid                               |
-| [`@handsontable/react-wrapper`](https://www.npmjs.com/package/@handsontable/react-wrapper) | React bindings for Handsontable                    |
-| [`hyperformula`](https://hyperformula.handsontable.com/)                                   | Formula engine (386+ Excel-compatible functions)   |
-| [`@openuidev/react-ui`](https://openui.com/docs)                                           | OpenUI chat panel                                  |
-| [`@openuidev/react-headless`](https://openui.com/docs)                                     | OpenUI adapter and message formatting              |
-| [`@openuidev/react-lang`](https://openui.com/docs)                                         | OpenUI Lang component library DSL                  |
-| [`openai`](https://www.npmjs.com/package/openai)                                           | OpenAI SDK pointed at OpenUI Cloud Completions     |
-| [`next`](https://nextjs.org/)                                                              | React framework with API routes and SSE streaming. |
+| Package                                                                                                | Purpose                                              |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| [`handsontable`](https://handsontable.com/)                                                            | Excel-like data grid                                 |
+| [`@handsontable/react-wrapper`](https://www.npmjs.com/package/@handsontable/react-wrapper)             | React bindings for Handsontable                      |
+| [`hyperformula`](https://hyperformula.handsontable.com/)                                               | Formula engine (386+ Excel-compatible functions)     |
+| [`@openuidev/intelligent-ui-library`](https://www.npmjs.com/package/@openuidev/intelligent-ui-library) | Answer components, prompt defaults, and answer theme |
+| [`@openuidev/react-ui`](https://openui.com/docs)                                                       | OpenUI chat panel                                    |
+| [`@openuidev/react-headless`](https://openui.com/docs)                                                 | OpenUI adapter and message formatting                |
+| [`@openuidev/react-lang`](https://openui.com/docs)                                                     | OpenUI Lang component library DSL                    |
+| [`openai`](https://www.npmjs.com/package/openai)                                                       | OpenAI SDK pointed at OpenUI Cloud Completions       |
+| [`next`](https://nextjs.org/)                                                                          | React framework with API routes and SSE streaming.   |
 
 ## Try These Prompts
 
