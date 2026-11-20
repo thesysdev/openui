@@ -46,7 +46,7 @@ Try:
 | ------------------------------------- | --------------------------------------------------------------------- |
 | `src/lib/trivago.ts`                  | MCP client for trivago's accommodation search, and its filter options |
 | `src/lib/tools/search-stays.ts`       | Function schema, argument validation, budget filter, and results      |
-| `src/library.ts`                      | The chat library, with its DatePicker replaced                        |
+| `src/library.ts`                      | Intelligent UI library, with its DatePicker replaced                  |
 | `src/components/date-picker.tsx`      | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
 | `src/lib/prompt.ts`                   | Booking rules and one example for each step of the flow               |
 | `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages           |
@@ -54,7 +54,7 @@ Try:
 | `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                             |
 | `src/lib/theme.ts`                    | Light and dark theme overrides                                        |
 | `src/components/booking-chat.tsx`     | Agent Interface, chat transport, thread storage, theme, and starters  |
-| `src/app/styles.css`                  | Page layout and full-width photos on the stay cards                   |
+| `src/app/styles.css`                  | Page layout and chat context styles                                   |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 
@@ -68,7 +68,7 @@ trivago has no price filter, so the tool applies the budget and reports how many
 
 The model prefills fields with literal values. Submitted form state contains only the fields the user changed, so the prompt tells the model to use its prefilled value for any field missing from the state.
 
-React UI's `DatePicker` stores `Date` objects, which a model cannot write and which reach the model as UTC timestamps. `src/components/date-picker.tsx` keeps the same name and props but reads and writes `YYYY-MM-DD` strings, so a prefilled date shows in the picker and a submitted date is the calendar day the user picked.
+Answers use `@openuidev/intelligent-ui-library` with root `Col`. The custom `src/components/date-picker.tsx` replaces its `DatePicker` using the new value/label/min/max/rules props, while keeping React UI's calendar. It reads and writes `YYYY-MM-DD` strings, registers Form validation, rejects dates outside min/max, and closes after a valid pick. `ThemeProvider mode={mode}` makes answers follow the chat's light or dark mode. React UI still provides Agent Interface, transport, storage, and chat theming.
 
 ## Conversations
 

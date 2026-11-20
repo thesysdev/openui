@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeProvider } from "@openuidev/intelligent-ui-library";
 import {
   AgentInterface,
   fetchLLM,
@@ -57,32 +58,34 @@ export default function BookingChat() {
   });
   return (
     <div className="booking-app">
-      <AgentInterface
-        llm={llm}
-        storage={storage}
-        componentLibrary={library}
-        agentName="Stay finder"
-        logoUrl="/logo.svg"
-        theme={theme}
-        starters={starters}
-        starterVariant="long"
-      >
-        <AgentInterface.ThreadHeader>
-          <span className="thread-context">
-            Live hotel prices from{" "}
-            <a href="https://mcp.trivago.com/docs" target="_blank" rel="noreferrer">
-              trivago
-            </a>{" "}
-            · You book on the hotel or booking site
-          </span>
-        </AgentInterface.ThreadHeader>
-        <AgentInterface.Welcome
-          image={{ url: "/logo.svg" }}
-          title="Where are you headed?"
-          description="Describe your trip in your own words. I'll turn it into a form with what I understood, ask only for what's missing, and find stays with live prices."
-        />
-        <AgentInterface.Composer placeholder="Describe your trip…" />
-      </AgentInterface>
+      <ThemeProvider mode={mode}>
+        <AgentInterface
+          llm={llm}
+          storage={storage}
+          componentLibrary={library}
+          agentName="Stay finder"
+          logoUrl="/logo.svg"
+          theme={theme}
+          starters={starters}
+          starterVariant="long"
+        >
+          <AgentInterface.ThreadHeader>
+            <span className="thread-context">
+              Live hotel prices from{" "}
+              <a href="https://mcp.trivago.com/docs" target="_blank" rel="noreferrer">
+                trivago
+              </a>{" "}
+              · You book on the hotel or booking site
+            </span>
+          </AgentInterface.ThreadHeader>
+          <AgentInterface.Welcome
+            image={{ url: "/logo.svg" }}
+            title="Where are you headed?"
+            description="Describe your trip in your own words. I'll turn it into a form with what I understood, ask only for what's missing, and find stays with live prices."
+          />
+          <AgentInterface.Composer placeholder="Describe your trip…" />
+        </AgentInterface>
+      </ThemeProvider>
     </div>
   );
 }
