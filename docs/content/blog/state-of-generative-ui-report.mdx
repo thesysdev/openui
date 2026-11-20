@@ -100,10 +100,11 @@ This is where most production agent UIs currently land, and the bucket has the m
 OpenUI ([`thesysdev/openui`](https://github.com/thesysdev/openui), MIT) emits OpenUI Lang, a line-oriented DSL in which every statement is `id = Component(args)`. Forward references allow the renderer to display skeletons for identifiers that haven't streamed yet, producing a top-down reveal:
 
 ```
-root = Col([header, chart, cta])
-header = Col([Title("Q1 revenue"), Text("All segments", "sm", "muted")], 1)
-chart = Chart("bar", data, "month", ["Revenue"])
-data = [{month: "Jan", Revenue: 120}, {month: "Feb", Revenue: 145}, {month: "Mar", Revenue: 180}]
+root = Card([header, chart, cta])
+header = CardHeader("Q1 revenue", "All segments")
+chart = BarChart(months, [revSeries])
+months = ["Jan", "Feb", "Mar"]
+revSeries = Series("Revenue", [120, 145, 180])
 cta = Button("View breakdown")
 ```
 
@@ -139,7 +140,7 @@ The shared limitation of the bucket: the agent can only render what the catalog 
 
 ### Open-Ended generation: the model writes raw HTML
 
-No catalog and no schema: the model emits raw HTML/CSS/JS per request, and the host runs it in a sandboxed iframe. The production flagship is Google's Gemini "dynamic view" (Gemini 3 Pro with tool access and a post-processing pass, documented in the November 2025 Google Research paper [_Generative UI: LLMs are Effective UI Generators_](https://generativeui.github.io/) and the accompanying PAGEN dataset). The AG-UI ecosystem offers the same pattern inside a developer's own app, with the model emitting HTML/SVG/Canvas into a themed sandboxed iframe.
+No catalog and no schema: the model emits raw HTML/CSS/JS per request, and the host runs it in a sandboxed iframe. The production flagship is Google's Gemini "dynamic view" (Gemini 3 Pro with tool access and a post-processing pass, documented in the November 2025 Google Research paper [*Generative UI: LLMs are Effective UI Generators*](https://generativeui.github.io/) and the accompanying PAGEN dataset). The AG-UI ecosystem offers the same pattern inside a developer's own app, with the model emitting HTML/SVG/Canvas into a themed sandboxed iframe.
 
 The case for it: some outputs are genuinely one-off, like a results page tailored to a single query, an exploratory tutorial, or a creative artifact. No predefined catalog contains them.
 
@@ -151,12 +152,12 @@ In practice, Static suits bounded product surfaces and Open-Ended suits one-off 
 
 The three styles are usually presented as alternatives, but Declarative and Open-Ended combine cleanly, and the combination addresses the main weakness of each.
 
-The pattern: register a sandbox component in the Declarative catalog (the built-in library calls it `HtmlView`) whose prop is a string of model-generated HTML. The renderer mounts that one component in a sandboxed iframe under the same rules MCP-Apps already mandates (no outside DOM access, `postMessage` only, host-enforced CSP). Everything else in the catalog renders natively as before.
+The pattern: register a sandbox component in the Declarative catalog (call it `GeneratedView`) whose prop is a string of model-generated HTML. The renderer mounts that one component in a sandboxed iframe under the same rules MCP-Apps already mandates (no outside DOM access, `postMessage` only, host-enforced CSP). Everything else in the catalog renders natively as before.
 
 ```
-root = Col([header, viz])
-header = Col([Title("Orbital decay"), Text("Interactive model", "sm", "muted")], 1)
-viz = HtmlView("<!doctype html><html><body><p>Interactive simulation</p></body></html>", 240, "Orbital decay")
+root = Card([header, viz])
+header = CardHeader("Orbital decay", "Interactive model")
+viz = GeneratedView("<!doctype html><html>...canvas + JS simulation...</html>")
 ```
 
 The result is that the spectrum becomes per-component rather than per-application. The default path stays catalog-constrained: design-system fidelity, cheap tokens, trivial security analysis. When the model encounters a layout or interaction the catalog genuinely doesn't cover (a bespoke simulation, a one-off visualization), it reaches for the escape hatch, and the cost of Open-Ended generation (latency, isolation, run-to-run variance) is paid only for that subtree, not the whole page.
@@ -173,12 +174,12 @@ Within the Declarative bucket the entrants are functionally similar: catalogs, s
 
 We publish a reproducible benchmark in the OpenUI repository ([`benchmarks/`](https://github.com/thesysdev/openui/tree/main/benchmarks), tiktoken with the GPT-5 encoder, seven scenarios ranging from a simple table to an e-commerce product page):
 
-| Format                  | Total tokens | Δ vs OpenUI Lang |
-| ----------------------- | -----------: | ---------------: |
-| OpenUI Lang             |        4,800 |                — |
-| YAML                    |        9,122 |             +90% |
-| Thesys C1 JSON (legacy) |        9,948 |            +107% |
-| Vercel json-render      |       10,180 |            +112% |
+| Format | Total tokens | Δ vs OpenUI Lang |
+|---|---:|---:|
+| OpenUI Lang | 4,800 | — |
+| YAML | 9,122 | +90% |
+| Thesys C1 JSON (legacy) | 9,948 | +107% |
+| Vercel json-render | 10,180 | +112% |
 
 At 60 tokens/sec, the e-commerce scenario completes in 19.4s as OpenUI Lang versus 40.8s as json-render patches and 39.7s as legacy C1 JSON. The widest gap is the contact-form scenario: 4.9s versus 14.9s, a 3.04x difference. The mechanism is straightforward: JSON pays for keys, quotes, and brackets on every field, while a line-oriented DSL does not.
 
@@ -228,9 +229,9 @@ The last combination is worth watching. Nothing in the MCP-Apps spec requires th
 
 **Research and data**
 
-- [_Generative UI: LLMs are Effective UI Generators_](https://generativeui.github.io/): Leviathan et al., Google Research, November 2025; includes the PAGEN dataset
+- [*Generative UI: LLMs are Effective UI Generators*](https://generativeui.github.io/): Leviathan et al., Google Research, November 2025; includes the PAGEN dataset
 - [OpenUI token-efficiency benchmark](https://github.com/thesysdev/openui/tree/main/benchmarks): methodology, scenarios, and raw data for the figures in this post
 
 ---
 
-_Adoption status and benchmark figures as of June 2026. Benchmark methodology and data are available in the OpenUI repository._
+*Adoption status and benchmark figures as of June 2026. Benchmark methodology and data are available in the OpenUI repository.*
