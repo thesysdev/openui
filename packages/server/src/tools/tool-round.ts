@@ -32,7 +32,7 @@ export async function runToolRound<Context extends ExecutionContext>(
           throw new ToolExecutionError("Tool arguments must be a JSON object", "bad_args");
         }
         const result = savesScript
-          ? await interpreter.runDraft(
+          ? await interpreter.executeDraft(
               artifactId,
               args["name"] as string,
               args["args"] as Record<string, unknown>,

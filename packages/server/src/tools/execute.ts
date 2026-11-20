@@ -57,7 +57,7 @@ export function dataToolLoader<Context extends ExecutionContext>(
 /** The interpreter, plus what a dashboard build uses internally: running a
  *  script saved with openui_create_script in the build in progress. */
 export interface BuildInterpreter<Context extends ExecutionContext> extends Interpreter<Context> {
-  runDraft(
+  executeDraft(
     artifactId: string,
     name: string,
     args: Record<string, unknown>,
@@ -259,7 +259,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
 
   return {
     execute: (input, context, executionOptions) => run(input, context, executionOptions),
-    runDraft: (artifactId, name, args, context, executionOptions) =>
+    executeDraft: (artifactId, name, args, context, executionOptions) =>
       run({ name, arguments: args }, context, executionOptions, artifactId),
   };
 }
