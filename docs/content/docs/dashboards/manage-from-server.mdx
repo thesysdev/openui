@@ -61,7 +61,7 @@ With a `userId`, also pass the user's `groupIds`, the same as on their frontend 
 | ----------------- | ----------------------------------------------------------------------------------------- |
 | `kind`            | Only these kinds, such as `"dashboard"`.                                                  |
 | `name`            | Match on the name.                                                                        |
-| `pinned`          | `true` for pinned dashboards only, `false` for unpinned ones.                             |
+| `pinned`          | `true` for the user's pinned dashboards only, `false` for the rest. Needs `userId`.       |
 | `isOwner`         | `true` for the user's own dashboards, `false` for those shared with them. Needs `userId`. |
 | `conversationId`  | Only the dashboards made in this conversation.                                            |
 | `limit`           | Page size, from 1 to 100. Default: 100.                                                   |
