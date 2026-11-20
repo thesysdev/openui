@@ -1,9 +1,10 @@
-export const genuiOutput = `root = Stack([welcomeCard])
-welcomeCard = Card([welcomeHeader, signupForm])
-welcomeHeader = CardHeader("Welcome", "Get started with our platform")
-signupForm = Form("signup", actions, [nameField, emailField])
-nameField = FormControl("Name", Input("name", "Your name", "text", {required: true, minLength: 2}))
-emailField = FormControl("Email", Input("email", "you@example.com", "email", {required: true, email: true}))
-actions = Buttons([signUpBtn, learnMoreBtn], "row")
-signUpBtn = Button("Sign up", @ToAssistant("Sign me up"), "primary")
-learnMoreBtn = Button("Learn more", @ToAssistant("Tell me more about the platform"), "secondary")`;
+export const genuiOutput = `root = Col([welcomeCard])
+$name = ""
+$email = ""
+welcomeCard = Card([Title("Welcome", "lg"), Text("Get started with our platform", "sm", "muted"), signupForm])
+signupForm = Form([nameField, emailField, actions])
+nameField = Input($name, "Name", "text", "Your name", {required: true, minLength: 2})
+emailField = Input($email, "Email", "text", "you@example.com", {required: true, email: true})
+actions = Row([signUpBtn, learnMoreBtn], 2)
+signUpBtn = Button("Sign up", @ToAssistant("Sign me up"))
+learnMoreBtn = Button("Learn more", @ToAssistant("Tell me more about the platform"), "outline")`;
