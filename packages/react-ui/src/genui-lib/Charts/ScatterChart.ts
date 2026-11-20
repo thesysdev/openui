@@ -42,6 +42,8 @@ export const ScatterChart = defineComponent({
       data,
       xAxisDataKey: "x",
       yAxisDataKey: "y",
+      xAxisLabel: props.xLabel,
+      yAxisLabel: props.yLabel,
       isAnimationActive: false,
     });
   },
