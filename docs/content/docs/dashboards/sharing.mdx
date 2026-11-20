@@ -92,6 +92,10 @@ A user who removes the share that let them open a dashboard keeps seeing it in t
 
 The hooks must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser).
 
+## Share from your server
+
+`openui.artifacts.share` and `unshare` take the same targets, with your API key, as a user or as your org. See [Manage dashboards from your server](/docs/dashboards/manage-from-server#share).
+
 ## Lists
 
 Dashboards shared with a user show in their [lists](/docs/dashboards/list) next to their own. Filter with `isOwner` to show them apart, and read `isOwner` and `isEditable` on each one to choose which actions to show. Dashboards the user can edit also carry their `shares`, for a "Shared with 3" badge on each row.

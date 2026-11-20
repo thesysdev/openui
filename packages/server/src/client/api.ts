@@ -4,17 +4,27 @@ import { OpenUIApiError, type OpenUIClientOptions } from "./types";
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
-interface CloudRequest {
-  method?: "GET" | "POST";
-  headers?: Record<string, string>;
-  body?: string;
+/** Query string values; `undefined` ones are left out, arrays repeat the name. */
+export type CloudQuery = Record<string, string | readonly string[] | undefined>;
+
+export interface CloudSendOptions {
+  query?: CloudQuery;
+  /** Sent as JSON. */
+  body?: unknown;
   signal?: AbortSignal;
+  headers?: Record<string, string>;
 }
 
 /** Authenticated requests to OpenUI Cloud with the API key. */
 export interface CloudApi {
   /** The client's app, if it has one. */
   readonly appId?: string;
+  /** Sends a request and resolves with the JSON object OpenUI Cloud returns. */
+  send(
+    method: "GET" | "POST" | "DELETE",
+    path: string,
+    options?: CloudSendOptions,
+  ): Promise<Record<string, unknown>>;
   /** POSTs JSON and resolves with the JSON object OpenUI Cloud returns. */
   post(
     path: string,
@@ -63,33 +73,48 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
     return `Bearer ${apiKey}`;
   };
 
-  async function request(path: string, { headers, ...init }: CloudRequest = {}) {
-    return fetchFn(`${base}${path}`, {
-      ...init,
-      headers: { ...headers, Authorization: authorization() },
+  function url(path: string, query: CloudQuery = {}) {
+    const search = new URLSearchParams();
+    for (const [name, value] of Object.entries(query)) {
+      for (const item of typeof value === "string" ? [value] : (value ?? [])) {
+        search.append(name, item);
+      }
+    }
+    const qs = search.toString();
+    return `${base}${path}${qs ? `?${qs}` : ""}`;
+  }
+
+  async function send(
+    method: "GET" | "POST" | "DELETE",
+    path: string,
+    { query, body, signal, headers }: CloudSendOptions = {},
+  ) {
+    const response = await fetchFn(url(path, query), {
+      method,
+      headers: {
+        ...headers,
+        ...(body !== undefined && { "Content-Type": "application/json" }),
+        Authorization: authorization(),
+      },
+      ...(body !== undefined && { body: JSON.stringify(body) }),
+      signal,
     });
+    if (!response.ok) throw await apiError(response);
+    let result: unknown;
+    try {
+      result = await response.json();
+    } catch {
+      result = undefined;
+    }
+    if (!isRecord(result)) {
+      throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
+    }
+    return result;
   }
 
   return {
     ...(options.appId !== undefined && { appId: options.appId }),
-    async post(path, body, signal, headers) {
-      const response = await request(path, {
-        method: "POST",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal,
-      });
-      if (!response.ok) throw await apiError(response);
-      let result: unknown;
-      try {
-        result = await response.json();
-      } catch {
-        result = undefined;
-      }
-      if (!isRecord(result)) {
-        throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
-      }
-      return result;
-    },
+    send,
+    post: (path, body, signal, headers) => send("POST", path, { body, signal, headers }),
   };
 }
