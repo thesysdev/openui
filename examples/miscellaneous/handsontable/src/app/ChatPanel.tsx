@@ -1,7 +1,7 @@
 "use client";
 
-import { ThemeProvider as IntelligentThemeProvider } from "@openuidev/intelligent-ui-library";
 import { spreadsheetLibrary } from "@/lib/spreadsheet-library";
+import { ThemeProvider as IntelligentThemeProvider } from "@openuidev/intelligent-ui-library";
 import {
   ChatProvider,
   fetchLLM,
