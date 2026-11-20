@@ -12,6 +12,7 @@ import React, {
   Component,
   Fragment,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -299,6 +300,9 @@ function RendererRoot<L extends Library = Library>({
     },
   });
   const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
+  // One function for the Renderer's life: a minifier may inline `renderDeep` at its call
+  // site, which would make it, and so the context and every memoized node, new each render.
+  const renderNode = useCallback(renderDeep, []);
 
   const { result, parseResult, contextValue, isQueryLoading, queryErrors, retryQueries } =
     useOpenUIState(
@@ -314,7 +318,7 @@ function RendererRoot<L extends Library = Library>({
         onError,
         publishObservability,
       },
-      renderDeep,
+      renderNode,
     );
 
   // Fire onParseResult with the RAW parse result (not evaluated),

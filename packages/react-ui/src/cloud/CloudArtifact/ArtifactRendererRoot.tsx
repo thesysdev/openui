@@ -146,6 +146,39 @@ function extractRegions(children: ReactNode) {
   return { preview, chrome };
 }
 
+/**
+ * Whether two `useDataSources` results show the same: same names, and the same values by identity.
+ * Compares every field of `DataSources`; a new field there needs comparing here too.
+ */
+function sameSources(a: ProvenanceSources, b: ProvenanceSources): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const sameList = (x: readonly unknown[], y: readonly unknown[]) =>
+    x.length === y.length && x.every((v, i) => Object.is(v, y[i]));
+  const sameRecord = (x: Record<string, unknown>, y: Record<string, unknown>) =>
+    sameList(Object.keys(x), Object.keys(y)) && Object.keys(x).every((k) => Object.is(x[k], y[k]));
+  return (
+    sameList(a.via, b.via) &&
+    sameRecord(a.state, b.state) &&
+    sameRecord(a.formulas, b.formulas) &&
+    a.queries.length === b.queries.length &&
+    a.queries.every((q, i) => sameRecord({ ...q }, { ...b.queries[i] })) &&
+    sameRecord(
+      Object.fromEntries(Object.entries(a.props ?? {}).map(([k, p]) => [k, p.expr])),
+      Object.fromEntries(Object.entries(b.props ?? {}).map(([k, p]) => [k, p.expr])),
+    ) &&
+    Object.entries(a.props ?? {}).every(([k, p]) => {
+      const q = b.props?.[k];
+      return (
+        !!q &&
+        sameList(p.queries, q.queries) &&
+        sameList(p.via, q.via) &&
+        sameRecord(p.state, q.state)
+      );
+    })
+  );
+}
+
 /** The shared renderer: streaming, live data, errors, open state, slots and layout. */
 export function ArtifactRendererRoot({
   response,
@@ -367,9 +400,13 @@ export function ArtifactRendererRoot({
   const [resolved, setResolved] = useState<{ id?: string; sources: ProvenanceSources }>({
     sources: null,
   });
+  // Unchanged sources keep the state as is, even as a new object: a new context alone must not
+  // re-render the root, which would render the bridge again.
   const setSources = useCallback(
     (sources: ProvenanceSources, id: string | undefined) =>
-      setResolved((prev) => (prev.id === id && prev.sources === sources ? prev : { id, sources })),
+      setResolved((prev) =>
+        prev.id === id && sameSources(prev.sources, sources) ? prev : { id, sources },
+      ),
     [],
   );
   const sources = selection && resolved.id === selection.id ? resolved.sources : null;
