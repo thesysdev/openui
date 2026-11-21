@@ -7,8 +7,10 @@ import { cacheFor } from "./artifactCache";
 export interface ArtifactListFilter {
   /** Only these kinds of artifact, such as `"dashboard"`. */
   type?: string | string[];
-  /** Only pinned (`true`) or unpinned (`false`) artifacts. */
+  /** Only pinned (`true`) or unpinned (`false`) artifacts. Each user has their own pins. */
   pinned?: boolean;
+  /** Only the user's own artifacts (`true`), or only those shared with them (`false`). Default: both. */
+  isOwner?: boolean;
   /** Match on the title. */
   search?: string;
   /** Page size. */
@@ -38,7 +40,7 @@ const noopSubscribe = () => () => {};
 const zero = () => 0;
 
 /**
- * Lists the user's artifacts in OpenUI Cloud, page by page. Every list and
+ * Lists the user's artifacts in OpenUI Cloud, and those shared with them, page by page. Every list and
  * renderer on the same storage shares one cache, so a pin, rename or delete
  * from `useArtifactPin`, `useArtifactUpdate` or `useArtifactDelete` shows here at once.
  *
@@ -55,7 +57,7 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
 
   const types = filter?.type === undefined ? undefined : [filter.type].flat();
   const typeKey = types?.join(" ");
-  const { pinned, search, limit } = filter ?? {};
+  const { pinned, isOwner, search, limit } = filter ?? {};
 
   const [ids, setIds] = useState<string[]>([]);
   const [cursor, setCursor] = useState<string | undefined>();
@@ -75,6 +77,7 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
         const page = await storage.list({
           ...(typeKey !== undefined && { type: typeKey.split(" ") }),
           ...(pinned !== undefined && { pinned }),
+          ...(isOwner !== undefined && { isOwner }),
           ...(search && { name: search }),
           ...(limit !== undefined && { limit }),
           ...(after !== undefined && { cursor: after }),
@@ -91,7 +94,7 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
         if (request === requestRef.current) setIsLoading(false);
       }
     },
-    [storage, cache, typeKey, pinned, search, limit],
+    [storage, cache, typeKey, pinned, isOwner, search, limit],
   );
 
   useEffect(() => {
@@ -116,6 +119,8 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
     const query = search?.toLowerCase();
     const matches = (summary: ArtifactSummary) =>
       (pinned === undefined || Boolean(summary.pinned) === pinned) &&
+      // A storage that doesn't say who owns an artifact keeps it.
+      (isOwner === undefined || (summary.isOwner ?? isOwner) === isOwner) &&
       (typeKey === undefined || typeKey.split(" ").includes(summary.type)) &&
       (!query || summary.title.toLowerCase().includes(query));
     const listed = ids.flatMap((id) => {
@@ -129,7 +134,7 @@ export function useArtifactList({ filter }: UseArtifactListOptions = {}): Artifa
     return [...joined, ...listed];
     // `version` changes whenever the cache does.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ids, cache, pinned, typeKey, search, version]);
+  }, [ids, cache, pinned, isOwner, typeKey, search, version]);
 
   return {
     artifacts,

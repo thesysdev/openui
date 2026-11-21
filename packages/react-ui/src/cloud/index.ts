@@ -3,6 +3,9 @@
 // Artifacts from OpenUI Cloud: the live and static renderers, their slots and state, and the artifact list.
 export { OpenUICloudProvider } from "@openuidev/react-headless";
 export type {
+  ArtifactAccess,
+  ArtifactShare,
+  ArtifactShareTarget,
   ArtifactSummary,
   FrontendTokenSource,
   Interpreter,
@@ -25,6 +28,12 @@ export type {
   StaticArtifactRendererProps,
 } from "./CloudArtifact/ArtifactRenderer";
 export type { ArtifactRendererBaseProps } from "./CloudArtifact/ArtifactRendererRoot";
+export {
+  useArtifactShare,
+  useArtifactShares,
+  useArtifactUnshare,
+} from "./CloudArtifact/artifactShares";
+export type { ArtifactSharesState } from "./CloudArtifact/artifactShares";
 export { useArtifactRenderer } from "./CloudArtifact/contexts";
 export type { ArtifactRendererState } from "./CloudArtifact/contexts";
 export type { ArtifactError, ArtifactErrorCode } from "./CloudArtifact/errors";

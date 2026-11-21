@@ -39,9 +39,22 @@ export interface CloudArtifact {
   name?: string;
   version?: string; // server bumps via String(Date.now()) when omitted
   content?: string;
-  pinned?: boolean;
+  pinned?: boolean; // by the caller
+  is_owner?: boolean;
+  is_editable?: boolean;
+  shares?: CloudArtifactShare[]; // only when is_editable
   created_at: number;
   updated_at?: number;
+}
+
+/** One share on an artifact. `created_at` is unix SECONDS. */
+export interface CloudArtifactShare {
+  object: "openui.artifact.share";
+  type: "user" | "group";
+  id: string;
+  access: "view" | "edit";
+  created_by: string;
+  created_at: number;
 }
 
 /** List envelope shared by all paged endpoints. */
