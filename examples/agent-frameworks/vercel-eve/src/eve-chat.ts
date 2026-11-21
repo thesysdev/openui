@@ -65,6 +65,7 @@ async function openEveStream(
   state: SessionState,
   message: string,
   signal: AbortSignal,
+  threadId: string,
 ): Promise<{
   response: Response;
   sessionId: string;
@@ -81,7 +82,8 @@ async function openEveStream(
 
   const delivered = await fetch(deliverPath, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    // The agent sends the OpenUI thread ID to the Gateway as the session ID.
+    headers: { "content-type": "application/json", "x-openui-thread-id": threadId },
     body: JSON.stringify(deliverBody),
     signal,
   });
@@ -162,6 +164,7 @@ export function createEveChatProps(
       loadSession(storage, threadId),
       latestUserText(messages),
       signal,
+      threadId,
     );
     active = {
       threadId,

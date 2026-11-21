@@ -106,7 +106,7 @@ The library exposes five components:
 A Next.js Route Handler that:
 
 1. Builds the system prompt from `library.ts` with `generateSystemPrompt` from `@openuidev/lang-core` when the module loads
-2. Streams the conversation through OpenUI Cloud, using the OpenAI SDK pointed at `https://api.thesys.dev/v1/embed`
+2. Streams the conversation through OpenUI Cloud, using the OpenAI SDK pointed at `https://api.thesys.dev/v1/embed`. It sends the app's conversation ID in the `x-thesys-session-id` header, so the console shows the conversation as one session.
 3. Returns raw `text/plain` chunks — intentionally simpler than SSE so React Native can consume the stream directly without a browser `EventSource`
 
 ### React Native app (`chat-app/`)

@@ -35,7 +35,7 @@ Try:
 
 ## How it works
 
-1. Agent Interface sends the thread's messages to `/api/chat`.
+1. Agent Interface sends the thread's messages to `/api/chat`. The route sends the thread ID to OpenUI Gateway in the `x-thesys-session-id` header, so the console shows the thread as one session.
 2. The server calls OpenUI Gateway's Chat Completions API, which requests `query_lap_times` with a view, driver numbers, and lap range.
 3. The server validates the arguments and queries the local SQLite snapshot.
 4. `runTools()` returns the result to Gateway, and the route streams the tool calls and generated OpenUI Lang to the browser.

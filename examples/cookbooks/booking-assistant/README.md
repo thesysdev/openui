@@ -34,7 +34,7 @@ Try:
 
 ## How it works
 
-1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API.
+1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API. The route sends the thread ID in the `x-thesys-session-id` header, so the console shows the thread as one session.
 2. For a new request, the model replies with a form prefilled with every detail it understood, with validation rules on the required fields.
 3. When the user submits the form, Agent Interface sends the button label and the form's values as the next message, and the model calls `search_stays`.
 4. The server validates the arguments, calls `trivago-accommodation-search` on trivago's MCP server, applies the budget, and returns the best matches with prices, ratings, a photo, and a booking link.

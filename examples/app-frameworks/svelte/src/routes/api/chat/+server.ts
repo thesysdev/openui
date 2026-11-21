@@ -37,7 +37,7 @@ const systemPrompt = generateSystemPrompt({
 });
 
 export async function POST({ request }: { request: Request }) {
-  const { messages } = await request.json();
+  const { messages, sessionId } = await request.json();
 
   const result = streamText({
     model: openai.chat("google/gemini-3.6-flash-free"),
@@ -46,6 +46,11 @@ export async function POST({ request }: { request: Request }) {
     tools,
     stopWhen: stepCountIs(5),
     experimental_transform: smoothStream({ chunking: "line" }),
+    // The client's conversation ID groups its turns into one session on the Gateway.
+    headers:
+      typeof sessionId === "string" && sessionId.trim() && !/\p{Cc}/u.test(sessionId)
+        ? { "x-thesys-session-id": sessionId }
+        : undefined,
   });
 
   return result.toUIMessageStreamResponse({

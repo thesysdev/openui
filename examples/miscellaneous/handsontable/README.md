@@ -38,7 +38,7 @@ An AI-powered spreadsheet app that pairs a full-featured [Handsontable](https://
 **Data flow:**
 
 1. User types a message in the chat panel
-2. The message hits `POST /api/chat`, which streams an OpenUI Cloud completion with tool calls
+2. The message hits `POST /api/chat`, which streams an OpenUI Cloud completion with tool calls. The route sends the chat's `threadId` in the `x-thesys-session-id` header, so the console shows the chat as one session
 3. Tools (`get_table_data`, `update_cells`, `add_rows`, `delete_rows`, `set_formula`, `query_table`, `add_column`, `recalculate_aggregates`) read/write the in-memory `tableStore`
 4. After write operations, the LLM emits a `SpreadsheetTable` component in its OpenUI Lang response
 5. The `useSpreadsheetSync` hook picks up the new data and pushes it into Handsontable via React context

@@ -3,14 +3,17 @@ import type { Message } from "@ag-ui/core";
 import { NextRequest } from "next/server";
 import { openuiAgent } from "@/mastra";
 
-const agent = new MastraAgent({
-  agent: openuiAgent,
-  resourceId: "chat-user",
-});
-
 export async function POST(req: NextRequest) {
   try {
     const { messages, threadId }: { messages: Message[]; threadId: string } = await req.json();
+    const agent = new MastraAgent({
+      agent: openuiAgent,
+      resourceId: "chat-user",
+    });
+    // The model calls send the threadId, so the Gateway groups the thread's turns into one session.
+    if (typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)) {
+      agent.headers = { "x-thesys-session-id": threadId };
+    }
     const encoder = new TextEncoder();
 
     const readable = new ReadableStream({

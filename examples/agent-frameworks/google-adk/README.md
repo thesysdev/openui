@@ -46,6 +46,8 @@ Open [http://localhost:3000](http://localhost:3000) and try a starter such as
   Gemini (`google/gemini-3.6-flash-free`).
 - `src/app/api/chat/route.ts` runs the agent with a `Runner` and keys ADK
   sessions by chat `threadId` (so multi-turn history is preserved).
+  The agent also sends the `threadId` to OpenUI Cloud in the
+  `x-thesys-session-id` header, so the console shows the thread as one session.
   `src/lib/adk-to-agui.ts` maps ADK `functionCall` / `functionResponse` parts
   onto AG-UI tool events (including `TOOL_CALL_RESULT`) and streams assistant
   text as `TEXT_MESSAGE_*` events.

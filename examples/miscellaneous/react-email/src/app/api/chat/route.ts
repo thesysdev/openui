@@ -6,13 +6,18 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 const systemPrompt = cloudInstructions();
 
 export async function POST(req: NextRequest) {
-  const { messages } = await req.json();
+  const { messages, threadId } = await req.json();
 
   // Chat Completions → POST /v1/embed/chat/completions
   // Matches the frontend's openAIAdapter + openAIMessageFormat.
   const client = new OpenAI({
     apiKey: process.env.THESYS_API_KEY,
     baseURL: "https://api.thesys.dev/v1/embed",
+    // The chat's thread ID groups its turns into one session on the Gateway.
+    defaultHeaders:
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

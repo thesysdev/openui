@@ -141,7 +141,7 @@ function sseToolCallArgs(
 }
 
 export async function POST(req: NextRequest) {
-  const { messages, tableId } = await req.json();
+  const { messages, tableId, threadId } = await req.json();
 
   setCurrentThreadId(typeof tableId === "string" && tableId ? tableId : "default");
 
@@ -172,6 +172,11 @@ export async function POST(req: NextRequest) {
   const client = new OpenAI({
     apiKey: requiredEnv("THESYS_API_KEY"),
     baseURL: "https://api.thesys.dev/v1/embed",
+    // The chat's thread ID groups its turns into one session on the Gateway.
+    defaultHeaders:
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
   const encoder = new TextEncoder();
   let controllerClosed = false;

@@ -58,7 +58,7 @@ for (const valid of [true, false]) {
         apiKey,
         fetchImpl: async (url, options) => {
           assert.equal(options.headers.Authorization, `Bearer ${apiKey}`);
-          calls.push({ url, body: JSON.parse(options.body) });
+          calls.push({ url, headers: options.headers, body: JSON.parse(options.body) });
           return new Response(
             `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\ndata: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: "stop" }] })}\n\n`,
           );
@@ -76,12 +76,14 @@ for (const valid of [true, false]) {
     const response = await fetch(`http://127.0.0.1:${server.address().port}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: history }),
+      // Only the first run sends a thread ID, so the second checks that none is invented.
+      body: JSON.stringify({ threadId: valid ? "thread-1" : undefined, messages: history }),
     });
     const events = (await response.text()).trim().split("\n").map(JSON.parse);
     assert.equal(response.status, 200);
     assert.equal(calls.length, 1);
     assert.equal(calls[0].url, "https://api.thesys.dev/v1/embed/chat/completions");
+    assert.equal(calls[0].headers["x-thesys-session-id"], valid ? "thread-1" : undefined);
     const body = calls[0].body;
     assert.equal(body.model, "google/gemini-3.6-flash-free");
     assert.equal(body.stream, true);

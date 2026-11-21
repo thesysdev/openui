@@ -10,21 +10,12 @@ export const runtime = "nodejs";
 const APP_NAME = "openui-adk-chat";
 const USER_ID = "demo-user";
 
-// A single Runner + in-memory session store, shared across requests. Sessions
-// are keyed by the chat threadId so multi-turn history is preserved for the
-// lifetime of the server process.
+// An in-memory session store, shared across requests. Sessions are keyed by
+// the chat threadId so multi-turn history is preserved for the lifetime of the
+// server process. Each request gets its own Runner, so the agent can send the
+// threadId to the Gateway as the session ID.
 const sessionService = new InMemorySessionService();
 const sessions = new Map<string, string>();
-let runner: Runner | undefined;
-
-function getRunner(): Runner {
-  runner ??= new Runner({
-    appName: APP_NAME,
-    agent: createAgent(),
-    sessionService,
-  });
-  return runner;
-}
 
 interface ChatMessage {
   role: string;
@@ -65,6 +56,16 @@ export async function POST(req: NextRequest) {
     // Without a threadId, start a fresh session rather than sharing one across callers.
     const resolvedThreadId = threadId || crypto.randomUUID();
     const sessionId = await ensureSession(resolvedThreadId);
+    // Only a thread ID the client sent goes to the Gateway as the session ID.
+    const gatewaySessionId =
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? threadId
+        : undefined;
+    const runner = new Runner({
+      appName: APP_NAME,
+      agent: createAgent(gatewaySessionId),
+      sessionService,
+    });
     const encoder = new TextEncoder();
     const runId = crypto.randomUUID();
 
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
 
         try {
           for await (const event of adkToAguiEvents(
-            getRunner().runAsync({
+            runner.runAsync({
               userId: USER_ID,
               sessionId,
               newMessage: { parts: [{ text: prompt }] },

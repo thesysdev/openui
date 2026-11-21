@@ -1,6 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { defineAgent } from "eve";
 import { resolveOpenuiModel } from "../src/lib/models";
+import { gatewaySessionId } from "./hooks/openui-history";
 
 const apiKey = process.env.THESYS_API_KEY;
 if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
@@ -8,6 +9,19 @@ if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
 const openai = createOpenAI({
   apiKey,
   baseURL: "https://api.thesys.dev/v1/embed",
+  // Sends the thread id, so the Gateway groups the thread's turns into one session.
+  fetch: (input, init) => {
+    let sessionId = "";
+    try {
+      sessionId = gatewaySessionId.get();
+    } catch {
+      // Not in an Eve session: send no session ID.
+    }
+    if (!sessionId) return fetch(input, init);
+    const headers = new Headers(init?.headers);
+    headers.set("x-thesys-session-id", sessionId);
+    return fetch(input, { ...init, headers });
+  },
 });
 
 const model = openai.chat(

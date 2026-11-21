@@ -61,6 +61,9 @@ browser storage adapter does not write messages, so turns are not saved twice.
 Vercel AI SDK and Eve use their own generation paths; this LangGraph persistence
 hook does not apply to those overlays.
 
+All three agents send the thread id in the `x-thesys-session-id` header on each
+model call, so the console shows the thread as one session.
+
 Add a LangGraph checkpointer only for graph-specific durable state, interrupts,
 or resumable runs.
 
