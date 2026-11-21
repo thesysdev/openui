@@ -204,6 +204,9 @@ type ToolCallTimelineComponent = React.ComponentType<{
 }>;
 ```
 
+A turn with reasoning but no tool calls still renders the timeline, so `ToolCallTimeline` can get an
+empty `activities` array. Reasoning arrives in `steps` as `{ type: "text", reasoning: true }` rows.
+
 Provided via `components`, these **fully replace** the default rendering (including the container
 and avatar). Resolution order, per message kind:
 `components.X` → GenUI (if `componentLibrary`) → built-in default.
@@ -384,7 +387,11 @@ Entry point is `<Messages>` (in `Thread.tsx`), rendered inside `<ScrollArea>`:
 - **`assistant`** → `components.AssistantMessage` if provided, else
   `AssistantMessageContainer › AssistantMessageContent`.
 - **`user`** → `components.UserMessage` if provided, else `UserMessageContainer › UserMessageContent`.
-- **other roles** (`system`/`developer`/`reasoning`/`activity`) → skipped.
+- **`reasoning`** → renders `null` here. Consecutive assistant, reasoning, and tool messages form one
+  turn, and each reasoning message becomes a "Thinking" row in that turn's tool-call timeline. While
+  it streams as the newest step, the timeline opens on it. It folds away once a tool call or the
+  answer follows.
+- **other roles** (`system`/`developer`/`activity`) → skipped.
 
 ### Assistant content + tool calls
 
