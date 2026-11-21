@@ -79,6 +79,7 @@ through `openui create --example <name>`.
 | [HTML artifact](./miscellaneous/html-artifact)                              | Sandboxed HTML artifacts as an OpenUI capability                                                    |
 | [OpenUI x assistant-ui Dashboards](./miscellaneous/assistant-ui-dashboards) | Dashboard artifacts in a text-only assistant-ui chat, with data from npm, GitHub, and an MCP server |
 | [React Email](./miscellaneous/react-email)                                  | Generating and previewing emails with the OpenUI React Email library                                |
+| [Slack bot](./miscellaneous/slack-bot)                                      | Interactive Slack cards streamed as Block Kit, with tool-backed queries, buttons, and form modals   |
 | [Supabase](./miscellaneous/supabase)                                        | Persisted OpenUI conversations and threads with Supabase                                            |
 
 ## Run and verify

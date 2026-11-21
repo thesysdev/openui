@@ -218,6 +218,15 @@
       }
     },
     {
+      "title": "Slack bot",
+      "description": "Interactive Slack cards streamed as Block Kit, with tool-backed queries, buttons, and form modals.",
+      "path": "miscellaneous/slack-bot",
+      "env": {
+        "file": ".env",
+        "key": "THESYS_API_KEY"
+      }
+    },
+    {
       "title": "Supabase",
       "description": "Persisted OpenUI conversations and threads with Supabase.",
       "path": "miscellaneous/supabase",
