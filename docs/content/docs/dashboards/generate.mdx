@@ -25,7 +25,7 @@ const response = await dashboards.create(
 | `title`   | A short title, shown in the renderer and the dashboard list.                         |
 | `prompt`  | What to build: the sections, metrics, charts, and tables, and which data each shows. |
 
-The second argument is the [context](/docs/dashboards/authentication#the-user-id). The dashboard belongs to `context.userId`. The third is optional and takes a `signal` that cancels the call while it waits.
+The second argument is the [context](/docs/dashboards/authentication#the-user-id). The dashboard belongs to `context.userId`, who can [share it](/docs/dashboards/sharing) later. The third is optional and takes a `signal` that cancels the call while it waits.
 
 ## The response
 

@@ -82,6 +82,8 @@ export function defineDashboard<Context extends ExecutionContext>(
           { role: "user", content: prompt },
         ],
         user_id: context.userId,
+        // An edit can come from a share to one of the user's groups; a new dashboard is the user's alone.
+        ...(call.id !== undefined && context.groupIds?.length && { group_ids: context.groupIds }),
         ...(api.appId !== undefined && { app_id: api.appId }),
       },
       signal,
