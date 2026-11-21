@@ -176,45 +176,53 @@ The result holds the top six stays and, when the budget left some out, how many 
 
 ### 3. Choose the components
 
-Use the chat library, React UI's built-in library for Agent Interface answers. It has the form controls, summaries, and messages a booking needs, so the example replaces only its date picker:
+Use `@openuidev/intelligent-ui-library` for answers, while keeping React UI for Agent Interface. Replace the built-in date picker with the cookbook's custom calendar:
 
 ```ts title="src/library.ts"
+import { componentGroups, library as intelligentLibrary } from "@openuidev/intelligent-ui-library";
 import { createLibrary } from "@openuidev/react-lang";
-import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 import { DatePicker } from "./components/date-picker";
 
+export { promptOptions } from "@openuidev/intelligent-ui-library";
+
 export const library = createLibrary({
-  root: openuiChatLibrary.root,
-  componentGroups: openuiChatLibrary.componentGroups,
-  components: Object.values({ ...openuiChatLibrary.components, DatePicker }),
+  root: intelligentLibrary.root,
+  componentGroups,
+  functions: Object.values(intelligentLibrary.functions),
+  components: Object.values({ ...intelligentLibrary.components, DatePicker }),
 });
 ```
 
-Every answer is one `Card`. `Form` groups the fields and checks their validation rules when the person clicks a primary button. `Chips` covers short choices, such as stars and amenities. `OptionCards` shows the stays as selectable cards, each with an `Image` of the hotel. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/styles.css) stretches it across the card.
+Every answer starts with `Col`. `Form` takes a list of children, including its submit `Button`, and checks validation before sending. `Input` collects destination, guests, budget, and comma-separated stars and amenities; `Select` chooses the guest rating. Each stay appears in a `Card` with `Image`, `Title`, and `Text`, and a `RadioGroup` with the cards variant lets the person choose a booking URL.
 
-React UI's own `DatePicker` stores JavaScript `Date` objects. The model can only write text, so it cannot prefill one, and a submitted `Date` reaches the model as a UTC timestamp that can fall on the day before. The example replaces it with a component that has the same name and props but reads and writes `YYYY-MM-DD` strings:
+The custom `DatePicker` reuses the new library's value/label/min/max/rules schema. It keeps React UI's calendar, stores local calendar days as `YYYY-MM-DD`, rejects picks outside min/max, and closes after a valid pick. Its field key is the OpenUI statement name, matching the new inputs:
 
-```tsx title="src/components/date-picker.tsx"
+```tsx title="src/components/date-picker.tsx (excerpt)"
+import { library } from "@openuidev/intelligent-ui-library";
+
 export const DatePicker = defineComponent({
   name: "DatePicker",
-  props: openuiChatLibrary.components.DatePicker.props,
+  props: library.components.DatePicker.props,
   description:
-    "A single date. Prefill it by passing a YYYY-MM-DD string as value; " +
-    "the form submits YYYY-MM-DD.",
-  component: ({ props }) => {
-    const field = useStateField(props.name, props.value);
+    "A single date. Prefill it by passing a YYYY-MM-DD string as value; the form submits YYYY-MM-DD. min and max bound the available dates.",
+  component: ({ props, statementId }) => {
+    const id = useId();
+    const field = useStateField(statementId ?? props.label ?? id, props.value);
     return (
-      <DateField
-        mode="single"
-        selectedSingleDate={toDate(field.value)}
-        setSelectedSingleDate={(date) => field.setValue(toIsoDate(date))}
-      />
+      <label>
+        {props.label}
+        <DateField
+          mode="single"
+          selectedSingleDate={toDate(field.value)}
+          setSelectedSingleDate={(date) => field.setValue(toIsoDate(date))}
+        />
+      </label>
     );
   },
 });
 ```
 
-Spreading it after the chat library's components replaces the built-in `DatePicker`, which has the same name. Reusing the built-in props keeps it valid inside `FormControl`, and the new description tells the model the format. The [complete component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/components/date-picker.tsx) also registers validation rules and closes the calendar once a date is picked. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+Spreading it after the new library's components replaces the built-in `DatePicker`. The [complete component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/components/date-picker.tsx) also registers validation rules, displays errors, enforces date bounds, and manages the calendar's open state. Generate the specification with `npm run generate`, which also runs before development and builds.
 
 ### 4. Describe the booking flow
 
@@ -226,13 +234,16 @@ The model prefills a field by passing its value, such as the date `"2026-10-02"`
 
 > Submitted form state contains only the fields the user changed. For every field missing from it, use the value you prefilled in that form.
 
-Agent Interface sends the whole conversation with every turn, so the model still sees its own form from the previous turn and can fill in the gaps. The remaining rules describe the stay cards, the summary, and the hand-off. Each stay card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it with `@OpenUrl`. One OpenUI Lang example for each step, the trip form, the stay cards, and the summary, shows the model how the components fit together.
+Agent Interface sends the whole conversation with every turn, so the model still sees its own form from the previous turn and can fill in the gaps. The remaining rules describe the stay cards, the summary, and the hand-off. Each RadioGroup option's value is the stay's booking link, so choosing an option sends the link back with the form, and the summary's **Continue to booking** button opens it with `@OpenUrl`. One OpenUI Lang example for each step, the trip form, the stay cards, and the summary, shows the model how the components fit together.
 
 ### 5. Connect Agent Interface
 
 Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `openAIReadableStreamAdapter()`:
 
 ```tsx title="src/components/booking-chat.tsx"
+import { ThemeProvider } from "@openuidev/intelligent-ui-library";
+import { useSystemThemeMode } from "@openuidev/react-ui";
+
 const llm = fetchLLM({
   url: "/api/chat",
   streamAdapter: openAIReadableStreamAdapter(),
@@ -244,13 +255,23 @@ const storage = useOpenuiCloudStorage({
   features: { artifact: false },
 });
 
-<AgentInterface
-  llm={llm}
-  storage={storage}
-  componentLibrary={library}
-  agentName="Stay finder"
-/>;
+function Chat() {
+  const mode = useSystemThemeMode();
+  return (
+    <ThemeProvider mode={mode}>
+      <AgentInterface
+        llm={llm}
+        storage={storage}
+        componentLibrary={library}
+        agentName="Stay finder"
+        theme={{ mode }}
+      />
+    </ThemeProvider>
+  );
+}
 ```
+
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
 
 Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their searches and results, and sends them with every turn.
 
@@ -290,7 +311,8 @@ This example runs locally without authentication. Before deploying it, add [auth
 
 ## References
 
-- [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface` and the chat library.
+- [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface`, chat transport, and chat theming.
+- `@openuidev/intelligent-ui-library`: answer components, `Col` root, prompt options, and answer `ThemeProvider`.
 - [`@openuidev/react-headless`](/docs/api-reference/react-headless): `fetchLLM()`, `openAIReadableStreamAdapter()`, and `useOpenuiCloudStorage()`, which the example imports through `@openuidev/react-ui`.
 - [`@openuidev/react-lang`](/docs/api-reference/react-lang): `createLibrary()` and `defineComponent()`.
 - [`@openuidev/lang-core`](/docs/openui-lang/system-prompts): `generateSystemPrompt()`.

@@ -37,7 +37,7 @@ const CHAR_STRATEGY_LIMIT = 50 * 1024;
 
 export function Playground() {
   const [code, setCode] = useState(DEFAULT_EXAMPLE.code);
-  const [libraryId, setLibraryId] = useState<LibraryId>("openui");
+  const [libraryId, setLibraryId] = useState<LibraryId>("intelligent-ui");
   // null = "no explicit pick yet" → follow the registry's latest tag.
   const [pickedVersion, setPickedVersion] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("render");

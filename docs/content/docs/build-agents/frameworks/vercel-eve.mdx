@@ -26,7 +26,7 @@ The agent receives the OpenUI component-library prompt when a session starts, so
 
 | Piece              | File                           | Role                                                                                 |
 | ------------------ | ------------------------------ | ------------------------------------------------------------------------------------ |
-| OpenUI chat        | `src/app/page.tsx`             | Renders `<AgentInterface />` with the built-in `openuiLibrary`.                      |
+| OpenUI chat        | `src/app/page.tsx`             | Renders `<AgentInterface />` with `library` from `@openuidev/intelligent-ui-library`. |
 | Session bridge     | `src/eve-chat.ts`              | Delivers turns through Eve's HTTP API and returns Eve's raw NDJSON stream.           |
 | Event adapter      | `eveAdapter()`                 | Maps Eve text, tool-call, and failure events to AG-UI (`@openuidev/react-headless`). |
 | Agent instructions | `agent/instructions/openui.ts` | Adds the Gateway-compatible OpenUI instructions when each Eve session starts.        |
@@ -42,18 +42,23 @@ The page creates Eve-backed chat callbacks and passes them to `<AgentInterface /
 
 ```tsx
 import { AgentInterface } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { createEveChatProps } from "../eve-chat";
 
 const { llm, storage } = createEveChatProps();
 
-<AgentInterface
-  llm={llm}
-  storage={storage}
-  componentLibrary={openuiLibrary}
-  agentName="Eve + OpenUI"
-/>;
+<ThemeProvider mode={mode}>
+  <AgentInterface
+    llm={llm}
+    storage={storage}
+    componentLibrary={library}
+    agentName="Eve + OpenUI"
+    theme={{ mode }}
+  />
+</ThemeProvider>;
 ```
+
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
 
 `createEveChatProps()` sets `llm.streamProtocol` to `eveAdapter()` and provides OpenUI's thread callbacks. The example stores thread metadata, transcripts, Eve session IDs, continuation tokens, and stream cursors in `localStorage`, so each OpenUI thread resumes the corresponding Eve conversation.
 
@@ -75,7 +80,7 @@ export default defineDynamic({
 });
 ```
 
-`cloudInstructions()` loads the generated specification for the same `openuiLibrary` used by the
+`cloudInstructions()` loads the generated specification for the same `library` used by the
 renderer and wraps it for OpenUI Gateway.
 
 ## The session bridge

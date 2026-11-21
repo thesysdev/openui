@@ -3,7 +3,7 @@ title: Pi
 description: Connect Agent Interface to the pi coding agent over an OpenAI-compatible stream.
 ---
 
-Anything that can stream text can drive OpenUI's renderer, including a full **coding agent**. This example connects [pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent) (`@earendil-works/pi-coding-agent`), running its default `read` / `bash` / `edit` / `write` tools, to `<AgentInterface>`. Pi calls **OpenUI Gateway** Completions; `generateSystemPrompt({ cloud: true, library })` is appended so it emits [OpenUI Lang](/docs/openui-lang/overview) for `openuiLibrary` instead of markdown.
+Anything that can stream text can drive OpenUI's renderer, including a full **coding agent**. This example connects [pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent) (`@earendil-works/pi-coding-agent`), running its default `read` / `bash` / `edit` / `write` tools, to `<AgentInterface>`. Pi calls **OpenUI Gateway** Completions; `generateSystemPrompt({ cloud: true, library })` is appended so it emits [OpenUI Lang](/docs/openui-lang/overview) for `library` from `@openuidev/intelligent-ui-library` instead of markdown.
 
 Its mid-turn activity (reasoning and tool runs) surfaces as cards too.
 
@@ -26,7 +26,7 @@ Its mid-turn activity (reasoning and tool runs) surfaces as cards too.
 
 | Piece            | File                              | Role                                                                                                                                                         |
 | ---------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Frontend         | `src/app/page.tsx`                | A single `<AgentInterface>` wired with `fetchLLM({ streamAdapter: openAIReadableStreamAdapter(), messageFormat: openAIMessageFormat })` and `openuiLibrary`. |
+| Frontend         | `src/app/page.tsx`                | A single `<AgentInterface>` wired with `fetchLLM({ streamAdapter: openAIReadableStreamAdapter(), messageFormat: openAIMessageFormat })` and `library`. |
 | Bridge route     | `src/app/api/chat/route.ts`       | Drives a pi `AgentSession` against OpenUI Gateway Completions and re-emits its events as NDJSON OpenAI chunks (`delta.content` is OpenUI Lang).              |
 | Session registry | `src/lib/pi-session.ts`           | One persistent `AgentSession` per chat thread, keyed by `threadId`. Injects `generateSystemPrompt({ cloud: true, library })` and the Gateway model.          |
 | Agent            | `@earendil-works/pi-coding-agent` | The pi coding agent: `read` / `bash` / `edit` / `write` on the workspace you choose at launch.                                                               |
@@ -44,7 +44,7 @@ import {
   openAIMessageFormat,
   openAIReadableStreamAdapter,
 } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 
 const llm = fetchLLM({
   url: "/api/chat",
@@ -52,10 +52,19 @@ const llm = fetchLLM({
   messageFormat: openAIMessageFormat,
 });
 
-<AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI Agent Harness" />;
+<ThemeProvider mode={mode}>
+  <AgentInterface
+    llm={llm}
+    componentLibrary={library}
+    agentName="OpenUI Agent Harness"
+    theme={{ mode }}
+  />
+</ThemeProvider>;
 ```
 
-`generateSystemPrompt({ cloud: true, library })` from `@openuidev/lang-core` sends the component-library specification with the Gateway request, so the model's markup matches `openuiLibrary`.
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
+
+`generateSystemPrompt({ cloud: true, library })` from `@openuidev/lang-core` sends the component-library specification with the Gateway request, so the model's markup matches `library`.
 
 ## The bridge route
 
@@ -151,7 +160,7 @@ Pi calls OpenUI Gateway Chat Completions. Set `THESYS_API_KEY` from [console.the
 
 ```
 examples/harnesses/pi/
-|- src/app/page.tsx                    # <AgentInterface> + chatLibrary
+|- src/app/page.tsx                    # <AgentInterface> + library
 |- src/app/api/chat/route.ts           # pi event stream into NDJSON OpenAI chunks
 |- src/lib/pi-session.ts               # one persistent pi AgentSession per conversation
 |- src/lib/openui-cloud-models.json    # Pi provider pointing at Gateway Completions

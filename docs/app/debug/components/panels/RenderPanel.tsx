@@ -1,8 +1,9 @@
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
+import { useTheme } from "@openuidev/react-ui";
 import { FlaskConical } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { getLibrary, type LibraryId } from "@paste/lib/libraries";
 import { createMockToolProvider, type MockToolCall } from "@paste/lib/mockTools";
 import { BUNDLED_LANG_CORE_VERSION } from "@paste/lib/versions/loader";
@@ -23,6 +24,7 @@ export function RenderPanel({
   isStreaming: boolean;
   selectedVersion: string;
 }) {
+  const { mode } = useTheme();
   const [runtimeErrors, setRuntimeErrors] = useState<OpenUIError[]>([]);
   const [formState, setFormState] = useState<Record<string, unknown>>({});
   const [actionLog, setActionLog] = useState<string[]>([]);
@@ -39,7 +41,10 @@ export function RenderPanel({
   }
   // Mounted with key={libraryId}, so switching library remounts the panel and
   // clears stale runtime errors / form state / logs naturally.
-  const library = getLibrary(libraryId).library;
+  const { library, ThemeProvider } = getLibrary(libraryId);
+  // openui and openui chat read react-ui's theme from the page directly.
+  const Theme = ThemeProvider ?? Fragment;
+  const themeProps = ThemeProvider ? { mode } : {};
 
   const toolProvider = useMemo(
     () =>
@@ -71,15 +76,17 @@ export function RenderPanel({
       )}
       <div className={styles.renderCanvas}>
         <RenderErrorBoundary resetKey={`${libraryId}:${code}`}>
-          <Renderer
-            response={code || null}
-            library={library}
-            isStreaming={isStreaming}
-            toolProvider={toolProvider}
-            onError={setRuntimeErrors}
-            onStateUpdate={setFormState}
-            onAction={(event) => setActionLog((log) => [...log.slice(-19), safeDescribe(event)])}
-          />
+          <Theme {...themeProps}>
+            <Renderer
+              response={code || null}
+              library={library}
+              isStreaming={isStreaming}
+              toolProvider={toolProvider}
+              onError={setRuntimeErrors}
+              onStateUpdate={setFormState}
+              onAction={(event) => setActionLog((log) => [...log.slice(-19), safeDescribe(event)])}
+            />
+          </Theme>
         </RenderErrorBoundary>
       </div>
       {toolCalls.length > 0 && (

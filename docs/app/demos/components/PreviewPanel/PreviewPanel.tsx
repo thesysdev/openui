@@ -1,6 +1,6 @@
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import type { ParseResult } from "@openuidev/react-lang";
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary, ThemeProvider } from "@openuidev/react-ui";
 import { Loader2, Maximize2, Monitor } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Theme } from "../../constants";
@@ -39,7 +39,7 @@ export function PreviewPanel({ code, isStreaming, onParseResult, theme }: Previe
       <ThemeProvider mode={resolvedMode}>
         <Renderer
           response={code}
-          library={openuiLibrary}
+          library={library}
           isStreaming={isStreaming}
           onParseResult={onParseResult}
         />

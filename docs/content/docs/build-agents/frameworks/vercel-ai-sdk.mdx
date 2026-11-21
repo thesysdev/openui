@@ -33,7 +33,7 @@ import {
   vercelAIAdapter,
   vercelAIMessageFormat,
 } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 
 const llm = fetchLLM({
   url: "/api/chat",
@@ -41,8 +41,17 @@ const llm = fetchLLM({
   messageFormat: vercelAIMessageFormat,
 });
 
-<AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI + Vercel AI SDK" />;
+<ThemeProvider mode={mode}>
+  <AgentInterface
+    llm={llm}
+    componentLibrary={library}
+    agentName="OpenUI + Vercel AI SDK"
+    theme={{ mode }}
+  />
+</ThemeProvider>;
 ```
+
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
 
 Storage is omitted, so AgentInterface uses its built-in in-memory default (wiped on reload).
 

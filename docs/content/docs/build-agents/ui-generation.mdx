@@ -10,22 +10,22 @@ If you followed [Getting Started](/docs/getting-started), steps 2 to 4 will look
 ## 1. Install the packages
 
 ```bash tab="pnpm" tab-group="pkg"
-pnpm add @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+pnpm add @openuidev/react-lang @openuidev/intelligent-ui-library @openuidev/lang-core
 ```
 
 ```bash tab="bun" tab-group="pkg"
-bun add @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+bun add @openuidev/react-lang @openuidev/intelligent-ui-library @openuidev/lang-core
 ```
 
 ```bash tab="yarn" tab-group="pkg"
-yarn add @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+yarn add @openuidev/react-lang @openuidev/intelligent-ui-library @openuidev/lang-core
 ```
 
 ```bash tab="npm" tab-group="pkg"
-npm install @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+npm install @openuidev/react-lang @openuidev/intelligent-ui-library @openuidev/lang-core
 ```
 
-`@openuidev/react-lang` renders OpenUI Lang, `@openuidev/react-ui` provides the built-in component library, and `@openuidev/lang-core` generates the system prompt on the server. If the agent uses only your own components, you can leave out `@openuidev/react-ui`.
+`@openuidev/react-lang` renders OpenUI Lang, `@openuidev/intelligent-ui-library` provides the built-in component library, and `@openuidev/lang-core` generates the system prompt on the server. If the agent uses only your own components, you can leave out `@openuidev/intelligent-ui-library`.
 
 ## 2. Define a component library
 
@@ -42,10 +42,7 @@ export const library = createLibrary({
 ```
 
 ```tsx title="src/lib/openui.tsx" tab="Built-in" tab-group="component-library"
-export {
-  openuiLibrary as library,
-  openuiPromptOptions as promptOptions,
-} from "@openuidev/react-ui";
+export { library, promptOptions } from "@openuidev/intelligent-ui-library";
 ```
 
 The chat UI imports `library` from this file to render responses, so the agent and the renderer always share the same components. See [Defining Components](/docs/openui-lang/defining-components) to build a custom library.

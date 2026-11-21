@@ -57,7 +57,7 @@ The LLM may invent component names that are not in the library. The parser drops
 text = Paragraph("Hello world")
 
 // Correct: use the registered name
-text = TextContent("Hello world")
+text = Text("Hello world")
 ```
 
 ### Can I nest children inline or do I need references?
@@ -66,12 +66,12 @@ Both are valid. Inline children or references work.
 
 ```text
 // Inline
-root = Stack([Header("Title"), TextContent("Body")])
+root = Col([Title("Title"), Text("Body")])
 
 // References
-root = Stack([h, t])
-h = Header("Title")
-t = TextContent("Body")
+root = Col([h, t])
+h = Title("Title")
+t = Text("Body")
 ```
 
 ### Why doesn't `Count(arr)` work?
@@ -98,11 +98,11 @@ Check `onError` for `no-root`. A response without a `root` statement renders onl
 
 ```text
 // Wrong: Query inside Table
-tbl = Table([Col("Title", Query("list", {}).rows.title)])
+tbl = Table(["Title"], @Each(@Range(0, @Count(Query("list", {}).rows.title)), "i", [Query("list", {}).rows.title[i]]))
 
 // Correct: Query as a separate statement
 data = Query("list", {}, {rows: []})
-tbl = Table([Col("Title", data.rows.title)])
+tbl = Table(["Title"], @Each(data.rows, "r", [r.title]))
 ```
 
 ---

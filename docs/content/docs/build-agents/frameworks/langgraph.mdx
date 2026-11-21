@@ -117,15 +117,24 @@ message conversion is needed:
 
 ```tsx
 import { AgentInterface, agUIAdapter, fetchLLM } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 
 const llm = fetchLLM({
   url: "/api/chat",
   streamAdapter: agUIAdapter(),
 });
 
-<AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI + DeepAgents Chat" />;
+<ThemeProvider mode={mode}>
+  <AgentInterface
+    llm={llm}
+    componentLibrary={library}
+    agentName="OpenUI + DeepAgents Chat"
+    theme={{ mode }}
+  />
+</ThemeProvider>;
 ```
+
+`ThemeProvider` gives the answers the chat's light or dark `mode`.
 
 ## Project layout
 

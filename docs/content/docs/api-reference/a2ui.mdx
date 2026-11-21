@@ -14,9 +14,9 @@ The package deliberately changes one part of the protocol: `createSurface.compon
   "updateComponents": {
     "surfaceId": "main",
     "components": [
-      "root = Stack([title, save])",
-      "title = TextContent(\"Account settings\")",
-      "save = Button(\"Save\", onClick: @ToAssistant(\"Save these settings\"))"
+      "root = Col([title, save])",
+      "title = Text(\"Account settings\")",
+      "save = Button(\"Save\", @ToAssistant(\"Save these settings\"))"
     ]
   }
 }
@@ -49,10 +49,10 @@ For React rendering, also install the optional renderer peers:
 npm install react @openuidev/react-lang
 ```
 
-Install the package that provides your component library as well. For example, the built-in OpenUI library is exported by `@openuidev/react-ui`:
+Install the package that provides your component library as well. For example, the built-in OpenUI library is exported by `@openuidev/intelligent-ui-library`:
 
 ```bash
-npm install @openuidev/react-ui
+npm install @openuidev/intelligent-ui-library
 ```
 
 ## Protocol flow
@@ -89,11 +89,11 @@ Create one client for the set of surfaces handled by a renderer:
 
 ```ts
 import { createA2UIClient } from "@openuidev/a2ui";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library } from "@openuidev/intelligent-ui-library";
 
 const client = createA2UIClient({
-  schema: openuiLibrary.toJSONSchema(),
-  rootName: openuiLibrary.root,
+  schema: library.toJSONSchema(),
+  rootName: library.root,
   rendererCapabilities: {
     "v1.0": {
       supportedCatalogIds: ["com.example:openui"],
@@ -140,7 +140,7 @@ await client.process({
   version: "v1.0",
   updateComponents: {
     surfaceId: "main",
-    components: ["root = Stack([greeting])", 'greeting = TextContent("Hello, " + $user.name)'],
+    components: ["root = Col([greeting])", 'greeting = Text("Hello, " + $user.name)'],
   },
 });
 ```
@@ -293,14 +293,14 @@ Import the renderer from the optional React entrypoint:
 
 ```tsx
 import { A2UIRenderer } from "@openuidev/a2ui/react";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library } from "@openuidev/intelligent-ui-library";
 
 export function Surface({ isStreaming }: { isStreaming: boolean }) {
   return (
     <A2UIRenderer
       client={client}
       surfaceId="main"
-      library={openuiLibrary}
+      library={library}
       isStreaming={isStreaming}
       onError={(errors) => console.error(errors)}
     />
@@ -366,7 +366,7 @@ The React adapter calls `dispatchOpenUIAction()` for you. By default it uses the
 <A2UIRenderer
   client={client}
   surfaceId="main"
-  library={openuiLibrary}
+  library={library}
   mapAction={(event) => ({
     name: event.type === "continue_conversation" ? "submit" : event.type,
     sourceComponentId: "profileForm",
@@ -425,7 +425,7 @@ Register functions that the agent may ask the renderer to execute:
 
 ```ts
 const client = createA2UIClient({
-  schema: openuiLibrary.toJSONSchema(),
+  schema: library.toJSONSchema(),
   functions: {
     getLocation: {
       catalogId: "com.example:functions",

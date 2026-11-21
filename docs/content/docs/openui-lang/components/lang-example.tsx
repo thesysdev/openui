@@ -9,10 +9,13 @@ import {
   TabsTrigger,
 } from "@/components/overview-components";
 import { genuiOutput } from "@/components/overview-components/genui";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { useTheme } from "next-themes";
 
 export const LangExample = () => {
+  const { resolvedTheme } = useTheme();
+  const mode = resolvedTheme === "dark" ? "dark" : "light";
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       {/* Left: Code Tabs */}
@@ -103,7 +106,9 @@ const completion = await client.chat.completions.create({
           <span className="text-sm font-medium">Output Preview</span>
         </div>
         <div className="p-6">
-          <Renderer library={openuiLibrary} response={genuiOutput} isStreaming={false} />
+          <ThemeProvider mode={mode}>
+            <Renderer library={library} response={genuiOutput} isStreaming={false} />
+          </ThemeProvider>
         </div>
       </SimpleCard>
     </div>

@@ -65,8 +65,8 @@ export function HelpDialog() {
                   version. Every published npm version is available and loaded on demand.
                 </li>
                 <li>
-                  Switch the component <strong>Library</strong> (openui, openui chat) to validate
-                  and render against a different component set.
+                  Switch the component <strong>Library</strong> (Intelligent UI, Dashboard, openui,
+                  openui chat) to validate and render against a different component set.
                 </li>
               </ol>
 

@@ -55,7 +55,7 @@ Custom actions are stricter. Any invalid argument there, optional or not, makes 
 A call to an `@Name` that is not a built-in function, an action, or a library function reports `unknown-function` and evaluates to `null`. The rest of the statement still renders:
 
 ```text
-root = TextContent("Total: " + @Total(items))
+root = Col([Text("Total: " + @Total(items))])
 ```
 
 If the library has no `Total` function, this renders "Total: ".
@@ -91,8 +91,8 @@ Nesting `@Count` and `@Filter` is the main pattern for KPI cards:
 
 ```text
 kpi = Card([
-  TextContent("Open Tickets", "small"),
-  TextContent("" + @Count(@Filter(data.rows, "status", "==", "open")), "large-heavy")
+  Text("Open Tickets", "sm"),
+  Title("" + @Count(@Filter(data.rows, "status", "==", "open")), "lg")
 ])
 ```
 
@@ -110,7 +110,7 @@ kpi = Card([
 Render a template for every item in an array:
 
 ```text
-priorityTags = @Each(tickets.rows, "t", Tag(t.priority, null, "sm"))
+priorityTags = @Each(tickets.rows, "t", Badge(t.priority))
 ```
 
 The second argument (`"t"`) is the loop variable name. Use it inside the template.
@@ -136,11 +136,12 @@ A library can add its own functions next to the built-ins. The model calls them 
 ### Define a function
 
 ```tsx
-import { createLibrary, defineComponent, defineFunction } from "@openuidev/react-lang";
+import { defineFunction } from "@openuidev/react-lang";
+import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
 import { z } from "zod/v4";
 
 const percent = defineFunction({
-  name: "Percent",
+  name: "PercentLabel",
   description: "Formats part / total as a percentage",
   params: z.object({
     part: z.number(),
@@ -150,29 +151,20 @@ const percent = defineFunction({
   fn: ({ part, total }) => `${((part / total) * 100).toFixed(1)}%`,
 });
 
-const TextContent = defineComponent({
-  name: "TextContent",
-  description: "A line of text",
-  props: z.object({ text: z.string() }),
-  component: ({ props }) => <p>{props.text}</p>,
-});
-
-export const library = createLibrary({
-  root: "TextContent",
-  components: [TextContent],
-  functions: [percent],
+export const library = baseLibrary.extend({
+  functions: { add: [percent] },
 });
 ```
 
 The model can now write:
 
 ```text
-root = TextContent("Done: " + @Percent(42, 120))
+root = Col([Text("Done: " + @PercentLabel(42, 120))])
 ```
 
 This renders "Done: 35.0%".
 
-To add a function to an existing library, such as `openuiLibrary` from `@openuidev/react-ui`, use [`library.extend`](/docs/openui-lang/defining-components#extending-a-library).
+To add a function to an existing library, such as `library` from `@openuidev/intelligent-ui-library`, use [`library.extend`](/docs/openui-lang/defining-components#extending-a-library).
 
 ### Fields
 
@@ -190,11 +182,11 @@ To add a function to an existing library, such as `openuiLibrary` from `@openuid
 
 Arguments map to `params` in key order. `fn` receives them as one object:
 
-| Call                 | `fn` receives              |
-| :------------------- | :------------------------- |
-| `@Percent(42, 120)`  | `{ part: 42, total: 120 }` |
-| `@Percent(42)`       | `{ part: 42, total: 100 }` |
-| `@Percent(42, null)` | `{ part: 42, total: 100 }` |
+| Call                      | `fn` receives              |
+| :------------------------ | :------------------------- |
+| `@PercentLabel(42, 120)`  | `{ part: 42, total: 120 }` |
+| `@PercentLabel(42)`       | `{ part: 42, total: 100 }` |
+| `@PercentLabel(42, null)` | `{ part: 42, total: 100 }` |
 
 A missing optional argument, or `null` in its place, takes the param's default. An optional param with no default is left out of the object. Keep `fn` pure and synchronous; it can run many times.
 
@@ -212,17 +204,17 @@ The Vue, Svelte, and Angular renderers are on 0.4 and do not run custom function
 
 A sales summary where the renderer computes the percentages.
 
-Your app adds the function to `openuiLibrary` and renders with the extended library:
+Your app adds the function to `library` and renders with the extended library:
 
 ```tsx
 "use client";
 
 import { defineFunction, Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
 import { z } from "zod/v4";
 
 const percent = defineFunction({
-  name: "Percent",
+  name: "PercentLabel",
   description: "Formats part / total as a percentage",
   params: z.object({ part: z.number(), total: z.number().default(100) }),
   returns: z.string(),
@@ -230,7 +222,7 @@ const percent = defineFunction({
 });
 
 // Create the library once, at module scope.
-const library = openuiLibrary.extend({ functions: { add: [percent] } });
+const library = baseLibrary.extend({ functions: { add: [percent] } });
 
 export function Summary({ response }: { response: string }) {
   return <Renderer library={library} response={response} />;
@@ -240,13 +232,13 @@ export function Summary({ response }: { response: string }) {
 The model writes:
 
 ```text
-root = Stack([header, tbl, summary])
-header = CardHeader("Q3 sales")
+root = Col([header, tbl, summary])
+header = Title("Q3 sales")
 regions = ["North", "South", "West"]
 sales = [42, 75, 120]
 targets = [120, 100, 100]
-tbl = Table([Col("Region", regions), Col("Sales", sales, "number"), Col("Target", targets, "number")])
-summary = TextContent("North reached " + @Percent(42, 120) + " of its target. The team reached " + @Percent(@Sum(sales), @Sum(targets)) + ".")
+tbl = Table(["Region", "Sales", "Target"], @Each(@Range(0, @Count(regions)), "i", [regions[i], sales[i], targets[i]]))
+summary = Text("North reached " + @PercentLabel(42, 120) + " of its target. The team reached " + @PercentLabel(@Sum(sales), @Sum(targets)) + ".")
 ```
 
 The user sees a table with three regions and the line "North reached 35.0% of its target. The team reached 74.1%." The renderer computed both numbers. The model only wrote the calls.

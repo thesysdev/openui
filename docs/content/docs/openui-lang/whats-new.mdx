@@ -79,11 +79,13 @@ See [Actions](/docs/openui-lang/actions#action-props-in-your-components).
 Derive a library from an existing one. Add, override, or remove components, and add functions and actions:
 
 ```ts
-const shopLibrary = openuiChatLibrary.extend({
+import { library } from "@openuidev/intelligent-ui-library";
+
+const shopLibrary = library.extend({
   components: {
-    add: [{ component: ProductCard, slots: ["Card"] }],
-    override: [CodeBlock],
-    remove: ["RadarChart"],
+    add: [ProductCard],
+    override: [Code],
+    remove: ["YouTube"],
   },
   functions: { add: [formatCurrency] },
   actions: { add: [addToCart] },
@@ -110,8 +112,8 @@ const parser = createParser(library.toJSONSchema(), library.root);
 
 ```text
 ]]>openui:content
-root = Card([title])
-title = TextContent("Order 42")
+root = Col([Card([title])])
+title = Text("Order 42")
 ]]>openui:context
 {"formState":{"note":"rush"}}
 ]]>openui:end

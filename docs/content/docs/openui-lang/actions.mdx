@@ -144,7 +144,7 @@ The model can now write:
 root = Button("Copy order ID", @CopyToClipboard("ORD-1042"))
 ```
 
-The user sees a "Copy order ID" button. On click, the renderer sends a `CopyToClipboard` event to `onAction`, and your handler copies "ORD-1042". The `Button` in `@openuidev/react-ui` takes an action prop the same way.
+The user sees a "Copy order ID" button. On click, the renderer sends a `CopyToClipboard` event to `onAction`, and your handler copies "ORD-1042". The `Button` in `@openuidev/intelligent-ui-library` takes an action prop the same way.
 
 ### Fields
 
@@ -266,16 +266,16 @@ Custom actions work in the React `Renderer` from `@openuidev/react-lang`. The Vu
 
 ## Complete example
 
-An order card where one button approves the order and another copies its ID. It adds `copyToClipboard` from [Define an action](#define-an-action) to `openuiLibrary`. `sendMessage` stands for your chat's send function:
+An order card where one button approves the order and another copies its ID. It adds `copyToClipboard` from [Define an action](#define-an-action) to `library`. `sendMessage` stands for your chat's send function:
 
 ```tsx
 "use client";
 
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library as baseLibrary } from "@openuidev/intelligent-ui-library";
 import { copyToClipboard } from "./message";
 
-const library = openuiLibrary.extend({ actions: { add: [copyToClipboard] } });
+const library = baseLibrary.extend({ actions: { add: [copyToClipboard] } });
 
 export function OrderMessage({
   response,
@@ -310,16 +310,16 @@ export function OrderMessage({
 The model writes:
 
 ```text
-root = Stack([card])
-card = Card([CardHeader("Order ORD-1042", "3 items, $120"), status, buttons])
+root = Col([card])
+card = Card([Col([Title("Order ORD-1042"), Text("3 items, $120", "sm", "muted")], 1), status, buttons])
 approveOrder = Mutation("approve_order", {orderId: "ORD-1042"})
-status = approveOrder.status == "success" ? Callout("success", "Approved", "The order is approved.") : null
-buttons = Buttons([approveBtn, copyBtn])
-approveBtn = Button("Approve", Action([@Run(approveOrder), @ToAssistant("I approved order ORD-1042")]), "primary")
-copyBtn = Button("Copy ID", @CopyToClipboard("ORD-1042"), "secondary")
+status = approveOrder.status == "success" ? Card([Title("Approved", "sm"), Text("The order is approved.", "sm", "success")], "soft") : null
+buttons = Row([approveBtn, copyBtn], 2)
+approveBtn = Button("Approve", Action([@Run(approveOrder), @ToAssistant("I approved order ORD-1042")]), "solid")
+copyBtn = Button("Copy ID", @CopyToClipboard("ORD-1042"), "outline")
 ```
 
-The user sees an order card with two buttons. "Approve" runs the mutation, shows the "Approved" callout, and sends "I approved order ORD-1042" to the model. "Copy ID" copies "ORD-1042" through your handler. If `approve_order` fails, the message is not sent.
+The user sees an order card with two buttons. "Approve" runs the mutation, shows the "Approved" status card, and sends "I approved order ORD-1042" to the model. "Copy ID" copies "ORD-1042" through your handler. If `approve_order` fails, the message is not sent.
 
 ## When to use it
 
