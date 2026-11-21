@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     system: chatPrompt,
     messages: await convertToModelMessages(messages, { tools }),
     tools,
-    // Calls the dashboard tools the model asks for, then lets it reply.
-    stopWhen: stepCountIs(4),
+    // Room to examine the data with check_data, call a dashboard tool, then reply.
+    stopWhen: stepCountIs(16),
     abortSignal: request.signal,
   });
   return result.toUIMessageStreamResponse();
