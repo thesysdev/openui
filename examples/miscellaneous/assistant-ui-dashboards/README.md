@@ -60,6 +60,7 @@ The OSV tools come from a real MCP server (`McpServer` from `@modelcontextprotoc
 ```
 browser (assistant-ui)               /api/chat (AI SDK)                       OpenUI Cloud
 Thread ──messages──────────────────► streamText, tools from the toolkit
+                                     model calls check_data ─► dashboards.interpreter (data tools)
                                      model calls create_dashboard ─execute──► dashboards.create()
                                      ◄─ result: a sentence + the dashboard's reference ─┘
 card (the tool's render) ◄─────────── streamed with the reply
@@ -67,8 +68,8 @@ card (the tool's render) ◄─────────── streamed with the 
                      Query() ─► /api/interpreter ─► data tools, MCP tools, generated scripts
 ```
 
-1. The chat sends the thread to `/api/chat`, which streams a reply from OpenUI Gateway with two tools, `create_dashboard` and `edit_dashboard`.
-2. The model calls `create_dashboard` with a title and a description of the dashboard. Its `execute` runs on this server and calls `dashboards.create()`, which starts generating in OpenUI Cloud and returns as soon as the dashboard has an id. The result, written by OpenUI Cloud, is a sentence for the model plus the dashboard's reference, and the model replies in a sentence or two.
+1. The chat sends the thread to `/api/chat`, which streams a reply from OpenUI Gateway with three tools, `check_data`, `create_dashboard` and `edit_dashboard`.
+2. The model first examines the data with `check_data`, which runs any of the dashboards' data tools or MCP tools through `dashboards.interpreter`. It works out what the user is after and what the data can show, then calls `create_dashboard` with a brief in three parts: who the dashboard is for and why; what it should convey, in priority order, with the data behind each point; and the filters with what they open on. `src/lib/brief.ts` turns those fields into the one prompt OpenUI Cloud reads. The brief names no charts or layout: the Dashboard agent, which knows the component library, decides those. Its `execute` runs on this server and calls `dashboards.create()`, which starts generating in OpenUI Cloud and returns as soon as the dashboard has an id. The result, written by OpenUI Cloud, is a sentence for the model plus the dashboard's reference, and the model replies in a sentence or two.
 3. assistant-ui renders the tool call with the toolkit's `render`: a card in the chat. When the result arrives, the card opens the dashboard beside the chat, and `LiveArtifactRenderer` streams it from OpenUI Cloud as it's generated.
 4. The dashboard loads its data with `Query()` calls. The renderer sends each one to `/api/interpreter`, where `dashboards.interpreter.execute()` runs the matching data tool or MCP tool on this server, or a script the dashboard was generated with, which calls the same tools.
 5. For a change, the model calls `edit_dashboard` with the id from the first tool result. The open dashboard stays on screen until the new version is ready, then every renderer showing it switches over.
@@ -82,7 +83,7 @@ The sidebar has two tabs:
 
 ## The toolkit
 
-`src/lib/toolkit.tsx` is an assistant-ui toolkit with the `"use generative"` directive: each tool has its `parameters`, a server-side `execute`, and a `render` in one place. `withAui()` in `next.config.ts` compiles it twice. The route's build (`new AISDKToolkit({ toolkit })`) keeps each tool's `parameters` and `execute`, so OpenUI Cloud and `THESYS_API_KEY` stay on the server; the browser's build (`Tools({ toolkit })`) keeps `parameters` and `render`. Both tools render standalone, so their card sits in the message rather than in the tool-call group.
+`src/lib/toolkit.tsx` is an assistant-ui toolkit with the `"use generative"` directive: each tool has its `parameters`, a server-side `execute`, and a `render` in one place. `withAui()` in `next.config.ts` compiles it twice. The route's build (`new AISDKToolkit({ toolkit })`) keeps each tool's `parameters` and `execute`, so OpenUI Cloud and `THESYS_API_KEY` stay on the server; the browser's build (`Tools({ toolkit })`) keeps `parameters` and `render`. The two dashboard tools render standalone, so their card sits in the message rather than in the tool-call group; `check_data` renders a small disclosure with the call it made.
 
 The chat is assistant-ui's `Thread` and `ThreadList` from its shadcn registry, in `src/components/assistant-ui/`, trimmed for a text-only chat: no attachments, files, images, or thread search.
 
@@ -100,7 +101,8 @@ The chat is assistant-ui's `Thread` and `ThreadList` from its shadcn registry, i
 | ------------------------------------- | --------------------------------------------------------------------- |
 | `src/lib/data/`                       | npm, GitHub, and OSV.dev data tools, with timeouts and caching        |
 | `src/lib/openui.ts`                   | `OpenUIClient`, the dashboard definition, the base URL and local user |
-| `src/lib/toolkit.tsx`                 | `create_dashboard` and `edit_dashboard`: schema, `execute`, `render`  |
+| `src/lib/toolkit.tsx`                 | `check_data`, `create_dashboard` and `edit_dashboard`                 |
+| `src/lib/brief.ts`                    | Turns `create_dashboard`'s fields into the brief OpenUI Cloud reads   |
 | `src/lib/prompt.ts`                   | Chat instructions and the data dashboards can show                    |
 | `src/library.ts`                      | The kit's library, for `npm run generate`                             |
 | `src/app/api/chat/route.ts`           | `streamText` on OpenUI Gateway with the toolkit's tools               |
@@ -118,7 +120,7 @@ The chat is assistant-ui's `Thread` and `ThreadList` from its shadcn registry, i
 
 The app binds to loopback and every browser shares one local user. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication) and use the signed-in user's id for the frontend token and the dashboard tools. Pass the user as the interpreter's `context` if data tools should return only what they may see. Add request-size and rate limits to the routes, and set `GITHUB_TOKEN`.
 
-OpenUI Cloud stores each dashboard's definition, not its data: numbers reach the browser only through `/api/interpreter`, from your server. OpenUI Gateway receives the conversation to run the chat model; dashboard generation receives only each dashboard's title and description, and the data tools' descriptions and example outputs.
+OpenUI Cloud stores each dashboard's definition, not its data: numbers reach the browser only through `/api/interpreter`, from your server. OpenUI Gateway receives the conversation to run the chat model, including the results of the `check_data` calls the model makes; dashboard generation receives only each dashboard's title and brief, and the data tools' descriptions and example outputs. Numbers the chat model quotes in a brief are context for what matters; the dashboard loads every number it shows itself.
 
 ## Verify
 
