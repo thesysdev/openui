@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { LoaderCircle, X } from "lucide-react";
+import { LoaderCircle, ScanSearch, X } from "lucide-react";
 import { useContext, useMemo, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
@@ -10,6 +10,7 @@ import {
   ChromeOverridesContext,
   ContentConfigContext,
   PreviewOverridesContext,
+  ProvenanceContext,
   RegionContext,
   useArtifactRenderer,
   type ArtifactRendererState,
@@ -26,7 +27,7 @@ import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
  *
  * Regions (`Preview`, `Chrome`) go at the renderer's top level. Parts only
  * render inside their region: preview parts in `Preview`, chrome parts in
- * `Chrome`, `Pending`/`Loading`/`Error` in `Content`.
+ * `Chrome`, `Pending`/`Loading`/`Error`/`Provenance` in `Content`.
  */
 
 /** Is this part inside its region? Outside it, the part renders nothing. */
@@ -189,6 +190,7 @@ export function ChromeActions({ className, children }: PartProps) {
   return (
     <div className={clsx(styles.chromeActions, names.chromeActions, className)}>
       {overrides.actions}
+      <ProvenanceToggle />
       <CloseButton />
     </div>
   );
@@ -217,16 +219,49 @@ export function CloseButton({ label, children }: CloseButtonProps) {
   );
 }
 
+export interface ProvenanceToggleProps {
+  label?: string;
+  children?: ReactNode;
+}
+
+/** Turns inspect mode on and off. Renders nothing unless `enableProvenance` is on. */
+export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
+  const inside = useInRegion("chrome");
+  const provenance = useContext(ProvenanceContext);
+  if (!inside || !provenance) return null;
+  if (children !== undefined) return <>{children}</>;
+  return (
+    <IconButton
+      className={names.provenanceToggle}
+      variant={provenance.isInspecting ? "secondary" : "tertiary"}
+      size="small"
+      icon={<ScanSearch size={16} />}
+      aria-label={label ?? "Show data sources"}
+      aria-pressed={provenance.isInspecting}
+      onClick={() => provenance.setInspecting(!provenance.isInspecting)}
+    />
+  );
+}
+
 // ─── Content and its parts ───────────────────────────────────────────────
 
 /** The artifact itself, with a loader over it while it loads and a message if it fails. */
 export function Content({ className, children }: PartProps) {
   const inside = useInRegion("chrome");
   const config = useContext(ContentConfigContext);
+  // On the content, not the root: with `renderInHtmlElement` the content is portaled out of it.
+  const inspecting = useContext(ProvenanceContext)?.isInspecting ?? false;
   if (!inside || !config) return null;
   return (
     <RegionProvider region="content">
-      <div className={clsx(styles.content, names.content, className)}>
+      <div
+        className={clsx(
+          styles.content,
+          names.content,
+          inspecting && [styles.inspecting, names.inspecting],
+          className,
+        )}
+      >
         {/* Above the artifact, so an error reads first. */}
         {children === undefined ? (
           <>
@@ -301,3 +336,18 @@ function ErrorSlot({ message, children }: ErrorProps) {
 }
 
 export { ErrorSlot as Error };
+
+export interface ProvenanceProps {
+  children?: ReactNode;
+}
+
+/**
+ * Your panel for the selected component: pass it as children, and read the selection and its
+ * sources with `useArtifactProvenance()`. Renders only while something is selected.
+ */
+export function Provenance({ children }: ProvenanceProps) {
+  const inside = useInRegion("content");
+  const provenance = useContext(ProvenanceContext);
+  if (!inside || !provenance?.selection) return null;
+  return <>{children}</>;
+}

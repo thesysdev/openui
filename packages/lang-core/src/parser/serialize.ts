@@ -58,7 +58,7 @@ class StatementCollector {
 // ─── AST node serializer ─────────────────────────────────────────────────────
 
 /** `calls` are the library's call names (built-ins, functions, actions), written with `@`. */
-function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): string {
+export function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): string {
   switch (node.k) {
     case "Str":
       return JSON.stringify(node.v);

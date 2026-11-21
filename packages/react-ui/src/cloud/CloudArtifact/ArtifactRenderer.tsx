@@ -1,14 +1,15 @@
 "use client";
 
 import type { Interpreter } from "@openuidev/react-headless";
-import { Renderer, type Library, type RendererProps } from "@openuidev/react-lang";
-import { useCallback } from "react";
+import { Renderer, useDataSources, type Library, type RendererProps } from "@openuidev/react-lang";
+import { useCallback, useContext, useEffect } from "react";
 import {
   ArtifactRendererRoot,
   slots,
   type ArtifactRendererBaseProps,
   type RenderContentArgs,
 } from "./ArtifactRendererRoot";
+import { ProvenanceContext } from "./contexts";
 
 /** `Renderer`'s props, minus the ones the artifact renderer owns. */
 type PassThroughRendererProps<L extends Library> = Omit<
@@ -27,22 +28,48 @@ export interface LiveArtifactRendererProps<
 > extends StaticArtifactRendererProps<L> {
   /** Where the artifact's data tools run: your endpoint (`{ url }`) or an async function. */
   interpreter: Interpreter;
+  /**
+   * Show where the artifact's data comes from: an inspect toggle in the bar, and a panel for the
+   * component clicked while inspecting. Off by default.
+   */
+  enableProvenance?: boolean;
 }
 
 /** `Renderer` shows its own spinner while queries load; the `Loading` slot owns that here. */
 const NO_QUERY_LOADER = <></>;
 
+/**
+ * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and hands the
+ * selection's sources up to the renderer's root for the panel.
+ */
+function ProvenanceBridge() {
+  const provenance = useContext(ProvenanceContext);
+  const id = provenance?.selection?.id;
+  const sources = useDataSources(id);
+  const setSources = provenance?.setSources;
+  const clearSelection = provenance?.clearSelection;
+  useEffect(() => {
+    setSources?.(sources, id);
+    // The selected statement is no longer in the program, e.g. after an edit.
+    if (id && !sources) clearSelection?.();
+  }, [setSources, clearSelection, sources, id]);
+  // Closed, or remounted for live data: the selected elements are gone.
+  useEffect(() => () => clearSelection?.(), [clearSelection]);
+  return null;
+}
+
 /** Both renderers: a live one passes `interpreter`, a static one doesn't. */
 function ArtifactRendererImpl<L extends Library>({
   library,
   interpreter,
+  enableProvenance,
   onAction,
   onStateUpdate,
   initialState,
   onParseResult,
   publishObservability,
   ...base
-}: StaticArtifactRendererProps<L> & { interpreter?: Interpreter }) {
+}: StaticArtifactRendererProps<L> & { interpreter?: Interpreter; enableProvenance?: boolean }) {
   const renderContent = useCallback(
     ({ program, isStreaming, toolProvider, rendererKey, onError }: RenderContentArgs) => (
       <Renderer
@@ -58,11 +85,30 @@ function ArtifactRendererImpl<L extends Library>({
         onParseResult={onParseResult}
         onError={onError}
         publishObservability={publishObservability}
-      />
+      >
+        {/* The same children either way, so turning provenance on does not remount the program. */}
+        <Renderer.DefaultContent />
+        {enableProvenance && <ProvenanceBridge />}
+      </Renderer>
     ),
-    [library, onAction, onStateUpdate, initialState, onParseResult, publishObservability],
+    [
+      library,
+      onAction,
+      onStateUpdate,
+      initialState,
+      onParseResult,
+      publishObservability,
+      enableProvenance,
+    ],
   );
-  return <ArtifactRendererRoot {...base} interpreter={interpreter} renderContent={renderContent} />;
+  return (
+    <ArtifactRendererRoot
+      {...base}
+      interpreter={interpreter}
+      enableProvenance={enableProvenance}
+      renderContent={renderContent}
+    />
+  );
 }
 
 const LiveArtifactRendererImpl = <L extends Library>(props: LiveArtifactRendererProps<L>) => (

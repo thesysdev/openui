@@ -34,6 +34,7 @@ export { walkAST } from "./parser/ast";
 export type { ASTNode } from "./parser/ast";
 export { ACTION_STEPS, action, steps } from "./parser/builtins";
 export type { ActionRef } from "./parser/builtins";
+export { dataSources } from "./parser/data-sources";
 export { enrichErrors } from "./parser/enrich-errors";
 export { parseExpression } from "./parser/expressions";
 export { tokenize } from "./parser/lexer";

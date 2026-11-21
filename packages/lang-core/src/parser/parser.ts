@@ -290,6 +290,12 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
+/** Each parse result's statements as parsed, by name, and its library, for `dataSources`. Not public. */
+export const parsedStatements = new WeakMap<
+  ParseResult,
+  { statements: ReadonlyMap<string, ASTNode>; cat: ParamMap | undefined }
+>();
+
 function buildResult(
   stmtMap: Map<string, Statement>,
   typedStmts: Statement[],
@@ -303,7 +309,15 @@ function buildResult(
 
   const syms = new Map<string, ASTNode>();
   for (const [id, stmt] of stmtMap) {
-    syms.set(id, stmt.kind === "state" ? stmt.init : stmt.expr);
+    const expr = stmt.kind === "state" ? stmt.init : stmt.expr;
+    syms.set(id, expr);
+    // Component calls get ids, so a "where did this come from" view can name them: the
+    // statement's own call its name (it may be rendered from an expression, without a
+    // statementId), an inline one its position.
+    let n = 0;
+    walkAST(expr, (node) => {
+      if (isComponentCall(node)) node.inlineId = node === expr ? id : `${id}.${n++}`;
+    });
   }
   const unres: string[] = [];
   const errors: ValidationError[] = [];
@@ -360,7 +374,7 @@ function buildResult(
   // With no entry nothing is reachable; `no-root` alone describes the problem.
   const orphaned = entry ? [...unreached] : [];
 
-  return {
+  const result: ParseResult = {
     root,
     ...(rootExpression ? { rootExpression } : {}),
     meta: {
@@ -374,6 +388,8 @@ function buildResult(
     queryStatements,
     mutationStatements,
   };
+  parsedStatements.set(result, { statements: syms, cat });
+  return result;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

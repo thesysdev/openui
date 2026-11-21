@@ -16,6 +16,8 @@ export type {
 } from "./library";
 
 // openui-lang renderer
+export { readSourceTarget } from "./provenance";
+export type { BindSource, SourceBinding, SourceTarget } from "./provenance";
 export { Renderer, useRendererQuery } from "./Renderer";
 export type {
   RendererContentSlotProps,
@@ -83,6 +85,10 @@ export { reactive } from "./runtime";
 
 // Unified field state hook — component authors use this
 export { useStateField } from "./hooks/useStateField";
+
+// Where a component's data comes from (queries, statements in between, $variables)
+export { useDataSources } from "./hooks/useDataSources";
+export type { DataSourceQuery, DataSources, PropDataSources } from "./hooks/useDataSources";
 
 // openui-lang form validation
 export {

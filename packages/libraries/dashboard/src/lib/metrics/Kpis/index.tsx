@@ -15,7 +15,7 @@ export const KpisComponent = defineComponent({
   component: KpisView,
 });
 
-function KpisView({ props, renderNode }: ComponentRenderProps<KpisSchemaProps>) {
+function KpisView({ props, renderNode, bindSource }: ComponentRenderProps<KpisSchemaProps>) {
   const streaming = useIsStreaming();
   const items = Array.isArray(props.items) ? props.items : [];
   // Both forms of each tile: Kpis alone decides when the strip turns compact and which it draws.
@@ -24,6 +24,7 @@ function KpisView({ props, renderNode }: ComponentRenderProps<KpisSchemaProps>) 
       items={items.map((item) => renderNode(item))}
       facts={nodeList<KpiSchemaProps>(items)}
       streaming={streaming}
+      sourceAttributes={bindSource?.()}
     />
   );
 }

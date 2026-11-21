@@ -35,6 +35,8 @@ export const names = {
   pending: "openui-artifact-pending",
   error: "openui-artifact-error",
   panel: "openui-artifact-panel",
+  inspecting: "openui-artifact-inspecting",
+  provenanceToggle: "openui-artifact-provenance-toggle",
 } as const;
 
 export const styles = {
@@ -122,6 +124,11 @@ export const styles = {
     flex: 1;
     min-height: 120px;
     overflow: auto;
+    // Drawn inside the element: a tile in a strip that hides overflow keeps all four sides.
+    & [data-openui-selected] {
+      outline: 2px solid var(--openui-interactive-accent-default);
+      outline-offset: -2px;
+    }
   `,
   loading: css`
     position: absolute;
@@ -162,5 +169,15 @@ export const styles = {
   `,
   panel: css`
     padding: var(--openui-space-l) var(--openui-space-xl);
+  `,
+  // Inspect mode: components marked with bindSource show where a click lands.
+  inspecting: css`
+    & [data-openui-source] {
+      cursor: pointer;
+    }
+    & [data-openui-source]:hover {
+      outline: 1px dashed var(--openui-interactive-accent-default);
+      outline-offset: -2px;
+    }
   `,
 };
