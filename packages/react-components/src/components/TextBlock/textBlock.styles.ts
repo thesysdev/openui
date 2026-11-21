@@ -52,7 +52,7 @@ export const textBlockStyles = {
     flex-direction: column;
     gap: var(--_openui-text-block-gap, var(--openui-space-3xs, 2px));
     align-items: flex-start;
-    text-align: left;
+    text-align: start;
   `,
   primary: css`
     max-width: var(--_openui-text-block-line-max-width, none);

@@ -14,7 +14,7 @@
   width: 100%;
   color: cssUtils.$text-neutral-primary;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   &-icon {
     size: 16px;
   }
@@ -23,7 +23,7 @@
     white-space: break-spaces;
     word-break: break-word;
     max-width: 100%;
-    text-align: left;
+    text-align: start;
     color: cssUtils.$text-neutral-primary;
   }
   &:last-child {
