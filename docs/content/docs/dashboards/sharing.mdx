@@ -19,11 +19,12 @@ Each share gives `view` or `edit` access. A shared dashboard shares its layout a
 | Open and list                       |   ✓   |   ✓    |   ✓    |    ✓    |
 | Run its scripts                     |   ✓   |   ✓    |   ✓    |         |
 | Pin and unpin, for themselves       |   ✓   |   ✓    |   ✓    |         |
-| Edit with a prompt, and rename      |   ✓   |   ✓    |        |    ✓    |
+| Edit with a prompt                  |   ✓   |   ✓    |        |         |
+| Rename, or save an edited program   |   ✓   |   ✓    |        |    ✓    |
 | See and change who it's shared with |   ✓   |   ✓    |        |    ✓    |
 | Delete                              |   ✓   |        |        |    ✓    |
 
-The API key column is for calls with your API key and no `userId`, which [act as your org](/docs/dashboards/manage-from-server#act-as-a-user-or-as-your-org). Pins and scripts need a user: pins belong to one, and a dashboard's data tools run with their `context`. With a `userId`, the call is that user and gets their column.
+The API key column is for calls with your API key and no `userId`, which [act as your org](/docs/dashboards/manage-from-server#act-as-a-user-or-as-your-org). Your org manages dashboards, but making, editing with a prompt, running scripts, and pinning need a user: a dashboard's data tools run with their `context`. With a `userId`, the call is that user and gets their column.
 
 - A user gets the highest access any of their shares gives, so an `edit` share to one of their groups beats a `view` share to them.
 - Sharing with a target that's already shared changes its access. Sharing with the owner is refused.
