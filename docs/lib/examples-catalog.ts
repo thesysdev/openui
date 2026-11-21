@@ -10,12 +10,21 @@ export const EXAMPLES_REPO_URL = "https://github.com/thesysdev/openui/tree/main/
 
 /** Docs pages that walk through an example, keyed by its path in `examples/`. */
 const EXAMPLE_GUIDES: Record<string, string> = {
+  "agent-frameworks/google-adk": "/docs/build-agents/frameworks/google-adk",
   "agent-frameworks/langgraph-platform": "/docs/build-agents/frameworks/langgraph",
+  "agent-frameworks/mastra": "/docs/build-agents/frameworks/mastra",
   "agent-frameworks/vercel-ai-sdk": "/docs/build-agents/frameworks/vercel-ai-sdk",
   "agent-frameworks/vercel-eve": "/docs/build-agents/frameworks/vercel-eve",
-  "app-frameworks/angular": "/docs/api-reference/angular-lang",
+  "app-frameworks/angular": "/docs/openui-lang/examples/app-frameworks/angular",
+  "app-frameworks/lynx": "/docs/openui-lang/examples/app-frameworks/lynx",
+  "app-frameworks/react-native": "/docs/openui-lang/examples/app-frameworks/react-native",
+  "app-frameworks/svelte": "/docs/openui-lang/examples/app-frameworks/svelte",
+  "app-frameworks/vue": "/docs/openui-lang/examples/app-frameworks/vue",
+  "design-systems/material-ui": "/docs/openui-lang/examples/design-systems/material-ui",
   "design-systems/shadcn": "/docs/openui-lang/examples/design-systems/shadcn",
+  "harnesses/grok-build": "/docs/build-agents/frameworks/grok-build",
   "harnesses/pi": "/docs/build-agents/frameworks/pi",
+  "miscellaneous/handsontable": "/docs/openui-lang/examples/miscellaneous/handsontable",
   "miscellaneous/html-artifact": "/docs/agent/guides/open-ended-html",
   "miscellaneous/react-email": "/docs/openui-lang/examples/miscellaneous/react-email",
 };

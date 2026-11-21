@@ -30,6 +30,13 @@
     "telemetry",
     "---Examples---",
     "examples/design-systems/shadcn",
-    "examples/miscellaneous/react-email"
+    "examples/design-systems/material-ui",
+    "examples/miscellaneous/react-email",
+    "examples/miscellaneous/handsontable",
+    "examples/app-frameworks/vue",
+    "examples/app-frameworks/angular",
+    "examples/app-frameworks/svelte",
+    "examples/app-frameworks/react-native",
+    "examples/app-frameworks/lynx"
   ]
 }
