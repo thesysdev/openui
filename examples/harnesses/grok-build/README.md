@@ -7,7 +7,7 @@ stdio mode for persistent coding sessions, live reasoning, tool activity, and ca
 
 ## What this demonstrates
 
-- A current OpenUI `<AgentInterface />` wired with `fetchLLM({ streamAdapter: agUIAdapter() })` and `openuiLibrary` from `@openuidev/react-ui`.
+- A current OpenUI `<AgentInterface />` wired with `fetchLLM({ streamAdapter: agUIAdapter() })` and `library` from `@openuidev/intelligent-ui-library`.
 - One long-lived `grok agent --no-leader stdio` process hosting an isolated Grok session for each
   OpenUI thread.
 - ACP text, reasoning, and tool-call updates translated to AG-UI SSE events.
@@ -87,13 +87,22 @@ browser threads use `session/load`, so Grok's on-disk conversation state survive
 If a restored browser transcript no longer has a matching Grok session on disk, the route fails
 explicitly instead of silently continuing with empty model context.
 
-The system prompt and validation schema come from a generated `openuiLibrary` spec.
+The system prompt and validation schema come from a generated Intelligent UI spec.
 `pnpm generate` writes `src/generated/spec.json` from `src/library.ts`. `generateSystemPrompt()`
 from `@openuidev/lang-core` compiles that spec locally — Grok Build is still the model (xAI), so
 the Cloud sentinel is not used. The prompt is attached to `session/new` as ACP `_meta.rules`; it
-teaches Grok to produce the OpenUI Lang understood by `openuiLibrary`. The schema lets the server
-verify that the final candidate has a renderable `Stack` root before any assistant text reaches
+teaches Grok to produce the OpenUI Lang understood by the Intelligent UI `library`. The schema lets the server
+verify that the final candidate has a renderable `Col` root before any assistant text reaches
 the browser.
+
+`src/library.ts` re-exports the new `library` and extends its `promptOptions` with the coding-agent
+preamble while preserving the default examples and additional rules. The frontend keeps react-ui's
+chat, adapters and styles, and wraps the chat in the new library's `ThemeProvider mode={mode}`.
+Both the provider and `AgentInterface` receive the same `useSystemThemeMode()` value, so answers
+follow the chat's light/dark mode. No `THESYS_API_KEY` or `OPENAI_API_KEY` is needed.
+
+Previously saved answers using the old components cannot render with this library. Start a new
+browser thread to generate answers using `Col`, `Title`, `Text` and the other current components.
 
 The event bridge maps Grok ACP updates as follows:
 
@@ -116,7 +125,7 @@ Grok Build may emit progress prose and multiple full answers during one ACP prom
 request is retried. AG-UI text deltas are append-only, so sending those candidates immediately
 would concatenate them into invalid OpenUI Lang. This harness keeps only the latest line-start
 `root = ...` candidate. If no valid candidate can be recovered, the harness asks Grok for one
-parser-guided correction without tools. If that still fails, it renders a concise valid warning card
+parser-guided correction without tools. If that still fails, it renders a concise valid `Col` with status text
 instead of exposing raw OpenUI or surfacing a renderer `parse-failed` warning.
 
 OpenUI delivery rules are attached when a Grok session is created. Start a new browser thread after
@@ -159,7 +168,7 @@ examples/harnesses/grok-build/
 |- src/lib/openui-output.ts         # Retry-safe validation, fallback, and paced output chunks
 |- src/lib/grok-build-chat.ts       # AgentInterface LLM + storage adapters
 |- src/lib/thread-store.ts          # localStorage thread/transcript persistence
-`- src/library.ts                   # openuiLibrary re-export for \`openui generate --spec\`
+`- src/library.ts                   # Intelligent UI library re-export for \`openui generate --spec\`
 ```
 
 ## Security

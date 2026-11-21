@@ -3,8 +3,8 @@
 import { GrokBuildInteractionDialog } from "@/components/grok-build-interaction-dialog";
 import { useGrokBuildInteraction } from "@/hooks/use-grok-build-interaction";
 import { createGrokBuildChatProps } from "@/lib/grok-build-chat";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo, useState } from "react";
 
 export default function Page() {
@@ -18,28 +18,30 @@ export default function Page() {
 
   return (
     <div className="app-shell">
-      <AgentInterface
-        llm={llm}
-        storage={storage}
-        componentLibrary={openuiLibrary}
-        agentName="Grok Build + OpenUI"
-        theme={{ mode }}
-        starterVariant="short"
-        starters={[
-          {
-            displayText: "Launch checklist",
-            prompt: "Create a launch checklist for a new AI feature.",
-          },
-          {
-            displayText: "Onboarding flow",
-            prompt: "Design a customer onboarding flow for a B2B SaaS product.",
-          },
-          {
-            displayText: "Support case",
-            prompt: "Summarize a support case as an action dashboard.",
-          },
-        ]}
-      />
+      <ThemeProvider mode={mode}>
+        <AgentInterface
+          llm={llm}
+          storage={storage}
+          componentLibrary={library}
+          agentName="Grok Build + OpenUI"
+          theme={{ mode }}
+          starterVariant="short"
+          starters={[
+            {
+              displayText: "Launch checklist",
+              prompt: "Create a launch checklist for a new AI feature.",
+            },
+            {
+              displayText: "Onboarding flow",
+              prompt: "Design a customer onboarding flow for a B2B SaaS product.",
+            },
+            {
+              displayText: "Support case",
+              prompt: "Summarize a support case as an action dashboard.",
+            },
+          ]}
+        />
+      </ThemeProvider>
       {interaction ? (
         <GrokBuildInteractionDialog
           key={interaction.id}

@@ -56,7 +56,7 @@ Eve HTTP channel ──► Eve agent ──► model + tools
 Eve session events ──► eveAdapter() ──► OpenUI renderer
 ```
 
-- `src/app/page.tsx` renders OpenUI's `<AgentInterface />` with `openuiLibrary`.
+- `src/app/page.tsx` renders OpenUI's `<AgentInterface />` with `library` from `@openuidev/intelligent-ui-library`.
 - `src/eve-chat.ts` delivers turns through Eve's HTTP session protocol, returns the raw NDJSON
   stream, and persists session cursors per OpenUI thread. `eveAdapter()` maps that stream to AG-UI.
 - `agent/instructions/openui.ts` injects the generated OpenUI Lang prompt when an Eve session
@@ -66,12 +66,22 @@ Eve session events ──► eveAdapter() ──► OpenUI renderer
 - `src/thread-store.ts` stores thread metadata, transcripts, continuation tokens, and stream
   positions in browser `localStorage`.
 
+## Component library and theme
+
+Answers use `@openuidev/intelligent-ui-library` (pinned to `0.0.2`), rooted at `Col`. `src/library.ts` re-exports its `library` and extends its `promptOptions` and `additionalRules` with form submission and conditional field rules, preserving the default examples.
+
+`pnpm generate` runs `openui generate src/library.ts --spec --out src/generated/spec.json` before development, builds and verification. `cloudInstructions()` passes the library and prompt options separately to `generateSystemPrompt({ cloud: true, ... })`, preserving the Cloud prompt flow.
+
+The frontend keeps `AgentInterface`, adapters, theming and styles from `@openuidev/react-ui`. The new library's `ThemeProvider` and the chat's `theme` receive the same `useSystemThemeMode()` value, so answers follow the chat in light and dark mode.
+
+Previously saved answers using old components cannot render with this library. Start a new chat to generate answers with `Col`, `Title`, `Text`, `Chart` and the other current components.
+
 ## Configuration
 
-| Environment variable | Default                                          | Purpose                                        |
-| -------------------- | ------------------------------------------------ | ---------------------------------------------- |
-| `THESYS_API_KEY`     | —                                                | OpenUI Cloud API key.                          |
-| `OPENUI_MODEL`       | `google/gemini-3.6-flash-free`                   | Cloud model id for Eve's Chat Completions call. |
+| Environment variable | Default                        | Purpose                                         |
+| -------------------- | ------------------------------ | ----------------------------------------------- |
+| `THESYS_API_KEY`     | —                              | OpenUI Cloud API key.                           |
+| `OPENUI_MODEL`       | `google/gemini-3.6-flash-free` | Cloud model id for Eve's Chat Completions call. |
 
 ## Eve commands
 
@@ -100,7 +110,7 @@ examples/agent-frameworks/vercel-eve/
 |- agent/instructions/openui.ts      # Generated OpenUI Lang instructions
 |- agent/tools/get_weather.ts        # Example Eve tool
 |- agent/tools/ask_question.ts       # Disables Eve's built-in ask_question
-|- src/library.ts                    # openuiLibrary re-export for `openui generate --spec`
+|- src/library.ts                    # Intelligent UI library and prompt options for `openui generate --spec`
 |- src/lib/cloud-prompt.ts           # Reads spec.json into generateSystemPrompt({ cloud: true, library })
 |- src/app/page.tsx                  # OpenUI AgentInterface chat
 |- src/eve-chat.ts                   # Eve session transport, eveAdapter, persistence

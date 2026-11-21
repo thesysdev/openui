@@ -1,11 +1,13 @@
+import { componentGroups, library as intelligentLibrary } from "@openuidev/intelligent-ui-library";
 import { createLibrary } from "@openuidev/react-lang";
-import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 import { DatePicker } from "./components/date-picker";
 
-// The chat library generates the server's specification and renders in the client.
-// Its DatePicker is replaced so dates can be prefilled and submitted as YYYY-MM-DD.
+export { promptOptions } from "@openuidev/intelligent-ui-library";
+
+// Replace the built-in date picker while keeping the new root, groups and functions.
 export const library = createLibrary({
-  root: openuiChatLibrary.root,
-  componentGroups: openuiChatLibrary.componentGroups,
-  components: Object.values({ ...openuiChatLibrary.components, DatePicker }),
+  root: intelligentLibrary.root,
+  componentGroups,
+  functions: Object.values(intelligentLibrary.functions),
+  components: Object.values({ ...intelligentLibrary.components, DatePicker }),
 });
