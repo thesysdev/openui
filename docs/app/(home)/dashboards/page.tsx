@@ -8,7 +8,6 @@ import type { Metadata } from "next";
 import gatewayStyles from "../cloud/gateway/page.module.css";
 import { AgentPicker, DASHBOARDS_SETUP_PROMPT } from "../components/AgentPicker/AgentPicker";
 import { BevelButton } from "../components/Button/BevelButton";
-import { LangShowcase, type ShowcaseAgent } from "../components/LangShowcase/LangShowcase";
 import landing from "../components/ProductLanding.module.css";
 import homeStyles from "../page.module.css";
 import { Footer } from "../sections/Footer/Footer";
@@ -18,6 +17,7 @@ import { DashboardFeatures } from "./DashboardFeatures";
 import { DashboardHeroStage, ModelProof } from "./DashboardHero";
 import { DashboardIntegration } from "./DashboardIntegration";
 import { DashboardNumbers } from "./DashboardNumbers";
+import { DashboardShowcase, type ShowcaseAgent } from "./DashboardShowcase";
 import { DashboardStory } from "./DashboardStory";
 import { FaqSection } from "./FaqSection";
 import { OPENDASHBOARDS_APP, OpenDashboardsApp } from "./OpenDashboardsApp";
@@ -133,11 +133,11 @@ export default function DashboardsPage() {
         <LogoStrip title="Teams building with OpenUI" />
 
         {/* The product and a demo built on it, side by side under the logos.
-            Rectangles rather than the home page's squares: two tiles across
+            Wide tiles rather than the home page's squares: two squares across
             this measure would be far taller than the band. */}
         <div className={styles.showcaseBand}>
           <div className={styles.showcaseStage}>
-            <LangShowcase agents={SHOWCASE} square={false} />
+            <DashboardShowcase agents={SHOWCASE} />
           </div>
         </div>
       </div>

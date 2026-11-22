@@ -1,0 +1,588 @@
+/* The /dashboards cards (see DashboardShowcase.tsx). Started as a copy of
+   LangShowcase.module.css and kept apart from it, so the home page's tiles
+   never change with these. */
+
+/* Three agent panels in a row: equal squares, one open at a time. The open
+   one plays its answer on a card; the other two hold a zoomed crop of
+   theirs, cut off at the right and the bottom. */
+.showcase {
+  /* The answer card stays white in both themes: the recordings are white. */
+  --ls-surface: #fff;
+  --ls-border: rgba(10, 10, 10, 0.08);
+  --ls-text: var(--openui-text-neutral-primary, #0a0a0a);
+
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  color: var(--ls-text);
+}
+
+/* Tiles that hold a rectangle instead of a square. They behave exactly as
+   the squares do: the ratio is fixed, so a tile that gives up width gives up
+   height with it, and the stage is taller than the resting tile to leave the
+   hovered one room. */
+.flat .panel {
+  aspect-ratio: var(--showcase-ratio, 1.3);
+}
+
+/* The row the tiles share. They are squares of differing size, so the
+   row centres them on one line. */
+.track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  /* An equal share of the row at rest; the square is held by the ratio, not
+     by the stage's height, so a tile can grow without stretching. */
+  flex: 1 1 0;
+  aspect-ratio: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  container-type: inline-size;
+  overflow: hidden;
+  /* The same colour the tile fills with, so the edge reads as more of the
+     fill rather than an outline around it. */
+  border: 2px solid color-mix(in srgb, var(--accent) var(--tint-mix), #fff);
+  /* Same radius as the compatibility module's frame. */
+  border-radius: 20px;
+  /* Keep composited dither and animated cards inside the rounded frame in Safari. */
+  clip-path: inset(0 round 20px);
+  isolation: isolate;
+  transition: flex-grow 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (hover: hover) {
+  /* The tile under the pointer takes more of the row and its neighbours give
+     it up, the farther one giving up more. The gaps never change, and every
+     tile stays square. */
+  .panel:hover {
+    flex-grow: 1.4;
+  }
+
+  /* One along from the hovered tile, on either side. */
+  .panel:hover + .panel,
+  .panel:has(+ .panel:hover) {
+    flex-grow: 1;
+  }
+
+  /* Two along: the far tile gives up the most. */
+  .panel:hover + .panel + .panel,
+  .panel:has(+ .panel + .panel:hover) {
+    flex-grow: 0.8;
+  }
+}
+
+/* The way into the demo. The link covers the whole tile, so anywhere on it
+   opens the demo; its words sit in the top-right, on the name's own line
+   opposite it. */
+.try {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 1.125rem;
+  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  text-decoration: none;
+  /* The tile is one target, so the hand follows the pointer across it. */
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+/* The words and the arrow, centred on each other rather than on the tile. */
+.tryLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Shown on the open tile (on a phone, the one a tap chose), on the tile
+   under a mouse, and on keyboard focus. */
+.panelOpen .try,
+.try:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .panel:hover .try {
+    opacity: 1;
+  }
+}
+
+.tint {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: color-mix(in srgb, var(--accent) var(--tint-mix), #fff);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* On a dark page the accent is taken down to half its chroma first: at the
+   level the fill needs to read, the full accent is too colourful. */
+:global([data-theme="dark"]) .panel {
+  --accent-dark: color-mix(in srgb, var(--accent) 50%, #8a8a8a);
+
+  border-color: color-mix(in srgb, var(--accent-dark) 12%, #000);
+}
+
+:global([data-theme="dark"]) .tint {
+  background: color-mix(in srgb, var(--accent-dark) 12%, #000);
+  mix-blend-mode: screen;
+}
+
+/* The tile's chip and name, side by side at its top-left inset. */
+.head {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-content: start;
+  align-items: center;
+  justify-content: start;
+  justify-items: start;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+  padding: 1.125rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.panelOpen .head {
+  height: auto;
+  padding: 1.125rem 1.125rem 0.75rem;
+  cursor: default;
+}
+
+/* Says what the tile is before it says which one: the tile's own accent on a
+   wash of itself. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px 3px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+}
+
+.label {
+  /* Tinted with the tile's accent so the name reads as part of it. */
+  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* The tile's one line, under its chip and name: the same muted ink as the
+   name's tint, on a row of its own. */
+.description {
+  flex: 0 0 100%;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--accent) 25%, var(--ls-text));
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  /* One line always: on a narrow tile it ends in an ellipsis. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Shown with the Try link, on the tile under the pointer (or the one a tap
+     opened). It keeps its line while hidden, so nothing moves when it shows. */
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.panelOpen .description {
+  opacity: 0.72;
+}
+
+@media (hover: hover) {
+  .panel:hover .description {
+    opacity: 0.72;
+  }
+}
+
+/* A described tile wraps its head instead of laying it out in columns, so
+   the long line never widens the name's column: chip and name on the first
+   row, the line on its own below. */
+.panelDescribed .head {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: center;
+  column-gap: 0.5rem;
+  row-gap: 0;
+}
+
+/* A described tile gives its head one more line before the screen. */
+.panelDescribed .sceneLayer {
+  top: 4.75rem;
+}
+
+/* The head sits at the top of the tile. */
+.headRow {
+  display: flex;
+  align-items: flex-start;
+  height: 100%;
+}
+
+.panelOpen .headRow {
+  align-items: center;
+  height: auto;
+}
+
+/* The window's three buttons, in the sheet's own top-left padding. One dot
+   with two more cast beside it. */
+.chrome {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow:
+    15px 0 0 #febc2e,
+    30px 0 0 #28c840;
+}
+
+/* The answer on a white card, centred in the tile and running off its
+   bottom edge. */
+.card {
+  position: relative;
+  display: none;
+  flex: 1;
+  width: min(100% - 2.5rem, 44rem);
+  min-height: 0;
+  /* 41px, not a round rem: it is what puts the open sheet's top edge on the
+     same line as the still one's, so opening zooms in place. */
+  margin: 39px auto -2rem;
+  padding: clamp(1.75rem, 3.5vw, 3rem) clamp(2rem, 4.5vw, 3.75rem);
+  overflow: hidden;
+  border: 1px solid var(--ls-border);
+  border-radius: 18px;
+  background: var(--ls-surface);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 10px 28px -10px rgba(0, 0, 0, 0.12);
+  transform-origin: 50% 0;
+  transition: scale 360ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.panelOpen .card {
+  display: block;
+  animation: enter 420ms 120ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Waiting: the same card, scaled down and anchored to the tile's top-left,
+   so the tile shows a readable crop of that agent's screen and the card runs
+   past the right edge and the bottom. The layout height is the
+   scale divided back out, plus the overhang that gets cut off. */
+.panel:not(.panelOpen) .card {
+  display: block;
+  position: absolute;
+  /* Centred across the tile, and set lower than the head's own inset. */
+  --mini-scale: calc((100cqw - 3.5rem) / 44rem);
+
+  top: 5.75rem;
+  left: calc((100% - 44rem * var(--mini-scale)) / 2);
+  width: 44rem;
+  height: calc((100% - 2rem) / var(--mini-scale));
+  margin: 0;
+  transform: scale(var(--mini-scale));
+  transform-origin: top left;
+  /* The whole tile is one button; the miniature is not its own target. */
+  pointer-events: none;
+}
+
+/* A described tile's head is one line taller (the line's 20px plus its 2px
+   margin), so its waiting miniature sits that much lower too: opening still
+   zooms in place. */
+.panel.panelDescribed:not(.panelOpen) .card {
+  top: calc(5.75rem + 22px);
+}
+
+.answerClip {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* A drawn screen stands in for the sheet entirely: no white card, no window
+   chrome. It runs the tile's full width, keeps its own proportions, and sits
+   centred in the room left under the head. */
+.sceneLayer {
+  position: absolute;
+  /* The head keeps the top; the screen sits on the tile's bottom edge, inset
+     from the sides so it reads as a thing on the tile rather than the tile. */
+  inset: 3.5rem 0 0;
+  display: flex;
+  align-items: flex-end;
+  padding-inline: 2.5rem;
+  container-type: inline-size;
+  overflow: hidden;
+  /* The tile's radius, less its 2px edge. */
+  border-radius: 0 0 18px 18px;
+}
+
+.sceneFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--scene-w) / var(--scene-h);
+  overflow: hidden;
+  /* Square where it meets the tile's bottom edge. */
+  border-radius: 14px 14px 0 0;
+  /* A white edge around the screen, drawn outside it so it costs no width. */
+  box-shadow: 0 0 0 4px #fff;
+}
+
+.sceneBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--scene-w) * 1px);
+  height: calc(var(--scene-h) * 1px);
+  transform-origin: top left;
+  transform: scale(calc(100cqw / (var(--scene-w) * 1px)));
+}
+
+.answer {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .try,
+  .description,
+  .panel,
+  .card,
+  .panelOpen .card {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* The phone layout's Try button; there is no room for it, and no need, on
+   wider screens, where the whole tile is the link. */
+.tryButton {
+  display: none !important;
+}
+
+/* Wrappers that only the phone layout uses, to unfold a tile's extra parts.
+   Everywhere else they lay out as if they were not there. */
+.more,
+.moreInner,
+.reveal,
+.revealInner {
+  display: contents;
+}
+
+/* ── Phones: the tiles stack as rows. One is always open: its name and chip,
+   its line, a Try button, then its screen. A tap on a closed row opens it
+   and closes the other, both unfolding smoothly. Sizes follow the mobile
+   site: card titles 16px, body 15px, small labels 12px. ── */
+@media (max-width: 767px) {
+  /* In the page's flow, so the stack is as tall as the open tile needs. The
+     homepage stage centres its art with flex, which would otherwise shrink
+     the stack to its narrowest word. */
+  .showcase {
+    position: relative;
+    inset: auto;
+    width: 100%;
+  }
+
+  .track {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+    height: auto;
+  }
+
+  .panel,
+  .flat .panel,
+  .panelOpen {
+    flex: none;
+    aspect-ratio: auto;
+    border-radius: 16px;
+    clip-path: inset(0 round 16px);
+  }
+
+  .panel:not(.panelOpen) {
+    cursor: pointer;
+  }
+
+  /* No link over the tile here: taps open rows, the button leaves. */
+  .try {
+    display: none;
+  }
+
+  .headRow,
+  .panelOpen .headRow {
+    height: auto;
+  }
+
+  /* The name on the left and the chip at the right on one 24px line, 14px
+     in from the top and the sides; what opening adds sits under it. */
+  .head,
+  .panelOpen .head,
+  .panelDescribed .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: center;
+    column-gap: 0.5rem;
+    row-gap: 0;
+    height: auto;
+    padding: 0.875rem 1.125rem;
+  }
+
+  .label {
+    order: 1;
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .chip {
+    order: 2;
+    margin-left: auto;
+  }
+
+  /* ── Unfolding, in one shared timeline so the stack keeps its height:
+       0–150ms   the closing tile's content fades out;
+       150–570ms it collapses while the opening tile expands;
+       520–700ms the opening tile's content fades in.
+     Each part's row goes from 0 to its own height. ── */
+  .more {
+    display: grid;
+    flex: 0 0 100%;
+    order: 3;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms;
+  }
+
+  .reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms;
+  }
+
+  .panelOpen .more,
+  .panelOpen .reveal {
+    grid-template-rows: 1fr;
+  }
+
+  /* Closing: out at once. */
+  .moreInner,
+  .revealInner {
+    display: block;
+    min-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  /* Opening: in once the tile has nearly finished growing. */
+  .panelOpen .moreInner,
+  .panelOpen .revealInner {
+    opacity: 1;
+    transition: opacity 180ms ease 520ms;
+  }
+
+  .description {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    white-space: normal;
+  }
+
+  /* A compact button, sized to its word: 40px tall with a 24px disc, the
+     disc held 8px off the ends like the full-size one's 10px. */
+  .tryButton {
+    display: inline-flex !important;
+    width: auto;
+    height: 2.5rem;
+    gap: 0.625rem;
+    margin: 1rem 0 0.375rem;
+    padding: 0 calc(0.5rem - 1px) 0 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .tryButton > :last-child {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .tryButton > :last-child svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* The drawn screen, the same one as on desktop, under the button: inset
+     like the head and standing on the tile's bottom edge. The 4px on top is
+     room for its white edge, which is drawn outside it. */
+  .panel .sceneLayer {
+    position: relative;
+    inset: auto;
+    padding: 4px 1.125rem 0;
+  }
+
+  .sceneFrame {
+    border-radius: 8px 8px 0 0;
+  }
+
+  /* A recording's sheet: a fixed window onto it, running off the tile's
+     bottom edge. Laid out the same open or closed, so it unfolds rather
+     than appearing. */
+  .panel .card,
+  .panel:not(.panelOpen) .card,
+  .panel.panelDescribed:not(.panelOpen) .card {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: block;
+    flex: none;
+    box-sizing: border-box;
+    width: calc(100% - 2.25rem);
+    height: 16rem;
+    margin: 0 auto -2rem;
+    padding: 1rem;
+    border-radius: 8px;
+    transform: none;
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .more,
+  .reveal,
+  .moreInner,
+  .revealInner,
+  .panelOpen .moreInner,
+  .panelOpen .revealInner {
+    transition: none;
+  }
+}
