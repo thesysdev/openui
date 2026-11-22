@@ -4,7 +4,7 @@
 
 Dashboards are built on `/v1/dashboard/chat/completions`, which needs an OpenUI Cloud that has it. While a dashboard is built, the model can call your data tools and save and run its own data scripts against them, so charts and tables match the data's real shape and every script has run once before the dashboard is saved. `create` and `edit` now return after these rounds, so they take longer and call your tools during the build.
 
-`create` and `edit` take `{ stream: true }` and then yield two messages: one as soon as the dashboard has an id, so renderers can show it building, and one once it is saved or failed. Without it, they resolve once the dashboard starts, as before.
+`create` and `edit` take `{ stream: true }` and then yield two messages: one as soon as the dashboard has an id, so renderers can show it building, and one once it is saved or failed. Without it, they resolve once the dashboard starts generating, after the rounds (typically 20-45 s), and a plain `edit` won't report a failure after that. Both need a route timeout long enough for the rounds.
 
 `defineDashboard` takes `reasoningEffort` (`"minimal" | "low" | "medium" | "high"`), sent as `reasoning_effort` with every round, for models that can think.
 

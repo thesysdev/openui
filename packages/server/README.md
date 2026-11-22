@@ -158,12 +158,13 @@ for conversion without a network request. `apiBaseUrl` and `fetch` work as in
 
 ## Showing a dashboard while it builds
 
-`dashboards.create` and `dashboards.edit` resolve once the dashboard starts generating. Before
-that, the model may call your data tools and check its scripts, which takes a while. If your
-agent framework streams tool output, pass `{ stream: true }` to get two messages instead of
-one: the first as soon as the dashboard has an id, so the renderer can show it building, and the
-last once it is saved or failed, saying which. Each carries the dashboard's reference, so give
-each to the renderer; the last is what your model should read.
+`dashboards.create` and `dashboards.edit` resolve after the model's tool rounds, when the
+dashboard starts generating: typically 20-45 s, while the model calls your data tools and checks
+its scripts. If your agent framework streams tool output, pass `{ stream: true }` to get two
+messages instead of one: "Started…" right away, as soon as the dashboard has an id, so the
+renderer can show it building, and a last one once it is saved or failed ("Created…",
+"Edited…" or "Couldn't…"). Each carries the dashboard's reference, so give each to the
+renderer; the last is what your model should read.
 
 ```ts
 // For example, an AI SDK tool whose execute streams its output.
@@ -174,11 +175,12 @@ async *execute({ title, prompt }) {
 }
 ```
 
-Without `stream`, nothing changes: the call resolves with one message when the dashboard starts.
+`{ stream: true }` is how you learn that a build failed. A plain `edit` returns once the edit
+starts and won't report a later failure.
 
-With `stream: true` the call lasts until the dashboard is saved, often a minute or more. On
-serverless hosts, give the route enough time (for example `export const maxDuration = 300` on
-Vercel), or use the plain call.
+Both forms need a route timeout long enough for the tool rounds, and with `stream: true` the
+call lasts until the dashboard is saved, often a minute or more. On serverless hosts, set it (for
+example `export const maxDuration = 300` on Vercel).
 
 The model may call your data tools for up to 20 rounds before it must write the dashboard. Set
 `maxToolRounds` in `defineDashboard` to change that. With `0` the model calls none of your tools
