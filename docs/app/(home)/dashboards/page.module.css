@@ -23,6 +23,35 @@
   text-wrap: pretty;
 }
 
+/* The showcase under the logo strip: the same measure as the page's other
+   folds, and the home band's own height. */
+.showcaseBand {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(75rem + 2 * clamp(1.25rem, 3vw, 2.5rem));
+  margin-inline: auto;
+  padding-block: clamp(3.5rem, 7vw, 5.5rem) 0;
+  padding-inline: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.showcaseStage {
+  /* Two tiles of this shape, side by side. */
+  --showcase-ratio: 1.45;
+
+  position: relative;
+  width: 100%;
+  /* Taller than a resting tile by the share the hovered one grows. */
+  aspect-ratio: 1120 / 448;
+}
+
+/* Phones stack the tiles, and the stage takes the height they need: the open
+   tile is its head plus its screen (see LangShowcase's phone rules). */
+@media (max-width: 767px) {
+  .showcaseStage {
+    aspect-ratio: auto;
+  }
+}
+
 .container {
   box-sizing: border-box;
   width: 100%;

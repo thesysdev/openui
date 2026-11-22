@@ -133,9 +133,13 @@ export const LANG_PRODUCT: ProductSectionProps = {
      KALLAX answer streams as OpenUI Lang beside its rendered preview. */
   fullBleedArt: true,
   bareStage: true,
-  stageAspectRatio: "1120 / 560",
-  /* Taller on a phone, where the three agent panels stack (the closed two
-     are thin rows, so the open one still gets most of the height). */
-  stageMobileAspectRatio: "3 / 4",
+  /* Three squares in a row, each a third of the width less the two 8px gaps
+     between them. The stage is taller than that, by the share the hovered
+     tile grows: the resting squares sit centred in the slack. */
+  stageAspectRatio: "1120 / 484",
+  /* On a phone the three agent panels stack in the page's flow (the open
+     one with its line, button and screen, the closed two as rows), so the
+     stage takes their height rather than a shape of its own. */
+  stageMobileAspectRatio: "auto",
   cards: [],
 };

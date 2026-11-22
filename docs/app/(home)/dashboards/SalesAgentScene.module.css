@@ -1,0 +1,554 @@
+/* The Sales agent at its own pixel size, light in both themes like the
+   OpenDashboards screen beside it. Everything below is its resting state,
+   the finished dashboard; [data-play="on"] (set by the tile) runs the build
+   from the query builder onward, each step holding where it lands. */
+.scene {
+  position: relative;
+  width: 1200px;
+  height: 660px;
+  overflow: hidden;
+  background: #fafafa;
+  color: #0a0a0b;
+  font-family: var(--home-font-text), sans-serif;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  color-scheme: light;
+}
+
+.scene * {
+  box-sizing: border-box;
+}
+
+/* ── The query builder ── */
+.builder {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #fafafa;
+  /* Only ever seen while the tile plays. */
+  opacity: 0;
+  visibility: hidden;
+}
+
+.sentence {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 12px;
+}
+
+.slot svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.75;
+}
+
+.slotMetric {
+  background: #efedfd;
+  color: #2c2366;
+}
+.slotMetric svg {
+  color: #6d5df0;
+}
+
+.slotRegion {
+  background: #fdeeea;
+  color: #5c2418;
+}
+.slotRegion svg {
+  color: #e0553f;
+}
+
+.slotTime {
+  background: #e6f4f8;
+  color: #123c4a;
+}
+.slotTime svg {
+  color: #2391b3;
+}
+
+.build {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  margin-left: 12px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: #0a0a0b;
+  color: #fff;
+}
+
+.build svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+}
+
+.undo {
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  color: rgb(10 10 11 / 0.4);
+  stroke-width: 2;
+}
+
+/* Inside the button, so it outranks the button's own icon size. */
+.build .cursor {
+  position: absolute;
+  /* Its tip rests on the button, a little right of centre. */
+  top: 55%;
+  left: 58%;
+  width: 26px;
+  height: 26px;
+  fill: #0a0a0b;
+  stroke: #fff;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.2));
+  opacity: 0;
+}
+
+/* ── The answer ── */
+.answer {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px 28px 28px;
+}
+
+.askRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.ask {
+  padding: 10px 16px;
+  border-radius: 16px 16px 4px 16px;
+  background: #ececef;
+  font-size: 15px;
+}
+
+.titleBlock {
+  position: relative;
+  height: 48px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: rgb(10 10 11 / 0.55);
+  font-size: 13px;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  position: relative;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(10 10 11 / 0.07),
+    0 1px 2px rgb(10 10 11 / 0.04);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 64px;
+}
+
+.kpiLabel {
+  color: rgb(10 10 11 / 0.6);
+  font-size: 13px;
+}
+
+.kpiValue {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.good {
+  color: #138a4f;
+}
+
+.kpiNote {
+  color: rgb(10 10 11 / 0.45);
+  font-size: 12px;
+}
+
+.row {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.chartCard,
+.tableCard {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+}
+
+.chartCard > .real,
+.tableCard > .real {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cardSub {
+  margin-top: 2px;
+  color: rgb(10 10 11 / 0.5);
+  font-size: 12.5px;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: rgb(10 10 11 / 0.6);
+  font-size: 12.5px;
+}
+
+.legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.legend i + i,
+.legend .keyActual {
+  margin-left: 10px;
+}
+
+.keyTarget,
+.barTarget {
+  background: #8576f2;
+}
+
+.keyActual,
+.barActual {
+  background: #2bb673;
+}
+
+.plot {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: 44px minmax(0, 1fr);
+  margin-top: 14px;
+}
+
+.axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* Room for the region names under the bars. */
+  padding-bottom: 22px;
+  color: rgb(10 10 11 / 0.45);
+  font-size: 11.5px;
+  line-height: 0;
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Gridlines at 0, 100K, 200K and 300K, above the 22px name row. */
+  background: repeating-linear-gradient(
+      to top,
+      rgb(10 10 11 / 0.07) 0 1px,
+      transparent 1px calc((100% - 22px) / 3)
+    )
+    top / 100% calc(100% - 22px) no-repeat;
+}
+
+.group {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pair {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.pair i {
+  width: 22px;
+  border-radius: 5px 5px 2px 2px;
+  transform-origin: bottom;
+}
+
+.groupName {
+  height: 22px;
+  padding-top: 6px;
+  color: rgb(10 10 11 / 0.55);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  margin-top: 14px;
+}
+
+.tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px 84px 148px;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  border-top: 1px solid rgb(10 10 11 / 0.06);
+  font-size: 13.5px;
+}
+
+.thead {
+  height: 32px;
+  border-top: 0;
+  color: rgb(10 10 11 / 0.5);
+  font-size: 12px;
+}
+
+.num {
+  text-align: right;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: #e7f6ee;
+  color: #11683d;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusMiss {
+  background: #fdecea;
+  color: #b3261e;
+}
+
+/* The shimmer a card shows before its content arrives. Hidden at rest. */
+.skeleton {
+  position: absolute;
+  inset: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.titleBlock .skeleton {
+  inset: 2px 0;
+}
+
+.skeleton i {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+      90deg,
+      rgb(10 10 11 / 0.05) 0%,
+      rgb(10 10 11 / 0.1) 50%,
+      rgb(10 10 11 / 0.05) 100%
+    )
+    0 0 / 200% 100%;
+}
+
+.chartCard .skeleton i:nth-child(n + 3),
+.tableCard .skeleton i:nth-child(n + 3) {
+  height: 28px;
+}
+
+/* ── Playing: builder, click, question, shimmer, then the real thing ── */
+[data-play="on"] .builder {
+  animation: builderOut 1.55s linear both;
+}
+
+[data-play="on"] .cursor {
+  animation: cursorIn 1.2s cubic-bezier(0.3, 0, 0.2, 1) 0.15s both;
+}
+
+[data-play="on"] .build {
+  animation: press 0.22s ease 1.12s both;
+}
+
+[data-play="on"] .ask {
+  animation: pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) 1.45s both;
+}
+
+/* A card appears at its --s as an outline holding shimmer, and its content
+   blurs in over the shimmer at its --r. */
+[data-play="on"] .card {
+  animation: pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) var(--s) both;
+}
+
+[data-play="on"] .titleBlock .skeleton,
+[data-play="on"] .card > .skeleton {
+  animation: shimmerHold calc(var(--r) - var(--s) + 0.2s) linear var(--s) both;
+}
+
+[data-play="on"] .skeleton i {
+  animation: shimmer 1.1s linear infinite;
+}
+
+[data-play="on"] .titleBlock > .real,
+[data-play="on"] .card > .real {
+  animation: blurIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) var(--r) both;
+}
+
+[data-play="on"] .pair i {
+  animation: grow 0.5s cubic-bezier(0.16, 1, 0.3, 1) var(--b) both;
+}
+
+[data-play="on"] .tr:not(.thead) {
+  animation: blurIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) var(--b) both;
+}
+
+@keyframes builderOut {
+  0%,
+  82% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes cursorIn {
+  0% {
+    opacity: 0;
+    transform: translate(150px, 140px);
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    transform: translate(0, 0);
+  }
+  88% {
+    transform: translate(0, 0) scale(0.86);
+  }
+  96% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes press {
+  50% {
+    background: #2a2a2e;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+@keyframes blurIn {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(4px);
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* Shown from its card's arrival until the content has blurred in over it. */
+@keyframes shimmerHold {
+  0%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-play="on"] .scene * {
+    animation: none !important;
+  }
+}

@@ -1,6 +1,6 @@
-/* Three agent panels in a row, one open at a time: the open one takes the
-   width and shows its answer card, the other two fold to a strip with their
-   Shiro and name. */
+/* Three agent panels in a row: equal squares, one open at a time. The open
+   one plays its answer on a card; the other two hold a zoomed crop of
+   theirs, cut off at the right and the bottom. */
 .showcase {
   /* The answer card stays white in both themes: the recordings are white. */
   --ls-surface: #fff;
@@ -10,79 +10,111 @@
   position: absolute;
   z-index: 1;
   inset: 0;
-  display: flex;
-  gap: 0.5rem;
   color: var(--ls-text);
+}
+
+/* Tiles that hold a rectangle instead of a square. They behave exactly as
+   the squares do: the ratio is fixed, so a tile that gives up width gives up
+   height with it, and the stage is taller than the resting tile to leave the
+   hovered one room. */
+.flat .panel {
+  aspect-ratio: var(--showcase-ratio, 1.3);
+}
+
+/* The row the tiles share. They are squares of differing size, so the
+   row centres them on one line. */
+.track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
 }
 
 .panel {
   position: relative;
   display: flex;
-  flex: 0 0 4.5rem;
+  /* An equal share of the row at rest; the square is held by the ratio, not
+     by the stage's height, so a tile can grow without stretching. */
+  flex: 1 1 0;
+  aspect-ratio: 1;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  container-type: inline-size;
   overflow: hidden;
+  /* The same colour the tile fills with, so the edge reads as more of the
+     fill rather than an outline around it. */
+  border: 2px solid color-mix(in srgb, var(--accent) var(--tint-mix), #fff);
   /* Same radius as the compatibility module's frame. */
   border-radius: 20px;
   /* Keep composited dither and animated cards inside the rounded frame in Safari. */
   clip-path: inset(0 round 20px);
   isolation: isolate;
-  transition: flex 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: flex-grow 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.panelOpen {
-  flex: 1 1 0;
+@media (hover: hover) {
+  /* The tile under the pointer takes more of the row and its neighbours give
+     it up, the farther one giving up more. The gaps never change, and every
+     tile stays square. */
+  .panel:hover {
+    flex-grow: 1.4;
+  }
+
+  /* One along from the hovered tile, on either side. */
+  .panel:hover + .panel,
+  .panel:has(+ .panel:hover) {
+    flex-grow: 1;
+  }
+
+  /* Two along: the far tile gives up the most. */
+  .panel:hover + .panel + .panel,
+  .panel:has(+ .panel + .panel:hover) {
+    flex-grow: 0.8;
+  }
 }
 
-/* The same Faded Dither as the other stages... */
-.dither {
+/* The way into the demo. The link covers the whole tile, so anywhere on it
+   opens the demo; its words sit in the top-right, on the name's own line
+   opposite it. */
+.try {
   position: absolute;
-  z-index: -2;
+  z-index: 3;
   inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 1.125rem;
+  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  text-decoration: none;
+  /* The tile is one target, so the hand follows the pointer across it. */
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 240ms ease;
 }
 
-.dither > * {
-  width: 100%;
-  height: 100%;
+/* The words and the arrow, centred on each other rather than on the tile. */
+.tryLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
-/* Towards the bottom the panel dissolves into its own fill. In front of the
-   dither and the answer card (but under the View demo button), so the whole
-   lower edge fades, not just the pattern. */
-.panel::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset: auto 0 0 0;
-  height: 22%;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    color-mix(in srgb, var(--accent) var(--tint-mix), #fff)
-  );
+/* Shown on the open tile (on a phone, the one a tap chose), on the tile
+   under a mouse, and on keyboard focus. */
+.panelOpen .try,
+.try:focus-visible {
+  opacity: 1;
 }
 
-:global([data-theme="dark"]) .panel::after {
-  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 18%, #000));
-}
-
-/* ...tinted from the Shiro, except F1, which takes the faint teal of its
-   answer's charts. Multiply keeps the stipple, so the pattern reads exactly
-   as before, only warmer or cooler. */
-.panel[data-agent="intelligent-ui"] {
-  --accent: #c98b4e;
-  --tint-mix: 6%;
-}
-
-.panel[data-agent="f1"] {
-  --accent: #2fd0b5;
-  --tint-mix: 5%;
-}
-
-.panel[data-agent="travel"] {
-  --accent: #fe5d71;
-  --tint-mix: 6%;
+@media (hover: hover) {
+  .panel:hover .try {
+    opacity: 1;
+  }
 }
 
 .tint {
@@ -94,40 +126,112 @@
   pointer-events: none;
 }
 
+/* On a dark page the accent is taken down to half its chroma first: at the
+   level the fill needs to read, the full accent is too colourful. */
+:global([data-theme="dark"]) .panel {
+  --accent-dark: color-mix(in srgb, var(--accent) 50%, #8a8a8a);
+
+  border-color: color-mix(in srgb, var(--accent-dark) 12%, #000);
+}
+
 :global([data-theme="dark"]) .tint {
-  background: color-mix(in srgb, var(--accent) 18%, #000);
+  background: color-mix(in srgb, var(--accent-dark) 12%, #000);
   mix-blend-mode: screen;
 }
 
-/* The panel's Shiro and name, at the top in both states so the Shiro stays
-   put as a panel opens: closed, the name runs down the strip under it; open,
-   it sits beside it. The open padding lines the Shiro up with the strip's. */
+/* The tile's chip and name, side by side at its top-left inset. */
 .head {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-content: start;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.75rem;
+  justify-content: start;
+  justify-items: start;
+  gap: 0.5rem;
   width: 100%;
   height: 100%;
-  padding: 1rem 1.125rem;
+  padding: 1.125rem;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
-  cursor: pointer;
 }
 
 .panelOpen .head {
-  flex-direction: row;
-  justify-content: flex-start;
-  width: auto;
   height: auto;
-  padding: 1rem 1.125rem 0.75rem;
+  padding: 1.125rem 1.125rem 0.75rem;
   cursor: default;
 }
 
-/* The head and, when open, its "View demo" pill on the right. */
+/* Says what the tile is before it says which one: the tile's own accent on a
+   wash of itself. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px 3px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+}
+
+.label {
+  /* Tinted with the tile's accent so the name reads as part of it. */
+  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* The tile's one line, under its chip and name: the same muted ink as the
+   name's tint, on a row of its own. */
+.description {
+  flex: 0 0 100%;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--accent) 25%, var(--ls-text));
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  /* One line always: on a narrow tile it ends in an ellipsis. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Shown with the Try link, on the tile under the pointer (or the one a tap
+     opened). It keeps its line while hidden, so nothing moves when it shows. */
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.panelOpen .description {
+  opacity: 0.72;
+}
+
+@media (hover: hover) {
+  .panel:hover .description {
+    opacity: 0.72;
+  }
+}
+
+/* A described tile wraps its head instead of laying it out in columns, so
+   the long line never widens the name's column: chip and name on the first
+   row, the line on its own below. */
+.panelDescribed .head {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: center;
+  column-gap: 0.5rem;
+  row-gap: 0;
+}
+
+/* A described tile gives its head one more line before the screen. */
+.panelDescribed .sceneLayer {
+  top: 4.75rem;
+}
+
+/* The head sits at the top of the tile. */
 .headRow {
   display: flex;
   align-items: flex-start;
@@ -139,104 +243,42 @@
   height: auto;
 }
 
-/* "View demo", the site's own pill, on the card's faded bottom edge. It
-   shows while the open panel is hovered or focused, as the card lifts and its
-   fade deepens; on touch screens, which cannot hover, it always shows. */
-.demo {
+/* The window's three buttons, in the sheet's own top-left padding. One dot
+   with two more cast beside it. */
+.chrome {
   position: absolute;
-  z-index: 2;
-  bottom: 1.75rem;
-  left: 50%;
-  opacity: 0;
-  transform: translate(-50%, 6px);
-  transition:
-    opacity 240ms ease,
-    transform 240ms ease;
-}
-
-.panelOpen:hover .demo,
-.panelOpen:focus-within .demo {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-/* Just the pill, lifted off the content by a soft shadow: no ring or edge. */
-.demo > a {
-  border-color: transparent;
+  top: 14px;
+  left: 16px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff5f57;
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.03),
-    0 12px 40px -4px rgba(0, 0, 0, 0.1);
+    15px 0 0 #febc2e,
+    30px 0 0 #28c840;
 }
 
-@media (hover: none) {
-  .demo {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-.mascot {
-  flex: none;
-  width: 2.25rem;
-  height: auto;
-  transition: transform 240ms ease;
-}
-
-.panel:not(.panelOpen) .head:hover .mascot {
-  transform: translateY(-3px) rotate(-4deg);
-}
-
-/* The woodworker's drawing is wider (it holds a hammer and a brush), so its
-   face reads small at the shared width; it gets more room, and the padding
-   shrinks to keep it centred on the strip. */
-[data-agent="intelligent-ui"] .mascot {
-  width: 2.875rem;
-}
-
-[data-agent="intelligent-ui"] .head {
-  padding-inline: 0.8125rem;
-}
-
-/* Closed, the name runs down the strip. */
-.panel:not(.panelOpen) .label {
-  writing-mode: vertical-rl;
-}
-
-.label {
-  /* Tinted with the panel's accent so the name reads as part of it. */
-  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* The answer on a white card lifted off the dither by its shadow, centred in
-   the panel and running off its bottom edge. The answer inside fades out
-   there like the hero's preview (masking the card would clip its shadow). */
+/* The answer on a white card, centred in the tile and running off its
+   bottom edge. */
 .card {
   position: relative;
   display: none;
   flex: 1;
   width: min(100% - 2.5rem, 44rem);
   min-height: 0;
-  margin: 0.25rem auto -2rem;
+  /* 41px, not a round rem: it is what puts the open sheet's top edge on the
+     same line as the still one's, so opening zooms in place. */
+  margin: 39px auto -2rem;
   padding: clamp(1.75rem, 3.5vw, 3rem) clamp(2rem, 4.5vw, 3.75rem);
   overflow: hidden;
   border: 1px solid var(--ls-border);
   border-radius: 18px;
   background: var(--ls-surface);
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 24px 56px -18px rgba(0, 0, 0, 0.28);
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 10px 28px -10px rgba(0, 0, 0, 0.12);
   transform-origin: 50% 0;
   transition: scale 360ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-/* The card lifts while the View demo button is hovered or focused. */
-.panelOpen:has(.demo a:hover, .demo a:focus-visible) .card {
-  scale: 1.02;
 }
 
 .panelOpen .card {
@@ -244,9 +286,75 @@
   animation: enter 420ms 120ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
+/* Waiting: the same card, scaled down and anchored to the tile's top-left,
+   so the tile shows a readable crop of that agent's screen and the card runs
+   past the right edge and the bottom. The layout height is the
+   scale divided back out, plus the overhang that gets cut off. */
+.panel:not(.panelOpen) .card {
+  display: block;
+  position: absolute;
+  /* Centred across the tile, and set lower than the head's own inset. */
+  --mini-scale: calc((100cqw - 3.5rem) / 44rem);
+
+  top: 5.75rem;
+  left: calc((100% - 44rem * var(--mini-scale)) / 2);
+  width: 44rem;
+  height: calc((100% - 2rem) / var(--mini-scale));
+  margin: 0;
+  transform: scale(var(--mini-scale));
+  transform-origin: top left;
+  /* The whole tile is one button; the miniature is not its own target. */
+  pointer-events: none;
+}
+
+/* A described tile's head is one line taller (the line's 20px plus its 2px
+   margin), so its waiting miniature sits that much lower too: opening still
+   zooms in place. */
+.panel.panelDescribed:not(.panelOpen) .card {
+  top: calc(5.75rem + 22px);
+}
+
 .answerClip {
   height: 100%;
   overflow: hidden;
+}
+
+/* A drawn screen stands in for the sheet entirely: no white card, no window
+   chrome. It runs the tile's full width, keeps its own proportions, and sits
+   centred in the room left under the head. */
+.sceneLayer {
+  position: absolute;
+  /* The head keeps the top; the screen sits on the tile's bottom edge, inset
+     from the sides so it reads as a thing on the tile rather than the tile. */
+  inset: 3.5rem 0 0;
+  display: flex;
+  align-items: flex-end;
+  padding-inline: 2.5rem;
+  container-type: inline-size;
+  overflow: hidden;
+  /* The tile's radius, less its 2px edge. */
+  border-radius: 0 0 18px 18px;
+}
+
+.sceneFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--scene-w) / var(--scene-h);
+  overflow: hidden;
+  /* Square where it meets the tile's bottom edge. */
+  border-radius: 14px 14px 0 0;
+  /* A white edge around the screen, drawn outside it so it costs no width. */
+  box-shadow: 0 0 0 4px #fff;
+}
+
+.sceneBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--scene-w) * 1px);
+  height: calc(var(--scene-h) * 1px);
+  transform-origin: top left;
+  transform: scale(calc(100cqw / (var(--scene-w) * 1px)));
 }
 
 .answer {
@@ -263,9 +371,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .try,
+  .description,
   .panel,
-  .mascot,
-  .demo,
   .card,
   .panelOpen .card {
     animation: none;
@@ -273,75 +381,204 @@
   }
 }
 
-/* ── Phones: the panels stack, the closed two as short rows. Keep the same
-   gutters as the product CTAs above. Everything inside is smaller, so the
-   open answer reads like a zoomed-out page. ── */
+/* The phone layout's Try button; there is no room for it, and no need, on
+   wider screens, where the whole tile is the link. */
+.tryButton {
+  display: none !important;
+}
+
+/* Wrappers that only the phone layout uses, to unfold a tile's extra parts.
+   Everywhere else they lay out as if they were not there. */
+.more,
+.moreInner,
+.reveal,
+.revealInner {
+  display: contents;
+}
+
+/* ── Phones: the tiles stack as rows. One is always open: its name and chip,
+   its line, a Try button, then its screen. A tap on a closed row opens it
+   and closes the other, both unfolding smoothly. Sizes follow the mobile
+   site: card titles 16px, body 15px, small labels 12px. ── */
 @media (max-width: 767px) {
+  /* In the page's flow, so the stack is as tall as the open tile needs. The
+     homepage stage centres its art with flex, which would otherwise shrink
+     the stack to its narrowest word. */
   .showcase {
-    inset: 0;
-    flex-direction: column;
-    gap: 0.375rem;
+    position: relative;
+    inset: auto;
+    width: 100%;
   }
 
-  .panel {
-    flex: 0 0 3rem;
+  .track {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+    height: auto;
+  }
+
+  .panel,
+  .flat .panel,
+  .panelOpen {
+    flex: none;
+    aspect-ratio: auto;
     border-radius: 16px;
     clip-path: inset(0 round 16px);
   }
 
-  /* No dither on phones: just the flat tint. */
-  .dither {
+  .panel:not(.panelOpen) {
+    cursor: pointer;
+  }
+
+  /* No link over the tile here: taps open rows, the button leaves. */
+  .try {
     display: none;
   }
 
-  .panelOpen {
-    flex: 1 1 0;
+  .headRow,
+  .panelOpen .headRow {
+    height: auto;
   }
 
-  .head {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 0.625rem;
-    padding: 0.375rem 0.875rem;
-  }
-
-  .mascot,
-  .panelOpen .mascot {
-    width: 1.875rem;
-  }
-
-  [data-agent="intelligent-ui"] .mascot {
-    width: 2.375rem;
-  }
-
-  [data-agent="intelligent-ui"] .head {
-    padding-inline: 0.625rem;
+  /* The name on the left and the chip at the right on one 24px line, 14px
+     in from the top and the sides; what opening adds sits under it. */
+  .head,
+  .panelOpen .head,
+  .panelDescribed .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: center;
+    column-gap: 0.5rem;
+    row-gap: 0;
+    height: auto;
+    padding: 0.875rem 1.125rem;
   }
 
   .label {
-    font-size: 0.6875rem;
+    order: 1;
+    font-size: 1rem;
+    line-height: 1.5rem;
   }
 
-  .panel:not(.panelOpen) .label {
-    writing-mode: horizontal-tb;
-    transform: none;
+  .chip {
+    order: 2;
+    margin-left: auto;
   }
 
-  /* Open, the head lines up with the card's inset below it. */
-  .panelOpen .head {
-    padding: 0.625rem 1rem 0.5rem;
+  /* ── Unfolding, in one shared timeline so the stack keeps its height:
+       0–150ms   the closing tile's content fades out;
+       150–570ms it collapses while the opening tile expands;
+       520–700ms the opening tile's content fades in.
+     Each part's row goes from 0 to its own height. ── */
+  .more {
+    display: grid;
+    flex: 0 0 100%;
+    order: 3;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms;
   }
 
-  /* The card sits 16px in from the panel's edges, and its answer 16px in
-     from the card's, so neither runs flush. */
-  .card {
-    width: calc(100% - 2rem);
-    margin-top: 0;
+  .reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 420ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms;
+  }
+
+  .panelOpen .more,
+  .panelOpen .reveal {
+    grid-template-rows: 1fr;
+  }
+
+  /* Closing: out at once. */
+  .moreInner,
+  .revealInner {
+    display: block;
+    min-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  /* Opening: in once the tile has nearly finished growing. */
+  .panelOpen .moreInner,
+  .panelOpen .revealInner {
+    opacity: 1;
+    transition: opacity 180ms ease 520ms;
+  }
+
+  .description {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    white-space: normal;
+  }
+
+  /* A compact button, sized to its word: 40px tall with a 24px disc, the
+     disc held 8px off the ends like the full-size one's 10px. */
+  .tryButton {
+    display: inline-flex !important;
+    width: auto;
+    height: 2.5rem;
+    gap: 0.625rem;
+    margin: 1rem 0 0.375rem;
+    padding: 0 calc(0.5rem - 1px) 0 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .tryButton > :last-child {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .tryButton > :last-child svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* The drawn screen, the same one as on desktop, under the button: inset
+     like the head and standing on the tile's bottom edge. The 4px on top is
+     room for its white edge, which is drawn outside it. */
+  .panel .sceneLayer {
+    position: relative;
+    inset: auto;
+    padding: 4px 1.125rem 0;
+  }
+
+  .sceneFrame {
+    border-radius: 8px 8px 0 0;
+  }
+
+  /* A recording's sheet: a fixed window onto it, running off the tile's
+     bottom edge. Laid out the same open or closed, so it unfolds rather
+     than appearing. */
+  .panel .card,
+  .panel:not(.panelOpen) .card,
+  .panel.panelDescribed:not(.panelOpen) .card {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: block;
+    flex: none;
+    box-sizing: border-box;
+    width: calc(100% - 2.25rem);
+    height: 16rem;
+    margin: 0 auto -2rem;
     padding: 1rem;
-    border-radius: 14px;
+    border-radius: 8px;
+    transform: none;
+    animation: none;
   }
+}
 
-  .demo {
-    bottom: 1.25rem;
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .more,
+  .reveal,
+  .moreInner,
+  .revealInner,
+  .panelOpen .moreInner,
+  .panelOpen .revealInner {
+    transition: none;
   }
 }
