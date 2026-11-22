@@ -1,6 +1,7 @@
 import { Chip } from "@/components/charts/primitives";
 import viz from "@/components/charts/viz.module.css";
 import { MarketingTable } from "@/components/marketing-table";
+import { SITE_NAV_LINKS } from "@/lib/site-nav-links";
 import { Check, X } from "@phosphor-icons/react/dist/ssr";
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
@@ -16,8 +17,11 @@ import { DashboardFeatures } from "./DashboardFeatures";
 import { DashboardHeroStage, ModelProof } from "./DashboardHero";
 import { DashboardIntegration } from "./DashboardIntegration";
 import { DashboardNumbers } from "./DashboardNumbers";
+import { DashboardShowcase, type ShowcaseAgent } from "./DashboardShowcase";
 import { DashboardStory } from "./DashboardStory";
 import { FaqSection } from "./FaqSection";
+import { OPENDASHBOARDS_APP, OpenDashboardsApp } from "./OpenDashboardsApp";
+import { SALES_AGENT_SCENE, SalesAgentScene } from "./SalesAgentScene";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -40,6 +44,39 @@ const COMPARISON = [
   { label: "Reliability", without: "Breaks on bad markup", with: "Self-repairs" },
   { label: "Live data", without: "A frozen snapshot", with: "Always current" },
   { label: "Design", without: "Inline styles", with: "Your components" },
+];
+
+/* The two tiles under the logo strip: something built with the product, and
+   the product itself. Both are drawn screens, light in both themes, that
+   replay while the pointer is on them. */
+const SHOWCASE: ShowcaseAgent[] = [
+  {
+    id: "sales-agent",
+    label: "Sales AI agent",
+    description: "Ask a sales question, get a live dashboard. Built on real data.",
+    accent: "#2fd0b5",
+    tintMix: "5%",
+    demo: SITE_NAV_LINKS.salesDashboard.href,
+    scene: {
+      node: <SalesAgentScene />,
+      width: SALES_AGENT_SCENE.width,
+      height: SALES_AGENT_SCENE.height,
+    },
+  },
+  {
+    id: "opendashboards",
+    kind: "Product",
+    label: "OpenDashboards",
+    description: "Connect your data sources and ask for the dashboards you need.",
+    accent: "#4f7df3",
+    demo: SITE_NAV_LINKS.dashboards.href,
+    cta: "Visit",
+    scene: {
+      node: <OpenDashboardsApp />,
+      width: OPENDASHBOARDS_APP.width,
+      height: OPENDASHBOARDS_APP.height,
+    },
+  },
 ];
 
 export default function DashboardsPage() {
@@ -94,6 +131,15 @@ export default function DashboardsPage() {
           mobilePreviewSlot={<DashboardHeroStage />}
         />
         <LogoStrip title="Teams building with OpenUI" />
+
+        {/* The product and a demo built on it, side by side under the logos.
+            Wide tiles rather than the home page's squares: two squares across
+            this measure would be far taller than the band. */}
+        <div className={styles.showcaseBand}>
+          <div className={styles.showcaseStage}>
+            <DashboardShowcase agents={SHOWCASE} />
+          </div>
+        </div>
       </div>
 
       <main>
