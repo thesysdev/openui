@@ -124,7 +124,7 @@ export const styles = {
     flex: 1;
     min-height: 120px;
     overflow: auto;
-    // Drawn inside the element: a tile in a strip that hides overflow keeps all four sides.
+    /* Drawn inside the element: a tile in a strip that hides overflow keeps all four sides. */
     & [data-openui-selected] {
       outline: 2px solid var(--openui-interactive-accent-default);
       outline-offset: -2px;
@@ -170,12 +170,10 @@ export const styles = {
   panel: css`
     padding: var(--openui-space-l) var(--openui-space-xl);
   `,
-  // Inspect mode: components marked with bindSource show where a click lands.
+  // Inspect mode: what a click would select is outlined under the mouse.
   inspecting: css`
-    & [data-openui-source] {
+    & [data-openui-hover]:not([data-openui-selected]) {
       cursor: pointer;
-    }
-    & [data-openui-source]:hover {
       outline: 1px dashed var(--openui-interactive-accent-default);
       outline-offset: -2px;
     }

@@ -395,6 +395,27 @@ export function ArtifactRendererRoot({
     },
     [inspecting],
   );
+  // While inspecting, what a click would select gets a hover outline, for any component:
+  // set on the element directly, so moving the mouse re-renders nothing.
+  const hovered = useRef<Element | null>(null);
+  const setHovered = useCallback((element: Element | null) => {
+    if (hovered.current === element) return;
+    hovered.current?.removeAttribute("data-openui-hover");
+    element?.setAttribute("data-openui-hover", "");
+    hovered.current = element;
+  }, []);
+  const onInspectHover = useCallback(
+    (event: SyntheticEvent) => {
+      const target = readSourceTarget(event.target, rootRef.current);
+      setHovered(target ? (target.propElement ?? target.element) : null);
+    },
+    [setHovered],
+  );
+  const clearHovered = useCallback(() => setHovered(null), [setHovered]);
+  useEffect(() => {
+    if (!inspecting) clearHovered();
+    return clearHovered;
+  }, [inspecting, clearHovered]);
   // Another artifact: start over. (Closing or a remount for live data unmounts the bridge,
   // which clears the selection too.)
   // An edit can give a component id (`lead.2`) to another component: start over too.
@@ -435,6 +456,8 @@ export function ArtifactRendererRoot({
             onClickCapture={inspecting ? onInspectCapture : undefined}
             onPointerDownCapture={inspecting ? onInspectCapture : undefined}
             onMouseDownCapture={inspecting ? onInspectCapture : undefined}
+            onMouseOver={inspecting ? onInspectHover : undefined}
+            onMouseLeave={inspecting ? clearHovered : undefined}
           >
             {preview ? (
               <>
