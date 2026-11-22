@@ -147,35 +147,20 @@ function extractRegions(children: ReactNode) {
 }
 
 /**
- * Whether two `useDataSources` results show the same: same names, and the same values by identity.
- * Compares every field of `DataSources`; a new field there needs comparing here too.
+ * Whether two `useDataSources` results show the same values. Props are left out: they change
+ * only with the program, and an edit clears the selection.
  */
 function sameSources(a: ProvenanceSources, b: ProvenanceSources): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  const sameList = (x: readonly unknown[], y: readonly unknown[]) =>
-    x.length === y.length && x.every((v, i) => Object.is(v, y[i]));
-  const sameRecord = (x: Record<string, unknown>, y: Record<string, unknown>) =>
-    sameList(Object.keys(x), Object.keys(y)) && Object.keys(x).every((k) => Object.is(x[k], y[k]));
+  if (a === b || !a || !b) return a === b;
+  const same = (x: object, y: object) =>
+    Object.keys(x).length === Object.keys(y).length &&
+    Object.entries(x).every(([k, v]) => Object.is(v, (y as Record<string, unknown>)[k]));
   return (
-    sameList(a.via, b.via) &&
-    sameRecord(a.state, b.state) &&
-    sameRecord(a.formulas, b.formulas) &&
+    a.via.join() === b.via.join() &&
+    same(a.state, b.state) &&
+    same(a.formulas, b.formulas) &&
     a.queries.length === b.queries.length &&
-    a.queries.every((q, i) => sameRecord({ ...q }, { ...b.queries[i] })) &&
-    sameRecord(
-      Object.fromEntries(Object.entries(a.props ?? {}).map(([k, p]) => [k, p.expr])),
-      Object.fromEntries(Object.entries(b.props ?? {}).map(([k, p]) => [k, p.expr])),
-    ) &&
-    Object.entries(a.props ?? {}).every(([k, p]) => {
-      const q = b.props?.[k];
-      return (
-        !!q &&
-        sameList(p.queries, q.queries) &&
-        sameList(p.via, q.via) &&
-        sameRecord(p.state, q.state)
-      );
-    })
+    a.queries.every((q, i) => same(q, b.queries[i]!))
   );
 }
 
