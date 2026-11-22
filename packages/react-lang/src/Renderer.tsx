@@ -189,7 +189,7 @@ function rendersSame(a: unknown, b: unknown, depth = 0): boolean {
       isElementNode(b) &&
       a.typeName === b.typeName &&
       a.statementId === b.statementId &&
-      a.inlineId === b.inlineId &&
+      a.componentId === b.componentId &&
       rendersSame(a.props, b.props, depth + 1)
     );
   }
@@ -241,7 +241,7 @@ const RenderNode = React.memo(
  */
 function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRenderer<any> }) {
   const renderNode = useRenderNode();
-  const id = el.statementId ?? el.inlineId;
+  const id = el.statementId ?? el.componentId;
   const bindSource = useMemo(() => createBindSource(id), [id]);
   return (
     <Comp

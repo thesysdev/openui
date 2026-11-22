@@ -27,7 +27,7 @@ interface PropSources extends Sources {
  * the statement. A named one does not (ask for it by its name), nor does a Mutation or an
  * action. A query counts what its tool name and arguments read.
  *
- * `id` is a statement's name, or an inline component's `inlineId` (`name.n`): then only that
+ * `id` is a statement's name, or a component id (`name.n`): then only that
  * component counts, and a name an `@Each` binds reads the list it iterates. Null when `result`
  * is not one the parser returned, or has no such statement or component.
  */
@@ -50,7 +50,7 @@ export function dataSources(
   if (statementId !== id) {
     own = undefined;
     walkAST(statement, (node) => {
-      if (node.k === "Comp" && node.inlineId === id) own = node;
+      if (node.k === "Comp" && node.componentId === id) own = node;
       const def = node.k === "Comp" ? calls.get(node.name) : undefined;
       if (node.k !== "Comp" || def?.kind !== "function" || !def.lazy || node.args.length < 3)
         return;
@@ -58,7 +58,7 @@ export function dataSources(
       const encloses = node.args.slice(2).some((arg) => {
         let found = false;
         walkAST(arg, (inner) => {
-          if (inner.k === "Comp" && inner.inlineId === id) found = true;
+          if (inner.k === "Comp" && inner.componentId === id) found = true;
         });
         return found;
       });

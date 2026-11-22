@@ -438,7 +438,7 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
         props,
         partial: ctx.partial,
         hasDynamicProps,
-        ...(node.inlineId ? { inlineId: node.inlineId } : {}),
+        ...(node.componentId ? { componentId: node.componentId } : {}),
       };
     }
 

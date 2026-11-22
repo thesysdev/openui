@@ -48,7 +48,7 @@ interface DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> {
 }
 ```
 
-The `component` receives `{ props, renderNode, statementId, bindSource }`. `bindSource()` returns data attributes that mark the component's root element, and `bindSource("value")` marks the element that shows that prop, for an inspect mode such as `LiveArtifactRenderer`'s `enableProvenance`. Spread them onto existing elements. They change nothing visible. A component written inside a statement is marked with its inline id (`lead.2`).
+The `component` receives `{ props, renderNode, statementId, bindSource }`. `bindSource()` returns data attributes that mark the component's root element, and `bindSource("value")` marks the element that shows that prop, for an inspect mode such as `LiveArtifactRenderer`'s `enableProvenance`. Spread them onto existing elements. They change nothing visible. A component written inside a statement is marked with its component id (`lead.2`).
 
 ```tsx
 const Metric = defineComponent({
@@ -469,7 +469,7 @@ function readSourceTarget(
   /** The element of the UI that owns the inspect mode: components above it are not returned. */
   boundary?: Element | null,
 ): {
-  /** The component's statement name, or its inline id (`lead.2`). */
+  /** The component's statement name, or its component id (`lead.2`). */
   id: string;
   /** Set when the click landed on an element marked with bindSource("prop"). */
   prop?: string;
@@ -479,7 +479,7 @@ function readSourceTarget(
 } | null;
 ```
 
-A component written inside a statement resolves to its inline id, such as `lead.2`: the third component call inside `lead`. Every item of an `@Each` shares its template's id.
+A component written inside a statement resolves to its component id, such as `lead.2`: the third component call inside `lead`. Every item of an `@Each` shares its template's id.
 
 ## Context hooks (inside renderer components)
 
@@ -504,7 +504,9 @@ function useIsStreaming(): boolean;
 function useIsQueryLoading(): boolean;
 // Where a component's data comes from: its queries (tool, arguments, loading, result), the
 // statements in between with their text, and the $variables it reads, also by prop. Pass the
-// statementId the component receives, or an inline component's id (`lead.2`).
+// statementId the component receives, or a component id (`lead.2`) such as readSourceTarget's
+// `id`; a component written inside a statement receives no statementId of its own. A prop with
+// no queries and no state is written in the program, or reads a Mutation's result.
 function useDataSources(id: string | undefined): {
   queries: {
     statementId: string;

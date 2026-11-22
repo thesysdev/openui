@@ -212,7 +212,9 @@ function SourcesPanel() {
 | `clearSelection`                | Closes the panel.                                                                                                                            |
 | `sources`                       | [`useDataSources`](/docs/api-reference/react-lang#context-hooks-inside-renderer-components) for the selection.                               |
 
-In React on the web, components are found without any change to the library, through React's own tree. Where that tree can't be read, only components marked with `bindSource()` are found. To make a prop clickable on its own, mark its element with `bindSource("prop")` in the component (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component written inside a statement, such as one Kpi among several, selects on its own. Its id is its position inside the statement (`lead.1`), so an edit to the dashboard can renumber it, and clears the selection; every item an `@Each` draws shares one id.
+In React on the web, components are found without any change to the library, through React's own tree. Where that tree can't be read, only components marked with `bindSource()` are found. To make a prop clickable on its own, mark its element with `bindSource("prop")` in the component (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component written inside a statement, such as one Kpi among several, selects on its own. Its id is its position inside the statement (`lead.1`), so an edit to the dashboard can renumber it, and clears the selection; every item an `@Each` draws shares one id. The selection also clears when its component replaces the selected element, such as when its data loads.
+
+Pass the same `library` object on every render, such as one created at module level: a new library each render makes the whole dashboard render again.
 
 ## Theme
 

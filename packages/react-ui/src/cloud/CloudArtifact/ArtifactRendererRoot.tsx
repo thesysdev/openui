@@ -32,12 +32,12 @@ import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ContentConfigContext,
+  createSourcesStore,
   ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
   type ContentConfig,
   type ProvenanceContextValue,
-  type ProvenanceSources,
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
 import {
@@ -144,24 +144,6 @@ function extractRegions(children: ReactNode) {
     else chrome = child;
   });
   return { preview, chrome };
-}
-
-/**
- * Whether two `useDataSources` results show the same values. Props are left out: they change
- * only with the program, and an edit clears the selection.
- */
-function sameSources(a: ProvenanceSources, b: ProvenanceSources): boolean {
-  if (a === b || !a || !b) return a === b;
-  const same = (x: object, y: object) =>
-    Object.keys(x).length === Object.keys(y).length &&
-    Object.entries(x).every(([k, v]) => Object.is(v, (y as Record<string, unknown>)[k]));
-  return (
-    a.via.join() === b.via.join() &&
-    same(a.state, b.state) &&
-    same(a.formulas, b.formulas) &&
-    a.queries.length === b.queries.length &&
-    a.queries.every((q, i) => same(q, b.queries[i]!))
-  );
 }
 
 /** The shared renderer: streaming, live data, errors, open state, slots and layout. */
@@ -381,27 +363,15 @@ export function ArtifactRendererRoot({
   const rootRef = useRef<HTMLDivElement>(null);
   const [isInspecting, setInspecting] = useState(false);
   const [selection, setSelection] = useState<SourceTarget | null>(null);
-  // The bridge inside `Renderer` resolves the selection's sources; they count only for that statement.
-  const [resolved, setResolved] = useState<{ id?: string; sources: ProvenanceSources }>({
-    sources: null,
-  });
-  // Unchanged sources keep the state as is, even as a new object: a new context alone must not
-  // re-render the root, which would render the bridge again.
-  const setSources = useCallback(
-    (sources: ProvenanceSources, id: string | undefined) =>
-      setResolved((prev) =>
-        prev.id === id && sameSources(prev.sources, sources) ? prev : { id, sources },
-      ),
-    [],
-  );
-  const sources = selection && resolved.id === selection.id ? resolved.sources : null;
+  // The bridge inside `Renderer` writes the selection's sources here, for `useArtifactProvenance()`.
+  const [sourcesStore] = useState(createSourcesStore);
   const clearSelection = useCallback(() => setSelection(null), []);
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       enableProvenance
-        ? { isInspecting, setInspecting, selection, clearSelection, sources, setSources }
+        ? { isInspecting, setInspecting, selection, clearSelection, sourcesStore }
         : null,
-    [enableProvenance, isInspecting, selection, clearSelection, sources, setSources],
+    [enableProvenance, isInspecting, selection, clearSelection, sourcesStore],
   );
   const inspecting = enableProvenance && isInspecting;
   // While inspecting, pressing a component selects it instead of acting: buttons, links,
@@ -427,7 +397,7 @@ export function ArtifactRendererRoot({
   );
   // Another artifact: start over. (Closing or a remount for live data unmounts the bridge,
   // which clears the selection too.)
-  // An edit can give an inline id (`lead.2`) to another component: start over too.
+  // An edit can give a component id (`lead.2`) to another component: start over too.
   useEffect(() => setSelection(null), [id, program]);
   // Outline the selected component and prop.
   useEffect(() => {
@@ -436,7 +406,15 @@ export function ArtifactRendererRoot({
       (el): el is Element => el !== undefined,
     );
     marked.forEach((el) => el.setAttribute("data-openui-selected", ""));
-    return () => marked.forEach((el) => el.removeAttribute("data-openui-selected"));
+    // A component can replace a selected element, e.g. when data loads: the selection is gone.
+    const observer = new MutationObserver(() => {
+      if (!marked.every((el) => el.isConnected)) setSelection(null);
+    });
+    if (rootRef.current) observer.observe(rootRef.current, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      marked.forEach((el) => el.removeAttribute("data-openui-selected"));
+    };
   }, [enableProvenance, selection]);
 
   // ── Slots and layout ──

@@ -74,7 +74,7 @@ export interface ElementNode {
   /** Source variable name (e.g. "header" from `header = TextContent(...)`). Undefined for inline components. */
   statementId?: string;
   /** The component call's id: its statement's name, or `name.n` for the nth call inside statement `name`. */
-  inlineId?: string;
+  componentId?: string;
   /** Component name as defined in the library (e.g. "Table", "BarChart"). */
   typeName: string;
   /** Named props produced by positional-to-named mapping in the parser. */

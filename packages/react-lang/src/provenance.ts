@@ -18,7 +18,7 @@ export type BindSource<P = Record<string, unknown>> = (
 
 /** The component, and prop, a click landed on. */
 export interface SourceTarget {
-  /** The component's statement name, or its inline id (`lead.1`) when it is written inside one. */
+  /** The component's statement name, or its component id (`lead.1`) when it is written inside one. */
   id: string;
   /** The prop whose element was clicked, when the component marks it with `bindSource("prop")`. */
   prop?: string;
@@ -136,9 +136,10 @@ function nearestRenderedComponent(
   for (let fiber = fiberOf(start); fiber; fiber = fiber.return) {
     if (boundary && fiber.stateNode === boundary) return "boundary";
     if (!renderNodeTypes.has(fiber.type as object)) continue;
-    const el = (fiber.memoizedProps as { el?: { statementId?: string; inlineId?: string } } | null)
-      ?.el;
-    const id = el?.statementId ?? el?.inlineId;
+    const el = (
+      fiber.memoizedProps as { el?: { statementId?: string; componentId?: string } } | null
+    )?.el;
+    const id = el?.statementId ?? el?.componentId;
     if (id) return { id, firstElement: firstElement(fiber) };
   }
   return null;

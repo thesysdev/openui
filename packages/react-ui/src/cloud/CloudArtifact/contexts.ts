@@ -1,5 +1,5 @@
 import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
 /** The renderer's state and controls, from `useArtifactRenderer()`. */
@@ -86,9 +86,45 @@ export interface ArtifactProvenanceState {
   sources: ProvenanceSources;
 }
 
-/** The renderer's provenance state; `setSources` is for the bridge inside `Renderer`. */
-export interface ProvenanceContextValue extends ArtifactProvenanceState {
-  setSources: (sources: ProvenanceSources, id: string | undefined) => void;
+/** The sources the bridge inside `Renderer` found, for the selection with this id. */
+interface ResolvedSources {
+  id?: string;
+  sources: ProvenanceSources;
+}
+
+/**
+ * Where the bridge puts the sources it finds. A store, not the root's state: a write re-renders
+ * only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't loop back
+ * to the bridge.
+ */
+export interface SourcesStore {
+  get: () => ResolvedSources;
+  set: (next: ResolvedSources) => void;
+  subscribe: (listener: () => void) => () => void;
+}
+
+const NO_SOURCES: ResolvedSources = Object.freeze({ sources: null });
+
+export function createSourcesStore(): SourcesStore {
+  let value = NO_SOURCES;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => value,
+    set: (next) => {
+      if (next.id === value.id && next.sources === value.sources) return;
+      value = next;
+      listeners.forEach((listener) => listener());
+    },
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
+  };
+}
+
+/** The renderer's provenance state: the public fields, and the store the bridge writes. */
+export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
+  sourcesStore: SourcesStore;
 }
 
 /** Null when `enableProvenance` is off. */
@@ -102,6 +138,8 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
   clearSelection: noop,
   sources: null,
 });
+const INERT_STORE = createSourcesStore();
+const getNoSources = () => NO_SOURCES;
 
 /**
  * Inspect mode and where the selected component's data comes from, for a live artifact with
@@ -111,5 +149,14 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
  * @category Hooks
  */
 export function useArtifactProvenance(): ArtifactProvenanceState {
-  return useContext(ProvenanceContext) ?? INERT_PROVENANCE;
+  const provenance = useContext(ProvenanceContext);
+  const store = provenance?.sourcesStore ?? INERT_STORE;
+  const resolved = useSyncExternalStore(store.subscribe, store.get, getNoSources);
+  return useMemo(() => {
+    if (!provenance) return INERT_PROVENANCE;
+    const { sourcesStore: _store, ...state } = provenance;
+    // Sources count only for the current selection.
+    const sources = state.selection && resolved.id === state.selection.id ? resolved.sources : null;
+    return { ...state, sources };
+  }, [provenance, resolved]);
 }

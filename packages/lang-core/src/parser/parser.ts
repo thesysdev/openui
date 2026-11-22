@@ -290,6 +290,9 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
+/** Statement expressions whose component calls have their `componentId`. */
+const stampedStatements = new WeakSet<ASTNode>();
+
 /** Each parse result's statements as parsed, by name, and its library, for `dataSources`. Not public. */
 export const parsedStatements = new WeakMap<
   ParseResult,
@@ -313,11 +316,15 @@ function buildResult(
     syms.set(id, expr);
     // Component calls get ids, so a "where did this come from" view can name them: the
     // statement's own call its name (it may be rendered from an expression, without a
-    // statementId), an inline one its position.
-    let n = 0;
-    walkAST(expr, (node) => {
-      if (isComponentCall(node)) node.inlineId = node === expr ? id : `${id}.${n++}`;
-    });
+    // statementId), an inline one its position. A statement the streaming parser reuses
+    // keeps its expression, already stamped.
+    if (!stampedStatements.has(expr)) {
+      stampedStatements.add(expr);
+      let n = 0;
+      walkAST(expr, (node) => {
+        if (isComponentCall(node)) node.componentId = node === expr ? id : `${id}.${n++}`;
+      });
+    }
   }
   const unres: string[] = [];
   const errors: ValidationError[] = [];

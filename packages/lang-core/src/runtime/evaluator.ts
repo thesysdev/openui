@@ -159,7 +159,7 @@ export function evaluate(
           props,
           partial: false,
           hasDynamicProps: true,
-          ...(node.inlineId ? { inlineId: node.inlineId } : {}),
+          ...(node.componentId ? { componentId: node.componentId } : {}),
         };
         // If we have schema context, recursively evaluate nested ElementNodes in props
         if (schemaCtx) {

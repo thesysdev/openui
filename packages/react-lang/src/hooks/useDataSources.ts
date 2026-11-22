@@ -38,7 +38,7 @@ export interface DataSources extends Sources<DataSourceQuery> {
  * Where a component's data comes from, for a "where did this number come from" view: its
  * queries, the statements in between and the `$variables` it reads, also by prop. A prop with no
  * queries and no state is written in the program; `formulas` holds the text of the statements in
- * between. Pass a statement's name (the `statementId` a component gets), or an inline id.
+ * between. Pass a statement's name (the `statementId` a component gets), or a component id (`lead.2`).
  * It reads the values whenever the Renderer updates. The result keeps its identity until the
  * program, a store value or a query result changes, so it can be passed to effects.
  */

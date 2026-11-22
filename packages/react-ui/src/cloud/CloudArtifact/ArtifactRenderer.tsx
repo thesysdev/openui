@@ -39,22 +39,29 @@ export interface LiveArtifactRendererProps<
 const NO_QUERY_LOADER = <></>;
 
 /**
- * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and hands the
- * selection's sources up to the renderer's root for the panel.
+ * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and writes the
+ * selection's sources to the root's store, for `useArtifactProvenance()`.
  */
 function ProvenanceBridge() {
   const provenance = useContext(ProvenanceContext);
   const id = provenance?.selection?.id;
   const sources = useDataSources(id);
-  const setSources = provenance?.setSources;
+  const store = provenance?.sourcesStore;
   const clearSelection = provenance?.clearSelection;
+  // Into the store, not the root's state: a write reaches only the panel, never back here.
   useEffect(() => {
-    setSources?.(sources, id);
+    store?.set({ id, sources });
     // The selected statement is no longer in the program, e.g. after an edit.
     if (id && !sources) clearSelection?.();
-  }, [setSources, clearSelection, sources, id]);
+  }, [store, clearSelection, sources, id]);
   // Closed, or remounted for live data: the selected elements are gone.
-  useEffect(() => () => clearSelection?.(), [clearSelection]);
+  useEffect(
+    () => () => {
+      store?.set({ sources: null });
+      clearSelection?.();
+    },
+    [store, clearSelection],
+  );
   return null;
 }
 
