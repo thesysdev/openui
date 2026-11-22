@@ -1,81 +1,100 @@
-/* Beveled pill CTA with a circular badge. Light variant on white sections,
-   dark on the black cloud band. Values mirror the original per-section styles
-   so the desktop rendering is unchanged. */
+/* The pill CTA, in four styles: primary and secondary, each on a light or a
+   dark page. Every one of them is the same shape with the same 28px disc at
+   its end; only the four colour tokens below change. Primary is black and
+   white; secondary is a subtle fill of the page's own ink, held by a
+   hairline. The disc is a subtle fill too, in the pill's own direction. */
 .button {
+  /* Secondary, light page. */
+  --btn-fill: rgba(10, 10, 10, 0.02);
+  --btn-ink: #0a0a0a;
+  --btn-edge: rgba(0, 0, 0, 0.08);
+  --btn-disc: #fff;
+
   display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.75rem;
   height: 3rem;
   padding-left: 1.25rem;
-  padding-right: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  /* Less the border, so the disc's inset matches its 10px top and bottom. */
+  padding-right: calc(0.625rem - 1px);
+  border: 1px solid var(--btn-edge);
   border-radius: 9999px;
-  background: var(--home-surface-raised);
-  box-shadow: var(--home-bevel);
-  color: #0a0a0a;
+  background: var(--btn-fill);
+  color: var(--btn-ink);
   font-family: "Inter Display", sans-serif;
   font-size: 1rem;
   font-weight: 500;
   text-decoration: none;
-  transition: box-shadow 0.2s ease;
+  /* A long, soft ease-out, so the pill settles into its hover size rather
+     than snapping to it. */
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Primary, light page. */
+.primary {
+  --btn-fill: #0a0a0a;
+  --btn-ink: #fff;
+  --btn-edge: rgba(255, 255, 255, 0.12);
+  --btn-disc: #1e1e21;
+}
+
+/* Secondary, dark page. */
+[data-theme="dark"] .button {
+  --btn-fill: rgba(255, 255, 255, 0.06);
+  --btn-ink: #fff;
+  --btn-edge: rgba(255, 255, 255, 0.08);
+  --btn-disc: #1e1e21;
+}
+
+/* Primary, dark page. */
+[data-theme="dark"] .primary {
+  --btn-fill: #fff;
+  --btn-ink: #0a0a0a;
+  --btn-edge: rgba(0, 0, 0, 0.08);
+  --btn-disc: #fff;
+}
+
+/* Tertiary, both themes: secondary without its fill, for grey bands. After
+   the dark-page rule above, so it wins there too. */
+.tertiary,
+[data-theme="dark"] .tertiary {
+  --btn-fill: transparent;
+}
+
+/* Hover, all three variants: the pill grows a touch; its fill stays put.
+   Pointer devices only, so a tap never leaves it grown. */
+@media (hover: hover) {
+  .button:hover {
+    transform: scale(1.015);
+  }
+}
+
+/* No growing for anyone who has asked for less motion. */
+@media (hover: hover) and (prefers-reduced-motion: reduce) {
+  .button:hover {
+    transform: none;
+  }
 }
 
 .label {
   line-height: 1.5rem;
 }
 
+/* The disc at the pill's end: a solid step off the pill's own fill, held by
+   a hairline, with a soft drop under it. */
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
+  box-sizing: border-box;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--btn-edge);
   border-radius: 9999px;
-  background: var(--bevel-badge-bg, #0a0a0a);
-  color: var(--bevel-badge-fg, #fff);
-}
-
-/* Dark variant for the black cloud band. */
-.dark {
-  background: #0a0a0a;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: var(--home-bevel-on-dark);
-  color: #fff;
-  --bevel-badge-bg: #fff;
-  --bevel-badge-fg: #0a0a0a;
-}
-
-/* Primary (theme-adaptive, high contrast): black-on-white in light, white-on-black
-   in dark — the inverse of the page surface. */
-.primary {
-  background: #0a0a0a;
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: var(--home-bevel-on-dark);
-  color: #fff;
-  --bevel-badge-bg: #fff;
-  --bevel-badge-fg: #0a0a0a;
-}
-
-[data-theme="dark"] .primary {
-  background: var(--home-surface-raised);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: var(--home-bevel);
-  color: #0a0a0a;
-  --bevel-badge-bg: #0a0a0a;
-  --bevel-badge-fg: #fff;
-}
-
-/* Secondary (theme-adaptive, low contrast): matches the surface — light bevel on
-   light pages (inherits the base .button), dark bevel on dark pages. */
-[data-theme="dark"] .secondary {
-  /* matches the homepage dark npx button (and the openclaw install button) */
-  background: var(--home-surface-ink);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: var(--home-bevel-on-dark);
-  color: var(--openui-text-neutral-primary);
-  --bevel-badge-bg: var(--openui-inverted-background);
-  --bevel-badge-fg: var(--openui-background);
+  background: var(--btn-disc);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  color: var(--btn-ink);
 }
 
 /* Mobile: full-width pill so every CTA shares one footprint with the hero. */

@@ -374,148 +374,21 @@
   height: 100%;
 }
 
-/* Keep the action persistent: the waitlist should never depend on a hover state
-   to explain what the arrow does. */
+/* The submit is the site's standard primary button, drawn by BevelButton's
+   classes (see EarlyAccessForm); its label stays put rather than hiding
+   behind a hover. Here only what a submit in this pill adds: it keeps its
+   size, shows it is clickable, and dims while a request is in flight. */
 .emailSubmit {
   flex: none;
-  display: inline-flex;
-  align-items: center;
-  /* Not centred: min-width leaves a few pixels of slack that centring splits
-     between the two ends, which pushed the badge ~13px off the right edge while
-     the padding said 8. Pinning each end to its own padding makes the space
-     around the badge match the 8px above and below it. */
-  justify-content: space-between;
-  min-width: 10.25rem;
-  height: 3rem;
-  gap: 10px;
-  /* 7, not 8: the badge is centred in the 46px the 1px borders leave, so it
-     already sits 7px inside the padding box and 8px inside the button. Matching
-     that on the right is what puts the same 8px on all three sides. */
-  padding: 0 7px 0 20px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-  background: #0a0a0a;
-  box-shadow: var(--home-bevel-on-dark);
-  color: #ffffff;
-  font-family: "Inter Display", sans-serif;
-  font-size: 16px;
-  font-weight: 500;
   cursor: pointer;
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
 }
-
-[data-theme="dark"] .emailSubmit {
-  border-color: rgba(0, 0, 0, 0.08);
-  background: var(--home-surface-raised);
-  box-shadow: var(--home-bevel);
-  color: #0d0d0f;
-}
-
-.emailSubmit:hover:not(:disabled) {
-  opacity: 0.88;
-}
-
-.emailSubmit:active:not(:disabled) {
-  transform: scale(0.96);
-}
-
 .emailSubmit:disabled {
   cursor: default;
   opacity: 0.55;
 }
-
-/* A tooltip under the field, not a line in the layout: absolutely positioned, so
-   it appears and disappears without moving the control above it. Kept mounted
-   and faded rather than swapped in, so screen readers announce it once.
-
-   Centred on the field via the 50% + translate pair, which works whatever the
-   notice's own width turns out to be. */
-.emailNotice {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  z-index: 5;
-  margin: 0;
-  padding: 5px 12px;
-  border-radius: 9999px;
-  background: var(--openui-foreground);
-  box-shadow:
-    0 6px 20px -10px rgb(0 0 0 / 0.2),
-    0 2px 6px -3px rgb(0 0 0 / 0.1);
-  font-family: var(--home-font-text);
-  font-size: 12px;
-  line-height: 1.4;
-  white-space: nowrap;
-  color: var(--openui-text-neutral-primary);
-  pointer-events: none;
-  opacity: 0;
-  /* The -50% centres it; the 4px is the slide, so both live in one transform. */
-  transform: translate(-50%, -4px);
-  visibility: hidden;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease,
-    visibility 0s linear 0.2s;
-}
-
-[data-theme="dark"] .emailNotice {
-  background: #24242a;
-}
-
-/* A failure has to look different from a confirmation, or the two read as the
-   same event. Same pill, different text colour. */
-.emailNoticeError {
-  color: #b42318;
-}
-
-[data-theme="dark"] .emailNoticeError {
-  color: #f97066;
-}
-
-.emailNoticeVisible {
-  opacity: 1;
-  transform: translate(-50%, 0);
-  visibility: visible;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease,
-    visibility 0s;
-}
-
-/* The fade is decoration; anyone who has asked for less motion still gets the
-   message, just without the slide. */
-@media (prefers-reduced-motion: reduce) {
-  .emailNotice {
-    transform: translate(-50%, 0);
-  }
-}
-
 .emailSubmitText {
   line-height: 1.5rem;
   white-space: nowrap;
-}
-
-.emailSubmitBadge {
-  display: inline-flex;
-  width: 2rem;
-  height: 2rem;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  background: #ffffff;
-  color: #0a0a0a;
-}
-
-[data-theme="dark"] .emailSubmitBadge {
-  background: #0a0a0a;
-  color: #ffffff;
-}
-
-.emailSubmitIcon {
-  flex: none;
 }
 
 @media (min-width: 768px) and (max-width: 899.98px) {
@@ -564,20 +437,11 @@
     background: rgba(10, 10, 10, 0.03);
   }
 
-  .emailSubmit {
+  /* Full width under the field. Doubled up to outrank BevelButton's own
+     phone rule, which caps its pills at 320px. */
+  .emailForm .emailSubmit {
     width: 100%;
-    height: 3rem;
-    justify-content: space-between;
-    padding: 0 8px 0 20px;
-    border-radius: 9999px;
-    font-family: "Inter Display", sans-serif;
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 1;
-  }
-
-  .emailSubmitText {
-    font-size: 16px;
+    max-width: none;
   }
 
   /* The field carries the border the shared pill used to. */

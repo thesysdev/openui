@@ -2,6 +2,7 @@
 
 import { ArrowRight } from "@phosphor-icons/react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import bevel from "../../components/Button/BevelButton.module.css";
 import styles from "./page.module.css";
 
 /* How long the confirmation hangs around before fading out. Long enough to read
@@ -89,17 +90,19 @@ export function EarlyAccessForm() {
           autoComplete="email"
           required
         />
+        {/* The site's standard primary button, the same classes BevelButton
+            draws with, on a submit button rather than a link. */}
         <button
-          className={styles.emailSubmit}
+          className={`${bevel.button} ${bevel.primary} ${styles.emailSubmit}`}
           type="submit"
           aria-label="Join waitlist"
           /* Guards the double-submit; the label does not change, so the control
              keeps its width while the request is in flight. */
           disabled={status === "pending"}
         >
-          <span className={styles.emailSubmitText}>Join waitlist</span>
-          <span className={styles.emailSubmitBadge} aria-hidden="true">
-            <ArrowRight className={styles.emailSubmitIcon} size={16} weight="bold" />
+          <span className={`${bevel.label} ${styles.emailSubmitText}`}>Join waitlist</span>
+          <span className={bevel.badge} aria-hidden="true">
+            <ArrowRight size={16} weight="bold" />
           </span>
         </button>
       </form>

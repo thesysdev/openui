@@ -336,7 +336,6 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--openui-radius-full);
   background: var(--home-surface-raised);
-  box-shadow: var(--home-bevel);
   white-space: nowrap;
   cursor: pointer;
   transition: opacity 0.18s ease;
@@ -345,7 +344,6 @@
 [data-theme="dark"] .commandTrigger {
   border-color: rgba(255, 255, 255, 0.1);
   background: var(--home-surface-ink);
-  box-shadow: var(--home-bevel-on-dark);
 }
 
 /* While open the first row sits exactly on the trigger; hide the trigger so the
@@ -434,7 +432,7 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--openui-radius-full);
   background: var(--home-surface-raised);
-  box-shadow: var(--home-bevel);
+  box-shadow: none;
   opacity: 0;
   transition:
     transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
@@ -444,7 +442,7 @@
 [data-theme="dark"] .commandMenuHighlight {
   border-color: rgba(255, 255, 255, 0.1);
   background: var(--home-surface-ink);
-  box-shadow: var(--home-bevel-on-dark);
+  box-shadow: none;
 }
 
 .commandMenuCard:has(.commandMenuItem:nth-of-type(1):hover) .commandMenuHighlight {
@@ -688,7 +686,6 @@
   color: var(--openui-text-accent-primary);
   font-size: 18px;
   line-height: 1.5rem;
-  box-shadow: var(--home-bevel-on-dark);
 }
 
 /* Keep it black on hover (the .heroBanner base would otherwise turn it purple). */
@@ -718,7 +715,6 @@
   background: var(--home-surface-raised);
   border-color: rgba(0, 0, 0, 0.08);
   color: var(--home-surface-ink);
-  box-shadow: var(--home-bevel);
 }
 
 [data-theme="dark"] .mobileGithubButton:hover {

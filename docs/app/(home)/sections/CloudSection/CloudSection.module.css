@@ -67,7 +67,6 @@
 [data-theme="dark"] .contactCta {
   background: var(--home-surface-raised);
   border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: var(--home-bevel);
   color: #0a0a0a;
   --bevel-badge-bg: #0a0a0a;
   --bevel-badge-fg: #fff;
@@ -131,7 +130,6 @@
   margin-top: 0.25rem;
   background: var(--home-surface-raised);
   border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: var(--home-bevel);
   color: #0a0a0a;
   --bevel-badge-bg: #0a0a0a;
   --bevel-badge-fg: #fff;
@@ -140,7 +138,6 @@
 [data-theme="dark"] .observabilityCta {
   background: #0a0a0a;
   border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: var(--home-bevel-on-dark);
   color: #fff;
   --bevel-badge-bg: #fff;
   --bevel-badge-fg: #0a0a0a;

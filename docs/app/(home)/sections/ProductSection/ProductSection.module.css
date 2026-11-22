@@ -403,23 +403,36 @@
   display: none;
 }
 
-/* The buttons use the theme-independent variants for this tone, which means
-   they do not invert on their own. Same declarations CloudSection applied to
-   its own CTAs before they moved here. */
-[data-theme="dark"] .onDark .primaryCta {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: #0a0a0a;
-  box-shadow: var(--home-bevel-on-dark);
-  color: #fff;
-  --bevel-badge-bg: #fff;
-  --bevel-badge-fg: #0a0a0a;
+/* The dark band is black on a light page and white on a dark one, the
+   inverse of the page. BevelButton picks its colours from the page theme, so
+   here its four tokens are set to the opposite theme's values: primary is
+   white on the black band and black on the white one; secondary is the
+   band's own subtle fill. The extra .ctas step outranks BevelButton's
+   [data-theme] rules. */
+.onDark .ctas .primaryCta {
+  --btn-fill: #fff;
+  --btn-ink: #0a0a0a;
+  --btn-edge: rgba(0, 0, 0, 0.08);
+  --btn-disc: #fff;
 }
 
-[data-theme="dark"] .onDark .secondaryCta {
-  border-color: rgba(0, 0, 0, 0.08);
-  background: var(--home-surface-raised);
-  box-shadow: var(--home-bevel);
-  color: #0a0a0a;
-  --bevel-badge-bg: #0a0a0a;
-  --bevel-badge-fg: #fff;
+.onDark .ctas .secondaryCta {
+  --btn-fill: rgba(255, 255, 255, 0.06);
+  --btn-ink: #fff;
+  --btn-edge: rgba(255, 255, 255, 0.08);
+  --btn-disc: #1e1e21;
+}
+
+[data-theme="dark"] .onDark .ctas .primaryCta {
+  --btn-fill: #0a0a0a;
+  --btn-ink: #fff;
+  --btn-edge: rgba(255, 255, 255, 0.12);
+  --btn-disc: #1e1e21;
+}
+
+[data-theme="dark"] .onDark .ctas .secondaryCta {
+  --btn-fill: rgba(10, 10, 10, 0.02);
+  --btn-ink: #0a0a0a;
+  --btn-edge: rgba(0, 0, 0, 0.08);
+  --btn-disc: #fff;
 }

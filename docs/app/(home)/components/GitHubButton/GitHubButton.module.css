@@ -22,9 +22,6 @@
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  box-shadow:
-    var(--home-bevel-on-dark),
-    inset 0 8px 12px -6px var(--home-border-on-dark);
 }
 
 .glowSvg {
@@ -57,10 +54,6 @@
   --home-surface-ink: #0a0a0a;
   --home-surface-raised: #f7f7f8;
   --home-border-on-dark: rgba(255, 255, 255, 0.14);
-  --home-bevel-on-dark:
-    inset 0 7px 12px -6px rgba(255, 255, 255, 0.16), inset 0 -5px 8px -2px rgba(0, 0, 0, 0.6);
-  --home-bevel:
-    inset 0 2px 1px -0.5px rgba(255, 255, 255, 1), inset 0 -3px 6px -1px rgba(0, 0, 0, 0.1);
   height: 2.5rem;
   padding-inline: 0.875rem;
   border-radius: 999px;
@@ -79,7 +72,6 @@
   background: var(--home-surface-raised);
   border-color: rgba(0, 0, 0, 0.08);
   color: var(--home-surface-ink);
-  box-shadow: var(--home-bevel);
 }
 
 [data-theme="dark"] .glowSvg {
@@ -101,9 +93,6 @@
   background: var(--home-surface-ink);
   border-color: var(--home-border-on-dark);
   color: #fff;
-  box-shadow:
-    var(--home-bevel-on-dark),
-    inset 0 8px 12px -6px var(--home-border-on-dark);
 }
 
 [data-theme="dark"] .glowBtnKeepBlack .glowSvg {

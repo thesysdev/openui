@@ -113,7 +113,7 @@ export default function AppLessPage() {
               <BevelButton
                 href={github + "#quick-start"}
                 external
-                variant="secondary"
+                variant="tertiary"
                 label="Read setup docs"
                 badge={<ArrowRight size={16} strokeWidth={2.25} />}
               />
