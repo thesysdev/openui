@@ -728,15 +728,17 @@ export interface Parser {
 
 type DataDefs = Map<string, unknown>;
 
-// {$ref: "#/$defs/ActionExpression"} or {$ref: "#/$defs/Format"} -> its body, so
-// action slots and named prop types validate as inline schemas. A recursive
-// def stays a $ref inside itself.
+// {$ref: "#/$defs/ActionExpression"} or {$ref: "#/$defs/Format", default: "x"}
+// -> its body plus the keys beside the $ref, so action slots and named prop
+// types validate as inline schemas. A def that refers back to itself through
+// another def stays a $ref there, so inlining ends.
 function inlineDataRefs(node: unknown, defs: DataDefs, inlining?: Set<string>): unknown {
   if (!node || typeof node !== "object") return node;
-  const ref = (node as { $ref?: unknown }).$ref;
+  const { $ref: ref, ...beside } = node as Record<string, unknown>;
   if (typeof ref === "string") {
     if (!defs.has(ref) || inlining?.has(ref)) return node;
-    return inlineDataRefs(defs.get(ref), defs, new Set(inlining).add(ref));
+    const body = inlineDataRefs(defs.get(ref), defs, new Set(inlining).add(ref));
+    return { ...(body as object), ...beside };
   }
   const copy = (Array.isArray(node) ? [...node] : { ...node }) as Record<string, unknown>;
   let changed = false;
@@ -755,8 +757,7 @@ function compileParams(def: JSONSchemaDef, defs: DataDefs): ParamDef[] {
     return {
       name: key,
       required: required.includes(key),
-      // A named type's .default() sits in its $defs body, read through the $ref
-      defaultValue: getSchemaDefaultValue(properties[key]) ?? getSchemaDefaultValue(schema),
+      defaultValue: getSchemaDefaultValue(schema),
       schema,
     };
   });
@@ -770,10 +771,10 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const defs: DataDefs = new Map();
   const actionNames = new Set([...Object.keys(ACTION_DEFS), ...Object.keys(schema.actions ?? {})]);
   for (const [name, body] of Object.entries(schema.$defs ?? {})) {
-    // zod's auto-named defs (__schema0, for untagged recursive types) stay
-    // $refs, which validation does not follow, so untagged libraries validate
-    // exactly as they always have
-    if (/^__schema\d+$/.test(name)) continue;
+    // Recursive types stay $refs, which validation does not follow: zod's
+    // auto-named defs (__schema0) for untagged ones, and tagged ones that refer
+    // to themselves. Inlining them would check only the first level.
+    if (/^__schema\d+$/.test(name) || JSON.stringify(body).includes(`"#/$defs/${name}"`)) continue;
     const isData = components ? !components.has(name) : actionNames.has(name);
     if (isData) defs.set(`#/$defs/${name}`, body);
   }

@@ -14,8 +14,8 @@ import type {
 } from "./parser/types";
 import {
   assertV4Schema,
+  jsonSchemaNames,
   schemaSignature,
-  schemaTypeNames,
   tagPromptName,
   type SchemaRegistry,
 } from "./signature";
@@ -369,23 +369,27 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
     );
     // Components and actions get their $defs id from the registry. A
     // tagSchemaId type (e.g. Format) gets its name as id too, so zod writes it
-    // once in $defs and $refs it. zod throws when two schemas share an id, so a
-    // name that is already a component, an action or another schema's is not
-    // given: zod inlines that type, as it does for untagged types.
+    // once in $defs and $refs it. zod throws on duplicate ids, so a name already
+    // used by a component, an action or an earlier schema stays inline, as an
+    // untagged type does. So does a name that is not a plain identifier (e.g.
+    // "'a' | 'b'"): it would not be a valid $ref, and zod's own "__schema0" ids
+    // start with "_".
     const reservedNames = new Set([
       ...Object.keys(componentsRecord),
       ...Object.keys(ACTION_DEFS),
       ...Object.keys(actionsRecord),
     ]);
-    const schemaByTypeName = new Map<string, z.$ZodType>();
+    const schemaByName = new Map<string, z.$ZodType>();
+    // zod only calls get() on the metadata registry
     const metadata = {
       get(s: z.$ZodType) {
         const meta = reg.get(s);
         if (meta) return meta;
-        const name = schemaTypeNames.get(s);
-        if (!name || reservedNames.has(name)) return undefined;
-        if (!schemaByTypeName.has(name)) schemaByTypeName.set(name, s);
-        return schemaByTypeName.get(name) === s ? { id: name } : undefined;
+        const name = jsonSchemaNames.get(s);
+        if (!name || reservedNames.has(name) || !/^[A-Za-z]\w*$/.test(name)) return undefined;
+        const owner = schemaByName.get(name) ?? s;
+        schemaByName.set(name, owner);
+        return owner === s ? { id: name } : undefined;
       },
     } as unknown as SchemaRegistry;
     const schema = z.toJSONSchema(combinedSchema, { metadata }) as LibraryJSONSchema;

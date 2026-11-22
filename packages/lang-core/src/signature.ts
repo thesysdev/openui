@@ -14,7 +14,7 @@ import { isReactiveSchema } from "./reactive";
 const promptNames = new WeakMap<object, string>();
 
 // Only tagSchemaId's names: the library's JSON schema puts these in $defs once and $refs them
-export const schemaTypeNames = new WeakMap<object, string>();
+export const jsonSchemaNames = new WeakMap<object, string>();
 
 /**
  * Name a shared prop type (e.g. Format). Signatures print the name, and the
@@ -22,7 +22,7 @@ export const schemaTypeNames = new WeakMap<object, string>();
  */
 export function tagSchemaId(schema: object, id: string): void {
   promptNames.set(schema, id);
-  schemaTypeNames.set(schema, id);
+  jsonSchemaNames.set(schema, id);
 }
 
 /** Name a schema in prompt signatures only, e.g. a component's props or `$variable`. */
