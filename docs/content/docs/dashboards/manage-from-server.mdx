@@ -1,0 +1,121 @@
+---
+title: Manage dashboards from your server
+description: List, read, rename, pin, share, and delete saved dashboards on your server with openui.artifacts.
+---
+
+`openui.artifacts` reads, changes, and shares saved dashboards with your API key. Use it where there's no browser, such as a server route, a background job, or an admin tool. For an agent's tool, use [`dashboards.get()`](/docs/dashboards/add-to-your-agent#add-the-get-tool), which always reads as the signed-in user.
+
+```ts title="app/api/dashboards/route.ts"
+import { openui } from "@/lib/openui";
+import { getSession } from "@/lib/auth"; // your session lookup
+
+export async function GET(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const page = await openui.artifacts.list({
+    userId: session.user.id,
+    kind: "dashboard",
+    signal: request.signal,
+  });
+  return Response.json(page.data.map(({ id, name, updatedAt }) => ({ id, name, updatedAt })));
+}
+```
+
+## Act as a user or as your org
+
+Every call takes an optional `userId`:
+
+| `userId`    | The call acts as | It can                                                                                                   |
+| ----------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
+| Omitted     | Your org         | Read, update, share, and delete every user's dashboards. It has no pins.                                 |
+| A user's id | That user        | Do what their [frontend token](/docs/dashboards/authentication) can, on their own and shared dashboards. |
+
+With a `userId`, also pass the user's `groupIds`, the same as on their frontend token, so dashboards [shared](/docs/dashboards/sharing) with their groups count. The client also sends its `appId`, so the call stays in that user's app, as their frontend token does.
+
+<Callout type="warn">
+  Take `userId` from your session, as for [the user
+  id](/docs/dashboards/authentication#the-user-id). Never pass on a user id from the browser's query
+  string or request body, or anyone could read another user's dashboards. User ids can appear in
+  request URLs and logs, so use opaque ids, not emails.
+</Callout>
+
+## Methods
+
+| Method                                      | Description                                                    |
+| ------------------------------------------- | -------------------------------------------------------------- |
+| `list(params?)`                             | One page of dashboards, newest first.                          |
+| `get(id, options?)`                         | One dashboard, with its program.                               |
+| `update(id, { name?, content? }, options?)` | Renames it, saves an edited program as a new version, or both. |
+| `delete(id, options?)`                      | Deletes it. A deleted dashboard can't be restored.             |
+| `pin(id, { userId })`                       | Pins it for that user.                                         |
+| `unpin(id, { userId })`                     | Unpins it for that user.                                       |
+| `share(id, { type, id, access }, options?)` | Shares it, or changes the access of an existing share.         |
+| `unshare(id, { type, id }, options?)`       | Removes a share.                                               |
+
+`options` takes `userId`, `groupIds`, and a `signal` that cancels the call. `pin` and `unpin` always need a `userId`, because pins belong to a user.
+
+## List
+
+| Param             | Description                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| `kind`            | Only these kinds, such as `"dashboard"`.                                                  |
+| `name`            | Match on the name.                                                                        |
+| `pinned`          | `true` for the user's pinned dashboards only, `false` for the rest. Needs `userId`.       |
+| `isOwner`         | `true` for the user's own dashboards, `false` for those shared with them. Needs `userId`. |
+| `conversationId`  | Only the dashboards made in this conversation.                                            |
+| `limit`           | Page size, from 1 to 100. Default: 100.                                                   |
+| `after`, `before` | The page after `lastId`, or before `firstId`.                                             |
+| `order`           | `"desc"` (newest first, the default) or `"asc"`.                                          |
+
+`list` returns `{ data, hasMore, firstId, lastId }`. To load every page, pass `lastId` back as `after`:
+
+```ts
+let after: string | undefined;
+do {
+  const page = await openui.artifacts.list({ userId, kind: "dashboard", after });
+  for (const dashboard of page.data) console.log(dashboard.name);
+  after = page.hasMore ? page.lastId : undefined;
+} while (after);
+```
+
+## Share
+
+Share with one user, or with a group the user is in, to `view` or `edit`. See [Share dashboards](/docs/dashboards/sharing) for who can do what.
+
+```ts
+const asUser = { userId: session.user.id, groupIds: session.user.teamIds };
+
+await openui.artifacts.share(id, { type: "group", id: "team:sales", access: "view" }, asUser);
+await openui.artifacts.unshare(id, { type: "group", id: "team:sales" }, asUser);
+```
+
+As a user, only the owner and `edit` shares can share. Without a `userId`, your org can share any dashboard.
+
+## The dashboard
+
+| Field                    | Description                                                                                               |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `id`                     | `art_…`. Pass it to `LiveArtifactRenderer` or `dashboards.edit`.                                          |
+| `kind`                   | `"dashboard"`, `"slides"`, or `"report"`.                                                                 |
+| `name`                   | The title.                                                                                                |
+| `content`                | The openui-lang program. Data scripts stay in OpenUI Cloud and aren't included.                           |
+| `version`                | Changes with every edit.                                                                                  |
+| `pinned`                 | Whether the user pinned it. Always `false` for your org.                                                  |
+| `isOwner`                | Whether the user made it. Always `false` for your org.                                                    |
+| `isEditable`             | Whether the caller can edit, rename, and share it. Always `true` for your org.                            |
+| `shares`                 | Who it's shared with: `type`, `id`, `access`, `createdBy`, and `createdAt` in ms. Only when `isEditable`. |
+| `userId`, `appId`        | The user it was made for, and their app.                                                                  |
+| `conversationId`         | The conversation it was made in, if any.                                                                  |
+| `createdAt`, `updatedAt` | Unix milliseconds.                                                                                        |
+
+## Errors
+
+A failed call throws `OpenUIApiError`, with a `code` and the HTTP `status`.
+
+| Status | `code`                | When                                                      |
+| ------ | --------------------- | --------------------------------------------------------- |
+| 404    | `http_error`          | The dashboard doesn't exist, or the user can't see it.    |
+| 403    | `insufficient_access` | The user can see it, but their access doesn't allow this. |
+| 400    | `needs_user`          | `isOwner` without a `userId`.                             |
+| 400    | `invalid_input`       | A bad `userId`, `groupIds`, or share target.              |

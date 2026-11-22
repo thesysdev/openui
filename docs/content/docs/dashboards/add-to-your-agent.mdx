@@ -1,9 +1,9 @@
 ---
 title: Add to your agent
-description: Give an agent create_dashboard and edit_dashboard tools, and render their results in the chat.
+description: Give an agent create_dashboard, edit_dashboard, and get_dashboard tools, and render the dashboards in the chat.
 ---
 
-An agent creates and edits dashboards through two tools: `create_dashboard` calls [`dashboards.create()`](/docs/dashboards/generate), and `edit_dashboard` calls [`dashboards.edit()`](/docs/dashboards/edit). Each tool returns the response unchanged. The chat renders the tool result with `LiveArtifactRenderer`.
+An agent creates, edits, and reads dashboards through three tools: `create_dashboard` calls [`dashboards.create()`](/docs/dashboards/generate), `edit_dashboard` calls [`dashboards.edit()`](/docs/dashboards/edit), and `get_dashboard` calls `dashboards.get()`. The create and edit tools return the response unchanged, and the chat renders it with `LiveArtifactRenderer`.
 
 The agent keeps its existing tools and model. The data tools stay with the dashboard definition: the agent never calls them.
 
@@ -67,7 +67,7 @@ export function dashboardTools(context: { userId: string }) {
       execute: ({ title, prompt }, { abortSignal }) =>
         dashboards.create({ title, prompt }, context, { signal: abortSignal }),
     }),
-    // edit_dashboard: see below
+    // edit_dashboard and get_dashboard: see below
   };
 }
 ```
@@ -99,25 +99,6 @@ export const editDashboardTool: OpenAI.ChatCompletionTool = {
     },
   },
 };
-
-export const dashboardTools = [createDashboardTool, editDashboardTool];
-
-/** Runs a dashboard tool call and returns its result for the tool message. */
-export function runDashboardTool(
-  call: OpenAI.ChatCompletionMessageFunctionToolCall,
-  context: { userId: string },
-  signal?: AbortSignal,
-): Promise<string> {
-  const args = JSON.parse(call.function.arguments);
-  switch (call.function.name) {
-    case "create_dashboard":
-      return dashboards.create({ title: args.title, prompt: args.prompt }, context, { signal });
-    case "edit_dashboard":
-      return dashboards.edit({ id: args.id, prompt: args.prompt }, context, { signal });
-    default:
-      throw new Error(`Unknown tool: ${call.function.name}`);
-  }
-}
 ```
 
   </Tab>
@@ -137,12 +118,93 @@ export function dashboardTools(context: { userId: string }) {
       execute: ({ id, prompt }, { abortSignal }) =>
         dashboards.edit({ id, prompt }, context, { signal: abortSignal }),
     }),
+    // get_dashboard: see below
   };
 }
 ```
 
   </Tab>
 </Tabs>
+
+## Add the get tool
+
+The tool takes the dashboard's id and gives the model its name, its program, and whether the user can edit it. The model uses it to answer questions about a dashboard, or to plan a change to one from an earlier chat.
+
+<Tabs items={["OpenAI SDK", "Vercel AI SDK"]}>
+  <Tab value="OpenAI SDK">
+
+```ts title="lib/dashboard-tools.ts"
+export const getDashboardTool: OpenAI.ChatCompletionTool = {
+  type: "function",
+  function: {
+    name: "get_dashboard",
+    description:
+      "Read a dashboard's name and layout: its sections, charts, and tables, and which data each shows. It has no numbers: the dashboard loads them when it opens.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "The dashboard's id, art_…, from its tool result." },
+      },
+      required: ["id"],
+    },
+  },
+};
+
+export const dashboardTools = [createDashboardTool, editDashboardTool, getDashboardTool];
+
+/** Runs a dashboard tool call and returns its result for the tool message. */
+export async function runDashboardTool(
+  call: OpenAI.ChatCompletionMessageFunctionToolCall,
+  context: { userId: string },
+  signal?: AbortSignal,
+): Promise<string> {
+  const args = JSON.parse(call.function.arguments);
+  switch (call.function.name) {
+    case "create_dashboard":
+      return dashboards.create({ title: args.title, prompt: args.prompt }, context, { signal });
+    case "edit_dashboard":
+      return dashboards.edit({ id: args.id, prompt: args.prompt }, context, { signal });
+    case "get_dashboard": {
+      const dashboard = await dashboards.get({ id: args.id }, context, { signal });
+      const { name, content, isEditable } = dashboard;
+      return JSON.stringify({ name, content, isEditable });
+    }
+    default:
+      throw new Error(`Unknown tool: ${call.function.name}`);
+  }
+}
+```
+
+  </Tab>
+  <Tab value="Vercel AI SDK">
+
+```ts title="lib/dashboard-tools.ts"
+export function dashboardTools(context: { userId: string }) {
+  return {
+    create_dashboard: tool({/* … */}),
+    edit_dashboard: tool({/* … */}),
+    get_dashboard: tool({
+      description:
+        "Read a dashboard's name and layout: its sections, charts, and tables, and which data each shows. It has no numbers: the dashboard loads them when it opens.",
+      inputSchema: z.object({
+        id: z.string().min(1).describe("The dashboard's id, art_…, from its tool result."),
+      }),
+      execute: async ({ id }, { abortSignal }) => {
+        const dashboard = await dashboards.get({ id }, context, { signal: abortSignal });
+        const { name, content, isEditable } = dashboard;
+        return { name, content, isEditable };
+      },
+    }),
+  };
+}
+```
+
+  </Tab>
+</Tabs>
+
+`dashboards.get()` reads as the user in `context`, so the model can only read dashboards that user can open. A dashboard that doesn't exist, or that they can't open, throws `OpenUIApiError` with status 404. Pick the fields the model needs: the full dashboard also lists who it's shared with.
+
+The get tool's result isn't a dashboard response, so the chat doesn't render it. To show the dashboard too, pass its id to `LiveArtifactRenderer` as `id`.
 
 ## Call the tools from the chat route
 
@@ -251,6 +313,7 @@ Dashboards load their own data from these tools every time they open:
 
 - When the user asks for a dashboard, call create_dashboard with a short title and a prompt describing the sections, metrics, charts, tables, and filters, and which data each shows. Don't put numbers in the prompt.
 - To change a dashboard, call edit_dashboard with the id from the tool result that created it. "It" means the latest dashboard. Create a new one only when asked.
+- To see what a dashboard shows, call get_dashboard with its id.
 - The user watches the dashboard being built. Don't repeat the tool result.
 - After a tool call, reply in one or two sentences: what the dashboard shows and one change they could ask for.
 - You can't see the data, so don't state numbers.`;
