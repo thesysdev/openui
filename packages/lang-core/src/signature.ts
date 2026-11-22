@@ -12,13 +12,27 @@ import { isReactiveSchema } from "./reactive";
 
 export const schemaIdTags = new WeakMap<object, string>();
 
+// Schemas named with tagSchemaId: the library's JSON schema emits them once
+// in $defs and $refs them, as it does components.
+const namedTypes = new WeakSet<object>();
+
 /**
- * Tag a schema with an ID for prompt signatures.
- * Use for non-component schemas that need friendly type names (e.g. ActionExpression).
- * This affects prompt output only, not JSON Schema $defs.
+ * Name a shared prop type (e.g. Format). Signatures print the name, and the
+ * library's JSON schema puts the type in $defs once and $refs it.
  */
 export function tagSchemaId(schema: object, id: string): void {
   schemaIdTags.set(schema, id);
+  namedTypes.add(schema);
+}
+
+/** Name a schema in prompt signatures only, e.g. a component's props or `$variable`. */
+export function tagPromptName(schema: object, id: string): void {
+  schemaIdTags.set(schema, id);
+}
+
+/** The tagSchemaId name of a schema, if it was named that way. */
+export function getNamedTypeId(schema: object): string | undefined {
+  return namedTypes.has(schema) ? schemaIdTags.get(schema) : undefined;
 }
 
 // Action refs print as `@Name` in signatures: share?: @CopyToClipboard | @OpenUrl
@@ -34,6 +48,7 @@ export function actionRef(name: string, data: z.$ZodType): ActionRef {
 export function copySchemaTags(from: object, to: object): void {
   const id = schemaIdTags.get(from);
   if (id) schemaIdTags.set(to, id);
+  if (namedTypes.has(from)) namedTypes.add(to);
   const action = actionRefTags.get(from);
   if (action) actionRefTags.set(to, action);
 }

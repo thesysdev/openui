@@ -12,7 +12,13 @@ import type {
   JSONSchemaDef,
   LibraryJSONSchema,
 } from "./parser/types";
-import { assertV4Schema, schemaSignature, tagSchemaId, type SchemaRegistry } from "./signature";
+import {
+  assertV4Schema,
+  getNamedTypeId,
+  schemaSignature,
+  tagPromptName,
+  type SchemaRegistry,
+} from "./signature";
 
 export {
   defineAction,
@@ -81,7 +87,7 @@ export function defineComponent<T extends z.$ZodObject, C>(config: {
   component: C;
 }): DefinedComponent<T, C> {
   assertV4Schema(config.props, config.name);
-  tagSchemaId(config.props, config.name);
+  tagPromptName(config.props, config.name);
   return {
     ...config,
     ref: config.props as unknown as z.$ZodType<
@@ -229,6 +235,11 @@ export interface LibraryDefinition<C = unknown, A extends AnyAction = AnyAction>
   id?: string;
 }
 
+function namedTypeMeta(schema: z.$ZodType): { id: string } | undefined {
+  const id = getNamedTypeId(schema);
+  return id ? { id } : undefined;
+}
+
 let fallbackLibraryId = 0;
 
 function createLibraryId(): string {
@@ -361,7 +372,12 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
     const combinedSchema = zObject(
       Object.fromEntries(Object.entries(componentsRecord).map(([k, v]) => [k, v.props])) as any,
     );
-    const schema = z.toJSONSchema(combinedSchema, { metadata: reg }) as LibraryJSONSchema;
+    // Components and actions come from the registry; tagSchemaId-named types
+    // (e.g. Format) are $defs too, so each is written once and $ref'd.
+    const metadata = {
+      get: (s: z.$ZodType) => reg.get(s) ?? namedTypeMeta(s),
+    } as unknown as SchemaRegistry;
+    const schema = z.toJSONSchema(combinedSchema, { metadata }) as LibraryJSONSchema;
     // zod only serializes what lives on the zod schemas / the metadata
     // registry, so component descriptions (a defineComponent field) must be
     // merged in explicitly — without this the serialized library loses them.
