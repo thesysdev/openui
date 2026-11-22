@@ -1,4 +1,4 @@
-import { ArrowUpRight, ScanLine, UserRound, UserRoundPlus } from "lucide-react";
+import { ArrowUpRight, Layers3, UserRound, UserRoundPlus } from "lucide-react";
 import type { CSSProperties } from "react";
 import styles from "./LaunchIllustrations.module.css";
 
@@ -17,28 +17,27 @@ function SourceMark({ source }: { source: keyof typeof SOURCE_MARKS }) {
   );
 }
 
-const BARS = [43, 34, 57, 48, 66, 56, 61, 79, 71, 89, 82, 100];
+const BARS = [24, 35, 29, 49, 45, 39, 63, 57, 73, 68, 82, 77, 91, 87, 100, 96];
 
 export function SharingIllustration() {
   return (
     <div className={styles.shareScene} aria-hidden="true">
       <div className={styles.preview}>
-        <div className={styles.previewChart}>
-          <span className={styles.previewLabel}>Paid conversions</span>
-          <div className={styles.bars}>
-            {BARS.map((height, index) => (
-              <i
-                key={height}
-                data-recent={index > 8 || undefined}
-                style={{ height: `${height}%` }}
-              />
-            ))}
-          </div>
+        <div className={styles.previewValue}>
+          <span>Paid conversions</span>
+          <strong>1,284</strong>
         </div>
-        <div className={styles.previewTile}>
-          <span className={styles.previewLabel}>Conversion rate</span>
-          <strong>4.8%</strong>
-          <ArrowUpRight />
+        <span className={styles.change}>
+          <ArrowUpRight /> 12.8%
+        </span>
+        <div className={styles.bars}>
+          {BARS.map((height, index) => (
+            <i
+              key={height}
+              data-recent={index >= 12 || undefined}
+              style={{ height: `${height}%` }}
+            />
+          ))}
         </div>
       </div>
       <div className={styles.shareCard}>
@@ -74,30 +73,27 @@ export function SourcesIllustration() {
   return (
     <div className={styles.sourcesScene} aria-hidden="true">
       <div className={styles.metric}>
-        <div>
-          <span className={styles.metricLabel}>Paid conversions</span>
-          <strong>1,284</strong>
+        <span className={styles.metricLabel}>Paid conversions</span>
+        <strong>1,284</strong>
+      </div>
+      <div className={styles.sourceCard}>
+        <div className={styles.sourceHeading}>
+          <Layers3 /> Sources
         </div>
-        <span className={styles.inspect}>
-          <ScanLine />
-        </span>
-      </div>
-      <div className={styles.sourceBranch}>
-        <span>Sources</span>
-      </div>
-      <div className={styles.sourceRow}>
-        <div className={styles.source}>
-          <SourceMark source="posthog" />
-          <div>
-            <strong>PostHog</strong>
-            <span>Signups</span>
+        <div className={styles.sourceRow}>
+          <div className={styles.source}>
+            <SourceMark source="posthog" />
+            <div>
+              <strong>Signups</strong>
+              <span>PostHog</span>
+            </div>
           </div>
-        </div>
-        <div className={styles.source}>
-          <SourceMark source="postgres" />
-          <div>
-            <strong>PostgreSQL</strong>
-            <span>Orders</span>
+          <div className={styles.source}>
+            <SourceMark source="postgres" />
+            <div>
+              <strong>Orders</strong>
+              <span>PostgreSQL</span>
+            </div>
           </div>
         </div>
       </div>
