@@ -68,9 +68,10 @@ export interface RequestOptions {
 }
 
 /**
- * Creates and edits live dashboards. Each call resolves, as soon as the dashboard starts
- * generating, with the tool's response: return it from your tool as is, and pass it to the
- * renderer. With `{ stream: true }` it yields two messages instead: one as soon as the
+ * Creates and edits live dashboards. Each call first runs the model's tool rounds against your
+ * tools (typically 20-45 s), then resolves, once the dashboard starts generating, with the tool's
+ * response: return it from your tool as is, and pass it to the renderer. A plain call doesn't
+ * report a failure after that point; use `{ stream: true }` to learn how the build ended. With `{ stream: true }` it yields two messages instead: one as soon as the
  * dashboard has an id (render it from then on), and the last once the dashboard is saved or
  * failed, saying which. Each carries the dashboard's reference; return the last one to your model.
  */

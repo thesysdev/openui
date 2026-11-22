@@ -102,9 +102,10 @@ export function defineDashboard<Context extends ExecutionContext>(
   });
 
   /**
-   * Starts generating the user's dashboard in the background. Resolves as
-   * soon as it starts, with the tool response OpenUI Cloud writes: a sentence
-   * for the model and the artifact's header line for the renderer.
+   * Runs the model's tool rounds, then starts generating the user's dashboard
+   * in the background. Resolves once it starts, with the tool response OpenUI
+   * Cloud writes: a sentence for the model and the artifact's header line for
+   * the renderer.
    */
   async function start(
     context: Context,
