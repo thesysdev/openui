@@ -1,5 +1,11 @@
 # @openuidev/server
 
+## 0.5.0
+
+### Minor Changes
+
+- [#1677](https://github.com/thesysdev/openui/pull/1677) [`526efee`](https://github.com/thesysdev/openui/commit/526efee96c04111ed52babe0ebc8c949c5432df3) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add `openui.artifacts` to list, read, update, delete, pin, unpin, share, and unshare saved artifacts from your server. Without `userId`, a call covers your whole org; with it (and the user's `groupIds`), the call acts as that user and gets what their frontend token would. Artifacts carry `isOwner`, `isEditable`, and, for editors, their `shares`; `list` takes `isOwner`. Dashboards add `get`, for an agent's `get_dashboard` tool: it reads a dashboard as the user in `context`.
+
 ## 0.4.4
 
 ### Patch Changes
