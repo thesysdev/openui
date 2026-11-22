@@ -84,12 +84,19 @@ export function defineDashboard<Context extends ExecutionContext>(
     ] as unknown[];
   }
 
-  const request = (context: Context, messages: unknown[], artifactId: string | undefined) => ({
+  const request = (
+    context: Context,
+    messages: unknown[],
+    artifactId: string | undefined,
+    edit: boolean,
+  ) => ({
     model,
     messages,
     ...(artifactId !== undefined && { artifact_id: artifactId }),
     ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
     user_id: context.userId,
+    // An edit can come from a share to one of the user's groups; a new dashboard is the user's alone.
+    ...(edit && context.groupIds?.length && { group_ids: context.groupIds }),
     ...(api.appId !== undefined && { app_id: api.appId }),
   });
 
@@ -114,7 +121,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
       const reply = await api.post(
         "/v1/dashboard/chat/completions",
-        request(context, messages, artifactId),
+        request(context, messages, artifactId, call.id !== undefined),
         signal,
       );
       const choice: unknown = Array.isArray(reply["choices"]) ? reply["choices"][0] : undefined;
@@ -171,7 +178,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       let finish: unknown;
       for await (const chunk of api.stream(
         "/v1/dashboard/chat/completions",
-        request(context, messages, artifactId),
+        request(context, messages, artifactId, call.id !== undefined),
         signal,
       )) {
         if (typeof chunk["artifact_id"] === "string") artifactId = chunk["artifact_id"];

@@ -15,7 +15,7 @@ launch — see **Security** below.
 ```
  Browser (src/app/page.tsx)
    AgentInterface   ──POST /api/chat ({ messages, threadId })──►  route.ts (runtime=nodejs)
-   + openuiLibrary                                                              │
+   + library                                                              │
    renderer  ◄──NDJSON OpenAI chunks (delta.content = OpenUI Lang)───────────────┤
                                                                            ▼
                                                           src/lib/pi-session.ts
@@ -35,9 +35,15 @@ launch — see **Security** below.
 - **Transport:** the frontend's `openAIReadableStreamAdapter()` parses **NDJSON** OpenAI
   `chat.completion.chunk`s (one JSON object per line). The route translates pi's `text_delta`
   events into `delta.content`, and pi's reasoning + tool executions into `delta.tool_calls`.
-- **System prompt:** `pnpm generate` writes `src/generated/spec.json` from `openuiLibrary`.
-  `cloudInstructions()` reads that spec and passes it to `generateSystemPrompt({ cloud: true, library })`
-  from `@openuidev/lang-core`, so the Cloud prompt matches `openuiLibrary` on the client.
+- **System prompt:** `pnpm generate` runs `openui generate src/library.ts --spec --out src/generated/spec.json`
+  using `library` from `@openuidev/intelligent-ui-library`.
+  `cloudInstructions()` reads that spec and passes it to `generateSystemPrompt({ cloud: true, library, promptOptions })`
+  from `@openuidev/lang-core`, so the Cloud prompt matches the Intelligent UI `library` on the client, with `Col` as root.
+  The library module extends the default `promptOptions` and `additionalRules` with form rules,
+  preserving its examples. The agent prompt also requires a `Col` root.
+- **Theme:** react-ui still supplies the chat, adapters and styles. The Intelligent UI
+  `ThemeProvider mode={mode}` wraps the chat; both providers receive the same
+  `useSystemThemeMode()` value, so answers follow the chat's light/dark mode.
 - **Model:** Pi calls OpenUI Cloud Chat Completions (`https://api.thesys.dev/v1/embed`) with
   `THESYS_API_KEY`. The default model is `google/gemini-3.6-flash-free`.
 - **Sessions:** each chat thread (a stable `threadId` from `fetchLLM`) maps to
@@ -48,7 +54,7 @@ launch — see **Security** below.
 Node.js **22.19 or newer** (the Pi SDK fails on older versions with `markAsUncloneable is not a function`).
 
 All you need is an **[OpenUI Cloud](https://console.thesys.dev/keys)** API key. You do **not**
-need the Pi CLI installed — this app embeds the Pi SDK and points it at Cloud Completions.
+need `OPENAI_API_KEY` or the Pi CLI installed — this app embeds the Pi SDK and points it at Cloud Completions.
 
 Copy `.env.example` to `.env` and set `THESYS_API_KEY`. Optional: `OPENUI_MODEL` (default
 `google/gemini-3.6-flash-free`).
@@ -88,13 +94,13 @@ pnpm build && pnpm start
 
 ## Configuration
 
-| Env var          | Default                         | Purpose                                              |
-| ---------------- | ------------------------------- | ---------------------------------------------------- |
-| `THESYS_API_KEY` | —                               | OpenUI Cloud API key                                 |
-| `OPENUI_MODEL`   | `google/gemini-3.6-flash-free`  | Cloud model id Pi sends to Completions               |
-| `PI_AGENT_CWD`   | `process.cwd()`                 | Workspace directory the coding agent reads/writes in |
-| `PI_WEB_TOOLS`   | `full`                          | Set to `read-only` to disable `bash`/`edit`/`write`  |
-| `PORT`           | `3000`                          | Dev/prod server port                                 |
+| Env var          | Default                        | Purpose                                              |
+| ---------------- | ------------------------------ | ---------------------------------------------------- |
+| `THESYS_API_KEY` | —                              | OpenUI Cloud API key                                 |
+| `OPENUI_MODEL`   | `google/gemini-3.6-flash-free` | Cloud model id Pi sends to Completions               |
+| `PI_AGENT_CWD`   | `process.cwd()`                | Workspace directory the coding agent reads/writes in |
+| `PI_WEB_TOOLS`   | `full`                         | Set to `read-only` to disable `bash`/`edit`/`write`  |
+| `PORT`           | `3000`                         | Dev/prod server port                                 |
 
 ## Thinking states
 
@@ -114,6 +120,9 @@ that way. The dev/build scripts use `--webpack` because this external setup is t
 you can experiment with the default Turbopack + `serverExternalPackages` if you prefer.
 
 ## Notes & limitations
+
+- Previously saved answers using the old components cannot render with this library. Start a new
+  chat to generate answers using `Col`, `Title`, `Text` and the other current components.
 
 - **One turn at a time per conversation.** A second request on a conversation whose turn is still
   streaming gets a "please wait" notice rather than interrupting the in-flight turn.

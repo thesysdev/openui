@@ -12,19 +12,21 @@ import {
   PreviewOverridesContext,
   RegionContext,
   useArtifactRenderer,
+  type ArtifactRendererState,
   type Region,
 } from "./contexts";
+import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
 
 /*
  * Slots, following AgentInterface's three modes:
  *   • omit a slot     → the default renders
  *   • pass props      → the default renders with your values
  *   • pass children   → your children replace the default's look; a loader
- *                       or error still shows only while loading or failed
+ *                       or error still shows only while pending, loading or failed
  *
  * Regions (`Preview`, `Chrome`) go at the renderer's top level. Parts only
  * render inside their region: preview parts in `Preview`, chrome parts in
- * `Chrome`, `Loading`/`Error` in `Content`.
+ * `Chrome`, `Pending`/`Loading`/`Error` in `Content`.
  */
 
 /** Is this part inside its region? Outside it, the part renders nothing. */
@@ -42,7 +44,8 @@ const Spinner = () => (
   <LoaderCircle className={clsx(styles.spinner, names.spinner)} size={14} aria-hidden />
 );
 
-const loadingLabel = (isStreaming: boolean) => (isStreaming ? "Generating…" : "Loading data…");
+const loadingLabel = ({ isPending, isStreaming }: ArtifactRendererState) =>
+  isPending ? "Preparing…" : isStreaming ? "Generating…" : "Loading data…";
 
 // ─── Preview region ──────────────────────────────────────────────────────
 
@@ -120,7 +123,7 @@ export function PreviewLoader({ label, children }: LoaderProps) {
   return (
     <span className={clsx(styles.loader, names.loader)} role="status">
       <Spinner />
-      {label ?? loadingLabel(state.isStreaming)}
+      {label ?? loadingLabel(state)}
     </span>
   );
 }
@@ -173,7 +176,7 @@ export function ChromeLoader({ label, children }: LoaderProps) {
   return (
     <span className={clsx(styles.loader, names.loader)} role="status">
       <Spinner />
-      {label ?? loadingLabel(state.isStreaming)}
+      {label ?? loadingLabel(state)}
     </span>
   );
 }
@@ -227,6 +230,7 @@ export function Content({ className, children }: PartProps) {
         {/* Above the artifact, so an error reads first. */}
         {children === undefined ? (
           <>
+            <Pending />
             <Loading />
             <ErrorSlot />
           </>
@@ -239,11 +243,25 @@ export function Content({ className, children }: PartProps) {
   );
 }
 
+export interface PendingProps extends PendingLoaderProps {
+  children?: ReactNode;
+}
+
+/** Before the artifact exists, while the tool call that makes it runs: a skeleton dashboard that rearranges itself. */
+export function Pending({ children, ...loader }: PendingProps) {
+  const inside = useInRegion("content");
+  const { isPending } = useArtifactRenderer();
+  if (!inside || !isPending) return null;
+  if (children !== undefined) return <>{children}</>;
+  return <PendingLoader {...loader} />;
+}
+
 export function Loading({ label, children }: LoaderProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
   const config = useContext(ContentConfigContext);
-  if (!inside || !state.isLoading || state.error) return null;
+  // While pending, `Pending` has the content to itself.
+  if (!inside || !state.isLoading || state.isPending || state.error) return null;
   if (children !== undefined) return <>{children}</>;
   return (
     <div
@@ -255,7 +273,7 @@ export function Loading({ label, children }: LoaderProps) {
       role="status"
     >
       <Spinner />
-      {label ?? loadingLabel(state.isStreaming)}
+      {label ?? loadingLabel(state)}
     </div>
   );
 }

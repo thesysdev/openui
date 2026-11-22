@@ -4,7 +4,9 @@ import { defineDynamic, defineInstructions } from "eve/instructions";
 // imports need an explicit .ts extension. JSON imports also need the
 // `with { type: "json" }` attribute.
 import librarySpec from "../../src/generated/spec.json" with { type: "json" };
-import { promptOptions } from "../../src/lib/prompt-options.ts";
+
+// The generated spec carries the library and its prompt options; generateSystemPrompt takes them separately.
+const { promptOptions, ...library } = librarySpec;
 
 /**
  * Teach the agent to answer in OpenUI Lang. Resolved once per session so the
@@ -14,7 +16,7 @@ export default defineDynamic({
   events: {
     "session.started": () =>
       defineInstructions({
-        markdown: generateSystemPrompt({ library: librarySpec, promptOptions }),
+        markdown: generateSystemPrompt({ library, promptOptions }),
       }),
   },
 });

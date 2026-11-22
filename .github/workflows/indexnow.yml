@@ -1,0 +1,86 @@
+name: IndexNow
+
+# After each production deploy of the docs site, asks IndexNow search engines (Bing, Yandex, ...) to
+# recrawl the docs and blog pages that the deployed commit added, changed or removed. Unchanged
+# pages are left out, as IndexNow asks.
+#
+# The key is the INDEXNOW_KEY repository secret. The docs site serves the same key at
+# https://www.openui.com/<key>.txt from the INDEXNOW_KEY env var on Vercel (see docs/proxy.ts), and
+# IndexNow fetches that file to confirm the submission comes from us.
+on:
+  deployment_status:
+
+permissions: {}
+
+jobs:
+  submit:
+    # Vercel reports every deploy here; only finished production deploys need a submission.
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      HOST: www.openui.com
+    steps:
+      # Two commits deep, so the deployed commit can be compared with its parent.
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 2
+
+      - name: List the pages this deploy changed
+        run: |
+          # Every .mdx file under docs/content is one page. --no-renames lists a moved page under
+          # both its old and new path, so search engines recrawl both URLs.
+          changed_files=$(git diff --name-only --no-renames HEAD~1 HEAD -- 'docs/content/*.mdx')
+
+          # Turn each file path into its page URL, for example
+          #   docs/content/docs/gateway/pricing.mdx  ->  https://www.openui.com/docs/gateway/pricing
+          #   docs/content/docs/agent/index.mdx      ->  https://www.openui.com/docs/agent
+          #   docs/content/blog/oui-1.mdx            ->  https://www.openui.com/blog/oui-1
+          for file in $changed_files; do
+            page="${file#docs/content/}"
+            page="${page%.mdx}"
+            page="${page%/index}"
+
+            # Cookbooks and demos are served at the top level, not under /docs
+            # (TOP_LEVEL_SECTIONS in docs/lib/source.ts).
+            case "$page" in
+              docs/cookbooks | docs/cookbooks/* | docs/demos | docs/demos/*)
+                page="${page#docs/}"
+                ;;
+            esac
+
+            echo "https://$HOST/$page" >> changed-urls.txt
+          done
+
+      - name: Submit them to IndexNow
+        env:
+          KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          if [ ! -s changed-urls.txt ]; then
+            echo "This deploy changed no docs or blog pages; nothing to submit."
+            exit 0
+          fi
+
+          echo "Submitting $(wc -l < changed-urls.txt) URLs:"
+          cat changed-urls.txt
+
+          # The request body IndexNow expects, with one entry in urlList per line of the file.
+          payload=$(jq --raw-input --slurp \
+            --arg host "$HOST" \
+            --arg key "$KEY" \
+            '{
+              host: $host,
+              key: $key,
+              keyLocation: "https://\($host)/\($key).txt",
+              urlList: (split("\n") | map(select(. != "")))
+            }' changed-urls.txt)
+
+          # --fail makes the step fail on an error response, such as 403 when the key file is missing.
+          echo "$payload" | curl --fail --silent --show-error \
+            --request POST https://api.indexnow.org/indexnow \
+            --header 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @- \
+            --output /dev/null \
+            --write-out 'IndexNow responded %{http_code}\n'

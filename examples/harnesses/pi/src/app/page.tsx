@@ -3,6 +3,7 @@
 import "@openuidev/react-ui/styles/index.css";
 
 import { localStorageChat } from "@/lib/local-storage";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import {
   AgentInterface,
   fetchLLM,
@@ -10,7 +11,6 @@ import {
   openAIReadableStreamAdapter,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 const { llm, storage } = localStorageChat(
   fetchLLM({
@@ -23,33 +23,35 @@ const { llm, storage } = localStorageChat(
 
 export default function Home() {
   const mode = useSystemThemeMode();
-  // AgentInterface uses its built-in in-memory storage default (wiped on reload).
+  // Browser thread metadata and messages persist in local storage.
   // fetchLLM POSTs { threadId, messages }; the route keys a persistent pi
   // AgentSession on that threadId. The Cloud system prompt is attached server-side.
   return (
     <div className="h-screen w-screen overflow-hidden">
-      <AgentInterface
-        llm={llm}
-        storage={storage}
-        componentLibrary={openuiLibrary}
-        agentName="OpenUI Agent Harness"
-        theme={{ mode }}
-        starterVariant="short"
-        starters={[
-          {
-            displayText: "Launch checklist",
-            prompt: "Create a launch checklist for a new AI feature.",
-          },
-          {
-            displayText: "Onboarding flow",
-            prompt: "Design a customer onboarding flow for a B2B SaaS product.",
-          },
-          {
-            displayText: "Support case",
-            prompt: "Summarize a support case as an action dashboard.",
-          },
-        ]}
-      />
+      <ThemeProvider mode={mode}>
+        <AgentInterface
+          llm={llm}
+          storage={storage}
+          componentLibrary={library}
+          agentName="OpenUI Agent Harness"
+          theme={{ mode }}
+          starterVariant="short"
+          starters={[
+            {
+              displayText: "Launch checklist",
+              prompt: "Create a launch checklist for a new AI feature.",
+            },
+            {
+              displayText: "Onboarding flow",
+              prompt: "Design a customer onboarding flow for a B2B SaaS product.",
+            },
+            {
+              displayText: "Support case",
+              prompt: "Summarize a support case as an action dashboard.",
+            },
+          ]}
+        />
+      </ThemeProvider>
     </div>
   );
 }

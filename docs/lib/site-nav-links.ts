@@ -21,7 +21,6 @@ export const SITE_NAV_LINKS = {
   oui1: { href: "/oui-1" },
   openClawOs: { href: "/openclaw-os" },
   appless: { href: "/appless" },
-  community: { href: "/lab" },
   compare: { href: "/compare" },
   openuiVsJson: { href: "/openui-vs-json" },
   debug: { href: "/docs/openui-lang/developer-tools#debug" },

@@ -73,6 +73,7 @@ export const FEATURED_PROJECTS: ShowcaseItem[] = [
     description:
       "Ask about any race, driver or team and get charts, tables and timing from OpenF1, next to live standings dashboards.",
     image: { light: "/nav/f1-dashboard-light.webp", dark: "/nav/f1-dashboard-dark.webp" },
+    leadImage: "/demo-unavailable/f1-dashboard-desktop.jpg",
     links: [
       { label: "Open demo", href: SITE_NAV_LINKS.f1Dashboard.href },
       { label: "GitHub", href: "https://github.com/thesysdev/openui-f1-dashboard", external: true },

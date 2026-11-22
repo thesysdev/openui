@@ -73,7 +73,7 @@ export interface RequestOptions {
 export interface Dashboard<Context extends ExecutionContext = ExecutionContext> {
   /**
    * `context` says who's asking, as for the interpreter: the dashboard belongs
-   * to `context.userId`, who alone can read, edit and run it.
+   * to `context.userId`. Until they share it, only they can read, edit and run it.
    */
   create(
     params: CreateDashboardParams,
@@ -85,7 +85,10 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
     context: Context,
     options?: RequestOptions & { stream?: false },
   ): Promise<string>;
-  /** Edits in place, for its owner. Renderers keep the current version until the edit is ready. */
+  /**
+   * Edits in place, for its owner or anyone it's shared with for editing, through
+   * `context.userId` or `context.groupIds`. Renderers keep the current version until the edit is ready.
+   */
   edit(
     params: EditDashboardParams,
     context: Context,
@@ -101,8 +104,14 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
 }
 
 export interface CreateFrontendTokenParams {
-  /** The signed-in user, from your session. The token reads only their artifacts. */
+  /** The signed-in user, from your session. The token reads their artifacts and those shared with them. */
   userId: string;
+  /**
+   * The groups the user is in, from your own system: artifacts shared with any of them are
+   * readable too. Up to 10, each up to 64 characters. The token carries them until it expires,
+   * so a change shows on the next token.
+   */
+  groupIds?: string[];
 }
 
 /** A user's frontend token, in the shape the browser's `createFrontendTokenManager` reads. */

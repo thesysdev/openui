@@ -41,6 +41,6 @@ export class OpenUIClient {
     params: CreateFrontendTokenParams,
     options?: RequestOptions,
   ): Promise<FrontendToken> {
-    return createFrontendToken(this.api, params.userId, options?.signal);
+    return createFrontendToken(this.api, params.userId, params.groupIds, options?.signal);
   }
 }

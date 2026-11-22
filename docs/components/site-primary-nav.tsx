@@ -13,7 +13,6 @@ import {
   Monitor,
   PlugsConnected,
   PresentationChart,
-  Users,
   type Icon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -211,10 +210,11 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
             icon: Monitor,
           },
           {
-            title: "By community",
-            description: "Tools, packages, plugins, and demos from the community",
-            ...SITE_NAV_LINKS.community,
-            icon: Users,
+            title: "Integrations",
+            description:
+              "How OpenUI integrates easily with your AI frameworks, UI libraries, SDKs etc.",
+            ...SITE_NAV_LINKS.integrations,
+            icon: PlugsConnected,
           },
         ],
       },
@@ -239,13 +239,6 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
               "Product updates, deep dives, and notes on building generative UI from our team.",
             ...SITE_NAV_LINKS.blog,
             icon: Book,
-          },
-          {
-            title: "Integrations",
-            description:
-              "How OpenUI integrates easily with your AI frameworks, UI libraries, SDKs etc.",
-            ...SITE_NAV_LINKS.integrations,
-            icon: PlugsConnected,
           },
         ],
       },

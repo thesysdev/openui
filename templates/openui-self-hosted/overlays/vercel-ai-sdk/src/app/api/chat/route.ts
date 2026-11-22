@@ -1,5 +1,4 @@
 import librarySpec from "@/generated/spec.json";
-import { promptOptions } from "@/lib/prompt-options";
 import { getWeather, WEATHER_TOOL_DESCRIPTION } from "@/lib/tools/get-weather";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
@@ -13,6 +12,9 @@ import {
   type UIMessage,
 } from "ai";
 import { z } from "zod";
+
+// The generated spec carries the library and its prompt options; generateSystemPrompt takes them separately.
+const { promptOptions, ...library } = librarySpec;
 
 export const runtime = "nodejs";
 
@@ -39,7 +41,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: openai.chat(process.env.OPENAI_MODEL ?? "gpt-5.2"),
-    system: generateSystemPrompt({ library: librarySpec, promptOptions }),
+    system: generateSystemPrompt({ library, promptOptions }),
     messages: await convertToModelMessages(payload.messages),
     tools,
     stopWhen: stepCountIs(5),

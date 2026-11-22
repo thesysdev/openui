@@ -1,0 +1,3 @@
+# Generated (pnpm run golden) and vendored platform schemas: keep byte-for-byte.
+src/__tests__/fixtures/golden.json
+src/__tests__/schemas/*.json

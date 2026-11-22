@@ -37,6 +37,10 @@
   background: var(--docs-hover-bg);
 }
 
+.featuredMedia {
+  overflow: hidden;
+}
+
 .featuredMedia img {
   display: block;
   width: 100%;
@@ -44,6 +48,153 @@
   margin: 0;
   border-radius: 0;
   object-fit: cover;
+  object-position: top;
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.featuredCard:hover .featuredMedia img {
+  transform: scale(1.025);
+}
+
+/* Two wide cards a row (the Playground pair), so the row is never half empty. */
+.wideGrid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+}
+
+/* The lead card spans the row: a full-size screenshot beside larger copy. */
+.leadCard {
+  grid-column: 1 / -1;
+  flex-direction: row;
+}
+
+.leadCard .featuredMedia {
+  flex: 3 1 0;
+  min-width: 0;
+  aspect-ratio: 16 / 10;
+  border-right: 1px solid var(--docs-card-border);
+  border-bottom: 0;
+}
+
+.leadCard .featuredBody {
+  flex: 2 1 0;
+  min-width: 0;
+  justify-content: center;
+  padding: 1.75rem 2rem;
+}
+
+.leadCard .cardTitle {
+  font-size: 1.5rem !important;
+  letter-spacing: -0.01em;
+}
+
+.leadCard .cardDescription {
+  flex: 0 1 auto;
+  margin-top: 0.625rem !important;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.leadCard .cardLinks {
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+/* The lead card's main link is a button, not a text link. */
+.leadCard .cardStretch {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--docs-text-heading);
+  color: var(--color-fd-background) !important;
+}
+
+.leadCard .cardStretch:hover {
+  text-decoration: none !important;
+}
+
+.leadCard .cardStretch .cardLinkIcon {
+  color: inherit;
+}
+
+@media (max-width: 52rem) {
+  .leadCard {
+    flex-direction: column;
+  }
+
+  .leadCard .featuredMedia {
+    flex: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--docs-card-border);
+  }
+
+  .leadCard .featuredBody {
+    flex: none;
+    padding: 1.25rem;
+  }
+
+  .leadCard .cardTitle {
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featuredMedia img {
+    transition: none;
+  }
+
+  .featuredCard:hover .featuredMedia img {
+    transform: none;
+  }
+}
+
+/* The closing card of the community grid: a dashed invitation to add a project. */
+.addCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 1px dashed var(--docs-card-border-hover);
+  border-radius: 0.875rem;
+  padding: 1rem 1.125rem 1.125rem;
+  text-decoration: none !important;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.addCard:hover {
+  border-color: var(--docs-text-muted);
+  background: var(--docs-hover-bg);
+}
+
+.addCardIcon {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.375rem;
+  border: 1px solid var(--docs-card-border);
+  border-radius: 999px;
+  color: var(--docs-text-heading);
+}
+
+.addCardIcon svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.addCardTitle {
+  color: var(--docs-text-heading);
+  font-size: 0.975rem;
+  font-weight: 600;
+}
+
+.addCardText {
+  color: var(--docs-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.55;
 }
 
 .imageDark {
@@ -63,15 +214,6 @@
   flex: 1;
   flex-direction: column;
   padding: 1.125rem 1.25rem 1.25rem;
-}
-
-.eyebrow {
-  margin-bottom: 0.25rem;
-  color: var(--docs-text-muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .card {
@@ -295,8 +437,13 @@
   z-index: 2;
 }
 
+/* The links row is a flex container, so a z-index on the stretched link would
+   apply even though it is static, and make it a stacking context level with
+   the other links: its overlay would then cover any link that comes before
+   it. Left at auto, the overlay stacks in the card, under the other links. */
 .cardClickable .cardStretch {
   position: static;
+  z-index: auto;
 }
 
 .cardClickable .cardStretch::after {

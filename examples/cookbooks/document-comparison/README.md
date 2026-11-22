@@ -39,7 +39,7 @@ Try:
 2. The model calls `search_documents` once per criterion, with a short description of the information to find.
 3. The server embeds the description, ranks each document's passages by similarity, and returns the closest ones with page numbers, links to those pages, and a `found` flag.
 4. `runTools()` returns the passages to the model, and the route streams the tool calls and generated OpenUI Lang to the browser.
-5. Agent Interface displays tool activity and progressively renders the comparison: a page-cited table, charts, callouts for gaps and conflicts, and a card for each quoted page.
+5. Agent Interface displays tool activity and progressively renders the comparison: a page-cited table, charts, text notes for gaps and conflicts, and a card for each quoted page.
 
 ## Files
 
@@ -49,7 +49,7 @@ Try:
 | `src/lib/documents.ts`                | Sample document sources, database schema, and document list                   |
 | `src/lib/embeddings.ts`               | OpenAI embeddings and similarity                                              |
 | `src/lib/tools/search-documents.ts`   | Function schema, argument validation, and passage search                      |
-| `src/library.ts`                      | The chat library, shared by the prompt and renderer                           |
+| `src/library.ts`                      | Intelligent UI library, shared by the prompt and renderer                     |
 | `src/lib/prompt.ts`                   | Comparison rules and example answers for Gateway                              |
 | `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages                   |
 | `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage                          |
@@ -87,4 +87,6 @@ npm run verify
 
 `verify` generates the component specification and runs a production build with type checking. It needs neither credentials nor a download.
 
-In the browser, open a card in an answer's Sources to check a value on its page, expand **Behind the scenes** to inspect `search_documents`, open **Documents** in the sidebar, and switch the operating system between light and dark mode.
+In the browser, open a link in an answer's Sources to check a value on its page, expand **Behind the scenes** to inspect `search_documents`, open **Documents** in the sidebar, and switch the operating system between light and dark mode.
+
+Generated answers use `@openuidev/intelligent-ui-library`: root `Col`, `Card`, `Table`, and `Chart`. The prompt extends its default rules and examples. React UI keeps the chat shell and transport; the Intelligent UI `ThemeProvider` receives the same system light/dark mode as the chat. Follow-up buttons send questions with `@ToAssistant(...)`. Document sources use `Quote` and `Link` inside cards.

@@ -1,7 +1,7 @@
 import { type InferPageType, loader } from "fumadocs-core/source";
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
 import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
-import { blogPosts, docs, integrationGuides } from "fumadocs-mdx:collections/server";
+import { blogPosts, docs } from "fumadocs-mdx:collections/server";
 import { expandShowcaseComponents } from "./showcase-markdown";
 
 import { BASE_URL } from "./site-url";
@@ -26,12 +26,6 @@ export const source = loader({
 export const blog = loader({
   baseUrl: "/blog",
   source: toFumadocsSource(blogPosts, []),
-});
-
-/** Example and steps for each integration page, keyed by the integration's slug. */
-export const integrationGuide = loader({
-  baseUrl: "/integrations",
-  source: toFumadocsSource(integrationGuides, []),
 });
 
 export async function getLLMText(page: InferPageType<typeof source>) {

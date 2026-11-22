@@ -1516,6 +1516,124 @@
   .legend {
     padding: 12px 16px 14px;
   }
+
+  .header:has(.segmented) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header .segmented {
+    align-self: flex-start;
+  }
+
+  .arch {
+    padding: 16px;
+  }
+
+  .archFooter {
+    align-items: flex-start;
+    padding: 12px 16px 14px;
+  }
+
+  .archFooterDot {
+    margin-top: 7px;
+  }
+}
+
+/* Architecture: below the full article width, stack the zones and turn the
+   connectors into down arrows. */
+@media (max-width: 800px) {
+  .arch {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .archConnector {
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 4px 0;
+  }
+
+  .archConnectorLine {
+    width: 1px;
+    height: 100%;
+  }
+
+  .archConnectorLine::after {
+    top: auto;
+    right: -3px;
+    bottom: 0;
+    transform: rotate(135deg);
+  }
+
+  /* Runtime above renderer, with the callback loop as a bracket up the right edge. */
+  .client {
+    grid-template-columns: minmax(0, 1fr) 18px;
+    grid-template-rows: auto auto auto;
+  }
+
+  .client > .archCard,
+  .client > .archConnector {
+    grid-column: 1;
+  }
+
+  /* Explicit rows, so the loop can overlap the cards instead of pushing them down. */
+  .client > :nth-child(1) {
+    grid-row: 1;
+  }
+
+  .client > :nth-child(2) {
+    grid-row: 2;
+  }
+
+  .client > :nth-child(3) {
+    grid-row: 3;
+  }
+
+  .client > .archConnector {
+    justify-content: flex-end;
+    padding-left: 24px;
+  }
+
+  .loop {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-column: 1 / -1;
+    grid-row: 1 / 4;
+    height: auto;
+    pointer-events: none;
+  }
+
+  .loop::before {
+    top: 22px;
+    right: 4px;
+    bottom: 22px;
+    left: auto;
+    width: 14px;
+    height: auto;
+    border: 1px solid currentColor;
+    border-left: 0;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .loop::after {
+    top: 19px;
+    left: auto;
+    right: 15px;
+    border-top: 0;
+    border-bottom: 1px solid currentColor;
+  }
+
+  .loopLabel {
+    position: static;
+    grid-row: 2;
+    align-self: center;
+    justify-self: end;
+    margin-right: 26px;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

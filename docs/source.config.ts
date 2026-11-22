@@ -47,14 +47,6 @@ export const blogPosts = defineCollections({
   }),
 });
 
-// The body of each /integrations/<slug> page: its example and integration steps.
-// The file name is the slug; the page's metadata lives in app/(home)/integrations/data.ts.
-export const integrationGuides = defineCollections({
-  type: "doc",
-  dir: "content/integrations",
-  schema: pageSchema,
-});
-
 export default defineConfig({
   plugins: [lastModified()],
 });

@@ -79,18 +79,33 @@ With `preview={false}`, the dashboard renders where the renderer is, without a c
 
 In this mode the renderer draws no frame unless a `Chrome` slot is passed. See [Slots](#slots).
 
+### Before the tool returns
+
+The model writes the tool call's arguments before `create` runs, which can take a while. Mount the renderer as soon as the call starts, without `response` or `id`. Until the result arrives it shows the `Pending` slot, a skeleton dashboard, and then the same renderer streams the dashboard:
+
+```tsx
+<LiveArtifactRenderer
+  response={toolCall.result} // undefined while the call runs
+  library={library}
+  interpreter={interpreter}
+  preview={false}
+/>
+```
+
+Unmount it if the call stops or fails without a result, or it stays pending. In `AgentInterface`, `defineLiveArtifactRenderer` from `@openuidev/react-ui/cloud/agent-interface` does both.
+
 ## Slots
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
 
-| Slot                                                          | Region  | What it is                                                                         |
-| ------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
-| `Preview`                                                     | Preview | The card that opens the dashboard.                                                 |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`         | Preview | The card's parts.                                                                  |
-| `Chrome`                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                      |
-| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                   |
-| `Content`                                                     | Chrome  | The dashboard itself.                                                              |
-| `Loading`, `Error`                                            | Content | Shown only while the dashboard loads or after it fails, even with custom children. |
+| Slot                                                          | Region  | What it is                                                                                                   |
+| ------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| `Preview`                                                     | Preview | The card that opens the dashboard.                                                                           |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`         | Preview | The card's parts.                                                                                            |
+| `Chrome`                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                                |
+| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                             |
+| `Content`                                                     | Chrome  | The dashboard itself.                                                                                        |
+| `Pending`, `Loading`, `Error`                                 | Content | Shown only before the tool returns, while the dashboard loads, or after it fails, even with custom children. |
 
 For example, a full-height panel with its own header:
 
@@ -102,6 +117,7 @@ For example, a full-height panel with its own header:
       <StatusBadge />
     </header>
     <LiveArtifactRenderer.Content className="panel-body">
+      <LiveArtifactRenderer.Pending color="#2c59f5" label="Planning your dashboard" />
       <LiveArtifactRenderer.Loading label="Loading live data…" />
       <LiveArtifactRenderer.Error>
         <DashboardError />
@@ -144,9 +160,10 @@ function DashboardError() {
 | Field                     | Description                                                                  |
 | ------------------------- | ---------------------------------------------------------------------------- |
 | `id`, `title`             | The dashboard's id and title.                                                |
+| `isPending`               | No dashboard yet: the tool call that makes it is still running.              |
 | `isStreaming`             | The dashboard is being generated.                                            |
 | `isFetching`              | Its queries are running.                                                     |
-| `isLoading`               | Either of the two.                                                           |
+| `isLoading`               | Any of the three.                                                            |
 | `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`). |
 | `retry`                   | Retries what failed. Undefined when there's nothing to retry.                |
 | `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                               |

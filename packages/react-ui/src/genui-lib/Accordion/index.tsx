@@ -29,12 +29,21 @@ export const AccordionRenderer = ({ props, renderNode }: AccordionRenderProps) =
   const items = props.items ?? [];
   const [openItem, setOpenItem] = React.useState<string>("");
   const userHasInteracted = React.useRef(false);
-  const prevItemCount = React.useRef(0);
+  const prevItemCount = React.useRef<number | null>(null);
+  const autoOpenIndex = React.useRef(-1);
 
-  // Auto-open: only when a NEW item arrives during streaming
-  if (!userHasInteracted.current && items.length > prevItemCount.current) {
-    const newest = items[items.length - 1];
-    if (newest) setOpenItem(newest.props.value);
+  // Open the first item when the accordion mounts with its items already there
+  // (a static response, or a stream that delivered them in one chunk), then the
+  // newest item each time one arrives. Track the index, not the value, so the
+  // open item stays in sync while its value is still streaming in.
+  if (!userHasInteracted.current) {
+    if (prevItemCount.current === null) {
+      if (items.length) autoOpenIndex.current = 0;
+    } else if (items.length > prevItemCount.current) {
+      autoOpenIndex.current = items.length - 1;
+    }
+    const autoOpenValue = items[autoOpenIndex.current]?.props.value;
+    if (autoOpenValue && autoOpenValue !== openItem) setOpenItem(autoOpenValue);
   }
   prevItemCount.current = items.length;
 

@@ -106,6 +106,23 @@ const config = {
         destination: "/docs/integrations",
         permanent: true,
       },
+      // The standalone /integrations pages were folded into the docs Integrations page.
+      {
+        source: "/integrations",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
+      {
+        source: "/integrations/:path*",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
+      // The Lab page was removed; it now sends visitors to the Integrations docs.
+      {
+        source: "/lab",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
       {
         source: "/docs/gateway/api/autofix",
         destination: "/docs/autofix",
@@ -163,6 +180,12 @@ const config = {
       {
         source: "/docs/openui-lang/how-it-works",
         destination: "/docs/openui-lang/architecture",
+        permanent: true,
+      },
+      // The legacy Prompts stub duplicated System Prompts.
+      {
+        source: "/docs/openui-lang/prompts",
+        destination: "/docs/openui-lang/system-prompts",
         permanent: true,
       },
       {
@@ -390,27 +413,25 @@ const config = {
       },
       {
         source: "/docs/add-ons",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/add-ons",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/ecosystem",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
       {
         source: "/registry",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: false,
       },
-      // Nav rename: Playground -> Demos, Projects -> Lab. Keep the old
-      // paths working for external links and search results.
-      // Product rename: Paste → Debug. Keep the old path working.
+            // Product rename: Paste → Debug. Keep the old path working.
       {
         source: "/paste",
         destination: "/debug",
@@ -423,12 +444,12 @@ const config = {
       },
       {
         source: "/projects",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
         source: "/showcase",
-        destination: "/lab",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {

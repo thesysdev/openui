@@ -8,30 +8,13 @@ import styles from "./AgentPicker.module.css";
 
 /* What the button puts on the clipboard. A prompt to paste into an agent, not
    a shell command: it is copied verbatim, with nothing appended. */
-export const AGENT_SETUP_PROMPT = `Set up my first Generative UI agent using the recommended OpenUI stack.
+export const AGENT_SETUP_PROMPT = `Install the OpenUI skill with \`npx skills add thesysdev/skills\`. Ask me what I want to build and whether to start a new app or integrate OpenUI into my existing one, then use the skill to complete it.`;
 
-1. Scaffold: run \`npx @openuidev/cli@latest create\`. It runs without prompts, creates the project folder, and installs dependencies.
-2. Tell me if there are any steps required of me to complete.
-3. First message: start the app, open its local URL, send one message, and tell me what the server log actually returned.`;
+/* The Gateway page's prompt: the same skill, pointed at Gateway. */
+export const GATEWAY_SETUP_PROMPT = `Install the OpenUI skill with \`npx skills add thesysdev/skills\`. Ask me whether to build a new app on OpenUI Gateway or move my existing app onto it, then use the skill to complete it.`;
 
-/* The Gateway page's prompt: the same scaffold, pointed at the Gateway docs. */
-export const GATEWAY_SETUP_PROMPT = `Set up my first Generative UI agent using OpenUI Gateway ([openui.com/docs/gateway](https://openui.com/docs/gateway)).
-
-1. Scaffold: run \`npx @openuidev/cli@latest create\`. It runs without prompts, creates the project folder, and installs dependencies.
-2. Tell me if there are any steps required of me to complete the setup.
-3. Run the dev server.
-
-Read AGENTS.md for instructions on working with OpenUI.`;
-
-/* The Dashboards page's prompt: the dashboards example, and its docs. */
-export const DASHBOARDS_SETUP_PROMPT = `Set up an agent with Generative UI dashboards using OpenUI ([openui.com/docs/dashboards](https://openui.com/docs/dashboards)).
-
-1. Scaffold: run \`npx @openuidev/cli@latest create --example assistant-ui-dashboards\`. It runs without prompts, creates the project folder, and installs dependencies.
-2. Read the scaffold's README.
-3. Tell me if there are any steps required of me to complete the setup.
-4. Run the dev server.
-
-Read AGENTS.md for instructions on working with OpenUI.`;
+/* The Dashboards page's prompt: the same skill, pointed at live dashboards. */
+export const DASHBOARDS_SETUP_PROMPT = `Install the OpenUI skill with \`npx skills add thesysdev/skills\`. Ask me whether to build a new app with live dashboards (scaffold it with \`npx @openuidev/cli@latest create --example assistant-ui-dashboards\`) or add them to my existing one, then follow the skill's dashboards guide to complete it.`;
 
 // The coding agents the prompt is written for; their marks ride along after
 // the label. `wideMark` is for marks drawn small in their own box, which need
