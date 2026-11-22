@@ -14,8 +14,8 @@ import type {
 } from "./parser/types";
 import {
   assertV4Schema,
-  getNamedTypeId,
   schemaSignature,
+  schemaTypeNames,
   tagPromptName,
   type SchemaRegistry,
 } from "./signature";
@@ -235,11 +235,6 @@ export interface LibraryDefinition<C = unknown, A extends AnyAction = AnyAction>
   id?: string;
 }
 
-function namedTypeMeta(schema: z.$ZodType): { id: string } | undefined {
-  const id = getNamedTypeId(schema);
-  return id ? { id } : undefined;
-}
-
 let fallbackLibraryId = 0;
 
 function createLibraryId(): string {
@@ -373,9 +368,23 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
       Object.fromEntries(Object.entries(componentsRecord).map(([k, v]) => [k, v.props])) as any,
     );
     // Components and actions come from the registry; tagSchemaId-named types
-    // (e.g. Format) are $defs too, so each is written once and $ref'd.
+    // (e.g. Format) are $defs too, so each is written once and $ref'd. A name
+    // already used by a component, an action or another schema is not given
+    // again: zod inlines that type instead.
+    const taken = new Set([
+      ...Object.keys(componentsRecord),
+      ...Object.keys(ACTION_DEFS),
+      ...Object.keys(actionsRecord),
+    ]);
+    const given = new Map<string, z.$ZodType>();
+    const typeMeta = (s: z.$ZodType) => {
+      const name = schemaTypeNames.get(s);
+      if (!name || taken.has(name) || (given.has(name) && given.get(name) !== s)) return undefined;
+      given.set(name, s);
+      return { id: name };
+    };
     const metadata = {
-      get: (s: z.$ZodType) => reg.get(s) ?? namedTypeMeta(s),
+      get: (s: z.$ZodType) => reg.get(s) ?? typeMeta(s),
     } as unknown as SchemaRegistry;
     const schema = z.toJSONSchema(combinedSchema, { metadata }) as LibraryJSONSchema;
     // zod only serializes what lives on the zod schemas / the metadata

@@ -750,12 +750,16 @@ function inlineDataRefs(node: unknown, defs: DataDefs, inlining?: Set<string>): 
 function compileParams(def: JSONSchemaDef, defs: DataDefs): ParamDef[] {
   const properties = def.properties ?? {};
   const required = def.required ?? [];
-  return Object.keys(properties).map((key) => ({
-    name: key,
-    required: required.includes(key),
-    defaultValue: getSchemaDefaultValue(properties[key]),
-    schema: defs.size ? inlineDataRefs(properties[key], defs) : properties[key],
-  }));
+  return Object.keys(properties).map((key) => {
+    const schema = defs.size ? inlineDataRefs(properties[key], defs) : properties[key];
+    return {
+      name: key,
+      required: required.includes(key),
+      // A named type's .default() sits in its $defs body, read through the $ref
+      defaultValue: getSchemaDefaultValue(properties[key]) ?? getSchemaDefaultValue(schema),
+      schema,
+    };
+  });
 }
 
 export function compileSchema(schema: LibraryJSONSchema): ParamMap {
@@ -766,6 +770,8 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const defs: DataDefs = new Map();
   const actionNames = new Set([...Object.keys(ACTION_DEFS), ...Object.keys(schema.actions ?? {})]);
   for (const [name, body] of Object.entries(schema.$defs ?? {})) {
+    // zod's hoisted recursive schemas (__schema0) stay $refs, as before named types
+    if (/^__schema\d+$/.test(name)) continue;
     const isData = components ? !components.has(name) : actionNames.has(name);
     if (isData) defs.set(`#/$defs/${name}`, body);
   }

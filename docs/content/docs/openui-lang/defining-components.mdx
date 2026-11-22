@@ -116,7 +116,7 @@ The prompt prints the prop as `action?: ActionExpression` and teaches the model 
 
 ## Naming reusable helper schemas
 
-Use `tagSchemaId(...)` when a prop uses a standalone helper schema and you want a readable name in generated prompt signatures.
+Use `tagSchemaId(...)` to name a helper schema that several props share. The name is used in both the prompt and the library's JSON Schema.
 
 ```tsx
 import { defineComponent, tagSchemaId } from "@openuidev/react-lang";
@@ -136,7 +136,7 @@ const Input = defineComponent({
 });
 ```
 
-The prompt prints `rules?: ValidationRules` instead of `rules?: Record<string, any>`. The tag changes the prompt only, not the JSON Schema. Components already get their names automatically through `defineComponent(...)`, so this is only needed for non-component helper schemas.
+The prompt prints `rules?: ValidationRules` instead of `rules?: Record<string, any>`, and the JSON Schema defines the type once in `$defs.ValidationRules` and points each prop at it with a `$ref`. If the name is already used by a component, an action or a different schema, the JSON Schema writes the type out in place instead. Components already get their names automatically through `defineComponent(...)`, so this is only needed for non-component helper schemas.
 
 ## Functions and actions
 
