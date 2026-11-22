@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   IllustratedFeature,
@@ -11,6 +12,7 @@ import {
   SafetyIllustration,
   ValidatedIllustration,
 } from "./FeatureIllustrations";
+import { SharingIllustration, SourcesIllustration } from "./LaunchIllustrations";
 import styles from "./page.module.css";
 
 /* Each card's illustration, by feature id. */
@@ -21,6 +23,27 @@ const ILLUSTRATIONS: Record<string, ReactNode> = {
   validation: <ValidatedIllustration />,
   safety: <SafetyIllustration />,
 };
+
+const LAUNCH_FEATURES = [
+  {
+    title: "Share with users and groups",
+    description: (
+      <>
+        Grant view or edit access using your app’s users and groups.{" "}
+        <Link href="/docs/dashboards/sharing" className={styles.featureLink}>
+          See how sharing works
+        </Link>
+        .
+      </>
+    ),
+    art: <SharingIllustration />,
+  },
+  {
+    title: "Show where numbers come from",
+    description: "Let users trace a chart or metric to the data tools and calculations behind it.",
+    art: <SourcesIllustration />,
+  },
+];
 
 /* The OUI-1 feature grid: two halves on the shader stage, three thirds on a
    flat stage. */
@@ -62,17 +85,24 @@ export function DashboardFeatures() {
       aria-labelledby="dashboard-features-title"
     >
       <div className={styles.container}>
-        {/* The OUI-1 and AppLess feature lockup: a centered line and its lead. */}
         <h2 id="dashboard-features-title" className={landing.statement}>
-          Fits your stack,
-          <br className={styles.phoneBreak} /> holds up in production{" "}
+          Dashboards users can share and inspect{" "}
           <span>
-            Use any model and your existing agent. Bad output gets repaired, and only your
-            components and tools run.
+            Build with your existing agent, your data tools, and the components your users know.
           </span>
         </h2>
         <div className={styles.features}>
           <IllustratedFeatures>
+            {LAUNCH_FEATURES.map((feature) => (
+              <IllustratedFeature
+                key={feature.title}
+                span="half"
+                title={feature.title}
+                description={feature.description}
+              >
+                {feature.art}
+              </IllustratedFeature>
+            ))}
             {HALVES.map((feature) => (
               <IllustratedFeature
                 key={feature.id}
