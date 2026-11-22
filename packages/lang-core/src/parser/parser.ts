@@ -770,7 +770,9 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const defs: DataDefs = new Map();
   const actionNames = new Set([...Object.keys(ACTION_DEFS), ...Object.keys(schema.actions ?? {})]);
   for (const [name, body] of Object.entries(schema.$defs ?? {})) {
-    // zod's hoisted recursive schemas (__schema0) stay $refs, as before named types
+    // zod's auto-named defs (__schema0, for untagged recursive types) stay
+    // $refs, which validation does not follow, so untagged libraries validate
+    // exactly as they always have
     if (/^__schema\d+$/.test(name)) continue;
     const isData = components ? !components.has(name) : actionNames.has(name);
     if (isData) defs.set(`#/$defs/${name}`, body);

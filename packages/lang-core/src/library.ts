@@ -367,24 +367,26 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
     const combinedSchema = zObject(
       Object.fromEntries(Object.entries(componentsRecord).map(([k, v]) => [k, v.props])) as any,
     );
-    // Components and actions come from the registry; tagSchemaId-named types
-    // (e.g. Format) are $defs too, so each is written once and $ref'd. A name
-    // already used by a component, an action or another schema is not given
-    // again: zod inlines that type instead.
-    const taken = new Set([
+    // Components and actions get their $defs id from the registry. A
+    // tagSchemaId type (e.g. Format) gets its name as id too, so zod writes it
+    // once in $defs and $refs it. zod throws when two schemas share an id, so a
+    // name that is already a component, an action or another schema's is not
+    // given: zod inlines that type, as it does for untagged types.
+    const reservedNames = new Set([
       ...Object.keys(componentsRecord),
       ...Object.keys(ACTION_DEFS),
       ...Object.keys(actionsRecord),
     ]);
-    const given = new Map<string, z.$ZodType>();
-    const typeMeta = (s: z.$ZodType) => {
-      const name = schemaTypeNames.get(s);
-      if (!name || taken.has(name) || (given.has(name) && given.get(name) !== s)) return undefined;
-      given.set(name, s);
-      return { id: name };
-    };
+    const schemaByTypeName = new Map<string, z.$ZodType>();
     const metadata = {
-      get: (s: z.$ZodType) => reg.get(s) ?? typeMeta(s),
+      get(s: z.$ZodType) {
+        const meta = reg.get(s);
+        if (meta) return meta;
+        const name = schemaTypeNames.get(s);
+        if (!name || reservedNames.has(name)) return undefined;
+        if (!schemaByTypeName.has(name)) schemaByTypeName.set(name, s);
+        return schemaByTypeName.get(name) === s ? { id: name } : undefined;
+      },
     } as unknown as SchemaRegistry;
     const schema = z.toJSONSchema(combinedSchema, { metadata }) as LibraryJSONSchema;
     // zod only serializes what lives on the zod schemas / the metadata

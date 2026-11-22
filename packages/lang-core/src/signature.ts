@@ -39,7 +39,8 @@ export function actionRef(name: string, data: z.$ZodType): ActionRef {
   return data as unknown as ActionRef;
 }
 
-// A cloned schema keeps its prompt name: Card's clone still prints as Card, an action ref as @Name
+// A cloned schema keeps its prompt name: Card's clone still prints as Card, an action ref as @Name.
+// It does not keep a tagSchemaId $defs name: the clone is a different type, so its JSON is inlined.
 export function copySchemaTags(from: object, to: object): void {
   const id = promptNames.get(from);
   if (id) promptNames.set(to, id);
