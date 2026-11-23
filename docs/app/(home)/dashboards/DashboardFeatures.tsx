@@ -39,8 +39,9 @@ const LAUNCH_FEATURES = [
     art: <SharingIllustration />,
   },
   {
-    title: "Show where numbers come from",
-    description: "Let users trace a chart or metric to the data tools and calculations behind it.",
+    title: "Show build progress and sources",
+    description:
+      "Show what the agent is checking, then let users inspect the data behind a metric.",
     art: <SourcesIllustration />,
   },
 ];
