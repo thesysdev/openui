@@ -137,7 +137,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "@openuidev/react-components": "workspace:>=0.0.3 <0.1.0",
+    "@openuidev/react-components": "workspace:~",
     "@floating-ui/react-dom": "^2.1.2",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
