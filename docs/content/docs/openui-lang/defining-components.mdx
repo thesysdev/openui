@@ -136,7 +136,7 @@ const Input = defineComponent({
 });
 ```
 
-The prompt prints `rules?: ValidationRules` instead of `rules?: Record<string, any>`, and the JSON Schema defines the type once in `$defs.ValidationRules` and points each prop at it with a `$ref`. If the name is already used by a component, an action or a different schema, or is not a plain identifier (a letter followed by letters, digits or `_`), the JSON Schema writes the type out in place instead. Components already get their names automatically through `defineComponent(...)`, so this is only needed for non-component helper schemas.
+The prompt prints `rules?: ValidationRules` instead of `rules?: Record<string, any>`, and the JSON Schema defines the type once in `$defs.ValidationRules` and points each prop at it with a `$ref`. If the name is already used by a component, an action or a different schema, the JSON Schema writes the type out in place instead. Components already get their names automatically through `defineComponent(...)`, so this is only needed for non-component helper schemas.
 
 ## Functions and actions
 
