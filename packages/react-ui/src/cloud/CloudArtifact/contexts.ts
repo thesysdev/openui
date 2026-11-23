@@ -1,4 +1,9 @@
-import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
+import type {
+  DataSourceIndex,
+  DataSources,
+  OpenUIError,
+  SourceTarget,
+} from "@openuidev/react-lang";
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
@@ -125,6 +130,43 @@ export function createSourcesStore(): SourcesStore {
 /** The renderer's provenance state: the public fields, and the store the bridge writes. */
 export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
   sourcesStore: SourcesStore;
+  /** Every query and component in the program, which the index bridge writes while inspecting. */
+  indexStore: ValueStore<DataSourceIndex>;
+  /** Select a component, as a click in inspect mode does. */
+  select: (target: SourceTarget) => void;
+}
+
+/** A value that readers subscribe to, so a write re-renders only them. */
+export interface ValueStore<T> {
+  get: () => T;
+  set: (next: T) => void;
+  subscribe: (listener: () => void) => () => void;
+}
+
+export function createValueStore<T>(initial: T): ValueStore<T> {
+  let value = initial;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => value,
+    set: (next) => {
+      if (Object.is(next, value)) return;
+      value = next;
+      listeners.forEach((listener) => listener());
+    },
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
+  };
+}
+
+export const EMPTY_INDEX: DataSourceIndex = Object.freeze({ queries: [], components: [] });
+const INERT_INDEX_STORE = createValueStore(EMPTY_INDEX);
+
+/** The program's queries and components, for the Sources panel. Empty until inspecting. */
+export function useProvenanceIndex(): DataSourceIndex {
+  const store = useContext(ProvenanceContext)?.indexStore ?? INERT_INDEX_STORE;
+  return useSyncExternalStore(store.subscribe, store.get, store.get);
 }
 
 /** Null when `enableProvenance` is off. */
@@ -154,7 +196,7 @@ export function useArtifactProvenance(): ArtifactProvenanceState {
   const resolved = useSyncExternalStore(store.subscribe, store.get, getNoSources);
   return useMemo(() => {
     if (!provenance) return INERT_PROVENANCE;
-    const { sourcesStore: _store, ...state } = provenance;
+    const { sourcesStore: _store, indexStore: _index, select: _select, ...state } = provenance;
     // Sources count only for the current selection.
     const sources = state.selection && resolved.id === state.selection.id ? resolved.sources : null;
     return { ...state, sources };

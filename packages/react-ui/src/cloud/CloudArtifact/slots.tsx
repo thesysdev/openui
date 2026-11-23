@@ -1,8 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { LoaderCircle, ScanSearch, X } from "lucide-react";
-import { useContext, useMemo, type ReactNode } from "react";
+import { Database, LoaderCircle, X } from "lucide-react";
+import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { names, styles } from "./cloudArtifact.styles";
@@ -17,6 +17,7 @@ import {
   type Region,
 } from "./contexts";
 import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
+import { SourcesDockContext, SourcesWorkspace, type SourcesOptions } from "./SourcesDock";
 
 /*
  * Slots, following AgentInterface's three modes:
@@ -230,16 +231,22 @@ export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
   const provenance = useContext(ProvenanceContext);
   if (!inside || !provenance) return null;
   if (children !== undefined) return <>{children}</>;
+  const open = provenance.isInspecting;
   return (
-    <IconButton
+    <Button
       className={names.provenanceToggle}
-      variant={provenance.isInspecting ? "secondary" : "tertiary"}
+      variant={open ? "secondary" : "tertiary"}
       size="small"
-      icon={<ScanSearch size={16} />}
-      aria-label={label ?? "Show data sources"}
-      aria-pressed={provenance.isInspecting}
-      onClick={() => provenance.setInspecting(!provenance.isInspecting)}
-    />
+      iconLeft={<Database size={16} aria-hidden />}
+      aria-label={open ? "Close Sources" : "Open Sources"}
+      aria-pressed={open}
+      onClick={() => {
+        if (open) provenance.clearSelection();
+        provenance.setInspecting(!open);
+      }}
+    >
+      {label ?? "Sources"}
+    </Button>
   );
 }
 
@@ -254,26 +261,29 @@ export function Content({ className, children }: PartProps) {
   if (!inside || !config) return null;
   return (
     <RegionProvider region="content">
-      <div
-        className={clsx(
-          styles.content,
-          names.content,
-          inspecting && [styles.inspecting, names.inspecting],
-          className,
-        )}
-      >
-        {/* Above the artifact, so an error reads first. */}
-        {children === undefined ? (
-          <>
-            <Pending />
-            <Loading />
-            <ErrorSlot />
-          </>
-        ) : (
-          children
-        )}
-        {config.render()}
-      </div>
+      {/* With provenance on, the Sources panel docks beside the content. */}
+      <SourcesWorkspace>
+        <div
+          className={clsx(
+            styles.content,
+            names.content,
+            inspecting && [styles.inspecting, names.inspecting],
+            className,
+          )}
+        >
+          {/* Above the artifact, so an error reads first. */}
+          {children === undefined ? (
+            <>
+              <Pending />
+              <Loading />
+              <ErrorSlot />
+            </>
+          ) : (
+            children
+          )}
+          {config.render()}
+        </div>
+      </SourcesWorkspace>
     </RegionProvider>
   );
 }
@@ -337,17 +347,34 @@ function ErrorSlot({ message, children }: ErrorProps) {
 
 export { ErrorSlot as Error };
 
-export interface ProvenanceProps {
+export interface ProvenanceProps extends SourcesOptions {
   children?: ReactNode;
 }
 
 /**
- * Your panel for the selected component: pass it as children, and read the selection and its
- * sources with `useArtifactProvenance()`. Renders only while something is selected.
+ * The Sources panel. Without children, the default panel docks beside the content: it lists the
+ * dashboard's sources and shows where the selected component's data comes from; its props name
+ * your data tools (`describeSource`) and a script's inputs (`scriptInputs`, `runCall`). With
+ * children, your panel replaces it: read the selection and its sources with
+ * `useArtifactProvenance()`. Your panel renders only while something is selected.
  */
-export function Provenance({ children }: ProvenanceProps) {
+export function Provenance({ children, describeSource, scriptInputs, runCall }: ProvenanceProps) {
   const inside = useInRegion("content");
   const provenance = useContext(ProvenanceContext);
-  if (!inside || !provenance?.selection) return null;
+  const dock = useContext(SourcesDockContext);
+  const hasChildren = children !== undefined;
+  const setOptions = dock?.setOptions;
+  const setCustom = dock?.setCustom;
+  useLayoutEffect(() => {
+    if (!inside || hasChildren || !setOptions) return;
+    setOptions({ describeSource, scriptInputs, runCall });
+    return () => setOptions({});
+  }, [inside, hasChildren, setOptions, describeSource, scriptInputs, runCall]);
+  useLayoutEffect(() => {
+    if (!inside || !hasChildren || !setCustom) return;
+    setCustom((count) => count + 1);
+    return () => setCustom((count) => count - 1);
+  }, [inside, hasChildren, setCustom]);
+  if (!inside || !hasChildren || !provenance?.selection) return null;
   return <>{children}</>;
 }

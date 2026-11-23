@@ -1,7 +1,13 @@
 "use client";
 
 import type { Interpreter } from "@openuidev/react-headless";
-import { Renderer, useDataSources, type Library, type RendererProps } from "@openuidev/react-lang";
+import {
+  Renderer,
+  useDataSourceIndex,
+  useDataSources,
+  type Library,
+  type RendererProps,
+} from "@openuidev/react-lang";
 import { useCallback, useContext, useEffect } from "react";
 import {
   ArtifactRendererRoot,
@@ -9,7 +15,7 @@ import {
   type ArtifactRendererBaseProps,
   type RenderContentArgs,
 } from "./ArtifactRendererRoot";
-import { ProvenanceContext } from "./contexts";
+import { EMPTY_INDEX, ProvenanceContext } from "./contexts";
 
 /** `Renderer`'s props, minus the ones the artifact renderer owns. */
 type PassThroughRendererProps<L extends Library> = Omit<
@@ -65,6 +71,28 @@ function ProvenanceBridge() {
   return null;
 }
 
+/**
+ * Renders nothing. Mounted inside `Renderer` while inspecting, it writes every query and component
+ * of the program to the root's store, for the Sources panel's list and "Also used by".
+ */
+function ProvenanceIndexBridge() {
+  const store = useContext(ProvenanceContext)?.indexStore;
+  const index = useDataSourceIndex();
+  useEffect(() => store?.set(index), [store, index]);
+  useEffect(() => () => store?.set(EMPTY_INDEX), [store]);
+  return null;
+}
+
+function ProvenanceBridges() {
+  const inspecting = useContext(ProvenanceContext)?.isInspecting ?? false;
+  return (
+    <>
+      <ProvenanceBridge />
+      {inspecting && <ProvenanceIndexBridge />}
+    </>
+  );
+}
+
 /** Both renderers: a live one passes `interpreter`, a static one doesn't. */
 function ArtifactRendererImpl<L extends Library>({
   library,
@@ -95,7 +123,7 @@ function ArtifactRendererImpl<L extends Library>({
       >
         {/* The same children either way, so turning provenance on does not remount the program. */}
         <Renderer.DefaultContent />
-        {enableProvenance && <ProvenanceBridge />}
+        {enableProvenance && <ProvenanceBridges />}
       </Renderer>
     ),
     [

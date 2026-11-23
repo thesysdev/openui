@@ -1,4 +1,4 @@
-import { dataSources } from "@openuidev/lang-core";
+import { dataSources, isElementNode, type ElementNode } from "@openuidev/lang-core";
 import { useMemo } from "react";
 import { useOpenUI } from "../context";
 import { useRendererQuery } from "../Renderer";
@@ -76,4 +76,83 @@ export function useDataSources(id: string | undefined): DataSources | null {
         ),
     };
   }, [found, context]);
+}
+
+/** A component in the program, for an index of what reads what. */
+export interface DataSourceIndexEntry {
+  /** Its statement name, or its component id (`lead.1`) when it is written inside one. */
+  id: string;
+  typeName: string;
+  /** Its props as parsed; literal ones are plain values. */
+  props: Record<string, unknown>;
+  /** The Query statements it reads. */
+  queries: string[];
+}
+
+/** Every query in the program and every component with the queries it reads. */
+export interface DataSourceIndex {
+  queries: DataSourceQuery[];
+  components: DataSourceIndexEntry[];
+}
+
+const EMPTY_INDEX: DataSourceIndex = Object.freeze({ queries: [], components: [] });
+
+/** The element nodes in a parsed value: a node, a list, or an object's values. */
+function forEachElement(value: unknown, visit: (node: ElementNode) => void, depth = 0): void {
+  if (depth > 64 || !value || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    value.forEach((item) => forEachElement(item, visit, depth + 1));
+    return;
+  }
+  if (isElementNode(value)) {
+    visit(value);
+    Object.values(value.props).forEach((prop) => forEachElement(prop, visit, depth + 1));
+    return;
+  }
+  Object.values(value).forEach((item) => forEachElement(item, visit, depth + 1));
+}
+
+/**
+ * Every query in the program, with its call and result, and every component with the queries it
+ * reads: for a list of a dashboard's sources, and for "what else reads this". It reads the values
+ * whenever the Renderer updates, like `useDataSources`.
+ */
+export function useDataSourceIndex(): DataSourceIndex {
+  const context = useOpenUI();
+  useRendererQuery();
+  const result = context.getParseResult();
+  const components = useMemo(() => {
+    if (!result) return [];
+    const entries: DataSourceIndexEntry[] = [];
+    const seen = new Set<string>();
+    forEachElement(result.root, (node) => {
+      const id = node.statementId ?? node.componentId;
+      if (!id || seen.has(id)) return;
+      seen.add(id);
+      entries.push({
+        id,
+        typeName: node.typeName,
+        props: node.props,
+        queries: dataSources(result, id)?.queries ?? [],
+      });
+    });
+    return entries;
+  }, [result]);
+  return useMemo(() => {
+    if (!result) return EMPTY_INDEX;
+    const { queryManager } = context;
+    return {
+      queries: result.queryStatements.map(({ statementId }) => {
+        const call = queryManager.getCall?.(statementId) ?? null;
+        return {
+          statementId,
+          toolName: call?.toolName,
+          args: call?.args,
+          loading: queryManager.isLoading(statementId),
+          data: queryManager.getResult(statementId),
+        };
+      }),
+      components,
+    };
+  }, [result, components, context]);
 }

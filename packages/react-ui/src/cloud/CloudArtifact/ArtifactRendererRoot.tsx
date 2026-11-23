@@ -33,6 +33,8 @@ import { names, styles } from "./cloudArtifact.styles";
 import {
   ContentConfigContext,
   createSourcesStore,
+  createValueStore,
+  EMPTY_INDEX,
   ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
@@ -365,13 +367,22 @@ export function ArtifactRendererRoot({
   const [selection, setSelection] = useState<SourceTarget | null>(null);
   // The bridge inside `Renderer` writes the selection's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
+  const [indexStore] = useState(() => createValueStore(EMPTY_INDEX));
   const clearSelection = useCallback(() => setSelection(null), []);
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       enableProvenance
-        ? { isInspecting, setInspecting, selection, clearSelection, sourcesStore }
+        ? {
+            isInspecting,
+            setInspecting,
+            selection,
+            clearSelection,
+            sourcesStore,
+            indexStore,
+            select: setSelection,
+          }
         : null,
-    [enableProvenance, isInspecting, selection, clearSelection, sourcesStore],
+    [enableProvenance, isInspecting, selection, clearSelection, sourcesStore, indexStore],
   );
   const inspecting = enableProvenance && isInspecting;
   // While inspecting, pressing a component selects it instead of acting: buttons, links,
