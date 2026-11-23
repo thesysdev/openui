@@ -118,7 +118,7 @@ export const filtersRules = [
     background: transparent;
     font: inherit;
     font-size: 13px;
-    text-align: left;
+    text-align: start;
     color: var(--openui-dashboard-ink);
     cursor: pointer;
     transition: border-color 150ms;

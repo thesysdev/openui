@@ -54,7 +54,7 @@ export const metricsRules = [
     justify-content: flex-start;
     gap: 8px;
     padding: 0;
-    text-align: left;
+    text-align: start;
   }`,
   String.raw`
   .openui-dashboard-state[data-compact][data-state="loading"] .openui-dashboard-state-layer {

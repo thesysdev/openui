@@ -91,7 +91,7 @@
   border-radius: cssUtils.$radius-m;
   background-color: transparent;
   transition: background-color 0.2s ease-in-out;
-  text-align: left;
+  text-align: start;
   width: 100%;
   max-width: 348px;
   @include cssUtils.typography(label, small);
