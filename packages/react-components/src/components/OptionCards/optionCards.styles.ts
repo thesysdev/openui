@@ -77,7 +77,7 @@ export const optionCardsStyles = {
     border-radius: var(--openui-radius-2xl, 14px);
     background-color: var(--_openui-option-cards-background, transparent);
     cursor: pointer;
-    text-align: left;
+    text-align: start;
     transition:
       opacity 0.16s ease-out,
       border-color 0.16s ease-out,

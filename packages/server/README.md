@@ -108,6 +108,10 @@ Persist a Chat Completions turn as Conversations API items. Pass only the new tu
 last user message plus the assembled assistant reply — not the full `messages` array.
 Use the master API key.
 
+A tool call is stored only together with its result, in the tool messages right after
+it. A turn stopped mid tool call is saved without that call, so the thread stays valid
+for the next request.
+
 ```ts
 import { storeChatCompletionHistory } from "@openuidev/server/openai";
 

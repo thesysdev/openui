@@ -1,5 +1,11 @@
 # @openuidev/server
 
+## 0.5.1
+
+### Patch Changes
+
+- [#1702](https://github.com/thesysdev/openui/pull/1702) [`481e3f0`](https://github.com/thesysdev/openui/commit/481e3f05e9bd5ce9b44c073ce3da0d440f7de59b) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `storeChatCompletionHistory` and `storeLangGraphHistory` (and their `…ToItems` converters) store a tool call only together with its result. A turn stopped mid tool call used to save the call on its own, and the model API then rejected every later message in that thread. Now the turn is saved without that call. Results without a call are dropped too.
+
 ## 0.5.0
 
 ### Minor Changes

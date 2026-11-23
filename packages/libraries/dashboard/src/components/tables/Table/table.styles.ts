@@ -49,7 +49,7 @@ export const tableRules = [
     background: var(--openui-dashboard-surface);
     font-size: 12px;
     font-weight: 500;
-    text-align: left;
+    text-align: start;
     color: var(--openui-dashboard-ink-muted);
     white-space: nowrap;
   }

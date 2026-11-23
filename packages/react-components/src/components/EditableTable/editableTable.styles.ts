@@ -98,9 +98,9 @@ export const editableTableStyles = {
   `,
   head: css`
     box-sizing: content-box;
-    text-align: left;
+    text-align: start;
     padding: var(--openui-space-s, 8px) var(--openui-space-m, 12px);
-    border-right: 1px solid var(--openui-border-default, oklch(0.097 0 0 / 0.06));
+    border-inline-end: 1px solid var(--openui-border-default, oklch(0.097 0 0 / 0.06));
     background-color: var(--openui-highlight-subtle, oklch(0.097 0 0 / 0.02));
     color: var(--openui-text-neutral-secondary, oklch(0.097 0 0 / 0.6));
 
@@ -113,7 +113,7 @@ export const editableTableStyles = {
     white-space: nowrap;
     width: var(--_openui-editable-table-column-width);
     &:last-child {
-      border-right: 0;
+      border-inline-end: 0;
     }
   `,
   row: css`
@@ -126,12 +126,12 @@ export const editableTableStyles = {
     box-sizing: content-box;
     height: 48px;
     padding: 0;
-    border-right: 1px solid var(--openui-border-default, oklch(0.097 0 0 / 0.06));
+    border-inline-end: 1px solid var(--openui-border-default, oklch(0.097 0 0 / 0.06));
     vertical-align: middle;
     white-space: nowrap;
     width: var(--_openui-editable-table-column-width);
     &:last-child {
-      border-right: 0;
+      border-inline-end: 0;
     }
   `,
 };

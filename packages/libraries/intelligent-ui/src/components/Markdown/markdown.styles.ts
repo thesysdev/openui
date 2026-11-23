@@ -159,7 +159,7 @@ export const markdownStyles = {
     box-sizing: border-box;
     padding: 11px 16px;
     border-bottom: 1px solid ${tokens.border};
-    text-align: left;
+    text-align: start;
     vertical-align: middle;
     background: ${tokens.surface};
     color: ${tokens.ink};
@@ -183,7 +183,7 @@ export const markdownStyles = {
     box-sizing: border-box;
     padding: 13px 16px;
     border-bottom: var(${CELL_BORDER}, 1px) solid ${tokens.border};
-    text-align: left;
+    text-align: start;
     vertical-align: middle;
     @media (max-width: 640px) {
       padding: 11px 12px;
