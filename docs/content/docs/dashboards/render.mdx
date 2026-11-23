@@ -216,6 +216,18 @@ In React on the web, components are found without any change to the library, thr
 
 Pass the same `library` object on every render, such as one created at module level: a new library each render makes the whole dashboard render again.
 
+To style inspect mode, target these on the `Content` slot's element (`.openui-artifact-content`, which also carries a `className` you pass to `Content`): `[data-openui-hover]` is what a click would select, under the mouse; `[data-openui-selected]` is the selected component and the selected prop's element; `.openui-artifact-inspecting` is on while inspect mode is. The default outlines give way to any rule like these:
+
+```css
+/* No hover outline; a thicker selected outline. Hover first: a clicked element has both. */
+.openui-artifact-content [data-openui-hover] {
+  outline: none;
+}
+.openui-artifact-content [data-openui-selected] {
+  outline: 3px solid hotpink;
+}
+```
+
 ## Theme
 
 `ThemeProvider` from `@openuidev/dashboard-library` sets the components' mode, `"light"` (default) or `"dark"`, and takes `lightTheme` and `darkTheme` overrides. It's optional.
