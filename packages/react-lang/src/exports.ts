@@ -87,8 +87,9 @@ export { reactive } from "./runtime";
 export { useStateField } from "./hooks/useStateField";
 
 // Where a component's data comes from (queries, statements in between, $variables)
+export type { ComponentSources, PropSources } from "@openuidev/lang-core";
 export { useDataSources } from "./hooks/useDataSources";
-export type { DataSourceQuery, DataSources, PropDataSources } from "./hooks/useDataSources";
+export type { DataSourceQuery, DataSources } from "./hooks/useDataSources";
 
 // openui-lang form validation
 export {

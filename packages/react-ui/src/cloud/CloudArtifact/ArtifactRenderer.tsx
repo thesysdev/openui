@@ -39,29 +39,24 @@ export interface LiveArtifactRendererProps<
 const NO_QUERY_LOADER = <></>;
 
 /**
- * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and writes the
- * selection's sources to the root's store, for `useArtifactProvenance()`.
+ * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and while inspecting or
+ * selected writes the program's sources to the root's store, for `useArtifactProvenance()`.
  */
 function ProvenanceBridge() {
   const provenance = useContext(ProvenanceContext);
-  const id = provenance?.selection?.id;
-  const sources = useDataSources(id);
-  const store = provenance?.sourcesStore;
   const clearSelection = provenance?.clearSelection;
-  // Into the store, not the root's state: a write reaches only the panel, never back here.
-  useEffect(() => {
-    store?.set({ id, sources });
-    // The selected statement is no longer in the program, e.g. after an edit.
-    if (id && !sources) clearSelection?.();
-  }, [store, clearSelection, sources, id]);
   // Closed, or remounted for live data: the selected elements are gone.
-  useEffect(
-    () => () => {
-      store?.set({ sources: null });
-      clearSelection?.();
-    },
-    [store, clearSelection],
-  );
+  useEffect(() => () => clearSelection?.(), [clearSelection]);
+  return provenance && (provenance.isInspecting || provenance.selection) ? <SourcesWriter /> : null;
+}
+
+function SourcesWriter() {
+  const provenance = useContext(ProvenanceContext)!;
+  const store = provenance.sourcesStore;
+  const sources = useDataSources();
+  // Into the store, not the root's state: a write reaches only the panel, never back here.
+  useEffect(() => store.set(sources), [store, sources]);
+  useEffect(() => () => store.set(null), [store]);
   return null;
 }
 

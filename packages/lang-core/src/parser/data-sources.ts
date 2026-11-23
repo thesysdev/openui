@@ -4,84 +4,98 @@ import { parsedStatements } from "./parser";
 import { serializeASTNode } from "./serialize";
 import type { ParseResult } from "./types";
 
+type Call = Extract<ASTNode, { k: "Comp" }>;
+
 /** Where a value comes from. */
-interface Sources {
+export interface Sources {
   /** Query statements it reads, directly or through other statements. */
   queries: string[];
-  /** Statements between it and those queries, e.g. `latest` in `latest = @Last(weekly.rows)`. */
+  /** Statements between it and those queries, e.g. `now` in `now = @First(totals.rows)`. */
   via: string[];
   /** `$variables` it, or a statement it reads, uses. */
   state: string[];
 }
 
-/** A prop's sources, with its expression. */
-interface PropSources extends Sources {
+/** A prop's sources. No queries, state or components: written in the program. */
+export interface PropSources extends Sources {
   /** The argument as written, e.g. `now.revenue`. */
   expr: string;
+  /** The components written in it, by id: its children, which have their own sources. */
+  components: string[];
+  /** Its value, when it is written as a string, number, boolean or null, e.g. a title. */
+  value?: string | number | boolean | null;
 }
 
+/** What a component's own props read; its child components are listed under their own ids. */
+export interface ComponentSources extends Sources {
+  /** The library component, e.g. `Kpi`. */
+  typeName: string;
+  /** By prop, named as in the library. */
+  props: Record<string, PropSources>;
+}
+
+/** Where a program's data comes from, both ways. */
+export interface ProgramSources {
+  /** Every component the program renders, by id: a statement's name, or `name.n` inside it. */
+  components: Record<string, ComponentSources>;
+  /** Every query, in statement order, with the components whose own props read it. */
+  queries: Record<string, { usedBy: string[] }>;
+  /** The text of each statement in a `via`, e.g. `now: "@First(totals.rows)"`. */
+  formulas: Record<string, string>;
+}
+
+const cache = new WeakMap<ParseResult, ProgramSources | null>();
+
 /**
- * Find the queries a statement's value is read from, for a "where did this come from" view.
- * For a component, `props` gives the same for each prop; one with no queries and no state is
- * written in the program (or reads a Mutation result). Inline child components count toward
- * the statement. A named one does not (ask for it by its name), nor does a Mutation or an
- * action. A query counts what its tool name and arguments read.
- *
- * `id` is a statement's name, or a component id (`name.n`): then only that
- * component counts, and a name an `@Each` binds reads the list it iterates. Null when `result`
- * is not one the parser returned, or has no such statement or component.
+ * Where a program's data comes from, for a "where did this come from" view: each component and
+ * prop's queries, the statements in between and the `$variables` read, and each query's readers.
+ * A Mutation or an action is not a source. Component ids are positions in this parse, not stable
+ * keys. Null when `result` is not one the parser returned.
  */
-export function dataSources(
-  result: ParseResult,
-  id: string,
-): (Sources & { formulas: Record<string, string>; props?: Record<string, PropSources> }) | null {
+export function dataSources(result: ParseResult): ProgramSources | null {
+  if (!cache.has(result)) cache.set(result, build(result));
+  return cache.get(result)!;
+}
+
+function build(result: ParseResult): ProgramSources | null {
   const parsed = parsedStatements.get(result);
   if (!parsed) return null;
   const { statements } = parsed;
   const calls = getCallDefs(parsed.cat);
-  const dot = id.lastIndexOf(".");
-  const statementId = statements.has(id) || dot < 0 ? id : id.slice(0, dot);
-  const statement = statements.get(statementId);
-  if (!statement) return null;
-  let own: ASTNode | undefined = statement;
-  // Names `@Each` binds around an inline component: the list each iterates, read with the
-  // names bound outside that loop.
-  let bound: Bindings = new Map();
-  if (statementId !== id) {
-    own = undefined;
-    walkAST(statement, (node) => {
-      if (node.k === "Comp" && node.componentId === id) own = node;
-      const def = node.k === "Comp" ? calls.get(node.name) : undefined;
-      if (node.k !== "Comp" || def?.kind !== "function" || !def.lazy || node.args.length < 3)
-        return;
-      const name = boundName(node.args[1]);
-      const encloses = node.args.slice(2).some((arg) => {
-        let found = false;
-        walkAST(arg, (inner) => {
-          if (inner.k === "Comp" && inner.componentId === id) found = true;
-        });
-        return found;
-      });
-      // Outer loops are visited first, so an inner one binding the same name wins.
-      if (name && encloses) bound = new Map(bound).set(name, { list: node.args[0], outer: bound });
-    });
-    if (!own) return null;
-  }
+  const text = (node: ASTNode) => serializeASTNode(node, calls);
 
-  const isComponent = (node: ASTNode) =>
-    node.k === "Comp" &&
-    !node.fn &&
-    !calls.has(node.name) &&
-    !Object.hasOwn(RESERVED_CALLS, node.name);
+  const isComponent = (node: Call) =>
+    !node.fn && !calls.has(node.name) && !Object.hasOwn(RESERVED_CALLS, node.name);
   const isAction = (node: ASTNode) =>
     node.k === "Comp" && (node.name === "Action" || calls.get(node.name)?.kind === "action");
+  const isLoop = (node: Call) => {
+    const def = calls.get(node.name);
+    return def?.kind === "function" && !!def.lazy && node.args.length >= 3;
+  };
 
-  const collect = (from: ASTNode): Sources => {
+  // A statement's value through aliases (`card = other`).
+  const resolve = (name: string) => {
+    let target = statements.get(name);
+    for (const seen = new Set([name]); target?.k === "Ref" && !seen.has(target.n);) {
+      seen.add(target.n);
+      target = statements.get(target.n);
+    }
+    return target;
+  };
+  // Whether a statement is a component call, or an alias of one.
+  const renders = (name: string) => {
+    const target = resolve(name);
+    return target?.k === "Comp" && isComponent(target);
+  };
+
+  // What an argument reads, and the components written in it.
+  const collect = (from: ASTNode, bound: Bindings) => {
     const queries = new Set<string>();
     const via = new Set<string>();
     const state = new Set<string>();
+    const components = new Set<string>();
     // Whether a statement leads to a query; set to false first so a cycle stops.
-    const reaches = new Map<string, boolean>([[statementId, false]]);
+    const reaches = new Map<string, boolean>();
 
     const follow = (name: string): boolean => {
       const known = reaches.get(name);
@@ -94,36 +108,34 @@ export function dataSources(
         target.args.slice(0, 2).forEach((arg) => walk(arg, new Set(), NO_BINDINGS));
         found = true;
       } else if (target && !(target.k === "Comp" && target.name === RESERVED_CALLS.Mutation)) {
-        // Another statement: only its data counts, not components in it (ask for those by
-        // name), and the loops around the component do not reach into it.
-        found = walk(target, new Set(), NO_BINDINGS, false);
+        // Another statement: its data, and the components in it (a named component, or a list).
+        found = walk(target, new Set(), NO_BINDINGS);
         if (found) via.add(name);
       }
       reaches.set(name, found);
       return found;
     };
 
-    // `scope` holds names an `@Each` binds, which shadow statements of the same name.
-    // Without `components`, component calls are skipped.
-    const walk = (
-      start: ASTNode,
-      scope: ReadonlySet<string>,
-      binds = bound,
-      components = true,
-    ): boolean => {
+    // `scope` holds names an `@Each` binds, which shadow statements of the same name. A component
+    // call is a child: listed, not read through.
+    const walk = (start: ASTNode, scope: ReadonlySet<string>, binds: Bindings): boolean => {
       let found = false;
       const skipped = new Set<ASTNode>();
       const skip = (node: ASTNode) => walkAST(node, (n) => void skipped.add(n));
       walkAST(start, (node) => {
         if (skipped.has(node)) return;
-        if (isAction(node) || (!components && isComponent(node))) return skip(node);
-        const def = node.k === "Comp" ? calls.get(node.name) : undefined;
-        if (node.k === "Comp" && def?.kind === "function" && def.lazy && node.args.length >= 3) {
+        if (isAction(node)) return skip(node);
+        if (node.k === "Comp" && isComponent(node)) {
+          const id = node.componentId;
+          if (id) components.add(id);
+          return skip(node);
+        }
+        if (node.k === "Comp" && isLoop(node)) {
           const name = boundName(node.args[1]);
           const inner = name ? new Set([...scope, name]) : scope;
           // The list is read outside the loop, so its own name does not shadow it.
           node.args.forEach((arg, i) => {
-            if (i !== 1 && walk(arg, i === 0 ? scope : inner, binds, components)) found = true;
+            if (i !== 1 && walk(arg, i === 0 ? scope : inner, binds)) found = true;
           });
           return skip(node);
         }
@@ -131,59 +143,82 @@ export function dataSources(
           state.add(node.n);
         }
         if (node.k !== "Ref" || scope.has(node.n)) return;
+        // A component statement, or an alias of one, renders under the name written here.
+        if (!binds.has(node.n) && renders(node.n)) return void components.add(node.n);
         const binding = binds.get(node.n);
-        if (binding ? walk(binding.list, new Set(), binding.outer, components) : follow(node.n)) {
-          found = true;
-        }
+        if (binding ? walk(binding.list, new Set(), binding.outer) : follow(node.n)) found = true;
       });
       return found;
     };
 
-    walk(from, new Set());
-    return { queries: [...queries], via: [...via], state: [...state] };
+    walk(from, new Set(), bound);
+    return { queries: [...queries], via: [...via], state: [...state], components: [...components] };
+  };
+
+  const components: Record<string, ComponentSources> = {};
+  const add = (node: Call, id: string, bound: Bindings) => {
+    // Positional arguments map to props in the library's order.
+    const names = parsed.cat?.get(node.name)?.params.map((p) => p.name) ?? [];
+    const props: Record<string, PropSources> = {};
+    names.forEach((name, i) => {
+      const arg = node.args[i];
+      if (!arg) return;
+      props[name] = { ...collect(arg, bound), expr: text(arg) };
+      if ("v" in arg || arg.k === "Null") props[name].value = "v" in arg ? arg.v : null;
+    });
+    const union = (key: keyof Sources) => [
+      ...new Set(Object.values(props).flatMap((prop) => prop[key])),
+    ];
+    components[id] = {
+      typeName: node.name,
+      queries: union("queries"),
+      via: union("via"),
+      state: union("state"),
+      props,
+    };
+  };
+
+  // Each component call once, with the names the `@Each` loops around it bind.
+  const visit = (start: ASTNode, bound: Bindings) => {
+    const skipped = new Set<ASTNode>();
+    walkAST(start, (node) => {
+      if (skipped.has(node)) return;
+      if (node.k !== "Comp") return;
+      if (isLoop(node)) {
+        const name = boundName(node.args[1]);
+        const inner = name ? new Map(bound).set(name, { list: node.args[0], outer: bound }) : bound;
+        node.args.forEach((arg, i) => i !== 1 && visit(arg, i === 0 ? bound : inner));
+        return walkAST(node, (n) => void skipped.add(n));
+      }
+      const id = isComponent(node) ? node.componentId : undefined;
+      if (id && !components[id]) add(node, id, bound);
+    });
   };
 
   try {
+    const orphaned = new Set(result.meta.orphaned);
+    const isCall = (node: ASTNode | undefined, name: string) =>
+      node?.k === "Comp" && node.name === name;
+    for (const [name, expr] of statements) {
+      const data = isCall(expr, RESERVED_CALLS.Query) || isCall(expr, RESERVED_CALLS.Mutation);
+      if (!orphaned.has(name) && !data) visit(expr, NO_BINDINGS);
+    }
     // `card = other` renders `other`'s component under the name `card`.
-    let start = own;
-    for (const seen = new Set([statementId]); start.k === "Ref" && !seen.has(start.n);) {
-      seen.add(start.n);
-      start = statements.get(start.n) ?? start;
-    }
-    // The text of each statement in between, e.g. `now = @First(totals.rows)`.
-    const formulas = (via: string[]) =>
-      Object.fromEntries(via.map((name) => [name, text(statements.get(name)!)]));
-    const text = (node: ASTNode) => serializeASTNode(node, calls);
-
-    if (start.k !== "Comp" || !isComponent(start)) {
-      const sources = collect(own);
-      // A query statement is its own source.
-      if (own.k === "Comp" && own.name === RESERVED_CALLS.Query) {
-        sources.queries = [statementId, ...sources.queries.filter((q) => q !== statementId)];
+    for (const [name, expr] of statements) {
+      const target = resolve(name);
+      if (target !== expr && target?.k === "Comp" && target.componentId) {
+        const entry = components[target.componentId];
+        if (entry) components[name] = entry;
       }
-      return { ...sources, formulas: formulas(sources.via) };
     }
-
-    // Positional arguments map to props in the library's order.
-    const args = start.args;
-    const names = parsed.cat?.get(start.name)?.params.map((p) => p.name) ?? [];
-    const props: Record<string, PropSources> = {};
-    const all = { queries: new Set<string>(), via: new Set<string>(), state: new Set<string>() };
-    names.forEach((name, i) => {
-      if (i >= args.length) return;
-      props[name] = { ...collect(args[i]), expr: text(args[i]) };
-      for (const key of ["queries", "via", "state"] as const) {
-        props[name][key].forEach((n) => all[key].add(n));
-      }
-    });
-    const via = [...all.via];
-    return {
-      queries: [...all.queries],
-      via,
-      state: [...all.state],
-      formulas: formulas(via),
-      props,
-    };
+    const queries: Record<string, { usedBy: string[] }> = {};
+    for (const { statementId } of result.queryStatements) queries[statementId] = { usedBy: [] };
+    const formulas: Record<string, string> = {};
+    for (const [id, entry] of Object.entries(components)) {
+      entry.queries.forEach((q) => queries[q]?.usedBy.push(id));
+      entry.via.forEach((name) => (formulas[name] ??= text(statements.get(name)!)));
+    }
+    return { components, queries, formulas };
   } catch (error) {
     // A chain of statements too long to walk.
     if (error instanceof RangeError) return null;

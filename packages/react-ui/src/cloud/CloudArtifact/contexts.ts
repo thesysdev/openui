@@ -71,47 +71,49 @@ export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
 
 // ─── Provenance ──────────────────────────────────────────────────────────
 
-/** Where the selected component's data comes from: `useDataSources` for its statement. */
+/** Where the program's data comes from: `useDataSources()`. Null until something reads it. */
 export type ProvenanceSources = DataSources | null;
 
-/** Inspect mode and the selected component, from `useArtifactProvenance()`. */
+/** Inspect mode, the selected component and where data comes from, from `useArtifactProvenance()`. */
 export interface ArtifactProvenanceState {
   /** While on, a click on a component selects it instead of acting. */
   isInspecting: boolean;
   setInspecting: (on: boolean) => void;
-  /** The component, and prop, last clicked in inspect mode. */
+  /** The component, and prop, last clicked in inspect mode, or passed to `select`. */
   selection: SourceTarget | null;
+  /**
+   * Select a component by id, as a click does. One with no element on screen, such as a chart's
+   * series or a hidden branch, selects the component it is in; an unknown id does nothing.
+   */
+  select: (id: string) => void;
+  /** Each component's elements on screen, by id, e.g. to frame them all. One scan per call. */
+  getElements: () => Map<string, Element[]>;
   clearSelection: () => void;
-  /** Where the selection's data comes from. Null without a selection. */
-  sources: ProvenanceSources;
-}
-
-/** The sources the bridge inside `Renderer` found, for the selection with this id. */
-interface ResolvedSources {
-  id?: string;
+  /**
+   * Where the program's data comes from: every component's and query's sources, both ways, with
+   * live values. Null unless inspecting or something is selected.
+   */
   sources: ProvenanceSources;
 }
 
 /**
- * Where the bridge puts the sources it finds. A store, not the root's state: a write re-renders
- * only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't loop back
- * to the bridge.
+ * Where the bridge inside `Renderer` puts the sources. A store, not the root's state: a write
+ * re-renders only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't
+ * loop back to the bridge.
  */
 export interface SourcesStore {
-  get: () => ResolvedSources;
-  set: (next: ResolvedSources) => void;
+  get: () => ProvenanceSources;
+  set: (next: ProvenanceSources) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
-const NO_SOURCES: ResolvedSources = Object.freeze({ sources: null });
-
 export function createSourcesStore(): SourcesStore {
-  let value = NO_SOURCES;
+  let value: ProvenanceSources = null;
   const listeners = new Set<() => void>();
   return {
     get: () => value,
     set: (next) => {
-      if (next.id === value.id && next.sources === value.sources) return;
+      if (next === value) return;
       value = next;
       listeners.forEach((listener) => listener());
     },
@@ -135,14 +137,16 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
   isInspecting: false,
   setInspecting: noop,
   selection: null,
+  select: noop,
+  getElements: () => new Map(),
   clearSelection: noop,
   sources: null,
 });
 const INERT_STORE = createSourcesStore();
-const getNoSources = () => NO_SOURCES;
+const getNoSources = () => null;
 
 /**
- * Inspect mode and where the selected component's data comes from, for a live artifact with
+ * Inspect mode, the selection and where the program's data comes from, for a live artifact with
  * `enableProvenance`. Call it inside the renderer, such as in a slot's children. With provenance
  * off it returns an inert state: not inspecting, nothing selected, and setters that do nothing.
  *
@@ -151,12 +155,10 @@ const getNoSources = () => NO_SOURCES;
 export function useArtifactProvenance(): ArtifactProvenanceState {
   const provenance = useContext(ProvenanceContext);
   const store = provenance?.sourcesStore ?? INERT_STORE;
-  const resolved = useSyncExternalStore(store.subscribe, store.get, getNoSources);
+  const sources = useSyncExternalStore(store.subscribe, store.get, getNoSources);
   return useMemo(() => {
     if (!provenance) return INERT_PROVENANCE;
     const { sourcesStore: _store, ...state } = provenance;
-    // Sources count only for the current selection.
-    const sources = state.selection && resolved.id === state.selection.id ? resolved.sources : null;
     return { ...state, sources };
-  }, [provenance, resolved]);
+  }, [provenance, sources]);
 }
