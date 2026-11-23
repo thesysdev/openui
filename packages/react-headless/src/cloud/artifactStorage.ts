@@ -18,7 +18,7 @@ import {
   type CloudListEnvelope,
 } from "./wire";
 
-const STREAM_EVENT_TYPES = new Set(["reference", "delta", "end", "error"]);
+const STREAM_EVENT_TYPES = new Set(["reference", "delta", "step", "end", "error"]);
 
 function parseJson(data: string): unknown {
   try {
