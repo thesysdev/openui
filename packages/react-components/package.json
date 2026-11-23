@@ -17,6 +17,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./theme": {
+      "import": {
+        "types": "./dist/theme.d.mts",
+        "default": "./dist/theme.mjs"
+      },
+      "require": {
+        "types": "./dist/theme.d.cts",
+        "default": "./dist/theme.cjs"
+      }
     }
   },
   "sideEffects": [
@@ -33,6 +43,7 @@
   ],
   "scripts": {
     "build": "tsdown",
+    "prepare": "pnpm run build",
     "typecheck": "tsc --noEmit",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix"
