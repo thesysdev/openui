@@ -128,6 +128,49 @@ function getObjectShape(schema: unknown): Record<string, unknown> | undefined {
 }
 
 /**
+ * Collect the ids of the named schemas (component refs, e.g. `z.array(Card.ref)`)
+ * that a schema references. Descends through optional/array/union/record/
+ * anonymous-object wrappers but stops at the first named schema.
+ */
+export function collectSchemaRefs(
+  schema: unknown,
+  reg: SchemaRegistry,
+  acc: Set<string> = new Set(),
+  seen: Set<unknown> = new Set(),
+): Set<string> {
+  const inner = unwrap(schema);
+  if (inner == null || seen.has(inner)) return acc;
+  seen.add(inner);
+
+  const id = getSchemaId(inner, reg);
+  if (id) {
+    acc.add(id);
+    return acc;
+  }
+
+  const unionOpts = getUnionOptions(inner);
+  if (unionOpts) {
+    for (const opt of unionOpts) collectSchemaRefs(opt, reg, acc, seen);
+    return acc;
+  }
+
+  const arrayInner = getArrayInnerType(inner);
+  if (arrayInner) return collectSchemaRefs(arrayInner, reg, acc, seen);
+
+  const def = getZodDef(inner);
+  if (def?.type === "record") {
+    collectSchemaRefs(def.keyType, reg, acc, seen);
+    return collectSchemaRefs(def.valueType, reg, acc, seen);
+  }
+
+  const shape = getObjectShape(inner);
+  if (shape) {
+    for (const field of Object.values(shape)) collectSchemaRefs(field, reg, acc, seen);
+  }
+  return acc;
+}
+
+/**
  * Resolve the type annotation for a schema field.
  * Returns a human-readable type string for the schema.
  * If the schema is marked reactive(), prefixes with "$binding<...>".

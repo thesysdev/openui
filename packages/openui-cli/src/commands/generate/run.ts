@@ -13,6 +13,10 @@ export interface GenerateOptions {
   spec?: boolean;
   export?: string;
   promptOptions?: string;
+  /** Comma-separated allow-list of components to include in the prompt. */
+  componentAllowlist?: string;
+  /** When false, skip auto-including sub-component dependencies of `--component-allowlist`. */
+  includeDependencies?: boolean;
   interactive: boolean;
 }
 
@@ -41,6 +45,10 @@ export async function runGenerate(
   if (options.jsonSchema) workerArgs.push("--json-schema");
   if (options.spec) workerArgs.push("--spec");
   if (options.promptOptions) workerArgs.push("--prompt-options", options.promptOptions);
+  if (options.componentAllowlist) {
+    workerArgs.push("--component-allowlist", options.componentAllowlist);
+  }
+  if (options.includeDependencies === false) workerArgs.push("--no-include-dependencies");
 
   let output: string;
   try {

@@ -248,6 +248,98 @@ describe("getSchemaId fallback", () => {
   });
 });
 
+// ─── component allow-list (PromptOptions.componentAllowlist) ─────────────────
+
+describe("prompt({ componentAllowlist })", () => {
+  function buildLib() {
+    const Stat = defineComponent({
+      name: "Stat",
+      props: z.object({ label: z.string(), value: z.string() }),
+      description: "A stat",
+      component: Dummy,
+    });
+    const Row = defineComponent({
+      name: "Row",
+      props: z.object({ cells: z.array(z.string()) }),
+      description: "A row",
+      component: Dummy,
+    });
+    // Table renders Row children — a sub-component dependency
+    const Table = defineComponent({
+      name: "Table",
+      props: z.object({ rows: z.array(Row.ref) }),
+      description: "A table",
+      component: Dummy,
+    });
+    const Card = defineComponent({
+      name: "Card",
+      props: z.object({ title: z.string() }),
+      description: "A card",
+      component: Dummy,
+    });
+    // Page is the root and renders any of the above
+    const Page = defineComponent({
+      name: "Page",
+      props: z.object({ children: z.array(z.union([Card.ref, Table.ref, Stat.ref])) }),
+      description: "The page root",
+      component: Dummy,
+    });
+    return createLibrary({
+      components: [Page, Card, Table, Row, Stat],
+      componentGroups: [
+        { name: "Data", components: ["Table", "Stat"] },
+        { name: "Layout", components: ["Card"] },
+      ],
+      root: "Page",
+    });
+  }
+
+  it("includes only listed components (plus root)", () => {
+    const prompt = buildLib().prompt({ componentAllowlist: { components: ["Card", "Stat"] } });
+    expect(prompt).toContain("Card(");
+    expect(prompt).toContain("Stat(");
+    expect(prompt).toContain("Page("); // root always kept
+    expect(prompt).not.toContain("Table(");
+  });
+
+  it("auto-includes sub-component dependencies", () => {
+    const prompt = buildLib().prompt({ componentAllowlist: { components: ["Table"] } });
+    expect(prompt).toContain("Table(");
+    expect(prompt).toContain("Row("); // Table renders Row → pulled in
+    expect(prompt).not.toContain("Stat(");
+  });
+
+  it("includeDependencies: false drops the dependency closure", () => {
+    const prompt = buildLib().prompt({
+      componentAllowlist: { components: ["Table"], includeDependencies: false },
+    });
+    expect(prompt).toContain("Table(");
+    expect(prompt).not.toContain("Row(");
+  });
+
+  it("filters componentGroups to the kept set and drops empty groups", () => {
+    const prompt = buildLib().prompt({ componentAllowlist: { components: ["Stat"] } });
+    expect(prompt).toContain("Data"); // group still has Stat
+    expect(prompt).not.toContain("Layout"); // group's only member (Card) was dropped
+  });
+
+  it("throws on unknown component names with an Available list", () => {
+    expect(() => buildLib().prompt({ componentAllowlist: { components: ["Nope"] } })).toThrow(
+      /Available components:/,
+    );
+    expect(() => buildLib().prompt({ componentAllowlist: { components: ["Nope"] } })).toThrow(
+      /Nope/,
+    );
+  });
+
+  it("omitting componentAllowlist keeps today's behavior (all components)", () => {
+    const prompt = buildLib().prompt();
+    for (const name of ["Page", "Card", "Table", "Row", "Stat"]) {
+      expect(prompt).toContain(`${name}(`);
+    }
+  });
+});
+
 // ─── assertV4Schema ─────────────────────────────────────────────────────────
 
 describe("assertV4Schema", () => {
