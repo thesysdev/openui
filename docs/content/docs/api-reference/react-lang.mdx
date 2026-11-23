@@ -48,7 +48,7 @@ interface DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> {
 }
 ```
 
-The `component` receives `{ props, renderNode, statementId, bindSource }`. `bindSource()` returns data attributes that mark the component's root element, and `bindSource("value")` marks the element that shows that prop, for an inspect mode such as `LiveArtifactRenderer`'s `enableProvenance`. Spread them onto existing elements. They change nothing visible. A component written inside a statement is marked with its component id (`lead.2`).
+The `component` receives `{ props, renderNode, statementId, bindSource }`. `bindSource()` returns data attributes that mark the component's root element, and `bindSource("value")` marks the element that shows that prop, for an inspect mode such as `LiveArtifactRenderer`'s `enableProvenance`. Spread them onto existing elements; `bindSource` is optional in the type, so call it as `bindSource?.()`. They change nothing visible. A component written inside a statement is marked with its component id (`lead.2`).
 
 ```tsx
 const Metric = defineComponent({
@@ -56,9 +56,9 @@ const Metric = defineComponent({
   props: z.object({ label: z.string(), value: z.number() }),
   description: "A number with a label.",
   component: ({ props, bindSource }) => (
-    <div {...bindSource()}>
-      <span {...bindSource("label")}>{props.label}</span>
-      <strong {...bindSource("value")}>{props.value}</strong>
+    <div {...bindSource?.()}>
+      <span {...bindSource?.("label")}>{props.label}</span>
+      <strong {...bindSource?.("value")}>{props.value}</strong>
     </div>
   ),
 });

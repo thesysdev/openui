@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@openuidev/react-components": "workspace:>=0.0.1 <0.1.0",
-    "@openuidev/react-lang": "workspace:>=1.1.1",
+    "@openuidev/react-lang": "workspace:>=1.2.0",
     "recharts": "^3.8.0",
     "d3-geo": "^3.1.2",
     "topojson-client": "^3.1.0",

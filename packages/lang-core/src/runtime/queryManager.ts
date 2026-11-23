@@ -59,8 +59,11 @@ export interface QueryManager {
   /** Run already evaluated queries. They do not wait for each other; see `evaluateStatements`. */
   evaluateQueries(queryNodes: QueryNode[]): void;
   getResult(statementId: string): unknown;
-  /** The tool name and arguments a query was last evaluated with. Null for an unknown query. */
-  getCall(statementId: string): { toolName: string; args: unknown } | null;
+  /**
+   * The tool name and arguments a query was last evaluated with. Null for an unknown query.
+   * Optional, so a custom query manager without it still type-checks.
+   */
+  getCall?(statementId: string): { toolName: string; args: unknown } | null;
   isLoading(statementId: string): boolean;
   isAnyLoading(): boolean;
   invalidate(statementIds?: string[]): void;

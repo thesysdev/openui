@@ -57,7 +57,7 @@ export function useDataSources(id: string | undefined): DataSources | null {
       Object.fromEntries(names.map((name) => [name, evaluationContext.getState(name)]));
     return {
       queries: found.queries.map((query) => {
-        const call = queryManager.getCall(query);
+        const call = queryManager.getCall?.(query) ?? null;
         return {
           statementId: query,
           toolName: call?.toolName,
