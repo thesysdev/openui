@@ -2,7 +2,14 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defaultDarkTheme, defaultLightTheme } from "../components/ThemeProvider/defaultTheme.js";
-import { camelToKebab } from "../components/ThemeProvider/utils.js";
+
+function camelToKebab(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z])([A-Z])/g, "$1-$2")
+    .replace(/([a-z])(\d)/g, "$1-$2")
+    .toLowerCase();
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

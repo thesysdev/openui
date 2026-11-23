@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-components",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Reusable OpenUI React components and themes",
   "license": "MIT",
   "type": "module",
@@ -16,6 +16,16 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./theme": {
+      "import": {
+        "types": "./dist/theme.d.mts",
+        "default": "./dist/theme.mjs"
+      },
+      "require": {
+        "types": "./dist/theme.d.cts",
+        "default": "./dist/theme.cjs"
       }
     }
   },
@@ -33,6 +43,7 @@
   ],
   "scripts": {
     "build": "tsdown",
+    "prepare": "pnpm run build",
     "typecheck": "tsc --noEmit",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix"

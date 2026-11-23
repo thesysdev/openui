@@ -1,6 +1,6 @@
 export * from "./defaultTheme";
 export * from "./swatches";
-export { ThemeProvider, useTheme } from "./ThemeProvider";
+export { ThemeContext, ThemeProvider, useTheme } from "./ThemeProvider";
 export type { ThemeProps } from "./ThemeProvider";
 export * from "./types";
 export { useSystemThemeMode } from "./useSystemThemeMode";
