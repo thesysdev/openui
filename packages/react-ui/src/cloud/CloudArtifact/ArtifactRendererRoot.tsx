@@ -366,52 +366,12 @@ export function ArtifactRendererRoot({
   // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
   const clearSelection = useCallback(() => setSelection(null), []);
-  // Each component's elements on screen, found as a click finds them: what it renders first, or
-  // its mark. One scan, run when asked.
-  const getElements = useCallback(() => {
-    const boundary = rootRef.current;
-    const found = new Map<string, Element[]>();
-    for (const area of [boundary, renderInHtmlElement]) {
-      for (const element of area?.querySelectorAll("*") ?? []) {
-        const target = readSourceTarget(element, boundary);
-        if (target?.element === element)
-          found.set(target.id, [...(found.get(target.id) ?? []), element]);
-      }
-    }
-    return found;
-  }, [renderInHtmlElement]);
-  // A component with no element on screen, such as a chart's series, selects the one it is in.
-  const select = useCallback(
-    (componentId: string) => {
-      const elements = getElements();
-      const components = Object.entries(sourcesStore.get()?.components ?? {});
-      const seen = new Set<string>();
-      for (let id: string | undefined = componentId; id && !seen.has(id);) {
-        seen.add(id);
-        const element = elements.get(id)?.[0];
-        if (element) return setSelection({ id, element });
-        const child: string = id;
-        id = components.find(([, c]) =>
-          Object.values(c.props).some((prop) => prop.components.includes(child)),
-        )?.[0];
-      }
-    },
-    [getElements, sourcesStore],
-  );
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       enableProvenance
-        ? {
-            isInspecting,
-            setInspecting,
-            selection,
-            select,
-            getElements,
-            clearSelection,
-            sourcesStore,
-          }
+        ? { isInspecting, setInspecting, selection, clearSelection, sourcesStore }
         : null,
-    [enableProvenance, isInspecting, selection, select, getElements, clearSelection, sourcesStore],
+    [enableProvenance, isInspecting, selection, clearSelection, sourcesStore],
   );
   const inspecting = enableProvenance && isInspecting;
   // While inspecting, pressing a component selects it instead of acting: buttons, links,

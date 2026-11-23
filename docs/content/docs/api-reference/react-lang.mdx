@@ -502,9 +502,9 @@ function useTriggerAction(): (
 ) => void | Promise<void>;
 function useIsStreaming(): boolean;
 function useIsQueryLoading(): boolean;
-// Where the program's data comes from, both ways: each component's and prop's queries, the
+// Where the program's data comes from: each component's and prop's queries, the
 // statements in between and the $variables read (its own props only: a child component has its
-// own entry), and each query's readers, call, loading flag and result. Component ids are a
+// own entry), and each query's call, loading flag and result. Component ids are a
 // statement's name, or `lead.2` for a component written inside `lead`, as readSourceTarget
 // returns; they hold for one parse. A prop with no queries, state or components is written in
 // the program, or reads a Mutation's result. lang-core's dataSources(parseResult) is the same
@@ -537,8 +537,6 @@ function useDataSources(): {
   queries: Record<
     string,
     {
-      /** The components whose own props read it. */
-      usedBy: string[];
       toolName: string | undefined;
       /** The call it last ran, or is running: while `loading`, `data` is still the previous result (or the query's defaults). */
       args: unknown;

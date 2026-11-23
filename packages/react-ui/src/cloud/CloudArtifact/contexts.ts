@@ -79,19 +79,12 @@ export interface ArtifactProvenanceState {
   /** While on, a click on a component selects it instead of acting. */
   isInspecting: boolean;
   setInspecting: (on: boolean) => void;
-  /** The component, and prop, last clicked in inspect mode, or passed to `select`. */
+  /** The component, and prop, last clicked in inspect mode. */
   selection: SourceTarget | null;
-  /**
-   * Select a component by id, as a click does. One with no element on screen, such as a chart's
-   * series or a hidden branch, selects the component it is in; an unknown id does nothing.
-   */
-  select: (id: string) => void;
-  /** Each component's elements on screen, by id, e.g. to frame them all. One scan per call. */
-  getElements: () => Map<string, Element[]>;
   clearSelection: () => void;
   /**
-   * Where the program's data comes from: every component's and query's sources, both ways, with
-   * live values. Null unless inspecting or something is selected.
+   * Where the program's data comes from: every component's sources and every query, with live
+   * values. Null unless inspecting or something is selected.
    */
   sources: ProvenanceSources;
 }
@@ -137,8 +130,6 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
   isInspecting: false,
   setInspecting: noop,
   selection: null,
-  select: noop,
-  getElements: () => new Map(),
   clearSelection: noop,
   sources: null,
 });

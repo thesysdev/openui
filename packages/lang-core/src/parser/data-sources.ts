@@ -34,12 +34,10 @@ export interface ComponentSources extends Sources {
   props: Record<string, PropSources>;
 }
 
-/** Where a program's data comes from, both ways. */
+/** Where a program's data comes from. */
 export interface ProgramSources {
   /** Every component the program renders, by id: a statement's name, or `name.n` inside it. */
   components: Record<string, ComponentSources>;
-  /** Every query, in statement order, with the components whose own props read it. */
-  queries: Record<string, { usedBy: string[] }>;
   /** The text of each statement in a `via`, e.g. `now: "@First(totals.rows)"`. */
   formulas: Record<string, string>;
 }
@@ -48,7 +46,7 @@ const cache = new WeakMap<ParseResult, ProgramSources | null>();
 
 /**
  * Where a program's data comes from, for a "where did this come from" view: each component and
- * prop's queries, the statements in between and the `$variables` read, and each query's readers.
+ * prop's queries, the statements in between and the `$variables` read.
  * A Mutation or an action is not a source. Component ids are positions in this parse, not stable
  * keys. Null when `result` is not one the parser returned.
  */
@@ -211,14 +209,11 @@ function build(result: ParseResult): ProgramSources | null {
         if (entry) components[name] = entry;
       }
     }
-    const queries: Record<string, { usedBy: string[] }> = {};
-    for (const { statementId } of result.queryStatements) queries[statementId] = { usedBy: [] };
     const formulas: Record<string, string> = {};
-    for (const [id, entry] of Object.entries(components)) {
-      entry.queries.forEach((q) => queries[q]?.usedBy.push(id));
+    for (const entry of Object.values(components)) {
       entry.via.forEach((name) => (formulas[name] ??= text(statements.get(name)!)));
     }
-    return { components, queries, formulas };
+    return { components, formulas };
   } catch (error) {
     // A chain of statements too long to walk.
     if (error instanceof RangeError) return null;

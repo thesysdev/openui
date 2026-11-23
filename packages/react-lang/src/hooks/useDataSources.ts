@@ -3,9 +3,8 @@ import { useMemo } from "react";
 import { useOpenUI } from "../context";
 import { useRendererQuery } from "../Renderer";
 
-/** A query: the components that read it, the call it last ran with, its loading flag and result. */
+/** A query: the call it last ran with, its loading flag and result. */
 export interface DataSourceQuery {
-  usedBy: string[];
   toolName: string | undefined;
   /** The call it last ran, or is running: while `loading`, `data` is still the previous result (or the query's defaults). */
   args: unknown;
@@ -14,7 +13,8 @@ export interface DataSourceQuery {
 }
 
 /** Where the program's data comes from, with live values: what `useDataSources` returns. */
-export interface DataSources extends Omit<ProgramSources, "queries"> {
+export interface DataSources extends ProgramSources {
+  /** Every query, in statement order. */
   queries: Record<string, DataSourceQuery>;
   /** Each `$variable`'s current value. */
   state: Record<string, unknown>;
@@ -23,7 +23,7 @@ export interface DataSources extends Omit<ProgramSources, "queries"> {
 /**
  * Where the program's data comes from, for a "where did this come from" view: each component's
  * and prop's queries, formula and `$variables` (lang-core's `dataSources`), with each query's
- * readers, call, loading flag and result, and each `$variable`'s value. Call it inside `Renderer`.
+ * call, loading flag and result, and each `$variable`'s value. Call it inside `Renderer`.
  * It reads the values whenever the Renderer updates, and keeps its identity until the program, a
  * store value or a query result changes, so it can be passed to effects.
  */
@@ -42,10 +42,9 @@ export function useDataSources(): DataSources | null {
     return {
       ...found,
       queries: Object.fromEntries(
-        Object.entries(found.queries).map(([name, { usedBy }]) => {
+        result.queryStatements.map(({ statementId: name }) => {
           const call = queryManager.getCall?.(name) ?? null;
           const query: DataSourceQuery = {
-            usedBy,
             toolName: call?.toolName,
             args: call?.args,
             loading: queryManager.isLoading(name),
