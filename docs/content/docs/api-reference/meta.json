@@ -15,6 +15,8 @@
     "assistant-ui",
     "langchain",
     "a2ui",
+    "---Chat platforms---",
+    "channels",
     "---Server---",
     "server",
     "---Component libraries---",
