@@ -2,9 +2,9 @@
 
 import { OpenUIWordmark } from "@/components/openui-wordmark";
 import { OPENUI_LOGO, STARTERS } from "@/lib/starters";
+import { library, ThemeProvider } from "@openuidev/intelligent-ui-library";
 import {
   AgentInterface,
-  openuiLibrary,
   useOpenuiCloudStorage,
   useThemeModePreference,
   WelcomeMascot,
@@ -27,25 +27,27 @@ export default function CloudChat() {
   // Eve fixes its model when the agent is built, so unlike the base template
   // there's no model switcher; the header shows the chat title instead.
   return (
-    <AgentInterface
-      storage={storage}
-      llm={llm}
-      componentLibrary={openuiLibrary}
-      logoUrl={OPENUI_LOGO}
-      theme={{ mode }}
-      starters={STARTERS}
-    >
-      <AgentInterface.SidebarHeader agentName={<OpenUIWordmark mode={mode} />} />
-      <AgentInterface.SidebarFooter>
-        <AgentInterface.ThemeModeToggle mode={mode} onModeChange={setPreference} />
-      </AgentInterface.SidebarFooter>
-      <AgentInterface.ThreadHeader />
-      <AgentInterface.Welcome
-        image={<WelcomeMascot />}
-        title="What's on your mind today?"
-        starterVariant="card"
-        glowAnimation
-      />
-    </AgentInterface>
+    <ThemeProvider mode={mode}>
+      <AgentInterface
+        storage={storage}
+        llm={llm}
+        componentLibrary={library}
+        logoUrl={OPENUI_LOGO}
+        theme={{ mode }}
+        starters={STARTERS}
+      >
+        <AgentInterface.SidebarHeader agentName={<OpenUIWordmark mode={mode} />} />
+        <AgentInterface.SidebarFooter>
+          <AgentInterface.ThemeModeToggle mode={mode} onModeChange={setPreference} />
+        </AgentInterface.SidebarFooter>
+        <AgentInterface.ThreadHeader />
+        <AgentInterface.Welcome
+          image={<WelcomeMascot />}
+          title="What's on your mind today?"
+          starterVariant="card"
+          glowAnimation
+        />
+      </AgentInterface>
+    </ThemeProvider>
   );
 }

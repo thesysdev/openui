@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeProvider } from "@openuidev/intelligent-ui-library";
 import {
   AgentInterface,
   fetchLLM,
@@ -59,43 +60,45 @@ export default function ComparisonChat() {
   });
   return (
     <div className="comparison-app">
-      <AgentInterface
-        llm={llm}
-        storage={storage}
-        componentLibrary={library}
-        agentName="Filing analyst"
-        logoUrl="/logo.svg"
-        theme={theme}
-        starters={starters}
-        starterVariant="long"
-      >
-        <AgentInterface.Sidebar>
-          <AgentInterface.SidebarHeader />
-          <AgentInterface.SidebarContent>
-            <AgentInterface.NewChatButton />
-            <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
-              Documents
-            </AgentInterface.SidebarItem>
-            <AgentInterface.SidebarSeparator />
-            <AgentInterface.ThreadList />
-          </AgentInterface.SidebarContent>
-        </AgentInterface.Sidebar>
-        <AgentInterface.Route path="documents">
-          <DocumentLibrary />
-        </AgentInterface.Route>
-        <AgentInterface.ThreadHeader>
-          <span className="thread-context">
-            Comparing <strong>NVIDIA</strong> · <strong>AMD</strong> · <strong>Intel</strong> annual
-            reports
-          </span>
-        </AgentInterface.ThreadHeader>
-        <AgentInterface.Welcome
-          image={{ url: "/logo.svg" }}
-          title="Compare annual reports"
-          description="Ask about the latest Form 10-K filings from NVIDIA, AMD, and Intel. Every finding cites the page it came from."
-        />
-        <AgentInterface.Composer placeholder="What should I compare?" />
-      </AgentInterface>
+      <ThemeProvider mode={mode}>
+        <AgentInterface
+          llm={llm}
+          storage={storage}
+          componentLibrary={library}
+          agentName="Filing analyst"
+          logoUrl="/logo.svg"
+          theme={theme}
+          starters={starters}
+          starterVariant="long"
+        >
+          <AgentInterface.Sidebar>
+            <AgentInterface.SidebarHeader />
+            <AgentInterface.SidebarContent>
+              <AgentInterface.NewChatButton />
+              <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
+                Documents
+              </AgentInterface.SidebarItem>
+              <AgentInterface.SidebarSeparator />
+              <AgentInterface.ThreadList />
+            </AgentInterface.SidebarContent>
+          </AgentInterface.Sidebar>
+          <AgentInterface.Route path="documents">
+            <DocumentLibrary />
+          </AgentInterface.Route>
+          <AgentInterface.ThreadHeader>
+            <span className="thread-context">
+              Comparing <strong>NVIDIA</strong> · <strong>AMD</strong> · <strong>Intel</strong>{" "}
+              annual reports
+            </span>
+          </AgentInterface.ThreadHeader>
+          <AgentInterface.Welcome
+            image={{ url: "/logo.svg" }}
+            title="Compare annual reports"
+            description="Ask about the latest Form 10-K filings from NVIDIA, AMD, and Intel. Every finding cites the page it came from."
+          />
+          <AgentInterface.Composer placeholder="What should I compare?" />
+        </AgentInterface>
+      </ThemeProvider>
     </div>
   );
 }

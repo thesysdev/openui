@@ -1,0 +1,113 @@
+---
+title: Share dashboards
+description: Share a dashboard with a user or a group, to view or edit it.
+---
+
+A new dashboard is private to the user who created it. Its owner, and anyone it's shared with to edit, can share it with:
+
+| Target                  | Who it reaches                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| `{ type: "user", id }`  | One user, by the id you pass as `userId`.                                                      |
+| `{ type: "group", id }` | Every user whose `groupIds` include `id`. Groups are yours: OpenUI never stores who's in them. |
+
+Each share gives `view` or `edit` access. A shared dashboard shares its layout and queries, never the sharer's data: its data tools always run with the viewer's own [`context`](/docs/dashboards/connect-data#use-the-context).
+
+## Who can do what
+
+| Action                              | Owner | `edit` | `view` | API key |
+| ----------------------------------- | :---: | :----: | :----: | :-----: |
+| Open and list                       |   ✓   |   ✓    |   ✓    |    ✓    |
+| Run its scripts                     |   ✓   |   ✓    |   ✓    |         |
+| Pin and unpin, for themselves       |   ✓   |   ✓    |   ✓    |         |
+| Edit with a prompt                  |   ✓   |   ✓    |        |         |
+| Rename, or save an edited program   |   ✓   |   ✓    |        |    ✓    |
+| See and change who it's shared with |   ✓   |   ✓    |        |    ✓    |
+| Delete                              |   ✓   |        |        |    ✓    |
+
+The API key column is for calls with your API key and no `userId`, which [act as your org](/docs/dashboards/manage-from-server#act-as-a-user-or-as-your-org). Your org manages dashboards, but making, editing with a prompt, running scripts, and pinning need a user: a dashboard's data tools run with their `context`. With a `userId`, the call is that user and gets their column.
+
+- A user gets the highest access any of their shares gives, so an `edit` share to one of their groups beats a `view` share to them.
+- Sharing with a target that's already shared changes its access. Sharing with the owner is refused.
+- Anyone who can share can remove any share, including their own, which is how an editor leaves a dashboard.
+- A user who can open a dashboard but not take an action gets a 403 with code `insufficient_access`. A user who can't open it gets a 404, as if it didn't exist.
+
+## Groups
+
+Pass the groups the user is in as `groupIds`, everywhere you pass `userId`: on the [frontend token](/docs/dashboards/authentication#frontend-token-route) and in the server [`context`](/docs/dashboards/authentication#the-user-id).
+
+```ts
+const groupIds = session.user.teamIds; // from your own system
+
+await openui.createFrontendToken({ userId: session.user.id, groupIds });
+await dashboards.edit({ id, prompt }, { userId: session.user.id, groupIds });
+```
+
+Group ids are strings you choose, such as `team:sales` or an account id. A user can be in up to 10 groups, a dashboard can be shared with up to 10 groups, and the user and group ids you share with are up to 64 characters. OpenUI doesn't check that a user or group exists.
+
+To share with everyone, put every user in one group, such as `everyone`, and share with that group.
+
+Groups ride on the frontend token, which lasts 15 minutes. A user you remove from a group keeps that group's dashboards until their next token. Removing a share takes effect on the next request, and unpins the dashboard for users who pinned it only through that share.
+
+## Share from the browser
+
+| Hook                    | Returns                                 |
+| ----------------------- | --------------------------------------- |
+| `useArtifactShares(id)` | `{ shares, isLoading, error, refresh }` |
+| `useArtifactShare()`    | `share(id, { type, id, access })`       |
+| `useArtifactUnshare()`  | `unshare(id, { type, id })`             |
+
+```tsx title="components/share-dialog.tsx"
+"use client";
+
+import { useArtifactShare, useArtifactShares, useArtifactUnshare } from "@openuidev/react-ui/cloud";
+
+export function ShareDialog({ id }: { id: string }) {
+  const { shares, error } = useArtifactShares(id);
+  const { share } = useArtifactShare();
+  const { unshare } = useArtifactUnshare();
+
+  if (error) return <p>Couldn't load who this dashboard is shared with.</p>;
+
+  return (
+    <>
+      <ul>
+        {shares.map((entry) => (
+          <li key={`${entry.type}:${entry.id}`}>
+            {entry.id} can {entry.access}
+            <button onClick={() => unshare(id, entry)}>Remove</button>
+          </li>
+        ))}
+      </ul>
+      <button onClick={() => share(id, { type: "group", id: "team:sales", access: "view" })}>
+        Share with Sales
+      </button>
+    </>
+  );
+}
+```
+
+The shares are part of the dashboard: `useArtifactShares` reads them from the dashboard a list loaded, or loads the dashboard if no list has. Each share has `type`, `id`, `access`, `createdBy`, and `createdAt` in milliseconds. `share` and `unshare` update every list and `useArtifactShares` right away, and revert if the request fails. Each also returns `isPending` and `error` for its last call.
+
+Only users who can edit a dashboard see its shares, so show sharing only for dashboards with `isEditable`. For other users, `shares` is empty and changes fail.
+
+A user who removes the share that let them open a dashboard keeps seeing it in their lists until they `refresh`.
+
+The hooks must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication#connect-the-browser).
+
+## Share from your server
+
+`openui.artifacts.share` and `unshare` take the same targets, with your API key, as a user or as your org. See [Manage dashboards from your server](/docs/dashboards/manage-from-server#share).
+
+## Lists
+
+Dashboards shared with a user show in their [lists](/docs/dashboards/list) next to their own. Filter with `isOwner` to show them apart, and read `isOwner` and `isEditable` on each one to choose which actions to show. Dashboards the user can edit also carry their `shares`, for a "Shared with 3" badge on each row.
+
+## Limits
+
+| Limit                        | Value           | Error                     |
+| ---------------------------- | --------------- | ------------------------- |
+| Groups per user              | 10              | 400 `invalid_input`       |
+| Length of a user or group id | 1–64 characters | 400 `invalid_input`       |
+| Shares per dashboard         | 100             | 409 `share_limit_reached` |
+| Groups per dashboard         | 10              | 409 `share_limit_reached` |
+| Pins per user                | 500             | 409 `pin_limit_reached`   |

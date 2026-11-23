@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/server",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "Server utilities for OpenUI & OpenUI Gateway",
   "license": "MIT",
   "engines": {

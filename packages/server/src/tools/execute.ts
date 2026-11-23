@@ -114,12 +114,13 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
           404,
         );
       }
-      // Only the artifact's owner can run its scripts.
+      // Only users who can open the artifact can run its scripts: its owner, or anyone it's shared with.
       const source = {
         artifact_id: input.id,
         ...(typeof input.version === "string" &&
           input.version && { artifact_version: input.version }),
         user_id: context.userId,
+        ...(context.groupIds?.length && { group_ids: context.groupIds }),
         ...(api.appId !== undefined && { app_id: api.appId }),
       };
 

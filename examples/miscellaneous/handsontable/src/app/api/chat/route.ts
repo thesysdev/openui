@@ -19,14 +19,14 @@ CRITICAL RULES:
 
 1. DO NOT modify the spreadsheet unless the user explicitly asks you to. Requests like "visualize", "show me", "analyze", "summarize" are READ-ONLY. For these, NEVER call update_cells, add_rows, delete_rows, set_formula, or add_column.
 
-2. For READ-ONLY requests: use TextContent, MarkDownRenderer, Table, BarChart, LineChart, PieChart to display information. Do NOT use SpreadsheetTable for read-only requests.
+2. For READ-ONLY requests: use Text, Markdown, Table, Chart to display information. Do NOT use SpreadsheetTable for read-only requests.
 
 3. For WRITE requests (user explicitly asks to change/add/delete data):
    a. Use the modification tools (update_cells, add_rows, delete_rows, set_formula, add_column).
    b. IMMEDIATELY after add_rows or delete_rows, ALWAYS call recalculate_aggregates to update Total/Average/Sum formulas.
    c. Then call get_table_data to get the updated data.
    d. Then you MUST emit a SpreadsheetTable component with the full updated data and colHeaders. This is how the live spreadsheet gets refreshed. Include it at the END of your response.
-   e. Also include a TextContent message explaining what you changed.
+   e. Also include a Text message explaining what you changed.
 
 4. Only call get_table_data when you need to read data (to answer a question or before/after a modification).
 
@@ -35,10 +35,10 @@ CRITICAL RULES:
 6. Common formulas: =SUM(range), =AVERAGE(range), =COUNT(range), =MAX(range), =MIN(range), =IF(condition, true_val, false_val)
 
 IMPORTANT — OUTPUT FORMAT:
-You MUST ALWAYS respond using OpenUI Lang syntax as described below. NEVER output plain text or markdown. Every response must define root = Stack([...]). Use TextContent for text paragraphs, MarkDownRenderer for formatted text, Table for tabular summaries, chart components for visualizations, and SpreadsheetTable ONLY after write operations to sync changes to the live spreadsheet.
+You MUST ALWAYS respond using OpenUI Lang syntax as described below. NEVER output plain text or markdown. Every response must define root = Col([...]). Use Text for text paragraphs, Markdown for formatted text, Table for tabular summaries, Chart for visualizations, and SpreadsheetTable ONLY after write operations to sync changes to the live spreadsheet.
 
 FOLLOW-UP BUTTONS:
-At the END of every response, ALWAYS include 2-3 follow-up suggestion buttons using Buttons([...]) with Button components. These help the user continue the conversation. Buttons without an Action prop automatically send their label as a message to you.
+At the END of every response, ALWAYS include 2-3 follow-up suggestion buttons using Row([...]) with Button components. These help the user continue the conversation. Give each Button an explicit @ToAssistant action, e.g. Button("Visualize this data", @ToAssistant("Visualize this data"), "outline").
 
 Examples of good follow-ups:
 - After showing a summary: "Visualize this data", "Add a new product", "Show growth trends"
@@ -48,8 +48,8 @@ Examples of good follow-ups:
 The follow-up buttons should be contextually relevant to what you just did.
 
 FORMS:
-- A Form's submit button must send the entries to you: its action must be @ToAssistant(...), e.g. Button("Plan my trip", @ToAssistant("Plan my trip"), "primary"), never @Set or another local-only action. Don't put what the form produces (a summary, plan or itinerary) in the same reply, hidden or not; write it in your next reply from the values the user submitted.
-- When a field should only appear for a certain answer (e.g. a company name only for Business trips), bind the deciding field to a $variable with its value argument, e.g. RadioGroup("tripType", items, "Leisure", { required: true }, $tripType), and show the field with $tripType == "Business" ? companyField : null.
+- A Form's submit button must send the entries to you: its action must be @ToAssistant(...), e.g. Button("Plan my trip", @ToAssistant("Plan my trip"), "solid", "primary"), never @Set or another local-only action. Don't put what the form produces (a summary, plan or itinerary) in the same reply, hidden or not; write it in your next reply from the values the user submitted.
+- When a field should only appear for a certain answer (e.g. a company name only for Business trips), bind the deciding field to a $variable with its first value argument. Initialize $tripType = "Leisure" and use RadioGroup($tripType, ["Leisure", "Business"], "Trip type", "pills", { required: true }), and show the field with $tripType == "Business" ? companyField : null.
 `.trim();
 
 const systemPrompt = cloudInstructions(SPREADSHEET_INSTRUCTIONS);
@@ -146,9 +146,7 @@ export async function POST(req: NextRequest) {
   setCurrentThreadId(typeof tableId === "string" && tableId ? tableId : "default");
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const lastUserMsg = (messages as any[])
-    .filter((m: any) => m.role === "user")
-    .pop();
+  const lastUserMsg = (messages as any[]).filter((m: any) => m.role === "user").pop();
   if (lastUserMsg) extractText(lastUserMsg);
 
   const cleanMessages = (messages as any[])
@@ -221,9 +219,7 @@ export async function POST(req: NextRequest) {
       runner.on("functionToolCall", (fc: any) => {
         const id = `tc-${callIdx}`;
         pendingCalls.push({ id, name: fc.name, arguments: fc.arguments });
-        enqueue(
-          sseToolCallStart(encoder, { id, function: { name: fc.name } }, callIdx),
-        );
+        enqueue(sseToolCallStart(encoder, { id, function: { name: fc.name } }, callIdx));
         callIdx++;
       });
 
@@ -276,7 +272,7 @@ export async function POST(req: NextRequest) {
     const status = (error as { status?: number }).status ?? 500;
     return Response.json(
       { error: error instanceof Error ? error.message : String(error) },
-      { status }
+      { status },
     );
   }
 

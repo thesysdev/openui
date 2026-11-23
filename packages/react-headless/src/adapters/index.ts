@@ -1,7 +1,10 @@
 export type {
   Artifact,
+  ArtifactAccess,
   ArtifactCategory,
   ArtifactListParams,
+  ArtifactShare,
+  ArtifactShareTarget,
   ArtifactStorage,
   ArtifactStreamEvent,
   ArtifactStreamOptions,

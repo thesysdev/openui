@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
+    "@openuidev/intelligent-ui-library": "0.0.2",
     "@openuidev/lang-core": "1.1.1",
     "@openuidev/react-headless": "0.18.8",
     "@openuidev/react-lang": "1.1.1",
