@@ -39,12 +39,6 @@
   padding-top: var(--dash-space-wide);
 }
 
-.featureLink {
-  color: var(--openui-text-neutral-primary);
-  text-underline-offset: 3px;
-  text-decoration: underline;
-}
-
 /* Section lockup: heading on the left, lead on the right (as on Gateway). The
    lead takes the hero subtitle's 400px column, so both share one edge. */
 .lockup {

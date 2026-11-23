@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   IllustratedFeature,
@@ -26,22 +25,13 @@ const ILLUSTRATIONS: Record<string, ReactNode> = {
 
 const LAUNCH_FEATURES = [
   {
-    title: "Share with users and groups",
-    description: (
-      <>
-        Grant view or edit access using your app’s users and groups.{" "}
-        <Link href="/docs/dashboards/sharing" className={styles.featureLink}>
-          See how sharing works
-        </Link>
-        .
-      </>
-    ),
+    title: "Share and edit",
+    description: "Your users can share a dashboard and edit it together.",
     art: <SharingIllustration />,
   },
   {
-    title: "Show build progress and sources",
-    description:
-      "Show what the agent is checking, then let users inspect the data behind a metric.",
+    title: "See the sources",
+    description: "Users watch it build, then see where each chart's data comes from.",
     art: <SourcesIllustration />,
   },
 ];
