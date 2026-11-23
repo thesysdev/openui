@@ -1,5 +1,13 @@
 # @openuidev/dashboard-library
 
+## 1.0.2
+
+### Patch Changes
+
+- [#1689](https://github.com/thesysdev/openui/pull/1689) [`aa3f9fe`](https://github.com/thesysdev/openui/commit/aa3f9feeab0cfa5bbfd9aa50690abca01b20510d) Thanks [@mlubbad](https://github.com/mlubbad)! - Use CSS logical start alignment (`text-align: start`, `justify-content: flex-start`, and `border-inline-end`) for default unaligned text blocks, table headers/cells, option cards, citations, follow-up items, and tooltips so RTL (`dir="rtl"`) interfaces align naturally to the inline start while keeping LTR rendering unchanged.
+- Updated dependencies [[`aa3f9fe`](https://github.com/thesysdev/openui/commit/aa3f9feeab0cfa5bbfd9aa50690abca01b20510d)]:
+  - @openuidev/react-components@0.0.5
+
 ## 1.0.1
 
 ### Patch Changes

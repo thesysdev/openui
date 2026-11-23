@@ -1,5 +1,9 @@
 # @openuidev/react-headless
 
+## 0.18.12
+
+No changes in this release.
+
 ## 0.18.11
 
 No changes in this release.
