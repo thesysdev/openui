@@ -1,4 +1,4 @@
-import { css, keyframes } from "goober";
+import { css, keyframes } from "@openuidev/react-components";
 
 export const typography = (token: string, variation: "regular" | "medium") => `
   font: var(--${token});
