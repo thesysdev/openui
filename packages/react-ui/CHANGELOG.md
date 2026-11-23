@@ -1,5 +1,14 @@
 # @openuidev/react-ui
 
+## 0.18.11
+
+### Patch Changes
+
+- [#1700](https://github.com/thesysdev/openui/pull/1700) [`75684e7`](https://github.com/thesysdev/openui/commit/75684e773976525e442ed885c416ad8da0e2a756) Thanks [@ankit-thesys](https://github.com/ankit-thesys)! - react-ui and react-components now share one theme provider. react-ui re-exports `ThemeProvider`, `useTheme`, the default themes, swatches and theme hooks from react-components, so a single `ThemeProvider` from either package themes the components of both, including charts, markdown and popups that read the theme in JavaScript. react-ui's exports are unchanged. react-components adds a `@openuidev/react-components/theme` entry with only the theme code, and exports `ThemeContext`.
+- Updated dependencies [[`75684e7`](https://github.com/thesysdev/openui/commit/75684e773976525e442ed885c416ad8da0e2a756)]:
+  - @openuidev/react-components@0.0.4
+  - @openuidev/react-headless@0.18.11
+
 ## 0.18.10
 
 ### Patch Changes
