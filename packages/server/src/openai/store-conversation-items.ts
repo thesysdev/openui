@@ -53,14 +53,43 @@ function toolOutputOf(content: ChatCompletionToolMessageParam["content"]): strin
 }
 
 /**
+ * The tool calls and tool results to store: each is kept only with its pair,
+ * a result in the tool messages right after its call's assistant message.
+ * A run stopped mid tool call leaves calls without results, and model APIs
+ * reject every later request in a thread that has one.
+ */
+function pairedToolCalls(messages: ChatCompletionMessageParam[]): Set<object> {
+  const paired = new Set<object>();
+  messages.forEach((message, index) => {
+    if (message.role !== "assistant") return;
+    const open = new Map(
+      (message.tool_calls ?? [])
+        .filter((call) => call.type === "function" && call.id && call.function.name)
+        .map((call) => [call.id, call]),
+    );
+    for (const next of messages.slice(index + 1)) {
+      if (next.role !== "tool") break;
+      const call = open.get(next.tool_call_id);
+      if (!call) continue;
+      open.delete(next.tool_call_id);
+      paired.add(call);
+      paired.add(next);
+    }
+  });
+  return paired;
+}
+
+/**
  * Break Chat Completions messages into Conversations API items.
  * Pass the new turn, not the full replay, or items will be duplicated.
- * System / developer messages are skipped (instructions, not history).
+ * System / developer messages are skipped (instructions, not history), and so
+ * are tool calls without a result and results without a call.
  */
 export function chatCompletionMessagesToItems(
   messages: ChatCompletionMessageParam[],
 ): ResponseInputItem[] {
   const items: ResponseInputItem[] = [];
+  const paired = pairedToolCalls(messages);
 
   for (const message of messages) {
     if (message.role === "system" || message.role === "developer") continue;
@@ -86,8 +115,7 @@ export function chatCompletionMessagesToItems(
         } as ResponseInputItem);
       }
       for (const call of message.tool_calls ?? []) {
-        if (call.type !== "function") continue;
-        if (!call.id || !call.function.name) continue;
+        if (call.type !== "function" || !paired.has(call)) continue;
         items.push({
           type: "function_call",
           call_id: call.id,
@@ -99,7 +127,7 @@ export function chatCompletionMessagesToItems(
     }
 
     if (message.role === "tool") {
-      if (!message.tool_call_id) continue;
+      if (!paired.has(message)) continue;
       items.push({
         type: "function_call_output",
         call_id: message.tool_call_id,
