@@ -1,9 +1,4 @@
-import type {
-  DataSourceIndex,
-  DataSources,
-  OpenUIError,
-  SourceTarget,
-} from "@openuidev/react-lang";
+import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
@@ -76,10 +71,7 @@ export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
 
 // ─── Provenance ──────────────────────────────────────────────────────────
 
-/** Where the selected component's data comes from: `useDataSources` for its statement. */
-export type ProvenanceSources = DataSources | null;
-
-/** Inspect mode and the selected component, from `useArtifactProvenance()`. */
+/** Inspect mode, the selected component and where data comes from, from `useArtifactProvenance()`. */
 export interface ArtifactProvenanceState {
   /** While on, a click on a component selects it instead of acting. */
   isInspecting: boolean;
@@ -87,36 +79,31 @@ export interface ArtifactProvenanceState {
   /** The component, and prop, last clicked in inspect mode. */
   selection: SourceTarget | null;
   clearSelection: () => void;
-  /** Where the selection's data comes from. Null without a selection. */
-  sources: ProvenanceSources;
-}
-
-/** The sources the bridge inside `Renderer` found, for the selection with this id. */
-interface ResolvedSources {
-  id?: string;
-  sources: ProvenanceSources;
+  /**
+   * Where the program's data comes from: every component's sources and every query, with live
+   * values. Null unless inspecting or something is selected.
+   */
+  sources: DataSources | null;
 }
 
 /**
- * Where the bridge puts the sources it finds. A store, not the root's state: a write re-renders
- * only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't loop back
- * to the bridge.
+ * Where the bridge inside `Renderer` puts the sources. A store, not the root's state: a write
+ * re-renders only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't
+ * loop back to the bridge.
  */
 export interface SourcesStore {
-  get: () => ResolvedSources;
-  set: (next: ResolvedSources) => void;
+  get: () => DataSources | null;
+  set: (next: DataSources | null) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
-const NO_SOURCES: ResolvedSources = Object.freeze({ sources: null });
-
 export function createSourcesStore(): SourcesStore {
-  let value = NO_SOURCES;
+  let value: DataSources | null = null;
   const listeners = new Set<() => void>();
   return {
     get: () => value,
     set: (next) => {
-      if (next.id === value.id && next.sources === value.sources) return;
+      if (next === value) return;
       value = next;
       listeners.forEach((listener) => listener());
     },
@@ -130,43 +117,6 @@ export function createSourcesStore(): SourcesStore {
 /** The renderer's provenance state: the public fields, and the store the bridge writes. */
 export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
   sourcesStore: SourcesStore;
-  /** Every query and component in the program, which the index bridge writes while inspecting. */
-  indexStore: ValueStore<DataSourceIndex>;
-  /** Select a component, as a click in inspect mode does. */
-  select: (target: SourceTarget) => void;
-}
-
-/** A value that readers subscribe to, so a write re-renders only them. */
-export interface ValueStore<T> {
-  get: () => T;
-  set: (next: T) => void;
-  subscribe: (listener: () => void) => () => void;
-}
-
-export function createValueStore<T>(initial: T): ValueStore<T> {
-  let value = initial;
-  const listeners = new Set<() => void>();
-  return {
-    get: () => value,
-    set: (next) => {
-      if (Object.is(next, value)) return;
-      value = next;
-      listeners.forEach((listener) => listener());
-    },
-    subscribe: (listener) => {
-      listeners.add(listener);
-      return () => void listeners.delete(listener);
-    },
-  };
-}
-
-export const EMPTY_INDEX: DataSourceIndex = Object.freeze({ queries: [], components: [] });
-const INERT_INDEX_STORE = createValueStore(EMPTY_INDEX);
-
-/** The program's queries and components, for the Sources panel. Empty until inspecting. */
-export function useProvenanceIndex(): DataSourceIndex {
-  const store = useContext(ProvenanceContext)?.indexStore ?? INERT_INDEX_STORE;
-  return useSyncExternalStore(store.subscribe, store.get, store.get);
 }
 
 /** Null when `enableProvenance` is off. */
@@ -181,10 +131,10 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
   sources: null,
 });
 const INERT_STORE = createSourcesStore();
-const getNoSources = () => NO_SOURCES;
+const getNoSources = () => null;
 
 /**
- * Inspect mode and where the selected component's data comes from, for a live artifact with
+ * Inspect mode, the selection and where the program's data comes from, for a live artifact with
  * `enableProvenance`. Call it inside the renderer, such as in a slot's children. With provenance
  * off it returns an inert state: not inspecting, nothing selected, and setters that do nothing.
  *
@@ -193,12 +143,10 @@ const getNoSources = () => NO_SOURCES;
 export function useArtifactProvenance(): ArtifactProvenanceState {
   const provenance = useContext(ProvenanceContext);
   const store = provenance?.sourcesStore ?? INERT_STORE;
-  const resolved = useSyncExternalStore(store.subscribe, store.get, getNoSources);
+  const sources = useSyncExternalStore(store.subscribe, store.get, getNoSources);
   return useMemo(() => {
     if (!provenance) return INERT_PROVENANCE;
-    const { sourcesStore: _store, indexStore: _index, select: _select, ...state } = provenance;
-    // Sources count only for the current selection.
-    const sources = state.selection && resolved.id === state.selection.id ? resolved.sources : null;
+    const { sourcesStore: _store, ...state } = provenance;
     return { ...state, sources };
-  }, [provenance, resolved]);
+  }, [provenance, sources]);
 }

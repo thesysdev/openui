@@ -42,7 +42,7 @@
     color: cssUtils.$text-neutral-secondary;
     display: inline-flex;
     flex-grow: 1;
-    justify-content: left;
+    justify-content: flex-start;
   }
 
   & .openui-table-head-content {

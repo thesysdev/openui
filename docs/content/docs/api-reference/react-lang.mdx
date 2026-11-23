@@ -502,36 +502,53 @@ function useTriggerAction(): (
 ) => void | Promise<void>;
 function useIsStreaming(): boolean;
 function useIsQueryLoading(): boolean;
-// Where a component's data comes from: its queries (tool, arguments, loading, result), the
-// statements in between with their text, and the $variables it reads, also by prop. Pass the
-// statementId the component receives, or a component id (`lead.2`) such as readSourceTarget's
-// `id`; a component written inside a statement receives no statementId of its own. A prop with
-// no queries and no state is written in the program, or reads a Mutation's result.
-function useDataSources(id: string | undefined): {
-  queries: {
-    statementId: string;
-    toolName: string | undefined;
-    /** The call it last ran, or is running: while `loading`, `data` is still the previous result (or the query's defaults). */
-    args: unknown;
-    loading: boolean;
-    data: unknown;
-  }[];
-  via: string[];
-  state: Record<string, unknown>;
-  /** The text of each statement in `via`, e.g. `{ now: "@First(totals.rows)" }`. */
-  formulas: Record<string, string>;
-  props?: Record<
+// Where the program's data comes from: each component's and prop's queries, the
+// statements in between and the $variables read (a component also what the components in its
+// props read, e.g. a table its columns; each child has its own entry too), and each query's
+// call, loading flag and result. Component ids are a
+// statement's name, or `lead.2` for a component written inside `lead`, as readSourceTarget
+// returns; they hold for one parse. A prop with no queries, state or components is written in
+// the program, or reads a Mutation's result. lang-core's dataSources(parseResult) is the same
+// without the live values.
+function useDataSources(): {
+  components: Record<
     string,
     {
       queries: string[];
       via: string[];
-      state: Record<string, unknown>;
-      /** The argument as written, e.g. `now.revenue`. */
-      expr: string;
+      state: string[];
+      props: Record<
+        string,
+        {
+          /** The argument as written, e.g. `now.revenue`. */
+          expr: string;
+          queries: string[];
+          /** Statements between it and its queries; their text is in `formulas`. */
+          via: string[];
+          state: string[];
+          /** The components written in it, by id. */
+          components: string[];
+        }
+      >;
     }
   >;
+  queries: Record<
+    string,
+    {
+      toolName: string | undefined;
+      /** The call it last ran, or is running: while `loading`, `data` is still the previous result (or the query's defaults). */
+      args: unknown;
+      loading: boolean;
+      data: unknown;
+    }
+  >;
+  /** The text of each statement in a `via`, e.g. `{ now: "@First(totals.rows)" }`. */
+  formulas: Record<string, string>;
+  /** Each $variable's current value. */
+  state: Record<string, unknown>;
 } | null;
-// Its return type is exported as DataSources; one query is DataSourceQuery, one prop PropDataSources.
+// Its return type is exported as DataSources and one query as DataSourceQuery; lang-core exports
+// ComponentSources and PropSources.
 function useGetFieldValue(): (formName: string | undefined, name: string) => any;
 function useSetFieldValue(): (
   formName: string | undefined,

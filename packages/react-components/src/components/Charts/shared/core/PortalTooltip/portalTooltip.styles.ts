@@ -134,7 +134,7 @@ export const portalTooltipStyles = {
     letter-spacing: var(--openui-text-label-xs-letter-spacing, -0.01em);
     font-variation-settings: var(--openui-font-variation-regular, "wght" 440);
     color: var(--openui-text-neutral-primary, oklch(0.097 0 0 / 1));
-    text-align: left;
+    text-align: start;
     overflow-wrap: break-word;
     word-break: break-word;
   `,

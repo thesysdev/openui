@@ -283,6 +283,8 @@ Thrown errors include a `code` string:
 
 Persist only the new turn — not the full `messages` array — or items will be duplicated. Use the master API key. System and developer messages are skipped.
 
+A tool call is stored only together with its result, so a turn stopped mid tool call is saved without that call and the thread stays valid for the next request.
+
 ### `storeChatCompletionHistory(options)`
 
 ```ts

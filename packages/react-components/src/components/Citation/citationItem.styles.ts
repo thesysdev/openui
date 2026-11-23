@@ -19,7 +19,7 @@ export const citationItemStyles = {
     border-radius: var(--openui-radius-m, 8px);
     background-color: transparent;
     transition: background-color 0.2s ease-in-out;
-    text-align: left;
+    text-align: start;
     width: 100%;
     max-width: 348px;
     font: var(--openui-text-label-sm, 400 14px/1.25 "Inter", sans-serif);

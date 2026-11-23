@@ -82,7 +82,7 @@ export const baseRules = [
       gap: 2px;
     }
     .openui-dashboard-section-description {
-      text-align: left;
+      text-align: start;
     }
   }
   container: openui-dashboard / inline-size;

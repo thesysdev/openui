@@ -147,7 +147,7 @@
     &-view-more {
       @include cssUtils.typography(label, extra-small);
       color: cssUtils.$text-neutral-primary;
-      text-align: left;
+      text-align: start;
       overflow-wrap: break-word;
       word-break: break-word;
     }

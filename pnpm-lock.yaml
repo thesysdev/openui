@@ -553,7 +553,7 @@ importers:
   packages/libraries/dashboard:
     dependencies:
       '@openuidev/react-components':
-        specifier: workspace:>=0.0.1 <0.1.0
+        specifier: workspace:>=0.0.5
         version: link:../../react-components
       '@openuidev/react-lang':
         specifier: workspace:>=1.1.1
@@ -608,7 +608,7 @@ importers:
         specifier: workspace:>=1.1.1
         version: link:../../lang-core
       '@openuidev/react-components':
-        specifier: workspace:>=0.0.1 <0.1.0
+        specifier: workspace:>=0.0.5
         version: link:../../react-components
       '@openuidev/react-lang':
         specifier: workspace:>=1.1.1

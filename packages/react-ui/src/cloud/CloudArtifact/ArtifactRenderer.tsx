@@ -1,13 +1,7 @@
 "use client";
 
 import type { Interpreter } from "@openuidev/react-headless";
-import {
-  Renderer,
-  useDataSourceIndex,
-  useDataSources,
-  type Library,
-  type RendererProps,
-} from "@openuidev/react-lang";
+import { Renderer, useDataSources, type Library, type RendererProps } from "@openuidev/react-lang";
 import { useCallback, useContext, useEffect } from "react";
 import {
   ArtifactRendererRoot,
@@ -15,7 +9,7 @@ import {
   type ArtifactRendererBaseProps,
   type RenderContentArgs,
 } from "./ArtifactRendererRoot";
-import { EMPTY_INDEX, ProvenanceContext } from "./contexts";
+import { ProvenanceContext } from "./contexts";
 
 /** `Renderer`'s props, minus the ones the artifact renderer owns. */
 type PassThroughRendererProps<L extends Library> = Omit<
@@ -45,52 +39,27 @@ export interface LiveArtifactRendererProps<
 const NO_QUERY_LOADER = <></>;
 
 /**
- * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and writes the
- * selection's sources to the root's store, for `useArtifactProvenance()`.
+ * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and while inspecting or
+ * selected writes the program's sources to the root's store, for `useArtifactProvenance()`.
  */
 function ProvenanceBridge() {
   const provenance = useContext(ProvenanceContext);
-  const id = provenance?.selection?.id;
-  const sources = useDataSources(id);
-  const store = provenance?.sourcesStore;
   const clearSelection = provenance?.clearSelection;
+  // Closed, or remounted for live data: the selected elements are gone.
+  useEffect(() => () => clearSelection?.(), [clearSelection]);
+  return provenance && (provenance.isInspecting || provenance.selection) ? <SourcesWriter /> : null;
+}
+
+function SourcesWriter() {
+  const provenance = useContext(ProvenanceContext)!;
+  const store = provenance.sourcesStore;
+  const sources = useDataSources();
   // Into the store, not the root's state: a write reaches only the panel, never back here.
   useEffect(() => {
-    store?.set({ id, sources });
-    // The selected statement is no longer in the program, e.g. after an edit.
-    if (id && !sources) clearSelection?.();
-  }, [store, clearSelection, sources, id]);
-  // Closed, or remounted for live data: the selected elements are gone.
-  useEffect(
-    () => () => {
-      store?.set({ sources: null });
-      clearSelection?.();
-    },
-    [store, clearSelection],
-  );
+    store.set(sources);
+  }, [store, sources]);
+  useEffect(() => () => store.set(null), [store]);
   return null;
-}
-
-/**
- * Renders nothing. Mounted inside `Renderer` while inspecting, it writes every query and component
- * of the program to the root's store, for the Sources panel's list and "Also used by".
- */
-function ProvenanceIndexBridge() {
-  const store = useContext(ProvenanceContext)?.indexStore;
-  const index = useDataSourceIndex();
-  useEffect(() => store?.set(index), [store, index]);
-  useEffect(() => () => store?.set(EMPTY_INDEX), [store]);
-  return null;
-}
-
-function ProvenanceBridges() {
-  const inspecting = useContext(ProvenanceContext)?.isInspecting ?? false;
-  return (
-    <>
-      <ProvenanceBridge />
-      {inspecting && <ProvenanceIndexBridge />}
-    </>
-  );
 }
 
 /** Both renderers: a live one passes `interpreter`, a static one doesn't. */
@@ -123,7 +92,7 @@ function ArtifactRendererImpl<L extends Library>({
       >
         {/* The same children either way, so turning provenance on does not remount the program. */}
         <Renderer.DefaultContent />
-        {enableProvenance && <ProvenanceBridges />}
+        {enableProvenance && <ProvenanceBridge />}
       </Renderer>
     ),
     [
