@@ -21,6 +21,7 @@
   "dependencies": {
     "@ag-ui/core": "^0.0.53",
     "@agentclientprotocol/sdk": "1.3.0",
+    "@openuidev/intelligent-ui-library": "0.0.2",
     "@openuidev/lang-core": "1.1.1",
     "@openuidev/react-headless": "0.18.8",
     "@openuidev/react-lang": "1.1.1",

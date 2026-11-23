@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@openuidev/react-ui",
   "license": "MIT",
-  "version": "0.18.9",
+  "version": "0.18.11",
   "description": "Component library for Generative UI SDK",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -137,6 +137,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@openuidev/react-components": "workspace:~",
     "@floating-ui/react-dom": "^2.1.2",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-aspect-ratio": "^1.1.1",

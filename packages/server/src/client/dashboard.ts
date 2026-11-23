@@ -2,6 +2,7 @@ import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/e
 import { mcpServers } from "../tools/mcp";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
+import { createArtifacts } from "./artifacts";
 import { artifactConfig } from "./config";
 import { OpenUIApiError, type Dashboard, type DashboardOptions } from "./types";
 
@@ -82,6 +83,8 @@ export function defineDashboard<Context extends ExecutionContext>(
           { role: "user", content: prompt },
         ],
         user_id: context.userId,
+        // An edit can come from a share to one of the user's groups; a new dashboard is the user's alone.
+        ...(call.id !== undefined && context.groupIds?.length && { group_ids: context.groupIds }),
         ...(api.appId !== undefined && { app_id: api.appId }),
       },
       signal,
@@ -105,6 +108,13 @@ export function defineDashboard<Context extends ExecutionContext>(
     async edit({ id, prompt }, context, { signal } = {}) {
       if (typeof id !== "string" || !id) invalidInput("id is required");
       return start(context, prompt, { id }, signal);
+    },
+
+    // Always as the user, never the org: the model picks the id.
+    async get({ id }, context, { signal } = {}) {
+      assertUserIdRequired(context);
+      const { userId, groupIds } = context;
+      return createArtifacts(api).get(id, { userId, groupIds, signal });
     },
 
     interpreter: createInterpreter<Context>(api, loadTools),

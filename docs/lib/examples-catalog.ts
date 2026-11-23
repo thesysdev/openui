@@ -155,6 +155,33 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     firstParty: false,
   },
   {
+    name: "openui-dotnet-blazor",
+    title: "Blazor",
+    description:
+      "OpenUI.Lang.Blazor, a native Blazor renderer for .NET: draws a streaming OpenUI Lang program with the views a component package registers, and binds its state to the host app.",
+    category: "app-frameworks",
+    sourceUrl: "https://github.com/DeepForgeTech/openui-dotnet/tree/main/src/OpenUI.Lang.Blazor",
+    packageUrl: "https://www.nuget.org/packages/OpenUI.Lang.Blazor",
+    logo: "https://cdn.simpleicons.org/blazor",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
+    name: "openui-dotnet-mudblazor",
+    title: "MudBlazor",
+    description:
+      "OpenUI.Lang.Blazor.Mud, the full OpenUI component library drawn with MudBlazor for Blazor apps, with light and dark themes. Its versions follow MudBlazor's: 8.10 and 9.11.",
+    category: "design-systems",
+    sourceUrl:
+      "https://github.com/DeepForgeTech/openui-dotnet/tree/main/src/OpenUI.Lang.Blazor.Mud",
+    packageUrl: "https://www.nuget.org/packages/OpenUI.Lang.Blazor.Mud",
+    logo: "https://github.com/MudBlazor.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
     name: "openui-swiftui",
     title: "SwiftUI",
     description:

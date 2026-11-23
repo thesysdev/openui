@@ -3,7 +3,7 @@ title: List dashboards
 description: Show the user's saved dashboards with useArtifactList, and pin, unpin, rename, delete, and open them.
 ---
 
-`useArtifactList()` returns the signed-in user's saved dashboards, newest first, page by page. Separate hooks pin, unpin, rename, and delete them. Every list and renderer in the app shares one cache, so a change shows everywhere at once.
+`useArtifactList()` returns the signed-in user's saved dashboards and those [shared with them](/docs/dashboards/sharing), newest first, page by page. Separate hooks pin, unpin, rename, and delete them. Every list and renderer in the app shares one cache, so a change shows everywhere at once.
 
 ```tsx title="components/dashboard-list.tsx"
 "use client";
@@ -35,21 +35,24 @@ The hook must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentication
 
 ## Filter
 
-| Field    | Description                                              |
-| -------- | -------------------------------------------------------- |
-| `type`   | Only these kinds, such as `"dashboard"`.                 |
-| `pinned` | `true` for pinned dashboards only, `false` for unpinned. |
-| `search` | Match on the title.                                      |
-| `limit`  | Page size.                                               |
+| Field     | Description                                                                                   |
+| --------- | --------------------------------------------------------------------------------------------- |
+| `type`    | Only these kinds, such as `"dashboard"`.                                                      |
+| `pinned`  | `true` for pinned dashboards only, `false` for unpinned.                                      |
+| `isOwner` | `true` for the user's own dashboards only, `false` for those shared with them. Default: both. |
+| `search`  | Match on the title.                                                                           |
+| `limit`   | Page size.                                                                                    |
 
 ## Returns
 
-| Field                 | Description                                                                 |
-| --------------------- | --------------------------------------------------------------------------- |
-| `artifacts`           | The dashboards loaded so far: `id`, `title`, `type`, `updatedAt`, `pinned`. |
-| `isLoading`, `error`  | The load state.                                                             |
-| `hasMore`, `loadMore` | Load the next page.                                                         |
-| `refresh`             | Load the list again from the first page.                                    |
+| Field                 | Description                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `artifacts`           | The dashboards loaded so far: `id`, `title`, `type`, `updatedAt`, `pinned`, `isOwner`, `isEditable`, `shares`. |
+| `isLoading`, `error`  | The load state.                                                                                                |
+| `hasMore`, `loadMore` | Load the next page.                                                                                            |
+| `refresh`             | Load the list again from the first page.                                                                       |
+
+`isOwner` is `true` for dashboards the user created. `isEditable` is `true` when they can edit, rename, and share it: they own it, or it's shared with them to edit. Those dashboards also carry `shares`, who they're [shared with](/docs/dashboards/sharing).
 
 ## Pin, rename, and delete
 
@@ -64,10 +67,18 @@ Each action has its own hook:
 
 Each also returns `isPending` and `error` for its last call. The actions update every list and renderer right away, and revert if the request fails. A deleted dashboard can't be restored.
 
-```tsx
-import { useArtifactDelete, useArtifactPin, useArtifactUpdate } from "@openuidev/react-ui/cloud";
+Pins are per user: pinning a shared dashboard pins it only for the user who pinned it. Renaming needs `isEditable`, and deleting needs `isOwner`, so hide those actions from users who can't take them:
 
-function DashboardActions({ id, title }: { id: string; title: string }) {
+```tsx
+import {
+  useArtifactDelete,
+  useArtifactPin,
+  useArtifactUpdate,
+  type ArtifactSummary,
+} from "@openuidev/react-ui/cloud";
+
+function DashboardActions({ dashboard }: { dashboard: ArtifactSummary }) {
+  const { id, title } = dashboard;
   const { pin } = useArtifactPin();
   const { update } = useArtifactUpdate();
   const { deleteArtifact, isPending } = useArtifactDelete();
@@ -75,10 +86,14 @@ function DashboardActions({ id, title }: { id: string; title: string }) {
   return (
     <>
       <button onClick={() => pin(id)}>Pin</button>
-      <button onClick={() => update(id, { title: `${title} (copy)` })}>Rename</button>
-      <button disabled={isPending} onClick={() => deleteArtifact(id)}>
-        Delete
-      </button>
+      {dashboard.isEditable && (
+        <button onClick={() => update(id, { title: `${title} (copy)` })}>Rename</button>
+      )}
+      {dashboard.isOwner && (
+        <button disabled={isPending} onClick={() => deleteArtifact(id)}>
+          Delete
+        </button>
+      )}
     </>
   );
 }
@@ -119,6 +134,15 @@ async function setPinned(id: string, next: boolean) {
 ```
 
 Pinning moves a dashboard from one list to the other, so refresh both.
+
+## Mine and shared
+
+Use `isOwner` to show the user's own dashboards apart from those shared with them:
+
+```tsx
+const mine = useArtifactList({ filter: { type: "dashboard", isOwner: true } });
+const shared = useArtifactList({ filter: { type: "dashboard", isOwner: false } });
+```
 
 ## New dashboards
 

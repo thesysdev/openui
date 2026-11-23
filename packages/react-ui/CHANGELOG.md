@@ -1,5 +1,28 @@
 # @openuidev/react-ui
 
+## 0.18.11
+
+### Patch Changes
+
+- [#1700](https://github.com/thesysdev/openui/pull/1700) [`75684e7`](https://github.com/thesysdev/openui/commit/75684e773976525e442ed885c416ad8da0e2a756) Thanks [@ankit-thesys](https://github.com/ankit-thesys)! - react-ui and react-components now share one theme provider. react-ui re-exports `ThemeProvider`, `useTheme`, the default themes, swatches and theme hooks from react-components, so a single `ThemeProvider` from either package themes the components of both, including charts, markdown and popups that read the theme in JavaScript. react-ui's exports are unchanged. react-components adds a `@openuidev/react-components/theme` entry with only the theme code, and exports `ThemeContext`.
+- Updated dependencies [[`75684e7`](https://github.com/thesysdev/openui/commit/75684e773976525e442ed885c416ad8da0e2a756)]:
+  - @openuidev/react-components@0.0.4
+  - @openuidev/react-headless@0.18.11
+
+## 0.18.10
+
+### Patch Changes
+
+- [#862](https://github.com/thesysdev/openui/pull/862) [`23e3b39`](https://github.com/thesysdev/openui/commit/23e3b39dc0b7fe589c8bde3f941436e967e97bd4) Thanks [@Shinyaigeek](https://github.com/Shinyaigeek)! - `Accordion` now opens its first item when it mounts with every item already present, instead of the last. While streaming it still opens each new item, and it keeps that item open while the item's `value` is still streaming in.
+
+- [#1659](https://github.com/thesysdev/openui/pull/1659) [`1f4f17b`](https://github.com/thesysdev/openui/commit/1f4f17ba4905a2ece9d55558c4dff8acd54ad9e3) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Artifacts can be shared with a user or a group, to view or edit. `useArtifactShares(id)` reads an artifact's shares, and `useArtifactShare()` and `useArtifactUnshare()` change them, showing the change at once and reverting if it fails. `useArtifactList` lists the artifacts shared with the user too, and takes `isOwner` to show only theirs (`true`) or only shared ones (`false`). Artifacts carry `isOwner`, `isEditable`, and, for users who can edit them, `shares`; `pinned` is now the user's own pin. `ArtifactStorage` gets two optional methods for this, `share` and `unshare`, and `cloudArtifactStorage` implements them.
+
+- [#1665](https://github.com/thesysdev/openui/pull/1665) [`ee03004`](https://github.com/thesysdev/openui/commit/ee030041bcd2821cc20fd25d6c8df690566dd101) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - The pending loader keeps its shape at any size: it scales to fit, like an SVG, instead of stretching its cards on a wide or tall space. It also fits a space shorter than 400px instead of overflowing it. `Pending` also takes `cols` and `rows` to fix its grid.
+
+- [#820](https://github.com/thesysdev/openui/pull/820) [`d8a6c73`](https://github.com/thesysdev/openui/commit/d8a6c7333c3ede29c3cd8accf7bb28903ff4939f) Thanks [@Shinyaigeek](https://github.com/Shinyaigeek)! - `Tabs` now opens on its first tab when it mounts with every tab already present, whether the response is static or a stream delivered it in one chunk. It follows the tab the model is writing into only while the response streams, so a `Query` that resolves inside another tab afterwards no longer switches tabs.
+- Updated dependencies [[`1f4f17b`](https://github.com/thesysdev/openui/commit/1f4f17ba4905a2ece9d55558c4dff8acd54ad9e3)]:
+  - @openuidev/react-headless@0.18.10
+
 ## 0.18.9
 
 ### Patch Changes

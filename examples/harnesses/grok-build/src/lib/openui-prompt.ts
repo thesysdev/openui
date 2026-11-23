@@ -10,7 +10,7 @@ function loadSpec(): LibrarySpec {
   ) as LibrarySpec;
 }
 
-/** Compile openuiLibrary locally — Grok Build talks to xAI, not OpenUI Cloud. */
+/** Compile the Intelligent UI spec locally — Grok Build talks to xAI, not OpenUI Cloud. */
 export function localSystemPrompt(): string {
   return generateSystemPrompt({ library: loadSpec(), promptOptions });
 }
@@ -22,5 +22,5 @@ export function librarySchema(): LibraryJSONSchema {
 }
 
 export function libraryRoot(): string {
-  return loadSpec().root ?? "Stack";
+  return loadSpec().root ?? "Col";
 }

@@ -24,7 +24,7 @@ const MODELS_PATH = join(process.cwd(), "src/lib/openui-cloud-models.json");
 const OPENUI_INSTRUCTIONS = `You are a coding agent connected to OpenUI. Use reasoning and tools normally before answering.
 Do not emit OpenUI Lang in reasoning, progress messages, tool arguments, or tool results.
 After all required work is complete, your final assistant response must consist entirely of valid openui-lang code with no markdown or explanatory prose.
-Before sending the final response, verify that root is a Stack and every referenced identifier is defined.`;
+Before sending the final response, verify that root is a Col and every referenced identifier is defined.`;
 
 let sdkPromise: Promise<PiSdk> | undefined;
 function loadSdk(): Promise<PiSdk> {
@@ -128,13 +128,11 @@ async function createSession(cwd: string): Promise<PiSessionEntry> {
   const modelId = process.env.OPENUI_MODEL?.trim() || DEFAULT_MODEL;
   const model = modelRegistry.find("openui-cloud", modelId);
   if (!model) {
-    throw new Error(
-      `OpenUI Cloud model "${modelId}" is not in src/lib/openui-cloud-models.json`,
-    );
+    throw new Error(`OpenUI Cloud model "${modelId}" is not in src/lib/openui-cloud-models.json`);
   }
 
   // Extra coding-agent rules are preserved as customer instructions after the
-  // Cloud config block built from the generated openuiLibrary spec.
+  // Cloud config block built from the generated Intelligent UI spec.
   const resourceLoader = new DefaultResourceLoader({
     cwd,
     agentDir,

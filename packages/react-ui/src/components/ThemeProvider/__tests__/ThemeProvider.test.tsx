@@ -5,7 +5,7 @@ import { defaultDarkTheme, defaultLightTheme } from "../defaultTheme";
 import { ThemeProvider, useTheme } from "../ThemeProvider";
 import type { ChartColorPalette, Theme } from "../types";
 import { CHART_PALETTE_KEYS } from "../types";
-import { createTheme, KNOWN_THEME_KEYS } from "../utils";
+import { createTheme } from "../utils";
 
 // Regression tests for the types-vs-runtime drift where every `*ChartPalette`
 // key (valid per the Theme type) was rejected as "unknown key" by both
@@ -37,15 +37,14 @@ afterEach(() => {
 
 describe("theme validator allow-list", () => {
   it("covers every declared chart palette key", () => {
-    const missing = CHART_PALETTE_KEYS.filter((key) => !KNOWN_THEME_KEYS.has(key));
-    expect(missing).toEqual([]);
+    createTheme(Object.fromEntries(CHART_PALETTE_KEYS.map((key) => [key, ["#ffffff"]])));
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it("covers every key of the default themes", () => {
-    const missingLight = Object.keys(defaultLightTheme).filter((k) => !KNOWN_THEME_KEYS.has(k));
-    const missingDark = Object.keys(defaultDarkTheme).filter((k) => !KNOWN_THEME_KEYS.has(k));
-    expect(missingLight).toEqual([]);
-    expect(missingDark).toEqual([]);
+    createTheme({ ...defaultLightTheme });
+    createTheme({ ...defaultDarkTheme });
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });
 

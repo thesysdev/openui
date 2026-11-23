@@ -1,9 +1,11 @@
 import type { ExecutionContext } from "../tools/types";
 import { createCloudApi, type CloudApi } from "./api";
+import { createArtifacts } from "./artifacts";
 import { defineDashboard } from "./dashboard";
 import { createFrontendToken } from "./frontend-token";
 import {
   OpenUIApiError,
+  type Artifacts,
   type CreateFrontendTokenParams,
   type Dashboard,
   type DashboardOptions,
@@ -19,6 +21,12 @@ import {
 export class OpenUIClient {
   private readonly api: CloudApi;
 
+  /**
+   * Your saved artifacts. Without `userId`, calls cover every user in your org;
+   * with it, they act as that user.
+   */
+  readonly artifacts: Artifacts;
+
   constructor(options: OpenUIClientOptions = {}) {
     if (
       options.appId !== undefined &&
@@ -27,6 +35,7 @@ export class OpenUIClient {
       throw new OpenUIApiError("appId must be a non-empty string", "invalid_input");
     }
     this.api = createCloudApi(options);
+    this.artifacts = createArtifacts(this.api);
   }
 
   /** Defines live dashboards from your library and data tools; its `interpreter` runs them. */
@@ -41,6 +50,6 @@ export class OpenUIClient {
     params: CreateFrontendTokenParams,
     options?: RequestOptions,
   ): Promise<FrontendToken> {
-    return createFrontendToken(this.api, params.userId, options?.signal);
+    return createFrontendToken(this.api, params.userId, params.groupIds, options?.signal);
   }
 }

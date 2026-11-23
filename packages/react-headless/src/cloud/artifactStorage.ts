@@ -1,13 +1,22 @@
 import type {
   Artifact,
+  ArtifactAccess,
   ArtifactListParams,
+  ArtifactShare,
+  ArtifactShareTarget,
   ArtifactStorage,
   ArtifactStreamEvent,
   ArtifactStreamOptions,
   ArtifactSummary,
 } from "../adapters/types";
 import { readSse } from "./sse";
-import { cloudRequest, nextCursorOf, type CloudArtifact, type CloudListEnvelope } from "./wire";
+import {
+  cloudRequest,
+  nextCursorOf,
+  type CloudArtifact,
+  type CloudArtifactShare,
+  type CloudListEnvelope,
+} from "./wire";
 
 const STREAM_EVENT_TYPES = new Set(["reference", "delta", "end", "error"]);
 
@@ -41,6 +50,19 @@ function toSummary(artifact: CloudArtifact): ArtifactSummary {
     threadId: artifact.conversation_id ?? "",
     updatedAt: (artifact.updated_at ?? artifact.created_at) * 1000,
     ...(artifact.pinned !== undefined && { pinned: artifact.pinned }),
+    ...(artifact.is_owner !== undefined && { isOwner: artifact.is_owner }),
+    ...(artifact.is_editable !== undefined && { isEditable: artifact.is_editable }),
+    ...(artifact.shares !== undefined && { shares: artifact.shares.map(toShare) }),
+  };
+}
+
+function toShare(share: CloudArtifactShare): ArtifactShare {
+  return {
+    type: share.type,
+    id: share.id,
+    access: share.access,
+    createdBy: share.created_by,
+    createdAt: share.created_at * 1000,
   };
 }
 
@@ -61,6 +83,7 @@ export function cloudArtifactStorage({
       if (params?.name !== undefined && params.name !== "") query.set("name", params.name);
       for (const type of params?.type ?? []) query.append("kind", type);
       if (params?.pinned !== undefined) query.set("pinned", String(params.pinned));
+      if (params?.isOwner !== undefined) query.set("is_owner", String(params.isOwner));
       if (params?.order !== undefined) query.set("order", params.order);
       if (params?.cursor !== undefined) query.set("after", params.cursor);
       query.set("limit", String(params?.limit ?? pageLimit));
@@ -118,6 +141,27 @@ export function cloudArtifactStorage({
     /** DELETE /v1/artifacts/:id. */
     async delete(id: string): Promise<void> {
       await request(`/v1/artifacts/${encodeURIComponent(id)}`, { method: "DELETE" });
+    },
+
+    /** POST /v1/artifacts/:id/share {type, id, access}. Sends only those fields. */
+    async share(
+      id: string,
+      share: ArtifactShareTarget & { access: ArtifactAccess },
+    ): Promise<ArtifactSummary> {
+      const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/share`, {
+        method: "POST",
+        body: JSON.stringify({ type: share.type, id: share.id, access: share.access }),
+      });
+      return toSummary((await res.json()) as CloudArtifact);
+    },
+
+    /** POST /v1/artifacts/:id/unshare {type, id}. Sends only those fields. */
+    async unshare(id: string, target: ArtifactShareTarget): Promise<ArtifactSummary> {
+      const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/unshare`, {
+        method: "POST",
+        body: JSON.stringify({ type: target.type, id: target.id }),
+      });
+      return toSummary((await res.json()) as CloudArtifact);
     },
 
     ...(cacheQueryResults && {

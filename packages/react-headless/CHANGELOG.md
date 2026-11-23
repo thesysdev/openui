@@ -1,5 +1,15 @@
 # @openuidev/react-headless
 
+## 0.18.11
+
+No changes in this release.
+
+## 0.18.10
+
+### Patch Changes
+
+- [#1659](https://github.com/thesysdev/openui/pull/1659) [`1f4f17b`](https://github.com/thesysdev/openui/commit/1f4f17ba4905a2ece9d55558c4dff8acd54ad9e3) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Artifacts can be shared with a user or a group, to view or edit. `useArtifactShares(id)` reads an artifact's shares, and `useArtifactShare()` and `useArtifactUnshare()` change them, showing the change at once and reverting if it fails. `useArtifactList` lists the artifacts shared with the user too, and takes `isOwner` to show only theirs (`true`) or only shared ones (`false`). Artifacts carry `isOwner`, `isEditable`, and, for users who can edit them, `shares`; `pinned` is now the user's own pin. `ArtifactStorage` gets two optional methods for this, `share` and `unshare`, and `cloudArtifactStorage` implements them.
+
 ## 0.18.9
 
 No changes in this release.

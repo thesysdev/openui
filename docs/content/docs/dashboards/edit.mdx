@@ -23,7 +23,7 @@ const response = await dashboards.edit(
 | `id`      | The dashboard's id.                        |
 | `prompt`  | The change to make, and any data it needs. |
 
-Only the dashboard's owner can edit it: `context.userId` must match the user who created it.
+Only the dashboard's owner, and users it's [shared with](/docs/dashboards/sharing) to edit, can edit it. `context` says who's asking: `userId`, plus `groupIds` if you share with groups.
 
 `edit` resolves with a response, like [`create`](/docs/dashboards/generate#the-response). Return it as the tool result, or pass it to the renderer.
 

@@ -10,14 +10,15 @@ export interface ArtifactActionState {
   error: Error | null;
 }
 
-const NO_STORAGE = "No artifact storage is configured: wrap your app in <OpenUICloudProvider>.";
+export const NO_STORAGE =
+  "No artifact storage is configured: wrap your app in <OpenUICloudProvider>.";
 
 /**
  * Runs one kind of change against the storage. `run` updates the cache that every list and
  * renderer on the same storage shares, so the change shows everywhere at once, then saves it
  * and puts the cache back if the save fails. Failures reject, and set `error`.
  */
-function useArtifactAction<Args extends unknown[]>(
+export function useArtifactAction<Args extends unknown[]>(
   run: (storage: ArtifactStorage, cache: ArtifactCache, ...args: Args) => Promise<void>,
 ) {
   const storage = useArtifactStorage();
