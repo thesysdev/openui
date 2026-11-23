@@ -1,7 +1,7 @@
-import type { DataSourceQuery, DataSources } from "@openuidev/react-lang";
+import type { DataSources } from "@openuidev/react-lang";
 import { createLibrary, defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import type { DataSourcesComponent, ScriptCall, SourceDescription } from "../types";
+import type { SourceDescription } from "../types";
 
 // ── Sample data, shaped like a retail dashboard ──
 
@@ -25,16 +25,6 @@ export const targetRows = [
   { region: "South", revenue: 48960, target: 52000 },
   { region: "West", revenue: 73550, target: 70000 },
 ];
-const regionRows = [
-  { region: "North", revenue: 62410 },
-  { region: "South", revenue: 48960 },
-  { region: "West", revenue: 73550 },
-];
-const targetFileRows = [
-  { region: "North", target: 58000 },
-  { region: "South", target: 52000 },
-  { region: "West", target: 70000 },
-];
 
 const REVENUE_SQL =
   "SELECT sum(total) AS revenue FROM orders WHERE status = 'paid' AND created_at >= date_trunc('quarter', now())";
@@ -43,128 +33,118 @@ const DAILY_SQL =
 const SIGNUPS_HOGQL =
   "SELECT count() AS signups FROM events WHERE event = 'user_signed_up' AND timestamp > now() - INTERVAL 7 DAY";
 
-export const queries: DataSourceQuery[] = [
-  {
-    statementId: "revenueQ",
-    toolName: "postgres_query",
-    args: { sql: REVENUE_SQL },
-    loading: false,
-    data: { rows: [{ revenue: 184920 }] },
-  },
-  {
-    statementId: "dailyQ",
-    toolName: "postgres_query",
-    args: { sql: DAILY_SQL },
-    loading: false,
-    data: { rows: dailyRows },
-  },
-  {
-    statementId: "channelsQ",
-    toolName: "ga4_report",
-    args: { dimensions: ["sessionDefaultChannelGroup"], metrics: ["sessions"] },
-    loading: false,
-    data: { rows: channelRows },
-  },
-  {
-    statementId: "signupsQ",
-    toolName: "posthog_query",
-    args: { hogql: SIGNUPS_HOGQL },
-    loading: false,
-    data: { rows: [{ signups: 2318 }] },
-  },
-  {
-    statementId: "targetQ",
-    toolName: "revenue_vs_target",
-    args: {},
-    loading: false,
-    data: { rows: targetRows },
-  },
-];
+const query = (toolName: string, args: unknown, data: unknown) => ({
+  toolName,
+  args,
+  loading: false,
+  data,
+});
+/** A prop's sources: what it reads, as written. */
+const prop = (
+  expr: string,
+  queries: string[] = [],
+  via: string[] = [],
+  components: string[] = [],
+) => ({
+  queries,
+  via,
+  state: [],
+  expr,
+  components,
+});
 
-export const components: DataSourcesComponent[] = [
-  {
-    id: "revenue",
-    label: "Revenue this quarter",
-    description: "Paid orders since Oct 1",
-    typeName: "Kpi",
-    queries: ["revenueQ"],
+/** What `useArtifactProvenance().sources` holds for the sample dashboard. */
+export const sources: DataSources = {
+  queries: {
+    revenueQ: query("postgres_query", { sql: REVENUE_SQL }, { rows: [{ revenue: 184920 }] }),
+    dailyQ: query("postgres_query", { sql: DAILY_SQL }, { rows: dailyRows }),
+    signupsQ: query("posthog_query", { hogql: SIGNUPS_HOGQL }, { rows: [{ signups: 2318 }] }),
+    channelsQ: query(
+      "ga4_report",
+      { dimensions: ["sessionDefaultChannelGroup"], metrics: ["sessions"] },
+      { rows: channelRows },
+    ),
+    targetQ: query("revenue_vs_target", {}, { rows: targetRows }),
   },
-  { id: "signups", label: "Weekly signups", typeName: "Kpi", queries: ["signupsQ"] },
-  { id: "margin", label: "Gross margin", typeName: "Kpi", queries: [] },
-  {
-    id: "daily",
-    label: "Daily revenue",
-    description: "Revenue per day",
-    typeName: "Bars",
-    queries: ["dailyQ"],
+  state: {},
+  formulas: { now: "@First(revenueQ.rows)", grossMargin: "(revenue - cogs) / revenue" },
+  components: {
+    revenue: {
+      queries: ["revenueQ"],
+      via: ["now"],
+      state: [],
+      props: {
+        title: prop('"Revenue this quarter"'),
+        value: prop("now.revenue", ["revenueQ"], ["now"]),
+      },
+    },
+    signups: {
+      queries: ["signupsQ"],
+      via: [],
+      state: [],
+      props: {
+        title: prop('"Weekly signups"'),
+        value: prop("@First(signupsQ.rows).signups", ["signupsQ"]),
+      },
+    },
+    margin: {
+      queries: [],
+      via: ["grossMargin"],
+      state: [],
+      props: { title: prop('"Gross margin"'), value: prop("grossMargin", [], ["grossMargin"]) },
+    },
+    goal: {
+      queries: [],
+      via: [],
+      state: [],
+      props: { title: prop('"Goal"'), value: prop("250000") },
+    },
+    daily: {
+      queries: ["dailyQ"],
+      via: [],
+      state: [],
+      props: { title: prop('"Daily revenue"'), rows: prop("dailyQ.rows", ["dailyQ"]) },
+    },
+    channels: {
+      queries: ["channelsQ"],
+      via: [],
+      state: [],
+      props: { title: prop('"Sessions by channel"'), rows: prop("channelsQ.rows", ["channelsQ"]) },
+    },
+    target: {
+      queries: ["targetQ"],
+      via: [],
+      state: [],
+      props: { title: prop('"Revenue vs target"'), rows: prop("targetQ.rows", ["targetQ"]) },
+    },
+    kpiRow: {
+      queries: [],
+      via: [],
+      state: [],
+      props: { children: prop("[revenue, signups]", [], [], ["revenue", "signups"]) },
+    },
   },
-  { id: "dailyTable", label: "Daily orders", typeName: "Table", queries: ["dailyQ"] },
-  { id: "channels", label: "Sessions by channel", typeName: "Bars", queries: ["channelsQ"] },
-  { id: "target", label: "Revenue vs target", typeName: "Table", queries: ["targetQ"] },
-];
-
-const pick = (ids: string[]) => queries.filter((query) => ids.includes(query.statementId));
-
-/** `useDataSources` for each sample component. */
-export const sourcesFor: Record<string, DataSources> = {
-  revenue: {
-    queries: pick(["revenueQ"]),
-    via: ["now"],
-    state: {},
-    formulas: { now: "@First(revenueQ.rows)" },
-    props: { value: { queries: ["revenueQ"], via: ["now"], state: {}, expr: "now.revenue" } },
-  },
-  signups: {
-    queries: pick(["signupsQ"]),
-    via: [],
-    state: {},
-    formulas: {},
-    props: { value: { queries: ["signupsQ"], via: [], state: {}, expr: "signupsQ.rows" } },
-  },
-  margin: {
-    queries: [],
-    via: ["grossMargin"],
-    state: {},
-    formulas: { grossMargin: "(revenue - cogs) / revenue" },
-    props: { value: { queries: [], via: ["grossMargin"], state: {}, expr: "grossMargin" } },
-  },
-  daily: { queries: pick(["dailyQ"]), via: [], state: {}, formulas: {} },
-  channels: { queries: pick(["channelsQ"]), via: [], state: {}, formulas: {} },
-  target: { queries: pick(["targetQ"]), via: [], state: {}, formulas: {} },
-  both: { queries: pick(["revenueQ", "channelsQ"]), via: [], state: {}, formulas: {} },
 };
 
-/** How an app names its tools: product names, and which tools are scripts. */
+/** How an app names its tools: product names, and which tool is a script. */
 export const describeSource = (toolName: string): SourceDescription | undefined => {
   switch (toolName) {
     case "postgres_query":
-      return { kind: "Postgres", detail: "Retail prod" };
+      return { kind: "Postgres" };
     case "posthog_query":
-      return { kind: "PostHog", detail: "Product analytics" };
+      return { kind: "PostHog" };
     case "ga4_report":
-      return { kind: "GA4", title: "Sessions by channel" };
+      return { kind: "GA4" };
     case "revenue_vs_target":
-      return { kind: "Script" };
-    case "read_file":
-      return { kind: "File" };
+      return {
+        kind: "Script",
+        codeLabel: "Script",
+        code: "revenue_vs_target()\n\nreads:\n  postgres_query  revenue by region\n  read_file       regional_targets.csv",
+      };
     default:
       return undefined;
   }
 };
-
-export const scriptInputs = (toolName: string): ScriptCall[] | undefined =>
-  toolName === "revenue_vs_target"
-    ? [
-        {
-          name: "postgres_query",
-          args: { sql: "SELECT region, sum(total) AS revenue FROM orders GROUP BY region" },
-        },
-        { name: "read_file", args: { file: "regional_targets.csv" } },
-      ]
-    : undefined;
-
-export const runCall = async (call: ScriptCall) =>
-  call.name === "read_file" ? { rows: targetFileRows } : { rows: regionRows };
 
 // ── A small live dashboard: a component library and a program with real queries ──
 

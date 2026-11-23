@@ -3,15 +3,8 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataSourcesPanel } from "../DataSourcesPanel";
-import {
-  components,
-  describeSource,
-  queries,
-  runCall,
-  scriptInputs,
-  sourcesFor,
-} from "../stories/fixtures";
-import type { DataSourcesPanelProps, DataSourcesSelection } from "../types";
+import { describeSource, sources } from "../stories/fixtures";
+import type { DataSourcesPanelProps } from "../types";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -27,20 +20,10 @@ afterEach(() => {
   container.remove();
 });
 
-function render(props: Partial<DataSourcesPanelProps> & { selection?: DataSourcesSelection }) {
-  const selection = props.selection ?? null;
+function render(props: Partial<DataSourcesPanelProps>) {
   act(() =>
     root.render(
-      createElement(DataSourcesPanel, {
-        queries,
-        components,
-        describeSource,
-        scriptInputs,
-        runCall,
-        sources: selection ? (sourcesFor[selection.id] ?? null) : null,
-        ...props,
-        selection,
-      }),
+      createElement(DataSourcesPanel, { sources, selection: null, describeSource, ...props }),
     ),
   );
 }
@@ -54,100 +37,94 @@ const click = (el: Element | undefined) => {
   if (!el) throw new Error("no such element");
   act(() => (el as HTMLElement).click());
 };
-const listed = () =>
-  [...container.querySelectorAll(".openui-data-sources-panel__list-label")].map(
-    (el) => el.textContent,
+/** Each row: its label and note, and whether it's open. */
+const rows = () =>
+  [...container.querySelectorAll<HTMLButtonElement>("[aria-expanded]")].map(
+    (el) =>
+      `${el.textContent?.trim()}${el.getAttribute("aria-expanded") === "true" ? " (open)" : ""}`,
   );
+const code = () => [...container.querySelectorAll("pre")].map((el) => el.textContent);
 
 describe("DataSourcesPanel", () => {
-  it("lists every source with nothing selected, named after what reads it", () => {
+  it("lists every query, in program order, named by the app", () => {
     render({});
-    expect(listed()).toEqual([
-      "Revenue this quarter",
-      // Two components read dailyQ, so it keeps its own name.
-      "Daily",
-      "Sessions by channel",
-      "Weekly signups",
-      "Revenue vs target",
+    const items = [...container.querySelectorAll("li")].map((el) => el.textContent);
+    expect(items).toEqual([
+      "revenueQPostgres",
+      "dailyQPostgres",
+      "signupsQPostHog",
+      "channelsQGA4",
+      "targetQScript",
     ]);
+    expect(container.querySelector("input")).toBeNull();
   });
 
-  it("filters the list by name, kind and the components that read a source", () => {
-    render({});
-    const input = container.querySelector("input")!;
-    act(() => {
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
-      setter.call(input, "posthog");
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    expect(listed()).toEqual(["Weekly signups"]);
+  it("shows a number's Query, Result and Formula, and nothing else", () => {
+    render({ selection: { id: "revenue", prop: "value" } });
+    expect(rows()).toEqual(["QuerySQL (open)", "Result", "Formula"]);
+    expect(code()[0]).toContain("FROM orders");
+    click(button("Formula"));
+    expect(code()).toContain("value: now.revenue\n\nnow = @First(revenueQ.rows)");
+    expect(text()).not.toContain("Revenue this quarter");
   });
 
-  it("shows a number under its source, with the query one click away", () => {
-    render({ selection: { id: "revenue", prop: "value", value: "$184,920" } });
-    expect(container.querySelector("h2")?.textContent).toBe("Revenue this quarter");
-    expect(text()).toContain("Postgres · Retail prod");
-    expect(text()).toContain("$184,920");
-    expect(text()).toContain("Paid orders since Oct 1");
-    expect(container.querySelector("pre")).toBeNull();
-    click(button("Query"));
-    expect(container.querySelector("pre")?.textContent).toContain("FROM orders");
-  });
-
-  it("opens a chart's source with a preview of its data and the tables it reads", () => {
+  it("opens a table's Result: its rows and a summary", () => {
     render({ selection: { id: "daily" } });
-    expect(container.querySelector("h2")?.textContent).toBe("Daily revenue");
-    expect(container.querySelector(".openui-data-sources-panel__identity-name")?.textContent).toBe(
-      "orders",
-    );
+    expect(rows()).toEqual(["QuerySQL", "Result (open)"]);
     expect(container.querySelectorAll("tbody tr")).toHaveLength(7);
     expect(text()).toContain("7 rows · 3 fields");
   });
 
-  it("lists the other components that read the same data and selects one", () => {
-    const onSelect = vi.fn();
-    render({ selection: { id: "daily" }, onSelect });
-    click(button("Also used by"));
-    click(button("Daily orders"));
-    expect(onSelect).toHaveBeenCalledWith("dailyTable");
+  it("shows only the Formula when no query is behind a value", () => {
+    render({ selection: { id: "margin", prop: "value" } });
+    expect(rows()).toEqual(["Formula (open)"]);
+    expect(code()).toEqual(["value: grossMargin\n\ngrossMargin = (revenue - cogs) / revenue"]);
   });
 
-  it("shows the formula for a value computed in the program", () => {
-    render({ selection: { id: "margin", prop: "value", value: "38.6%" } });
-    expect(container.querySelector("h2")?.textContent).toBe("Computed in the dashboard");
-    const formula = container.querySelector("pre")?.textContent ?? "";
-    expect(formula).toContain("value: grossMargin");
-    expect(formula).toContain("grossMargin = (revenue - cogs) / revenue");
+  it("shows a value written in the program as its Formula", () => {
+    render({ selection: { id: "goal", prop: "value" } });
+    expect(rows()).toEqual(["Formula (open)"]);
+    expect(code()).toEqual(["value: 250000"]);
   });
 
-  it("lists a script's inputs and fetches one's data on demand", async () => {
-    const run = vi.fn(runCall);
-    render({ selection: { id: "target" }, runCall: run });
-    expect(listed()).toEqual(["Postgres query", "regional_targets.csv"]);
-    click(button("regional_targets.csv"));
-    await act(async () => {});
-    expect(run).toHaveBeenCalledWith({ name: "read_file", args: { file: "regional_targets.csv" } });
-    expect(container.querySelector("h2")?.textContent).toBe("regional_targets.csv");
-    expect(text()).toContain("File · read by Revenue vs target");
-    expect(container.querySelectorAll("tbody tr")).toHaveLength(3);
+  it("shows a container's children's queries, each named", () => {
+    render({ selection: { id: "kpiRow", prop: "children" } });
+    expect(rows()).toEqual([
+      "QueryrevenueQ · SQL (open)",
+      "ResultrevenueQ",
+      "QuerysignupsQ · HogQL",
+      "ResultsignupsQ",
+      "Formula",
+    ]);
   });
 
-  it("goes back along the way it came, then to the list", () => {
-    const onClearSelection = vi.fn();
-    render({ selection: { id: "daily" }, onClearSelection });
-    click(button("orders"));
-    expect(container.querySelector("h2")?.textContent).toBe("Daily");
-    click(button("Back"));
-    expect(container.querySelector("h2")?.textContent).toBe("Daily revenue");
-    click(button("Back"));
-    expect(onClearSelection).toHaveBeenCalled();
+  it("shows a script's call, as the app describes it, as its Query", () => {
+    render({ selection: { id: "target" } });
+    click(button("Query"));
+    expect(code()[0]).toContain("revenue_vs_target()");
+    expect(rows()[0]).toBe("QueryScript (open)");
+  });
+
+  it("goes back to every query, and closes", () => {
+    const onBack = vi.fn();
+    const onClose = vi.fn();
+    render({ selection: { id: "daily" }, onBack, onClose });
+    click(button("Back to all queries"));
+    click(button("Close"));
+    expect(onBack).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("says when the picked component is no longer in the program", () => {
+    render({ selection: { id: "gone" } });
+    expect(text()).toContain("This is no longer in the dashboard.");
   });
 
   it("without the app's descriptions, names a tool after itself", () => {
-    render({ selection: { id: "channels" }, describeSource: undefined });
-    click(button("Request"));
-    expect(container.querySelector("pre")?.textContent).toContain("sessionDefaultChannelGroup");
     render({ describeSource: undefined });
-    expect(listed()).toContain("Channels");
+    expect(container.querySelectorAll("li")[3]?.textContent).toBe("channelsQGa4 report");
+    render({ describeSource: undefined, selection: { id: "channels" } });
+    click(button("Query"));
+    expect(code()[0]).toContain("sessionDefaultChannelGroup");
   });
 });

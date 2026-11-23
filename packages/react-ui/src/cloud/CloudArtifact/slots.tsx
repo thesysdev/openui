@@ -354,11 +354,11 @@ export interface ProvenanceProps extends SourcesOptions {
 /**
  * The Sources panel. Without children, the default panel docks beside the content: it lists the
  * dashboard's sources and shows where the selected component's data comes from; its props name
- * your data tools (`describeSource`) and a script's inputs (`scriptInputs`, `runCall`). With
+ * your data tools (`describeSource`). With
  * children, your panel replaces it: read the selection and its sources with
  * `useArtifactProvenance()`. Your panel renders only while something is selected.
  */
-export function Provenance({ children, describeSource, scriptInputs, runCall }: ProvenanceProps) {
+export function Provenance({ children, describeSource }: ProvenanceProps) {
   const inside = useInRegion("content");
   const provenance = useContext(ProvenanceContext);
   const dock = useContext(SourcesDockContext);
@@ -367,9 +367,9 @@ export function Provenance({ children, describeSource, scriptInputs, runCall }: 
   const setCustom = dock?.setCustom;
   useLayoutEffect(() => {
     if (!inside || hasChildren || !setOptions) return;
-    setOptions({ describeSource, scriptInputs, runCall });
+    setOptions({ describeSource });
     return () => setOptions({});
-  }, [inside, hasChildren, setOptions, describeSource, scriptInputs, runCall]);
+  }, [inside, hasChildren, setOptions, describeSource]);
   useLayoutEffect(() => {
     if (!inside || !hasChildren || !setCustom) return;
     setCustom((count) => count + 1);

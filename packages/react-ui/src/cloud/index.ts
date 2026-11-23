@@ -56,9 +56,7 @@ export type {
 } from "./CloudArtifact/useArtifactList";
 export { DataSourcesPanel, DataSourcesResult } from "./DataSourcesPanel";
 export type {
-  DataSourcesComponent,
   DataSourcesPanelProps,
   DataSourcesSelection,
-  ScriptCall,
   SourceDescription,
 } from "./DataSourcesPanel";

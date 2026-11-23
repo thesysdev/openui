@@ -4,20 +4,16 @@ import { LiveArtifactRenderer } from "../../CloudArtifact/ArtifactRenderer";
 import { DataSourcesPanel } from "../DataSourcesPanel";
 import type { DataSourcesPanelProps, DataSourcesSelection } from "../types";
 import {
-  components,
   dashboardLibrary,
   dashboardProgram,
   describeSource,
   interpreter,
-  queries,
-  runCall,
-  scriptInputs,
-  sourcesFor,
+  sources,
 } from "./fixtures";
 
 /**
- * Where a dashboard's data comes from. With nothing selected it lists every source; a selected
- * number, chart or table shows its source, query and data. In a live artifact with
+ * Where a dashboard's data comes from. With nothing selected it lists every query; a selected
+ * component or prop shows its Query, Result and Formula. In a live artifact with
  * `enableProvenance` it is the `Provenance` slot's default panel.
  */
 const meta: Meta<typeof DataSourcesPanel> = {
@@ -36,81 +32,58 @@ export default meta;
 
 type Story = StoryObj<typeof DataSourcesPanel>;
 
-/** The panel with its selection kept in state, so "Also used by" and Back work. */
+/** The panel with its selection kept in state, so Back works. */
 function Interactive(props: Partial<DataSourcesPanelProps> & { initial?: DataSourcesSelection }) {
   const [selection, setSelection] = useState<DataSourcesSelection | null>(props.initial ?? null);
   return (
     <DataSourcesPanel
-      queries={queries}
-      components={components}
+      sources={sources}
       describeSource={describeSource}
-      scriptInputs={scriptInputs}
-      runCall={runCall}
       {...props}
       selection={selection}
-      sources={selection ? (sourcesFor[selection.id] ?? null) : null}
-      onSelect={(id) => setSelection({ id })}
-      onClearSelection={() => setSelection(null)}
+      onBack={() => setSelection(null)}
       onClose={() => setSelection(null)}
     />
   );
 }
 
-/** Nothing selected: every source in the dashboard, searchable. */
-export const SourceList: Story = { render: () => <Interactive /> };
+/** Nothing selected: every query in the dashboard, in program order. */
+export const EveryQuery: Story = { render: () => <Interactive /> };
 
-/** A number: its source is the heading, then its query, result and other uses. */
+/** A number: Query (open), Result, and the Formula it goes through. */
 export const NumberPicked: Story = {
-  render: () => <Interactive initial={{ id: "revenue", prop: "value", value: "$184,920" }} />,
+  render: () => <Interactive initial={{ id: "revenue", prop: "value" }} />,
 };
 
-/** A chart or table: its source opens with a preview of the data. */
-export const ChartPicked: Story = { render: () => <Interactive initial={{ id: "daily" }} /> };
+/** A table or chart: Query, and its Result open. */
+export const TablePicked: Story = { render: () => <Interactive initial={{ id: "daily" }} /> };
 
-/** A request rather than SQL, named by the app (GA4). */
-export const RequestSource: Story = { render: () => <Interactive initial={{ id: "channels" }} /> };
+/** No query behind it: its Formula. */
+export const Computed: Story = {
+  render: () => <Interactive initial={{ id: "margin", prop: "value" }} />,
+};
 
-/** A script: the calls it made, each opening its own data. */
+/** Written in the program: the Formula is the value as written. */
+export const WrittenInProgram: Story = {
+  render: () => <Interactive initial={{ id: "goal", prop: "value" }} />,
+};
+
+/** A container: its children's Query and Result rows, each named by its query. */
+export const ContainerPicked: Story = {
+  render: () => <Interactive initial={{ id: "kpiRow", prop: "children" }} />,
+};
+
+/** A script, named by the app: its call as the Query, then its Result. */
 export const ScriptSource: Story = { render: () => <Interactive initial={{ id: "target" }} /> };
 
-/** Computed in the program, from no data source: its formula. */
-export const Computed: Story = {
-  render: () => <Interactive initial={{ id: "margin", prop: "value", value: "38.6%" }} />,
-};
-
-/** Read from two sources: both listed. */
-export const SeveralSources: Story = {
-  render: () => (
-    <Interactive
-      components={[
-        ...components,
-        {
-          id: "both",
-          label: "Revenue per session",
-          typeName: "Kpi",
-          queries: ["revenueQ", "channelsQ"],
-        },
-      ]}
-      initial={{ id: "both", prop: undefined, value: "$3.84" }}
-    />
-  ),
-};
-
-/** Without `describeSource`: plain glyphs and the tools' own names. */
+/** Without `describeSource`: plain glyphs, and each tool's own name. */
 export const WithoutAppDescriptions: Story = {
-  render: () => (
-    <Interactive
-      describeSource={undefined}
-      scriptInputs={undefined}
-      runCall={undefined}
-      initial={{ id: "daily" }}
-    />
-  ),
+  render: () => <Interactive describeSource={undefined} />,
 };
 
 /**
- * In a live artifact: turn on Sources in the bar to frame what can be traced, hover for its
- * source, click to see it. With Sources off, clicking a number offers "See source".
+ * In a live artifact: Sources in the bar opens the panel; click a number or a table to see where
+ * its data comes from. With Sources off, clicking a number offers "See source".
  */
 export const LiveDashboard: StoryObj = {
   decorators: [
@@ -136,12 +109,11 @@ export const LiveDashboard: StoryObj = {
               display: "flex",
               alignItems: "center",
               gap: 8,
-              height: 48,
-              padding: "0 12px 0 20px",
+              minHeight: 44,
+              padding: "6px 12px",
+              boxSizing: "border-box",
               borderBottom: "1px solid var(--openui-border-default)",
-              fontFamily: "Inter, system-ui, sans-serif",
-              fontSize: 14,
-              fontWeight: 500,
+              font: "var(--openui-text-body-default-heavy)",
               color: "var(--openui-text-neutral-primary)",
             }}
           >
@@ -152,11 +124,7 @@ export const LiveDashboard: StoryObj = {
           <LiveArtifactRenderer.Content>
             <LiveArtifactRenderer.Loading />
             <LiveArtifactRenderer.Error />
-            <LiveArtifactRenderer.Provenance
-              describeSource={describeSource}
-              scriptInputs={scriptInputs}
-              runCall={runCall}
-            />
+            <LiveArtifactRenderer.Provenance describeSource={describeSource} />
           </LiveArtifactRenderer.Content>
         </div>
       </LiveArtifactRenderer.Chrome>

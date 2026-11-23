@@ -32,6 +32,8 @@ const valueOf = (title: string) =>
   [...container.querySelectorAll("[data-openui-prop='value']")].find((el) =>
     el.closest("[data-openui-source]:not([data-openui-prop])")?.textContent?.includes(title),
   ) as HTMLElement;
+const rows = () =>
+  [...panel().querySelectorAll("[aria-expanded]")].map((el) => el.textContent?.trim());
 
 async function mount(enableProvenance = true) {
   act(() =>
@@ -60,30 +62,20 @@ describe("Sources in a live artifact", () => {
     await settle();
     expect(slot().getAttribute("data-open")).toBe("true");
     expect(slot().hasAttribute("inert")).toBe(false);
-    const names = [...panel().querySelectorAll(".openui-data-sources-panel__list-label")].map(
-      (el) => el.textContent,
+    const names = [...panel().querySelectorAll("li")].map(
+      (el) => el.querySelector(".openui-data-sources-panel__list-label")?.textContent,
     );
-    expect(names).toEqual([
-      "Revenue this quarter",
-      "Daily revenue",
-      "Weekly signups",
-      // No describeSource here: a request keeps its statement's name, a script too.
-      "Channels",
-      "Target",
-    ]);
+    expect(names).toEqual(["revenueQ", "dailyQ", "signupsQ", "channelsQ", "targetQ"]);
   });
 
-  it("shows a clicked number's source, value and query", async () => {
+  it("shows a clicked number's Query, Result and Formula", async () => {
     await mount();
     act(() => toggle().click());
     await settle();
     act(() => valueOf("Revenue this quarter").click());
     await settle();
-    expect(panel().querySelector("h2")?.textContent).toBe("Revenue this quarter");
-    expect(panel().querySelector(".openui-data-sources-panel__focus-value")?.textContent).toBe(
-      "184,920",
-    );
-    expect(panel().textContent).toContain("SQL");
+    expect(rows()).toEqual(["QuerySQL", "Result", "Formula"]);
+    expect(panel().querySelector("pre")?.textContent).toContain("FROM orders");
   });
 
   it("offers See source when a number is clicked with Sources closed", async () => {
@@ -94,7 +86,7 @@ describe("Sources in a live artifact", () => {
     act(() => chip!.click());
     await settle();
     expect(slot().getAttribute("data-open")).toBe("true");
-    expect(panel().querySelector("h2")?.textContent).toBe("Weekly signups");
+    expect(panel().querySelector("pre")?.textContent).toContain("user_signed_up");
   });
 
   it("adds nothing without enableProvenance", async () => {
