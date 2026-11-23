@@ -78,7 +78,14 @@ export function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallD
       return "[" + node.els.map((el) => serializeASTNode(el, calls)).join(", ") + "]";
     case "Obj":
       return (
-        "{" + node.entries.map(([k, v]) => `${k}: ${serializeASTNode(v, calls)}`).join(", ") + "}"
+        "{" +
+        node.entries
+          .map(
+            ([k, v]) =>
+              `${/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)}: ${serializeASTNode(v, calls)}`,
+          )
+          .join(", ") +
+        "}"
       );
     case "BinOp": {
       // Left-associative: an operand on the right that binds no tighter needs its parens.
@@ -88,7 +95,8 @@ export function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallD
     case "UnaryOp":
       return `${node.op}${operand(node.operand, 8, calls)}`;
     case "Ternary":
-      return `${operand(node.cond, 2, calls)} ? ${serializeASTNode(node.then, calls)} : ${serializeASTNode(node.else, calls)}`;
+      // A ternary inside a branch reads more easily in parens.
+      return `${operand(node.cond, 2, calls)} ? ${operand(node.then, 2, calls)} : ${operand(node.else, 2, calls)}`;
     case "Member":
       return `${operand(node.obj, 9, calls)}.${node.field}`;
     case "Index":

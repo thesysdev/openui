@@ -431,12 +431,15 @@ export function ArtifactRendererRoot({
     const observer = new MutationObserver(() => {
       if (!marked.every((el) => el.isConnected)) setSelection(null);
     });
-    if (rootRef.current) observer.observe(rootRef.current, { childList: true, subtree: true });
+    // The content can be portaled into `renderInHtmlElement`, outside the root.
+    for (const area of [rootRef.current, renderInHtmlElement]) {
+      if (area) observer.observe(area, { childList: true, subtree: true });
+    }
     return () => {
       observer.disconnect();
       marked.forEach((el) => el.removeAttribute("data-openui-selected"));
     };
-  }, [enableProvenance, selection]);
+  }, [enableProvenance, selection, renderInHtmlElement]);
 
   // ── Slots and layout ──
   const regions = useMemo(() => extractRegions(children), [children]);

@@ -24,7 +24,7 @@ export interface PropSources extends Sources {
   components: string[];
 }
 
-/** What a component's own props read; its child components are listed under their own ids. */
+/** What a component reads: its props, and the components written in them. Each prop: its own. */
 export interface ComponentSources extends Sources {
   /** By prop, named as in the library. */
   props: Record<string, PropSources>;
@@ -45,7 +45,7 @@ const cache = new WeakMap<ParseResult, ProgramSources | null>();
  * prop's queries, the statements in between and the `$variables` read. A component written only
  * in a query's arguments is listed though it does not render.
  * A Mutation or an action is not a source. Component ids are positions in this parse, not stable
- * keys. Null when `result` is not one the parser returned.
+ * keys. Null when `result` is not one the parser returned, or has no statements yet.
  */
 export function dataSources(result: ParseResult): ProgramSources | null {
   if (!cache.has(result)) cache.set(result, build(result));
@@ -95,8 +95,9 @@ function build(result: ParseResult): ProgramSources | null {
       target.args.slice(0, 2).forEach((arg) => walk(arg, new Set(), NO_BINDINGS, out));
       out.leads = true;
     } else if (target && !(target.k === "Comp" && target.name === RESERVED_CALLS.Mutation)) {
-      // Another statement: its data, and the components written in it (e.g. a list of them).
-      if (walk(target, new Set(), NO_BINDINGS, out)) out.via.add(name);
+      // Another statement: a step of the formula, unless it only lists components.
+      const leads = walk(target, new Set(), NO_BINDINGS, out);
+      if (leads || !out.components.size) out.via.add(name);
     }
     reached.set(name, out);
     return out;
@@ -201,6 +202,21 @@ function build(result: ParseResult): ProgramSources | null {
         if (entry) components[name] = entry;
       }
     }
+    // A component also shows what the components in its props read, e.g. a table its columns.
+    const deep = new Set<ComponentSources>();
+    const gather = (entry: ComponentSources) => {
+      if (deep.has(entry)) return;
+      deep.add(entry);
+      for (const child of Object.values(entry.props).flatMap((prop) => prop.components)) {
+        const inner = components[child];
+        if (!inner) continue;
+        gather(inner);
+        for (const key of ["queries", "via", "state"] as const) {
+          entry[key] = [...new Set([...entry[key], ...inner[key]])];
+        }
+      }
+    };
+    Object.values(components).forEach(gather);
     const formulas: Record<string, string> = {};
     for (const entry of Object.values(components)) {
       entry.via.forEach((name) => (formulas[name] ??= text(statements.get(name)!)));

@@ -503,8 +503,9 @@ function useTriggerAction(): (
 function useIsStreaming(): boolean;
 function useIsQueryLoading(): boolean;
 // Where the program's data comes from: each component's and prop's queries, the
-// statements in between and the $variables read (its own props only: a child component has its
-// own entry), and each query's call, loading flag and result. Component ids are a
+// statements in between and the $variables read (a component also what the components in its
+// props read, e.g. a table its columns; each child has its own entry too), and each query's
+// call, loading flag and result. Component ids are a
 // statement's name, or `lead.2` for a component written inside `lead`, as readSourceTarget
 // returns; they hold for one parse. A prop with no queries, state or components is written in
 // the program, or reads a Mutation's result. lang-core's dataSources(parseResult) is the same
@@ -546,8 +547,8 @@ function useDataSources(): {
   /** Each $variable's current value. */
   state: Record<string, unknown>;
 } | null;
-// Its return type is exported as DataSources, one query as DataSourceQuery, a component and a
-// prop as ComponentSources and PropSources.
+// Its return type is exported as DataSources and one query as DataSourceQuery; lang-core exports
+// ComponentSources and PropSources.
 function useGetFieldValue(): (formName: string | undefined, name: string) => any;
 function useSetFieldValue(): (
   formName: string | undefined,
