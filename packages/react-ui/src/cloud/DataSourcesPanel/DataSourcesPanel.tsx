@@ -1,17 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import {
-  ArrowLeft,
-  Check,
-  ChevronRight,
-  CodeXml,
-  Copy,
-  Database,
-  Download,
-  FileText,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, Copy, Download, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { block, panelStyles, partClass } from "./dataSourcesPanel.styles";
 import {
@@ -28,11 +18,9 @@ import type { DataSourcesPanelProps } from "./types";
 
 const cx = partClass;
 
-/** A source's mark: the app's icon, else a file, script or database glyph. */
-function SourceMark({ origin }: { origin: Pick<Origin, "kind" | "icon"> }) {
-  if (origin.icon) return <span className={cx("mark")}>{origin.icon}</span>;
-  const Glyph = origin.kind === "File" ? FileText : origin.kind === "Script" ? CodeXml : Database;
-  return <Glyph className={cx("mark")} size={14} strokeWidth={1.75} aria-hidden />;
+/** The app's mark for a source, when `describeSource` gives one. */
+function SourceMark({ origin }: { origin: Pick<Origin, "icon"> }) {
+  return origin.icon ? <span className={cx("mark")}>{origin.icon}</span> : null;
 }
 
 function IconAction({

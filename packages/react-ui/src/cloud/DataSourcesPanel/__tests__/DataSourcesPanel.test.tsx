@@ -117,11 +117,16 @@ describe("DataSourcesPanel", () => {
     expect(text()).toContain("This is no longer in the dashboard.");
   });
 
-  it("without the app's descriptions, names a tool after itself", () => {
+  it("without the app's descriptions, guesses nothing: the tool name and its arguments", () => {
     render({ describeSource: undefined });
-    expect(container.querySelectorAll("li")[3]?.textContent).toBe("channelsQGa4 report");
-    render({ describeSource: undefined, selection: { id: "channels" } });
-    click(button("Query"));
-    expect(code()[0]).toContain("sessionDefaultChannelGroup");
+    expect(container.querySelectorAll("li")[0]?.textContent).toBe("revenueQpostgres_query");
+    expect(container.querySelector("li svg, li .openui-data-sources-panel__mark")).toBeNull();
+    render({ describeSource: undefined, selection: { id: "revenue", prop: "value" } });
+    expect(rows()[0]).toBe("Querypostgres_query (open)");
+    expect(JSON.parse(code()[0] ?? "")).toEqual({
+      sql:
+        sources.queries["revenueQ"]?.args &&
+        (sources.queries["revenueQ"].args as { sql: string }).sql,
+    });
   });
 });

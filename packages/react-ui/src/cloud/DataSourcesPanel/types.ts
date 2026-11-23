@@ -8,15 +8,18 @@ export interface DataSourcesSelection {
   prop?: string;
 }
 
-/** How an app names one of its data tools. Every field is optional. */
+/**
+ * How an app names one of its data tools. The panel never guesses: without this, a query shows
+ * its tool name and its arguments as JSON. Every field is optional.
+ */
 export interface SourceDescription {
-  /** What kind of source it is, shown in the list, e.g. `Postgres` or `GA4`. */
+  /** What kind of source it is, shown in the list, e.g. `Postgres` or `GA4`. Default: the tool name. */
   kind?: string;
   /** A 14px mark, such as the product's logo. */
   icon?: ReactNode;
-  /** What the call shows as: `SQL`, `HogQL`, `Request`, `Script`… */
+  /** The Query row's label, e.g. `SQL` or `HogQL`. Default: the tool name. */
   codeLabel?: string;
-  /** The call's text, e.g. its SQL. */
+  /** The call's text, e.g. its SQL. Default: its arguments as JSON. */
   code?: string;
 }
 

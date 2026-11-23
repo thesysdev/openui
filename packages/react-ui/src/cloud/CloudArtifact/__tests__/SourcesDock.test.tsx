@@ -74,7 +74,8 @@ describe("Sources in a live artifact", () => {
     await settle();
     act(() => valueOf("Revenue this quarter").click());
     await settle();
-    expect(rows()).toEqual(["QuerySQL", "Result"]);
+    // No describeSource here: the Query row shows the tool name, not a guess.
+    expect(rows()).toEqual(["Querypostgres_query", "Result"]);
     expect(panel().querySelector("pre")?.textContent).toContain("FROM orders");
   });
 

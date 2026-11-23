@@ -18,56 +18,20 @@ export interface Origin {
   query: DataSourceQuery;
 }
 
-/** `postgres_query` → `Postgres query`, `revenueVsTarget` → `Revenue vs target`. */
-export function humanize(id: string): string {
-  const words = id
-    .replace(/[_-]+/g, " ")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim()
-    .toLowerCase();
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
-/** One-line SQL, broken before its main clauses so it reads top to bottom. Display only. */
-export function formatSql(sql: string): string {
-  if (sql.includes("\n")) return sql.trim();
-  return sql
-    .trim()
-    .replace(
-      /\s+(?=(?:select|from|where|group by|order by|having|limit|(?:left |right |inner |full )?join|union(?: all)?)\b)/gi,
-      "\n",
-    );
-}
-
-/** The query text a call carries, if any: SQL, HogQL or a `query` string. */
-function queryText(values: Record<string, unknown>): { code: string; label: string } | null {
-  if (typeof values["sql"] === "string") return { code: values["sql"], label: "SQL" };
-  if (typeof values["hogql"] === "string") return { code: values["hogql"], label: "HogQL" };
-  if (typeof values["query"] === "string") return { code: values["query"], label: "Query" };
-  return null;
-}
-
 /**
- * How a query reads in the panel. The app's `describeSource` wins field by field; without it, a
- * `file` argument is a file, SQL is SQL, and any other call shows as its request.
+ * How a query reads in the panel. Nothing is guessed: without the app's `describeSource`, a query
+ * shows its tool name and the arguments it ran with, as JSON. What the app returns (its kind,
+ * icon, label and the call's text) replaces those, field by field.
  */
 export function originOf(name: string, query: DataSourceQuery, describe?: Describe): Origin {
   const toolName = query.toolName ?? name;
-  const values = isRecord(query.args) ? query.args : {};
   const described = describe?.(toolName, query.args) ?? {};
-  const text = queryText(values);
-  const base = text
-    ? { code: formatSql(text.code), codeLabel: text.label }
-    : Object.keys(values).length
-      ? { code: JSON.stringify(values, null, 2), codeLabel: "Request" }
-      : { code: `${toolName}()`, codeLabel: "Call" };
-  const kind = typeof values["file"] === "string" ? "File" : humanize(toolName);
   return {
     name,
     toolName,
-    kind: described.kind ?? kind,
-    code: described.code ?? base.code,
-    codeLabel: described.codeLabel ?? base.codeLabel,
+    kind: described.kind ?? toolName,
+    code: described.code ?? JSON.stringify(query.args ?? {}, null, 2),
+    codeLabel: described.codeLabel ?? toolName,
     icon: described.icon,
     query,
   };

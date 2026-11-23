@@ -126,15 +126,19 @@ export const sources: DataSources = {
   },
 };
 
-/** How an app names its tools: product names, and which tool is a script. */
-export const describeSource = (toolName: string): SourceDescription | undefined => {
+/**
+ * How the sample app names its tools. It knows them, so it says which product each one reads and
+ * shows the query text it sent; the panel itself never guesses either.
+ */
+export const describeSource = (toolName: string, args: unknown): SourceDescription | undefined => {
+  const values = (args ?? {}) as Record<string, unknown>;
   switch (toolName) {
     case "postgres_query":
-      return { kind: "Postgres" };
+      return { kind: "Postgres", codeLabel: "SQL", code: String(values["sql"] ?? "") };
     case "posthog_query":
-      return { kind: "PostHog" };
+      return { kind: "PostHog", codeLabel: "HogQL", code: String(values["hogql"] ?? "") };
     case "ga4_report":
-      return { kind: "GA4" };
+      return { kind: "GA4", codeLabel: "Report" };
     case "revenue_vs_target":
       return {
         kind: "Script",
