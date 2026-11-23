@@ -513,7 +513,6 @@ function useDataSources(): {
   components: Record<
     string,
     {
-      typeName: string;
       queries: string[];
       via: string[];
       state: string[];
@@ -528,8 +527,6 @@ function useDataSources(): {
           state: string[];
           /** The components written in it, by id. */
           components: string[];
-          /** Its value when written as a string, number, boolean or null, e.g. a title. */
-          value?: string | number | boolean | null;
         }
       >;
     }

@@ -22,14 +22,10 @@ export interface PropSources extends Sources {
   expr: string;
   /** The components written in it, by id: its children, which have their own sources. */
   components: string[];
-  /** Its value, when it is written as a string, number, boolean or null, e.g. a title. */
-  value?: string | number | boolean | null;
 }
 
 /** What a component's own props read; its child components are listed under their own ids. */
 export interface ComponentSources extends Sources {
-  /** The library component, e.g. `Kpi`. */
-  typeName: string;
   /** By prop, named as in the library. */
   props: Record<string, PropSources>;
 }
@@ -154,15 +150,12 @@ function build(result: ParseResult): ProgramSources | null {
     const props: Record<string, PropSources> = {};
     names.forEach((name, i) => {
       const arg = node.args[i];
-      if (!arg) return;
-      props[name] = { ...collect(arg, bound), expr: text(arg) };
-      if ("v" in arg || arg.k === "Null") props[name].value = "v" in arg ? arg.v : null;
+      if (arg) props[name] = { ...collect(arg, bound), expr: text(arg) };
     });
     const union = (key: keyof Sources) => [
       ...new Set(Object.values(props).flatMap((prop) => prop[key])),
     ];
     components[id] = {
-      typeName: node.name,
       queries: union("queries"),
       via: union("via"),
       state: union("state"),
