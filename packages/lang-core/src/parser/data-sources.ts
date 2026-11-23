@@ -87,71 +87,64 @@ function build(result: ParseResult): ProgramSources | null {
     return target?.k === "Comp" && isComponent(target);
   };
 
+  // What a statement reads, walked once per parse; undefined while it is walked, so a cycle stops.
+  const reached = new Map<string, Found | undefined>();
+  const follow = (name: string): Found => {
+    if (reached.has(name)) return reached.get(name) ?? NOTHING;
+    reached.set(name, undefined);
+    const out = found();
+    const target = statements.get(name);
+    if (target?.k === "Comp" && target.name === RESERVED_CALLS.Query) {
+      out.queries.add(name);
+      target.args.slice(0, 2).forEach((arg) => walk(arg, new Set(), NO_BINDINGS, out));
+      out.leads = true;
+    } else if (target && !(target.k === "Comp" && target.name === RESERVED_CALLS.Mutation)) {
+      // Another statement: its data, and the components written in it (e.g. a list of them).
+      if (walk(target, new Set(), NO_BINDINGS, out)) out.via.add(name);
+    }
+    reached.set(name, out);
+    return out;
+  };
+
+  // Into `out`; whether it leads to a query. `scope` holds names an `@Each` binds, which shadow
+  // statements of the same name. A component call is a child: listed, not read through.
+  const walk = (start: ASTNode, scope: ReadonlySet<string>, binds: Bindings, out: Found) => {
+    const skipped = new Set<ASTNode>();
+    const skip = (node: ASTNode) => walkAST(node, (n) => void skipped.add(n));
+    walkAST(start, (node) => {
+      if (skipped.has(node)) return;
+      if (isAction(node)) return skip(node);
+      if (node.k === "Comp" && isComponent(node)) {
+        if (node.componentId) out.components.add(node.componentId);
+        return skip(node);
+      }
+      if (node.k === "Comp" && isLoop(node)) {
+        const name = boundName(node.args[1]);
+        const inner = name ? new Set([...scope, name]) : scope;
+        // The list is read outside the loop, so its own name does not shadow it.
+        node.args.forEach((arg, i) => i !== 1 && walk(arg, i === 0 ? scope : inner, binds, out));
+        return skip(node);
+      }
+      if (node.k === "StateRef" && Object.hasOwn(result.stateDeclarations, node.n)) {
+        out.state.add(node.n);
+      }
+      if (node.k !== "Ref" || scope.has(node.n)) return;
+      // A component statement, or an alias of one, renders under the name written here.
+      if (!binds.has(node.n) && renders(node.n)) return void out.components.add(node.n);
+      const binding = binds.get(node.n);
+      if (binding) return void walk(binding.list, new Set(), binding.outer, out);
+      const from = follow(node.n);
+      for (const key of KEYS) from[key].forEach((n) => out[key].add(n));
+      if (from.leads) out.leads = true;
+    });
+    return out.leads;
+  };
+
   // What an argument reads, and the components written in it.
   const collect = (from: ASTNode, bound: Bindings) => {
-    const queries = new Set<string>();
-    const via = new Set<string>();
-    const state = new Set<string>();
-    const components = new Set<string>();
-    // Whether a statement leads to a query; set to false first so a cycle stops.
-    const reaches = new Map<string, boolean>();
-
-    const follow = (name: string): boolean => {
-      const known = reaches.get(name);
-      if (known !== undefined) return known;
-      reaches.set(name, false);
-      const target = statements.get(name);
-      let found = false;
-      if (target?.k === "Comp" && target.name === RESERVED_CALLS.Query) {
-        queries.add(name);
-        target.args.slice(0, 2).forEach((arg) => walk(arg, new Set(), NO_BINDINGS));
-        found = true;
-      } else if (target && !(target.k === "Comp" && target.name === RESERVED_CALLS.Mutation)) {
-        // Another statement: its data, and the components written in it (e.g. a list of them).
-        found = walk(target, new Set(), NO_BINDINGS);
-        if (found) via.add(name);
-      }
-      reaches.set(name, found);
-      return found;
-    };
-
-    // `scope` holds names an `@Each` binds, which shadow statements of the same name. A component
-    // call is a child: listed, not read through.
-    const walk = (start: ASTNode, scope: ReadonlySet<string>, binds: Bindings): boolean => {
-      let found = false;
-      const skipped = new Set<ASTNode>();
-      const skip = (node: ASTNode) => walkAST(node, (n) => void skipped.add(n));
-      walkAST(start, (node) => {
-        if (skipped.has(node)) return;
-        if (isAction(node)) return skip(node);
-        if (node.k === "Comp" && isComponent(node)) {
-          const id = node.componentId;
-          if (id) components.add(id);
-          return skip(node);
-        }
-        if (node.k === "Comp" && isLoop(node)) {
-          const name = boundName(node.args[1]);
-          const inner = name ? new Set([...scope, name]) : scope;
-          // The list is read outside the loop, so its own name does not shadow it.
-          node.args.forEach((arg, i) => {
-            if (i !== 1 && walk(arg, i === 0 ? scope : inner, binds)) found = true;
-          });
-          return skip(node);
-        }
-        if (node.k === "StateRef" && Object.hasOwn(result.stateDeclarations, node.n)) {
-          state.add(node.n);
-        }
-        if (node.k !== "Ref" || scope.has(node.n)) return;
-        // A component statement, or an alias of one, renders under the name written here.
-        if (!binds.has(node.n) && renders(node.n)) return void components.add(node.n);
-        const binding = binds.get(node.n);
-        if (binding ? walk(binding.list, new Set(), binding.outer) : follow(node.n)) found = true;
-      });
-      return found;
-    };
-
-    walk(from, new Set(), bound);
-    return { queries: [...queries], via: [...via], state: [...state], components: [...components] };
+    const out = found();
+    walk(from, new Set(), bound, out);
+    return Object.fromEntries(KEYS.map((key) => [key, [...out[key]]])) as Record<Key, string[]>;
   };
 
   const components: Record<string, ComponentSources> = {};
@@ -190,7 +183,12 @@ function build(result: ParseResult): ProgramSources | null {
         return walkAST(node, (n) => void skipped.add(n));
       }
       const id = isComponent(node) ? node.componentId : undefined;
-      if (id && !components[id]) add(node, id, bound);
+      try {
+        if (id) add(node, id, bound);
+      } catch (error) {
+        // A chain of statements too long to walk: leave this component out.
+        if (!(error instanceof RangeError)) throw error;
+      }
     });
   };
 
@@ -221,6 +219,19 @@ function build(result: ParseResult): ProgramSources | null {
     throw error;
   }
 }
+
+const KEYS = ["queries", "via", "state", "components"] as const;
+type Key = (typeof KEYS)[number];
+/** What a walk found, and whether it leads to a query. */
+type Found = Record<Key, Set<string>> & { leads: boolean };
+const found = (): Found => ({
+  queries: new Set(),
+  via: new Set(),
+  state: new Set(),
+  components: new Set(),
+  leads: false,
+});
+const NOTHING: Found = found();
 
 type Bindings = ReadonlyMap<string, { list: ASTNode; outer: Bindings }>;
 const NO_BINDINGS: Bindings = new Map();

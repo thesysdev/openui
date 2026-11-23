@@ -188,7 +188,7 @@ import { useArtifactProvenance } from "@openuidev/react-ui/cloud";
 function SourcesPanel() {
   const { selection, sources } = useArtifactProvenance();
   const component = selection && sources?.components[selection.id];
-  if (!component) return null;
+  if (!sources || !component) return null;
   // Per prop when the click landed on a marked prop, otherwise the whole component.
   const shown = selection.prop ? component.props[selection.prop] : component;
   const queries = shown?.queries.map((name) => sources.queries[name]); // tool, args, data
