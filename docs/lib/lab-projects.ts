@@ -444,6 +444,28 @@ export const labProjects: ProjectItem[] = [
       },
     ],
   },
+  {
+    name: "bb Dashboards",
+    description:
+      "A bb plugin where the agent writes dashboards in OpenUI Lang with the dashboard library, saves each change as a version, and refreshes live data without a model call.",
+    type: "Plugin",
+    status: "Community",
+    accent: "blue",
+    icon: PlugZap,
+    screenshot: "/community-projects/bb-dashboards.jpg",
+    links: [
+      {
+        label: "GitHub",
+        href: "https://github.com/ahsan7162/bb-plugin-dashboards",
+        external: true,
+      },
+      {
+        label: "Website",
+        href: "https://muhammad-ahsan-dev.vercel.app/products/bb-dashboards",
+        external: true,
+      },
+    ],
+  },
 ];
 
 /** The project's own site, as opposed to its repo, docs page, or an article about it. */

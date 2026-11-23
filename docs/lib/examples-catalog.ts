@@ -524,6 +524,19 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     firstParty: false,
   },
   {
+    name: "bb-dashboards",
+    title: "bb Dashboards",
+    description:
+      "A plugin for the bb agentic IDE where the agent writes dashboards in OpenUI Lang, saves each change as a version, and refreshes live data without a model call.",
+    category: "miscellaneous",
+    sourceUrl: "https://github.com/ahsan7162/bb-plugin-dashboards",
+    guideUrl: "https://muhammad-ahsan-dev.vercel.app/products/bb-dashboards",
+    logo: "https://github.com/get-bb.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
     name: "fleet-prime",
     title: "Fleet Prime",
     description:
