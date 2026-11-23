@@ -68,13 +68,13 @@ describe("Sources in a live artifact", () => {
     expect(names).toEqual(["revenueQ", "dailyQ", "signupsQ", "channelsQ", "targetQ"]);
   });
 
-  it("shows a clicked number's Query, Result and Formula", async () => {
+  it("shows a clicked number's Query and Result", async () => {
     await mount();
     act(() => toggle().click());
     await settle();
     act(() => valueOf("Revenue this quarter").click());
     await settle();
-    expect(rows()).toEqual(["QuerySQL", "Result", "Formula"]);
+    expect(rows()).toEqual(["QuerySQL", "Result"]);
     expect(panel().querySelector("pre")?.textContent).toContain("FROM orders");
   });
 

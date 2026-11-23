@@ -120,7 +120,8 @@ interface Row {
 
 /**
  * Where a dashboard's data comes from. With nothing selected it lists every query; for a selected
- * component or prop it shows three rows: its Query, the Result that came back, and its Formula.
+ * component or prop it shows its Query and the Result that came back, or, when it reads no
+ * query, its Formula.
  */
 export function DataSourcesPanel({
   sources,
@@ -266,13 +267,13 @@ export function DataSourcesPanel({
             ),
         });
       });
-      if (resolved.formula.length) {
-        const text = resolved.formula.join("\n\n");
+      // Query and Result when data is read; Formula only when nothing is.
+      if (!resolved.queries.length && resolved.formula.length) {
         rows.push({
           id: "formula",
           label: "Formula",
-          defaultOpen: !resolved.queries.length,
-          content: code("formula", text),
+          defaultOpen: true,
+          content: code("formula", resolved.formula.join("\n\n")),
         });
       }
     }

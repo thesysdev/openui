@@ -59,12 +59,10 @@ describe("DataSourcesPanel", () => {
     expect(container.querySelector("input")).toBeNull();
   });
 
-  it("shows a number's Query, Result and Formula, and nothing else", () => {
+  it("shows a number's Query and Result, and no Formula, when it reads a query", () => {
     render({ selection: { id: "revenue", prop: "value" } });
-    expect(rows()).toEqual(["QuerySQL (open)", "Result", "Formula"]);
+    expect(rows()).toEqual(["QuerySQL (open)", "Result"]);
     expect(code()[0]).toContain("FROM orders");
-    click(button("Formula"));
-    expect(code()).toContain("value: now.revenue\n\nnow = @First(revenueQ.rows)");
     expect(text()).not.toContain("Revenue this quarter");
   });
 
@@ -94,7 +92,6 @@ describe("DataSourcesPanel", () => {
       "ResultrevenueQ",
       "QuerysignupsQ · HogQL",
       "ResultsignupsQ",
-      "Formula",
     ]);
   });
 
