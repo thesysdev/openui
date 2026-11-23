@@ -113,7 +113,7 @@ export const editableTableStyles = {
     white-space: nowrap;
     width: var(--_openui-editable-table-column-width);
     &:last-child {
-      border-right: 0;
+      border-inline-end: 0;
     }
   `,
   row: css`
@@ -126,12 +126,12 @@ export const editableTableStyles = {
     box-sizing: content-box;
     height: 48px;
     padding: 0;
-    border-right: 1px solid var(--openui-border-default, oklch(0.097 0 0 / 0.06));
+    border-inline-end: 1px solid var(--openui-border-default, oklch(0.097 0 0 / 0.06));
     vertical-align: middle;
     white-space: nowrap;
     width: var(--_openui-editable-table-column-width);
     &:last-child {
-      border-right: 0;
+      border-inline-end: 0;
     }
   `,
 };

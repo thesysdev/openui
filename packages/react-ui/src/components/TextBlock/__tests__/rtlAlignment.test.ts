@@ -36,4 +36,20 @@ describe("RTL logical start alignment", () => {
     expect(markdownStyles).toMatch(/headCell:\s*css`[\s\S]*?text-align:\s*start;/);
     expect(markdownStyles).toMatch(/cell:\s*css`[\s\S]*?text-align:\s*start;/);
   });
+
+  it("places editable table dividers and last-cell overrides on the same logical side", () => {
+    const styles = readFileSync(
+      resolve(
+        rootDir,
+        "packages/react-components/src/components/EditableTable/editableTable.styles.ts",
+      ),
+      "utf8",
+    );
+    for (const part of ["head", "cell"]) {
+      const rules = styles.match(new RegExp(part + ":\\s*css`([^`]*)`"))?.[1];
+      expect(rules).toMatch(/border-inline-end:\s*1px solid /);
+      expect(rules).toMatch(/&:last-child\s*\{\s*border-inline-end:\s*0;/);
+      expect(rules).not.toMatch(/border-(left|right):/);
+    }
+  });
 });
