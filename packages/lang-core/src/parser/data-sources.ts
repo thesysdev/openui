@@ -46,7 +46,8 @@ const cache = new WeakMap<ParseResult, ProgramSources | null>();
 
 /**
  * Where a program's data comes from, for a "where did this come from" view: each component and
- * prop's queries, the statements in between and the `$variables` read.
+ * prop's queries, the statements in between and the `$variables` read. A component written only
+ * in a query's arguments is listed though it does not render.
  * A Mutation or an action is not a source. Component ids are positions in this parse, not stable
  * keys. Null when `result` is not one the parser returned.
  */
@@ -106,7 +107,7 @@ function build(result: ParseResult): ProgramSources | null {
         target.args.slice(0, 2).forEach((arg) => walk(arg, new Set(), NO_BINDINGS));
         found = true;
       } else if (target && !(target.k === "Comp" && target.name === RESERVED_CALLS.Mutation)) {
-        // Another statement: its data, and the components in it (a named component, or a list).
+        // Another statement: its data, and the components written in it (e.g. a list of them).
         found = walk(target, new Set(), NO_BINDINGS);
         if (found) via.add(name);
       }
@@ -204,7 +205,7 @@ function build(result: ParseResult): ProgramSources | null {
     // `card = other` renders `other`'s component under the name `card`.
     for (const [name, expr] of statements) {
       const target = resolve(name);
-      if (target !== expr && target?.k === "Comp" && target.componentId) {
+      if (!orphaned.has(name) && target !== expr && target?.k === "Comp" && target.componentId) {
         const entry = components[target.componentId];
         if (entry) components[name] = entry;
       }
@@ -215,7 +216,7 @@ function build(result: ParseResult): ProgramSources | null {
     }
     return { components, formulas };
   } catch (error) {
-    // A chain of statements too long to walk.
+    // A program too deeply nested to walk.
     if (error instanceof RangeError) return null;
     throw error;
   }

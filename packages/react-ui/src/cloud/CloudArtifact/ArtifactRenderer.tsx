@@ -55,7 +55,9 @@ function SourcesWriter() {
   const store = provenance.sourcesStore;
   const sources = useDataSources();
   // Into the store, not the root's state: a write reaches only the panel, never back here.
-  useEffect(() => store.set(sources), [store, sources]);
+  useEffect(() => {
+    store.set(sources);
+  }, [store, sources]);
   useEffect(() => () => store.set(null), [store]);
   return null;
 }

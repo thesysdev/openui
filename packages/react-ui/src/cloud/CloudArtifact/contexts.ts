@@ -71,9 +71,6 @@ export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
 
 // ─── Provenance ──────────────────────────────────────────────────────────
 
-/** Where the program's data comes from: `useDataSources()`. Null until something reads it. */
-export type ProvenanceSources = DataSources | null;
-
 /** Inspect mode, the selected component and where data comes from, from `useArtifactProvenance()`. */
 export interface ArtifactProvenanceState {
   /** While on, a click on a component selects it instead of acting. */
@@ -86,7 +83,7 @@ export interface ArtifactProvenanceState {
    * Where the program's data comes from: every component's sources and every query, with live
    * values. Null unless inspecting or something is selected.
    */
-  sources: ProvenanceSources;
+  sources: DataSources | null;
 }
 
 /**
@@ -95,13 +92,13 @@ export interface ArtifactProvenanceState {
  * loop back to the bridge.
  */
 export interface SourcesStore {
-  get: () => ProvenanceSources;
-  set: (next: ProvenanceSources) => void;
+  get: () => DataSources | null;
+  set: (next: DataSources | null) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
 export function createSourcesStore(): SourcesStore {
-  let value: ProvenanceSources = null;
+  let value: DataSources | null = null;
   const listeners = new Set<() => void>();
   return {
     get: () => value,
