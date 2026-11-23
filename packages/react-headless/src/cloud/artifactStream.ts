@@ -44,11 +44,16 @@ interface Entry {
   started: boolean;
   /** The version being streamed, from its `reference`. */
   version?: string;
-  /** First generation streams into `program`; edits and refreshes into `pending`. */
+  /** A new version streams into `program`, live; the same version again loads into `pending`. */
   target: "program" | "pending";
   pending: string;
-  /** Reconnected into the version being streamed: the next delta has all of it, so it replaces. */
+  /**
+   * The next delta has everything so far, so it replaces what's shown: after a reconnect, or
+   * when a new version starts over the one on screen.
+   */
   replace: boolean;
+  /** What was on screen before a new version started streaming over it. A failed edit goes back to it. */
+  settled: { program: string; version?: string } | null;
   reconnects: number;
   versions: Set<string>;
   /** A newer revision was seen while a stream was still running. */
@@ -247,6 +252,7 @@ export class ArtifactStreamStore {
         target: "program",
         pending: "",
         replace: false,
+        settled: null,
         reconnects: 0,
         versions: new Set(),
         stale: false,
@@ -335,10 +341,18 @@ export class ArtifactStreamStore {
       return;
     }
     this.update(id, {
+      ...this.unwind(entry),
       isStreaming: false,
       error: streamError("network-error", "Couldn't reach the artifact's storage.", failure),
     });
     this.afterRead(id);
+  }
+
+  /** A stream that didn't finish: back to what was on screen before it. */
+  private unwind(entry: Entry): Partial<ArtifactStreamSnapshot> {
+    const settled = entry.settled;
+    entry.settled = null;
+    return settled ?? {};
   }
 
   /** Storages without `stream`: read the stored artifact once. */
@@ -425,12 +439,21 @@ export class ArtifactStreamStore {
         if (version) entry.versions.add(version);
         entry.tag = tag;
         // A reconnect into the version being streamed sends it whole again.
-        entry.replace = version !== undefined && version === entry.version;
+        const reconnect = version !== undefined && version === entry.version;
         entry.version = version;
-        if (!entry.replace) {
-          entry.target = snapshot.program === null ? "program" : "pending";
+        if (!reconnect) {
+          // A new version streams onto the screen as it's generated: an edit sends its prior
+          // program first, then its patch, which the parser merges in. The same version again
+          // (a rename, an access change, a re-read) loads out of sight.
+          const live = snapshot.program === null || version !== snapshot.version;
+          entry.target = live ? "program" : "pending";
           entry.pending = "";
+          if (live && snapshot.program !== null) {
+            entry.settled ??= { program: snapshot.program, version: snapshot.version };
+          }
         }
+        // What's on screen stays until the new version's first delta replaces it.
+        entry.replace = reconnect || (entry.target === "program" && snapshot.program !== null);
         // The stream resends the build's current step after its reference.
         this.update(id, {
           type: event.data?.type ?? snapshot.type,
@@ -441,7 +464,10 @@ export class ArtifactStreamStore {
           isStreaming: snapshot.isStreaming || version !== snapshot.version,
           step: undefined,
           error: null,
-          ...(entry.target === "program" ? { program: "", version } : {}),
+          ...(entry.target === "program" && {
+            version,
+            ...(snapshot.program === null && { program: "" }),
+          }),
         });
         return;
       }
@@ -453,9 +479,8 @@ export class ArtifactStreamStore {
         if (typeof text !== "string") return;
         const replace = entry.replace;
         entry.replace = false;
-        // Edits stay hidden until `end`, so the current version stays on screen.
         if (entry.target === "pending") entry.pending = (replace ? "" : entry.pending) + text;
-        // A new dashboard keeps its version into the writing: its first content ends the step.
+        // The first content a build writes ends its step.
         else {
           this.update(id, {
             program: (replace ? "" : (snapshot.program ?? "")) + text,
@@ -474,6 +499,7 @@ export class ArtifactStreamStore {
         entry.target = "program";
         entry.pending = "";
         entry.version = undefined;
+        entry.settled = null;
         this.update(id, { ...swapped, isStreaming: false, step: undefined });
         this.catchUp(id);
         this.afterRead(id);
@@ -487,6 +513,7 @@ export class ArtifactStreamStore {
         const errorCode =
           code && ERROR_CODES.has(code) ? (code as ArtifactStreamErrorCode) : "generation-failed";
         this.update(id, {
+          ...this.unwind(entry),
           isStreaming: false,
           step: undefined,
           error: streamError(
@@ -557,7 +584,8 @@ const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: nu
  *
  * - While it's generated, `program` grows and `isStreaming` is `true`.
  * - After a reload, it replays everything generated so far, then continues.
- * - During an edit, `program` keeps the current version until the new one ends.
+ * - A new version streams in live: an edit shows its prior program, then its patch
+ *   merging in. One that fails goes back to the version before it.
  * - Storages without `stream` are read once with `get`.
  * - With `pollInterval`, it picks up a newer version, a rename or an access
  *   change, and the `not-found` error once the artifact is deleted or unshared.

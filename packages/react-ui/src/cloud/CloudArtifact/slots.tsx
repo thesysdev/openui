@@ -202,7 +202,7 @@ export interface EditedNoticeProps {
   children?: ReactNode;
 }
 
-/** "Edited just now", for a few seconds after a newer version replaces the one on screen. */
+/** "Edited just now", for a few seconds after a newer version finishes replacing the one on screen. */
 export function EditedNotice({ label, children }: EditedNoticeProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();

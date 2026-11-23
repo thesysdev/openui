@@ -102,11 +102,11 @@ The hooks must sit inside [`OpenUICloudProvider`](/docs/dashboards/authenticatio
 
 An open dashboard checks for changes every 30 seconds while it's shown and the tab is visible. A check that finds nothing is a cheap empty response.
 
-| When someone…                      | The open dashboard                                                                |
-| ---------------------------------- | --------------------------------------------------------------------------------- |
-| Saves or edits it with a prompt    | Swaps in the new version, keeping the user's filters, and says "Edited just now". |
-| Renames it, or changes your access | Updates its title, `isOwner`, and `isEditable`, and every list.                   |
-| Deletes it, or removes your access | Shows an error and leaves every list until it's shared with you again.            |
+| When someone…                      | The open dashboard                                                                                                                                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Saves or edits it with a prompt    | Streams the edit in as it's generated, keeping the user's filters, then says "Edited just now". A failed edit goes back to the version before it. |
+| Renames it, or changes your access | Updates its title, `isOwner`, and `isEditable`, and every list.                                                                                   |
+| Deletes it, or removes your access | Shows an error and leaves every list until it's shared with you again.                                                                            |
 
 Read `isOwner` and `isEditable` from [`useArtifactRenderer()`](/docs/dashboards/render#renderer-state) to hide Edit and Share as soon as access changes. Set `pollInterval` on the renderer to check more or less often (at least every 10 seconds), or `false` to turn checks off. A user removed from a group still waits for their next token.
 

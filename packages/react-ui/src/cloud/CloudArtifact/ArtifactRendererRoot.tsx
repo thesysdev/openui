@@ -289,19 +289,26 @@ export function ArtifactRendererRoot({
     if (lostAccess && cache && id) cache.evict(id);
   }, [lostAccess, cache, id]);
 
-  // A newer version replaced the one on screen: say so for a while.
-  const [justEdited, setJustEdited] = useState(false);
-  const shownRef = useRef({ id, version: stream.version });
+  // A newer version finished replacing the one on screen: say so for a while. A new version
+  // streams in live, so this waits until it's done, and a failed edit (back to the same
+  // version) says nothing.
+  const settledVersion = stream.isStreaming ? null : stream.version;
+  const settledRef = useRef({ id, version: settledVersion });
+  const [editedAt, setEditedAt] = useState(0);
   useEffect(() => {
-    const last = shownRef.current;
-    shownRef.current = { id, version: stream.version };
-    if (last.id !== id || !last.version || !stream.version || last.version === stream.version) {
-      return;
+    if (settledVersion === null) return;
+    const last = settledRef.current;
+    settledRef.current = { id, version: settledVersion };
+    if (last.id === id && last.version && settledVersion && last.version !== settledVersion) {
+      setEditedAt(Date.now());
     }
-    setJustEdited(true);
-    const timer = setTimeout(() => setJustEdited(false), EDITED_NOTICE_MS);
+  }, [id, settledVersion]);
+  useEffect(() => {
+    if (!editedAt) return;
+    const timer = setTimeout(() => setEditedAt(0), EDITED_NOTICE_MS);
     return () => clearTimeout(timer);
-  }, [id, stream.version]);
+  }, [editedAt]);
+  const justEdited = editedAt > 0;
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
   const [inFlight, setInFlight] = useState(0);

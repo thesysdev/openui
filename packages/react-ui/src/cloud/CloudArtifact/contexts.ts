@@ -24,7 +24,7 @@ export interface ArtifactRendererState {
    * the scripts it's saving.
    */
   step?: ArtifactBuildStep;
-  /** A newer version replaced the one on screen in the last few seconds. */
+  /** A newer version finished streaming in over the one on screen in the last few seconds. */
   justEdited: boolean;
   /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
   error: ArtifactError | OpenUIError | null;
