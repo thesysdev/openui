@@ -1,7 +1,7 @@
 name: Label new issues
 
-# Adds one type label (bug, enhancement, documentation or question) to each new
-# issue, using TypeSafe's Jev model to classify the title and body.
+# Adds one type label (bug, enhancement, documentation, question or integrations)
+# to each new issue, using TypeSafe's Jev model to classify the title and body.
 #
 # The label is only added when Jev is confident. Issues that already have a type
 # label are left alone, and other labels are never added or removed.
@@ -27,9 +27,10 @@ jobs:
             const MAX_BODY_CHARS = 8000;
             const LABELS = {
               bug: 'Something is broken: an error, crash, regression, or behavior that differs from the docs or spec.',
-              enhancement: 'A request for a new feature, component, integration, or a change to an existing API.',
+              enhancement: 'A request for a new feature, component, adapter for another framework or provider, or a change to an existing API.',
               documentation: 'Docs, README, examples, or the docs site are wrong, missing, or unclear.',
               question: 'Asks how to use something or for help, without reporting a defect or requesting a feature.',
+              integrations: 'Asks to list an existing project, library, port or renderer built with OpenUI on the openui.com integrations page.',
             };
 
             const { owner, repo } = context.repo;
