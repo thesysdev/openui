@@ -45,6 +45,16 @@ If you want one import path that works with both `zod@3.25.x` and `zod@4`, use `
 3. `description`: used in prompt component signature lines.
 4. `component`: React renderer receiving `{ props, renderNode }`.
 
+Use Zod's `.describe(...)` on a direct prop to include guidance below the component's signature in the locally generated system prompt:
+
+```ts
+const props = z.object({
+  label: z.string().describe("A short, human-readable metric label."),
+});
+```
+
+Descriptions are included whether `.describe(...)` is called before or after `.optional()`, `.nullable()`, or `.default(...)`. A description on the outer wrapper takes precedence.
+
 ## Nesting pattern with `.ref`
 
 ```tsx
