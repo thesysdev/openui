@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 import { typography } from "../CloudArtifact/cloudArtifact.styles";
 
 /** Stable class names, to target from your own CSS. */
