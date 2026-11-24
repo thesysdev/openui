@@ -187,7 +187,8 @@ export function ChromeTitle({ className, children }: PartProps) {
 export function ChromeLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  if (!inside || !state.isLoading) return null;
+  // While pending, `Pending` says what's happening, in the content.
+  if (!inside || !state.isLoading || state.isPending) return null;
   if (children !== undefined) return <>{children}</>;
   return (
     <span className={clsx(styles.loader, names.loader)} role="status">
