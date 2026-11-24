@@ -34,6 +34,7 @@ export const names = {
   loader: "openui-artifact-loader",
   loaderText: "openui-artifact-loader-text",
   spinner: "openui-artifact-spinner",
+  edited: "openui-artifact-edited",
   chrome: "openui-artifact-chrome",
   chromeBar: "openui-artifact-chrome-bar",
   chromeTitle: "openui-artifact-chrome-title",
@@ -44,6 +45,7 @@ export const names = {
   loadingEmpty: "openui-artifact-loading-empty",
   pending: "openui-artifact-pending",
   error: "openui-artifact-error",
+  errorEmpty: "openui-artifact-error-empty",
   panel: "openui-artifact-panel",
   inspecting: "openui-artifact-inspecting",
   provenanceToggle: "openui-artifact-provenance-toggle",
@@ -213,6 +215,14 @@ export const styles = {
     border-radius: var(--openui-radius-m);
     background: var(--openui-danger-background);
     ${bodySmall}
+  `,
+  errorEmpty: css`
+    position: absolute;
+    inset: 0;
+    width: fit-content;
+    max-width: calc(100% - 2 * var(--openui-space-l));
+    height: fit-content;
+    margin: auto;
   `,
   panel: css`
     padding: var(--openui-space-l) var(--openui-space-xl);

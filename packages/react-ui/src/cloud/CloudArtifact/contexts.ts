@@ -1,10 +1,13 @@
-import type { ArtifactBuildStep } from "@openuidev/react-headless";
+import type { ArtifactBuildStep, ArtifactSummary } from "@openuidev/react-headless";
 import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
-/** The renderer's state and controls, from `useArtifactRenderer()`. */
-export interface ArtifactRendererState {
+/**
+ * The renderer's state and controls, from `useArtifactRenderer()`. `isOwner`
+ * and `isEditable` are undefined until the storage says.
+ */
+export interface ArtifactRendererState extends Pick<ArtifactSummary, "isOwner" | "isEditable"> {
   id: string | null;
   title?: string;
   /** Nothing to show yet: the tool call that makes it is still running, or the build hasn't started writing it. */
@@ -20,6 +23,8 @@ export interface ArtifactRendererState {
    * the scripts it's saving.
    */
   step?: ArtifactBuildStep;
+  /** A newer version finished streaming in over the one on screen in the last few seconds. */
+  justUpdated: boolean;
   /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
   error: ArtifactError | OpenUIError | null;
   /** Retries what failed. Undefined when there's nothing to retry. */

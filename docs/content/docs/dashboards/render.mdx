@@ -38,6 +38,7 @@ The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentica
 | `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                   |
 | `enableProvenance`                      | Show where the data comes from: an inspect toggle in the bar, and your panel. See [Data sources](#data-sources). |
 | `onError`                               | Receives rendering, query, and loading errors.                                                                   |
+| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never.           |
 | `className`                             | Added to the root element.                                                                                       |
 
 ## Layouts
@@ -101,16 +102,16 @@ The result can arrive before the dashboard is written, while the model still cal
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
 
-| Slot                                                          | Region  | What it is                                                                                                 |
-| ------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
-| `Preview`                                                     | Preview | The card that opens the dashboard.                                                                         |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`         | Preview | The card's parts.                                                                                          |
-| `Chrome`                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
-| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                           |
-| `ProvenanceToggle`                                            | Chrome  | Turns inspect mode on and off. Only with `enableProvenance`.                                               |
-| `Content`                                                     | Chrome  | The dashboard itself.                                                                                      |
-| `Pending`, `Loading`, `Error`                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
-| `Provenance`                                                  | Content | Your data sources panel, shown while a component is selected. Only with `enableProvenance`.                |
+| Slot                                                                          | Region  | What it is                                                                                                 |
+| ----------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                         |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`                         | Preview | The card's parts.                                                                                          |
+| `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
+| `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                           |
+| `ProvenanceToggle`                                                            | Chrome  | Turns inspect mode on and off. Only with `enableProvenance`.                                               |
+| `Content`                                                                     | Chrome  | The dashboard itself.                                                                                      |
+| `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
+| `Provenance`                                                                  | Content | Your data sources panel, shown while a component is selected. Only with `enableProvenance`.                |
 
 For example, a full-height panel with its own header:
 
@@ -162,18 +163,20 @@ function DashboardError() {
 }
 ```
 
-| Field                     | Description                                                                                             |
-| ------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `id`, `title`             | The dashboard's id and title.                                                                           |
-| `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.    |
-| `isStreaming`             | The dashboard is being generated.                                                                       |
-| `isFetching`              | Its queries are running.                                                                                |
-| `isLoading`               | Any of the three.                                                                                       |
-| `step`                    | While a dashboard is built, `{ tools, scripts }`: the data tools it called and the scripts it's saving. |
-| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                            |
-| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                           |
-| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                          |
-| `preview`                 | Whether the renderer has a card.                                                                        |
+| Field                     | Description                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `id`, `title`             | The dashboard's id and title.                                                                            |
+| `isOwner`, `isEditable`   | Whether the user owns it, and whether they can edit, rename, and share it. Kept current while it's open. |
+| `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.     |
+| `isStreaming`             | The dashboard is being generated.                                                                        |
+| `isFetching`              | Its queries are running.                                                                                 |
+| `isLoading`               | Any of the three.                                                                                        |
+| `step`                    | While a dashboard is built, `{ tools, scripts }`: the data tools it called and the scripts it's saving.  |
+| `justUpdated`             | A newer version replaced the one on screen in the last few seconds.                                      |
+| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                             |
+| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                            |
+| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                           |
+| `preview`                 | Whether the renderer has a card.                                                                         |
 
 ## Data sources
 

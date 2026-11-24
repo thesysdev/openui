@@ -40,6 +40,7 @@ export type { ArtifactError, ArtifactErrorCode } from "./CloudArtifact/errors";
 export type {
   ChromeProps,
   CloseButtonProps,
+  EditedNoticeProps,
   ErrorProps,
   LoaderProps,
   PartProps,

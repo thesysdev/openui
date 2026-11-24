@@ -32,6 +32,8 @@ export interface ArtifactSummary {
   isEditable?: boolean;
   /** Who it's shared with. Only for users who can edit it. */
   shares?: ArtifactShare[];
+  /** The saved content's version. Every content edit makes a new one. */
+  version?: string;
 }
 
 /** Full artifact. `content` must have the same shape as the tool-call `response` the renderer's parser expects. */
@@ -86,20 +88,31 @@ export interface ArtifactBuildStep {
  * pieces, then `end` (or `error`). Every connection starts over: the
  * reference, then everything so far. A reference with the `version` a reader
  * already has replaces what it has of it. While a dashboard is built, `step`
- * says what it's doing, when that changes.
+ * says what it's doing, when that changes. `unchanged` is the whole answer to a
+ * `fetchLatest` read when nothing changed.
  */
 export type ArtifactStreamEvent =
   | {
       type: "reference";
-      data: { id: string; type?: string; title?: string; version?: string };
+      data: {
+        id: string;
+        type?: string;
+        title?: string;
+        version?: string;
+        is_owner?: boolean;
+        is_editable?: boolean;
+        tag?: string;
+      };
     }
   | { type: "delta"; data: { text: string } }
   | { type: "step"; data: ArtifactBuildStep }
   | { type: "end" }
-  | { type: "error"; data: { code?: string; message?: string } };
+  | { type: "error"; data: { code?: string; message?: string } }
+  | { type: "unchanged" };
 
 export interface ArtifactStreamOptions {
   signal?: AbortSignal;
+  fetchLatest?: string;
 }
 
 export interface ArtifactStorage {

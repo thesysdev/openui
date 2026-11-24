@@ -162,6 +162,7 @@ export function Chrome({ title, actions, className, children }: ChromeProps) {
         <div className={clsx(styles.chromeBar, names.chromeBar)}>
           <ChromeTitle />
           <ChromeLoader />
+          <EditedNotice />
           <ChromeActions />
         </div>
         <Content />
@@ -186,12 +187,31 @@ export function ChromeTitle({ className, children }: PartProps) {
 export function ChromeLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  if (!inside || !state.isLoading) return null;
+  // While pending, `Pending` says what's happening, in the content.
+  if (!inside || !state.isLoading || state.isPending) return null;
   if (children !== undefined) return <>{children}</>;
   return (
     <span className={clsx(styles.loader, names.loader)} role="status">
       <Spinner />
       {label ?? loadingLabel(state)}
+    </span>
+  );
+}
+
+export interface EditedNoticeProps {
+  label?: string;
+  children?: ReactNode;
+}
+
+/** "Edited just now", for a few seconds after a newer version finishes replacing the one on screen. */
+export function EditedNotice({ label, children }: EditedNoticeProps) {
+  const inside = useInRegion("chrome");
+  const state = useArtifactRenderer();
+  if (!inside || !state.justUpdated || state.isLoading) return null;
+  if (children !== undefined) return <>{children}</>;
+  return (
+    <span className={clsx(styles.loader, names.edited)} role="status">
+      {label ?? "Edited just now"}
     </span>
   );
 }
@@ -346,10 +366,19 @@ export interface ErrorProps {
 function ErrorSlot({ message, children }: ErrorProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
+  const config = useContext(ContentConfigContext);
   if (!inside || !state.error) return null;
   if (children !== undefined) return <>{children}</>;
   return (
-    <div className={clsx(styles.error, names.error)} role="alert">
+    <div
+      className={clsx(
+        styles.error,
+        names.error,
+        // Nothing to show under it (deleted, unshared, never loaded): in the middle.
+        config?.isEmpty && [styles.errorEmpty, names.errorEmpty],
+      )}
+      role="alert"
+    >
       <span>{message ?? state.error.message}</span>
       {state.retry && (
         <Button variant="secondary" size="small" onClick={state.retry}>

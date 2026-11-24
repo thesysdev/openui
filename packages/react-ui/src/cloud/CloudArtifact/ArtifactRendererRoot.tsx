@@ -2,8 +2,10 @@
 
 import {
   createInterpreterToolProvider,
+  useArtifactPollInterval,
   useArtifactStorage,
   useArtifactStream,
+  type ArtifactSummary,
   type Interpreter,
 } from "@openuidev/react-headless";
 import {
@@ -27,7 +29,8 @@ import {
   type SyntheticEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import { cacheFor } from "./artifactCache";
+import { shallow } from "zustand/shallow";
+import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
@@ -47,6 +50,7 @@ import {
   ChromeTitle,
   CloseButton,
   Content,
+  EditedNotice,
   Error as ErrorSlot,
   Loading,
   Pending,
@@ -92,6 +96,14 @@ export interface ArtifactRendererBaseProps {
   onError?: (errors: Array<OpenUIError | ArtifactError>) => void;
   /** Buttons in the open artifact's bar, next to its close button. A `Chrome` slot's `actions` win. */
   actions?: ReactNode;
+  /**
+   * How often the artifact checks for a newer version, a rename or an access change, in ms
+   * (at least 3s), while the renderer is open: a standalone one always is, a card once opened.
+   * A newer version replaces the one on screen; a deleted or unshared artifact shows an error.
+   * Hidden tabs don't check. `false`: never. Default: `OpenUICloudProvider`'s
+   * `pollInterval`, else 30s.
+   */
+  pollInterval?: number | false;
   /** Slots: `Preview` and `Chrome`. */
   children?: ReactNode;
 }
@@ -127,9 +139,36 @@ const DELETED_ERROR: ArtifactError = {
   message: "This artifact was deleted.",
 };
 
+/** How often a shown artifact checks for changes when neither the renderer nor the provider says. */
+const DEFAULT_POLL_INTERVAL = 30_000;
+
+/** A `pollInterval` to use: `false` or a finite number. Anything else (`NaN`, `Infinity`) counts as unset. */
+const usableInterval = (value: number | false | undefined) =>
+  value === false || Number.isFinite(value) ? value : undefined;
+
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
-const noTitle = () => undefined;
+const notCached = () => undefined;
+
+/** One field of the artifact's cached summary: only a change to that field re-renders. */
+function useCachedField<K extends "title" | "isOwner" | "isEditable">(
+  cache: ArtifactCache | null,
+  id: string | null,
+  key: K,
+): ArtifactSummary[K] | undefined {
+  return useSyncExternalStore(
+    cache?.subscribe ?? noopSubscribe,
+    () => (cache && id ? cache.get(id)?.[key] : undefined),
+    notCached,
+  );
+}
+
+/** `value`, or the last one while all its fields are the same, so a context value only changes when they do. */
+function useShallowStable<T extends object>(value: T): T {
+  const ref = useRef(value);
+  if (!shallow(ref.current, value)) ref.current = value;
+  return ref.current;
+}
 
 type Build = "none" | "waiting" | "streaming";
 
@@ -191,6 +230,7 @@ export function ArtifactRendererRoot({
   defaultOpen = false,
   className,
   actions,
+  pollInterval,
   children,
   interpreter,
   onError,
@@ -203,9 +243,37 @@ export function ArtifactRendererRoot({
   // No artifact yet: the tool call that makes it hasn't returned. A response
   // without a reference (even "") is a result, so it's an error instead.
   const noResponse = !idProp && response == null && !ownStorage;
-  const stream = useArtifactStream({ id, version: reference?.version, content });
 
-  // A delete from `useArtifactList` reaches every renderer showing the artifact.
+  // ── Open state ──
+  const [openState, setOpenState] = useState(defaultOpen);
+  const isOpen = isOpenProp ?? openState;
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const controlled = isOpenProp !== undefined;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (!controlled) setOpenState(next);
+      onOpenChangeRef.current?.(next);
+    },
+    [controlled],
+  );
+  const open = useCallback(() => setOpen(true), [setOpen]);
+  const close = useCallback(() => setOpen(false), [setOpen]);
+  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
+
+  const appPollInterval = useArtifactPollInterval();
+  const stream = useArtifactStream({
+    id,
+    version: reference?.version,
+    content,
+    // Only while the renderer is open: a standalone one always is, a card once opened.
+    pollInterval:
+      (!preview || isOpen) &&
+      (usableInterval(pollInterval) ?? usableInterval(appPollInterval) ?? DEFAULT_POLL_INTERVAL),
+  });
+
+  // A delete, rename or access change from the lists or another renderer's stream
+  // (the cache syncs from every stream) reaches every renderer showing the artifact.
   const storage = useArtifactStorage();
   const cache = storage ? cacheFor(storage) : null;
   const isDeleted = useSyncExternalStore(
@@ -213,11 +281,9 @@ export function ArtifactRendererRoot({
     cache && id ? () => cache.isDeleted(id) : notDeleted,
     notDeleted,
   );
-  const cachedTitle = useSyncExternalStore(
-    cache?.subscribe ?? noopSubscribe,
-    cache && id ? () => cache.get(id)?.title : noTitle,
-    noTitle,
-  );
+  const cachedTitle = useCachedField(cache, id, "title");
+  const cachedIsOwner = useCachedField(cache, id, "isOwner");
+  const cachedIsEditable = useCachedField(cache, id, "isEditable");
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
   const [inFlight, setInFlight] = useState(0);
@@ -323,24 +389,7 @@ export function ArtifactRendererRoot({
     onErrorRef.current?.([...artifactErrorsRef.current, ...rendererErrorsRef.current]);
   }, [artifactError]);
 
-  // ── Open state ──
-  const [openState, setOpenState] = useState(defaultOpen);
-  const isOpen = isOpenProp ?? openState;
-  const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
-  const controlled = isOpenProp !== undefined;
-  const setOpen = useCallback(
-    (next: boolean) => {
-      if (!controlled) setOpenState(next);
-      onOpenChangeRef.current?.(next);
-    },
-    [controlled],
-  );
-  const open = useCallback(() => setOpen(true), [setOpen]);
-  const close = useCallback(() => setOpen(false), [setOpen]);
-
   // A reopened dashboard shows its last results while its queries run.
-  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
   const queryResultCache = useQueryResultCache({ toolProvider, storage, requestRef, showsContent });
 
   // ── Pending: until the artifact has something to show ──
@@ -356,39 +405,25 @@ export function ArtifactRendererRoot({
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
-  // A rename from useArtifactUpdate reaches the cache before the stream.
-  const title = cachedTitle ?? stream.title ?? reference?.title;
-  const state = useMemo<ArtifactRendererState>(
-    () => ({
-      id,
-      title,
-      isPending,
-      isStreaming,
-      isFetching,
-      isLoading: isPending || isStreaming || isFetching,
-      step: stream.step,
-      error,
-      retry,
-      isOpen,
-      open,
-      close,
-      preview,
-    }),
-    [
-      id,
-      title,
-      isPending,
-      isStreaming,
-      isFetching,
-      stream.step,
-      error,
-      retry,
-      isOpen,
-      open,
-      close,
-      preview,
-    ],
-  );
+  const state = useShallowStable<ArtifactRendererState>({
+    id,
+    // A rename from useArtifactUpdate reaches the cache before the stream.
+    title: cachedTitle ?? stream.title ?? reference?.title,
+    isOwner: cachedIsOwner ?? stream.isOwner,
+    isEditable: cachedIsEditable ?? stream.isEditable,
+    isPending,
+    isStreaming,
+    isFetching,
+    isLoading: isPending || isStreaming || isFetching,
+    step: stream.step,
+    justUpdated: stream.justUpdated,
+    error,
+    retry,
+    isOpen,
+    open,
+    close,
+    preview,
+  });
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
@@ -545,6 +580,7 @@ export const slots = {
   ChromeTitle,
   ChromeLoader,
   ChromeActions,
+  EditedNotice,
   CloseButton,
   ProvenanceToggle,
   Content,
