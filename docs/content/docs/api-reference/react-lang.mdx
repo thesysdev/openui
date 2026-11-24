@@ -507,9 +507,9 @@ function useIsQueryLoading(): boolean;
 // props read, e.g. a table its columns; each child has its own entry too), and each query's
 // call, loading flag and result. Component ids are a
 // statement's name, or `lead.2` for a component written inside `lead`, as readSourceTarget
-// returns; they hold for one parse. A prop with no queries, state or components is written in
-// the program, or reads a Mutation's result. lang-core's dataSources(parseResult) is the same
-// without the live values.
+// returns; they hold for one parse. A value with no queries and no state is written in the
+// program (or reads a Mutation's result), not read from data, even if `via` lists constants.
+// lang-core's dataSources(parseResult) is the same without the live values.
 function useDataSources(): {
   components: Record<
     string,

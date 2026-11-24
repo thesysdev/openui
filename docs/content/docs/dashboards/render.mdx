@@ -219,7 +219,23 @@ In React on the web, components are found without any change to the library, thr
 
 Pass the same `library` object on every render, such as one created at module level: a new library each render makes the whole dashboard render again.
 
-To style inspect mode, target these on the `Content` slot's element (`.openui-artifact-content`, which also carries a `className` you pass to `Content`): `[data-openui-hover]` is what a click would select, under the mouse; `[data-openui-selected]` is the selected component and the selected prop's element; `.openui-artifact-inspecting` is on while inspect mode is. The default outlines give way to any rule like these:
+To restyle the outlines, set these variables on `.openui-artifact-content` or any element around it:
+
+| Variable                            | Default                                    |
+| ----------------------------------- | ------------------------------------------ |
+| `--openui-inspect-color`            | `var(--openui-interactive-accent-default)` |
+| `--openui-inspect-hover-outline`    | `1px dashed` in `--openui-inspect-color`   |
+| `--openui-inspect-selected-outline` | `2px solid` in `--openui-inspect-color`    |
+| `--openui-inspect-outline-offset`   | `-2px` (drawn inside the element)          |
+
+```css
+.openui-artifact-content {
+  --openui-inspect-color: #7c3aed;
+  --openui-inspect-hover-outline: none;
+}
+```
+
+For more than an outline, target these on the `Content` slot's element (`.openui-artifact-content`, which also carries a `className` you pass to `Content`): `[data-openui-hover]` is what a click would select, under the mouse; `[data-openui-selected]` is the selected component and the selected prop's element; `.openui-artifact-inspecting` is on while inspect mode is. The default outlines give way to any rule like these:
 
 ```css
 /* No hover outline; a thicker selected outline. Hover first: a clicked element has both. */

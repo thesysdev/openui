@@ -16,7 +16,7 @@ export interface Sources {
   state: string[];
 }
 
-/** A prop's sources. No queries, state or components: written in the program. */
+/** A prop's sources. No queries and no state: written in the program, not read from data. */
 export interface PropSources extends Sources {
   /** The argument as written, e.g. `now.revenue`. */
   expr: string;

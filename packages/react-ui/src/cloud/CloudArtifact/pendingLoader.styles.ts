@@ -1,4 +1,4 @@
-import { css } from "goober";
+import { css } from "@openuidev/react-components";
 
 /** Class names inside the pending loader. The engine builds its cards from them. */
 export const pendingLoaderNames = {
