@@ -25,6 +25,7 @@ export { useOpenuiCloudStorage } from "./cloud/openuiCloud";
 export type { OpenuiCloudFeatures, OpenuiCloudOptions } from "./cloud/openuiCloud";
 export { OpenUICloudProvider } from "./cloud/OpenUICloudProvider";
 export type { OpenUICloudProviderProps } from "./cloud/OpenUICloudProvider";
+export { useArtifactPollInterval } from "./cloud/pollInterval";
 export { useActiveDetailedView } from "./hooks/useActiveDetailedView";
 export { useArtifactList } from "./hooks/useArtifactList";
 export type { ArtifactListFilter } from "./hooks/useArtifactList";

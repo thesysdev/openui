@@ -92,8 +92,9 @@ const MAX_RECONNECTS = 3;
 const REREAD_INTERVAL_MS = 10_000;
 /** A connection that stayed open this long was healthy, so its drop doesn't count against `MAX_RECONNECTS`. */
 const STABLE_CONNECTION_MS = 10_000;
-const MIN_POLL_INTERVAL_MS = 10_000;
-const MAX_POLL_BACKOFF_MS = 5 * 60_000;
+const MIN_POLL_INTERVAL_MS = 3_000;
+/** The longest `setTimeout` takes: a longer wait would fire at once. */
+const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 /** How long `justUpdated` stays on. */
 const JUST_UPDATED_MS = 10_000;
 const ERROR_CODES = new Set<string>([
@@ -436,13 +437,9 @@ export class ArtifactStreamStore {
     entry.pollTimer = null;
     if (!polls(entry)) return;
     const interval = Math.min(...entry.pollers.values());
-    const backoff = Math.max(
-      interval,
-      Math.min(interval * 2 ** entry.pollFailures, MAX_POLL_BACKOFF_MS),
-    );
-    // Jitter, so renderers opened together don't poll together.
-    const wait = backoff * (0.9 + Math.random() * 0.2);
-    entry.pollTimer = setTimeout(() => this.pollNow(id), wait);
+    // Each failure doubles the wait. Jitter, so renderers opened together don't poll together.
+    const wait = interval * 2 ** entry.pollFailures * (0.9 + Math.random() * 0.2);
+    entry.pollTimer = setTimeout(() => this.pollNow(id), Math.min(wait, MAX_TIMEOUT_MS));
   }
 
   private pollNow(id: string): void {
@@ -620,7 +617,7 @@ export interface UseArtifactStreamOptions {
   content?: string;
   /**
    * Checks for a newer version, a rename or an access change this often, in ms
-   * (at least 10s), while the artifact is shown and the tab is visible.
+   * (at least 3s), while the artifact is shown and the tab is visible.
    * Unset or `false`: never.
    */
   pollInterval?: number | false;

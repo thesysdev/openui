@@ -2,6 +2,7 @@
 
 import {
   createInterpreterToolProvider,
+  useArtifactPollInterval,
   useArtifactStorage,
   useArtifactStream,
   type ArtifactSummary,
@@ -97,8 +98,9 @@ export interface ArtifactRendererBaseProps {
   actions?: ReactNode;
   /**
    * How often the shown artifact checks for a newer version, a rename or an access change, in ms
-   * (at least 10s). A newer version replaces the one on screen; a deleted or unshared artifact
-   * shows an error. Hidden tabs don't check. `false`: never. Default 30s.
+   * (at least 3s). A newer version replaces the one on screen; a deleted or unshared artifact
+   * shows an error. Hidden tabs don't check. `false`: never. Default: `OpenUICloudProvider`'s
+   * `pollInterval`, else 30s.
    */
   pollInterval?: number | false;
   /** Slots: `Preview` and `Chrome`. */
@@ -135,6 +137,9 @@ const DELETED_ERROR: ArtifactError = {
   code: "not-found",
   message: "This artifact was deleted.",
 };
+
+/** How often a shown artifact checks for changes when neither the renderer nor the provider says. */
+const DEFAULT_POLL_INTERVAL = 30_000;
 
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
@@ -220,7 +225,7 @@ export function ArtifactRendererRoot({
   defaultOpen = false,
   className,
   actions,
-  pollInterval = 30_000,
+  pollInterval,
   children,
   interpreter,
   onError,
@@ -251,12 +256,13 @@ export function ArtifactRendererRoot({
   const close = useCallback(() => setOpen(false), [setOpen]);
   const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
 
+  const appPollInterval = useArtifactPollInterval();
   const stream = useArtifactStream({
     id,
     version: reference?.version,
     content,
     // Only while the content is shown.
-    pollInterval: showsContent && pollInterval,
+    pollInterval: showsContent && (pollInterval ?? appPollInterval ?? DEFAULT_POLL_INTERVAL),
   });
 
   // A delete, rename or access change from the lists or another renderer's stream
