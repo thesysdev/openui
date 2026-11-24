@@ -7,6 +7,10 @@ import toolkit from "../../../lib/toolkit";
 
 export const runtime = "nodejs";
 
+// The dashboard tools wait for the build's tool rounds, and a streamed build lasts until the
+// dashboard is saved, often a minute or more.
+export const maxDuration = 300;
+
 // The toolkit's server build: create_dashboard and edit_dashboard, with their `execute`.
 const dashboardTools = new AISDKToolkit({ toolkit });
 

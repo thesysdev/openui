@@ -72,8 +72,9 @@ type DashboardToolProps = ToolCallMessagePartProps<
 
 /**
  * The card in the chat for a create_dashboard or edit_dashboard call. Its result is OpenUI
- * Cloud's response, which the panel passes to the renderer as is. A new dashboard or an edit
- * opens beside the chat as soon as the tool returns.
+ * Cloud's response, which the panel passes to the renderer as is. The tool streams two: the first
+ * as soon as the dashboard has an id, which opens it beside the chat while it's built, and the
+ * last one once it's saved or failed, which the open panel gets too.
  */
 export function DashboardCard({
   toolName,
@@ -81,26 +82,34 @@ export function DashboardCard({
   args,
   result,
   isError,
+  isPreliminary,
   status,
 }: DashboardToolProps) {
   const { open, setOpen } = useOpenDashboard();
   const isOpen = open?.key === toolCallId;
   const response = !isError && typeof result === "string" ? result : undefined;
 
-  // Opens once, when the result arrives, so closing the panel sticks.
+  // Opens once, when the first result arrives, so closing the panel sticks. A later result goes to
+  // the panel only while it shows this card's dashboard.
   const opened = useRef(false);
   useEffect(() => {
-    if (!response || opened.current) return;
-    opened.current = true;
-    setOpen({ key: toolCallId, response });
-  }, [response, toolCallId, setOpen]);
+    if (!response) return;
+    if (!opened.current) {
+      opened.current = true;
+      setOpen({ key: toolCallId, response });
+    } else if (isOpen) {
+      setOpen({ key: toolCallId, response });
+    }
+  }, [response, toolCallId, isOpen, setOpen]);
 
   const title =
     args?.title ?? (toolName === "edit_dashboard" ? "Dashboard change" : "New dashboard");
   const [label, tone]: [string, Tone] = isError
     ? ["Couldn't start", "error"]
     : response
-      ? [toolName === "edit_dashboard" ? "Change started" : "Live", "live"]
+      ? isPreliminary
+        ? [toolName === "edit_dashboard" ? "Changing" : "Building", "busy"]
+        : [toolName === "edit_dashboard" ? "Changed" : "Ready", "live"]
       : [status?.type === "running" ? "Starting" : "Waiting", "busy"];
 
   return (
@@ -172,6 +181,8 @@ export function DashboardPanel(source: DashboardSource) {
           >
             <PanelReport />
             <LiveArtifactRenderer.Content className="relative h-full overflow-y-auto p-4 sm:p-6">
+              {/* Until the dashboard starts streaming: what the build is doing. */}
+              <LiveArtifactRenderer.Pending />
               <LiveArtifactRenderer.Loading>
                 <DashboardLoading />
               </LiveArtifactRenderer.Loading>
@@ -250,14 +261,16 @@ function StatusDot({ tone }: { tone: Tone }) {
 
 /** The renderer's state, in the panel's bar. `useArtifactRenderer()` reads the renderer it sits in. */
 function StatusBadge() {
-  const { isStreaming, isFetching, error } = useArtifactRenderer();
+  const { isStreaming, isFetching, error, step } = useArtifactRenderer();
   const [label, tone]: [string, Tone] = error
     ? ["Couldn't load", "error"]
-    : isStreaming
-      ? ["Generating", "busy"]
-      : isFetching
-        ? ["Loading data", "busy"]
-        : ["Live", "live"];
+    : step
+      ? [step.tools.length > 0 ? "Reading your data" : "Preparing your data", "busy"]
+      : isStreaming
+        ? ["Generating", "busy"]
+        : isFetching
+          ? ["Loading data", "busy"]
+          : ["Live", "live"];
   return (
     <Badge
       variant="outline"
