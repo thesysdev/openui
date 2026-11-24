@@ -432,7 +432,14 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
       }
 
       const hasDynamicProps = Object.values(props).some((v) => containsDynamicValue(v));
-      return { type: "element", typeName: name, props, partial: ctx.partial, hasDynamicProps };
+      return {
+        type: "element",
+        typeName: name,
+        props,
+        partial: ctx.partial,
+        hasDynamicProps,
+        ...(node.componentId ? { componentId: node.componentId } : {}),
+      };
     }
 
     // ── Runtime expression nodes → preserve as ASTNode, normalize children ─

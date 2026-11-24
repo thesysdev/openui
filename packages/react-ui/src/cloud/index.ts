@@ -34,8 +34,8 @@ export {
   useArtifactUnshare,
 } from "./CloudArtifact/artifactShares";
 export type { ArtifactSharesState } from "./CloudArtifact/artifactShares";
-export { useArtifactRenderer } from "./CloudArtifact/contexts";
-export type { ArtifactRendererState } from "./CloudArtifact/contexts";
+export { useArtifactProvenance, useArtifactRenderer } from "./CloudArtifact/contexts";
+export type { ArtifactProvenanceState, ArtifactRendererState } from "./CloudArtifact/contexts";
 export type { ArtifactError, ArtifactErrorCode } from "./CloudArtifact/errors";
 export type {
   ChromeProps,
@@ -45,6 +45,8 @@ export type {
   PartProps,
   PendingProps,
   PreviewProps,
+  ProvenanceProps,
+  ProvenanceToggleProps,
 } from "./CloudArtifact/slots";
 export { useArtifactList } from "./CloudArtifact/useArtifactList";
 export type {
@@ -52,3 +54,5 @@ export type {
   ArtifactListState,
   UseArtifactListOptions,
 } from "./CloudArtifact/useArtifactList";
+// What `describeSource` returns. The Sources panel itself is drawn by the renderer, not exported.
+export type { SourceDescription } from "./DataSourcesPanel/types";
