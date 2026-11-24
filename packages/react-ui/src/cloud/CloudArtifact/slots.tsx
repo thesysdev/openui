@@ -3,7 +3,7 @@
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { Database, LoaderCircle, X } from "lucide-react";
-import { useContext, useEffect, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
@@ -290,9 +290,6 @@ export function Content({ className, children }: PartProps) {
   const config = useContext(ContentConfigContext);
   // On the content, not the root: with `renderInHtmlElement` the content is portaled out of it.
   const inspecting = useContext(ProvenanceContext)?.isInspecting ?? false;
-  // The artifact checks for changes only while its content is on screen.
-  const mount = inside ? config?.mount : undefined;
-  useEffect(() => mount?.(), [mount]);
   if (!inside || !config) return null;
   return (
     <RegionProvider region="content">
