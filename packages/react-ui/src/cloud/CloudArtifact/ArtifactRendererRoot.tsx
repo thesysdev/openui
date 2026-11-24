@@ -2,11 +2,18 @@
 
 import {
   createInterpreterToolProvider,
+  useArtifactPollInterval,
   useArtifactStorage,
   useArtifactStream,
+  type ArtifactSummary,
   type Interpreter,
 } from "@openuidev/react-headless";
-import type { McpClientLike, OpenUIError } from "@openuidev/react-lang";
+import {
+  readSourceTarget,
+  type McpClientLike,
+  type OpenUIError,
+  type SourceTarget,
+} from "@openuidev/react-lang";
 import clsx from "clsx";
 import {
   Children,
@@ -19,16 +26,21 @@ import {
   useSyncExternalStore,
   type ReactElement,
   type ReactNode,
+  type SyntheticEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import { cacheFor } from "./artifactCache";
+import { shallow } from "zustand/shallow";
+import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ContentConfigContext,
+  createSourcesStore,
+  ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
   type ContentConfig,
+  type ProvenanceContextValue,
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
 import {
@@ -38,6 +50,7 @@ import {
   ChromeTitle,
   CloseButton,
   Content,
+  EditedNotice,
   Error as ErrorSlot,
   Loading,
   Pending,
@@ -45,6 +58,8 @@ import {
   PreviewDescription,
   PreviewLoader,
   PreviewTitle,
+  Provenance,
+  ProvenanceToggle,
   RegionProvider,
 } from "./slots";
 import { useQueryResultCache } from "./useQueryResultCache";
@@ -55,7 +70,8 @@ export interface ArtifactRendererBaseProps {
    * The tool's result, unchanged. The renderer reads the artifact from it.
    *
    * Without `response`, `id` or `content`, the renderer is pending: the tool call that makes the
-   * artifact is still running, and the `Pending` slot shows. Unmount it if the call ends without a result.
+   * artifact is still running, and the `Pending` slot shows. It keeps showing while a dashboard is
+   * built, until it starts writing. Unmount it if the call ends without a result.
    */
   response?: string | null;
   /** Instead of `response`, the artifact's id. */
@@ -80,6 +96,14 @@ export interface ArtifactRendererBaseProps {
   onError?: (errors: Array<OpenUIError | ArtifactError>) => void;
   /** Buttons in the open artifact's bar, next to its close button. A `Chrome` slot's `actions` win. */
   actions?: ReactNode;
+  /**
+   * How often the artifact checks for a newer version, a rename or an access change, in ms
+   * (at least 3s), while the renderer is open: a standalone one always is, a card once opened.
+   * A newer version replaces the one on screen; a deleted or unshared artifact shows an error.
+   * Hidden tabs don't check. `false`: never. Default: `OpenUICloudProvider`'s
+   * `pollInterval`, else 30s.
+   */
+  pollInterval?: number | false;
   /** Slots: `Preview` and `Chrome`. */
   children?: ReactNode;
 }
@@ -99,6 +123,8 @@ export interface RenderContentArgs {
 
 export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
   interpreter?: Interpreter;
+  /** Inspect mode, its toggle and panel. Live renderers only. */
+  enableProvenance?: boolean;
   renderContent: (args: RenderContentArgs) => ReactNode;
 }
 
@@ -113,9 +139,68 @@ const DELETED_ERROR: ArtifactError = {
   message: "This artifact was deleted.",
 };
 
+/** How often a shown artifact checks for changes when neither the renderer nor the provider says. */
+const DEFAULT_POLL_INTERVAL = 30_000;
+
+/** A `pollInterval` to use: `false` or a finite number. Anything else (`NaN`, `Infinity`) counts as unset. */
+const usableInterval = (value: number | false | undefined) =>
+  value === false || Number.isFinite(value) ? value : undefined;
+
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
-const noTitle = () => undefined;
+const notCached = () => undefined;
+
+/** One field of the artifact's cached summary: only a change to that field re-renders. */
+function useCachedField<K extends "title" | "isOwner" | "isEditable">(
+  cache: ArtifactCache | null,
+  id: string | null,
+  key: K,
+): ArtifactSummary[K] | undefined {
+  return useSyncExternalStore(
+    cache?.subscribe ?? noopSubscribe,
+    () => (cache && id ? cache.get(id)?.[key] : undefined),
+    notCached,
+  );
+}
+
+/** `value`, or the last one while all its fields are the same, so a context value only changes when they do. */
+function useShallowStable<T extends object>(value: T): T {
+  const ref = useRef(value);
+  if (!shallow(ref.current, value)) ref.current = value;
+  return ref.current;
+}
+
+type Build = "none" | "waiting" | "streaming";
+
+/**
+ * Pending while the tool call runs, and on through a dashboard's build until it has content, fails
+ * or its stream ends. A build is one that was pending, or whose stream reports a step (a reload
+ * mid-build); a saved artifact opening is never pending.
+ */
+function useBuildPending({
+  noResponse,
+  hasContent,
+  failed,
+  isStreaming,
+  hasStep,
+}: {
+  noResponse: boolean;
+  hasContent: boolean;
+  failed: boolean;
+  isStreaming: boolean;
+  hasStep: boolean;
+}): boolean {
+  const [build, setBuild] = useState<Build>("none");
+  let next = build;
+  if (hasContent || failed) next = "none";
+  else if (next === "none" && (noResponse || hasStep)) next = "waiting";
+  // Right after the response, the stream hasn't connected yet: wait for it to start.
+  if (next === "waiting" && isStreaming) next = "streaming";
+  else if (next === "streaming" && !isStreaming) next = "none";
+  // During render, so the slot doesn't blink between the response and the stream's first event.
+  if (next !== build) setBuild(next);
+  return noResponse || next !== "none";
+}
 
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
 function extractRegions(children: ReactNode) {
@@ -145,9 +230,11 @@ export function ArtifactRendererRoot({
   defaultOpen = false,
   className,
   actions,
+  pollInterval,
   children,
   interpreter,
   onError,
+  enableProvenance = false,
   renderContent,
 }: ArtifactRendererRootProps) {
   const reference = useMemo(() => parseArtifactReference(response), [response]);
@@ -155,10 +242,38 @@ export function ArtifactRendererRoot({
   const ownStorage = content !== undefined;
   // No artifact yet: the tool call that makes it hasn't returned. A response
   // without a reference (even "") is a result, so it's an error instead.
-  const isPending = !idProp && response == null && !ownStorage;
-  const stream = useArtifactStream({ id, version: reference?.version, content });
+  const noResponse = !idProp && response == null && !ownStorage;
 
-  // A delete from `useArtifactList` reaches every renderer showing the artifact.
+  // ── Open state ──
+  const [openState, setOpenState] = useState(defaultOpen);
+  const isOpen = isOpenProp ?? openState;
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const controlled = isOpenProp !== undefined;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (!controlled) setOpenState(next);
+      onOpenChangeRef.current?.(next);
+    },
+    [controlled],
+  );
+  const open = useCallback(() => setOpen(true), [setOpen]);
+  const close = useCallback(() => setOpen(false), [setOpen]);
+  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
+
+  const appPollInterval = useArtifactPollInterval();
+  const stream = useArtifactStream({
+    id,
+    version: reference?.version,
+    content,
+    // Only while the renderer is open: a standalone one always is, a card once opened.
+    pollInterval:
+      (!preview || isOpen) &&
+      (usableInterval(pollInterval) ?? usableInterval(appPollInterval) ?? DEFAULT_POLL_INTERVAL),
+  });
+
+  // A delete, rename or access change from the lists or another renderer's stream
+  // (the cache syncs from every stream) reaches every renderer showing the artifact.
   const storage = useArtifactStorage();
   const cache = storage ? cacheFor(storage) : null;
   const isDeleted = useSyncExternalStore(
@@ -166,11 +281,9 @@ export function ArtifactRendererRoot({
     cache && id ? () => cache.isDeleted(id) : notDeleted,
     notDeleted,
   );
-  const cachedTitle = useSyncExternalStore(
-    cache?.subscribe ?? noopSubscribe,
-    cache && id ? () => cache.get(id)?.title : noTitle,
-    noTitle,
-  );
+  const cachedTitle = useCachedField(cache, id, "title");
+  const cachedIsOwner = useCachedField(cache, id, "isOwner");
+  const cachedIsEditable = useCachedField(cache, id, "isEditable");
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
   const [inFlight, setInFlight] = useState(0);
@@ -230,7 +343,7 @@ export function ArtifactRendererRoot({
   // ── Errors and retry ──
   // The artifact's own error is the stream's, as is, so it keeps its identity
   // across renders. It wins over a failed data tool.
-  const artifactError = isPending
+  const artifactError = noResponse
     ? null
     : !id && !ownStorage
       ? NO_ID_ERROR
@@ -276,50 +389,41 @@ export function ArtifactRendererRoot({
     onErrorRef.current?.([...artifactErrorsRef.current, ...rendererErrorsRef.current]);
   }, [artifactError]);
 
-  // ── Open state ──
-  const [openState, setOpenState] = useState(defaultOpen);
-  const isOpen = isOpenProp ?? openState;
-  const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
-  const controlled = isOpenProp !== undefined;
-  const setOpen = useCallback(
-    (next: boolean) => {
-      if (!controlled) setOpenState(next);
-      onOpenChangeRef.current?.(next);
-    },
-    [controlled],
-  );
-  const open = useCallback(() => setOpen(true), [setOpen]);
-  const close = useCallback(() => setOpen(false), [setOpen]);
-
   // A reopened dashboard shows its last results while its queries run.
-  const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
   const queryResultCache = useQueryResultCache({ toolProvider, storage, requestRef, showsContent });
+
+  // ── Pending: until the artifact has something to show ──
+  const program = isDeleted ? null : stream.program;
+  const isPending = useBuildPending({
+    noResponse,
+    hasContent: !!program,
+    failed: artifactError !== null,
+    isStreaming: stream.isStreaming,
+    hasStep: stream.step !== undefined,
+  });
 
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
-  // A rename from useArtifactUpdate reaches the cache before the stream.
-  const title = cachedTitle ?? stream.title ?? reference?.title;
-  const state = useMemo<ArtifactRendererState>(
-    () => ({
-      id,
-      title,
-      isPending,
-      isStreaming,
-      isFetching,
-      isLoading: isPending || isStreaming || isFetching,
-      error,
-      retry,
-      isOpen,
-      open,
-      close,
-      preview,
-    }),
-    [id, title, isPending, isStreaming, isFetching, error, retry, isOpen, open, close, preview],
-  );
-
-  const program = isDeleted ? null : stream.program;
+  const state = useShallowStable<ArtifactRendererState>({
+    id,
+    // A rename from useArtifactUpdate reaches the cache before the stream.
+    title: cachedTitle ?? stream.title ?? reference?.title,
+    isOwner: cachedIsOwner ?? stream.isOwner,
+    isEditable: cachedIsEditable ?? stream.isEditable,
+    isPending,
+    isStreaming,
+    isFetching,
+    isLoading: isPending || isStreaming || isFetching,
+    step: stream.step,
+    justUpdated: stream.justUpdated,
+    error,
+    retry,
+    isOpen,
+    open,
+    close,
+    preview,
+  });
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
@@ -345,6 +449,88 @@ export function ArtifactRendererRoot({
     ],
   );
 
+  // ── Provenance: inspect mode and the selected component ──
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [isInspecting, setInspecting] = useState(false);
+  const [selection, setSelection] = useState<SourceTarget | null>(null);
+  // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
+  const [sourcesStore] = useState(createSourcesStore);
+  const clearSelection = useCallback(() => setSelection(null), []);
+  const provenance = useMemo<ProvenanceContextValue | null>(
+    () =>
+      enableProvenance
+        ? { isInspecting, setInspecting, selection, clearSelection, sourcesStore }
+        : null,
+    [enableProvenance, isInspecting, selection, clearSelection, sourcesStore],
+  );
+  const inspecting = enableProvenance && isInspecting;
+  // While inspecting, pressing a component selects it instead of acting: buttons, links,
+  // inputs and menus (some open on pointer down) all stay still.
+  const onInspectCapture = useCallback(
+    (event: SyntheticEvent) => {
+      if (!inspecting) return;
+      // Touch keeps scrolling: a tap still selects on its click.
+      if (
+        event.type === "pointerdown" &&
+        (event.nativeEvent as PointerEvent).pointerType !== "mouse"
+      ) {
+        return;
+      }
+      // Bounded by this artifact: its bar and panel are not components of an outer Renderer.
+      const target = readSourceTarget(event.target, rootRef.current);
+      if (!target) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.type === "click") setSelection(target);
+    },
+    [inspecting],
+  );
+  // While inspecting, what a click would select gets a hover outline, for any component:
+  // set on the element directly, so moving the mouse re-renders nothing.
+  const hovered = useRef<Element | null>(null);
+  const setHovered = useCallback((element: Element | null) => {
+    if (hovered.current === element) return;
+    hovered.current?.removeAttribute("data-openui-hover");
+    element?.setAttribute("data-openui-hover", "");
+    hovered.current = element;
+  }, []);
+  const onInspectHover = useCallback(
+    (event: SyntheticEvent) => {
+      const target = readSourceTarget(event.target, rootRef.current);
+      setHovered(target ? (target.propElement ?? target.element) : null);
+    },
+    [setHovered],
+  );
+  const clearHovered = useCallback(() => setHovered(null), [setHovered]);
+  useEffect(() => {
+    if (!inspecting) clearHovered();
+    return clearHovered;
+  }, [inspecting, clearHovered]);
+  // Another artifact: start over. (Closing or a remount for live data unmounts the bridge,
+  // which clears the selection too.)
+  // An edit can give a component id (`lead.2`) to another component: start over too.
+  useEffect(() => setSelection(null), [id, program]);
+  // Outline the selected component and prop.
+  useEffect(() => {
+    if (!enableProvenance || !selection) return;
+    const marked = [selection.element, selection.propElement].filter(
+      (el): el is Element => el !== undefined,
+    );
+    marked.forEach((el) => el.setAttribute("data-openui-selected", ""));
+    // A component can replace a selected element, e.g. when data loads: the selection is gone.
+    const observer = new MutationObserver(() => {
+      if (!marked.every((el) => el.isConnected)) setSelection(null);
+    });
+    // The content can be portaled into `renderInHtmlElement`, outside the root.
+    for (const area of [rootRef.current, renderInHtmlElement]) {
+      if (area) observer.observe(area, { childList: true, subtree: true });
+    }
+    return () => {
+      observer.disconnect();
+      marked.forEach((el) => el.removeAttribute("data-openui-selected"));
+    };
+  }, [enableProvenance, selection, renderInHtmlElement]);
+
   // ── Slots and layout ──
   const regions = useMemo(() => extractRegions(children), [children]);
   const chrome = (
@@ -355,21 +541,31 @@ export function ArtifactRendererRoot({
 
   return (
     <RendererStateContext.Provider value={state}>
-      <ContentConfigContext.Provider value={contentConfig}>
-        <div className={clsx(styles.root, names.root, className)}>
-          {preview ? (
-            <>
-              <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
-              {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
-              {isOpen &&
-                renderInHtmlElement !== null &&
-                (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
-            </>
-          ) : (
-            <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
-          )}
-        </div>
-      </ContentConfigContext.Provider>
+      <ProvenanceContext.Provider value={provenance}>
+        <ContentConfigContext.Provider value={contentConfig}>
+          <div
+            ref={rootRef}
+            className={clsx(styles.root, names.root, className)}
+            onClickCapture={inspecting ? onInspectCapture : undefined}
+            onPointerDownCapture={inspecting ? onInspectCapture : undefined}
+            onMouseDownCapture={inspecting ? onInspectCapture : undefined}
+            onMouseOver={inspecting ? onInspectHover : undefined}
+            onMouseLeave={inspecting ? clearHovered : undefined}
+          >
+            {preview ? (
+              <>
+                <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
+                {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
+                {isOpen &&
+                  renderInHtmlElement !== null &&
+                  (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
+              </>
+            ) : (
+              <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
+            )}
+          </div>
+        </ContentConfigContext.Provider>
+      </ProvenanceContext.Provider>
     </RendererStateContext.Provider>
   );
 }
@@ -384,9 +580,12 @@ export const slots = {
   ChromeTitle,
   ChromeLoader,
   ChromeActions,
+  EditedNotice,
   CloseButton,
+  ProvenanceToggle,
   Content,
   Pending,
   Loading,
   Error: ErrorSlot,
+  Provenance,
 };

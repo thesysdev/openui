@@ -1,5 +1,6 @@
 "use client";
 
+import type { SourceBinding } from "@openuidev/react-lang";
 import { useRef, useState, type ReactNode } from "react";
 import { useIsomorphicLayoutEffect } from "../../../shared/hooks";
 import type { KpiProps } from "../Kpi";
@@ -11,6 +12,7 @@ export interface KpisProps {
   items: ReactNode[];
   facts: Omit<KpiProps, "streaming">[];
   streaming: boolean;
+  sourceAttributes?: SourceBinding;
 }
 
 /** Tiles never render narrower than this; the strip wraps instead. Sized so
@@ -60,7 +62,11 @@ export function Kpis(props: KpisProps) {
     const rows: (typeof facts)[] = [];
     for (let i = 0; i < facts.length; i += cols) rows.push(facts.slice(i, i + cols));
     return (
-      <div className="openui-dashboard-kpis openui-dashboard-kpis-compact" ref={strip}>
+      <div
+        className="openui-dashboard-kpis openui-dashboard-kpis-compact"
+        ref={strip}
+        {...props.sourceAttributes}
+      >
         {rows.map((row, r) => (
           <div key={r} className="openui-dashboard-kpis-row">
             {row.map((fact, keyIndex) => (
@@ -79,7 +85,7 @@ export function Kpis(props: KpisProps) {
   const rows: (typeof items)[] = [];
   for (let i = 0; i < items.length; i += cols) rows.push(items.slice(i, i + cols));
   return (
-    <div className="openui-dashboard-kpis" ref={strip}>
+    <div className="openui-dashboard-kpis" ref={strip} {...props.sourceAttributes}>
       {rows.map((row, r) => (
         <div key={r} className="openui-dashboard-kpis-row">
           {row.map((item, i) => (

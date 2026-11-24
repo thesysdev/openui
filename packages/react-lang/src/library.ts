@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from "react";
 import type { z } from "zod/v4";
 import type { $ZodObject } from "zod/v4/core";
+import type { BindSource } from "./provenance";
 import { libraryKey, publishLibrary } from "./publishLibrary";
 
 // Re-export framework-agnostic types unchanged
@@ -27,7 +28,10 @@ export type {
 export interface ComponentRenderProps<P = Record<string, unknown>> extends CoreRenderProps<
   P,
   ReactNode
-> {}
+> {
+  /** Marks the DOM this component renders, and each prop's element, for an inspect mode. */
+  bindSource?: BindSource<P>;
+}
 
 export type ComponentRenderer<P = Record<string, unknown>> = React.FC<ComponentRenderProps<P>>;
 

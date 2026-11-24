@@ -3,12 +3,16 @@
 import clsx from "clsx";
 import { LoaderCircle } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { AnimatedLabel } from "./AnimatedLabel";
 import { styles as artifactStyles, names } from "./cloudArtifact.styles";
 import { pendingLoaderNames, pendingLoaderStyles as styles } from "./pendingLoader.styles";
-import { EASE_OUT, prefersReducedMotion, startPendingLoader } from "./pendingLoaderEngine";
+import { prefersReducedMotion, startPendingLoader } from "./pendingLoaderEngine";
 
 export interface PendingLoaderProps {
-  /** Fixed text for the note. Without it, the note steps through building a dashboard. */
+  /**
+   * Text for the note. Without it, the note steps through building a dashboard. A new label
+   * drifts in. `Pending` passes what a dashboard being built is doing.
+   */
   label?: string;
   /** The color the cards are tinted from, as any CSS color. Defaults to the text color. */
   color?: string;
@@ -87,35 +91,13 @@ export function PendingLoader({
   );
 }
 
-/** `label`, or the next of `NOTES` every few seconds: the old line drifts up, the new one rises in. */
+/** `label`, or the next of `NOTES` every few seconds. */
 function NoteText({ label }: { label?: string }) {
   const [index, setIndex] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    const el = ref.current;
-    if (label !== undefined || !el?.animate || prefersReducedMotion()) return;
-    const timer = setInterval(() => {
-      el.animate([{ opacity: 1 }, { opacity: 0, translate: "0 -5px" }], {
-        duration: 200,
-        fill: "forwards",
-      })
-        .finished.then(() => {
-          setIndex((i) => (i + 1) % NOTES.length);
-          el.getAnimations().forEach((animation) => animation.cancel());
-          el.animate(
-            [
-              { opacity: 0, translate: "0 5px" },
-              { opacity: 1, translate: "0 0" },
-            ],
-            {
-              duration: 200,
-              easing: EASE_OUT,
-            },
-          );
-        })
-        .catch(() => {});
-    }, NOTE_EVERY);
+    if (label !== undefined || prefersReducedMotion()) return;
+    const timer = setInterval(() => setIndex((i) => (i + 1) % NOTES.length), NOTE_EVERY);
     return () => clearInterval(timer);
   }, [label]);
-  return <span ref={ref}>{label ?? NOTES[index]}</span>;
+  return <AnimatedLabel text={label ?? NOTES[index]!} />;
 }

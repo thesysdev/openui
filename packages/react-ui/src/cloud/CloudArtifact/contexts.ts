@@ -1,12 +1,16 @@
-import type { OpenUIError } from "@openuidev/react-lang";
-import { createContext, useContext, type ReactNode } from "react";
+import type { ArtifactBuildStep, ArtifactSummary } from "@openuidev/react-headless";
+import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
+import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
-/** The renderer's state and controls, from `useArtifactRenderer()`. */
-export interface ArtifactRendererState {
+/**
+ * The renderer's state and controls, from `useArtifactRenderer()`. `isOwner`
+ * and `isEditable` are undefined until the storage says.
+ */
+export interface ArtifactRendererState extends Pick<ArtifactSummary, "isOwner" | "isEditable"> {
   id: string | null;
   title?: string;
-  /** No artifact yet: the tool call that makes it is still running. */
+  /** Nothing to show yet: the tool call that makes it is still running, or the build hasn't started writing it. */
   isPending: boolean;
   /** The artifact's content is being generated. */
   isStreaming: boolean;
@@ -14,6 +18,13 @@ export interface ArtifactRendererState {
   isFetching: boolean;
   /** Any of the three. */
   isLoading: boolean;
+  /**
+   * What a dashboard being built is doing, until it starts writing: the data tools it called and
+   * the scripts it's saving.
+   */
+  step?: ArtifactBuildStep;
+  /** A newer version finished streaming in over the one on screen in the last few seconds. */
+  justUpdated: boolean;
   /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
   error: ArtifactError | OpenUIError | null;
   /** Retries what failed. Undefined when there's nothing to retry. */
@@ -68,3 +79,85 @@ export const ChromeOverridesContext = createContext<ChromeOverrides>({});
 export type Region = "preview" | "chrome" | "content";
 
 export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
+
+// ─── Provenance ──────────────────────────────────────────────────────────
+
+/** Inspect mode, the selected component and where data comes from, from `useArtifactProvenance()`. */
+export interface ArtifactProvenanceState {
+  /** While on, a click on a component selects it instead of acting. */
+  isInspecting: boolean;
+  setInspecting: (on: boolean) => void;
+  /** The component, and prop, last clicked in inspect mode. */
+  selection: SourceTarget | null;
+  clearSelection: () => void;
+  /**
+   * Where the program's data comes from: every component's sources and every query, with live
+   * values. Null unless inspecting or something is selected.
+   */
+  sources: DataSources | null;
+}
+
+/**
+ * Where the bridge inside `Renderer` puts the sources. A store, not the root's state: a write
+ * re-renders only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't
+ * loop back to the bridge.
+ */
+export interface SourcesStore {
+  get: () => DataSources | null;
+  set: (next: DataSources | null) => void;
+  subscribe: (listener: () => void) => () => void;
+}
+
+export function createSourcesStore(): SourcesStore {
+  let value: DataSources | null = null;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => value,
+    set: (next) => {
+      if (next === value) return;
+      value = next;
+      listeners.forEach((listener) => listener());
+    },
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
+  };
+}
+
+/** The renderer's provenance state: the public fields, and the store the bridge writes. */
+export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
+  sourcesStore: SourcesStore;
+}
+
+/** Null when `enableProvenance` is off. */
+export const ProvenanceContext = createContext<ProvenanceContextValue | null>(null);
+
+const noop = () => {};
+const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
+  isInspecting: false,
+  setInspecting: noop,
+  selection: null,
+  clearSelection: noop,
+  sources: null,
+});
+const INERT_STORE = createSourcesStore();
+const getNoSources = () => null;
+
+/**
+ * Inspect mode, the selection and where the program's data comes from, for a live artifact with
+ * `enableProvenance`. Call it inside the renderer, such as in a slot's children. With provenance
+ * off it returns an inert state: not inspecting, nothing selected, and setters that do nothing.
+ *
+ * @category Hooks
+ */
+export function useArtifactProvenance(): ArtifactProvenanceState {
+  const provenance = useContext(ProvenanceContext);
+  const store = provenance?.sourcesStore ?? INERT_STORE;
+  const sources = useSyncExternalStore(store.subscribe, store.get, getNoSources);
+  return useMemo(() => {
+    if (!provenance) return INERT_PROVENANCE;
+    const { sourcesStore: _store, ...state } = provenance;
+    return { ...state, sources };
+  }, [provenance, sources]);
+}

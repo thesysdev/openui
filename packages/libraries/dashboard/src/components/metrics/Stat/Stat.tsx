@@ -1,5 +1,6 @@
 "use client";
 
+import type { SourceBinding } from "@openuidev/react-lang";
 import { useCompare } from "../../../shared/compare";
 import { formatValue, type ValueFormat } from "../../../shared/format";
 import { DeltaBadge } from "../../shared/DeltaBadge";
@@ -12,6 +13,9 @@ export interface StatProps {
   previous?: number | null;
   goodWhen?: "up" | "down" | "neutral";
   label?: string;
+  sourceAttributes?: SourceBinding;
+  valueAttributes?: SourceBinding;
+  previousAttributes?: SourceBinding;
 }
 
 export function Stat(props: StatProps) {
@@ -22,9 +26,13 @@ export function Stat(props: StatProps) {
       ? props.label.charAt(0).toLowerCase() + props.label.slice(1)
       : props.label;
   return (
-    <div className="openui-dashboard-stat">
+    <div className="openui-dashboard-stat" {...props.sourceAttributes}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <span className="openui-dashboard-card-headline" style={{ margin: 0 }}>
+        <span
+          className="openui-dashboard-card-headline"
+          style={{ margin: 0 }}
+          {...props.valueAttributes}
+        >
           {formatValue(props.value, props.format)}
         </span>
         {label ? (
@@ -37,6 +45,7 @@ export function Stat(props: StatProps) {
         <p
           className="openui-dashboard-card-subtitle"
           style={{ display: "flex", alignItems: "center", gap: 6 }}
+          {...props.previousAttributes}
         >
           <DeltaBadge
             current={props.value}

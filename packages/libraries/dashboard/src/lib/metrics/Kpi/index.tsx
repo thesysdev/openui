@@ -44,10 +44,19 @@ function chartProps(chart: unknown): Partial<KpiProps> {
   }
 }
 
-function KpiView({ props }: ComponentRenderProps<KpiSchemaProps>) {
+function KpiView({ props, bindSource }: ComponentRenderProps<KpiSchemaProps>) {
   const streaming = useIsStreaming();
   const { chart, ...rest } = props;
-  return <Kpi {...rest} {...chartProps(chart)} streaming={streaming} />;
+  return (
+    <Kpi
+      {...rest}
+      {...chartProps(chart)}
+      streaming={streaming}
+      sourceAttributes={bindSource?.()}
+      valueAttributes={bindSource?.("value")}
+      previousAttributes={bindSource?.("previous")}
+    />
+  );
 }
 
 // Every schema field reaches Kpi (chart is read into the small chart's props here).

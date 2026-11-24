@@ -1,5 +1,20 @@
 # @openuidev/server
 
+## 0.5.2
+
+### Patch Changes
+
+- [#1678](https://github.com/thesysdev/openui/pull/1678) [`701c650`](https://github.com/thesysdev/openui/commit/701c6503d21cd5a3f06905aeee11308edfa94aa0) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Dashboards are built on `/v1/dashboard/chat/completions`, which needs an OpenUI Cloud that has it. While a dashboard is built, the model can call your data tools and save and run its own data scripts against them, so charts and tables match the data's real shape and every script has run once before the dashboard is saved. `create` and `edit` now return after these rounds, so they take longer and call your tools during the build.
+
+  `create` and `edit` take `{ stream: true }` and then yield two messages: one as soon as the dashboard has an id, so renderers can show it building, and one once it is saved or failed. Without it, they resolve once the dashboard starts generating, after the rounds (typically 20-45 s), and a plain `edit` won't report a failure after that. Both need a route timeout long enough for the rounds.
+
+  `defineDashboard` takes `reasoningEffort` (`"minimal" | "low" | "medium" | "high"`), sent as `reasoning_effort` with every round, for models that can think.
+
+  `defineDashboard` takes `maxToolRounds`: how many rounds of tool calls the model may make before it must write the dashboard (OpenUI Cloud's default: 20). With `0` the model calls none of your tools directly; it still saves and runs its data scripts, which call them.
+
+- Updated dependencies [[`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`681d0aa`](https://github.com/thesysdev/openui/commit/681d0aae34b7412e24e117953453241ab4788c6f)]:
+  - @openuidev/lang-core@1.2.0
+
 ## 0.5.1
 
 ### Patch Changes

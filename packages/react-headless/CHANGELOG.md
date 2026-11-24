@@ -1,5 +1,13 @@
 # @openuidev/react-headless
 
+## 0.19.0
+
+### Patch Changes
+
+- [#1679](https://github.com/thesysdev/openui/pull/1679) [`1ff6b26`](https://github.com/thesysdev/openui/commit/1ff6b265c5af6f242b4f5949c8db36db2c51f5ea) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Open artifacts stay current. While open, a renderer checks every 30 seconds (`pollInterval` on `OpenUICloudProvider` or the renderer, at least 3s, `false` to turn off) for a newer version, a rename, or a change to the user's access, and pauses while the tab is hidden. A newer version streams in live as it's generated, the same way the person editing sees it, without losing filters; a failed edit goes back to the version before it; and the new `EditedNotice` slot says "Edited just now" once it's done. A deleted or unshared artifact clears, shows its error in the middle, and leaves every list. It keeps checking and comes back if it's shared again. Failed checks retry less often each time, at most 5 minutes apart, and at once when the tab is shown again. `useArtifactRenderer()` adds `isOwner`, `isEditable`, and `justUpdated`. Saving content with `useArtifactUpdate` loads the new version in every renderer at once. `ArtifactStorage.stream` takes `fetchLatest` and can answer `unchanged`, and artifacts carry their `version`. While an artifact is pending, the chrome bar no longer shows its own loader next to `Pending`'s.
+
+- [#1709](https://github.com/thesysdev/openui/pull/1709) [`bbc525d`](https://github.com/thesysdev/openui/commit/bbc525d919cd622f18d6b111d4db26fb7538b94f) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - The artifact stream now reads the `step` event a dashboard's build sends while it calls data tools and saves scripts. `useArtifactStream` returns it as `step: { tools, scripts }` until the dashboard starts writing, and the new `ArtifactBuildStep` type describes it. Custom storages may yield `step` events too; ones that don't work as before.
+
 ## 0.18.12
 
 No changes in this release.

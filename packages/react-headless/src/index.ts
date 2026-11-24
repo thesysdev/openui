@@ -1,9 +1,14 @@
-export { useArtifactStream } from "./cloud/artifactStream";
+export {
+  noteArtifactVersion,
+  useArtifactStream,
+  watchArtifactStreams,
+} from "./cloud/artifactStream";
 export type {
   ArtifactStreamError,
   ArtifactStreamErrorCode,
   ArtifactStreamSnapshot,
   ArtifactStreamState,
+  ArtifactStreamWatcher,
   UseArtifactStreamOptions,
 } from "./cloud/artifactStream";
 export type { FrontendTokenSource } from "./cloud/frontendTokenManager";
@@ -20,6 +25,7 @@ export { useOpenuiCloudStorage } from "./cloud/openuiCloud";
 export type { OpenuiCloudFeatures, OpenuiCloudOptions } from "./cloud/openuiCloud";
 export { OpenUICloudProvider } from "./cloud/OpenUICloudProvider";
 export type { OpenUICloudProviderProps } from "./cloud/OpenUICloudProvider";
+export { useArtifactPollInterval } from "./cloud/pollInterval";
 export { useActiveDetailedView } from "./hooks/useActiveDetailedView";
 export { useArtifactList } from "./hooks/useArtifactList";
 export type { ArtifactListFilter } from "./hooks/useArtifactList";
@@ -69,6 +75,7 @@ export { fetchLLM, getResponseErrorMessage, restStorage } from "./adapters";
 export type {
   Artifact,
   ArtifactAccess,
+  ArtifactBuildStep,
   ArtifactCategory,
   ArtifactListParams,
   ArtifactShare,
