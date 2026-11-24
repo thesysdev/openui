@@ -100,6 +100,7 @@ export interface ArtifactRendererBaseProps {
 export interface RenderContentArgs {
   /** The artifact's program; grows while it streams. `null` before any content arrives. */
   program: string | null;
+  /** `program` is still being written. An edit streams in behind it, so it's `false` then. */
   isStreaming: boolean;
   /** Runs the artifact's data tools through the interpreter, for `Renderer`'s `toolProvider`. */
   toolProvider?: McpClientLike;
@@ -389,13 +390,15 @@ export function ArtifactRendererRoot({
       preview,
     ],
   );
+  // During an edit the version on screen is finished: its queries keep running and showing data.
+  const isWriting = isStreaming && !stream.isEditing;
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
       render: () =>
         renderContent({
           program,
-          isStreaming,
+          isStreaming: isWriting,
           toolProvider:
             interpreter && !queryResultCache.refreshing ? queryResultCache.toolProvider : undefined,
           rendererKey,
@@ -404,7 +407,7 @@ export function ArtifactRendererRoot({
     }),
     [
       program,
-      isStreaming,
+      isWriting,
       interpreter,
       queryResultCache.refreshing,
       queryResultCache.toolProvider,

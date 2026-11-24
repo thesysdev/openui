@@ -26,6 +26,12 @@ export interface ArtifactStreamSnapshot {
   version?: string;
   isStreaming: boolean;
   /**
+   * A newer version is streaming in behind the one in `program`, which stays as it is until the
+   * new one ends. So `program` is only still being written while `isStreaming` is `true` and
+   * this is `false`.
+   */
+  isEditing: boolean;
+  /**
    * What a dashboard being built is doing, until it starts writing: the data tools it called
    * and the scripts it's saving. Undefined otherwise.
    */
@@ -209,7 +215,7 @@ export class ArtifactStreamStore {
     let entry = this.entries.get(id);
     if (!entry) {
       entry = {
-        snapshot: { id, program: null, isStreaming: false, error: null },
+        snapshot: { id, program: null, isStreaming: false, isEditing: false, error: null },
         listeners: new Set(),
         controller: null,
         started: false,
@@ -230,7 +236,9 @@ export class ArtifactStreamStore {
 
   private update(id: string, patch: Partial<ArtifactStreamSnapshot>): void {
     const entry = this.entry(id);
-    entry.snapshot = { ...entry.snapshot, ...patch };
+    const snapshot = { ...entry.snapshot, ...patch };
+    snapshot.isEditing = snapshot.isStreaming && entry.target === "pending";
+    entry.snapshot = snapshot;
     entry.listeners.forEach((listener) => listener());
   }
 
@@ -239,6 +247,11 @@ export class ArtifactStreamStore {
     entry.controller?.abort();
     const controller = new AbortController();
     entry.controller = controller;
+    // Choose where it streams now, as its `reference` will, so a version on screen never reads
+    // as being written. A reconnect keeps the choice of the stream that dropped.
+    if (entry.version === undefined) {
+      entry.target = entry.snapshot.program === null ? "program" : "pending";
+    }
     this.update(id, { isStreaming: true, error: null });
 
     const connectedAt = Date.now();
@@ -424,7 +437,12 @@ export interface ArtifactStreamState extends Omit<ArtifactStreamSnapshot, "id"> 
   reportVersionMismatch?: (version: string) => Promise<"rerun" | "show">;
 }
 
-const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: null };
+const IDLE: ArtifactStreamState = {
+  program: null,
+  isStreaming: false,
+  isEditing: false,
+  error: null,
+};
 
 /**
  * Streams an artifact in by id from the configured {@link ArtifactStorage},
@@ -432,7 +450,8 @@ const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: nu
  *
  * - While it's generated, `program` grows and `isStreaming` is `true`.
  * - After a reload, it replays everything generated so far, then continues.
- * - During an edit, `program` keeps the current version until the new one ends.
+ * - During an edit, `program` keeps the current version until the new one ends, and
+ *   `isEditing` is `true`.
  * - Storages without `stream` are read once with `get`.
  *
  * @internal Used by the `@openuidev/react-ui/cloud` renderers.
@@ -464,7 +483,7 @@ export function useArtifactStream({
   );
 
   return useMemo<ArtifactStreamState>(() => {
-    if (ownContent) return { program: content, isStreaming: false, error: null };
+    if (ownContent) return { program: content, isStreaming: false, isEditing: false, error: null };
     if (!snapshot) {
       if (id && !storage) {
         return {
@@ -477,6 +496,13 @@ export function useArtifactStream({
     const { id: _id, ...rest } = snapshot;
     const retry =
       snapshot.error?.code === "network-error" && store && id ? () => store.retry(id) : undefined;
-    return { ...rest, isStreaming: rest.isStreaming || awaiting, retry, reportVersionMismatch };
+    // Awaiting a newer version, too, leaves the one on screen as it is.
+    return {
+      ...rest,
+      isStreaming: rest.isStreaming || awaiting,
+      isEditing: rest.isEditing || awaiting,
+      retry,
+      reportVersionMismatch,
+    };
   }, [ownContent, content, snapshot, id, storage, store, awaiting, reportVersionMismatch]);
 }
