@@ -206,7 +206,7 @@ export interface EditedNoticeProps {
 export function EditedNotice({ label, children }: EditedNoticeProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  if (!inside || !state.justEdited || state.isLoading) return null;
+  if (!inside || !state.justUpdated || state.isLoading) return null;
   if (children !== undefined) return <>{children}</>;
   return (
     <span className={clsx(styles.loader, names.edited)} role="status">

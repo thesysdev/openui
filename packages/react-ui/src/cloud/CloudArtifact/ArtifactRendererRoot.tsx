@@ -138,7 +138,7 @@ const DELETED_ERROR: ArtifactError = {
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
-/** How long `justEdited` stays true after a newer version replaces the one on screen. */
+/** How long `justUpdated` stays true after a newer version replaces the one on screen. */
 const EDITED_NOTICE_MS = 10_000;
 
 type Build = "none" | "waiting" | "streaming";
@@ -308,7 +308,7 @@ export function ArtifactRendererRoot({
     const timer = setTimeout(() => setEditedAt(0), EDITED_NOTICE_MS);
     return () => clearTimeout(timer);
   }, [editedAt]);
-  const justEdited = editedAt > 0;
+  const justUpdated = editedAt > 0;
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
   const [inFlight, setInFlight] = useState(0);
@@ -445,7 +445,7 @@ export function ArtifactRendererRoot({
       isFetching,
       isLoading: isPending || isStreaming || isFetching,
       step: stream.step,
-      justEdited,
+      justUpdated,
       error,
       retry,
       isOpen,
@@ -462,7 +462,7 @@ export function ArtifactRendererRoot({
       isStreaming,
       isFetching,
       stream.step,
-      justEdited,
+      justUpdated,
       error,
       retry,
       isOpen,
