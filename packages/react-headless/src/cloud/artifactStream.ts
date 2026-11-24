@@ -35,7 +35,6 @@ export interface ArtifactStreamSnapshot extends Pick<ArtifactSummary, "isOwner" 
    * and the scripts it's saving. Undefined otherwise.
    */
   step?: ArtifactBuildStep;
-  /** A newer version finished streaming in over the one on screen in the last few seconds. */
   justUpdated: boolean;
   error: ArtifactStreamError | null;
 }
@@ -59,10 +58,6 @@ interface Entry {
   /** A new version streams into `program`, live; the same version again loads into `pending`. */
   target: "program" | "pending";
   pending: string;
-  /**
-   * The next delta has everything so far, so it replaces what's shown: after a reconnect, or
-   * when a new version starts over the one on screen.
-   */
   replace: boolean;
   /** What was on screen before a new version started streaming over it. A failed edit goes back to it. */
   settled: Settled | null;
@@ -188,11 +183,6 @@ export class ArtifactStreamStore {
     };
   }
 
-  /**
-   * Checks for a newer version, a rename or an access change every
-   * `intervalMs` while the artifact is shown, without a loading state unless
-   * there's a new version. Returns a function that stops it.
-   */
   poll(id: string, intervalMs: number): () => void {
     const entry = this.entry(id);
     const key = Symbol();
@@ -615,11 +605,6 @@ export interface UseArtifactStreamOptions {
   version?: string;
   /** The artifact's saved content, when you keep artifacts in your own storage. Never streams. */
   content?: string;
-  /**
-   * Checks for a newer version, a rename or an access change this often, in ms
-   * (at least 3s), while the artifact is shown and the tab is visible.
-   * Unset or `false`: never.
-   */
   pollInterval?: number | false;
 }
 

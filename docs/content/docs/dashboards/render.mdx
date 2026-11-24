@@ -26,20 +26,20 @@ The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentica
 
 ## Props
 
-| Prop                                    | Description                                                                                                                                                                                                                                      |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `response`                              | The response from `create` or `edit`, unchanged.                                                                                                                                                                                                 |
-| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.                                                                                                                                          |
-| `library`                               | The component library. Use the same library the spec on the server came from.                                                                                                                                                                    |
-| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                                                                                                                                                 |
-| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                                                                                                                                                      |
-| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                                                                                                                                                               |
-| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                                                                                                                                                             |
-| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                                                                                                                                                   |
-| `enableProvenance`                      | Show where the data comes from: an inspect toggle in the bar, and your panel. See [Data sources](#data-sources).                                                                                                                                 |
-| `onError`                               | Receives rendering, query, and loading errors.                                                                                                                                                                                                   |
-| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never. Default: `OpenUICloudProvider`'s `pollInterval`, else 30s. See [Share dashboards](/docs/dashboards/sharing#open-dashboards-stay-current). |
-| `className`                             | Added to the root element.                                                                                                                                                                                                                       |
+| Prop                                    | Description                                                                                                      |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `response`                              | The response from `create` or `edit`, unchanged.                                                                 |
+| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.          |
+| `library`                               | The component library. Use the same library the spec on the server came from.                                    |
+| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                 |
+| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                      |
+| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                               |
+| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                             |
+| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                   |
+| `enableProvenance`                      | Show where the data comes from: an inspect toggle in the bar, and your panel. See [Data sources](#data-sources). |
+| `onError`                               | Receives rendering, query, and loading errors.                                                                   |
+| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never.           |
+| `className`                             | Added to the root element.                                                                                       |
 
 ## Layouts
 
@@ -102,16 +102,16 @@ The result can arrive before the dashboard is written, while the model still cal
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
 
-| Slot                                                                          | Region  | What it is                                                                                                                 |
-| ----------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                                         |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`                         | Preview | The card's parts.                                                                                                          |
-| `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                                              |
-| `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts. `EditedNotice` says "Edited just now" for a few seconds after a newer version replaces the one on screen. |
-| `ProvenanceToggle`                                                            | Chrome  | Turns inspect mode on and off. Only with `enableProvenance`.                                                               |
-| `Content`                                                                     | Chrome  | The dashboard itself.                                                                                                      |
-| `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children.                 |
-| `Provenance`                                                                  | Content | Your data sources panel, shown while a component is selected. Only with `enableProvenance`.                                |
+| Slot                                                                          | Region  | What it is                                                                                                 |
+| ----------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                         |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`                         | Preview | The card's parts.                                                                                          |
+| `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
+| `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                           |
+| `ProvenanceToggle`                                                            | Chrome  | Turns inspect mode on and off. Only with `enableProvenance`.                                               |
+| `Content`                                                                     | Chrome  | The dashboard itself.                                                                                      |
+| `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
+| `Provenance`                                                                  | Content | Your data sources panel, shown while a component is selected. Only with `enableProvenance`.                |
 
 For example, a full-height panel with its own header:
 

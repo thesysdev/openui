@@ -99,10 +99,9 @@ export type ArtifactStreamEvent =
         type?: string;
         title?: string;
         version?: string;
-        /** Changes whenever the version, the title, or the user's access does. */
-        tag?: string;
         is_owner?: boolean;
         is_editable?: boolean;
+        tag?: string;
       };
     }
   | { type: "delta"; data: { text: string } }
@@ -113,7 +112,6 @@ export type ArtifactStreamEvent =
 
 export interface ArtifactStreamOptions {
   signal?: AbortSignal;
-  /** The `tag` of the last reference read: when it still matches, the stream is just `unchanged`. */
   fetchLatest?: string;
 }
 
