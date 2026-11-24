@@ -46,31 +46,11 @@ const Spinner = () => (
   <LoaderCircle className={clsx(styles.spinner, names.spinner)} size={14} aria-hidden />
 );
 
-/**
- * A tool or script name as words: `on_time_by_region` reads "on time by region", `revenueByDay`
- * "revenue by day". Acronyms keep their case: `fetchHTTPData` reads "fetch HTTP data", `topSKUs`
- * "top SKUs". A name in capitals, such as `ORDER_TOTALS`, reads "order totals".
- */
-const readable = (name: string) => {
-  const words = name
-    .replace(/([A-Z]+)([A-Z][a-z]{2,})/g, "$1 $2")
-    .replace(/([a-z\d])([A-Z])/g, "$1 $2")
-    .split(/[\s_.-]+/)
-    .filter(Boolean);
-  const screaming = words.length > 1 && !/[a-z]/.test(name);
-  const acronym = (word: string) => /^[A-Z\d]+s?$/.test(word) && /[A-Z]/.test(word);
-  return (
-    words.map((word) => (!screaming && acronym(word) ? word : word.toLowerCase())).join(" ") || name
-  );
-};
-
-/** A step's names, readable: "a", "a and b", or "a, b and 2 more". */
-const nameList = (raw: string[]) => {
-  const names = raw.map(readable);
-  return names.length <= 2
+/** A step's names, as they are: "a", "a and b", or "a, b and 2 more". */
+const nameList = (names: string[]) =>
+  names.length <= 2
     ? names.join(" and ")
     : `${names[0]}, ${names[1]} and ${names.length - 2} more`;
-};
 
 /** What a dashboard being built is doing, by name: calling data tools, else writing and testing scripts. */
 const stepLabel = (step: ArtifactBuildStep | undefined) =>

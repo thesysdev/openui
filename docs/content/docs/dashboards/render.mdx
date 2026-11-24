@@ -94,7 +94,7 @@ The model writes the tool call's arguments before `create` runs, which can take 
 
 Unmount it if the call stops or fails without a result, or it stays pending. In `AgentInterface`, `defineLiveArtifactRenderer` from `@openuidev/react-ui/cloud/agent-interface` does both.
 
-The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming, and says what the build is doing, by name: "Calling list orders…" while it calls tools, "Writing and testing revenue by day…" while it writes scripts, with `list_orders` and `revenueByDay` turned into words. The card's loader says the same, and the bar's loader takes over once `Pending` hides. If the dashboard fails, the card shows the error in place of its loader.
+The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming, and says what the build is doing, by name: "Calling list_orders…" while it calls tools, "Writing and testing revenueByDay…" while it writes scripts. The card's loader says the same, and the bar's loader takes over once `Pending` hides. If the dashboard fails, the card shows the error in place of its loader.
 
 ## Slots
 

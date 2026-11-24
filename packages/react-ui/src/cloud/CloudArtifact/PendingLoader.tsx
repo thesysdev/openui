@@ -11,7 +11,7 @@ import { startPendingLoader } from "./pendingLoaderEngine";
 export interface PendingLoaderProps {
   /**
    * Text for the note. A new label drifts in. Without it, `Pending` shows the renderer's status,
-   * as the preview card and the bar do, such as "Calling list orders…".
+   * as the preview card and the bar do, such as "Calling list_orders…".
    */
   label?: string;
   /** The color the cards are tinted from, as any CSS color. Defaults to the text color. */
