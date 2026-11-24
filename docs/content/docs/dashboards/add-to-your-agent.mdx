@@ -25,7 +25,7 @@ export const createDashboardTool: OpenAI.ChatCompletionTool = {
   function: {
     name: "create_dashboard",
     description:
-      "Create a live dashboard. It loads its data every time it opens, so describe which data to show and how, without numbers. Returns as soon as the dashboard has an id.",
+      "Create a live dashboard. It loads its data every time it opens, so describe which data to show and how, without numbers. Returns once the dashboard starts generating.",
     parameters: {
       type: "object",
       properties: {
@@ -54,7 +54,7 @@ export function dashboardTools(context: { userId: string }) {
   return {
     create_dashboard: tool({
       description:
-        "Create a live dashboard. It loads its data every time it opens, so describe which data to show and how, without numbers. Returns as soon as the dashboard has an id.",
+        "Create a live dashboard. It loads its data every time it opens, so describe which data to show and how, without numbers. Returns once the dashboard starts generating.",
       inputSchema: z.object({
         title: z.string().min(1).describe('A short title, such as "Orders, last 30 days".'),
         prompt: z
@@ -88,7 +88,7 @@ export const editDashboardTool: OpenAI.ChatCompletionTool = {
   function: {
     name: "edit_dashboard",
     description:
-      "Change a dashboard in place, such as adding a chart or a section. Returns as soon as the change has started.",
+      "Change a dashboard in place, such as adding a chart or a section. Returns once the change starts.",
     parameters: {
       type: "object",
       properties: {
@@ -110,7 +110,7 @@ export function dashboardTools(context: { userId: string }) {
     create_dashboard: tool({/* … */}),
     edit_dashboard: tool({
       description:
-        "Change a dashboard in place, such as adding a chart or a section. Returns as soon as the change has started.",
+        "Change a dashboard in place, such as adding a chart or a section. Returns once the change starts.",
       inputSchema: z.object({
         id: z.string().min(1).describe("The dashboard's id, art_…, from its tool result."),
         prompt: z.string().min(1).describe("The change to make."),
@@ -219,6 +219,9 @@ import { dashboardTools, runDashboardTool } from "@/lib/dashboard-tools";
 import { getSession } from "@/lib/auth"; // your session lookup
 import { systemPrompt } from "@/lib/prompt";
 
+// The dashboard tools wait for the build's tool rounds.
+export const maxDuration = 300;
+
 const gateway = new OpenAI({
   apiKey: process.env.THESYS_API_KEY,
   baseURL: "https://api.thesys.dev/v1/embed",
@@ -271,6 +274,9 @@ import { dashboardTools } from "@/lib/dashboard-tools";
 import { getSession } from "@/lib/auth"; // your session lookup
 import { systemPrompt } from "@/lib/prompt";
 
+// The dashboard tools wait for the build's tool rounds.
+export const maxDuration = 300;
+
 const gateway = createOpenAI({
   apiKey: process.env.THESYS_API_KEY,
   baseURL: "https://api.thesys.dev/v1/embed",
@@ -298,7 +304,7 @@ export async function POST(request: Request) {
   </Tab>
 </Tabs>
 
-The tools return as soon as the dashboard has an id, so the model replies right away while the dashboard is generated in the browser.
+The create and edit tools return after the model's tool rounds, once the dashboard starts generating: typically 20-45 s. The model then replies while the dashboard is generated in the browser. Give the chat route a timeout long enough for the rounds, such as `maxDuration` above. To show the dashboard building right away, and to learn when a build fails, pass `{ stream: true }` from a tool that streams its output. See [Stream the build](/docs/dashboards/generate#stream-the-build).
 
 ## Instruct the agent
 
