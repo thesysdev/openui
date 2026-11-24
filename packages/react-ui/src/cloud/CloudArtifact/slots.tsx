@@ -48,9 +48,7 @@ const Spinner = () => (
 
 /** A step's names, as they are: "a", "a and b", or "a, b and 2 more". */
 const nameList = (names: string[]) =>
-  names.length <= 2
-    ? names.join(" and ")
-    : `${names[0]}, ${names[1]} and ${names.length - 2} more`;
+  names.length <= 2 ? names.join(" and ") : `${names[0]}, ${names[1]} and ${names.length - 2} more`;
 
 /** What a dashboard being built is doing, by name: calling data tools, else writing and testing scripts. */
 const stepLabel = (step: ArtifactBuildStep | undefined) =>
