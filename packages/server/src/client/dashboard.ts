@@ -7,6 +7,9 @@ import { createArtifacts } from "./artifacts";
 import { artifactConfig } from "./config";
 import { OpenUIApiError, type Dashboard, type DashboardOptions } from "./types";
 
+/** OpenUI Cloud's route that builds and edits dashboards, round by round. */
+const DASHBOARD_ROUTE = "/v1/dashboard/chat/completions";
+
 function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
 }
@@ -127,7 +130,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
       const reply = await api.post(
-        "/v1/dashboard/chat/completions",
+        DASHBOARD_ROUTE,
         request(context, messages, artifactId, call.id !== undefined),
         signal,
       );
@@ -184,7 +187,7 @@ export function defineDashboard<Context extends ExecutionContext>(
       const calls: Array<{ id: string; function: { name: string; arguments: string } }> = [];
       let finish: unknown;
       for await (const chunk of api.stream(
-        "/v1/dashboard/chat/completions",
+        DASHBOARD_ROUTE,
         request(context, messages, artifactId, call.id !== undefined),
         signal,
       )) {
