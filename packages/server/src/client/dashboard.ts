@@ -1,6 +1,6 @@
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
 import { mcpServers } from "../tools/mcp";
-import { runToolRound } from "../tools/tool-round";
+import { runToolRound, type ToolMessage } from "../tools/tool-round";
 import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
 import { isRecord, type CloudApi } from "./api";
 import { createArtifacts } from "./artifacts";
@@ -17,6 +17,11 @@ function invalidLibrary(error: unknown): never {
     "invalid_library",
   );
 }
+
+/** A chat message as OpenAI's Chat Completions API takes it: a build's first
+ *  request has the config block and the user's prompt, each later round the
+ *  results of the model's tool calls. */
+type ChatMessage = { role: "system" | "user"; content: string } | ToolMessage;
 
 /** The dashboard behind `openui.defineDashboard`. */
 export function defineDashboard<Context extends ExecutionContext>(
@@ -60,11 +65,11 @@ export function defineDashboard<Context extends ExecutionContext>(
   }
 
   /** The first request of a build: the config block and the user's prompt. */
-  async function firstMessages(
+  async function initialMessages(
     context: Context,
     prompt: string,
     call: { title?: string; id?: string },
-  ) {
+  ): Promise<ChatMessage[]> {
     // The dashboard belongs to the user the context names, in the client's app if it has one,
     // as a frontend token minted for them would say.
     assertUserIdRequired(context);
@@ -82,12 +87,12 @@ export function defineDashboard<Context extends ExecutionContext>(
         }),
       },
       { role: "user", content: prompt },
-    ] as unknown[];
+    ];
   }
 
   const request = (
     context: Context,
-    messages: unknown[],
+    messages: ChatMessage[],
     artifactId: string | undefined,
     edit: boolean,
   ) => ({
@@ -113,7 +118,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     call: { title?: string; id?: string },
     signal?: AbortSignal,
   ): Promise<string> {
-    let messages = await firstMessages(context, prompt, call);
+    let messages = await initialMessages(context, prompt, call);
     // The dashboard's id, from the first tool-call reply: later rounds and saved scripts go by it.
     let artifactId: string | undefined;
     // The build's version, from the same reply: a saved script runs from the build by it.
@@ -172,7 +177,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     call: { title?: string; id?: string },
     signal?: AbortSignal,
   ): AsyncGenerator<string> {
-    let messages = await firstMessages(context, prompt, call);
+    let messages = await initialMessages(context, prompt, call);
     let artifactId: string | undefined;
     let version: string | undefined;
     for (;;) {

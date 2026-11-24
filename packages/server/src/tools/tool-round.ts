@@ -10,6 +10,9 @@ import {
  *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */
 export const CREATE_SCRIPT_TOOL = "openui_create_script";
 
+/** A tool call's result, as the model gets it back. */
+export type ToolMessage = { role: "tool"; tool_call_id: string; content: string };
+
 /** Runs one round of the model's tool calls; each run has the interpreter's timeout. */
 export async function runToolRound<Context extends ExecutionContext>(
   calls: Array<{ id: string; function?: { name?: string; arguments?: string } }>,
@@ -21,7 +24,7 @@ export async function runToolRound<Context extends ExecutionContext>(
   artifactId: string,
   /** The build's version: OpenUI Cloud runs a saved script from the build in progress. */
   version: string | undefined,
-) {
+): Promise<ToolMessage[]> {
   callerSignal?.throwIfAborted();
   const executionOptions = callerSignal ? { signal: callerSignal } : {};
   return Promise.all(
@@ -60,7 +63,7 @@ export async function runToolRound<Context extends ExecutionContext>(
           },
         });
       }
-      return { role: "tool", tool_call_id: call.id, content };
+      return { role: "tool" as const, tool_call_id: call.id, content };
     }),
   );
 }
