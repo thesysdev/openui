@@ -32,6 +32,8 @@ export interface CloudApi {
     signal?: AbortSignal,
     headers?: Record<string, string>,
   ): Promise<Record<string, unknown>>;
+  /** POSTs JSON with `stream: true` and yields each event OpenUI Cloud sends, until `[DONE]`. */
+  stream(path: string, body: unknown, signal?: AbortSignal): AsyncIterable<Record<string, unknown>>;
 }
 
 /** The error a failed OpenUI Cloud response describes. */
@@ -112,9 +114,51 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
     return result;
   }
 
+  /** POSTs JSON with `stream: true` and yields each event OpenUI Cloud sends, until `[DONE]`. */
+  async function* stream(path: string, body: unknown, signal?: AbortSignal) {
+    const response = await fetchFn(url(path), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+        Authorization: authorization(),
+      },
+      body: JSON.stringify({ ...(body as object), stream: true }),
+      signal,
+    });
+    if (!response.ok) throw await apiError(response);
+    if (!response.body) {
+      throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
+    }
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = "";
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) return;
+        buffer += value;
+        let end: number;
+        while ((end = buffer.indexOf("\n")) !== -1) {
+          const line = buffer.slice(0, end).trim();
+          buffer = buffer.slice(end + 1);
+          if (!line.startsWith("data:")) continue;
+          const data = line.slice(5).trim();
+          if (data === "[DONE]") return;
+          const event: unknown = JSON.parse(data);
+          if (!isRecord(event)) continue;
+          yield event;
+        }
+      }
+    } finally {
+      // Also when the caller stops reading early: closes the connection.
+      await reader.cancel().catch(() => {});
+    }
+  }
+
   return {
     ...(options.appId !== undefined && { appId: options.appId }),
     send,
     post: (path, body, signal, headers) => send("POST", path, { body, signal, headers }),
+    stream,
   };
 }

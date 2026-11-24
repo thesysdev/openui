@@ -1,0 +1,382 @@
+---
+title: "@openuidev/channels"
+description: API reference for rendering OpenUI Lang as native, interactive messages in Slack, Microsoft Teams, Telegram, and WhatsApp.
+---
+
+Use this package to answer in a chat platform with a native, interactive card instead of markdown.
+The model writes an OpenUI Lang program, and the package compiles it to the platform's own format.
+
+The package is the payload layer. It never owns webhooks, tokens, or delivery, so it works with any
+transport: [Bolt](https://tools.slack.dev/bolt-js), Vercel's [Chat SDK](https://vercel.com/chat),
+Bot Framework, or raw HTTP.
+
+## Install
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm add @openuidev/channels
+```
+
+```bash tab="bun" tab-group="pkg"
+bun add @openuidev/channels
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn add @openuidev/channels
+```
+
+```bash tab="npm" tab-group="pkg"
+npm install @openuidev/channels
+```
+
+`zod` is a required peer dependency. `react`, `react-dom`, `recharts`, and `@resvg/resvg-js` are
+optional peers, needed only to [rasterize charts](#charts).
+
+## Entry points
+
+| Entry point                     | Renders to                    | Channel           | `output` type  | Also exports                                       |
+| :------------------------------ | :---------------------------- | :---------------- | :------------- | :------------------------------------------------- |
+| `@openuidev/channels`           |                               |                   |                | `createEngine`, `MemoryStore`, shared types        |
+| `@openuidev/channels/slack`     | Slack Block Kit               | `slackChannel`    | `SlackBlock[]` | `createSlackUI`, `inputValue`, `viewValues`        |
+| `@openuidev/channels/teams`     | Teams Adaptive Cards 1.5      | `teamsChannel`    | `TeamsCard`    | `decodeSubmit`                                     |
+| `@openuidev/channels/telegram`  | Telegram Rich Messages        | `telegramChannel` | `TgCard`       | `decodeCallback`, `encodeCallback`, `callbackFits` |
+| `@openuidev/channels/whatsapp`  | WhatsApp interactive messages | `whatsappChannel` | `WaMessage[]`  | `decodeReplyId`, `encodeReplyId`                   |
+| `@openuidev/channels/ui`        |                               |                   |                | `ChartSpec`, `FieldSpec`, `FormSpec` types         |
+| `@openuidev/channels/ui/charts` | PNG                           |                   |                | `renderChartPng`. Needs the optional peers         |
+
+Slack has a high-level API, [`createSlackUI`](#createslackuioptions). The other platforms export a
+channel and a prompt builder that you drive with [`createEngine`](#createenginechannel-options).
+
+## Quickstart
+
+A Slack bot that answers every mention with a streamed, interactive card. It uses Bolt in Socket
+Mode and calls the model through [OpenUI Gateway](/docs/gateway) with the
+[AI SDK](https://ai-sdk.dev):
+
+```ts
+import { App } from "@slack/bolt";
+import { streamText } from "ai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createSlackUI } from "@openuidev/channels/slack";
+
+const app = new App({
+  token: process.env.SLACK_BOT_TOKEN,
+  appToken: process.env.SLACK_APP_TOKEN,
+  socketMode: true,
+});
+const gateway = createOpenAICompatible({
+  name: "openui",
+  baseURL: "https://api.thesys.dev/v1/embed",
+  apiKey: process.env.THESYS_API_KEY,
+});
+const ui = createSlackUI();
+
+app.event("app_mention", async ({ event, client }) => {
+  const { textStream } = streamText({
+    model: gateway("openai/gpt-5.5"),
+    system: ui.prompt,
+    prompt: event.text,
+  });
+  await ui.streamCard(client, { channel: event.channel, thread_ts: event.ts }, textStream);
+});
+
+// Clicks and input changes render the card again in place.
+app.action(/.*/, async ({ ack, body, client }) => {
+  await ack();
+  await ui.handleAction(client, body);
+});
+
+// Submitting a form modal runs the form's action.
+app.view("openui_form", async ({ ack, body, client }) => {
+  await ack();
+  await ui.handleViewSubmission(client, body);
+});
+
+await app.start();
+```
+
+The package [README](https://github.com/thesysdev/openui/tree/main/packages/channels#full-workflow)
+extends this bot with tools, thread history, and the Chat SDK.
+
+## How a card works
+
+- **State.** The program's `$variables` are the card's state. Buttons carry actions (`@Set`,
+  `@Reset`, `@Run`), and inputs are bound to variables.
+- **Interactions do not call the model.** On a click, the package runs the same program against
+  the updated state and updates the message. The program and state are saved per message in a
+  [`MessageStore`](#messagestore).
+- **Data comes from your tools.** `Query(tool, args, defaults)` runs on every render.
+  `Mutation(tool, args)` runs when an action triggers it with `@Run`. A query that fails, or has no
+  tool provider, evaluates to its `defaults`, so the card always renders.
+
+For the language itself, see [OpenUI Lang](/docs/openui-lang).
+
+## `createSlackUI(options?)`
+
+Creates the Slack integration. One instance owns the system prompt, the render engine, and the
+per-message state store.
+
+```ts
+function createSlackUI(options?: SlackUIOptions): SlackUI;
+```
+
+| Option     | Default             | Description                                                                                    |
+| :--------- | :------------------ | :--------------------------------------------------------------------------------------------- |
+| `tools`    | none                | `{ specs, provider }`. Enables `Query()` and `Mutation()` in both the prompt and the renderer  |
+| `store`    | `new MemoryStore()` | Where each card's program and state are saved                                                  |
+| `interval` | `500`               | Minimum milliseconds between streamed updates. `chat.update` is limited to about 50 per minute |
+| `rules`    | none                | Extra lines appended to the system prompt, for house style or tool conventions                 |
+| `deliver`  | `chat.update`       | Replaces how a finished card is written to its message, for example to upload charts as images |
+
+`tools.specs` are tool descriptions (`name`, `description`, `inputSchema`, and an optional
+`outputSchema`) that are compiled into the prompt. `tools.provider` has one method,
+`callTool(name, args)`, which runs a tool. Any MCP server fits: map its `listTools()` result to
+`specs` and its `callTool()` to `provider`.
+
+The returned `SlackUI` has four members. `client` is any Slack `WebClient`: Bolt's `client`, the
+Chat SDK's `slack.client`, or `new WebClient(token)`.
+
+```ts
+type SlackUI = {
+  prompt: string;
+  streamCard(
+    client: any,
+    target: { channel: string; thread_ts?: string },
+    textStream: AsyncIterable<string>,
+  ): Promise<StreamedCard>;
+  handleAction(client: any, payload: unknown): Promise<void>;
+  handleViewSubmission(client: any, payload: unknown): Promise<void>;
+};
+```
+
+- `prompt` is the system prompt, generated from the Slack component library, the tool specs, and
+  `rules`.
+- `streamCard` posts a placeholder, updates it with the partial card as `textStream` yields text,
+  then writes the finished card and saves it to the store.
+- `handleAction` handles a raw `block_actions` payload. It renders the card again in place, or
+  opens the modal for a form's trigger button.
+- `handleViewSubmission` handles a raw `view_submission` payload. It writes the field values into
+  the state, runs the form's action, and renders again. Form modals use the callback id
+  `"openui_form"`, exported as `FORM_CALLBACK_ID`.
+
+`streamCard` resolves to a [`RenderResult`](#renderresult) plus `ts`, the message timestamp, and
+`source`, the program the model wrote. Send `source` back as the assistant turn in the thread's
+history.
+
+Behavior to know:
+
+- While a card streams, queries show their defaults. They run once the program is complete.
+- If the stream throws, `streamCard` deletes the placeholder and throws to the caller.
+- `handleAction` ignores payloads for messages that are not in the store, link-button clicks, and
+  form triggers that arrive without a `trigger_id`.
+
+## `MessageStore`
+
+A card stays interactive only while its program and state can be looked up. `MemoryStore`, the
+default, keeps them in a `Map`, so cards posted before a restart stop responding. For production,
+implement the two methods over Redis or a database:
+
+```ts
+interface MessageStore {
+  get(ref: MessageRef): Promise<MessageState | undefined>;
+  save(ref: MessageRef, state: MessageState): Promise<void>;
+}
+
+interface MessageRef {
+  platform: string;
+  conversationId: string;
+  messageId: string;
+}
+
+type MessageState = { source: string; state: Record<string, unknown> };
+```
+
+`createSlackUI` uses `"slack"` as the platform, the channel id as `conversationId`, and the message
+timestamp as `messageId`.
+
+## `createEngine(channel, options?)`
+
+The engine is what `createSlackUI` is built on, and the API for Teams, Telegram, and WhatsApp. It
+binds one platform's channel and returns functions over a program and its state. It stores nothing
+and never talks to a transport: you send the output and save the state.
+
+```ts
+function createEngine<Out>(
+  channel: ChannelLibrary<Out>,
+  options?: { toolProvider?: ToolProvider | null; quiet?: boolean },
+): Engine<Out>;
+
+interface Engine<Out> {
+  renderState(source: string, state?: Snapshot): Promise<RenderResult<Out>>;
+  applyInteraction(
+    source: string,
+    state: Snapshot,
+    interaction?: Interaction,
+  ): Promise<RenderResult<Out>>;
+  applyAction(
+    source: string,
+    state: Snapshot,
+    actionId: string,
+    value?: unknown,
+  ): Promise<RenderResult<Out>>;
+  submitForm(
+    source: string,
+    state: Snapshot,
+    formId: string,
+    patch: Snapshot,
+  ): Promise<RenderResult<Out>>;
+}
+```
+
+- `toolProvider` runs `Query()` and `Mutation()` calls. Without it, queries evaluate to their
+  defaults.
+- `quiet` suppresses parse warnings, for an engine that renders partial programs during streaming.
+- `renderState` without `state` starts from the program's `$variable` declarations.
+- `applyAction` and `submitForm` are shorthand for `applyInteraction`.
+
+`ToolProvider` and `ToolSpec` are types from `@openuidev/lang-core`. This package does not
+re-export them.
+
+### `Interaction`
+
+Every platform's event model reduces to one shape:
+
+```ts
+type Interaction = {
+  actionId?: string;
+  value?: unknown;
+  patch?: Record<string, unknown>;
+};
+```
+
+| Shape                 | When                                                               |
+| :-------------------- | :----------------------------------------------------------------- |
+| `{ actionId }`        | A button press                                                     |
+| `{ actionId, value }` | A control change, such as a select or a date picker                |
+| `{ actionId, patch }` | A batched submit, such as a Slack modal or a Teams `Action.Submit` |
+
+`patch` is merged into the state first. Then `actionId` resolves to a button's action, a bound
+input that is set to `value`, or a form's action looked up by form id.
+
+### `RenderResult`
+
+| Field       | Type                          | Description                                                          |
+| :---------- | :---------------------------- | :------------------------------------------------------------------- |
+| `output`    | `Out`                         | The platform payload. Its type depends on the channel                |
+| `text`      | `string`                      | Plain fallback text for notifications                                |
+| `actionMap` | `Record<string, ActionEntry>` | What each interactive element does, keyed by action id               |
+| `charts`    | `ChartSpec[]`                 | Every chart in the card, for platforms that deliver charts as images |
+| `forms`     | `Record<string, FormSpec>`    | Form specs keyed by form id. Only the Slack library has a `Form`     |
+| `state`     | `Snapshot`                    | The state to save for the next interaction                           |
+
+If the model output does not parse into a root component, `output` is the channel's error message
+rather than a thrown error.
+
+## Teams, Telegram, and WhatsApp
+
+Each platform subpath exports its channel, the helpers in the [entry points](#entry-points) table,
+and a prompt builder:
+
+```ts
+function buildSystemPrompt(tools?: ToolSpec[], extraRules?: string[]): string;
+```
+
+Passing `tools` enables `Query()` and `Mutation()` in the prompt. Unlike `createSlackUI`, this
+takes lang-core's `ToolSpec`, where `outputSchema` is required. Pass `{}` for a tool with no
+output. Each subpath also exports `systemPrompt`, the prompt with no tools, and `library`, the
+platform's component library.
+
+A Teams bot wires those pieces to its own transport and store:
+
+```ts
+import { createEngine, MemoryStore } from "@openuidev/channels";
+import { buildSystemPrompt, decodeSubmit, teamsChannel } from "@openuidev/channels/teams";
+
+const engine = createEngine(teamsChannel, { toolProvider });
+const store = new MemoryStore();
+const system = buildSystemPrompt(toolSpecs);
+
+// A new message: generate a program with `system`, then render and send it.
+const result = await engine.renderState(source);
+const messageId = await sendAdaptiveCard(conversationId, result.output);
+const ref = { platform: "teams", conversationId, messageId };
+await store.save(ref, { source, state: result.state });
+
+// An Action.Submit: restore the card, apply the interaction, and update the message.
+const saved = await store.get(ref);
+if (saved) {
+  const next = await engine.applyInteraction(
+    saved.source,
+    saved.state,
+    decodeSubmit(activity.value),
+  );
+  await updateAdaptiveCard(conversationId, messageId, next.output);
+  await store.save(ref, { source: saved.source, state: next.state });
+}
+```
+
+`sendAdaptiveCard` and `updateAdaptiveCard` stand for your transport. Telegram and WhatsApp follow
+the same pattern with their own channel and decoder.
+
+What to plan for on each platform:
+
+- **Teams.** `output` is one complete Adaptive Card, updated in place. Forms are inline: pressing
+  any button submits every input on the card. `decodeSubmit` returns the `$variable` inputs as
+  `patch` and converts numeric strings to numbers.
+- **Telegram.** `output` is `{ blocks, keyboard }`. Send it with `sendRichMessage`, with `keyboard`
+  as the inline keyboard, and edit it in place. Callback data is limited to 64 bytes. A button or
+  option that does not fit is skipped with a console warning, so option values must be short ids.
+- **WhatsApp.** `output` is an array of Cloud API message payloads. Add `messaging_product` and
+  `to` to each and send them in order. Messages cannot be edited, so each interaction sends the
+  updated card as a new message. A card holds 3 buttons and a list 10 options. Extras are dropped
+  with a console warning.
+
+## Charts
+
+The model writes `Chart(type, labels, values, title?, series?, xLabel?, yLabel?)`, where `type` is
+`bar`, `line`, `pie`, or `area`.
+
+On Slack, charts render natively as `data_visualization` blocks. Slack allows two per message.
+Further charts become placeholder blocks, which the default `deliver` drops. If a workspace rejects
+native chart blocks, the default `deliver` sends the card without charts.
+
+Teams, Telegram, and WhatsApp receive charts as images. Each chart appears in `result.charts` as a
+`ChartSpec`, and in `output` as a marker your transport replaces with the uploaded image:
+
+```ts
+import { renderChartPng } from "@openuidev/channels/ui/charts";
+
+for (const spec of result.charts) {
+  const png: Buffer = renderChartPng(spec);
+  // Upload `png`, then replace the marker for `spec.id` in `result.output`.
+}
+```
+
+| Platform | Marker in `output`                                                                          |
+| :------- | :------------------------------------------------------------------------------------------ |
+| Slack    | Placeholder image block, detected with `isChartPlaceholder`. Its `block_id` is the chart id |
+| Teams    | `Image` element whose URL is `CHART_MARKER_PREFIX` followed by the chart id                 |
+| Telegram | Photo block that references `attach://` followed by the chart id                            |
+| WhatsApp | Message that carries a `chartId`                                                            |
+
+## Other exports
+
+These are available for your own delivery, storage layout, components, or platform:
+
+| Entry point                    | Export                                                          | Description                                                                         |
+| :----------------------------- | :-------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
+| `@openuidev/channels`          | `defineBlockComponent`                                          | Defines a component from a name, Zod props, a description, and a `render` function  |
+| `@openuidev/channels`          | `walkTree`, `WalkResult`                                        | Walks a resolved tree and dispatches each node to its component's `render` function |
+| `@openuidev/channels`          | `ChannelLibrary`, `RenderFn`, `RenderArgs`, `WalkCtx`           | The contracts a platform library implements                                         |
+| `@openuidev/channels`          | `Snapshot`, `ActionEntry`, `MessageRef`, `MessageState`         | State and store types                                                               |
+| `@openuidev/channels/slack`    | `createCardPreview`, `CardPreview`, `CardPreviewOptions`        | Streams partial renders into a message with debounced `chat.update` calls           |
+| `@openuidev/channels/slack`    | `buildModal`, `fieldSpec`                                       | Build a modal view from a `FormSpec`, and a `FieldSpec` from a form field node      |
+| `@openuidev/channels/slack`    | `chartBlock`, `chartPlaceholderBlock`, `CHART_PLACEHOLDER_URL`  | Build a native chart block or its placeholder                                       |
+| `@openuidev/channels/slack`    | `isChartBlock`, `isChartPlaceholder`                            | Detect native chart blocks and chart placeholders                                   |
+| `@openuidev/channels/slack`    | `SlackUIOptions`, `SlackTools`, `SlackToolSpec`, `StreamedCard` | Types for `createSlackUI`, with `SlackUI` and `SlackDeliverArgs`                    |
+| `@openuidev/channels/telegram` | `richText`                                                      | Converts light inline markdown to Telegram rich text                                |
+
+When you call `createCardPreview` yourself, give it an engine created with `quiet: true` and no
+tool provider, so partial programs use query defaults instead of calling tools on every update.
+
+See [`ARCHITECTURE.md`](https://github.com/thesysdev/openui/blob/main/packages/channels/ARCHITECTURE.md)
+in the package for the rendering pipeline and the Slack component list.

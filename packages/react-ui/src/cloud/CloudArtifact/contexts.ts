@@ -1,3 +1,4 @@
+import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
@@ -6,7 +7,7 @@ import type { ArtifactError } from "./errors";
 export interface ArtifactRendererState {
   id: string | null;
   title?: string;
-  /** No artifact yet: the tool call that makes it is still running. */
+  /** Nothing to show yet: the tool call that makes it is still running, or the build hasn't started writing it. */
   isPending: boolean;
   /** The artifact's content is being generated. */
   isStreaming: boolean;
@@ -14,6 +15,11 @@ export interface ArtifactRendererState {
   isFetching: boolean;
   /** Any of the three. */
   isLoading: boolean;
+  /**
+   * What a dashboard being built is doing, until it starts writing: the data tools it called and
+   * the scripts it's saving.
+   */
+  step?: ArtifactBuildStep;
   /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
   error: ArtifactError | OpenUIError | null;
   /** Retries what failed. Undefined when there's nothing to retry. */

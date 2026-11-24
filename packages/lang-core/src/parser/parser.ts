@@ -749,41 +749,56 @@ export interface Parser {
   parse(input: string): ParseResult;
 }
 
-type ActionDefs = Map<string, unknown>;
+type DataDefs = Map<string, unknown>;
 
-// {$ref: "#/$defs/ActionExpression"} -> its body, so action slots validate as inline unions
-function inlineActionRefs(node: unknown, defs: ActionDefs): unknown {
+// {$ref: "#/$defs/ActionExpression"} or {$ref: "#/$defs/Format", default: "x"}
+// -> its body plus the keys beside the $ref, so action slots and named prop
+// types validate as inline schemas. A named type that refers to itself (a
+// tree) stays a $ref inside its own body, so inlining ends.
+function inlineDataRefs(node: unknown, defs: DataDefs, inlining?: Set<string>): unknown {
   if (!node || typeof node !== "object") return node;
-  const ref = (node as { $ref?: unknown }).$ref;
-  if (typeof ref === "string") return defs.has(ref) ? inlineActionRefs(defs.get(ref), defs) : node;
+  const { $ref: ref, ...beside } = node as Record<string, unknown>;
+  if (typeof ref === "string") {
+    if (!defs.has(ref) || inlining?.has(ref)) return node;
+    const body = inlineDataRefs(defs.get(ref), defs, new Set(inlining).add(ref));
+    return { ...(body as object), ...beside };
+  }
   const copy = (Array.isArray(node) ? [...node] : { ...node }) as Record<string, unknown>;
   let changed = false;
   for (const [key, value] of Object.entries(copy)) {
-    copy[key] = inlineActionRefs(value, defs);
+    copy[key] = inlineDataRefs(value, defs, inlining);
     changed ||= copy[key] !== value;
   }
   return changed ? copy : node;
 }
 
-function compileParams(def: JSONSchemaDef, defs: ActionDefs): ParamDef[] {
+function compileParams(def: JSONSchemaDef, defs: DataDefs): ParamDef[] {
   const properties = def.properties ?? {};
   const required = def.required ?? [];
-  return Object.keys(properties).map((key) => ({
-    name: key,
-    required: required.includes(key),
-    defaultValue: getSchemaDefaultValue(properties[key]),
-    schema: defs.size ? inlineActionRefs(properties[key], defs) : properties[key],
-  }));
+  return Object.keys(properties).map((key) => {
+    const schema = defs.size ? inlineDataRefs(properties[key], defs) : properties[key];
+    return {
+      name: key,
+      required: required.includes(key),
+      defaultValue: getSchemaDefaultValue(schema),
+      schema,
+    };
+  });
 }
 
 export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const components = schema.properties && new Set(Object.keys(schema.properties));
-  // Action $defs (ActionExpression, OpenUrl, custom actions) are data shapes, never components
-  const defs: ActionDefs = new Map();
-  for (const name of [...Object.keys(ACTION_DEFS), ...Object.keys(schema.actions ?? {})]) {
-    const body = schema.$defs?.[name];
-    if (body && !components?.has(name)) defs.set(`#/$defs/${name}`, body);
+  // Action $defs (ActionExpression, OpenUrl, custom actions) and named prop
+  // types (tagSchemaId, e.g. Format) are data shapes, never components
+  const defs: DataDefs = new Map();
+  const actionNames = new Set([...Object.keys(ACTION_DEFS), ...Object.keys(schema.actions ?? {})]);
+  for (const [name, body] of Object.entries(schema.$defs ?? {})) {
+    // zod names an untagged recursive type (a z.lazy prop) __schema0. Validation
+    // does not follow it, as before.
+    if (/^__schema\d+$/.test(name)) continue;
+    const isData = components ? !components.has(name) : actionNames.has(name);
+    if (isData) defs.set(`#/$defs/${name}`, body);
   }
   for (const [name, def] of Object.entries(schema.$defs ?? {})) {
     // Skip non-component defs, e.g. zod's hoisted recursive schemas (__schema0).

@@ -12,7 +12,13 @@ import type {
   JSONSchemaDef,
   LibraryJSONSchema,
 } from "./parser/types";
-import { assertV4Schema, schemaSignature, tagSchemaId, type SchemaRegistry } from "./signature";
+import {
+  assertV4Schema,
+  jsonSchemaNames,
+  schemaSignature,
+  tagPromptName,
+  type SchemaRegistry,
+} from "./signature";
 
 export {
   defineAction,
@@ -81,7 +87,7 @@ export function defineComponent<T extends z.$ZodObject, C>(config: {
   component: C;
 }): DefinedComponent<T, C> {
   assertV4Schema(config.props, config.name);
-  tagSchemaId(config.props, config.name);
+  tagPromptName(config.props, config.name);
   return {
     ...config,
     ref: config.props as unknown as z.$ZodType<
@@ -361,7 +367,28 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
     const combinedSchema = zObject(
       Object.fromEntries(Object.entries(componentsRecord).map(([k, v]) => [k, v.props])) as any,
     );
-    const schema = z.toJSONSchema(combinedSchema, { metadata: reg }) as LibraryJSONSchema;
+    // Components and actions get their $defs id from the registry. A
+    // tagSchemaId type (e.g. Format) gets its name as id, so zod writes it once
+    // in $defs and $refs it. zod throws on a duplicate id, so a name already
+    // taken by a component, an action or a different schema stays inline.
+    const taken = new Set([
+      ...Object.keys(componentsRecord),
+      ...Object.keys(ACTION_DEFS),
+      ...Object.keys(actionsRecord),
+    ]);
+    const owners = new Map<string, z.$ZodType>();
+    // zod only calls get() on the metadata registry
+    const metadata = {
+      get(s: z.$ZodType) {
+        const meta = reg.get(s);
+        if (meta) return meta;
+        const name = jsonSchemaNames.get(s);
+        if (!name || taken.has(name)) return undefined;
+        if (!owners.has(name)) owners.set(name, s);
+        return owners.get(name) === s ? { id: name } : undefined;
+      },
+    } as unknown as SchemaRegistry;
+    const schema = z.toJSONSchema(combinedSchema, { metadata }) as LibraryJSONSchema;
     // zod only serializes what lives on the zod schemas / the metadata
     // registry, so component descriptions (a defineComponent field) must be
     // merged in explicitly — without this the serialized library loses them.

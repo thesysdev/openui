@@ -66,7 +66,8 @@ export interface ArtifactRendererBaseProps {
    * The tool's result, unchanged. The renderer reads the artifact from it.
    *
    * Without `response`, `id` or `content`, the renderer is pending: the tool call that makes the
-   * artifact is still running, and the `Pending` slot shows. Unmount it if the call ends without a result.
+   * artifact is still running, and the `Pending` slot shows. It keeps showing while a dashboard is
+   * built, until it starts writing. Unmount it if the call ends without a result.
    */
   response?: string | null;
   /** Instead of `response`, the artifact's id. */
@@ -130,6 +131,38 @@ const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const noTitle = () => undefined;
 
+type Build = "none" | "waiting" | "streaming";
+
+/**
+ * Pending while the tool call runs, and on through a dashboard's build until it has content, fails
+ * or its stream ends. A build is one that was pending, or whose stream reports a step (a reload
+ * mid-build); a saved artifact opening is never pending.
+ */
+function useBuildPending({
+  noResponse,
+  hasContent,
+  failed,
+  isStreaming,
+  hasStep,
+}: {
+  noResponse: boolean;
+  hasContent: boolean;
+  failed: boolean;
+  isStreaming: boolean;
+  hasStep: boolean;
+}): boolean {
+  const [build, setBuild] = useState<Build>("none");
+  let next = build;
+  if (hasContent || failed) next = "none";
+  else if (next === "none" && (noResponse || hasStep)) next = "waiting";
+  // Right after the response, the stream hasn't connected yet: wait for it to start.
+  if (next === "waiting" && isStreaming) next = "streaming";
+  else if (next === "streaming" && !isStreaming) next = "none";
+  // During render, so the slot doesn't blink between the response and the stream's first event.
+  if (next !== build) setBuild(next);
+  return noResponse || next !== "none";
+}
+
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
 function extractRegions(children: ReactNode) {
   let preview: ReactElement | undefined;
@@ -169,7 +202,7 @@ export function ArtifactRendererRoot({
   const ownStorage = content !== undefined;
   // No artifact yet: the tool call that makes it hasn't returned. A response
   // without a reference (even "") is a result, so it's an error instead.
-  const isPending = !idProp && response == null && !ownStorage;
+  const noResponse = !idProp && response == null && !ownStorage;
   const stream = useArtifactStream({ id, version: reference?.version, content });
 
   // A delete from `useArtifactList` reaches every renderer showing the artifact.
@@ -244,7 +277,7 @@ export function ArtifactRendererRoot({
   // ── Errors and retry ──
   // The artifact's own error is the stream's, as is, so it keeps its identity
   // across renders. It wins over a failed data tool.
-  const artifactError = isPending
+  const artifactError = noResponse
     ? null
     : !id && !ownStorage
       ? NO_ID_ERROR
@@ -310,6 +343,16 @@ export function ArtifactRendererRoot({
   const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
   const queryResultCache = useQueryResultCache({ toolProvider, storage, requestRef, showsContent });
 
+  // ── Pending: until the artifact has something to show ──
+  const program = isDeleted ? null : stream.program;
+  const isPending = useBuildPending({
+    noResponse,
+    hasContent: !!program,
+    failed: artifactError !== null,
+    isStreaming: stream.isStreaming,
+    hasStep: stream.step !== undefined,
+  });
+
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
@@ -323,6 +366,7 @@ export function ArtifactRendererRoot({
       isStreaming,
       isFetching,
       isLoading: isPending || isStreaming || isFetching,
+      step: stream.step,
       error,
       retry,
       isOpen,
@@ -330,10 +374,21 @@ export function ArtifactRendererRoot({
       close,
       preview,
     }),
-    [id, title, isPending, isStreaming, isFetching, error, retry, isOpen, open, close, preview],
+    [
+      id,
+      title,
+      isPending,
+      isStreaming,
+      isFetching,
+      stream.step,
+      error,
+      retry,
+      isOpen,
+      open,
+      close,
+      preview,
+    ],
   );
-
-  const program = isDeleted ? null : stream.program;
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,

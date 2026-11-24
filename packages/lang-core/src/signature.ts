@@ -6,19 +6,28 @@ import { isReactiveSchema } from "./reactive";
 // functions and actions.
 
 // ─── Schema ID tagging ─────────────────────────────────────────────────────
-// WeakMap-based naming for schemas. defineComponent tags component schemas
-// automatically. tagSchemaId is exported for non-component schemas
-// (e.g. ActionExpression) that also need friendly names in prompts.
+// WeakMap-based naming for schemas. defineComponent names component schemas
+// in prompts automatically. tagSchemaId names a shared prop type (e.g. Format)
+// in both the prompt and the library's JSON schema.
 
-export const schemaIdTags = new WeakMap<object, string>();
+// Every name a prompt signature prints: components, tagSchemaId types, `$variable`
+const promptNames = new WeakMap<object, string>();
+
+// Only tagSchemaId's names: the library's JSON schema puts these in $defs once and $refs them
+export const jsonSchemaNames = new WeakMap<object, string>();
 
 /**
- * Tag a schema with an ID for prompt signatures.
- * Use for non-component schemas that need friendly type names (e.g. ActionExpression).
- * This affects prompt output only, not JSON Schema $defs.
+ * Name a shared prop type (e.g. Format). Signatures print the name, and the
+ * library's JSON schema puts the type in $defs once and $refs it.
  */
 export function tagSchemaId(schema: object, id: string): void {
-  schemaIdTags.set(schema, id);
+  promptNames.set(schema, id);
+  jsonSchemaNames.set(schema, id);
+}
+
+/** Name a schema in prompt signatures only, e.g. a component's props or `$variable`. */
+export function tagPromptName(schema: object, id: string): void {
+  promptNames.set(schema, id);
 }
 
 // Action refs print as `@Name` in signatures: share?: @CopyToClipboard | @OpenUrl
@@ -30,10 +39,11 @@ export function actionRef(name: string, data: z.$ZodType): ActionRef {
   return data as unknown as ActionRef;
 }
 
-// A cloned schema keeps its prompt name: Card's clone still prints as Card, an action ref as @Name
+// A cloned schema keeps its prompt name: Card's clone still prints as Card, an action ref as @Name.
+// It does not keep a tagSchemaId $defs name: the clone is a different type, so its JSON is inlined.
 export function copySchemaTags(from: object, to: object): void {
-  const id = schemaIdTags.get(from);
-  if (id) schemaIdTags.set(to, id);
+  const id = promptNames.get(from);
+  if (id) promptNames.set(to, id);
   const action = actionRefTags.get(from);
   if (action) actionRefTags.set(to, action);
 }
@@ -109,7 +119,7 @@ function getSchemaId(schema: unknown, reg?: SchemaRegistry): string | undefined 
   }
   // Fallback: WeakMap tags from defineComponent / tagSchemaId
   if (typeof schema === "object" && schema !== null) {
-    return schemaIdTags.get(schema);
+    return promptNames.get(schema);
   }
   return undefined;
 }

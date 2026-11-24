@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
-import type { ArtifactStorage, ArtifactStreamEvent } from "../adapters/types";
+import type { ArtifactBuildStep, ArtifactStorage, ArtifactStreamEvent } from "../adapters/types";
 import { useArtifactStorage } from "../store/ArtifactStorageContext";
 
 /** Why an artifact can't be shown. @category Types */
@@ -25,6 +25,11 @@ export interface ArtifactStreamSnapshot {
   /** The stored version `program` is, so a script runs against the one on screen. */
   version?: string;
   isStreaming: boolean;
+  /**
+   * What a dashboard being built is doing, until it starts writing: the data tools it called
+   * and the scripts it's saving. Undefined otherwise.
+   */
+  step?: ArtifactBuildStep;
   error: ArtifactStreamError | null;
 }
 
@@ -63,6 +68,15 @@ const ERROR_CODES = new Set<string>([
   "network-error",
   "unauthorized",
 ]);
+
+/** A step's names, or `undefined` for an empty or malformed one. */
+const stepOf = (data: unknown): ArtifactBuildStep | undefined => {
+  const names = (value: unknown) =>
+    Array.isArray(value) ? value.filter((name): name is string => typeof name === "string") : [];
+  const { tools, scripts } = (data ?? {}) as Partial<Record<keyof ArtifactBuildStep, unknown>>;
+  const step = { tools: names(tools), scripts: names(scripts) };
+  return step.tools.length > 0 || step.scripts.length > 0 ? step : undefined;
+};
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -320,9 +334,11 @@ export class ArtifactStreamStore {
           entry.target = snapshot.program === null ? "program" : "pending";
           entry.pending = "";
         }
+        // The stream resends the build's current step after its reference.
         this.update(id, {
           type: event.data?.type ?? snapshot.type,
           title: event.data?.title ?? snapshot.title,
+          step: undefined,
           ...(entry.target === "program" ? { program: "", version } : {}),
         });
         return;
@@ -334,7 +350,17 @@ export class ArtifactStreamStore {
         entry.replace = false;
         // Edits stay hidden until `end`, so the current version stays on screen.
         if (entry.target === "pending") entry.pending = (replace ? "" : entry.pending) + text;
-        else this.update(id, { program: (replace ? "" : (snapshot.program ?? "")) + text });
+        // A new dashboard keeps its version into the writing: its first content ends the step.
+        else {
+          this.update(id, {
+            program: (replace ? "" : (snapshot.program ?? "")) + text,
+            step: undefined,
+          });
+        }
+        return;
+      }
+      case "step": {
+        this.update(id, { step: stepOf(event.data) });
         return;
       }
       case "end": {
@@ -343,7 +369,7 @@ export class ArtifactStreamStore {
         entry.target = "program";
         entry.pending = "";
         entry.version = undefined;
-        this.update(id, { ...swapped, isStreaming: false });
+        this.update(id, { ...swapped, isStreaming: false, step: undefined });
         this.catchUp(id);
         this.afterRead(id);
         return;
@@ -357,6 +383,7 @@ export class ArtifactStreamStore {
           code && ERROR_CODES.has(code) ? (code as ArtifactStreamErrorCode) : "generation-failed";
         this.update(id, {
           isStreaming: false,
+          step: undefined,
           error: streamError(
             errorCode,
             event.data?.message ?? "The artifact couldn't be generated.",

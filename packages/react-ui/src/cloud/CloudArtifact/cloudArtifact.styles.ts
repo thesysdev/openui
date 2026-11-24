@@ -15,6 +15,15 @@ const spin = keyframes`
   }
 `;
 
+const shimmer = keyframes`
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+`;
+
 /** Stable class names, to target from your own CSS. */
 export const names = {
   root: "openui-artifact",
@@ -23,6 +32,7 @@ export const names = {
   previewTitle: "openui-artifact-preview-title",
   previewDescription: "openui-artifact-preview-description",
   loader: "openui-artifact-loader",
+  loaderText: "openui-artifact-loader-text",
   spinner: "openui-artifact-spinner",
   chrome: "openui-artifact-chrome",
   chromeBar: "openui-artifact-chrome-bar",
@@ -86,6 +96,26 @@ export const styles = {
   `,
   spinner: css`
     animation: ${spin} 0.9s linear infinite;
+  `,
+  // A brighter band sweeps across dimmed text. The fill is transparent, not the color, so
+  // `currentColor` in the gradient stays the loader's text color.
+  shimmer: css`
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, currentColor 45%, transparent) 35%,
+        currentColor 50%,
+        color-mix(in srgb, currentColor 45%, transparent) 65%
+      )
+      0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: ${shimmer} 2s linear infinite;
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+      background: none;
+      -webkit-text-fill-color: currentColor;
+    }
   `,
   chrome: css`
     display: flex;
