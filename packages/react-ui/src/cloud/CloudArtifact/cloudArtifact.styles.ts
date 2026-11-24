@@ -35,6 +35,7 @@ export const names = {
   loader: "openui-artifact-loader",
   loaderText: "openui-artifact-loader-text",
   spinner: "openui-artifact-spinner",
+  edited: "openui-artifact-edited",
   chrome: "openui-artifact-chrome",
   chromeBar: "openui-artifact-chrome-bar",
   chromeTitle: "openui-artifact-chrome-title",
@@ -45,7 +46,10 @@ export const names = {
   loadingEmpty: "openui-artifact-loading-empty",
   pending: "openui-artifact-pending",
   error: "openui-artifact-error",
+  errorEmpty: "openui-artifact-error-empty",
   panel: "openui-artifact-panel",
+  inspecting: "openui-artifact-inspecting",
+  provenanceToggle: "openui-artifact-provenance-toggle",
 } as const;
 
 export const styles = {
@@ -175,11 +179,33 @@ export const styles = {
     align-items: center;
     gap: var(--openui-space-xs);
   `,
+  // Inspect mode: what a click would select is outlined under the mouse. Before `content`,
+  // so the selected outline, declared later with the same specificity, wins on both. Rules
+  // in `:where()` count for nothing, so an app's own rule overrides them (see the docs). The
+  // `--openui-inspect-*` variables, set on any element around the content, restyle them.
+  inspecting: css`
+    & :where([data-openui-hover]) {
+      cursor: pointer;
+      outline: var(
+        --openui-inspect-hover-outline,
+        1px dashed var(--openui-inspect-color, var(--openui-interactive-accent-default))
+      );
+      outline-offset: var(--openui-inspect-outline-offset, -2px);
+    }
+  `,
   content: css`
     position: relative;
     flex: 1;
     min-height: 120px;
     overflow: auto;
+    /* Drawn inside the element: a tile in a strip that hides overflow keeps all four sides. */
+    & :where([data-openui-selected]) {
+      outline: var(
+        --openui-inspect-selected-outline,
+        2px solid var(--openui-inspect-color, var(--openui-interactive-accent-default))
+      );
+      outline-offset: var(--openui-inspect-outline-offset, -2px);
+    }
   `,
   loading: css`
     position: absolute;
@@ -228,6 +254,14 @@ export const styles = {
     & > button {
       flex-shrink: 0;
     }
+  `,
+  errorEmpty: css`
+    position: absolute;
+    inset: 0;
+    width: fit-content;
+    max-width: calc(100% - 2 * var(--openui-space-l));
+    height: fit-content;
+    margin: auto;
   `,
   panel: css`
     padding: var(--openui-space-l) var(--openui-space-xl);

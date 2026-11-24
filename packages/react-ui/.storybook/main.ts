@@ -38,6 +38,8 @@ const config: StorybookConfig = {
         allowedHosts: [".trycloudflare.com", "127.0.0.1", "localhost"],
       },
       base: "/ui/",
+      // react-lang's source reads process.env, which the browser has none of.
+      define: { "process.env": "{}" },
       resolve: {
         alias: {
           "@openuidev/react-headless": path.resolve(__dirname, "../../react-headless/src/index.ts"),

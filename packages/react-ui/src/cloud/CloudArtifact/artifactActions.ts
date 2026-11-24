@@ -1,6 +1,10 @@
 "use client";
 
-import { useArtifactStorage, type ArtifactStorage } from "@openuidev/react-headless";
+import {
+  noteArtifactVersion,
+  useArtifactStorage,
+  type ArtifactStorage,
+} from "@openuidev/react-headless";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { cacheFor, type ArtifactCache } from "./artifactCache";
 
@@ -137,13 +141,14 @@ export function useArtifactUpdate(): ArtifactActionState & {
       const previous = cache.get(id)?.title;
       if (title !== undefined) cache.patch(id, { title });
       try {
-        cache.put([
-          await storage.update({
-            id,
-            ...(title !== undefined && { title }),
-            ...(content !== undefined && { content }),
-          }),
-        ]);
+        const saved = await storage.update({
+          id,
+          ...(title !== undefined && { title }),
+          ...(content !== undefined && { content }),
+        });
+        cache.put([saved]);
+        // Every renderer showing it loads the new version now, not on its next poll.
+        if (content !== undefined) noteArtifactVersion(storage, id, saved.version);
       } catch (cause) {
         if (title !== undefined && previous !== undefined) cache.patch(id, { title: previous });
         throw cause;

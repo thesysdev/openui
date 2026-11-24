@@ -58,7 +58,7 @@ class StatementCollector {
 // ─── AST node serializer ─────────────────────────────────────────────────────
 
 /** `calls` are the library's call names (built-ins, functions, actions), written with `@`. */
-function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): string {
+export function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): string {
   switch (node.k) {
     case "Str":
       return JSON.stringify(node.v);
@@ -78,21 +78,29 @@ function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): s
       return "[" + node.els.map((el) => serializeASTNode(el, calls)).join(", ") + "]";
     case "Obj":
       return (
-        "{" + node.entries.map(([k, v]) => `${k}: ${serializeASTNode(v, calls)}`).join(", ") + "}"
+        "{" +
+        node.entries
+          .map(
+            ([k, v]) =>
+              `${/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)}: ${serializeASTNode(v, calls)}`,
+          )
+          .join(", ") +
+        "}"
       );
     case "BinOp": {
-      const left = serializeBinOpChild(node.left, node.op, "left", calls);
-      const right = serializeBinOpChild(node.right, node.op, "right", calls);
-      return `${left} ${node.op} ${right}`;
+      // Left-associative: an operand on the right that binds no tighter needs its parens.
+      const prec = PRECEDENCE[node.op] ?? 0;
+      return `${operand(node.left, prec, calls)} ${node.op} ${operand(node.right, prec + 1, calls)}`;
     }
     case "UnaryOp":
-      return `${node.op}${serializeASTNode(node.operand, calls)}`;
+      return `${node.op}${operand(node.operand, 8, calls)}`;
     case "Ternary":
-      return `${serializeASTNode(node.cond, calls)} ? ${serializeASTNode(node.then, calls)} : ${serializeASTNode(node.else, calls)}`;
+      // A ternary inside a branch reads more easily in parens.
+      return `${operand(node.cond, 2, calls)} ? ${operand(node.then, 2, calls)} : ${operand(node.else, 2, calls)}`;
     case "Member":
-      return `${serializeASTNode(node.obj, calls)}.${node.field}`;
+      return `${operand(node.obj, 9, calls)}.${node.field}`;
     case "Index":
-      return `${serializeASTNode(node.obj, calls)}[${serializeASTNode(node.index, calls)}]`;
+      return `${operand(node.obj, 9, calls)}[${serializeASTNode(node.index, calls)}]`;
     case "Assign":
       return `${node.target} = ${serializeASTNode(node.value, calls)}`;
     case "Comp": {
@@ -112,19 +120,18 @@ function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): s
   }
 }
 
-/** Wrap a BinOp child in parens if its precedence is lower than the parent's. */
-function serializeBinOpChild(
-  child: ASTNode,
-  parentOp: string,
-  _side: "left" | "right",
-  calls: ReadonlyMap<string, CallDef>,
-): string {
-  const inner = serializeASTNode(child, calls);
-  if (child.k !== "BinOp") return inner;
-  const parentPrec = PRECEDENCE[parentOp] ?? 0;
-  const childPrec = PRECEDENCE[child.op] ?? 0;
-  if (childPrec < parentPrec) return `(${inner})`;
-  return inner;
+/** An operand, in parens when it binds looser than `min` (precedences as in expressions.ts). */
+function operand(node: ASTNode, min: number, calls: ReadonlyMap<string, CallDef>): string {
+  const inner = serializeASTNode(node, calls);
+  const prec =
+    node.k === "Ternary"
+      ? 1
+      : node.k === "BinOp"
+        ? (PRECEDENCE[node.op] ?? 0)
+        : node.k === "UnaryOp"
+          ? 8
+          : 10;
+  return prec < min ? `(${inner})` : inner;
 }
 
 // ─── Value serializer ────────────────────────────────────────────────────────

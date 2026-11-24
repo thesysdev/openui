@@ -12,6 +12,7 @@ import React, {
   Component,
   Fragment,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -21,6 +22,7 @@ import { Button, Spinner, View, type ButtonProps, type ViewProps } from "./compo
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
+import { createBindSource, renderNodeTypes } from "./provenance";
 
 export interface RendererQueryState {
   /** Whether any query is waiting for generation or fetching data. */
@@ -187,6 +189,7 @@ function rendersSame(a: unknown, b: unknown, depth = 0): boolean {
       isElementNode(b) &&
       a.typeName === b.typeName &&
       a.statementId === b.statementId &&
+      a.componentId === b.componentId &&
       rendersSame(a.props, b.props, depth + 1)
     );
   }
@@ -238,8 +241,18 @@ const RenderNode = React.memo(
  */
 function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRenderer<any> }) {
   const renderNode = useRenderNode();
-  return <Comp props={el.props} renderNode={renderNode} statementId={el.statementId} />;
+  const id = el.statementId ?? el.componentId;
+  const bindSource = useMemo(() => createBindSource(id), [id]);
+  return (
+    <Comp
+      props={el.props}
+      renderNode={renderNode}
+      statementId={el.statementId}
+      bindSource={bindSource}
+    />
+  );
 }
+renderNodeTypes.add(RenderNodeInner);
 
 // ─── Public component ───
 
@@ -287,6 +300,9 @@ function RendererRoot<L extends Library = Library>({
     },
   });
   const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
+  // One function for the Renderer's life: a minifier may inline `renderDeep` at its call
+  // site, which would make it, and so the context and every memoized node, new each render.
+  const renderNode = useCallback(renderDeep, []);
 
   const { result, parseResult, contextValue, isQueryLoading, queryErrors, retryQueries } =
     useOpenUIState(
@@ -302,7 +318,7 @@ function RendererRoot<L extends Library = Library>({
         onError,
         publishObservability,
       },
-      renderDeep,
+      renderNode,
     );
 
   // Fire onParseResult with the RAW parse result (not evaluated),
@@ -422,6 +438,8 @@ function DefaultRenderer<L extends Library = Library>({ children, ...props }: Re
 export const Renderer = Object.assign(DefaultRenderer, {
   Root: RendererRoot,
   Content: RendererContent,
+  /** What `Renderer` shows without children, to compose with your own. */
+  DefaultContent: DefaultRendererContent,
   QueryLoading: RendererQueryLoading,
   QueryError: RendererQueryError,
   Retry: RendererRetry,

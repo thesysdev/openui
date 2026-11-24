@@ -26,18 +26,20 @@ The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentica
 
 ## Props
 
-| Prop                                    | Description                                                                                             |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `response`                              | The response from `create` or `edit`, unchanged.                                                        |
-| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list. |
-| `library`                               | The component library. Use the same library the spec on the server came from.                           |
-| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.        |
-| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.             |
-| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                      |
-| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                    |
-| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                          |
-| `onError`                               | Receives rendering, query, and loading errors.                                                          |
-| `className`                             | Added to the root element.                                                                              |
+| Prop                                    | Description                                                                                                      |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `response`                              | The response from `create` or `edit`, unchanged.                                                                 |
+| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.          |
+| `library`                               | The component library. Use the same library the spec on the server came from.                                    |
+| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                 |
+| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                      |
+| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                               |
+| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                             |
+| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                   |
+| `enableProvenance`                      | Show where the data comes from: an inspect toggle in the bar, and your panel. See [Data sources](#data-sources). |
+| `onError`                               | Receives rendering, query, and loading errors.                                                                   |
+| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never.           |
+| `className`                             | Added to the root element.                                                                                       |
 
 ## Layouts
 
@@ -100,14 +102,16 @@ The result can arrive before the dashboard is written, while the model still cal
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
 
-| Slot                                                                  | Region  | What it is                                                                                                 |
-| --------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
-| `Preview`                                                             | Preview | The card that opens the dashboard.                                                                         |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`, `PreviewError` | Preview | The card's parts.                                                                                          |
-| `Chrome`                                                              | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
-| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton`         | Chrome  | The bar's parts.                                                                                           |
-| `Content`                                                             | Chrome  | The dashboard itself.                                                                                      |
-| `Pending`, `Loading`, `Error`                                         | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
+| Slot                                                                          | Region  | What it is                                                                                                 |
+| ----------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                         |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`, `PreviewError`         | Preview | The card's parts.                                                                                          |
+| `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
+| `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                           |
+| `ProvenanceToggle`                                                            | Chrome  | Turns inspect mode on and off. Only with `enableProvenance`.                                               |
+| `Content`                                                                     | Chrome  | The dashboard itself.                                                                                      |
+| `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
+| `Provenance`                                                                  | Content | Your data sources panel, shown while a component is selected. Only with `enableProvenance`.                |
 
 For example, a full-height panel with its own header:
 
@@ -162,15 +166,92 @@ function DashboardError() {
 | Field                     | Description                                                                                                 |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `id`, `title`             | The dashboard's id and title.                                                                               |
+| `isOwner`, `isEditable`   | Whether the user owns it, and whether they can edit, rename, and share it. Kept current while it's open.    |
 | `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.        |
 | `isStreaming`             | The dashboard is being generated.                                                                           |
 | `isFetching`              | Its queries are running.                                                                                    |
 | `isLoading`               | Any of the three.                                                                                           |
 | `step`                    | While a dashboard is built, `{ tools, scripts }`: the data tools it's calling and the scripts it's writing. |
+| `justUpdated`             | A newer version replaced the one on screen in the last few seconds.                                         |
 | `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                                |
 | `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                               |
 | `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                              |
 | `preview`                 | Whether the renderer has a card.                                                                            |
+
+## Data sources
+
+With `enableProvenance`, the bar shows an inspect toggle. While it's on, clicking a component, or a number in it, selects it instead of acting. Your panel, passed to `Provenance`, shows where its data comes from with `useArtifactProvenance()`: its queries with their tool calls and results, the formula in between, and the filters it reads. Without one, a default Sources panel docks beside the dashboard, opened by the bar's "Sources" button: it lists every query and shows a click's query, result and formula; pass `describeSource` to `Provenance` to name your tools (`<LiveArtifactRenderer.Provenance describeSource={…} />`).
+
+```tsx
+<LiveArtifactRenderer id={id} library={library} interpreter={interpreter} enableProvenance />
+```
+
+Place the toggle yourself with `ProvenanceToggle`, as with `CloseButton`. Pass your panel as children of `Provenance`, inside `Content`:
+
+```tsx
+import { useArtifactProvenance } from "@openuidev/react-ui/cloud";
+
+function SourcesPanel() {
+  const { selection, sources } = useArtifactProvenance();
+  const component = selection && sources?.components[selection.id];
+  if (!sources || !component) return null;
+  // Per prop when the click landed on a marked prop, otherwise the whole component.
+  const shown = selection.prop ? component.props[selection.prop] : component;
+  const queries = shown?.queries.map((name) => sources.queries[name]); // tool, args, data
+  const formula = shown?.via.map((name) => `${name} = ${sources.formulas[name]}`);
+  return <aside>{/* your UI */}</aside>;
+}
+
+<LiveArtifactRenderer id={id} library={library} interpreter={interpreter} enableProvenance>
+  <LiveArtifactRenderer.Chrome>
+    <LiveArtifactRenderer.ChromeActions />
+    <LiveArtifactRenderer.Content>
+      <LiveArtifactRenderer.Provenance>
+        <SourcesPanel />
+      </LiveArtifactRenderer.Provenance>
+    </LiveArtifactRenderer.Content>
+  </LiveArtifactRenderer.Chrome>
+</LiveArtifactRenderer>;
+```
+
+| Field                           | Description                                                                                                                                                                   |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isInspecting`, `setInspecting` | Inspect mode. For a `Chrome` with your own children and no bar.                                                                                                               |
+| `selection`                     | The clicked component's `id` (its statement's name, or `lead.1` for a component written inside `lead`), `prop`, `element` and `propElement`.                                  |
+| `clearSelection`                | Closes the panel.                                                                                                                                                             |
+| `sources`                       | [`useDataSources()`](/docs/api-reference/react-lang#context-hooks-inside-renderer-components): every component's sources and every query. Null unless inspecting or selected. |
+
+In React on the web, components are found without any change to the library, through React's own tree. Where that tree can't be read, only components marked with `bindSource()` are found. To make a prop clickable on its own, mark its element with `bindSource("prop")` in the component (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component written inside a statement, such as one Kpi among several, selects on its own. Its id is its position inside the statement (`lead.1`), so an edit to the dashboard can renumber it, and clears the selection; every item an `@Each` draws shares one id. The selection also clears when its component replaces the selected element, such as when its data loads.
+
+Pass the same `library` object on every render, such as one created at module level: a new library each render makes the whole dashboard render again.
+
+To restyle the outlines, set these variables on `.openui-artifact-content` or any element around it:
+
+| Variable                            | Default                                    |
+| ----------------------------------- | ------------------------------------------ |
+| `--openui-inspect-color`            | `var(--openui-interactive-accent-default)` |
+| `--openui-inspect-hover-outline`    | `1px dashed` in `--openui-inspect-color`   |
+| `--openui-inspect-selected-outline` | `2px solid` in `--openui-inspect-color`    |
+| `--openui-inspect-outline-offset`   | `-2px` (drawn inside the element)          |
+
+```css
+.openui-artifact-content {
+  --openui-inspect-color: #7c3aed;
+  --openui-inspect-hover-outline: none;
+}
+```
+
+For more than an outline, target these on the `Content` slot's element (`.openui-artifact-content`, which also carries a `className` you pass to `Content`): `[data-openui-hover]` is what a click would select, under the mouse; `[data-openui-selected]` is the selected component and the selected prop's element; `.openui-artifact-inspecting` is on while inspect mode is. The default outlines give way to any rule like these:
+
+```css
+/* No hover outline; a thicker selected outline. Hover first: a clicked element has both. */
+.openui-artifact-content [data-openui-hover] {
+  outline: none;
+}
+.openui-artifact-content [data-openui-selected] {
+  outline: 3px solid hotpink;
+}
+```
 
 ## Theme
 

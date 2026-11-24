@@ -1,5 +1,6 @@
 "use client";
 
+import type { SourceBinding } from "@openuidev/react-lang";
 import { MUTED_COLOR, seriesColor, textureOf } from "../../../shared/colors";
 import { useCompare } from "../../../shared/compare";
 import { formatDateText, formatValue, type ValueFormat } from "../../../shared/format";
@@ -31,6 +32,9 @@ export interface KpiProps {
   split?: { label: string; value: number }[];
   states?: ("good" | "warning" | "bad" | null)[];
   streaming: boolean;
+  sourceAttributes?: SourceBinding;
+  valueAttributes?: SourceBinding;
+  previousAttributes?: SourceBinding;
 }
 
 /** What a tile reads from each chart component (Trend, Progress, Split, States). */
@@ -186,7 +190,11 @@ export function Kpi(props: KpiProps) {
               ? "line"
               : null;
   return (
-    <section className="openui-dashboard-card openui-dashboard-kpi" aria-label={props.label}>
+    <section
+      className="openui-dashboard-card openui-dashboard-kpi"
+      aria-label={props.label}
+      {...props.sourceAttributes}
+    >
       {(override ?? (writing ? "loading" : null)) === "loading" ? <Sheen /> : null}
       <div className="openui-dashboard-kpi-label">
         <span>{props.label}</span>
@@ -195,14 +203,18 @@ export function Kpi(props: KpiProps) {
       <StateFrame compact auto={writing ? "loading" : null}>
         <div className="openui-dashboard-kpi-main">
           {text !== null ? (
-            <div className="openui-dashboard-kpi-value openui-dashboard-kpi-text" title={text}>
+            <div
+              className="openui-dashboard-kpi-value openui-dashboard-kpi-text"
+              title={text}
+              {...props.valueAttributes}
+            >
               <span className="openui-dashboard-kpi-text-value">
                 {formatDateText(text) ?? text}
               </span>
               {props.tone ? <StatusIcon tone={props.tone} /> : null}
             </div>
           ) : (
-            <div className="openui-dashboard-kpi-value">
+            <div className="openui-dashboard-kpi-value" {...props.valueAttributes}>
               {formatValue(props.value, props.format)}
             </div>
           )}
@@ -227,7 +239,7 @@ export function Kpi(props: KpiProps) {
         {chart === "split" ? <SplitBar parts={split} /> : null}
         {chart === "states" ? <StatusStrip states={states} /> : null}
         {text === null && typeof props.previous === "number" && typeof props.value === "number" ? (
-          <div className="openui-dashboard-kpi-foot">
+          <div className="openui-dashboard-kpi-foot" {...props.previousAttributes}>
             <DeltaBadge
               current={props.value}
               previous={props.previous}
