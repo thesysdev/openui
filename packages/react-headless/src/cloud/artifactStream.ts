@@ -347,9 +347,9 @@ export class ArtifactStreamStore {
     }
     if (controller.signal.aborted) return;
     // Done, or a poll that failed before anything changed (what's on screen stays): poll again
-    // later. Each failure, and each check that finds the artifact still gone, doubles the wait.
+    // later. Each failure doubles the wait; a 404 is an answer, so a gone artifact keeps the interval.
     if (finished || (poll && !referenced)) {
-      entry.pollFailures = finished && !isGone(entry) ? 0 : entry.pollFailures + 1;
+      entry.pollFailures = finished ? 0 : entry.pollFailures + 1;
       this.schedulePoll(id);
       return;
     }
@@ -462,7 +462,7 @@ export class ArtifactStreamStore {
 
   /**
    * The tab is back: run the polls that came due while it was hidden, and check now on
-   * artifacts waiting out failures (or still gone), starting their wait over.
+   * artifacts waiting out failures, starting their wait over.
    */
   private readonly onVisible = (): void => {
     if (document.hidden) return;
