@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
-import type { ArtifactBuildStep, ArtifactStorage, ArtifactStreamEvent } from "../adapters/types";
+import type {
+  ArtifactBuildStep,
+  ArtifactStorage,
+  ArtifactStreamEvent,
+  ArtifactSummary,
+} from "../adapters/types";
 import { useArtifactStorage } from "../store/ArtifactStorageContext";
 
 /** Why an artifact can't be shown. @category Types */
@@ -16,7 +21,7 @@ export interface ArtifactStreamError {
 }
 
 /** An artifact as it streams in. Replaced on every change, never mutated. @category Types */
-export interface ArtifactStreamSnapshot {
+export interface ArtifactStreamSnapshot extends Pick<ArtifactSummary, "isOwner" | "isEditable"> {
   id: string;
   type?: string;
   title?: string;
@@ -24,18 +29,25 @@ export interface ArtifactStreamSnapshot {
   program: string | null;
   /** The stored version `program` is, so a script runs against the one on screen. */
   version?: string;
-  /** Whether the user created it. Only its owner can delete it. */
-  isOwner?: boolean;
-  /** Whether the user can edit, rename, and share it. */
-  isEditable?: boolean;
   isStreaming: boolean;
   /**
    * What a dashboard being built is doing, until it starts writing: the data tools it called
    * and the scripts it's saving. Undefined otherwise.
    */
   step?: ArtifactBuildStep;
+  /** A newer version finished streaming in over the one on screen in the last few seconds. */
+  justUpdated: boolean;
   error: ArtifactStreamError | null;
 }
+
+/** Called on every change to an artifact's stream. @internal */
+export type ArtifactStreamWatcher = (
+  id: string,
+  before: ArtifactStreamSnapshot,
+  after: ArtifactStreamSnapshot,
+) => void;
+
+type Settled = { program: string; version?: string };
 
 interface Entry {
   snapshot: ArtifactStreamSnapshot;
@@ -53,7 +65,7 @@ interface Entry {
    */
   replace: boolean;
   /** What was on screen before a new version started streaming over it. A failed edit goes back to it. */
-  settled: { program: string; version?: string } | null;
+  settled: Settled | null;
   reconnects: number;
   versions: Set<string>;
   /** A newer revision was seen while a stream was still running. */
@@ -69,8 +81,8 @@ interface Entry {
   pollTimer: ReturnType<typeof setTimeout> | null;
   /** Polls failed in a row; each one doubles the wait. */
   pollFailures: number;
-  /** A poll came due while the tab was hidden. */
-  pollDue: boolean;
+  /** Turns `justUpdated` off again. */
+  justUpdatedTimer: ReturnType<typeof setTimeout> | null;
 }
 
 type Settle = (answer: "rerun" | "show") => void;
@@ -82,6 +94,8 @@ const REREAD_INTERVAL_MS = 10_000;
 const STABLE_CONNECTION_MS = 10_000;
 const MIN_POLL_INTERVAL_MS = 10_000;
 const MAX_POLL_BACKOFF_MS = 5 * 60_000;
+/** How long `justUpdated` stays on. */
+const JUST_UPDATED_MS = 10_000;
 const ERROR_CODES = new Set<string>([
   "not-found",
   "generation-failed",
@@ -120,8 +134,17 @@ const streamError = (
  */
 export class ArtifactStreamStore {
   private readonly entries = new Map<string, Entry>();
+  private readonly watchers = new Set<ArtifactStreamWatcher>();
+  /** Artifacts whose poll came due while the tab was hidden. */
+  private readonly dueWhileHidden = new Set<string>();
 
   constructor(private readonly storage: ArtifactStorage) {}
+
+  /** Calls `watcher` on every change to any artifact's stream. Returns a function that stops it. */
+  watch(watcher: ArtifactStreamWatcher): () => void {
+    this.watchers.add(watcher);
+    return () => this.watchers.delete(watcher);
+  }
 
   getSnapshot(id: string): ArtifactStreamSnapshot {
     return this.entry(id).snapshot;
@@ -245,7 +268,7 @@ export class ArtifactStreamStore {
     let entry = this.entries.get(id);
     if (!entry) {
       entry = {
-        snapshot: { id, program: null, isStreaming: false, error: null },
+        snapshot: { id, program: null, isStreaming: false, justUpdated: false, error: null },
         listeners: new Set(),
         controller: null,
         started: false,
@@ -262,7 +285,7 @@ export class ArtifactStreamStore {
         pollers: new Map(),
         pollTimer: null,
         pollFailures: 0,
-        pollDue: false,
+        justUpdatedTimer: null,
       };
       this.entries.set(id, entry);
     }
@@ -271,7 +294,9 @@ export class ArtifactStreamStore {
 
   private update(id: string, patch: Partial<ArtifactStreamSnapshot>): void {
     const entry = this.entry(id);
-    entry.snapshot = { ...entry.snapshot, ...patch };
+    const before = entry.snapshot;
+    entry.snapshot = { ...before, ...patch };
+    this.watchers.forEach((watcher) => watcher(id, before, entry.snapshot));
     entry.listeners.forEach((listener) => listener());
   }
 
@@ -296,7 +321,7 @@ export class ArtifactStreamStore {
       }
       for await (const event of this.storage.stream(id, {
         signal: controller.signal,
-        ...(poll && { fetchLatest }),
+        fetchLatest,
       })) {
         if (controller.signal.aborted) return;
         if (event.type === "end" || event.type === "error" || event.type === "unchanged") {
@@ -315,14 +340,9 @@ export class ArtifactStreamStore {
       if (entry.controller === controller) entry.controller = null;
     }
     if (controller.signal.aborted) return;
-    if (finished) {
-      entry.pollFailures = 0;
-      this.schedulePoll(id);
-      return;
-    }
-    // A poll that failed before anything changed leaves what's on screen, and tries again later.
-    if (poll && !referenced) {
-      entry.pollFailures += 1;
+    // Done, or a poll that failed before anything changed (what's on screen stays): poll again later.
+    if (finished || (poll && !referenced)) {
+      entry.pollFailures = finished ? 0 : entry.pollFailures + 1;
       this.schedulePoll(id);
       return;
     }
@@ -341,18 +361,35 @@ export class ArtifactStreamStore {
       return;
     }
     this.update(id, {
-      ...this.unwind(entry),
+      ...this.endRead(entry),
       isStreaming: false,
       error: streamError("network-error", "Couldn't reach the artifact's storage.", failure),
     });
     this.afterRead(id);
   }
 
-  /** A stream that didn't finish: back to what was on screen before it. */
-  private unwind(entry: Entry): Partial<ArtifactStreamSnapshot> {
+  /**
+   * A read is over: resets it, and returns what was on screen before a new version
+   * started streaming over it, if one did. A read that failed goes back to that.
+   */
+  private endRead(entry: Entry): Settled | null {
     const settled = entry.settled;
+    entry.target = "program";
+    entry.pending = "";
+    entry.version = undefined;
     entry.settled = null;
-    return settled ?? {};
+    return settled;
+  }
+
+  /** Turns `justUpdated` on for a while. */
+  private markUpdated(id: string): void {
+    const entry = this.entry(id);
+    if (entry.justUpdatedTimer) clearTimeout(entry.justUpdatedTimer);
+    entry.justUpdatedTimer = setTimeout(() => {
+      entry.justUpdatedTimer = null;
+      this.update(id, { justUpdated: false });
+    }, JUST_UPDATED_MS);
+    this.update(id, { justUpdated: true });
   }
 
   /** Storages without `stream`: read the stored artifact once. */
@@ -403,7 +440,7 @@ export class ArtifactStreamStore {
     // A read in progress schedules the next poll when it ends.
     if (entry.pollers.size === 0 || !entry.tag || entry.controller) return;
     if (typeof document !== "undefined" && document.hidden) {
-      entry.pollDue = true;
+      this.dueWhileHidden.add(id);
       document.addEventListener("visibilitychange", this.onVisible);
       return;
     }
@@ -414,11 +451,9 @@ export class ArtifactStreamStore {
   private readonly onVisible = (): void => {
     if (document.hidden) return;
     document.removeEventListener("visibilitychange", this.onVisible);
-    for (const [id, entry] of this.entries) {
-      if (!entry.pollDue) continue;
-      entry.pollDue = false;
-      this.pollNow(id);
-    }
+    const due = [...this.dueWhileHidden];
+    this.dueWhileHidden.clear();
+    due.forEach((id) => this.pollNow(id));
   };
 
   /** Fetches a revision noted while the stream that just ended was running. */
@@ -438,22 +473,22 @@ export class ArtifactStreamStore {
         // Seen, so an edit's version noted later counts as newer.
         if (version) entry.versions.add(version);
         entry.tag = tag;
+        const shown = snapshot.program;
+        const newVersion = version !== snapshot.version;
         // A reconnect into the version being streamed sends it whole again.
         const reconnect = version !== undefined && version === entry.version;
+        // A new version streams onto the screen as it's generated: an edit sends its prior
+        // program first, then its patch, which the parser merges in. What's on screen stays
+        // until its first delta replaces it.
+        const overShown = shown !== null && newVersion;
         entry.version = version;
         if (!reconnect) {
-          // A new version streams onto the screen as it's generated: an edit sends its prior
-          // program first, then its patch, which the parser merges in. The same version again
-          // (a rename, an access change, a re-read) loads out of sight.
-          const live = snapshot.program === null || version !== snapshot.version;
-          entry.target = live ? "program" : "pending";
+          // The same version again (a rename, an access change, a re-read) loads out of sight.
+          entry.target = shown === null || newVersion ? "program" : "pending";
           entry.pending = "";
-          if (live && snapshot.program !== null) {
-            entry.settled ??= { program: snapshot.program, version: snapshot.version };
-          }
+          if (overShown) entry.settled ??= { program: shown, version: snapshot.version };
         }
-        // What's on screen stays until the new version's first delta replaces it.
-        entry.replace = reconnect || (entry.target === "program" && snapshot.program !== null);
+        entry.replace = reconnect || overShown;
         // The stream resends the build's current step after its reference.
         this.update(id, {
           type: event.data?.type ?? snapshot.type,
@@ -461,13 +496,10 @@ export class ArtifactStreamStore {
           isOwner: is_owner ?? snapshot.isOwner,
           isEditable: is_editable ?? snapshot.isEditable,
           // A poll that found only a rename or an access change doesn't show as loading.
-          isStreaming: snapshot.isStreaming || version !== snapshot.version,
+          isStreaming: snapshot.isStreaming || newVersion,
           step: undefined,
           error: null,
-          ...(entry.target === "program" && {
-            version,
-            ...(snapshot.program === null && { program: "" }),
-          }),
+          ...(entry.target === "program" && { version, program: shown ?? "" }),
         });
         return;
       }
@@ -496,24 +528,19 @@ export class ArtifactStreamStore {
       case "end": {
         const swapped =
           entry.target === "pending" ? { program: entry.pending, version: entry.version } : {};
-        entry.target = "program";
-        entry.pending = "";
-        entry.version = undefined;
-        entry.settled = null;
+        const replaced = this.endRead(entry) !== null;
         this.update(id, { ...swapped, isStreaming: false, step: undefined });
+        if (replaced) this.markUpdated(id);
         this.catchUp(id);
         this.afterRead(id);
         return;
       }
       case "error": {
-        entry.target = "program";
-        entry.pending = "";
-        entry.version = undefined;
         const code = event.data?.code;
         const errorCode =
           code && ERROR_CODES.has(code) ? (code as ArtifactStreamErrorCode) : "generation-failed";
         this.update(id, {
-          ...this.unwind(entry),
+          ...this.endRead(entry),
           isStreaming: false,
           step: undefined,
           error: streamError(
@@ -552,6 +579,20 @@ export function noteArtifactVersion(
   stores.get(storage)?.noteVersion(id, version);
 }
 
+/**
+ * Calls `watcher` on every change to any artifact's stream on `storage`, such as
+ * a rename, an access change or a `not-found` a poll picked up. Returns a function
+ * that stops it.
+ *
+ * @internal Used by `@openuidev/react-ui/cloud`'s artifact cache.
+ */
+export function watchArtifactStreams(
+  storage: ArtifactStorage,
+  watcher: ArtifactStreamWatcher,
+): () => void {
+  return storeFor(storage).watch(watcher);
+}
+
 /** @category Types */
 export interface UseArtifactStreamOptions {
   /** The artifact to show. */
@@ -576,7 +617,12 @@ export interface ArtifactStreamState extends Omit<ArtifactStreamSnapshot, "id"> 
   reportVersionMismatch?: (version: string) => Promise<"rerun" | "show">;
 }
 
-const IDLE: ArtifactStreamState = { program: null, isStreaming: false, error: null };
+const IDLE: ArtifactStreamState = {
+  program: null,
+  isStreaming: false,
+  justUpdated: false,
+  error: null,
+};
 
 /**
  * Streams an artifact in by id from the configured {@link ArtifactStorage},
@@ -624,7 +670,7 @@ export function useArtifactStream({
   );
 
   return useMemo<ArtifactStreamState>(() => {
-    if (ownContent) return { program: content, isStreaming: false, error: null };
+    if (ownContent) return { ...IDLE, program: content };
     if (!snapshot) {
       if (id && !storage) {
         return {

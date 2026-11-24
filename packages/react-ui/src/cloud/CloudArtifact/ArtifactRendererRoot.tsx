@@ -28,7 +28,8 @@ import {
   type SyntheticEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import { cacheFor } from "./artifactCache";
+import { shallow } from "zustand/shallow";
+import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
@@ -138,8 +139,26 @@ const DELETED_ERROR: ArtifactError = {
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
-/** How long `justUpdated` stays true after a newer version replaces the one on screen. */
-const EDITED_NOTICE_MS = 10_000;
+
+/** One field of the artifact's cached summary: only a change to that field re-renders. */
+function useCachedField<K extends "title" | "isOwner" | "isEditable">(
+  cache: ArtifactCache | null,
+  id: string | null,
+  key: K,
+): ArtifactSummary[K] | undefined {
+  return useSyncExternalStore(
+    cache?.subscribe ?? noopSubscribe,
+    () => (cache && id ? cache.get(id)?.[key] : undefined),
+    notCached,
+  );
+}
+
+/** `value`, or the last one while all its fields are the same, so a context value only changes when they do. */
+function useShallowStable<T extends object>(value: T): T {
+  const ref = useRef(value);
+  if (!shallow(ref.current, value)) ref.current = value;
+  return ref.current;
+}
 
 type Build = "none" | "waiting" | "streaming";
 
@@ -240,7 +259,8 @@ export function ArtifactRendererRoot({
     pollInterval: showsContent && pollInterval,
   });
 
-  // A delete from `useArtifactList` reaches every renderer showing the artifact.
+  // A delete, rename or access change from the lists or another renderer's stream
+  // (the cache syncs from every stream) reaches every renderer showing the artifact.
   const storage = useArtifactStorage();
   const cache = storage ? cacheFor(storage) : null;
   const isDeleted = useSyncExternalStore(
@@ -248,67 +268,9 @@ export function ArtifactRendererRoot({
     cache && id ? () => cache.isDeleted(id) : notDeleted,
     notDeleted,
   );
-  const cached = useSyncExternalStore<ArtifactSummary | undefined>(
-    cache?.subscribe ?? noopSubscribe,
-    cache && id ? () => cache.get(id) : notCached,
-    notCached,
-  );
-
-  // A rename or access change the stream picked up reaches the lists. Only changes: on mount,
-  // the cache may already be newer than a stream that loaded earlier.
-  const { title: streamTitle, isOwner: streamIsOwner, isEditable: streamIsEditable } = stream;
-  const streamedRef = useRef({
-    id,
-    title: streamTitle,
-    isOwner: streamIsOwner,
-    isEditable: streamIsEditable,
-  });
-  useEffect(() => {
-    const last = streamedRef.current;
-    streamedRef.current = {
-      id,
-      title: streamTitle,
-      isOwner: streamIsOwner,
-      isEditable: streamIsEditable,
-    };
-    const current = cache && id ? cache.get(id) : undefined;
-    if (!cache || !id || !current || last.id !== id) return;
-    const fresh = (key: "title" | "isOwner" | "isEditable", value: unknown) =>
-      value !== undefined && value !== last[key] && value !== current[key];
-    const patch: Partial<ArtifactSummary> = {
-      ...(fresh("title", streamTitle) && { title: streamTitle }),
-      ...(fresh("isOwner", streamIsOwner) && { isOwner: streamIsOwner }),
-      ...(fresh("isEditable", streamIsEditable) && { isEditable: streamIsEditable }),
-    };
-    if (Object.keys(patch).length > 0) cache.patch(id, patch);
-  }, [cache, id, streamTitle, streamIsOwner, streamIsEditable]);
-
-  // Deleted elsewhere or unshared: it leaves the lists too, until it's shared again.
-  const lostAccess = stream.error?.code === "not-found";
-  useEffect(() => {
-    if (lostAccess && cache && id) cache.evict(id);
-  }, [lostAccess, cache, id]);
-
-  // A newer version finished replacing the one on screen: say so for a while. A new version
-  // streams in live, so this waits until it's done, and a failed edit (back to the same
-  // version) says nothing.
-  const settledVersion = stream.isStreaming ? null : stream.version;
-  const settledRef = useRef({ id, version: settledVersion });
-  const [editedAt, setEditedAt] = useState(0);
-  useEffect(() => {
-    if (settledVersion === null) return;
-    const last = settledRef.current;
-    settledRef.current = { id, version: settledVersion };
-    if (last.id === id && last.version && settledVersion && last.version !== settledVersion) {
-      setEditedAt(Date.now());
-    }
-  }, [id, settledVersion]);
-  useEffect(() => {
-    if (!editedAt) return;
-    const timer = setTimeout(() => setEditedAt(0), EDITED_NOTICE_MS);
-    return () => clearTimeout(timer);
-  }, [editedAt]);
-  const justUpdated = editedAt > 0;
+  const cachedTitle = useCachedField(cache, id, "title");
+  const cachedIsOwner = useCachedField(cache, id, "isOwner");
+  const cachedIsEditable = useCachedField(cache, id, "isEditable");
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
   const [inFlight, setInFlight] = useState(0);
@@ -430,47 +392,25 @@ export function ArtifactRendererRoot({
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
-  // A rename from useArtifactUpdate reaches the cache before the stream.
-  const title = cached?.title ?? streamTitle ?? reference?.title;
-  const isOwner = cached?.isOwner ?? streamIsOwner;
-  const isEditable = cached?.isEditable ?? streamIsEditable;
-  const state = useMemo<ArtifactRendererState>(
-    () => ({
-      id,
-      title,
-      isOwner,
-      isEditable,
-      isPending,
-      isStreaming,
-      isFetching,
-      isLoading: isPending || isStreaming || isFetching,
-      step: stream.step,
-      justUpdated,
-      error,
-      retry,
-      isOpen,
-      open,
-      close,
-      preview,
-    }),
-    [
-      id,
-      title,
-      isOwner,
-      isEditable,
-      isPending,
-      isStreaming,
-      isFetching,
-      stream.step,
-      justUpdated,
-      error,
-      retry,
-      isOpen,
-      open,
-      close,
-      preview,
-    ],
-  );
+  const state = useShallowStable<ArtifactRendererState>({
+    id,
+    // A rename from useArtifactUpdate reaches the cache before the stream.
+    title: cachedTitle ?? stream.title ?? reference?.title,
+    isOwner: cachedIsOwner ?? stream.isOwner,
+    isEditable: cachedIsEditable ?? stream.isEditable,
+    isPending,
+    isStreaming,
+    isFetching,
+    isLoading: isPending || isStreaming || isFetching,
+    step: stream.step,
+    justUpdated: stream.justUpdated,
+    error,
+    retry,
+    isOpen,
+    open,
+    close,
+    preview,
+  });
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,

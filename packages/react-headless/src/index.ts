@@ -1,9 +1,14 @@
-export { noteArtifactVersion, useArtifactStream } from "./cloud/artifactStream";
+export {
+  noteArtifactVersion,
+  useArtifactStream,
+  watchArtifactStreams,
+} from "./cloud/artifactStream";
 export type {
   ArtifactStreamError,
   ArtifactStreamErrorCode,
   ArtifactStreamSnapshot,
   ArtifactStreamState,
+  ArtifactStreamWatcher,
   UseArtifactStreamOptions,
 } from "./cloud/artifactStream";
 export type { FrontendTokenSource } from "./cloud/frontendTokenManager";

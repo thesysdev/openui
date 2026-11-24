@@ -1,16 +1,15 @@
-import type { ArtifactBuildStep } from "@openuidev/react-headless";
+import type { ArtifactBuildStep, ArtifactSummary } from "@openuidev/react-headless";
 import type { DataSources, OpenUIError, SourceTarget } from "@openuidev/react-lang";
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
-/** The renderer's state and controls, from `useArtifactRenderer()`. */
-export interface ArtifactRendererState {
+/**
+ * The renderer's state and controls, from `useArtifactRenderer()`. `isOwner`
+ * and `isEditable` are undefined until the storage says.
+ */
+export interface ArtifactRendererState extends Pick<ArtifactSummary, "isOwner" | "isEditable"> {
   id: string | null;
   title?: string;
-  /** Whether the user created it. Only its owner can delete it. Undefined until the storage says. */
-  isOwner?: boolean;
-  /** Whether the user can edit, rename, and share it. Undefined until the storage says. */
-  isEditable?: boolean;
   /** Nothing to show yet: the tool call that makes it is still running, or the build hasn't started writing it. */
   isPending: boolean;
   /** The artifact's content is being generated. */

@@ -1,4 +1,9 @@
-import type { ArtifactStorage, ArtifactSummary } from "@openuidev/react-headless";
+import {
+  watchArtifactStreams,
+  type ArtifactStorage,
+  type ArtifactStreamWatcher,
+  type ArtifactSummary,
+} from "@openuidev/react-headless";
 
 /**
  * Artifacts the lists have loaded, shared by every list and renderer on the
@@ -45,12 +50,11 @@ export class ArtifactCache {
    */
   put(summaries: ArtifactSummary[], listedAt?: number): void {
     for (const summary of summaries) {
-      if (this.deleted.has(summary.id)) continue;
-      const evictedAt = this.evicted.get(summary.id);
-      if (evictedAt !== undefined) {
-        if (listedAt !== undefined && listedAt <= evictedAt) continue;
-        this.evicted.delete(summary.id);
+      const evictedAt = this.evicted.get(summary.id) ?? -Infinity;
+      if (this.deleted.has(summary.id) || (listedAt !== undefined && listedAt <= evictedAt)) {
+        continue;
       }
+      this.evicted.delete(summary.id);
       this.summaries.set(summary.id, summary);
     }
     this.notify();
@@ -79,6 +83,28 @@ export class ArtifactCache {
     this.notify();
   }
 
+  /**
+   * What an open renderer's stream learned reaches the lists: a rename or an
+   * access change, and a `not-found` once the artifact is deleted or unshared.
+   */
+  syncStream: ArtifactStreamWatcher = (id, before, after) => {
+    if (after.error?.code === "not-found" && before.error?.code !== "not-found") {
+      this.evict(id);
+      return;
+    }
+    const current = this.summaries.get(id);
+    if (!current) return;
+    const changed = (key: "title" | "isOwner" | "isEditable") =>
+      after[key] !== undefined && after[key] !== before[key] && after[key] !== current[key];
+    if (changed("title") || changed("isOwner") || changed("isEditable")) {
+      this.patch(id, {
+        ...(changed("title") && { title: after.title }),
+        ...(changed("isOwner") && { isOwner: after.isOwner }),
+        ...(changed("isEditable") && { isEditable: after.isEditable }),
+      });
+    }
+  };
+
   restore(summary: ArtifactSummary): void {
     this.deleted.delete(summary.id);
     this.summaries.set(summary.id, summary);
@@ -98,6 +124,7 @@ export function cacheFor(storage: ArtifactStorage): ArtifactCache {
   if (!cache) {
     cache = new ArtifactCache();
     caches.set(storage, cache);
+    watchArtifactStreams(storage, cache.syncStream);
   }
   return cache;
 }
