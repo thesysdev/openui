@@ -142,6 +142,10 @@ const DELETED_ERROR: ArtifactError = {
 /** How often a shown artifact checks for changes when neither the renderer nor the provider says. */
 const DEFAULT_POLL_INTERVAL = 30_000;
 
+/** A `pollInterval` to use: `false` or a finite number. Anything else (`NaN`, `Infinity`) counts as unset. */
+const usableInterval = (value: number | false | undefined) =>
+  value === false || Number.isFinite(value) ? value : undefined;
+
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
@@ -264,7 +268,8 @@ export function ArtifactRendererRoot({
     content,
     // Only while the renderer is open: a standalone one always is, a card once opened.
     pollInterval:
-      (!preview || isOpen) && (pollInterval ?? appPollInterval ?? DEFAULT_POLL_INTERVAL),
+      (!preview || isOpen) &&
+      (usableInterval(pollInterval) ?? usableInterval(appPollInterval) ?? DEFAULT_POLL_INTERVAL),
   });
 
   // A delete, rename or access change from the lists or another renderer's stream

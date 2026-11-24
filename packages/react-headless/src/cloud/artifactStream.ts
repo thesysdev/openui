@@ -88,6 +88,8 @@ const REREAD_INTERVAL_MS = 10_000;
 /** A connection that stayed open this long was healthy, so its drop doesn't count against `MAX_RECONNECTS`. */
 const STABLE_CONNECTION_MS = 10_000;
 const MIN_POLL_INTERVAL_MS = 3_000;
+/** The longest failures stretch the wait between checks, unless the interval itself is longer. */
+const MAX_POLL_BACKOFF_MS = 5 * 60_000;
 /** The longest `setTimeout` takes: a longer wait would fire at once. */
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 /** How long `justUpdated` stays on. */
@@ -427,31 +429,51 @@ export class ArtifactStreamStore {
     entry.pollTimer = null;
     if (!polls(entry)) return;
     const interval = Math.min(...entry.pollers.values());
-    // Each failure doubles the wait. Jitter, so renderers opened together don't poll together.
-    const wait = interval * 2 ** entry.pollFailures * (0.9 + Math.random() * 0.2);
+    // Each failure doubles the wait, up to 5 minutes. Jitter, so renderers opened together don't poll together.
+    const backoff = Math.min(
+      interval * 2 ** entry.pollFailures,
+      Math.max(interval, MAX_POLL_BACKOFF_MS),
+    );
+    const wait = backoff * (0.9 + Math.random() * 0.2);
     entry.pollTimer = setTimeout(() => this.pollNow(id), Math.min(wait, MAX_TIMEOUT_MS));
+    // Coming back to the tab checks again right away.
+    if (entry.pollFailures > 0) this.listenForVisible();
   }
 
   private pollNow(id: string): void {
     const entry = this.entry(id);
+    if (entry.pollTimer) clearTimeout(entry.pollTimer);
     entry.pollTimer = null;
     // A read in progress schedules the next poll when it ends.
     if (!polls(entry) || entry.controller) return;
     if (typeof document !== "undefined" && document.hidden) {
       this.dueWhileHidden.add(id);
-      document.addEventListener("visibilitychange", this.onVisible);
+      this.listenForVisible();
       return;
     }
     // Gone, so nothing on screen to compare: a full read, which brings it back if it's shared again.
     void this.connect(id, isGone(entry) ? "" : entry.tag);
   }
 
-  /** The tab is back: run the polls that came due while it was hidden. */
+  private listenForVisible(): void {
+    if (typeof document !== "undefined")
+      document.addEventListener("visibilitychange", this.onVisible);
+  }
+
+  /**
+   * The tab is back: run the polls that came due while it was hidden, and check now on
+   * artifacts waiting out failures (or still gone), starting their wait over.
+   */
   private readonly onVisible = (): void => {
     if (document.hidden) return;
     document.removeEventListener("visibilitychange", this.onVisible);
-    const due = [...this.dueWhileHidden];
+    const due = new Set(this.dueWhileHidden);
     this.dueWhileHidden.clear();
+    for (const [id, entry] of this.entries) {
+      if (entry.pollFailures === 0 || !polls(entry)) continue;
+      entry.pollFailures = 0;
+      due.add(id);
+    }
     due.forEach((id) => this.pollNow(id));
   };
 
