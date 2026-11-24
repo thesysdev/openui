@@ -87,14 +87,6 @@ function DefaultSourcesDock() {
     return () => window.removeEventListener("keydown", escape);
   }, [isInspecting, close]);
 
-  // A picked number's card is context, not the selection: mark it so only the number is ringed.
-  useEffect(() => {
-    const card = selection?.propElement ? selection.element : null;
-    if (!card || card === selection?.propElement) return;
-    card.setAttribute("data-openui-context", "");
-    return () => card.removeAttribute("data-openui-context");
-  }, [selection]);
-
   const panelSelection = useMemo(
     () => (selection ? { id: selection.id, prop: selection.prop } : null),
     [selection],

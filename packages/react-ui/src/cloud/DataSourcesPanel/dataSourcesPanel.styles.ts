@@ -41,7 +41,6 @@ const cell = `
   white-space: nowrap;
 `;
 const overlayShadow = `0 0 0 1px ${border}, var(--openui-shadow-xl)`;
-const ring = `color-mix(in srgb, ${primary} 55%, transparent)`;
 
 /** Stable class names, to target from your own CSS. */
 export const block = "openui-data-sources-panel";
@@ -403,18 +402,6 @@ export const dockStyles = {
     & > .openui-artifact-content {
       flex: 1;
       min-width: 0;
-    }
-    /* The selection: a neutral ring close around it. In :where(), as in
-       cloudArtifact.styles.ts, so the app CSS the docs describe still wins. */
-    & :where(.openui-artifact-content [data-openui-selected]) {
-      outline: 1.5px solid ${ring};
-      outline-offset: 2px;
-      border-radius: var(--openui-radius-2xs);
-    }
-    /* A picked number's card is context, not the selection: only the number is ringed. The
-       dock marks that card (goober can't take a :has() inside :where()). */
-    & :where(.openui-artifact-content [data-openui-context]) {
-      outline: none;
     }
   `,
   /* Docked beside the content; the content snaps to its new width, the panel slides. */
