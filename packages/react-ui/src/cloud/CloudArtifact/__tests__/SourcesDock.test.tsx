@@ -68,26 +68,22 @@ describe("Sources in a live artifact", () => {
     expect(names).toEqual(["revenueQ", "dailyQ", "signupsQ", "channelsQ", "targetQ"]);
   });
 
-  it("shows a clicked number's Query and Result", async () => {
+  it("shows a clicked number's Query, Result and Formula", async () => {
     await mount();
     act(() => toggle().click());
     await settle();
     act(() => valueOf("Revenue this quarter").click());
     await settle();
     // No describeSource here: the Query row shows the tool name, not a guess.
-    expect(rows()).toEqual(["Querypostgres_query", "Result"]);
+    expect(rows()).toEqual(["Querypostgres_query", "Result", "Formula"]);
     expect(panel().querySelector("pre")?.textContent).toContain("FROM orders");
   });
 
-  it("offers See source when a number is clicked with Sources closed", async () => {
+  it("does nothing on a click with Sources closed", async () => {
     await mount();
     act(() => valueOf("Weekly signups").click());
-    const chip = container.querySelector<HTMLButtonElement>(".openui-data-sources-chip button");
-    expect(chip?.textContent).toBe("See source");
-    act(() => chip!.click());
     await settle();
-    expect(slot().getAttribute("data-open")).toBe("true");
-    expect(panel().querySelector("pre")?.textContent).toContain("user_signed_up");
+    expect(slot().getAttribute("data-open")).toBe("false");
   });
 
   it("adds nothing without enableProvenance", async () => {

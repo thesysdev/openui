@@ -54,17 +54,19 @@ function display(item: unknown): ReactNode {
 }
 
 /** A result as the source returned it: a table of its rows, or its raw value. */
-export function DataSourcesResult({ value }: { value: unknown }) {
+export function DataSourcesResult({ value, loading }: { value: unknown; loading?: boolean }) {
   const shape = resultShape(value);
   if (!shape) {
     return isRecord(value) ? (
-      <DataSourcesResult value={[value]} />
+      <DataSourcesResult value={[value]} loading={loading} />
     ) : (
       <pre className={cx("raw")}>{json(value)}</pre>
     );
   }
   const { rows } = shape;
-  if (!rows.length) return <p className={cx("help")}>No rows returned.</p>;
+  if (!rows.length) {
+    return <p className={cx("help")}>{loading ? "Loading…" : "No rows returned."}</p>;
+  }
   const columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   const numeric = (column: string) => rows.every((row) => typeof row[column] !== "string");
   return (
@@ -108,8 +110,7 @@ interface Row {
 
 /**
  * Where a dashboard's data comes from. With nothing selected it lists every query; for a selected
- * component or prop it shows its Query and the Result that came back, or, when it reads no
- * query, its Formula.
+ * component or prop it shows its Query, the Result that came back, and its Formula.
  */
 export function DataSourcesPanel({
   sources,
@@ -243,7 +244,7 @@ export function DataSourcesPanel({
               </p>
             ) : (
               <>
-                <DataSourcesResult value={value} />
+                <DataSourcesResult value={value} loading={origin.query.loading} />
                 <div className={cx("result-foot")}>
                   <span>{resultSummary(value)}</span>
                   {copyButton(`result:${name}`, value)}
@@ -255,12 +256,13 @@ export function DataSourcesPanel({
             ),
         });
       });
-      // Query and Result when data is read; Formula only when nothing is.
-      if (!resolved.queries.length && resolved.formula.length) {
+      // Formula: how the value is picked from its data (now = @First(…)), or the value as
+      // written when nothing is read. Closed by default under a query; open on its own.
+      if (resolved.formula.length) {
         rows.push({
           id: "formula",
           label: "Formula",
-          defaultOpen: true,
+          defaultOpen: !resolved.queries.length,
           content: code("formula", resolved.formula.join("\n\n")),
         });
       }

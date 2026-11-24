@@ -238,7 +238,6 @@ export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
       variant={open ? "secondary" : "tertiary"}
       size="small"
       iconLeft={<Database size={16} aria-hidden />}
-      aria-label={open ? "Close Sources" : "Open Sources"}
       aria-pressed={open}
       onClick={() => {
         if (open) provenance.clearSelection();

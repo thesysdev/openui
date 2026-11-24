@@ -13,7 +13,7 @@ import {
 
 /**
  * Where a dashboard's data comes from. With nothing selected it lists every query; a selected
- * component or prop shows its Query and Result, or its Formula when it reads no query. In a live artifact with
+ * component or prop shows its Query, Result and Formula. In a live artifact with
  * `enableProvenance` it is the `Provenance` slot's default panel.
  */
 const meta: Meta<typeof DataSourcesPanel> = {
@@ -50,7 +50,7 @@ function Interactive(props: Partial<DataSourcesPanelProps> & { initial?: DataSou
 /** Nothing selected: every query in the dashboard, in program order. */
 export const EveryQuery: Story = { render: () => <Interactive /> };
 
-/** A number: Query (open) and Result. */
+/** A number: Query (open), Result, and the Formula that picks it from the rows (closed). */
 export const NumberPicked: Story = {
   render: () => <Interactive initial={{ id: "revenue", prop: "value" }} />,
 };
@@ -83,7 +83,7 @@ export const WithoutAppDescriptions: Story = {
 
 /**
  * In a live artifact: Sources in the bar opens the panel; click a number or a table to see where
- * its data comes from. With Sources off, clicking a number offers "See source".
+ * its data comes from.
  */
 export const LiveDashboard: StoryObj = {
   decorators: [

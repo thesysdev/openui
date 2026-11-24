@@ -389,7 +389,6 @@ export const partClass = (name: PanelPart) => `${panelStyles[name]} ${part(name)
 export const dockNames = {
   workspace: "openui-data-sources-workspace",
   slot: "openui-data-sources-slot",
-  chip: "openui-data-sources-chip",
 } as const;
 
 export const dockStyles = {
@@ -405,21 +404,16 @@ export const dockStyles = {
       flex: 1;
       min-width: 0;
     }
-    /* The selection, and a number offered "See source": a neutral ring close around it. */
-    & .openui-artifact-content [data-openui-selected] {
+    /* The selection: a neutral ring close around it. In :where(), as in
+       cloudArtifact.styles.ts, so the app CSS the docs describe still wins. */
+    & :where(.openui-artifact-content [data-openui-selected]) {
       outline: 1.5px solid ${ring};
       outline-offset: 2px;
       border-radius: var(--openui-radius-2xs);
     }
-    & .openui-artifact-content [data-openui-picked] {
-      outline: 1.5px solid ${ring};
-      outline-offset: 2px;
-      border-radius: var(--openui-radius-2xs);
-    }
-    /* A picked number's card is context, not the selection: only the number is ringed. */
-    &
-      .openui-artifact-content
-      [data-openui-selected]:has([data-openui-prop][data-openui-selected]) {
+    /* A picked number's card is context, not the selection: only the number is ringed. The
+       dock marks that card (goober can't take a :has() inside :where()). */
+    & :where(.openui-artifact-content [data-openui-context]) {
       outline: none;
     }
   `,
@@ -515,51 +509,6 @@ export const dockStyles = {
         transition:
           transform 300ms ${easeDrawer},
           visibility 0s;
-      }
-    }
-  `,
-  /** "See source", grown from the number it belongs to. */
-  chip: css`
-    position: fixed;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    padding: 3px;
-    border-radius: var(--openui-radius-l);
-    background: var(--openui-popover-background);
-    box-shadow: ${overlayShadow};
-    transform-origin: 12px 100%;
-    & > button {
-      ${buttonReset}
-      display: flex;
-      align-items: center;
-      gap: var(--openui-space-xs);
-      height: 32px;
-      padding: 0 var(--openui-space-m) 0 var(--openui-space-s-m);
-      border-radius: var(--openui-radius-s);
-      color: ${primary};
-      cursor: pointer;
-      ${bodySmall}
-    }
-    & > button > svg {
-      color: ${secondary};
-    }
-    & > button:focus-visible {
-      outline: ${focusRing};
-      outline-offset: 2px;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      & > button:hover {
-        background: var(--openui-highlight);
-      }
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      transition:
-        opacity 150ms ${easeOut},
-        scale 150ms ${easeOut};
-      @starting-style {
-        opacity: 0;
-        scale: 0.96;
       }
     }
   `,

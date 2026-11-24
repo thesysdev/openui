@@ -174,7 +174,7 @@ function DashboardError() {
 
 ## Data sources
 
-With `enableProvenance`, the bar shows an inspect toggle. While it's on, clicking a component, or a number in it, selects it instead of acting. Your panel, passed to `Provenance`, shows where its data comes from with `useArtifactProvenance()`: its queries with their tool calls and results, the formula in between, and the filters it reads.
+With `enableProvenance`, the bar shows an inspect toggle. While it's on, clicking a component, or a number in it, selects it instead of acting. Your panel, passed to `Provenance`, shows where its data comes from with `useArtifactProvenance()`: its queries with their tool calls and results, the formula in between, and the filters it reads. Without one, a default Sources panel docks beside the dashboard, opened by the bar's "Sources" button: it lists every query and shows a click's query, result and formula; pass `describeSource` to `Provenance` to name your tools (`<LiveArtifactRenderer.Provenance describeSource={…} />`).
 
 ```tsx
 <LiveArtifactRenderer id={id} library={library} interpreter={interpreter} enableProvenance />
