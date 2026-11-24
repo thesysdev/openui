@@ -76,5 +76,30 @@ module.exports = [
       "react-hooks/exhaustive-deps": "warn",
     },
   },
+  {
+    // react-ui styles with react-components' css and keyframes: they write to the one shared,
+    // layer-aware style sheet. Goober imported directly writes a second, unlayered one.
+    files: ["packages/react-ui/src/**/*.{ts,tsx}"],
+    ignores: ["**/*.stories.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "goober",
+              message: "Import css and keyframes from @openuidev/react-components instead.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["goober/*"],
+              message: "Import css and keyframes from @openuidev/react-components instead.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   prettier,
 ];
