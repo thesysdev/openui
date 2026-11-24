@@ -64,4 +64,4 @@ For example, "revenue by plan for the last 90 days as a stacked bar chart, with 
 
 The dashboard is saved when generation finishes. After that, it appears in the [dashboard list](/docs/dashboards/list) and can be [rendered](/docs/dashboards/render).
 
-If generation fails, the renderer shows the error in its `Error` slot. Errors before generation starts, such as a missing `userId`, reject the `create` call with an `OpenUIApiError` that has a `code` and an HTTP `status`.
+If generation fails, the renderer shows the error in its `Error` slot. Errors before generation starts reject the `create` call with an error that has a `code` and an HTTP `status`: an `OpenUIApiError`, or a `ToolExecutionError` for a missing `userId`.

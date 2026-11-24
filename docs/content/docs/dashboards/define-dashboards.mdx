@@ -39,7 +39,7 @@ Define it once and import `dashboards` wherever the app creates, edits, or loads
 
 `create` and `edit` also take `{ stream: true }` per call. See [Stream the build](/docs/dashboards/generate#stream-the-build).
 
-`tools`, `mcp`, or both are required. While a dashboard is built, the model calls your data tools to see their real output, so have them return small results or accept a limit parameter. Tools given to a dashboard are called without a prompt, while it is built and every time it opens, so register only tools that are safe for that.
+`tools`, `mcp`, or both are required. While a dashboard is built, the model calls your data tools to see their real output, so have them return small results or accept a limit parameter. Tools given to a dashboard are called without a prompt, while it is built and every time it opens, so register only tools that are safe for that. Each call during the build has the [interpreter's](/docs/dashboards/connect-data) `timeoutMs` (60 s by default); a slower one reaches the model as a timeout.
 
 ## Component library
 
