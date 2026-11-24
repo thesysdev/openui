@@ -210,6 +210,12 @@ export const pendingLoaderStyles = {
     font-size: 0.875rem;
     line-height: 1.2;
     white-space: nowrap;
+    /* A status naming several tools ends in "…" rather than overflowing. */
+    box-sizing: border-box;
+    max-width: 100%;
+    & > svg {
+      flex-shrink: 0;
+    }
   `,
   srOnly: css`
     position: absolute;

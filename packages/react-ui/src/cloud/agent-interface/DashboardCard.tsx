@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { Play } from "lucide-react";
 import { Button } from "../../components/Button";
 import { useArtifactRenderer } from "../CloudArtifact/contexts";
-import { PreviewLoader, PreviewTitle } from "../CloudArtifact/slots";
+import { PreviewError, PreviewLoader, PreviewTitle } from "../CloudArtifact/slots";
 import { names, styles } from "./agentInterface.styles";
 
 /** A thumbnail of a dashboard, like the slides and report ones. */
@@ -42,6 +42,7 @@ export function DashboardCard({ label }: { label: string }) {
           <span className={clsx(styles.cardLabel, names.cardLabel)}>
             {label}
             <PreviewLoader />
+            <PreviewError />
           </span>
         </div>
         <Button

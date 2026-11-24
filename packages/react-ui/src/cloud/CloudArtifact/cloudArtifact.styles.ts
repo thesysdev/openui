@@ -31,6 +31,7 @@ export const names = {
   previewText: "openui-artifact-preview-text",
   previewTitle: "openui-artifact-preview-title",
   previewDescription: "openui-artifact-preview-description",
+  previewError: "openui-artifact-preview-error",
   loader: "openui-artifact-loader",
   loaderText: "openui-artifact-loader-text",
   spinner: "openui-artifact-spinner",
@@ -84,13 +85,40 @@ export const styles = {
     ${bodySmall}
     color: var(--openui-text-neutral-secondary);
   `,
+  // A status can name several tools, so it may shrink, up to 60%, and ends in "…" past that.
   loader: css`
     display: inline-flex;
-    flex-shrink: 0;
+    flex-shrink: 1;
     align-items: center;
     gap: var(--openui-space-2xs);
+    min-width: 0;
+    max-width: 60%;
     ${labelSmall}
     color: var(--openui-text-neutral-secondary);
+    & > svg {
+      flex-shrink: 0;
+    }
+  `,
+  loaderText: css`
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  `,
+  // The preview card's status as a pill, in the theme's colors (as Tag's `info` and `danger`).
+  pill: css`
+    box-sizing: border-box;
+    height: 24px;
+    padding: 0 var(--openui-space-xs);
+    border-radius: var(--openui-radius-full);
+  `,
+  pillInfo: css`
+    background: var(--openui-info-background);
+    color: var(--openui-text-info-primary);
+  `,
+  pillDanger: css`
+    background: var(--openui-danger-background);
+    color: var(--openui-text-danger-primary);
   `,
   spinner: css`
     animation: ${spin} 0.9s linear infinite;
@@ -160,6 +188,8 @@ export const styles = {
     display: inline-flex;
     align-items: center;
     gap: var(--openui-space-2xs);
+    box-sizing: border-box;
+    max-width: calc(100% - 2 * var(--openui-space-xs));
     padding: var(--openui-space-3xs) var(--openui-space-s);
     border: 1px solid var(--openui-border-default);
     border-radius: var(--openui-radius-full);
@@ -178,17 +208,26 @@ export const styles = {
     background: transparent;
     box-shadow: none;
   `,
+  // The content's full width. A long message wraps, so it never pushes past the edge.
   error: css`
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--openui-space-s);
+    box-sizing: border-box;
     margin: var(--openui-space-s);
     padding: var(--openui-space-s) var(--openui-space-m);
     border: 1px solid var(--openui-border-danger);
     border-radius: var(--openui-radius-m);
     background: var(--openui-danger-background);
     ${bodySmall}
+    & > span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    & > button {
+      flex-shrink: 0;
+    }
   `,
   panel: css`
     padding: var(--openui-space-l) var(--openui-space-xl);

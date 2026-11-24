@@ -94,20 +94,20 @@ The model writes the tool call's arguments before `create` runs, which can take 
 
 Unmount it if the call stops or fails without a result, or it stays pending. In `AgentInterface`, `defineLiveArtifactRenderer` from `@openuidev/react-ui/cloud/agent-interface` does both.
 
-The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming, and says what the build is doing: "Reading your data" while it calls tools, "Preparing your data" while it saves scripts. The card's and the bar's loaders say the same.
+The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming, and says what the build is doing, by name: "Calling list orders…" while it calls tools, "Writing and testing revenue by day…" while it writes scripts, with `list_orders` and `revenueByDay` turned into words. The card's loader says the same, and the bar's loader takes over once `Pending` hides. If the dashboard fails, the card shows the error in place of its loader.
 
 ## Slots
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
 
-| Slot                                                          | Region  | What it is                                                                                                 |
-| ------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
-| `Preview`                                                     | Preview | The card that opens the dashboard.                                                                         |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`         | Preview | The card's parts.                                                                                          |
-| `Chrome`                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
-| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                           |
-| `Content`                                                     | Chrome  | The dashboard itself.                                                                                      |
-| `Pending`, `Loading`, `Error`                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
+| Slot                                                                  | Region  | What it is                                                                                                 |
+| --------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `Preview`                                                             | Preview | The card that opens the dashboard.                                                                         |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`, `PreviewError` | Preview | The card's parts.                                                                                          |
+| `Chrome`                                                              | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
+| `ChromeTitle`, `ChromeLoader`, `ChromeActions`, `CloseButton`         | Chrome  | The bar's parts.                                                                                           |
+| `Content`                                                             | Chrome  | The dashboard itself.                                                                                      |
+| `Pending`, `Loading`, `Error`                                         | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
 
 For example, a full-height panel with its own header:
 
@@ -159,18 +159,18 @@ function DashboardError() {
 }
 ```
 
-| Field                     | Description                                                                                             |
-| ------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `id`, `title`             | The dashboard's id and title.                                                                           |
-| `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.    |
-| `isStreaming`             | The dashboard is being generated.                                                                       |
-| `isFetching`              | Its queries are running.                                                                                |
-| `isLoading`               | Any of the three.                                                                                       |
-| `step`                    | While a dashboard is built, `{ tools, scripts }`: the data tools it called and the scripts it's saving. |
-| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                            |
-| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                           |
-| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                          |
-| `preview`                 | Whether the renderer has a card.                                                                        |
+| Field                     | Description                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `id`, `title`             | The dashboard's id and title.                                                                               |
+| `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.        |
+| `isStreaming`             | The dashboard is being generated.                                                                           |
+| `isFetching`              | Its queries are running.                                                                                    |
+| `isLoading`               | Any of the three.                                                                                           |
+| `step`                    | While a dashboard is built, `{ tools, scripts }`: the data tools it's calling and the scripts it's writing. |
+| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                                |
+| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                               |
+| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                              |
+| `preview`                 | Whether the renderer has a card.                                                                            |
 
 ## Theme
 

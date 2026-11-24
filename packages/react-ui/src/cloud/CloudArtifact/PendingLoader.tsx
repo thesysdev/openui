@@ -2,16 +2,16 @@
 
 import clsx from "clsx";
 import { LoaderCircle } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { AnimatedLabel } from "./AnimatedLabel";
 import { styles as artifactStyles, names } from "./cloudArtifact.styles";
 import { pendingLoaderNames, pendingLoaderStyles as styles } from "./pendingLoader.styles";
-import { prefersReducedMotion, startPendingLoader } from "./pendingLoaderEngine";
+import { startPendingLoader } from "./pendingLoaderEngine";
 
 export interface PendingLoaderProps {
   /**
-   * Text for the note. Without it, the note steps through building a dashboard. A new label
-   * drifts in. `Pending` passes what a dashboard being built is doing.
+   * Text for the note. A new label drifts in. Without it, `Pending` shows the renderer's status,
+   * as the preview card and the bar do, such as "Calling list orders…".
    */
   label?: string;
   /** The color the cards are tinted from, as any CSS color. Defaults to the text color. */
@@ -31,15 +31,6 @@ export interface PendingLoaderProps {
   /** Rows in the grid the cards sit on. See `cols`. */
   rows?: number;
 }
-
-const NOTES = [
-  "Reading your data",
-  "Picking the right charts",
-  "Crunching the numbers",
-  "Arranging the layout",
-  "Adding finishing touches",
-];
-const NOTE_EVERY = 2800;
 
 /** `Pending`'s default: skeleton dashboard cards that rearrange under a note. */
 export function PendingLoader({
@@ -84,20 +75,12 @@ export function PendingLoader({
             size={14}
             aria-hidden
           />
-          <NoteText label={label} />
+          <AnimatedLabel
+            text={label ?? "Preparing…"}
+            className={clsx(artifactStyles.shimmer, artifactStyles.loaderText, names.loaderText)}
+          />
         </div>
       </div>
     </div>
   );
-}
-
-/** `label`, or the next of `NOTES` every few seconds. */
-function NoteText({ label }: { label?: string }) {
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    if (label !== undefined || prefersReducedMotion()) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % NOTES.length), NOTE_EVERY);
-    return () => clearInterval(timer);
-  }, [label]);
-  return <AnimatedLabel text={label ?? NOTES[index]!} />;
 }

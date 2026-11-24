@@ -2,7 +2,7 @@
 
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { LoaderCircle, X } from "lucide-react";
+import { CircleAlert, LoaderCircle, X } from "lucide-react";
 import { useContext, useMemo, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
@@ -46,15 +46,51 @@ const Spinner = () => (
   <LoaderCircle className={clsx(styles.spinner, names.spinner)} size={14} aria-hidden />
 );
 
-/** What a dashboard being built is doing: reading data while it calls tools, else preparing scripts. */
-const stepLabel = (step: ArtifactBuildStep | undefined) =>
-  !step ? undefined : step.tools.length > 0 ? "Reading your data" : "Preparing your data";
-
-const loadingLabel = ({ step, isPending, isStreaming }: ArtifactRendererState) => {
-  const doing = stepLabel(step);
-  if (doing) return `${doing}…`;
-  return isPending ? "Preparing…" : isStreaming ? "Generating…" : "Loading data…";
+/**
+ * A tool or script name as words: `on_time_by_region` reads "on time by region", `revenueByDay`
+ * "revenue by day". Acronyms keep their case: `fetchHTTPData` reads "fetch HTTP data", `topSKUs`
+ * "top SKUs". A name in capitals, such as `ORDER_TOTALS`, reads "order totals".
+ */
+const readable = (name: string) => {
+  const words = name
+    .replace(/([A-Z]+)([A-Z][a-z]{2,})/g, "$1 $2")
+    .replace(/([a-z\d])([A-Z])/g, "$1 $2")
+    .split(/[\s_.-]+/)
+    .filter(Boolean);
+  const screaming = words.length > 1 && !/[a-z]/.test(name);
+  const acronym = (word: string) => /^[A-Z\d]+s?$/.test(word) && /[A-Z]/.test(word);
+  return (
+    words.map((word) => (!screaming && acronym(word) ? word : word.toLowerCase())).join(" ") || name
+  );
 };
+
+/** A step's names, readable: "a", "a and b", or "a, b and 2 more". */
+const nameList = (raw: string[]) => {
+  const names = raw.map(readable);
+  return names.length <= 2
+    ? names.join(" and ")
+    : `${names[0]}, ${names[1]} and ${names.length - 2} more`;
+};
+
+/** What a dashboard being built is doing, by name: calling data tools, else writing and testing scripts. */
+const stepLabel = (step: ArtifactBuildStep | undefined) =>
+  !step
+    ? undefined
+    : step.tools.length > 0
+      ? `Calling ${nameList(step.tools)}`
+      : `Writing and testing ${nameList(step.scripts)}`;
+
+/** The one status line the card, the bar, the content and the pending skeleton all show. */
+const statusLabel = ({ step, isPending, isStreaming }: ArtifactRendererState) =>
+  `${stepLabel(step) ?? (isPending ? "Preparing" : isStreaming ? "Generating" : "Loading data")}…`;
+
+/** A status line: the text shimmers, and a new one drifts in. */
+const StatusText = ({ text }: { text: string }) => (
+  <AnimatedLabel
+    text={text}
+    className={clsx(styles.shimmer, styles.loaderText, names.loaderText)}
+  />
+);
 
 // ─── Preview region ──────────────────────────────────────────────────────
 
@@ -83,6 +119,7 @@ export function Preview({ title, description, className, children }: PreviewProp
           <PreviewDescription />
         </span>
         <PreviewLoader />
+        <PreviewError />
       </button>
     </PreviewOverridesContext.Provider>
   );
@@ -124,19 +161,40 @@ export interface LoaderProps {
   children?: ReactNode;
 }
 
-/** The card's status while the artifact loads: the text shimmers, and a new one drifts in. */
+/** The card's status while the artifact loads. `PreviewError` takes its place after a failure. */
 export function PreviewLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("preview");
   const state = useArtifactRenderer();
-  if (!inside || !state.isLoading) return null;
+  if (!inside || !state.isLoading || state.error) return null;
   if (children !== undefined) return <>{children}</>;
+  const text = label ?? statusLabel(state);
   return (
-    <span className={clsx(styles.loader, names.loader)} role="status">
+    <span
+      className={clsx(styles.loader, styles.pill, styles.pillInfo, names.loader)}
+      role="status"
+      title={text}
+    >
       <Spinner />
-      <AnimatedLabel
-        text={label ?? loadingLabel(state)}
-        className={clsx(styles.shimmer, names.loaderText)}
-      />
+      <StatusText text={text} />
+    </span>
+  );
+}
+
+/** The card's error: why the artifact can't be shown, or which data tool failed. */
+export function PreviewError({ message, children }: ErrorProps) {
+  const inside = useInRegion("preview");
+  const state = useArtifactRenderer();
+  if (!inside || !state.error) return null;
+  if (children !== undefined) return <>{children}</>;
+  const text = message ?? state.error.message;
+  return (
+    <span
+      className={clsx(styles.loader, styles.pill, styles.pillDanger, names.previewError)}
+      role="alert"
+      title={text}
+    >
+      <CircleAlert size={14} aria-hidden />
+      <span className={styles.loaderText}>{text}</span>
     </span>
   );
 }
@@ -162,7 +220,10 @@ export function Chrome({ title, actions, className, children }: ChromeProps) {
           <ChromeLoader />
           <ChromeActions />
         </div>
-        <Content />
+        <Content>
+          <Pending />
+          <ErrorSlot />
+        </Content>
       </div>
     </ChromeOverridesContext.Provider>
   );
@@ -181,15 +242,17 @@ export function ChromeTitle({ className, children }: PartProps) {
   );
 }
 
+/** The bar's status while the artifact loads. While pending, `Pending`'s note says it instead. */
 export function ChromeLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  if (!inside || !state.isLoading) return null;
+  if (!inside || !state.isLoading || state.isPending) return null;
   if (children !== undefined) return <>{children}</>;
+  const text = label ?? statusLabel(state);
   return (
-    <span className={clsx(styles.loader, names.loader)} role="status">
+    <span className={clsx(styles.loader, names.loader)} role="status" title={text}>
       <Spinner />
-      {label ?? loadingLabel(state)}
+      <StatusText text={text} />
     </span>
   );
 }
@@ -266,10 +329,10 @@ export interface PendingProps extends PendingLoaderProps {
  */
 export function Pending({ children, label, ...loader }: PendingProps) {
   const inside = useInRegion("content");
-  const { isPending, step } = useArtifactRenderer();
-  if (!inside || !isPending) return null;
+  const state = useArtifactRenderer();
+  if (!inside || !state.isPending) return null;
   if (children !== undefined) return <>{children}</>;
-  return <PendingLoader {...loader} label={label ?? stepLabel(step)} />;
+  return <PendingLoader {...loader} label={label ?? statusLabel(state)} />;
 }
 
 export function Loading({ label, children }: LoaderProps) {
@@ -279,6 +342,7 @@ export function Loading({ label, children }: LoaderProps) {
   // While pending, `Pending` has the content to itself.
   if (!inside || !state.isLoading || state.isPending || state.error) return null;
   if (children !== undefined) return <>{children}</>;
+  const text = label ?? statusLabel(state);
   return (
     <div
       className={clsx(
@@ -287,9 +351,10 @@ export function Loading({ label, children }: LoaderProps) {
         config?.isEmpty && [styles.loadingEmpty, names.loadingEmpty],
       )}
       role="status"
+      title={text}
     >
       <Spinner />
-      {label ?? loadingLabel(state)}
+      <StatusText text={text} />
     </div>
   );
 }
