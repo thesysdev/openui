@@ -1,5 +1,24 @@
 # @openuidev/react-lang
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1544](https://github.com/thesysdev/openui/pull/1544) [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Show where a live artifact's numbers come from. `LiveArtifactRenderer` takes `enableProvenance`: the bar gets an inspect toggle (`ProvenanceToggle`), a click on a component or a number while inspecting selects it instead of acting, and `Provenance` shows your panel for it. By default it shows a Sources panel docked beside the dashboard, opened by the bar's "Sources" button: every query, and for a click its query, result and formula; pass `describeSource` to `Provenance` to name your tools, or children to use your own panel. `useArtifactProvenance()` returns the selection and the program's sources: each component's queries with their calls and results, the formula in between and its filters. Style inspect mode with `[data-openui-hover]`, `[data-openui-selected]` and `.openui-artifact-inspecting`.
+
+  In lang-core, a component written inside a statement gets an id, `componentId` (`lead.2`: the third component inside `lead`), and `dataSources` lists it. In react-lang, components may receive `bindSource`, which marks their root element (`bindSource()`) and a prop's element (`bindSource("value")`); `readSourceTarget(element)` finds the component and prop under a click, also for components that don't call `bindSource`. `useDataSources()` returns `DataSources`. `Renderer.DefaultContent` is what `Renderer` shows without children. In the dashboard library, `Kpi`, `Stat` and `Kpis` mark their value and comparison. `@openuidev/react-ui` now needs `@openuidev/react-lang` 1.2.0 or later, for these APIs: update both together (`pnpm add @openuidev/react-ui@^0.19 @openuidev/react-lang@^1.2`). `@openuidev/assistant-ui` accepts `@openuidev/react-ui` and `@openuidev/react-headless` 0.19.
+
+- [#1544](https://github.com/thesysdev/openui/pull/1544) [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Where a program's data comes from. `dataSources(parseResult)` in lang-core returns, for each component and each of its props, the queries it reads (chained queries included), the statements in between with their text, the `$variables` it uses and the components written in it. `useDataSources()` in react-lang adds each query's tool name and arguments, whether it is loading, and its result, and each `$variable`'s value, for a "where did this number come from" view. Other renderers can call `dataSources` and their query manager's `getCall(statementId)`.
+
+  `QueryManager` has a new method, `getCall(statementId)`: the tool name and arguments a query was last evaluated with. It is optional, so code that implements `QueryManager` itself still type-checks.
+
+  Printed expressions keep the parentheses that change their meaning, such as `"a " + ($c ? "x" : "y")`, `a - (b - c)` and `-(a + b)`.
+
+### Patch Changes
+
+- Updated dependencies [[`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`681d0aa`](https://github.com/thesysdev/openui/commit/681d0aae34b7412e24e117953453241ab4788c6f)]:
+  - @openuidev/lang-core@1.2.0
+
 ## 1.1.1
 
 ### Patch Changes

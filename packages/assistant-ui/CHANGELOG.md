@@ -1,5 +1,18 @@
 # @openuidev/assistant-ui
 
+## 0.2.1
+
+### Patch Changes
+
+- [#1544](https://github.com/thesysdev/openui/pull/1544) [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Show where a live artifact's numbers come from. `LiveArtifactRenderer` takes `enableProvenance`: the bar gets an inspect toggle (`ProvenanceToggle`), a click on a component or a number while inspecting selects it instead of acting, and `Provenance` shows your panel for it. By default it shows a Sources panel docked beside the dashboard, opened by the bar's "Sources" button: every query, and for a click its query, result and formula; pass `describeSource` to `Provenance` to name your tools, or children to use your own panel. `useArtifactProvenance()` returns the selection and the program's sources: each component's queries with their calls and results, the formula in between and its filters. Style inspect mode with `[data-openui-hover]`, `[data-openui-selected]` and `.openui-artifact-inspecting`.
+
+  In lang-core, a component written inside a statement gets an id, `componentId` (`lead.2`: the third component inside `lead`), and `dataSources` lists it. In react-lang, components may receive `bindSource`, which marks their root element (`bindSource()`) and a prop's element (`bindSource("value")`); `readSourceTarget(element)` finds the component and prop under a click, also for components that don't call `bindSource`. `useDataSources()` returns `DataSources`. `Renderer.DefaultContent` is what `Renderer` shows without children. In the dashboard library, `Kpi`, `Stat` and `Kpis` mark their value and comparison. `@openuidev/react-ui` now needs `@openuidev/react-lang` 1.2.0 or later, for these APIs: update both together (`pnpm add @openuidev/react-ui@^0.19 @openuidev/react-lang@^1.2`). `@openuidev/assistant-ui` accepts `@openuidev/react-ui` and `@openuidev/react-headless` 0.19.
+
+- Updated dependencies [[`1ff6b26`](https://github.com/thesysdev/openui/commit/1ff6b265c5af6f242b4f5949c8db36db2c51f5ea), [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`bbc525d`](https://github.com/thesysdev/openui/commit/bbc525d919cd622f18d6b111d4db26fb7538b94f), [`bbc525d`](https://github.com/thesysdev/openui/commit/bbc525d919cd622f18d6b111d4db26fb7538b94f), [`a8ba1dd`](https://github.com/thesysdev/openui/commit/a8ba1dde96a59e5f7a66276c79114e98b946ab83)]:
+  - @openuidev/react-headless@0.19.0
+  - @openuidev/react-ui@0.19.0
+  - @openuidev/react-lang@1.2.0
+
 ## 0.2.0
 
 ### Minor Changes
