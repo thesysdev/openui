@@ -69,6 +69,34 @@ function DefaultSourcesDock() {
     slotRef.current?.toggleAttribute("inert", !isInspecting);
   }, [isInspecting]);
 
+  // No taller than the area that scrolls the dashboard shows, so its bottom stays reachable when
+  // the page, not the artifact, scrolls.
+  useEffect(() => {
+    const slot = slotRef.current;
+    if (!slot || !isInspecting) return;
+    let scroller: HTMLElement | null = slot.parentElement;
+    while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) {
+      scroller = scroller.parentElement;
+    }
+    if (!scroller || scroller === document.documentElement || scroller === document.body) return;
+    const area = scroller;
+    // From where the panel starts (lower until the dashboard scrolls under it) to the area's bottom.
+    const measure = () => {
+      const box = area.getBoundingClientRect();
+      const top = Math.max(slot.getBoundingClientRect().top, box.top);
+      slot.style.setProperty("--openui-data-sources-max-height", `${box.bottom - top}px`);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(area);
+    area.addEventListener("scroll", measure, { passive: true });
+    return () => {
+      observer.disconnect();
+      area.removeEventListener("scroll", measure);
+      slot.style.removeProperty("--openui-data-sources-max-height");
+    };
+  }, [isInspecting]);
+
   const close = useCallback(() => {
     setInspecting(false);
     clearSelection();

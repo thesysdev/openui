@@ -416,10 +416,15 @@ export const dockStyles = {
       width: 320px;
       pointer-events: auto;
     }
+    /* Stuck to the top of whatever scrolls the dashboard, and no taller than what that shows
+       (the dock measures it; the screen when nothing else scrolls): a dashboard taller than the
+       window keeps the panel in view, and the panel scrolls its own content. */
     & > .${block} {
-      position: absolute;
-      inset: 0 0 0 auto;
+      position: sticky;
+      top: 0;
       width: 320px;
+      height: 100%;
+      max-height: var(--openui-data-sources-max-height, 100dvh);
       transform: translateX(100%);
       visibility: hidden;
     }
@@ -463,8 +468,11 @@ export const dockStyles = {
         z-index: 45;
       }
       & > .${block} {
+        position: absolute;
         inset: 0;
         width: 100%;
+        height: auto;
+        max-height: none;
         padding-top: var(--openui-space-m);
         border-left: 0;
         border-radius: var(--openui-radius-3xl) var(--openui-radius-3xl) 0 0;
