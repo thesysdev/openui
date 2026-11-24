@@ -69,6 +69,7 @@ export { fetchLLM, getResponseErrorMessage, restStorage } from "./adapters";
 export type {
   Artifact,
   ArtifactAccess,
+  ArtifactBuildStep,
   ArtifactCategory,
   ArtifactListParams,
   ArtifactShare,

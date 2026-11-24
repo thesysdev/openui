@@ -1,6 +1,7 @@
 export type {
   Artifact,
   ArtifactAccess,
+  ArtifactBuildStep,
   ArtifactCategory,
   ArtifactListParams,
   ArtifactShare,
