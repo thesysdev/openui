@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   ChevronRight,
   LayoutDashboard,
-  Loader2,
   PanelRightClose,
   RotateCw,
   X,
@@ -183,9 +182,6 @@ export function DashboardPanel(source: DashboardSource) {
             <LiveArtifactRenderer.Content className="relative h-full overflow-y-auto p-4 sm:p-6">
               {/* Until the dashboard starts streaming: what the build is doing. */}
               <LiveArtifactRenderer.Pending />
-              <LiveArtifactRenderer.Loading>
-                <DashboardLoading />
-              </LiveArtifactRenderer.Loading>
               <LiveArtifactRenderer.Error>
                 <DashboardError />
               </LiveArtifactRenderer.Error>
@@ -259,18 +255,15 @@ function StatusDot({ tone }: { tone: Tone }) {
   );
 }
 
-/** The renderer's state, in the panel's bar. `useArtifactRenderer()` reads the renderer it sits in. */
+/**
+ * The renderer's state, in the panel's bar. `useArtifactRenderer()` reads the renderer it sits in.
+ * While the dashboard builds or loads, the bar shows the renderer's own status, in the words
+ * `Pending` uses, such as "Calling get_npm_downloads…". It stays quiet while `Pending` shows.
+ */
 function StatusBadge() {
-  const { isStreaming, isFetching, error, step } = useArtifactRenderer();
-  const [label, tone]: [string, Tone] = error
-    ? ["Couldn't load", "error"]
-    : step
-      ? [step.tools.length > 0 ? "Reading your data" : "Preparing your data", "busy"]
-      : isStreaming
-        ? ["Generating", "busy"]
-        : isFetching
-          ? ["Loading data", "busy"]
-          : ["Live", "live"];
+  const { isLoading, error } = useArtifactRenderer();
+  if (isLoading && !error) return <LiveArtifactRenderer.ChromeLoader />;
+  const [label, tone]: [string, Tone] = error ? ["Couldn't load", "error"] : ["Live", "live"];
   return (
     <Badge
       variant="outline"
@@ -279,22 +272,6 @@ function StatusBadge() {
       <StatusDot tone={tone} />
       {label}
     </Badge>
-  );
-}
-
-/** A pill over the dashboard while it's generated or its data loads. The slot shows it only then. */
-function DashboardLoading() {
-  const { isStreaming } = useArtifactRenderer();
-  return (
-    <div
-      className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center"
-      role="status"
-    >
-      <span className="inline-flex items-center gap-2 rounded-full border bg-background/95 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur">
-        <Loader2 className="size-3.5 animate-spin" />
-        {isStreaming ? "Building your dashboard…" : "Loading live data…"}
-      </span>
-    </div>
   );
 }
 
