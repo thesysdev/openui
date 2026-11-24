@@ -7,8 +7,7 @@ import toolkit from "../../../lib/toolkit";
 
 export const runtime = "nodejs";
 
-// The dashboard tools wait for the build's tool rounds, and a streamed build lasts until the
-// dashboard is saved, often a minute or more.
+// The dashboard tools run the build inside this request; give it time to finish.
 export const maxDuration = 300;
 
 // The toolkit's server build: create_dashboard and edit_dashboard, with their `execute`.
