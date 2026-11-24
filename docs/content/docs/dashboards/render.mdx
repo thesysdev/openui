@@ -26,20 +26,20 @@ The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentica
 
 ## Props
 
-| Prop                                    | Description                                                                                                      |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `response`                              | The response from `create` or `edit`, unchanged.                                                                 |
-| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.          |
-| `library`                               | The component library. Use the same library the spec on the server came from.                                    |
-| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                 |
-| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                      |
-| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                               |
-| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                             |
-| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                   |
+| Prop                                    | Description                                                                                                           |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `response`                              | The response from `create` or `edit`, unchanged.                                                                      |
+| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.               |
+| `library`                               | The component library. Use the same library the spec on the server came from.                                         |
+| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                      |
+| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                           |
+| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                                    |
+| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                                  |
+| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                        |
 | `enableProvenance`                      | Show where the data comes from: a Sources button and an inspect toggle in the bar. See [Data sources](#data-sources). |
-| `onError`                               | Receives rendering, query, and loading errors.                                                                   |
-| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never.           |
-| `className`                             | Added to the root element.                                                                                       |
+| `onError`                               | Receives rendering, query, and loading errors.                                                                        |
+| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never.                |
+| `className`                             | Added to the root element.                                                                                            |
 
 ## Layouts
 
