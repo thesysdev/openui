@@ -54,3 +54,9 @@ export type {
   ArtifactListState,
   UseArtifactListOptions,
 } from "./CloudArtifact/useArtifactList";
+export { DataSourcesPanel, DataSourcesResult } from "./DataSourcesPanel";
+export type {
+  DataSourcesPanelProps,
+  DataSourcesSelection,
+  SourceDescription,
+} from "./DataSourcesPanel";
