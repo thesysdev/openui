@@ -32,12 +32,24 @@ export function defineDashboard<Context extends ExecutionContext>(
   options: DashboardOptions<Context>,
 ): Dashboard<Context> {
   // Type-checked callers can't get these wrong; plain JavaScript callers can.
-  const { library, model, reasoningEffort, maxToolRounds, promptOptions, tools, mcp } = options;
+  const {
+    library,
+    model,
+    reasoningEffort,
+    maxToolRounds,
+    promptOptions,
+    instructions,
+    tools,
+    mcp,
+  } = options;
   if (typeof model !== "string" || !model.trim()) {
     invalidInput("model is required, as `provider/model`, such as anthropic/claude-sonnet-4.6");
   }
   if (!isRecord(library) || !isRecord(library.components)) {
     invalidInput("library is required as a library spec, such as `library.toSpec()`");
+  }
+  if (instructions !== undefined && typeof instructions !== "string") {
+    invalidInput("instructions must be a string");
   }
   if (!isRecord(tools) && mcpServers(mcp).length === 0) {
     invalidInput("Dashboards need data tools: pass `tools`, `mcp`, or both");
@@ -59,10 +71,10 @@ export function defineDashboard<Context extends ExecutionContext>(
     }
   }
 
-  // OpenUI Cloud's config block: your library and prompt options, then each call's tools and title.
+  // OpenUI Cloud's config block: your library, prompt options and instructions, then each call's tools and title.
   let config: ReturnType<typeof artifactConfig>;
   try {
-    config = artifactConfig(library, promptOptions);
+    config = artifactConfig(library, promptOptions, instructions);
   } catch (error) {
     invalidLibrary(error);
   }
