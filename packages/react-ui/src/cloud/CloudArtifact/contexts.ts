@@ -58,6 +58,8 @@ export interface ContentConfig {
   render: () => ReactNode;
   /** Nothing to show yet: the first content hasn't arrived. */
   isEmpty: boolean;
+  /** Called while a `Content` slot is mounted: the artifact checks for changes only then. Returns its cleanup. */
+  mount: () => () => void;
 }
 
 export const ContentConfigContext = createContext<ContentConfig | null>(null);

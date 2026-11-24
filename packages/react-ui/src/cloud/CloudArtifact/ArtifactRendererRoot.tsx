@@ -97,8 +97,8 @@ export interface ArtifactRendererBaseProps {
   /** Buttons in the open artifact's bar, next to its close button. A `Chrome` slot's `actions` win. */
   actions?: ReactNode;
   /**
-   * How often the shown artifact checks for a newer version, a rename or an access change, in ms
-   * (at least 3s). A newer version replaces the one on screen; a deleted or unshared artifact
+   * How often the artifact checks for a newer version, a rename or an access change, in ms
+   * (at least 3s), while its `Content` slot is mounted. A newer version replaces the one on screen; a deleted or unshared artifact
    * shows an error. Hidden tabs don't check. `false`: never. Default: `OpenUICloudProvider`'s
    * `pollInterval`, else 30s.
    */
@@ -256,13 +256,18 @@ export function ArtifactRendererRoot({
   const close = useCallback(() => setOpen(false), [setOpen]);
   const showsContent = !preview || (isOpen && renderInHtmlElement !== null);
 
+  // Checks for changes only while a `Content` slot shows the artifact.
+  const [mountedContent, setMountedContent] = useState(0);
+  const mountContent = useCallback(() => {
+    setMountedContent((count) => count + 1);
+    return () => setMountedContent((count) => count - 1);
+  }, []);
   const appPollInterval = useArtifactPollInterval();
   const stream = useArtifactStream({
     id,
     version: reference?.version,
     content,
-    // Only while the content is shown.
-    pollInterval: showsContent && (pollInterval ?? appPollInterval ?? DEFAULT_POLL_INTERVAL),
+    pollInterval: mountedContent > 0 && (pollInterval ?? appPollInterval ?? DEFAULT_POLL_INTERVAL),
   });
 
   // A delete, rename or access change from the lists or another renderer's stream
@@ -420,6 +425,7 @@ export function ArtifactRendererRoot({
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
+      mount: mountContent,
       render: () =>
         renderContent({
           program,
@@ -439,6 +445,7 @@ export function ArtifactRendererRoot({
       rendererKey,
       handleRendererErrors,
       renderContent,
+      mountContent,
     ],
   );
 
