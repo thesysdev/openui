@@ -54,9 +54,5 @@ export type {
   ArtifactListState,
   UseArtifactListOptions,
 } from "./CloudArtifact/useArtifactList";
-export { DataSourcesPanel, DataSourcesResult } from "./DataSourcesPanel";
-export type {
-  DataSourcesPanelProps,
-  DataSourcesSelection,
-  SourceDescription,
-} from "./DataSourcesPanel";
+// What `describeSource` returns. The Sources panel itself is drawn by the renderer, not exported.
+export type { SourceDescription } from "./DataSourcesPanel/types";
