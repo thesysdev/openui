@@ -7,7 +7,7 @@ import {
   type DefinedAction,
   type DefinedFunction,
 } from "../functions";
-import { actionRef, tagSchemaId } from "../signature";
+import { actionRef, tagPromptName } from "../signature";
 import type { ActionStep, CallDef, ParamMap } from "./types";
 
 /** Resolve a field path on an object. Supports dot-paths: "state.name" → obj.state.name */
@@ -229,7 +229,7 @@ export const ACTION_STEPS = {
 /** A schema that only names its type in prompt signatures, e.g. `$variable`. */
 function named(id: string) {
   const schema = z.any();
-  tagSchemaId(schema, id);
+  tagPromptName(schema, id);
   return schema;
 }
 
@@ -242,7 +242,7 @@ const actionSchema = z.union([
   toAssistantData(),
   z.object({ type: z.string(), params: z.record(z.string(), z.any()).optional() }),
 ]);
-tagSchemaId(actionSchema, "ActionExpression");
+tagPromptName(actionSchema, "ActionExpression");
 
 /**
  * Schema for a component's action prop: `action: action().optional()`. Tagged
