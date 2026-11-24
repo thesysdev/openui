@@ -46,6 +46,12 @@ export const DASHBOARD_FAQS: MarketingFaq[] = [
     ],
   },
   {
+    question: "Who can access a shared dashboard?",
+    answer: [
+      "A dashboard can be shared with an individual user or a group. Viewers can open it, and editors can also make changes. Data tools run with each viewer’s own context.",
+    ],
+  },
+  {
     question: "Which models can I use?",
     answer: ["Hundreds of models from OpenAI, Anthropic, Google, and other labs through one API."],
   },

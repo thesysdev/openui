@@ -19,7 +19,7 @@ export function IllustratedFeature({
   /* false leaves the stage a flat fill in the shader's base tone */
   shader?: boolean;
   title: string;
-  description: string;
+  description: ReactNode;
   children: ReactNode;
 }) {
   return (
