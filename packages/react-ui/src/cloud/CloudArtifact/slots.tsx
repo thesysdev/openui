@@ -365,10 +365,19 @@ export interface ErrorProps {
 function ErrorSlot({ message, children }: ErrorProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
+  const config = useContext(ContentConfigContext);
   if (!inside || !state.error) return null;
   if (children !== undefined) return <>{children}</>;
   return (
-    <div className={clsx(styles.error, names.error)} role="alert">
+    <div
+      className={clsx(
+        styles.error,
+        names.error,
+        // Nothing to show under it (deleted, unshared, never loaded): in the middle.
+        config?.isEmpty && [styles.errorEmpty, names.errorEmpty],
+      )}
+      role="alert"
+    >
       <span>{message ?? state.error.message}</span>
       {state.retry && (
         <Button variant="secondary" size="small" onClick={state.retry}>

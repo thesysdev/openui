@@ -114,6 +114,18 @@ const stepOf = (data: unknown): ArtifactBuildStep | undefined => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Deleted, or the user lost access. */
+const isGone = (entry: Entry) => entry.snapshot.error?.code === "not-found";
+
+/**
+ * Whether to keep checking: a renderer polls, the server tags what it sends (older
+ * servers and storages without `stream` don't), and the user is still signed in.
+ */
+const polls = (entry: Entry) =>
+  entry.pollers.size > 0 &&
+  entry.tag !== undefined &&
+  entry.snapshot.error?.code !== "unauthorized";
+
 const streamError = (
   code: ArtifactStreamErrorCode,
   message: string,
@@ -303,6 +315,7 @@ export class ArtifactStreamStore {
   /** With `fetchLatest`, a poll: it stays quiet until the server sends something new. */
   private async connect(id: string, fetchLatest?: string): Promise<void> {
     const entry = this.entry(id);
+    entry.started = true;
     entry.controller?.abort();
     const controller = new AbortController();
     entry.controller = controller;
@@ -340,9 +353,10 @@ export class ArtifactStreamStore {
       if (entry.controller === controller) entry.controller = null;
     }
     if (controller.signal.aborted) return;
-    // Done, or a poll that failed before anything changed (what's on screen stays): poll again later.
+    // Done, or a poll that failed before anything changed (what's on screen stays): poll again
+    // later. Each failure, and each check that finds the artifact still gone, doubles the wait.
     if (finished || (poll && !referenced)) {
-      entry.pollFailures = finished ? 0 : entry.pollFailures + 1;
+      entry.pollFailures = finished && !isGone(entry) ? 0 : entry.pollFailures + 1;
       this.schedulePoll(id);
       return;
     }
@@ -420,10 +434,7 @@ export class ArtifactStreamStore {
     const entry = this.entry(id);
     if (entry.pollTimer) clearTimeout(entry.pollTimer);
     entry.pollTimer = null;
-    const code = entry.snapshot.error?.code;
-    if (entry.pollers.size === 0 || !entry.tag || code === "not-found" || code === "unauthorized") {
-      return;
-    }
+    if (!polls(entry)) return;
     const interval = Math.min(...entry.pollers.values());
     const backoff = Math.max(
       interval,
@@ -438,13 +449,14 @@ export class ArtifactStreamStore {
     const entry = this.entry(id);
     entry.pollTimer = null;
     // A read in progress schedules the next poll when it ends.
-    if (entry.pollers.size === 0 || !entry.tag || entry.controller) return;
+    if (!polls(entry) || entry.controller) return;
     if (typeof document !== "undefined" && document.hidden) {
       this.dueWhileHidden.add(id);
       document.addEventListener("visibilitychange", this.onVisible);
       return;
     }
-    void this.connect(id, entry.tag);
+    // Gone, so nothing on screen to compare: a full read, which brings it back if it's shared again.
+    void this.connect(id, isGone(entry) ? "" : entry.tag);
   }
 
   /** The tab is back: run the polls that came due while it was hidden. */
@@ -539,8 +551,13 @@ export class ArtifactStreamStore {
         const code = event.data?.code;
         const errorCode =
           code && ERROR_CODES.has(code) ? (code as ArtifactStreamErrorCode) : "generation-failed";
+        const gone = errorCode === "not-found";
+        // The next renderer to open it reads it again.
+        if (gone) entry.started = false;
         this.update(id, {
           ...this.endRead(entry),
+          // Deleted or unshared: nothing of it stays on screen.
+          ...(gone && { program: null, version: undefined }),
           isStreaming: false,
           step: undefined,
           error: streamError(
