@@ -18,8 +18,8 @@ importers:
         specifier: 0.4.0
         version: 0.4.0(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@openuidev/react-headless':
-        specifier: 0.18.8
-        version: 0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.18.12
+        version: 0.18.12(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang':
         specifier: 1.1.1
         version: 1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
@@ -824,8 +824,8 @@ packages:
       react-dom: ^18.0.0 || ^19.0.0
       zod: ^3.25.0 || ^4.0.0
 
-  '@openuidev/react-headless@0.18.8':
-    resolution: {integrity: sha512-JByY5gvCk0V/Qj6SHOUNd+8KLC2e+5dc02EZNaZyAGiZZPdYFLYaVZs6Y4HUYfBBZzhMYI7xs7qoBhO2w036SA==}
+  '@openuidev/react-headless@0.18.12':
+    resolution: {integrity: sha512-aPwLzb6WwJ+ESuSWrSBHaqFFQDKdYnXYyX0MgVxk3WSCCRG5d1zdTtn8pLHcJ9+AzdBBE7KUIfi5VazBJplA9Q==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -3428,7 +3428,7 @@ snapshots:
       react-dom: 19.2.3(react@19.2.3)
       zod: 4.5.4
 
-  '@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-headless@0.18.12(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4

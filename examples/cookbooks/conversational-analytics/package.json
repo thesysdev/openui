@@ -16,12 +16,12 @@
     "prepare:data": "tsx scripts/prepare-data.ts"
   },
   "dependencies": {
-    "@openuidev/intelligent-ui-library": "0.0.2",
+    "@openuidev/intelligent-ui-library": "0.0.3",
     "@openuidev/lang-core": "1.1.1",
-    "@openuidev/react-headless": "0.18.8",
+    "@openuidev/react-headless": "0.18.12",
     "@openuidev/react-lang": "1.1.1",
-    "@openuidev/react-ui": "0.18.7",
-    "@openuidev/server": "0.4.2",
+    "@openuidev/react-ui": "0.18.12",
+    "@openuidev/server": "0.5.1",
     "next": "16.2.6",
     "openai": "^6.49.0",
     "react": "19.2.4",
