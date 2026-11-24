@@ -3,7 +3,9 @@ title: Generate a dashboard
 description: Create a dashboard from a title and a prompt with dashboards.create.
 ---
 
-`dashboards.create()` builds a dashboard from a title and a prompt. The model first calls your data tools and checks its scripts, so the call returns after these tool rounds, once the dashboard starts generating: typically 20-45 s. Generation continues in the background, and the renderer streams the dashboard while it's built.
+`dashboards.create()` builds a dashboard from a title and a prompt. Pass `{ stream: true }` so the dashboard shows while it's being built: the first response arrives as soon as the dashboard has an id, and the renderer shows it building, with its steps. The last arrives once the dashboard is saved. Return the last one to the model. See [Stream the build](#stream-the-build).
+
+Without `stream`, the call resolves once the dashboard starts generating, after the model has checked your data, and the renderer streams the rest.
 
 ```ts
 import { dashboards } from "@/lib/openui";
@@ -25,7 +27,7 @@ const response = await dashboards.create(
 | `title`   | A short title, shown in the renderer and the dashboard list.                         |
 | `prompt`  | What to build: the sections, metrics, charts, and tables, and which data each shows. |
 
-The second argument is the [context](/docs/dashboards/authentication#the-user-id). The dashboard belongs to `context.userId`, who can [share it](/docs/dashboards/sharing) later. The third is optional: `signal` cancels the call while it waits, and [`stream`](#stream-the-build) yields the build's messages as they come.
+The second argument is the [context](/docs/dashboards/authentication#the-user-id). The dashboard belongs to `context.userId`, who can [share it](/docs/dashboards/sharing) later. The third is optional: `signal` cancels the call while it waits, and [`stream`](#stream-the-build) yields each response as it comes.
 
 ## The response
 
@@ -36,7 +38,7 @@ The second argument is the [context](/docs/dashboards/authentication#the-user-id
 
 ## Stream the build
 
-With `{ stream: true }`, `create` yields two responses instead of one: "Started…" right away, as soon as the dashboard has an id, and "Created…" or "Couldn't…" once it's saved or failed. Pass each to the renderer, and return the last one to the agent. Use it when your agent framework streams tool output, and to learn that a build failed.
+With `{ stream: true }`, `create` yields two responses: "Started…" as soon as the dashboard has an id, and "Created…" or "Couldn't…" once it's saved or failed. Pass each to the renderer. The agent gets the last one, which also tells you if the build failed. Use it when your agent framework streams tool output.
 
 ```ts
 for await (const response of dashboards.create(
@@ -48,7 +50,7 @@ for await (const response of dashboards.create(
 }
 ```
 
-Both forms need a route timeout long enough for the tool rounds. With `stream: true` the call lasts until the dashboard is saved, often a minute or more. On serverless hosts, set it, for example with `export const maxDuration = 300` on Vercel.
+The build runs inside the request that calls `create`, with `stream: true` until the dashboard is saved, so the route needs a timeout long enough for it. On Vercel, set it with `export const maxDuration = 300`. Other hosts have their own setting.
 
 ## Write the prompt
 

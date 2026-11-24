@@ -219,7 +219,7 @@ import { dashboardTools, runDashboardTool } from "@/lib/dashboard-tools";
 import { getSession } from "@/lib/auth"; // your session lookup
 import { systemPrompt } from "@/lib/prompt";
 
-// The dashboard tools wait for the build's tool rounds.
+// The dashboard tools run the build inside this request; give it time to finish.
 export const maxDuration = 300;
 
 const gateway = new OpenAI({
@@ -274,7 +274,7 @@ import { dashboardTools } from "@/lib/dashboard-tools";
 import { getSession } from "@/lib/auth"; // your session lookup
 import { systemPrompt } from "@/lib/prompt";
 
-// The dashboard tools wait for the build's tool rounds.
+// The dashboard tools run the build inside this request; give it time to finish.
 export const maxDuration = 300;
 
 const gateway = createOpenAI({
@@ -304,7 +304,9 @@ export async function POST(request: Request) {
   </Tab>
 </Tabs>
 
-The create and edit tools return after the model's tool rounds, once the dashboard starts generating: typically 20-45 s. The model then replies while the dashboard is generated in the browser. Give the chat route a timeout long enough for the rounds, such as `maxDuration` above. To show the dashboard building right away, and to learn when a build fails, pass `{ stream: true }` from a tool that streams its output. See [Stream the build](/docs/dashboards/generate#stream-the-build).
+Where your framework streams tool output, pass `{ stream: true }` so the dashboard shows while it's being built: the first response arrives as soon as the dashboard has an id, and the renderer shows it building, with its steps. The last arrives once the dashboard is saved. Return the last one to the model. See [Stream the build](/docs/dashboards/generate#stream-the-build). The tools above use the plain form: they return once the dashboard starts generating, after the model has checked your data, and the model replies while the dashboard is generated in the browser.
+
+The dashboard tools run the build inside the chat request, with `stream: true` until the dashboard is saved, so the route needs a timeout long enough for it. `maxDuration` is how Vercel sets it. Other hosts have their own setting.
 
 ## Instruct the agent
 
