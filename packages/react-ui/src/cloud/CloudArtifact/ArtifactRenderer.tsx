@@ -57,7 +57,8 @@ function SourcesWriter() {
   const provenance = useContext(ProvenanceContext)!;
   const store = provenance.internal.sourcesStore;
   const sources = useDataSources();
-  // Into the store, not the root's state: a write reaches only the panel, never back here.
+  // Into the store, not the root's state: a write reaches only the Sources dialog and hover card,
+  // never back here.
   useEffect(() => {
     store.set(sources);
   }, [store, sources]);

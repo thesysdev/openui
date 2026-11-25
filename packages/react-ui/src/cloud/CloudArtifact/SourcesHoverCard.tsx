@@ -13,7 +13,7 @@ import {
   resultLine,
   unwrapResult,
   type Describe,
-} from "../DataSourcesPanel/describe";
+} from "../SourcesContents/describe";
 import { anchorOf, ProvenanceContext, useArtifactProvenance, type Previewed } from "./contexts";
 import { hoverCardNames, hoverCardStyles } from "./sourcesHoverCard.styles";
 

@@ -7,7 +7,7 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 export type Describe = (toolName: string, args: unknown) => SourceDescription | undefined;
 
-/** A query as the panel shows it. */
+/** A query as the Sources dialog shows it. */
 export interface Origin {
   name: string;
   toolName: string;
@@ -19,9 +19,9 @@ export interface Origin {
 }
 
 /**
- * How a query reads in the panel. Nothing is guessed: without the app's `describeSource`, a query
- * shows its tool name and the arguments it ran with, as JSON. What the app returns (its kind,
- * icon, label and the call's text) replaces those, field by field.
+ * How a query reads in the Sources dialog. Nothing is guessed: without the app's
+ * `describeSource`, a query shows its tool name and the arguments it ran with, as JSON. What the
+ * app returns (its kind, icon, label and the call's text) replaces those, field by field.
  */
 export function originOf(name: string, query: DataSourceQuery, describe?: Describe): Origin {
   const toolName = query.toolName ?? name;
@@ -59,7 +59,7 @@ export function componentLabel(sources: DataSources, id: string): string | undef
   return undefined;
 }
 
-/** What the panel shows for a selection: the queries it reads, and its formula. */
+/** What the Sources dialog shows for a selection: the queries it reads, and its formula. */
 export interface Resolved {
   queries: string[];
   /** The prop as written, then each formula step: `value: now.revenue`, `now = @First(…)`. */

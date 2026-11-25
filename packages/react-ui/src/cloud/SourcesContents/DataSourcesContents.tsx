@@ -4,7 +4,6 @@ import type { DataSources } from "@openuidev/react-lang";
 import clsx from "clsx";
 import { Check, ChevronRight, Copy, Download } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { partClass } from "./dataSourcesPanel.styles";
 import {
   componentLabel,
   isRecord,
@@ -16,6 +15,7 @@ import {
   unwrapResult,
   type Origin,
 } from "./describe";
+import { partClass } from "./sourcesDialog.styles";
 import type { DataSourcesContentsProps, DataSourcesSelection } from "./types";
 
 const cx = partClass;
@@ -125,7 +125,7 @@ export function sourcesTitle(
 }
 
 /**
- * Where a dashboard's data comes from, without a frame: the body of the Sources panel and dialog.
+ * Where a dashboard's data comes from, without a frame: the body of the Sources dialog.
  * With nothing selected it lists every query; for a selected component or prop it shows its Query,
  * the Result that came back, and its Formula; for a query opened from the list, its Query and
  * Result.

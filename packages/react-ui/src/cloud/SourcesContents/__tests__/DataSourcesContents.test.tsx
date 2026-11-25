@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { DataSourcesContents, sourcesTitle } from "../DataSourcesPanel";
+import { DataSourcesContents, sourcesTitle } from "../DataSourcesContents";
 import { describeSource, sources } from "../stories/fixtures";
 import type { DataSourcesContentsProps } from "../types";
 
@@ -131,7 +131,7 @@ describe("DataSourcesContents", () => {
   it("without the app's descriptions, guesses nothing: the tool name and its arguments", () => {
     render({ describeSource: undefined });
     expect(container.querySelectorAll("li")[0]?.textContent).toBe("revenueQpostgres_query");
-    expect(container.querySelector("li svg, li .openui-data-sources-panel__mark")).toBeNull();
+    expect(container.querySelector("li svg, li .openui-data-sources-dialog__mark")).toBeNull();
     render({ describeSource: undefined, selection: { id: "revenue", prop: "value" } });
     expect(rows()[0]).toBe("Querypostgres_query (open)");
     expect(JSON.parse(code()[0] ?? "")).toEqual({

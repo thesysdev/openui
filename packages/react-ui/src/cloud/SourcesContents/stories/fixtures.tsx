@@ -128,7 +128,7 @@ export const sources: DataSources = {
 
 /**
  * How the sample app names its tools. It knows them, so it says which product each one reads and
- * shows the query text it sent; the panel itself never guesses either.
+ * shows the query text it sent; the dialog itself never guesses either.
  */
 export const describeSource = (toolName: string, args: unknown): SourceDescription | undefined => {
   const values = (args ?? {}) as Record<string, unknown>;

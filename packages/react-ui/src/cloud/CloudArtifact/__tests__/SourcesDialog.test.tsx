@@ -7,7 +7,7 @@ import {
   dashboardProgram,
   describeSource,
   interpreter,
-} from "../../DataSourcesPanel/stories/fixtures";
+} from "../../SourcesContents/stories/fixtures";
 import { LiveArtifactRenderer } from "../ArtifactRenderer";
 import { useArtifactProvenance } from "../contexts";
 
@@ -50,7 +50,7 @@ const button = (name: string) =>
 /** The queries the dialog lists. */
 const names = () =>
   [...(dialog()?.querySelectorAll("li") ?? [])].map(
-    (el) => el.querySelector(".openui-data-sources-panel__list-label")?.textContent,
+    (el) => el.querySelector(".openui-data-sources-dialog__list-label")?.textContent,
   );
 const rows = () =>
   [...(dialog()?.querySelectorAll("[aria-expanded]") ?? [])].map(
@@ -383,7 +383,7 @@ describe("Sources in a live artifact", () => {
     await inspect();
     await pick(valueOf("Revenue this quarter"));
     expect(dialog()?.querySelector(".mine")?.textContent).toBe("Picked revenueStop");
-    expect(dialog()?.querySelector(".openui-data-sources-panel__rows")).toBeNull();
+    expect(dialog()?.querySelector(".openui-data-sources-dialog__rows")).toBeNull();
     // Leaving inspect mode closes the dialog and clears the selection.
     act(() => button("Stop")!.click());
     await settle();

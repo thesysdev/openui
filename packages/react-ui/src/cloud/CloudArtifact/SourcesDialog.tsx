@@ -14,9 +14,9 @@ import {
   type ReactNode,
 } from "react";
 import { useTheme } from "../../components/ThemeProvider";
-import { DataSourcesContents, sourcesTitle } from "../DataSourcesPanel";
-import { dialogNames, dialogStyles } from "../DataSourcesPanel/dataSourcesPanel.styles";
-import type { DataSourcesContentsProps } from "../DataSourcesPanel/types";
+import { DataSourcesContents, sourcesTitle } from "../SourcesContents";
+import { dialogNames, dialogStyles } from "../SourcesContents/sourcesDialog.styles";
+import type { DataSourcesContentsProps } from "../SourcesContents/types";
 import { anchorOf, ProvenanceContext, useArtifactProvenance } from "./contexts";
 import { focusBack } from "./focus";
 import { SourcesHoverCard } from "./SourcesHoverCard";
@@ -144,7 +144,7 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
     returnTo.current = null;
   }, [content, focusToggle]);
 
-  const panelSelection = useMemo(
+  const contentsSelection = useMemo(
     () => (selection ? { id: selection.id, prop: selection.prop } : null),
     [selection],
   );
@@ -194,7 +194,7 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
               </button>
             )}
             <Dialog.Title className={clsx(dialogStyles.title, dialogNames.title)}>
-              {sourcesTitle(sources, panelSelection, query)}
+              {sourcesTitle(sources, contentsSelection, query)}
             </Dialog.Title>
             {meta && <span className={clsx(dialogStyles.meta, dialogNames.meta)}>{meta}</span>}
             <Dialog.Close
@@ -210,7 +210,7 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
           ) : (
             <DataSourcesContents
               sources={sources}
-              selection={panelSelection}
+              selection={contentsSelection}
               query={query}
               onOpenQuery={(name) => setOpened({ name, under: selection })}
               describeSource={sourcesState.options.describeSource}

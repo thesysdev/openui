@@ -2,7 +2,7 @@ import { css } from "@openuidev/react-components";
 import { easeDrawer, easeOut, phone, typography } from "../shared.styles";
 
 /*
- * The Sources panel on react-ui's theme: colours, type, spacing and radii are openui tokens.
+ * The Sources dialog on react-ui's theme: colours, type, spacing and radii are openui tokens.
  *
  * Goober (under react-components' css) splits selectors at commas and mangles a pseudo-class
  * right after ")" or parentheses inside parentheses, so selectors here avoid all three.
@@ -35,11 +35,12 @@ const cell = `
 `;
 const overlayShadow = `0 0 0 1px ${border}, var(--openui-shadow-xl)`;
 
-/** Stable class names, to target from your own CSS. */
-const block = "openui-data-sources-panel";
+/** Stable class names, to target from your own CSS: the dialog, and its parts. */
+const block = "openui-data-sources-dialog";
 const part = (name: string) => `${block}__${name}`;
 
-export const panelStyles = {
+/** The contents' parts. Their names must not take the dialog's own (`dialogNames`). */
+export const contentsStyles = {
   // react-ui's small tertiary IconButton: 32px, 6px corners.
   "icon-button": css`
     ${buttonReset}
@@ -375,25 +376,22 @@ export const panelStyles = {
   `,
 };
 
-export type PanelPart = keyof typeof panelStyles;
+export type ContentsPart = keyof typeof contentsStyles;
 
 /** A part's classes: its style, and its stable name. */
-export const partClass = (name: PanelPart) => `${panelStyles[name]} ${part(name)}`;
+export const partClass = (name: ContentsPart) => `${contentsStyles[name]} ${part(name)}`;
 
 // ── In a live artifact: the contents in a dialog, a bottom sheet on phones ──
 
-const dialogBlock = "openui-data-sources-dialog";
-
-/** Stable class names, to target from your own CSS. */
 export const dialogNames = {
-  overlay: `${dialogBlock}__overlay`,
-  root: dialogBlock,
-  header: `${dialogBlock}__header`,
-  title: `${dialogBlock}__title`,
-  meta: `${dialogBlock}__meta`,
-  back: `${dialogBlock}__back`,
-  close: `${dialogBlock}__close`,
-  custom: `${dialogBlock}__custom`,
+  overlay: part("overlay"),
+  root: block,
+  header: part("header"),
+  title: part("title"),
+  meta: part("meta"),
+  back: part("back"),
+  close: part("close"),
+  custom: part("custom"),
 } as const;
 
 export const dialogStyles = {

@@ -9,8 +9,8 @@ export interface DataSourcesSelection {
 }
 
 /**
- * How an app names one of its data tools. The panel never guesses: without this, a query shows
- * its tool name and its arguments as JSON. Every field is optional.
+ * How an app names one of its data tools. The Sources dialog never guesses: without this, a query
+ * shows its tool name and its arguments as JSON. Every field is optional.
  */
 export interface SourceDescription {
   /** What kind of source it is, shown in the list, e.g. `Postgres` or `GA4`. Default: the tool name. */

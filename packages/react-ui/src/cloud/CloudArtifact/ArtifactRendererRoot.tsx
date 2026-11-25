@@ -127,7 +127,7 @@ export interface RenderContentArgs {
 
 export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
   interpreter?: Interpreter;
-  /** Inspect mode, its toggle and panel. Live renderers only. */
+  /** Inspect mode, its toggle and the Sources dialog. Live renderers only. */
   enableProvenance?: boolean;
   renderContent: (args: RenderContentArgs) => ReactNode;
 }
@@ -546,7 +546,7 @@ export function ArtifactRendererRoot({
       ) {
         return;
       }
-      // Bounded by this artifact: its bar and panel are not components of an outer Renderer.
+      // Bounded by this artifact: its bar and dialog are not components of an outer Renderer.
       const target = readSourceTarget(event.target, rootRef.current);
       if (!target) return;
       event.preventDefault();
