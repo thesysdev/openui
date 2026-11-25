@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 import { createEngine } from "../core";
 import { slackChannel } from "../slack";
+import { decodeReplyId, typingIndicator, whatsappChannel } from "../whatsapp";
 import { samples } from "./fixtures/samples";
 
 const engine = createEngine(slackChannel);
@@ -59,4 +60,24 @@ test("unknown actionId is a no-op re-render", async () => {
   const r = await engine.applyInteraction(samples.counter, r0.state, { actionId: "nope" });
   assert.equal(j(r.state), j(r0.state));
   assert.equal(j(r.output), j(r0.output));
+});
+
+test("WhatsApp list pick sets the bound variable from the option value", async () => {
+  const wa = createEngine(whatsappChannel);
+  const r0 = await wa.renderState(samples.waBooking);
+  const r1 = await wa.applyInteraction(
+    samples.waBooking,
+    r0.state,
+    decodeReplyId(r0.output[0].interactive.action.sections[0].rows[0].id),
+  );
+  assert.equal(r1.state.$place, "oe");
+});
+
+test("WhatsApp typing indicator marks the message read", () => {
+  assert.deepEqual(typingIndicator("wamid.1"), {
+    messaging_product: "whatsapp",
+    status: "read",
+    message_id: "wamid.1",
+    typing_indicator: { type: "text" },
+  });
 });

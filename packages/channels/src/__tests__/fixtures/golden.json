@@ -913,10 +913,10 @@
       {
         "type": "image",
         "image": {
-          "link": ""
+          "link": "",
+          "caption": "Issues by state"
         },
-        "chartId": "chart_0",
-        "caption": "Issues by state"
+        "chartId": "chart_0"
       },
       {
         "type": "image",
@@ -989,6 +989,147 @@
     "forms": {},
     "state": {
       "$priority": "high"
+    }
+  },
+  "render:waBooking": {
+    "output": [
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "list",
+          "header": {
+            "type": "text",
+            "text": "Italian near Indiranagar"
+          },
+          "body": {
+            "text": "5 places have a table for 4 around 8 PM tonight."
+          },
+          "footer": {
+            "text": "Live availability"
+          },
+          "action": {
+            "button": "Restaurants",
+            "sections": [
+              {
+                "rows": [
+                  {
+                    "id": "chat:{\"a\":\"places\",\"v\":\"oe\"}",
+                    "title": "Olive & Ember",
+                    "description": "4.6 stars · 0.8 km · 7:45, 8:15, 8:45"
+                  },
+                  {
+                    "id": "chat:{\"a\":\"places\",\"v\":\"tl\"}",
+                    "title": "Trattoria Lume",
+                    "description": "4.5 stars · 1.2 km · 8:00, 9:00"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": "",
+          "caption": "Busiest around 8, quieter after 9."
+        },
+        "chartId": "chart_0"
+      },
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "button",
+          "body": {
+            "text": "Pick a time for 4 tonight:"
+          },
+          "footer": {
+            "text": "Held for 15 minutes"
+          },
+          "action": {
+            "buttons": [
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_0\"}",
+                  "title": "7:45 PM"
+                }
+              },
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_1\"}",
+                  "title": "8:15 PM"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "text": "OpenUI message",
+    "actionMap": {
+      "places": {
+        "kind": "input",
+        "target": "$place"
+      },
+      "el_0": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$time",
+              "valueAST": {
+                "k": "Str",
+                "v": "19:45"
+              }
+            }
+          ]
+        }
+      },
+      "el_1": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$time",
+              "valueAST": {
+                "k": "Str",
+                "v": "20:15"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "6p",
+          "7p",
+          "8p",
+          "9p"
+        ],
+        "values": [
+          28,
+          55,
+          86,
+          72
+        ],
+        "title": "How busy tonight",
+        "series": "Busy %",
+        "xLabel": "",
+        "yLabel": ""
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$place": "",
+      "$time": ""
     }
   },
   "render:tgCounter": {
@@ -3053,10 +3194,10 @@
       {
         "type": "image",
         "image": {
-          "link": ""
+          "link": "",
+          "caption": "Issues by state"
         },
-        "chartId": "chart_0",
-        "caption": "Issues by state"
+        "chartId": "chart_0"
       },
       {
         "type": "image",

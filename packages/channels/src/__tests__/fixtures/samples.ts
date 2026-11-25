@@ -89,6 +89,15 @@ md = Markdown("Some **bold** claim")
 root = Root([h, f, d, t, c, img, sel, md])
 `.trim(),
 
+  waBooking: `
+$place = ""
+$time = ""
+places = Select("Restaurants", $place, "5 places have a table for 4 around 8 PM tonight.", [Option("oe", "Olive & Ember", "4.6 stars · 0.8 km · 7:45, 8:15, 8:45"), Option("tl", "Trattoria Lume", "4.5 stars · 1.2 km · 8:00, 9:00")], "Italian near Indiranagar", "Live availability")
+busy = Chart("bar", ["6p", "7p", "8p", "9p"], [28, 55, 86, 72], "How busy tonight", "Busy %", "", "", "Busiest around 8, quieter after 9.")
+times = Card("Pick a time for 4 tonight:", [Button("7:45 PM", Action([@Set($time, "19:45")])), Button("8:15 PM", Action([@Set($time, "20:15")]))], "Held for 15 minutes")
+root = Root([places, busy, times])
+`.trim(),
+
   tgCounter: `
 $count = 0
 title = Header("Counter")

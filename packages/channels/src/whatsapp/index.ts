@@ -8,5 +8,5 @@ export {
   systemPrompt,
   whatsappChannel,
 } from "./library";
-export { decodeReplyId } from "./payload";
+export { decodeReplyId, typingIndicator } from "./payload";
 export type { WaMessage } from "./types";
