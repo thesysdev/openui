@@ -19,7 +19,7 @@ const all = (names: string[]) => names.every(isRegistered);
 function previousValuesNote() {
   const takers = ["Kpi", "Stat", "Series", "Funnel", "Leaderboard", "GeoMap"].filter(isRegistered);
   const toggle = isRegistered("CompareToggle")
-    ? " Add a CompareToggle only when a chart has previous points to overlay: it changes nothing else."
+    ? " Add a CompareToggle only when a chart, Funnel or Goal has previous values for it to switch on: the change on a Kpi, Stat or Leaderboard shows without one."
     : "";
   return `Give previous-period values wherever they exist (${takers.join(", ")}).${toggle}`;
 }
@@ -27,7 +27,7 @@ function previousValuesNote() {
 /** Page order: the answer, then what explains it, then detail; names a Table for detail once it exists. */
 function pageOrderNote() {
   const detail = isRegistered("Table") ? ", such as a Table" : "";
-  return `Page order: a lead Section titled "" with one Kpis strip of 3–5 headline numbers and the views that answer the request. Then what explains or qualifies the answer, then detail to explore${detail}. Don't size Kpis: the strip lays them out. A number that needs a chart beside it is a Card with a Stat.`;
+  return `Page order: a lead Section titled "" with one Kpis strip of up to 6 headline numbers (fewer when the request has fewer) and the views that answer the request. Then what explains or qualifies the answer, then detail to explore${detail}. Don't size Kpis: the strip lays them out. A number that needs a chart beside it is a Card with a Stat.`;
 }
 
 const PROMPT_GROUPS: PromptGroup[] = [
@@ -44,7 +44,7 @@ const PROMPT_GROUPS: PromptGroup[] = [
       'To skip an optional argument before one you need, pass null: Kpi("Signups", 2227, "number", null, null, "New accounts").',
       pageOrderNote,
       {
-        text: "Charts are grouped below by the question they answer: Trends (over time), Comparison (across categories), Composition (part of a whole), Flow (between stages), Relationships (two measures or axes), Maps (by place). Pick the group by the question, then the chart. A chart has one value axis, so its series share a unit and a similar scale: for different units, or scales far apart (one series flattened by another), use a Scatter, neighbouring Table columns, an index or share, or separate charts.",
+        text: "Charts are grouped below by the question they answer: Trends (over time), Comparison (across categories), Composition (part of a whole), Flow (between stages), Relationships (two measures or axes), Maps (by place). Pick the group by the question, then the chart. TimeSeries and Bars have one value axis, so their series share a unit and a similar scale. For different units, or one series flattening another, use separate charts, neighbouring Table columns, or a Scatter of one against the other.",
         needs: ["TimeSeries", "Bars", "Donut", "Funnel", "Scatter", "GeoMap"],
       },
     ],
@@ -64,7 +64,7 @@ const PROMPT_GROUPS: PromptGroup[] = [
     notes: [
       "One FilterBar first, for dashboard-wide filters only: date filter first, then segments several cards read (plan, region), then CompareToggle.",
       "A switch that changes only one card, such as what it's broken down by (channel or referring domain; device, browser or OS) or which metric it plots, belongs in that Card's controls, not the FilterBar. Its $variable feeds only that card's Query or data.",
-      "Give the controls the request implies, opened on what it asks about: activity over time gets a date filter whose default is the period asked about (or the latest complete one), and several items compared get a filter to switch between them. When the reader shouldn't have to click, add no filters.",
+      "Unless the request says the reader won't click (a wall screen, an emailed or printed report), give the filters it implies: activity over time gets a date filter, when a tool or the written data can follow it, opened on the period asked about. A request about one item out of many (one product, one region) gets a SelectFilter opened on that item; items the request compares stay side by side in one chart. With no clicking, add no filters, card controls or CompareToggle, and build every view for the period asked about.",
       "A filter must change what is shown, but only cards whose numbers depend on it read it; point-in-time or cross-segment cards can ignore it. With data written into the program, key values by option: data[$period].mrr (nest keys for two filters: data[$period][$channel].signups).",
     ],
   },
@@ -86,7 +86,7 @@ const PROMPT_GROUPS: PromptGroup[] = [
       previousValuesNote,
       'Set goodWhen "down" for metrics where lower is better: costs, CAC, churn, latency, errors.',
       {
-        text: "A Kpi's chart adds what its number can't say: Progress for a target, Trend for direction, Split for what a total is made of. Leave it out when it would only decorate.",
+        text: "A Kpi's chart adds what its number can't say: Progress for a target, Trend for direction, Split for what a total is made of. Leave it out when it would only decorate, unless the request asks for it.",
         needs: ["Kpi", "Trend", "Progress", "Split"],
       },
     ],
@@ -95,7 +95,7 @@ const PROMPT_GROUPS: PromptGroup[] = [
     name: "Tables",
     components: ["Table", "Column"],
     notes: [
-      "Table for several measures per row; Columns pick how each cell draws. Readers sort by any column, so one Table shows both ends of a ranking, never two lists.",
+      "Table for several measures per row; Columns pick how each cell draws. Readers sort by any column, so one Table can show both ends of a ranking; use two lists only when the request asks for them or the reader won't click.",
     ],
   },
   // Charts are grouped by the question they answer, the same groups as the library's pages.
