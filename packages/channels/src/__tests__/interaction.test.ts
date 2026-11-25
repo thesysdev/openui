@@ -81,3 +81,29 @@ test("WhatsApp typing indicator marks the message read", () => {
     typing_indicator: { type: "text" },
   });
 });
+
+test("WhatsApp card photos and map pins render as native payloads", async () => {
+  const wa = createEngine(whatsappChannel);
+  const { output } = await wa.renderState(samples.waBooking);
+  const [, , times, photo, pin] = output as any[];
+  assert.deepEqual(times.interactive.header, {
+    type: "image",
+    image: { link: "https://example.com/olive-and-ember.jpg" },
+  });
+  assert.deepEqual(photo, {
+    type: "image",
+    image: {
+      link: "https://example.com/olive-and-ember-room.jpg",
+      caption: "Olive & Ember, 12th Main",
+    },
+  });
+  assert.deepEqual(pin, {
+    type: "location",
+    location: {
+      latitude: 12.9719,
+      longitude: 77.6412,
+      name: "Olive & Ember",
+      address: "12th Main, Indiranagar",
+    },
+  });
+});

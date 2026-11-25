@@ -329,7 +329,9 @@ What to plan for on each platform:
   `to` to each and send them in order. Messages cannot be edited, so each interaction sends the
   updated card as a new message. A card holds 3 buttons and a list 10 options. Extras are dropped
   with a console warning. List options can carry a second line (`Option(value, label, description?)`), and lists and cards
-  take an optional header and footer. While the model generates, POST `typingIndicator(messageId)`
+  take an optional header and footer. A card can also show a photo above its text
+  (`Card(text, buttons?, footer?, image?)`), and `Location(latitude, longitude, name?, address?)`
+  sends a native map pin. While the model generates, POST `typingIndicator(messageId)`
   to show "typing…" on the user's message.
 
 ## Charts
@@ -352,6 +354,8 @@ for (const spec of result.charts) {
   // Upload `png`, then replace the marker for `spec.id` in `result.output`.
 }
 ```
+
+Pass `renderChartPng(spec, { theme: "dark" })` for a dark background that suits dark-mode chats.
 
 | Platform | Marker in `output`                                                                          |
 | :------- | :------------------------------------------------------------------------------------------ |

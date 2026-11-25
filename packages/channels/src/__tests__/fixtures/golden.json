@@ -1040,6 +1040,12 @@
         "type": "interactive",
         "interactive": {
           "type": "button",
+          "header": {
+            "type": "image",
+            "image": {
+              "link": "https://example.com/olive-and-ember.jpg"
+            }
+          },
           "body": {
             "text": "Pick a time for 4 tonight:"
           },
@@ -1064,6 +1070,22 @@
               }
             ]
           }
+        }
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": "https://example.com/olive-and-ember-room.jpg",
+          "caption": "Olive & Ember, 12th Main"
+        }
+      },
+      {
+        "type": "location",
+        "location": {
+          "latitude": 12.9719,
+          "longitude": 77.6412,
+          "name": "Olive & Ember",
+          "address": "12th Main, Indiranagar"
         }
       }
     ],

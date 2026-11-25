@@ -186,6 +186,13 @@ export function validateWhatsApp(messages: WaMessage[]): string[] {
         if (!it.body?.text || it.body.text.length > 1024)
           out.push(`#${i} interactive body missing or over 1024`);
         if ((it.footer?.text ?? "").length > 60) out.push(`#${i} footer over 60 chars`);
+        if (
+          it.header &&
+          it.header.type === "image" &&
+          !it.header.image?.link &&
+          !it.header.image?.id
+        )
+          out.push(`#${i} image header without source`);
       } else if (it?.type === "list") {
         const rows = (it.action?.sections ?? []).flatMap((s: any) => s.rows ?? []);
         if (rows.length < 1 || rows.length > 10)
@@ -202,6 +209,11 @@ export function validateWhatsApp(messages: WaMessage[]): string[] {
       } else {
         out.push(`#${i} unknown interactive type ${it?.type}`);
       }
+    } else if (m.type === "location") {
+      const { latitude, longitude } = m.location ?? {};
+      if (!Number.isFinite(latitude) || Math.abs(latitude) > 90) out.push(`#${i} invalid latitude`);
+      if (!Number.isFinite(longitude) || Math.abs(longitude) > 180)
+        out.push(`#${i} invalid longitude`);
     } else {
       out.push(`#${i} unknown message type ${m.type}`);
     }

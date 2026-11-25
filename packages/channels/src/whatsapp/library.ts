@@ -7,7 +7,7 @@
  * messages, so the prompt steers the model toward short, self-contained cards.
  *
  * Output shape: a WhatsApp render produces an ARRAY of Cloud API message
- * payloads (text runs are coalesced; images, charts, and interactive messages
+ * payloads (text runs are coalesced; images, charts, locations, and interactive messages
  * stand alone), in walk order.
  */
 import type { ElementNode, ToolSpec } from "@openuidev/lang-core";
@@ -131,6 +131,34 @@ const Chart = def(
   },
 );
 
+const Location = def(
+  "Location",
+  z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+    name: z.string().optional(),
+    address: z.string().optional(),
+  }),
+  'A map pin, sent as a native location message that opens in the user\'s maps app. e.g. Location(37.7996, -122.4075, "Vela Trattoria", "Grant Ave, San Francisco"). Use it for directions or "where is it" answers.',
+  ({ props: p }) => {
+    const latitude = Number(p.latitude);
+    const longitude = Number(p.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      console.warn("[openui] Location needs numeric latitude and longitude; skipping it");
+      return [];
+    }
+    return msgFrag({
+      type: "location",
+      location: {
+        latitude,
+        longitude,
+        ...(p.name != null ? { name: asText(p.name) } : {}),
+        ...(p.address != null ? { address: asText(p.address) } : {}),
+      },
+    });
+  },
+);
+
 const Table = def(
   "Table",
   z.object({ headers: z.array(z.string()), rows: z.array(z.array(z.string())) }),
@@ -176,14 +204,22 @@ const Card = def(
     text: z.string(),
     buttons: z.array(Button.ref).optional(),
     footer: z.string().optional(),
+    image: z.string().optional(),
   }),
-  'A message with up to 3 reply buttons: Card("Count is *3*", [Button("+1", Action([@Set($count, $count + 1)])), Button("Reset", Action([@Reset($count)]))]). Optional footer: a short grey line under the text (60 chars). Without buttons it is plain text. Tapping a button runs its action and the bot sends an updated card as a NEW message.',
+  'A message with up to 3 reply buttons: Card("Count is *3*", [Button("+1", Action([@Set($count, $count + 1)])), Button("Reset", Action([@Reset($count)]))]). Optional footer: a short grey line under the text (60 chars). Optional image: a public https image URL shown above the text, e.g. a photo of the place being booked. Without buttons it is plain text (an image message when image is set). Tapping a button runs its action and the bot sends an updated card as a NEW message.',
   ({ props: p, ctx }) => {
     const body = clip(asText(p.text), 1024);
     const nodes = (p.buttons ?? []).filter(isElement);
     const footer = asText(p.footer);
-    if (!nodes.length)
-      return textFrag([asText(p.text), footer && `_${footer}_`].filter(Boolean).join("\n"));
+    const image = asText(p.image);
+    if (!nodes.length) {
+      const text = [asText(p.text), footer && `_${footer}_`].filter(Boolean).join("\n");
+      if (!image) return textFrag(text);
+      return msgFrag({
+        type: "image",
+        image: { link: image, ...(text ? { caption: clip(text, 1024) } : {}) },
+      });
+    }
     if (nodes.length > 3)
       console.warn(
         `[openui] Card has ${nodes.length} buttons; WhatsApp allows 3 - extra buttons dropped`,
@@ -201,6 +237,7 @@ const Card = def(
       type: "interactive",
       interactive: {
         type: "button",
+        ...(image ? { header: { type: "image", image: { link: image } } } : {}),
         body: { text: body },
         ...(footer ? { footer: { text: clip(footer, 60) } } : {}),
         action: { buttons },
@@ -270,6 +307,7 @@ const Root = def(
         Divider.ref,
         Image.ref,
         Chart.ref,
+        Location.ref,
         Table.ref,
         Markdown.ref,
         Card.ref,
@@ -277,7 +315,7 @@ const Root = def(
       ]),
     ),
   }),
-  "The top-level container. Every program must define root = Root([...]). Consecutive text-like children are combined into one message; images, charts, cards, and selects are sent as separate messages.",
+  "The top-level container. Every program must define root = Root([...]). Consecutive text-like children are combined into one message; images, charts, locations, cards, and selects are sent as separate messages.",
   ({ props: p, ctx }) => ctx.walk(p.children ?? []),
 );
 
@@ -292,6 +330,7 @@ export const library = createLibrary({
     Divider,
     Image,
     Chart,
+    Location,
     Table,
     Markdown,
     Button,

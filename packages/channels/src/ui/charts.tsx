@@ -26,10 +26,20 @@ const COLORS = ["#4A90D9", "#50C878", "#F5A623", "#E0533D", "#9B59B6", "#1ABC9C"
 const WIDTH = 560;
 const HEIGHT = 320;
 
+/** Colors for the chart background, text, and grid. */
+export type ChartTheme = "light" | "dark";
+export type ChartRenderOptions = { theme?: ChartTheme };
+
+const THEMES = {
+  light: { background: "white", text: "#666", legend: "#333", grid: "#ccc" },
+  dark: { background: "#111b21", text: "#aebac1", legend: "#e9edef", grid: "#2a3942" },
+} as const;
+type Palette = (typeof THEMES)[ChartTheme];
+
 type LegendEntry = { color: string; text: string };
 
 /** The recharts element for a spec (without <Legend>; that is injected later). */
-function ChartElement({ spec }: { spec: ChartSpec }) {
+function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
   const data = spec.labels.map((name, i) => ({ name, v: Number(spec.values[i] ?? 0) }));
   const seriesName = spec.series || spec.title || "Value";
 
@@ -45,6 +55,7 @@ function ChartElement({ spec }: { spec: ChartSpec }) {
           outerRadius={120}
           isAnimationActive={false}
           label={(p: any) => `${p.name}: ${p.value}`}
+          stroke={theme.background}
         >
           {data.map((_, i) => (
             <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -56,19 +67,23 @@ function ChartElement({ spec }: { spec: ChartSpec }) {
 
   // Kept as a flat array, not a Fragment: recharts only scans direct children.
   const axes = [
-    <CartesianGrid key="grid" strokeDasharray="3 3" />,
+    <CartesianGrid key="grid" strokeDasharray="3 3" stroke={theme.grid} />,
     <XAxis
       key="x"
       dataKey="name"
+      stroke={theme.grid}
+      tick={{ fill: theme.text }}
       label={spec.xLabel ? { value: spec.xLabel, position: "insideBottom", offset: -6 } : undefined}
     />,
     <YAxis
       key="y"
       allowDecimals={false}
+      stroke={theme.grid}
+      tick={{ fill: theme.text }}
       label={spec.yLabel ? { value: spec.yLabel, angle: -90, position: "insideLeft" } : undefined}
     />,
   ];
-  const valueLabels = <LabelList dataKey="v" position="top" />;
+  const valueLabels = <LabelList dataKey="v" position="top" fill={theme.text} />;
   const margin = { top: 24, right: 24, left: 16, bottom: spec.xLabel ? 24 : 8 };
 
   if (spec.type === "line") {
@@ -120,7 +135,7 @@ const escapeXml = (s: string) =>
   s.replace(/[<>&]/g, (c) => (c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&amp;"));
 
 /** Append a wrapping legend row below the chart, expanding the SVG height to fit. */
-function injectLegend(svg: string, entries: LegendEntry[]): string {
+function injectLegend(svg: string, entries: LegendEntry[], color: string): string {
   if (!entries.length) return svg;
   const width = Number(svg.match(/width="(\d+)"/)?.[1] ?? WIDTH);
   const height = Number(svg.match(/height="(\d+)"/)?.[1] ?? HEIGHT);
@@ -146,7 +161,7 @@ function injectLegend(svg: string, entries: LegendEntry[]): string {
     const y = height + 8 + r * rowH;
     for (const entry of row) {
       items += `<rect x="${x}" y="${y}" width="${swatch}" height="${swatch}" rx="2" fill="${entry.color}"/>`;
-      items += `<text x="${x + swatch + 6}" y="${y + swatch - 1}" font-family="sans-serif" font-size="13" fill="#333">${escapeXml(entry.text)}</text>`;
+      items += `<text x="${x + swatch + 6}" y="${y + swatch - 1}" font-family="sans-serif" font-size="13" fill="${color}">${escapeXml(entry.text)}</text>`;
       x += entryWidth(entry.text);
     }
   });
@@ -158,15 +173,19 @@ function injectLegend(svg: string, entries: LegendEntry[]): string {
     .replace("</svg>", `${items}</svg>`);
 }
 
-/** Render a chart spec to a PNG buffer, complete with axes, value labels, and a legend. */
-export function renderChartPng(spec: ChartSpec): Buffer {
-  const html = renderToStaticMarkup(<ChartElement spec={spec} />);
+/**
+ * Render a chart spec to a PNG buffer, complete with axes, value labels, and a legend.
+ * Pass `{ theme: "dark" }` for a dark background that sits well in dark-mode chat apps.
+ */
+export function renderChartPng(spec: ChartSpec, options: ChartRenderOptions = {}): Buffer {
+  const theme = THEMES[options.theme ?? "light"];
+  const html = renderToStaticMarkup(<ChartElement spec={spec} theme={theme} />);
   const match = html.match(/<svg[\s\S]*<\/svg>/);
   if (!match) throw new Error("chart produced no <svg>");
   let svg = match[0];
   if (!/xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-  svg = injectLegend(svg, legendEntries(spec));
-  return Buffer.from(new Resvg(svg, { background: "white" }).render().asPng());
+  svg = injectLegend(svg, legendEntries(spec), theme.legend);
+  return Buffer.from(new Resvg(svg, { background: theme.background }).render().asPng());
 }
 
 export type { ChartSpec } from "./types";
