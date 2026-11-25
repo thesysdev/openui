@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/channels",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Generative UI for chat platforms: natively-rendered, interactive messages for Slack (Block Kit), Microsoft Teams (Adaptive Cards), Telegram, and WhatsApp, compiled from OpenUI Lang",
   "license": "MIT",
   "type": "module",
