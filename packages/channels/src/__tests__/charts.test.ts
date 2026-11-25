@@ -24,3 +24,18 @@ for (const type of ["bar", "line", "pie", "area"]) {
     assert.ok(png.length > 5000, `non-trivial size (got ${png.length})`);
   });
 }
+
+test("renders a dark-theme chart to PNG", () => {
+  const png = renderChartPng(
+    {
+      id: "dark",
+      type: "bar",
+      labels: ["6p", "7p", "8p"],
+      values: [4, 2, 1],
+      title: "Open tables",
+    },
+    { theme: "dark" },
+  );
+  assert.deepEqual(png.subarray(0, 4), PNG_MAGIC, "PNG magic bytes");
+  assert.ok(png.length > 5000, `non-trivial size (got ${png.length})`);
+});

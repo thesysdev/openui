@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 import { createEngine } from "../core";
 import { slackChannel } from "../slack";
+import { decodeReplyId, typingIndicator, whatsappChannel } from "../whatsapp";
 import { samples } from "./fixtures/samples";
 
 const engine = createEngine(slackChannel);
@@ -59,4 +60,61 @@ test("unknown actionId is a no-op re-render", async () => {
   const r = await engine.applyInteraction(samples.counter, r0.state, { actionId: "nope" });
   assert.equal(j(r.state), j(r0.state));
   assert.equal(j(r.output), j(r0.output));
+});
+
+test("WhatsApp list pick sets the bound variable from the option value", async () => {
+  const wa = createEngine(whatsappChannel);
+  const r0 = await wa.renderState(samples.waBooking);
+  const r1 = await wa.applyInteraction(
+    samples.waBooking,
+    r0.state,
+    decodeReplyId(r0.output[0].interactive.action.sections[0].rows[0].id),
+  );
+  assert.equal(r1.state.$place, "vt");
+});
+
+test("WhatsApp typing indicator marks the message read", () => {
+  assert.deepEqual(typingIndicator("wamid.1"), {
+    messaging_product: "whatsapp",
+    status: "read",
+    message_id: "wamid.1",
+    typing_indicator: { type: "text" },
+  });
+});
+
+test("WhatsApp Location skips missing or out-of-range coordinates", async () => {
+  const wa = createEngine(whatsappChannel);
+  const { output } = await wa.renderState(
+    'root = Root([Location(null, -122.4, "A"), Location(95, 10, "B"), Location(37.8, -122.4, "C")])',
+  );
+  assert.deepEqual(
+    (output as any[]).map((m) => m.location?.name),
+    ["C"],
+  );
+});
+
+test("WhatsApp card photos and map pins render as native payloads", async () => {
+  const wa = createEngine(whatsappChannel);
+  const { output } = await wa.renderState(samples.waBooking);
+  const [, , times, photo, pin] = output as any[];
+  assert.deepEqual(times.interactive.header, {
+    type: "image",
+    image: { link: "https://example.com/vela-trattoria.jpg" },
+  });
+  assert.deepEqual(photo, {
+    type: "image",
+    image: {
+      link: "https://example.com/vela-trattoria-room.jpg",
+      caption: "Vela Trattoria, Grant Ave",
+    },
+  });
+  assert.deepEqual(pin, {
+    type: "location",
+    location: {
+      latitude: 37.8002,
+      longitude: -122.4074,
+      name: "Vela Trattoria",
+      address: "Grant Ave, North Beach",
+    },
+  });
 });
