@@ -92,11 +92,11 @@ root = Root([h, f, d, t, c, img, sel, md])
   waBooking: `
 $place = ""
 $time = ""
-places = Select("Restaurants", $place, "5 places have a table for 4 around 8 PM tonight.", [Option("oe", "Olive & Ember", "4.6 stars · 0.8 km · 7:45, 8:15, 8:45"), Option("tl", "Trattoria Lume", "4.5 stars · 1.2 km · 8:00, 9:00")], "Italian near Indiranagar", "Live availability")
+places = Select("Restaurants", $place, "5 places have a table for 4 around 8 PM tonight.", [Option("vt", "Vela Trattoria", "4.7 stars · 0.3 mi · 7:45, 8:15, 8:45"), Option("nr", "Nonna Rosa", "4.6 stars · 0.5 mi · 8:00, 9:00")], "Italian in North Beach", "Live availability")
 busy = Chart("bar", ["6p", "7p", "8p", "9p"], [28, 55, 86, 72], "How busy tonight", "Busy %", "", "", "Busiest around 8, quieter after 9.")
-times = Card("Pick a time for 4 tonight:", [Button("7:45 PM", Action([@Set($time, "19:45")])), Button("8:15 PM", Action([@Set($time, "20:15")]))], "Held for 15 minutes", "https://example.com/olive-and-ember.jpg")
-photo = Card("Olive & Ember, 12th Main", [], "", "https://example.com/olive-and-ember-room.jpg")
-pin = Location(12.9719, 77.6412, "Olive & Ember", "12th Main, Indiranagar")
+times = Card("Pick a time for 4 tonight:", [Button("7:45 PM", Action([@Set($time, "19:45")])), Button("8:15 PM", Action([@Set($time, "20:15")]))], "Held for 15 minutes", "https://example.com/vela-trattoria.jpg")
+photo = Card("Vela Trattoria, Grant Ave", [], "", "https://example.com/vela-trattoria-room.jpg")
+pin = Location(37.8002, -122.4074, "Vela Trattoria", "Grant Ave, North Beach")
 root = Root([places, busy, times, photo, pin])
 `.trim(),
 

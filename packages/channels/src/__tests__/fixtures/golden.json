@@ -999,7 +999,7 @@
           "type": "list",
           "header": {
             "type": "text",
-            "text": "Italian near Indiranagar"
+            "text": "Italian in North Beach"
           },
           "body": {
             "text": "5 places have a table for 4 around 8 PM tonight."
@@ -1013,14 +1013,14 @@
               {
                 "rows": [
                   {
-                    "id": "chat:{\"a\":\"places\",\"v\":\"oe\"}",
-                    "title": "Olive & Ember",
-                    "description": "4.6 stars · 0.8 km · 7:45, 8:15, 8:45"
+                    "id": "chat:{\"a\":\"places\",\"v\":\"vt\"}",
+                    "title": "Vela Trattoria",
+                    "description": "4.7 stars · 0.3 mi · 7:45, 8:15, 8:45"
                   },
                   {
-                    "id": "chat:{\"a\":\"places\",\"v\":\"tl\"}",
-                    "title": "Trattoria Lume",
-                    "description": "4.5 stars · 1.2 km · 8:00, 9:00"
+                    "id": "chat:{\"a\":\"places\",\"v\":\"nr\"}",
+                    "title": "Nonna Rosa",
+                    "description": "4.6 stars · 0.5 mi · 8:00, 9:00"
                   }
                 ]
               }
@@ -1043,7 +1043,7 @@
           "header": {
             "type": "image",
             "image": {
-              "link": "https://example.com/olive-and-ember.jpg"
+              "link": "https://example.com/vela-trattoria.jpg"
             }
           },
           "body": {
@@ -1075,17 +1075,17 @@
       {
         "type": "image",
         "image": {
-          "link": "https://example.com/olive-and-ember-room.jpg",
-          "caption": "Olive & Ember, 12th Main"
+          "link": "https://example.com/vela-trattoria-room.jpg",
+          "caption": "Vela Trattoria, Grant Ave"
         }
       },
       {
         "type": "location",
         "location": {
-          "latitude": 12.9719,
-          "longitude": 77.6412,
-          "name": "Olive & Ember",
-          "address": "12th Main, Indiranagar"
+          "latitude": 37.8002,
+          "longitude": -122.4074,
+          "name": "Vela Trattoria",
+          "address": "Grant Ave, North Beach"
         }
       }
     ],

@@ -70,7 +70,7 @@ test("WhatsApp list pick sets the bound variable from the option value", async (
     r0.state,
     decodeReplyId(r0.output[0].interactive.action.sections[0].rows[0].id),
   );
-  assert.equal(r1.state.$place, "oe");
+  assert.equal(r1.state.$place, "vt");
 });
 
 test("WhatsApp typing indicator marks the message read", () => {
@@ -99,22 +99,22 @@ test("WhatsApp card photos and map pins render as native payloads", async () => 
   const [, , times, photo, pin] = output as any[];
   assert.deepEqual(times.interactive.header, {
     type: "image",
-    image: { link: "https://example.com/olive-and-ember.jpg" },
+    image: { link: "https://example.com/vela-trattoria.jpg" },
   });
   assert.deepEqual(photo, {
     type: "image",
     image: {
-      link: "https://example.com/olive-and-ember-room.jpg",
-      caption: "Olive & Ember, 12th Main",
+      link: "https://example.com/vela-trattoria-room.jpg",
+      caption: "Vela Trattoria, Grant Ave",
     },
   });
   assert.deepEqual(pin, {
     type: "location",
     location: {
-      latitude: 12.9719,
-      longitude: 77.6412,
-      name: "Olive & Ember",
-      address: "12th Main, Indiranagar",
+      latitude: 37.8002,
+      longitude: -122.4074,
+      name: "Vela Trattoria",
+      address: "Grant Ave, North Beach",
     },
   });
 });

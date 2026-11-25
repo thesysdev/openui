@@ -249,7 +249,7 @@ const Card = def(
 const Option = dataDef(
   "Option",
   z.object({ value: z.string(), label: z.string(), description: z.string().optional() }),
-  'An option inside a Select. label is clipped to 24 characters; the optional description is a grey second line (72 chars), e.g. Option("r1", "Olive & Ember", "4.6 stars · 0.8 km · 7:45, 8:15").',
+  'An option inside a Select. label is clipped to 24 characters; the optional description is a grey second line (72 chars), e.g. Option("r1", "Vela Trattoria", "4.7 stars · 0.3 mi · 7:45, 8:15").',
 );
 
 const Select = def(
