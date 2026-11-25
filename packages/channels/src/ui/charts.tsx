@@ -42,6 +42,11 @@ type Palette = (typeof THEMES)[ChartTheme];
 
 type LegendEntry = { color: string; text: string };
 
+const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+const formatValue = (v: unknown) => compact.format(Number(v));
+/** Rough rendered width of a label at TEXT_SIZE, for layout without a DOM to measure. */
+const textWidth = (t: string) => t.length * TEXT_SIZE * 0.6;
+
 /** The recharts element for a spec (without <Legend>; that is injected later). */
 function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
   const data = spec.labels.map((name, i) => ({ name, v: Number(spec.values[i] ?? 0) }));
@@ -69,6 +74,10 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
     );
   }
 
+  const maxAbs = Math.max(0, ...data.map((d) => Math.abs(d.v)));
+  const yWidth = Math.ceil(textWidth(formatValue(maxAbs * 1.25)) + 14);
+  const margin = { top: 26, right: 16, left: 0, bottom: spec.xLabel ? 24 : 8 };
+
   // Kept as a flat array, not a Fragment: recharts only scans direct children.
   const axes = [
     <CartesianGrid key="grid" strokeDasharray="3 3" stroke={theme.grid} />,
@@ -82,6 +91,8 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
     <YAxis
       key="y"
       allowDecimals={false}
+      width={yWidth}
+      tickFormatter={formatValue}
       stroke={theme.grid}
       tick={{ fill: theme.text, fontFamily: FONT, fontSize: TEXT_SIZE }}
       label={spec.yLabel ? { value: spec.yLabel, angle: -90, position: "insideLeft" } : undefined}
@@ -95,9 +106,9 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
       fontFamily={FONT}
       fontSize={TEXT_SIZE}
       fontWeight={600}
+      formatter={formatValue}
     />
   );
-  const margin = { top: 26, right: 16, left: 0, bottom: spec.xLabel ? 24 : 8 };
 
   if (spec.type === "line") {
     return (
