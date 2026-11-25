@@ -2,6 +2,7 @@ import { createArtifacts } from "./artifacts";
 import { defineDashboard } from "./artifacts/dashboards";
 import type { Dashboard, DashboardOptions } from "./artifacts/dashboards/types";
 import type { Artifacts } from "./artifacts/types";
+import type { CreateAutofixParams } from "./autofix/types";
 import { createCloudApi, type CloudApi, type OpenUIClientOptions } from "./core/http";
 import type { RequestOptions } from "./core/resource";
 import {
@@ -10,6 +11,8 @@ import {
   type FrontendToken,
 } from "./frontend-token";
 import type { ExecutionContext } from "./interpreter/types";
+import { openAIAutofix, type OpenAIAutofix } from "./openai/autofix";
+import { vercelAutofix, type VercelAutofix } from "./vercel/autofix";
 
 /**
  * One client for OpenUI Cloud on your server. Reads your API key from
@@ -24,9 +27,17 @@ export class OpenUIClient {
    */
   readonly artifacts: Artifacts;
 
+  /** Autofix for Chat Completions: `createAutofix({ library })` returns `{ completions }`. */
+  readonly openai: { createAutofix(params: CreateAutofixParams): OpenAIAutofix };
+
+  /** Autofix for the Vercel AI SDK: `createAutofix({ library })` returns `{ ai }`. */
+  readonly vercel: { createAutofix(params: CreateAutofixParams): VercelAutofix };
+
   constructor(options: OpenUIClientOptions = {}) {
     this.api = createCloudApi(options);
     this.artifacts = createArtifacts(this.api);
+    this.openai = { createAutofix: (params) => openAIAutofix(this.api, params) };
+    this.vercel = { createAutofix: (params) => vercelAutofix(this.api, params) };
   }
 
   /** Defines live dashboards from your library and data tools; its `interpreter` runs them. */

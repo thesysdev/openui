@@ -112,13 +112,21 @@
   },
   "peerDependencies": {
     "@langchain/core": "^1.2.3",
-    "@modelcontextprotocol/sdk": ">=1.0.0"
+    "@modelcontextprotocol/sdk": ">=1.0.0",
+    "ai": ">=5.0.0",
+    "openai": ">=6.0.0"
   },
   "peerDependenciesMeta": {
     "@langchain/core": {
       "optional": true
     },
     "@modelcontextprotocol/sdk": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    },
+    "openai": {
       "optional": true
     }
   }
