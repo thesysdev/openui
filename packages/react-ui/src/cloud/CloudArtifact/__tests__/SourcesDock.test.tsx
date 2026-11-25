@@ -208,6 +208,38 @@ describe("Sources in a live artifact", () => {
     expect(revenue.hasAttribute("data-openui-selected")).toBe(false);
   });
 
+  it("leaves the page clickable while it closes: a click right away picks the next item", async () => {
+    await mount();
+    await inspect();
+    await pick(valueOf("Revenue this quarter"));
+    act(() => dialog()!.querySelector<HTMLButtonElement>("[aria-label=Close]")!.click());
+    // Still leaving: its exit plays on, but it no longer takes the pointer.
+    const leaving = document.querySelector<HTMLElement>(".openui-data-sources-dialog")!;
+    const overlay = document.querySelector<HTMLElement>(".openui-data-sources-dialog__overlay")!;
+    expect(leaving.getAttribute("data-state")).toBe("closed");
+    expect(getComputedStyle(leaving).pointerEvents).toBe("none");
+    expect(getComputedStyle(overlay).pointerEvents).toBe("none");
+    expect(document.body.style.pointerEvents).not.toBe("none");
+    await pick(valueOf("Weekly signups"));
+    expect(dialog()?.getAttribute("data-state")).toBe("open");
+    expect(title()).toBe("signups");
+  });
+
+  it("gives focus back only once the page is no longer hidden from screen readers", async () => {
+    await mount();
+    await inspect();
+    const revenue = valueOf("Revenue this quarter");
+    await pick(revenue);
+    let hiddenWhenFocused: boolean | undefined;
+    revenue.addEventListener("focus", () => {
+      hiddenWhenFocused = revenue.closest("[aria-hidden=true]") !== null;
+    });
+    act(() => dialog()!.querySelector<HTMLButtonElement>("[aria-label=Close]")!.click());
+    await settle();
+    expect(document.activeElement).toBe(revenue);
+    expect(hiddenWhenFocused).toBe(false);
+  });
+
   it("goes back to the list of every query, still inspecting, and opens one from it", async () => {
     await mount();
     await inspect();

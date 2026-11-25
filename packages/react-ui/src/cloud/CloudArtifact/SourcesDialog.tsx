@@ -92,8 +92,30 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
     return () => clearTimeout(timer);
   }, [isOpen, mounted]);
 
+  // Radix keeps a modal's page locked (no pointer events on the body or past its overlay, the
+  // rest hidden from screen readers) until it unmounts, which here is after the exit. Once closed,
+  // the pointer is the page's again: the body gets back what it had, and the leaving overlay and
+  // dialog let clicks through (`passThrough`). Reopened while still leaving, it locks again.
+  const bodyPointerEvents = useRef("");
+  const unlocked = useRef(false);
+  useLayoutEffect(() => {
+    const { style } = document.body;
+    if (isOpen) {
+      if (unlocked.current) style.pointerEvents = "none";
+      else bodyPointerEvents.current = style.pointerEvents;
+      unlocked.current = false;
+    } else if (mounted && !unlocked.current) {
+      style.pointerEvents = bodyPointerEvents.current;
+      unlocked.current = true;
+    } else if (!mounted) {
+      unlocked.current = false;
+    }
+  }, [isOpen, mounted]);
+  const passThrough = isOpen ? undefined : ({ pointerEvents: "none" } as const);
+
   // Focus goes back where it came from: the picked component, or what had it before. Noted before
-  // the dialog takes focus; given back once its focus trap has let go.
+  // the dialog takes focus; given back once it has unmounted and the page is no longer hidden from
+  // screen readers, unless something else took focus meanwhile.
   const returnTo = useRef<Element | null>(null);
   const wasOpen = useRef(isOpen);
   useLayoutEffect(() => {
@@ -101,14 +123,18 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
       returnTo.current = selection?.propElement ?? selection?.element ?? document.activeElement;
       setOpened(null);
     }
-  }, [isOpen, selection]);
-  useEffect(() => {
-    if (!isOpen && wasOpen.current) {
-      focusBack(returnTo.current);
-      returnTo.current = null;
-    }
     wasOpen.current = isOpen;
-  }, [isOpen]);
+  }, [isOpen, selection]);
+  const [content, setContent] = useState<HTMLElement | null>(null);
+  const shown = useRef(false);
+  useEffect(() => {
+    if (content) shown.current = true;
+    if (content || !shown.current) return;
+    shown.current = false;
+    const focused = document.activeElement;
+    if (!focused || focused === document.body) focusBack(returnTo.current);
+    returnTo.current = null;
+  }, [content]);
 
   const panelSelection = useMemo(
     () => (selection ? { id: selection.id, prop: selection.prop } : null),
@@ -122,14 +148,17 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
       <Dialog.Portal forceMount={mounted || undefined}>
         <Dialog.Overlay
           className={clsx(dialogStyles.overlay, dialogNames.overlay, portalThemeClassName)}
+          style={passThrough}
         />
         <Dialog.Content
+          ref={setContent}
           className={clsx(
             dialogStyles.root,
             dialogStyles.body,
             dialogNames.root,
             portalThemeClassName,
           )}
+          style={passThrough}
           aria-describedby={undefined}
           onCloseAutoFocus={(event) => event.preventDefault()}
           // Still mounted while it leaves: an Escape then is the second step, out of inspect mode.
