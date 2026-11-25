@@ -14,7 +14,7 @@ import {
   unwrapResult,
   type Describe,
 } from "../DataSourcesPanel/describe";
-import { ProvenanceContext, useArtifactProvenance, type Previewed } from "./contexts";
+import { anchorOf, ProvenanceContext, useArtifactProvenance, type Previewed } from "./contexts";
 import { hoverCardNames, hoverCardStyles } from "./sourcesHoverCard.styles";
 
 /** The rest before the first card. */
@@ -56,14 +56,14 @@ function describedBy(element: Element, id: string, on: boolean) {
  */
 export function SourcesHoverCard({ describeSource }: { describeSource?: Describe }) {
   const provenance = useContext(ProvenanceContext);
-  const store = provenance?.previewStore;
+  const store = provenance?.internal.previewStore;
   const previewed = useSyncExternalStore(
     store?.subscribe ?? noSubscribe,
     store?.get ?? getNothing,
     getNothing,
   );
   const inspecting = provenance?.isInspecting ?? false;
-  const dialogOpen = provenance?.isOpen ?? false;
+  const dialogOpen = provenance?.isSourcesOpen ?? false;
 
   const [card, setCard] = useState<{ previewed: Previewed; instant: boolean } | null>(null);
   const showing = useRef(false);
@@ -116,7 +116,7 @@ function HoverCard({
   const id = useId();
   const { target, focus } = previewed;
   // A number above its own element; a table or chart above its root, clear of its rows.
-  const anchor = target.propElement ?? target.element;
+  const anchor = anchorOf(target);
   const { refs, floatingStyles, placement, isPositioned } = useFloating({
     strategy: "fixed",
     placement: "top",

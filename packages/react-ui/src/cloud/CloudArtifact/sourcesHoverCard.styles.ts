@@ -1,4 +1,5 @@
 import { css } from "@openuidev/react-components";
+import { easeOut, typography } from "../shared.styles";
 
 /*
  * The Sources hover card, on react-ui's theme tokens. Goober splits selectors at commas and
@@ -9,12 +10,6 @@ import { css } from "@openuidev/react-components";
  * motion, and every card leaves instantly. Reduced motion keeps a 150ms fade.
  */
 
-const typography = (token: string, variation: "regular" | "medium") => `
-  font: var(--${token});
-  letter-spacing: var(--${token}-letter-spacing);
-  font-variation-settings: var(--openui-font-variation-${variation});
-`;
-const easeOut = "cubic-bezier(0.23, 1, 0.32, 1)";
 const secondary = "var(--openui-text-neutral-secondary)";
 
 const block = "openui-data-sources-hover-card";

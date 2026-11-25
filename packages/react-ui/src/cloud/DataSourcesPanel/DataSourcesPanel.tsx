@@ -2,9 +2,9 @@
 
 import type { DataSources } from "@openuidev/react-lang";
 import clsx from "clsx";
-import { ArrowLeft, Check, ChevronRight, Copy, Download, X } from "lucide-react";
+import { Check, ChevronRight, Copy, Download } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { block, panelStyles, partClass } from "./dataSourcesPanel.styles";
+import { partClass } from "./dataSourcesPanel.styles";
 import {
   componentLabel,
   isRecord,
@@ -16,11 +16,7 @@ import {
   unwrapResult,
   type Origin,
 } from "./describe";
-import type {
-  DataSourcesContentsProps,
-  DataSourcesPanelProps,
-  DataSourcesSelection,
-} from "./types";
+import type { DataSourcesContentsProps, DataSourcesSelection } from "./types";
 
 const cx = partClass;
 
@@ -29,7 +25,7 @@ function SourceMark({ origin }: { origin: Pick<Origin, "icon"> }) {
   return origin.icon ? <span className={cx("mark")}>{origin.icon}</span> : null;
 }
 
-export function IconAction({
+function IconAction({
   label,
   onClick,
   className,
@@ -377,34 +373,5 @@ export function DataSourcesContents({
         {copyFailed ? "Couldn't copy. Please try again." : copied ? "Copied to clipboard" : ""}
       </span>
     </>
-  );
-}
-
-/** The Sources contents in a panel of their own, with a header to go back and close. */
-export function DataSourcesPanel({
-  onBack,
-  onClose,
-  className,
-  ...contents
-}: DataSourcesPanelProps) {
-  const { selection } = contents;
-  return (
-    <aside className={clsx(panelStyles.root, block, className)} aria-label="Sources">
-      <header className={cx("header")}>
-        {selection ? (
-          <IconAction label="Back to all queries" onClick={() => onBack?.()}>
-            <ArrowLeft size={16} aria-hidden />
-          </IconAction>
-        ) : (
-          <h2 className={cx("title")}>Sources</h2>
-        )}
-        {onClose && (
-          <IconAction className={cx("close")} label="Close" onClick={onClose}>
-            <X size={16} aria-hidden />
-          </IconAction>
-        )}
-      </header>
-      <DataSourcesContents {...contents} />
-    </aside>
   );
 }

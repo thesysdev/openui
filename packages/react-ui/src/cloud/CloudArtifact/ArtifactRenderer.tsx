@@ -47,14 +47,15 @@ function ProvenanceBridge() {
   const clearSelection = provenance?.clearSelection;
   // Closed, or remounted for live data: the selected elements are gone.
   useEffect(() => () => clearSelection?.(), [clearSelection]);
-  return provenance && (provenance.isInspecting || provenance.selection || provenance.isOpen) ? (
+  return provenance &&
+    (provenance.isInspecting || provenance.selection || provenance.isSourcesOpen) ? (
     <SourcesWriter />
   ) : null;
 }
 
 function SourcesWriter() {
   const provenance = useContext(ProvenanceContext)!;
-  const store = provenance.sourcesStore;
+  const store = provenance.internal.sourcesStore;
   const sources = useDataSources();
   // Into the store, not the root's state: a write reaches only the panel, never back here.
   useEffect(() => {

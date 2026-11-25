@@ -1,4 +1,5 @@
 import { css } from "@openuidev/react-components";
+import { easeDrawer, easeOut, phone, typography } from "../shared.styles";
 
 /*
  * The Sources panel on react-ui's theme: colours, type, spacing and radii are openui tokens.
@@ -11,20 +12,11 @@ import { css } from "@openuidev/react-components";
  * (200ms); rows open in 200ms. Reduced motion keeps fades only (150ms).
  */
 
-const typography = (token: string, variation: "regular" | "medium") => `
-  font: var(--${token});
-  letter-spacing: var(--${token}-letter-spacing);
-  font-variation-settings: var(--openui-font-variation-${variation});
-`;
 const bodySmall = typography("openui-text-body-sm", "regular");
 const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
 const labelSmall = typography("openui-text-label-sm", "regular");
 const labelSmallHeavy = typography("openui-text-label-sm-heavy", "medium");
 const codeSmall = typography("openui-text-code-sm", "regular");
-
-/** The animate skill's curves: strong ease-out for UI, the iOS drawer curve for panels. */
-const easeOut = "cubic-bezier(0.23, 1, 0.32, 1)";
-const easeDrawer = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 const primary = "var(--openui-text-neutral-primary)";
 const secondary = "var(--openui-text-neutral-secondary)";
@@ -44,50 +36,10 @@ const cell = `
 const overlayShadow = `0 0 0 1px ${border}, var(--openui-shadow-xl)`;
 
 /** Stable class names, to target from your own CSS. */
-export const block = "openui-data-sources-panel";
+const block = "openui-data-sources-panel";
 const part = (name: string) => `${block}__${name}`;
 
 export const panelStyles = {
-  root: css`
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    width: 320px;
-    height: 100%;
-    min-height: 0;
-    background: var(--openui-background);
-    border-left: 1px solid ${border};
-    color: ${primary};
-    ${bodySmall}
-    & code {
-      ${codeSmall}
-    }
-  `,
-  header: css`
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: var(--openui-space-s);
-    min-height: 44px;
-    box-sizing: border-box;
-    padding: var(--openui-space-xs) var(--openui-space-xs) var(--openui-space-xs)
-      var(--openui-space-m);
-    border-bottom: 1px solid ${border};
-    &:has(> .${part("icon-button")}:first-child) {
-      padding-left: var(--openui-space-xs);
-    }
-  `,
-  title: css`
-    flex: 1;
-    margin: 0;
-    ${bodyHeavy}
-    &:focus {
-      outline: none;
-    }
-  `,
-  close: css`
-    margin-left: auto;
-  `,
   // react-ui's small tertiary IconButton: 32px, 6px corners.
   "icon-button": css`
     ${buttonReset}
@@ -423,7 +375,7 @@ export const panelStyles = {
   `,
 };
 
-export type PanelPart = Exclude<keyof typeof panelStyles, "root">;
+export type PanelPart = keyof typeof panelStyles;
 
 /** A part's classes: its style, and its stable name. */
 export const partClass = (name: PanelPart) => `${panelStyles[name]} ${part(name)}`;
@@ -443,9 +395,6 @@ export const dialogNames = {
   close: `${dialogBlock}__close`,
   custom: `${dialogBlock}__custom`,
 } as const;
-
-/** Phones: a bottom sheet, every control at least 44px. */
-const phone = "(max-width: 639px)";
 
 export const dialogStyles = {
   // The dim background. Its own fade, on the dialog's curve.

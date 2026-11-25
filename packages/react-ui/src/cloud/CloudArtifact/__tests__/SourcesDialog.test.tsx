@@ -265,8 +265,8 @@ describe("Sources in a live artifact", () => {
 
   it("lets your own toggle open the list and see that it's open", async () => {
     function AllQueries() {
-      const { isOpen, openList } = useArtifactProvenance();
-      return createElement("button", { onClick: openList }, isOpen ? "Open" : "All queries");
+      const { isSourcesOpen, openList } = useArtifactProvenance();
+      return createElement("button", { onClick: openList }, isSourcesOpen ? "Open" : "All queries");
     }
     await mount(true, [
       createElement(

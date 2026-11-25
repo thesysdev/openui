@@ -35,6 +35,7 @@ import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
+  anchorOf,
   ContentConfigContext,
   createPreviewStore,
   createSourcesStore,
@@ -487,11 +488,9 @@ export function ArtifactRendererRoot({
             setInspecting,
             selection,
             clearSelection,
-            isOpen: isSourcesOpen,
+            isSourcesOpen,
             openList,
-            closeDialog,
-            sourcesStore,
-            previewStore,
+            internal: { sourcesStore, previewStore, closeDialog },
           }
         : null,
     [
@@ -593,7 +592,7 @@ export function ArtifactRendererRoot({
   const hovered = useRef<Element | null>(null);
   const setHovered = useCallback(
     (target: SourceTarget | null) => {
-      const element = target ? (target.propElement ?? target.element) : null;
+      const element = target ? anchorOf(target) : null;
       if (hovered.current === element) return;
       hovered.current?.removeAttribute("data-openui-hover");
       element?.setAttribute("data-openui-hover", "");
@@ -606,13 +605,11 @@ export function ArtifactRendererRoot({
   const onInspectHover = useCallback(
     (event: SyntheticEvent) => {
       const target = readSourceTarget(event.target, rootRef.current);
-      const element = target ? (target.propElement ?? target.element) : null;
+      const element = target ? anchorOf(target) : null;
       setHovered(target);
       // The last pick keeps its outline after the dialog closes, until another one is hovered.
       if (element && !isSourcesOpen) {
-        setSelection((current) =>
-          current && element !== (current.propElement ?? current.element) ? null : current,
-        );
+        setSelection((current) => (current && element !== anchorOf(current) ? null : current));
       }
     },
     [setHovered, isSourcesOpen],

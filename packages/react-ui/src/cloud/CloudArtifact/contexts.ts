@@ -95,8 +95,8 @@ export interface ArtifactProvenanceState {
   selection: SourceTarget | null;
   /** In the dialog, back to the list of every query. */
   clearSelection: () => void;
-  /** Whether the Sources dialog is open. */
-  isOpen: boolean;
+  /** Whether the Sources dialog is open. (`useArtifactRenderer().isOpen` is the dashboard's.) */
+  isSourcesOpen: boolean;
   /** Opens the Sources dialog on the list of every query, e.g. from your own "All queries" button. */
   openList: () => void;
   /**
@@ -153,8 +153,8 @@ export type PreviewStore = ValueStore<Previewed | null>;
 
 export const createPreviewStore = (): PreviewStore => createValueStore<Previewed | null>(null);
 
-/** The renderer's provenance state: the public fields, and what only the renderer's parts use. */
-export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
+/** What only the renderer's own parts use, kept out of `useArtifactProvenance()`. */
+export interface ProvenanceInternals {
   /** Where the bridge writes the sources. */
   sourcesStore: SourcesStore;
   /** What the hover card previews. */
@@ -162,6 +162,14 @@ export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "s
   /** Closes the dialog, keeping inspect mode and the selection. */
   closeDialog: () => void;
 }
+
+/** The renderer's provenance state: the public fields, and its parts' `internal` ones. */
+export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
+  internal: ProvenanceInternals;
+}
+
+/** Where a pick shows on the page: its marked prop's element, else the component's. */
+export const anchorOf = (target: SourceTarget): Element => target.propElement ?? target.element;
 
 /** Null when `enableProvenance` is off. */
 export const ProvenanceContext = createContext<ProvenanceContextValue | null>(null);
@@ -172,7 +180,7 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
   setInspecting: noop,
   selection: null,
   clearSelection: noop,
-  isOpen: false,
+  isSourcesOpen: false,
   openList: noop,
   sources: null,
 });
@@ -188,16 +196,11 @@ const getNoSources = () => null;
  */
 export function useArtifactProvenance(): ArtifactProvenanceState {
   const provenance = useContext(ProvenanceContext);
-  const store = provenance?.sourcesStore ?? INERT_STORE;
+  const store = provenance?.internal.sourcesStore ?? INERT_STORE;
   const sources = useSyncExternalStore(store.subscribe, store.get, getNoSources);
   return useMemo(() => {
     if (!provenance) return INERT_PROVENANCE;
-    const {
-      sourcesStore: _store,
-      previewStore: _preview,
-      closeDialog: _close,
-      ...state
-    } = provenance;
+    const { internal: _internal, ...state } = provenance;
     return { ...state, sources };
   }, [provenance, sources]);
 }

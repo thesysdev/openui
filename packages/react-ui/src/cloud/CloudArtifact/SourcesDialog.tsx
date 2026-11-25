@@ -16,18 +16,18 @@ import {
 import { useTheme } from "../../components/ThemeProvider";
 import { DataSourcesContents, sourcesTitle } from "../DataSourcesPanel";
 import { dialogNames, dialogStyles } from "../DataSourcesPanel/dataSourcesPanel.styles";
-import type { DataSourcesPanelProps } from "../DataSourcesPanel/types";
-import { ProvenanceContext, useArtifactProvenance } from "./contexts";
+import type { DataSourcesContentsProps } from "../DataSourcesPanel/types";
+import { anchorOf, ProvenanceContext, useArtifactProvenance } from "./contexts";
 import { SourcesHoverCard } from "./SourcesHoverCard";
 
 /** What an app can tell the default Sources contents, through the `Provenance` slot's props. */
-export type SourcesOptions = Pick<DataSourcesPanelProps, "describeSource">;
+export type SourcesOptions = Pick<DataSourcesContentsProps, "describeSource">;
 
 interface SourcesState {
   options: SourcesOptions;
   setOptions: (options: SourcesOptions) => void;
-  /** An app passed its own contents to `Provenance`: the default ones step aside. */
-  custom: number;
+  /** How many `Provenance` slots have their own contents: above 0, the default ones step aside. */
+  customCount: number;
   setCustom: (update: (count: number) => number) => void;
   /** Where the app's own contents go, inside the open dialog. */
   customHost: HTMLElement | null;
@@ -43,11 +43,11 @@ const EXIT_MS = 350;
 export function SourcesProvider({ children }: { children: ReactNode }) {
   const provenance = useContext(ProvenanceContext);
   const [options, setOptions] = useState<SourcesOptions>(NO_OPTIONS);
-  const [custom, setCustom] = useState(0);
+  const [customCount, setCustom] = useState(0);
   const [customHost, setCustomHost] = useState<HTMLElement | null>(null);
   const state = useMemo<SourcesState>(
-    () => ({ options, setOptions, custom, setCustom, customHost }),
-    [options, custom, customHost],
+    () => ({ options, setOptions, customCount, setCustom, customHost }),
+    [options, customCount, customHost],
   );
 
   if (!provenance) return <>{children}</>;
@@ -76,8 +76,14 @@ function focusBack(element: Element | null | undefined) {
  */
 function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | null) => void }) {
   const sourcesState = useContext(SourcesContext)!;
-  const closeDialog = useContext(ProvenanceContext)!.closeDialog;
-  const { selection, sources, isOpen, clearSelection, setInspecting } = useArtifactProvenance();
+  const { closeDialog } = useContext(ProvenanceContext)!.internal;
+  const {
+    selection,
+    sources,
+    isSourcesOpen: isOpen,
+    clearSelection,
+    setInspecting,
+  } = useArtifactProvenance();
   const { portalThemeClassName } = useTheme();
   /** A query opened from the list, for the selection it was opened under. */
   const [opened, setOpened] = useState<{ name: string; under: typeof selection } | null>(null);
@@ -120,7 +126,7 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
   const wasOpen = useRef(isOpen);
   useLayoutEffect(() => {
     if (isOpen && !wasOpen.current) {
-      returnTo.current = selection?.propElement ?? selection?.element ?? document.activeElement;
+      returnTo.current = selection ? anchorOf(selection) : document.activeElement;
       setOpened(null);
     }
     wasOpen.current = isOpen;
@@ -140,7 +146,7 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
     () => (selection ? { id: selection.id, prop: selection.prop } : null),
     [selection],
   );
-  const custom = sourcesState.custom > 0;
+  const custom = sourcesState.customCount > 0;
   // A picked value is shown beside the title, as it reads on the dashboard.
   const meta = query ? undefined : selection?.propElement?.textContent?.trim() || undefined;
   const back = query ? () => setOpened(null) : selection ? clearSelection : undefined;

@@ -10,7 +10,7 @@ import {
 } from "../../CloudArtifact/contexts";
 import { Provenance, RegionProvider } from "../../CloudArtifact/slots";
 import { SourcesProvider } from "../../CloudArtifact/SourcesDialog";
-import type { DataSourcesPanelProps, DataSourcesSelection } from "../types";
+import type { DataSourcesContentsProps, DataSourcesSelection } from "../types";
 import {
   dashboardLibrary,
   dashboardProgram,
@@ -54,7 +54,7 @@ const withSlowMotion: Decorator<MotionArgs> = (Story, context) => (
 
 // ── The Sources dialog on the sample sources, without a live dashboard ──
 
-interface DialogStoryProps extends Pick<DataSourcesPanelProps, "describeSource"> {
+interface DialogStoryProps extends Pick<DataSourcesContentsProps, "describeSource"> {
   /** What was picked: a component, or one of its props. None: the list of every query. */
   initial?: DataSourcesSelection;
   /** Your own contents, as `Provenance` children. */
@@ -83,14 +83,12 @@ function DialogStory({ initial, describeSource: describe, children }: DialogStor
         setInspecting: (on) => !on && setOpen(false),
         selection: picked && { ...picked, element: trigger },
         clearSelection: () => setPicked(null),
-        isOpen,
+        isSourcesOpen: isOpen,
         openList: () => {
           setPicked(null);
           setOpen(true);
         },
-        closeDialog: () => setOpen(false),
-        sourcesStore,
-        previewStore,
+        internal: { sourcesStore, previewStore, closeDialog: () => setOpen(false) },
       },
     [trigger, picked, isOpen, sourcesStore, previewStore],
   );

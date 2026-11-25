@@ -1,10 +1,6 @@
 import { css, keyframes } from "@openuidev/react-components";
+import { phone, typography } from "../shared.styles";
 
-export const typography = (token: string, variation: "regular" | "medium") => `
-  font: var(--${token});
-  letter-spacing: var(--${token}-letter-spacing);
-  font-variation-settings: var(--openui-font-variation-${variation});
-`;
 const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
 const bodySmall = typography("openui-text-body-sm", "regular");
 const labelSmall = typography("openui-text-label-sm", "regular");
@@ -235,9 +231,6 @@ export const styles = {
 };
 
 // ─── Sources toggle and All queries ──────────────────────────────────────
-
-/** Phones, as the Sources sheet: 44px touch targets. */
-const phone = "(max-width: 639px)";
 
 /*
  * The Sources toggle's own pressed look, over the tertiary button: a highlight fill, a 1px inset

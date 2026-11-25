@@ -35,10 +35,3 @@ export interface DataSourcesContentsProps {
   /** Name a data tool: its kind, logo and how its call reads. */
   describeSource?: (toolName: string, args: unknown) => SourceDescription | undefined;
 }
-
-export interface DataSourcesPanelProps extends DataSourcesContentsProps {
-  /** Back to every query. */
-  onBack?: () => void;
-  onClose?: () => void;
-  className?: string;
-}

@@ -2,9 +2,9 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { DataSourcesPanel, sourcesTitle } from "../DataSourcesPanel";
+import { DataSourcesContents, sourcesTitle } from "../DataSourcesPanel";
 import { describeSource, sources } from "../stories/fixtures";
-import type { DataSourcesPanelProps } from "../types";
+import type { DataSourcesContentsProps } from "../types";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -20,10 +20,10 @@ afterEach(() => {
   container.remove();
 });
 
-function render(props: Partial<DataSourcesPanelProps>) {
+function render(props: Partial<DataSourcesContentsProps>) {
   act(() =>
     root.render(
-      createElement(DataSourcesPanel, { sources, selection: null, describeSource, ...props }),
+      createElement(DataSourcesContents, { sources, selection: null, describeSource, ...props }),
     ),
   );
 }
@@ -45,7 +45,7 @@ const rows = () =>
   );
 const code = () => [...container.querySelectorAll("pre")].map((el) => el.textContent);
 
-describe("DataSourcesPanel", () => {
+describe("DataSourcesContents", () => {
   it("lists every query, in program order, named by the app", () => {
     render({});
     const items = [...container.querySelectorAll("li")].map((el) => el.textContent);
@@ -111,14 +111,16 @@ describe("DataSourcesPanel", () => {
     expect(rows()[0]).toBe("QueryScript (open)");
   });
 
-  it("goes back to every query, and closes", () => {
-    const onBack = vi.fn();
-    const onClose = vi.fn();
-    render({ selection: { id: "daily" }, onBack, onClose });
-    click(button("Back to all queries"));
-    click(button("Close"));
-    expect(onBack).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+  // Back and Close are the Sources dialog's (see SourcesDialog.test.tsx); the contents open a
+  // query from the list, and show it.
+  it("opens a query from the list: its Query, then its Result", () => {
+    const onOpenQuery = vi.fn();
+    render({ onOpenQuery });
+    click(button("dailyQ"));
+    expect(onOpenQuery).toHaveBeenCalledWith("dailyQ");
+    render({ onOpenQuery, query: "dailyQ" });
+    expect(rows()).toEqual(["QuerySQL (open)", "Result"]);
+    expect(code()[0]).toContain("GROUP BY 1");
   });
 
   it("says when the picked component is no longer in the program", () => {
