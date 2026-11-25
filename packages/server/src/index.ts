@@ -24,4 +24,4 @@ export type { McpConfig, McpToolClient } from "./interpreter/mcp";
 export { ToolExecutionError } from "./interpreter/types";
 export type { DataTool, ExecutionContext, InterpreterRequest } from "./interpreter/types";
 export type { ChatAutofix } from "./openai/autofix";
-export type { VercelAutofix } from "./vercel/autofix";
+export type { AIAutofix } from "./vercel/autofix";

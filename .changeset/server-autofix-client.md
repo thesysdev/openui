@@ -2,7 +2,7 @@
 "@openuidev/server": minor
 ---
 
-Add Autofix to `OpenUIClient`: `openui.chat.createAutofix({ library })` returns `{ completions }`, and `openui.vercel.createAutofix({ library })` returns `{ ai }`. They use the client's key, `baseUrl` and `fetch`. Deprecate the standalone `createAutofix` from `@openuidev/server/openai` and `@openuidev/server/vercel`; it still works. `ai` is now an optional peer, for these types.
+Add Autofix to `OpenUIClient`: `openui.chat.createAutofix({ library })` returns `{ completions }`, and `openui.ai.createAutofix({ library })` returns `{ ai }`. They use the client's key, `baseUrl` and `fetch`. Deprecate the standalone `createAutofix` from `@openuidev/server/openai` and `@openuidev/server/vercel`; it still works. `ai` is now an optional peer, for these types.
 
 Export `AutofixError` and the Autofix types from the root, `/openai` and `/vercel`.
 

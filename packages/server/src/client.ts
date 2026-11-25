@@ -12,7 +12,7 @@ import {
 } from "./frontend-token";
 import type { ExecutionContext } from "./interpreter/types";
 import { chatAutofix, type ChatAutofix } from "./openai/autofix";
-import { vercelAutofix, type VercelAutofix } from "./vercel/autofix";
+import { aiAutofix, type AIAutofix } from "./vercel/autofix";
 
 /** One client for OpenUI Cloud on your server. Reads `THESYS_API_KEY` unless you pass `apiKey`. */
 export class OpenUIClient {
@@ -27,14 +27,14 @@ export class OpenUIClient {
    */
   readonly chat: { createAutofix(params: CreateAutofixParams): ChatAutofix };
 
-  /** Autofix for the Vercel AI SDK: `createAutofix({ library })` returns `{ ai }`. */
-  readonly vercel: { createAutofix(params: CreateAutofixParams): VercelAutofix };
+  /** The Vercel AI SDK: `createAutofix({ library })` returns `{ ai }`. Types come from `ai`. */
+  readonly ai: { createAutofix(params: CreateAutofixParams): AIAutofix };
 
   constructor(options: OpenUIClientOptions = {}) {
     this.api = createCloudApi(options);
     this.artifacts = createArtifacts(this.api);
     this.chat = { createAutofix: (params) => chatAutofix(this.api, params) };
-    this.vercel = { createAutofix: (params) => vercelAutofix(this.api, params) };
+    this.ai = { createAutofix: (params) => aiAutofix(this.api, params) };
   }
 
   /** Defines live dashboards from your library and data tools; its `interpreter` runs them. */

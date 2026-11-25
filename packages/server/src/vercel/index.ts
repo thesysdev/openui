@@ -1,6 +1,6 @@
 import { standaloneApi } from "../autofix/create-autofix";
 import type { AutofixOptions } from "../autofix/types";
-import { vercelAutofix, type VercelAutofix } from "./autofix";
+import { aiAutofix, type AIAutofix } from "./autofix";
 
 export { AutofixError } from "../autofix/types";
 export type {
@@ -9,13 +9,13 @@ export type {
   AutofixResult,
   AutofixStream,
 } from "../autofix/types";
-export type { VercelAutofix } from "./autofix";
+export type { AIAutofix } from "./autofix";
 
 /**
  * Validation and repair helpers for Vercel AI SDK UI message streams.
  *
- * @deprecated Use `new OpenUIClient().vercel.createAutofix({ library })`.
+ * @deprecated Use `new OpenUIClient().ai.createAutofix({ library })`.
  */
-export function createAutofix(options: AutofixOptions): VercelAutofix {
-  return vercelAutofix(standaloneApi(options), options);
+export function createAutofix(options: AutofixOptions): AIAutofix {
+  return aiAutofix(standaloneApi(options), options);
 }
