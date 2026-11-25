@@ -171,7 +171,7 @@ function DashboardError() {
 | `isStreaming`             | The dashboard is being generated.                                                                           |
 | `isFetching`              | Its queries are running.                                                                                    |
 | `isLoading`               | Any of the three.                                                                                           |
-| `step`                    | While a dashboard is built, `{ tools, scripts }`: the data tools it's calling and the scripts it's writing. |
+| `step`                    | During a build, `{ tools, scripts }`: the data tools it's calling and scripts it's writing, empty at first. |
 | `justUpdated`             | A newer version replaced the one on screen in the last few seconds.                                         |
 | `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                                |
 | `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                               |

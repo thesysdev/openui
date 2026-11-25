@@ -54,11 +54,11 @@ const nameList = (names: string[]) =>
 
 /** What a dashboard being built is doing, by name: calling data tools, else writing and testing scripts. */
 const stepLabel = (step: ArtifactBuildStep | undefined) =>
-  !step
-    ? undefined
-    : step.tools.length > 0
-      ? `Calling ${nameList(step.tools)}`
-      : `Writing and testing ${nameList(step.scripts)}`;
+  step?.tools.length
+    ? `Calling ${nameList(step.tools)}`
+    : step?.scripts.length
+      ? `Writing and testing ${nameList(step.scripts)}`
+      : undefined;
 
 /** The one status line the card, the bar, the content and the pending skeleton all show. */
 const statusLabel = ({ step, isPending, isStreaming }: ArtifactRendererState) =>
