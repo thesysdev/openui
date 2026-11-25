@@ -65,6 +65,7 @@ const PROMPT_GROUPS: PromptGroup[] = [
       "One FilterBar first, for dashboard-wide filters only: date filter first, then segments several cards read (plan, region), then CompareToggle.",
       "A switch that changes only one card, such as what it's broken down by (channel or referring domain; device, browser or OS) or which metric it plots, belongs in that Card's controls, not the FilterBar. Its $variable feeds only that card's Query or data.",
       "Unless the request says the reader won't click (a wall screen, an emailed or printed report), give the filters it implies: activity over time gets a date filter, when a tool or the written data can follow it, opened on the period asked about. A request about one item out of many (one product, one region) gets a SelectFilter opened on that item; items the request compares stay side by side in one chart. With no clicking, add no filters, card controls or CompareToggle, and build every view for the period asked about.",
+      "Besides the date, give a filter for a segment the data has and readers commonly slice by (such as a site, country, device, channel or plan) when several cards would follow it, opened on all of them.",
       "A filter must change what is shown, but only cards whose numbers depend on it read it; point-in-time or cross-segment cards can ignore it. With data written into the program, key values by option: data[$period].mrr (nest keys for two filters: data[$period][$channel].signups).",
     ],
   },
