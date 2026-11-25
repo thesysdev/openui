@@ -25,6 +25,7 @@ import {
   useState,
   useSyncExternalStore,
   type ReactElement,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type SyntheticEvent,
 } from "react";
@@ -151,6 +152,9 @@ const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
 /** What handles Escape itself, so it shouldn't also step out of Sources. */
+/** An item a component marked with `bindSource`: Tab reaches it while inspecting. */
+const SOURCE_ITEM = "[data-openui-source]";
+
 const OWNS_ESCAPE =
   "[role=menu], [role=menuitem], [role=listbox], [role=option], [role=dialog], [role=combobox], select";
 
@@ -528,6 +532,47 @@ export function ArtifactRendererRoot({
     },
     [inspecting],
   );
+  // Keyboard users reach what a click would pick: while inspecting, every item marked with
+  // `data-openui-source` joins the tab order (only those without a tabindex of their own, given
+  // back after), and Enter or Space picks the focused one. Components found only through React
+  // (no attribute) can't be reached this way; All queries lists their queries.
+  useEffect(() => {
+    if (!inspecting) return;
+    const areas = [rootRef.current, renderInHtmlElement].filter(
+      (area): area is HTMLElement => !!area,
+    );
+    const added = new Set<Element>();
+    const reach = () => {
+      for (const area of areas) {
+        for (const element of area.querySelectorAll(SOURCE_ITEM)) {
+          if (element.hasAttribute("tabindex")) continue;
+          element.setAttribute("tabindex", "0");
+          added.add(element);
+        }
+      }
+    };
+    reach();
+    // Items that render later, e.g. once data loads, join too.
+    const observer = new MutationObserver(reach);
+    for (const area of areas) observer.observe(area, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      for (const element of added) {
+        if (element.getAttribute("tabindex") === "0") element.removeAttribute("tabindex");
+      }
+    };
+  }, [inspecting, renderInHtmlElement]);
+  const onInspectKey = useCallback((event: ReactKeyboardEvent) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const element = event.target as Element;
+    if (!element.matches?.(SOURCE_ITEM)) return;
+    const target = readSourceTarget(element, rootRef.current);
+    if (!target) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setSelection(target);
+    setSourcesOpen(true);
+  }, []);
   // Escape undoes one step: the dialog closes first (it handles that key itself), then inspect
   // mode ends. A menu, list or dialog of the dashboard's own closes before either.
   useEffect(() => {
@@ -642,6 +687,7 @@ export function ArtifactRendererRoot({
             onClickCapture={inspecting ? onInspectCapture : undefined}
             onPointerDownCapture={inspecting ? onInspectCapture : undefined}
             onMouseDownCapture={inspecting ? onInspectCapture : undefined}
+            onKeyDownCapture={inspecting ? onInspectKey : undefined}
             onMouseOver={inspecting ? onInspectHover : undefined}
             onMouseLeave={inspecting ? clearHovered : undefined}
             onFocus={inspecting ? onInspectFocus : undefined}

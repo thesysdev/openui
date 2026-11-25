@@ -347,6 +347,52 @@ describe("Sources in a live artifact", () => {
     expect(toggle().getAttribute("aria-pressed")).toBe("false");
   });
 
+  it("puts every bound item in the tab order while inspecting, and takes it out after", async () => {
+    await mount();
+    const revenue = valueOf("Revenue this quarter");
+    const signupsTile = valueOf("Weekly signups").closest<HTMLElement>(
+      "[data-openui-source]:not([data-openui-prop])",
+    )!;
+    signupsTile.setAttribute("tabindex", "-1");
+    const bound = () => [...container.querySelectorAll<HTMLElement>("[data-openui-source]")];
+    expect(revenue.hasAttribute("tabindex")).toBe(false);
+    await inspect();
+    // Tab reaches each one; its own tabindex is left alone.
+    expect(revenue.getAttribute("tabindex")).toBe("0");
+    expect(bound().filter((el) => el.getAttribute("tabindex") !== "0")).toEqual([signupsTile]);
+    await inspect();
+    expect(bound().filter((el) => el.hasAttribute("tabindex"))).toEqual([signupsTile]);
+    expect(signupsTile.getAttribute("tabindex")).toBe("-1");
+  });
+
+  it("picks the focused item on Enter or Space", async () => {
+    await mount();
+    await inspect();
+    const revenue = valueOf("Revenue this quarter");
+    const press = (element: HTMLElement, key: string) => {
+      const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+      act(() => {
+        element.focus();
+        element.dispatchEvent(event);
+      });
+      return event;
+    };
+    expect(press(revenue, "Enter").defaultPrevented).toBe(true);
+    await settle();
+    expect(title()).toBe("Revenue this quarter");
+    expect(rows()[0]).toBe("Querypostgres_query (open)");
+    await escape();
+    expect(document.activeElement).toBe(revenue);
+    const revenueTile = revenue.closest<HTMLElement>(
+      "[data-openui-source]:not([data-openui-prop])",
+    )!;
+    press(revenueTile, " ");
+    await settle();
+    expect(title()).toBe("Revenue this quarter");
+    expect(meta()).toBeUndefined();
+    expect(rows()).toEqual(["Querypostgres_query", "Result (open)", "Formula"]);
+  });
+
   it("does nothing on a click outside inspect mode", async () => {
     await mount();
     await pick(valueOf("Weekly signups"));

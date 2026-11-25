@@ -194,6 +194,7 @@ While inspecting:
 
 - Hovering a number, table or chart outlines it. After a short pause a hover card shows its source kind, the first line of its query and a one-line result, such as `1 row · revenue 184920`. A component with several queries lists the first three, then "+N more". Once a card is showing, the next one appears without the pause. Keyboard focus shows the card too.
 - Clicking a component, or a number in it, selects it instead of acting: filters, links, tabs and sorting don't react. The click opens the Sources dialog on it.
+- Tab reaches every item a component marks with `bindSource()`, and Enter or Space opens the dialog on the focused one. Components found only through React's tree carry no mark, so Tab doesn't reach them; for keyboard users, All queries lists their queries.
 - Pressing Sources again leaves inspect mode, and the dashboard behaves normally.
 
 On touch screens there are no outlines or hover cards: a tap opens the dialog.
@@ -202,6 +203,7 @@ On touch screens there are no outlines or hover cards: a tap opens the dialog.
 
 The dialog is centered and 560px wide. At 639px and below it's a bottom sheet over the dimmed dashboard. It's portaled to `body` and carries the active theme.
 
+- Its title names the item by its `title`, `label` or `name` prop when that's written as text, such as "Revenue this quarter", else by its id; a picked number shows its value beside the title. A query opened from the list is titled by its name.
 - On a number it opens on the number's Query. On a table or chart it opens on the Result. A container shows each child's Query and Result. A computed value with no query shows only its Formula, and a script shows its call and what it reads.
 - Query, Result and Formula expand and collapse. A query copies with one click, and a result downloads as JSON.
 - The back arrow leads to the list of every query, and any query opens from the list. All queries opens the dialog on that list, including queries that only feed formulas and never appear on screen.
@@ -337,14 +339,14 @@ The renderer's root element (`.openui-artifact`) carries `data-openui-inspecting
 
 These class names are stable:
 
-| Class                               | Element                                                                                                                       |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `openui-artifact-provenance-toggle` | The Sources toggle.                                                                                                           |
-| `openui-artifact-provenance-dot`    | The dot on the toggle's icon while it's on.                                                                                   |
-| `openui-artifact-all-queries`       | The All queries button.                                                                                                       |
-| `openui-data-sources-dialog`        | The dialog. Its parts: `__overlay`, `__header`, `__title`, `__back`, `__close` and `__custom` (around `Provenance` children). |
-| `openui-data-sources-panel__*`      | The default contents' parts, such as `__list-button`.                                                                         |
-| `openui-data-sources-hover-card`    | The hover card.                                                                                                               |
+| Class                               | Element                                                                                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `openui-artifact-provenance-toggle` | The Sources toggle.                                                                                                                     |
+| `openui-artifact-provenance-dot`    | The dot on the toggle's icon while it's on.                                                                                             |
+| `openui-artifact-all-queries`       | The All queries button.                                                                                                                 |
+| `openui-data-sources-dialog`        | The dialog. Its parts: `__overlay`, `__header`, `__title`, `__meta`, `__back`, `__close` and `__custom` (around `Provenance` children). |
+| `openui-data-sources-panel__*`      | The default contents' parts, such as `__list-button`.                                                                                   |
+| `openui-data-sources-hover-card`    | The hover card.                                                                                                                         |
 
 The dialog and the hover card are portaled to `body`, so target them by these classes rather than under `.openui-artifact`.
 
