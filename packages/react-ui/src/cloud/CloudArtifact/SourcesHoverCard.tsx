@@ -3,7 +3,16 @@
 import { autoUpdate, flip, offset, shift, useFloating } from "@floating-ui/react-dom";
 import clsx from "clsx";
 import { Database, Layers, Sigma } from "lucide-react";
-import { useContext, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../../components/ThemeProvider";
 import {
@@ -38,6 +47,19 @@ function focusVisible(element: Element) {
   } catch {
     return true;
   }
+}
+
+/**
+ * CSS anchor positioning with try fallbacks (Chrome and Edge 157, Safari 27; not Firefox). Without
+ * it the card falls back to floating-ui.
+ */
+function supportsAnchoring() {
+  return (
+    typeof CSS !== "undefined" &&
+    typeof CSS.supports === "function" &&
+    CSS.supports("anchor-name: --a") &&
+    CSS.supports("position-try-fallbacks: flip-block")
+  );
 }
 
 /** Adds or removes one id in an element's `aria-describedby`, keeping the element's own. */
@@ -117,14 +139,7 @@ function HoverCard({
   const { target, focus } = previewed;
   // A number above its own element; a table or chart above its root, clear of its rows.
   const anchor = anchorOf(target);
-  const { refs, floatingStyles, placement, isPositioned } = useFloating({
-    strategy: "fixed",
-    placement: "top",
-    elements: { reference: anchor },
-    middleware: [offset(8), flip({ fallbackPlacements: ["bottom"] }), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
-  });
-
+  const [anchored] = useState(supportsAnchoring);
   const resolved = sources ? resolve(sources, { id: target.id, prop: target.prop }) : null;
 
   // The item it describes, for screen readers: the focused element, or the hovered one.
@@ -210,21 +225,94 @@ function HoverCard({
     );
   }
 
+  const props = {
+    id,
+    role: "tooltip",
+    className: clsx(hoverCardStyles.root, hoverCardNames.root, portalThemeClassName),
+    "data-instant": instant || undefined,
+    children: (
+      <>
+        {body}
+        <div className={clsx(hoverCardStyles.hint, hoverCardNames.hint)}>Click for details</div>
+      </>
+    ),
+  } as const;
   return createPortal(
+    anchored ? (
+      <AnchoredCard anchor={anchor} {...props} />
+    ) : (
+      <FloatingCard anchor={anchor} {...props} />
+    ),
+    document.body,
+  );
+}
+
+type CardProps = {
+  anchor: Element;
+  id: string;
+  role: "tooltip";
+  className: string;
+  "data-instant": true | undefined;
+  children: ReactNode;
+};
+
+/**
+ * Placed by the browser: the anchor gets a unique `anchor-name` while the card shows, and the card
+ * sits above it, or below when there's no room, kept inside the viewport (see the styles). Its
+ * position never goes through `transform`, which the entrance animates.
+ */
+function AnchoredCard({ anchor, ...props }: CardProps) {
+  const name = `--openui-sources-${useId().replace(/[^\w-]/g, "")}`;
+  const ref = useRef<HTMLDivElement>(null);
+  const [placed, setPlaced] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!(anchor instanceof HTMLElement || anchor instanceof SVGElement)) return;
+    const { style } = anchor;
+    const previous = style.getPropertyValue("anchor-name");
+    const priority = style.getPropertyPriority("anchor-name");
+    style.setProperty("anchor-name", name);
+    return () => {
+      if (previous) style.setProperty("anchor-name", previous, priority);
+      else style.removeProperty("anchor-name");
+    };
+  }, [anchor, name]);
+
+  // Mark it placed only after its first style is computed, so the entrance transitions.
+  useLayoutEffect(() => {
+    ref.current?.getBoundingClientRect();
+    setPlaced(true);
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={clsx(props.className, hoverCardStyles.anchored)}
+      style={{ positionAnchor: name }}
+      data-placed={placed || undefined}
+    />
+  );
+}
+
+/** Placed by floating-ui, through `top` and `left` so the entrance can animate `transform`. */
+function FloatingCard({ anchor, ...props }: CardProps) {
+  const { refs, floatingStyles, placement, isPositioned } = useFloating({
+    strategy: "fixed",
+    placement: "top",
+    transform: false,
+    elements: { reference: anchor },
+    middleware: [offset(8), flip({ fallbackPlacements: ["bottom"] }), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+  return (
     <div
       ref={refs.setFloating}
-      id={id}
-      role="tooltip"
-      className={clsx(hoverCardStyles.root, hoverCardNames.root, portalThemeClassName)}
+      {...props}
       style={floatingStyles}
       data-side={placement.startsWith("bottom") ? "bottom" : "top"}
       data-placed={isPositioned || undefined}
-      data-instant={instant || undefined}
-    >
-      {body}
-      <div className={clsx(hoverCardStyles.hint, hoverCardNames.hint)}>Click for details</div>
-    </div>,
-    document.body,
+    />
   );
 }
 

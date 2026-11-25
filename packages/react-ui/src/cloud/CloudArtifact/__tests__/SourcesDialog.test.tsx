@@ -587,6 +587,69 @@ describe("The hover card in inspect mode", () => {
     expect(card()).toBeNull();
   });
 
+  it("places the card by top and left, never a transform, without anchor positioning", async () => {
+    act(() => toggle().click());
+    const revenue = valueOf("Revenue this quarter");
+    hover(revenue);
+    await wait(300);
+    // The entrance animates transform, so a position in it would fly the card in from 0,0.
+    expect(card()!.style.transform).toBe("");
+    expect(card()!.style.position).toBe("fixed");
+    expect(card()!.style.top).not.toBe("");
+    expect(card()!.style.left).not.toBe("");
+    expect(card()!.style.getPropertyValue("position-anchor")).toBe("");
+    expect(revenue.style.getPropertyValue("anchor-name")).toBe("");
+  });
+
+  describe("with CSS anchor positioning", () => {
+    beforeEach(() => {
+      vi.stubGlobal("CSS", { supports: () => true, escape: (value: string) => value });
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("anchors the card to the hovered item, and drops the anchor when the card leaves", async () => {
+      act(() => toggle().click());
+      const revenue = valueOf("Revenue this quarter");
+      hover(revenue);
+      await wait(300);
+      const name = revenue.style.getPropertyValue("anchor-name");
+      expect(name).toMatch(/^--[\w-]+$/);
+      expect(card()!.style.getPropertyValue("position-anchor")).toBe(name);
+      expect(card()!.style.transform).toBe("");
+      expect(card()!.style.top).toBe("");
+      leave();
+      expect(card()).toBeNull();
+      expect(revenue.style.getPropertyValue("anchor-name")).toBe("");
+    });
+
+    it("moves the anchor to the next item, and gives an item back its own anchor-name", async () => {
+      act(() => toggle().click());
+      const revenue = valueOf("Revenue this quarter");
+      const signups = valueOf("Weekly signups");
+      signups.style.setProperty("anchor-name", "--mine");
+      hover(revenue);
+      await wait(300);
+      const name = revenue.style.getPropertyValue("anchor-name");
+      hover(signups);
+      expect(revenue.style.getPropertyValue("anchor-name")).toBe("");
+      expect(signups.style.getPropertyValue("anchor-name")).toBe(name);
+      expect(card()!.style.getPropertyValue("position-anchor")).toBe(name);
+      leave();
+      expect(signups.style.getPropertyValue("anchor-name")).toBe("--mine");
+    });
+
+    it("drops the anchor when inspect mode ends", async () => {
+      act(() => toggle().click());
+      const revenue = valueOf("Revenue this quarter");
+      hover(revenue);
+      await wait(300);
+      expect(revenue.style.getPropertyValue("anchor-name")).not.toBe("");
+      act(() => toggle().click());
+      expect(card()).toBeNull();
+      expect(revenue.style.getPropertyValue("anchor-name")).toBe("");
+    });
+  });
+
   it("shows no card on a touch screen", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query }));
     try {

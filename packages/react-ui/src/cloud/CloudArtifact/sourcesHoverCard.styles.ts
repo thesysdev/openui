@@ -5,7 +5,12 @@ import { easeOut, typography } from "../shared.styles";
  * The Sources hover card, on react-ui's theme tokens. Goober splits selectors at commas and
  * mangles a pseudo-class right after ")" or parentheses inside parentheses: none here.
  *
- * Motion: it grows in from the side nearest its anchor, opacity plus scale 0.97 → 1 over 125ms on
+ * Placement: with CSS anchor positioning, `anchored` places it (the anchor gets a matching
+ * `anchor-name` from the component); without it, floating-ui sets `top` and `left` inline.
+ * Either way `transform` is left to the entrance, so the card never flies in from 0,0.
+ *
+ * Motion: it grows in from the side nearest its anchor (from its centre when anchored, where the
+ * side the browser picks isn't known), opacity plus scale 0.97 → 1 over 125ms on
  * the strong ease-out, once placed. The next card while one shows or just closed appears with no
  * motion, and every card leaves instantly. Reduced motion keeps a 150ms fade.
  */
@@ -69,6 +74,24 @@ export const hoverCardStyles = {
     &[data-placed][data-instant] {
       transition: none;
     }
+  `,
+  /**
+   * Above its anchor and centred on it, 8px clear of it and of the viewport's edges; below it when
+   * there's no room above, and aligned to one of its edges when centring would cross the viewport's
+   * side. `position-anchor` is set inline, per card.
+   */
+  anchored: css`
+    position: fixed;
+    inset: auto;
+    margin: 8px;
+    position-area: block-start;
+    position-try-fallbacks:
+      flip-block,
+      block-start span-inline-end,
+      block-end span-inline-end,
+      block-start span-inline-start,
+      block-end span-inline-start;
+    transform-origin: center;
   `,
   kind: css`
     display: flex;
