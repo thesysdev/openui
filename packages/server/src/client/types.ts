@@ -42,6 +42,11 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
    */
   maxToolRounds?: number;
   promptOptions?: ArtifactPromptOptions;
+  /**
+   * Your business context: what it does, who reads the dashboards, your terms,
+   * calendar and units. The same for every user; sent with every create and edit.
+   */
+  instructions?: string;
 } & DashboardDataTools<Context>;
 
 export interface CreateDashboardParams {
