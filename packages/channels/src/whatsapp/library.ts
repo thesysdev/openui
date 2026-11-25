@@ -141,10 +141,10 @@ const Location = def(
   }),
   'A map pin, sent as a native location message that opens in the user\'s maps app. e.g. Location(37.7996, -122.4075, "Vela Trattoria", "Grant Ave, San Francisco"). Use it for directions or "where is it" answers.',
   ({ props: p }) => {
-    const latitude = Number(p.latitude);
-    const longitude = Number(p.longitude);
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      console.warn("[openui] Location needs numeric latitude and longitude; skipping it");
+    const latitude = p.latitude == null ? NaN : Number(p.latitude);
+    const longitude = p.longitude == null ? NaN : Number(p.longitude);
+    if (!(Math.abs(latitude) <= 90) || !(Math.abs(longitude) <= 180)) {
+      console.warn("[openui] Location needs a valid latitude and longitude; skipping it");
       return [];
     }
     return msgFrag({

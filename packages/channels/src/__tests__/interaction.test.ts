@@ -82,6 +82,17 @@ test("WhatsApp typing indicator marks the message read", () => {
   });
 });
 
+test("WhatsApp Location skips missing or out-of-range coordinates", async () => {
+  const wa = createEngine(whatsappChannel);
+  const { output } = await wa.renderState(
+    'root = Root([Location(null, -122.4, "A"), Location(95, 10, "B"), Location(37.8, -122.4, "C")])',
+  );
+  assert.deepEqual(
+    (output as any[]).map((m) => m.location?.name),
+    ["C"],
+  );
+});
+
 test("WhatsApp card photos and map pins render as native payloads", async () => {
   const wa = createEngine(whatsappChannel);
   const { output } = await wa.renderState(samples.waBooking);
