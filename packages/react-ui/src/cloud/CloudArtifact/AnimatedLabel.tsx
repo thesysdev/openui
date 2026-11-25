@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { EASE_OUT, prefersReducedMotion } from "./pendingLoaderEngine";
+import { EASE_OUT, prefersReducedMotion } from "./motion";
 
 const DRIFT = 200;
 

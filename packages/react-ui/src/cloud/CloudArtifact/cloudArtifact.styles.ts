@@ -56,25 +56,53 @@ export const styles = {
   root: css`
     position: relative;
   `,
+  // A build's feed wraps onto its own line under the title; a loader pill stays beside it.
   preview: css`
+    position: relative;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--openui-space-s);
+    gap: var(--openui-space-xs) var(--openui-space-s);
     box-sizing: border-box;
     width: 100%;
     margin: var(--openui-space-xs) 0;
     padding: var(--openui-space-s) var(--openui-space-m);
     border: 1px solid var(--openui-border-default);
     border-radius: var(--openui-radius-m);
-    background: transparent;
     color: var(--openui-text-neutral-primary);
-    text-align: left;
-    cursor: pointer;
     transition: background-color 0.12s ease;
     &:hover {
       background: var(--openui-elevated-light);
     }
+    &:has(> button:first-child:focus-visible) {
+      outline: 2px solid var(--openui-interactive-accent-default);
+      outline-offset: 2px;
+    }
+  `,
+  // The card's open button: its click area stretches over the whole card.
+  previewOpen: css`
+    flex: 1 1 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: var(--openui-radius-m);
+    }
+    &:focus-visible {
+      outline: none;
+    }
+  `,
+  previewFeed: css`
+    flex-basis: 100%;
   `,
   previewText: css`
     display: flex;
@@ -193,8 +221,11 @@ export const styles = {
       outline-offset: var(--openui-inspect-outline-offset, -2px);
     }
   `,
+  // A column, so a build's docked feed (last) can sit at the bottom of a short dashboard.
   content: css`
     position: relative;
+    display: flex;
+    flex-direction: column;
     flex: 1;
     min-height: 120px;
     overflow: auto;

@@ -3,10 +3,13 @@
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { CircleAlert, Database, LoaderCircle, X } from "lucide-react";
-import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
+import { BuildFeed, BuildFeedPanel } from "./BuildFeed";
+import { feedStyles } from "./buildFeed.styles";
+import { isBuildActive, stepWords, useBuildFeed, type ArtifactBuild } from "./buildTracker";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ChromeOverridesContext,
@@ -48,19 +51,13 @@ const Spinner = () => (
   <LoaderCircle className={clsx(styles.spinner, names.spinner)} size={14} aria-hidden />
 );
 
-/** A step's names, as they are: "a", "a and b", or "a, b and 2 more". */
-const nameList = (names: string[]) =>
-  names.length <= 2 ? names.join(" and ") : `${names[0]}, ${names[1]} and ${names.length - 2} more`;
-
 /** What a dashboard being built is doing, by name: calling data tools, else writing and testing scripts. */
-const stepLabel = (step: ArtifactBuildStep | undefined) =>
-  step?.tools.length
-    ? `Calling ${nameList(step.tools)}`
-    : step?.scripts.length
-      ? `Writing and testing ${nameList(step.scripts)}`
-      : undefined;
+const stepLabel = (step: ArtifactBuildStep | undefined) => {
+  const words = step && stepWords(step);
+  return words && `${words.verb} ${words.names}`;
+};
 
-/** The one status line the card, the bar, the content and the pending skeleton all show. */
+/** The status line where there's no build feed: the bar while data loads, or a custom loader. */
 const statusLabel = ({ step, isPending, isStreaming }: ArtifactRendererState) =>
   `${stepLabel(step) ?? (isPending ? "Preparing" : isStreaming ? "Generating" : "Loading data")}…`;
 
@@ -88,19 +85,20 @@ export function Preview({ title, description, className, children }: PreviewProp
   if (children !== undefined) return <>{children}</>;
   return (
     <PreviewOverridesContext.Provider value={overrides}>
-      <button
-        type="button"
-        className={clsx(styles.preview, names.preview, className)}
-        onClick={state.isOpen ? state.close : state.open}
-        aria-expanded={state.isOpen}
-      >
-        <span className={clsx(styles.previewText, names.previewText)}>
+      <div className={clsx(styles.preview, names.preview, className)}>
+        {/* Its click area covers the card; the feed's own button sits above it. */}
+        <button
+          type="button"
+          className={clsx(styles.previewOpen, styles.previewText, names.previewText)}
+          onClick={state.isOpen ? state.close : state.open}
+          aria-expanded={state.isOpen}
+        >
           <PreviewTitle />
           <PreviewDescription />
-        </span>
+        </button>
         <PreviewLoader />
         <PreviewError />
-      </button>
+      </div>
     </PreviewOverridesContext.Provider>
   );
 }
@@ -141,12 +139,18 @@ export interface LoaderProps {
   children?: ReactNode;
 }
 
-/** The card's status while the artifact loads. `PreviewError` takes its place after a failure. */
+/**
+ * The card's status. For a build: its feed, which stays once it ends ("Ready · 2 tool calls 41s").
+ * Otherwise a pill while the artifact loads; `PreviewError` takes its place after a failure.
+ */
 export function PreviewLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("preview");
   const state = useArtifactRenderer();
-  if (!inside || !state.isLoading || state.error) return null;
+  const { build, noun } = useBuildFeed();
+  const feed = label === undefined ? build : undefined;
+  if (!inside || (!feed && (!state.isLoading || state.error))) return null;
   if (children !== undefined) return <>{children}</>;
+  if (feed) return <BuildFeed build={feed} noun={noun} className={styles.previewFeed} />;
   const text = label ?? statusLabel(state);
   return (
     <span
@@ -164,7 +168,9 @@ export function PreviewLoader({ label, children }: LoaderProps) {
 export function PreviewError({ message, children }: ErrorProps) {
   const inside = useInRegion("preview");
   const state = useArtifactRenderer();
-  if (!inside || !state.error) return null;
+  const { build } = useBuildFeed();
+  // A failed build's feed says so already.
+  if (!inside || !state.error || build?.phase === "failed") return null;
   if (children !== undefined) return <>{children}</>;
   const text = message ?? state.error.message;
   return (
@@ -223,11 +229,13 @@ export function ChromeTitle({ className, children }: PartProps) {
   );
 }
 
-/** The bar's status while the artifact loads. While pending, `Pending`'s note says it instead. */
+/** The bar's status while the artifact loads. While a build runs, its feed says it instead. */
 export function ChromeLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  if (!inside || !state.isLoading || state.isPending) return null;
+  const { build } = useBuildFeed();
+  const building = build !== undefined && isBuildActive(build);
+  if (!inside || !state.isLoading || state.isPending || building) return null;
   if (children !== undefined) return <>{children}</>;
   const text = label ?? statusLabel(state);
   return (
@@ -354,6 +362,7 @@ export function Content({ className, children }: PartProps) {
             children
           )}
           {config.render()}
+          <BuildDock />
         </div>
       </SourcesWorkspace>
     </RegionProvider>
@@ -365,23 +374,58 @@ export interface PendingProps extends PendingLoaderProps {
 }
 
 /**
- * Before the artifact has anything to show: a skeleton dashboard that rearranges itself, while the
- * tool call that makes it runs and on through a build, saying what the build is doing.
+ * Before the artifact has anything to show: a dotted sketch of a dashboard, drawn widget by widget,
+ * while the tool call that makes it runs and on through a build, with the build's feed over it.
  */
-export function Pending({ children, label, ...loader }: PendingProps) {
+export function Pending({ children, ...loader }: PendingProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
   if (!inside || !state.isPending) return null;
   if (children !== undefined) return <>{children}</>;
-  return <PendingLoader {...loader} label={label ?? statusLabel(state)} />;
+  return <PendingLoader {...loader} />;
+}
+
+/** How long the docked feed stays after the build ends, so its last line can be read. */
+const DOCK_LINGER_MS = 2500;
+
+/** The build while it runs and for a moment after. */
+function useLingeringBuild(): ArtifactBuild | undefined {
+  const { build } = useBuildFeed();
+  const endedAt = build?.endedAt;
+  const [, expire] = useState(0);
+  const lingering = endedAt !== undefined && Date.now() - endedAt < DOCK_LINGER_MS;
+  useEffect(() => {
+    if (!lingering || endedAt === undefined) return;
+    const timer = setTimeout(() => expire((n) => n + 1), DOCK_LINGER_MS - (Date.now() - endedAt));
+    return () => clearTimeout(timer);
+  }, [lingering, endedAt]);
+  return build && (isBuildActive(build) || lingering) ? build : undefined;
+}
+
+/**
+ * Once the dashboard is on screen (an edit, or a new one being written): the build's feed, pinned
+ * to the bottom of the content. Before that, `Pending` shows it.
+ */
+function BuildDock() {
+  const state = useArtifactRenderer();
+  const { noun } = useBuildFeed();
+  const build = useLingeringBuild();
+  if (!build || state.isPending) return null;
+  return (
+    <div className={feedStyles.dock}>
+      <BuildFeedPanel build={build} noun={noun} />
+    </div>
+  );
 }
 
 export function Loading({ label, children }: LoaderProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
   const config = useContext(ContentConfigContext);
-  // While pending, `Pending` has the content to itself.
-  if (!inside || !state.isLoading || state.isPending || state.error) return null;
+  const { build } = useBuildFeed();
+  // While pending, `Pending` has the content to itself; while a build runs, its feed.
+  const building = build !== undefined && isBuildActive(build);
+  if (!inside || !state.isLoading || state.isPending || building || state.error) return null;
   if (children !== undefined) return <>{children}</>;
   const text = label ?? statusLabel(state);
   return (

@@ -83,7 +83,7 @@ In this mode the renderer draws no frame unless a `Chrome` slot is passed. See [
 
 ### Before the tool returns
 
-The model writes the tool call's arguments before `create` runs, which can take a while. Mount the renderer as soon as the call starts, without `response` or `id`. Until the result arrives it shows the `Pending` slot, a skeleton dashboard, and then the same renderer streams the dashboard:
+The model writes the tool call's arguments before `create` runs, which can take a while. Mount the renderer as soon as the call starts, without `response` or `id`. Until the result arrives it shows the `Pending` slot, a dotted sketch of a dashboard, and then the same renderer streams the dashboard:
 
 ```tsx
 <LiveArtifactRenderer
@@ -96,7 +96,9 @@ The model writes the tool call's arguments before `create` runs, which can take 
 
 Unmount it if the call stops or fails without a result, or it stays pending. In `AgentInterface`, `defineLiveArtifactRenderer` from `@openuidev/react-ui/cloud/agent-interface` does both.
 
-The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming, and says what the build is doing, by name: "Calling list_orders…" while it calls tools, "Writing and testing revenueByDay…" while it writes scripts. The card's loader says the same, and the bar's loader takes over once `Pending` hides. If the dashboard fails, the card shows the error in place of its loader.
+The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming. Over the sketch, the build's feed says what it's doing, with a timer: "Thinking…", then the calls by name ("Calling list_orders…" while it calls tools, "Writing and testing revenueByDay…" while it writes scripts), then "Building dashboard…", then "Ready", "Stopped" or "Couldn't build" and why. Its chevron opens every call so far, newest first, with how long each took.
+
+The card's loader is the same feed, and it stays once the build ends ("Ready · 3 tool calls, 1 script · 11s"). Once the dashboard is on screen, and while an edit builds over it, the feed sits at the bottom of the content instead of the bar's loader, and stays a moment after it ends. The feed remembers a build only in this page: after a reload it shows a build that's still running, from when the page saw it.
 
 ## Slots
 
@@ -123,7 +125,7 @@ For example, a full-height panel with its own header:
       <StatusBadge />
     </header>
     <LiveArtifactRenderer.Content className="panel-body">
-      <LiveArtifactRenderer.Pending color="#2c59f5" label="Planning your dashboard" />
+      <LiveArtifactRenderer.Pending color="#2c59f5" />
       <LiveArtifactRenderer.Loading label="Loading live data…" />
       <LiveArtifactRenderer.Error>
         <DashboardError />

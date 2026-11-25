@@ -32,6 +32,13 @@ import { createPortal } from "react-dom";
 import { shallow } from "zustand/shallow";
 import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
+import {
+  BuildFeedContext,
+  thinkingSince,
+  trackBuild,
+  useArtifactBuild,
+  type BuildFeedValue,
+} from "./buildTracker";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ContentConfigContext,
@@ -403,6 +410,34 @@ export function ArtifactRendererRoot({
     hasStep: stream.step !== undefined,
   });
 
+  // ── Build feed: what a build has done, kept per artifact for every renderer of it ──
+  // When it started pending: a new dashboard's build starts then, before it has an id.
+  const [pendingSince, setPendingSince] = useState<number | null>(null);
+  if (isPending !== (pendingSince !== null)) setPendingSince(isPending ? Date.now() : null);
+  const buildError = artifactError?.message ?? null;
+  useEffect(() => {
+    if (!id) return;
+    trackBuild(id, {
+      step: stream.step,
+      hasContent: !!program,
+      isStreaming: stream.isStreaming,
+      isPending,
+      error: buildError,
+      pendingSince,
+    });
+  }, [id, stream.step, program, stream.isStreaming, isPending, buildError, pendingSince]);
+  const trackedBuild = useArtifactBuild(id);
+  const buildFeed = useMemo<BuildFeedValue>(
+    () => ({
+      // Before its id (or the first report of it), a new dashboard is thinking.
+      build:
+        trackedBuild ??
+        (isPending && pendingSince !== null ? thinkingSince(pendingSince) : undefined),
+      noun: interpreter ? "dashboard" : undefined,
+    }),
+    [trackedBuild, isPending, pendingSince, interpreter],
+  );
+
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
@@ -542,31 +577,33 @@ export function ArtifactRendererRoot({
 
   return (
     <RendererStateContext.Provider value={state}>
-      <ProvenanceContext.Provider value={provenance}>
-        <ContentConfigContext.Provider value={contentConfig}>
-          <div
-            ref={rootRef}
-            className={clsx(styles.root, names.root, className)}
-            onClickCapture={inspecting ? onInspectCapture : undefined}
-            onPointerDownCapture={inspecting ? onInspectCapture : undefined}
-            onMouseDownCapture={inspecting ? onInspectCapture : undefined}
-            onMouseOver={inspecting ? onInspectHover : undefined}
-            onMouseLeave={inspecting ? clearHovered : undefined}
-          >
-            {preview ? (
-              <>
-                <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
-                {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
-                {isOpen &&
-                  renderInHtmlElement !== null &&
-                  (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
-              </>
-            ) : (
-              <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
-            )}
-          </div>
-        </ContentConfigContext.Provider>
-      </ProvenanceContext.Provider>
+      <BuildFeedContext.Provider value={buildFeed}>
+        <ProvenanceContext.Provider value={provenance}>
+          <ContentConfigContext.Provider value={contentConfig}>
+            <div
+              ref={rootRef}
+              className={clsx(styles.root, names.root, className)}
+              onClickCapture={inspecting ? onInspectCapture : undefined}
+              onPointerDownCapture={inspecting ? onInspectCapture : undefined}
+              onMouseDownCapture={inspecting ? onInspectCapture : undefined}
+              onMouseOver={inspecting ? onInspectHover : undefined}
+              onMouseLeave={inspecting ? clearHovered : undefined}
+            >
+              {preview ? (
+                <>
+                  <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
+                  {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
+                  {isOpen &&
+                    renderInHtmlElement !== null &&
+                    (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
+                </>
+              ) : (
+                <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
+              )}
+            </div>
+          </ContentConfigContext.Provider>
+        </ProvenanceContext.Provider>
+      </BuildFeedContext.Provider>
     </RendererStateContext.Provider>
   );
 }
