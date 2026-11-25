@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useHydrated } from "@/lib/use-hydrated";
 import { Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import styles from "./theme-toggle.module.css";
 
 type ThemeToggleProps = {
@@ -15,8 +15,7 @@ type ThemeToggleProps = {
 
 export function ThemeToggle({ className, onToggle, title, ariaLabel }: ThemeToggleProps) {
   const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
   const isDark = mounted && resolvedTheme === "dark";
   const nextTheme = isDark ? "light" : "dark";
   const defaultLabel = `Switch to ${nextTheme} mode`;

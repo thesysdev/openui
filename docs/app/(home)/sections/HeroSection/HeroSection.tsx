@@ -2,6 +2,7 @@
 
 import { captureCreateCliCommandCopied } from "@/lib/analytics";
 import { SITE_NAV_LINKS } from "@/lib/site-nav-links";
+import { useHydrated } from "@/lib/use-hydrated";
 import { ArrowRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -815,8 +816,7 @@ export function HeroSection({
   desktopFromTablet?: boolean;
 } = {}) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
   const theme: HeroTheme = mounted && resolvedTheme === "dark" ? "dark" : "light";
   const resolvedTightDesktopSpacing = tightDesktopSpacing ?? smallSubtitle;
 

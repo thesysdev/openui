@@ -1,8 +1,9 @@
+import { useMediaQuery } from "@/lib/use-media-query";
 import type { ParseResult } from "@openuidev/react-lang";
 import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary, ThemeProvider } from "@openuidev/react-ui";
 import { Loader2, Maximize2, Monitor } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Theme } from "../../constants";
 import { Modal } from "../Modal/Modal";
 import "./PreviewPanel.css";
@@ -17,15 +18,7 @@ type PreviewPanelProps = {
 export function PreviewPanel({ code, isStreaming, onParseResult, theme }: PreviewPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [systemDark, setSystemDark] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    setSystemDark(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  const systemDark = useMediaQuery("(prefers-color-scheme: dark)") ?? false;
 
   const resolvedMode = useMemo(() => {
     if (theme === "system") return systemDark ? "dark" : "light";

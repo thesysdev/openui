@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { STATIC_TWEETS, type StaticTweet } from "../../data/home-tweets-static";
 import { StaticTweetCard } from "../StaticTweetCard/StaticTweetCard";
 import styles from "./TweetWall.module.css";
@@ -26,20 +26,13 @@ function splitIntoColumns(items: StaticTweet[], count: number): StaticTweet[][] 
 }
 
 export function TweetWall() {
-  const [mounted, setMounted] = useState(false);
-  const [columnCount, setColumnCount] = useState(DESKTOP_COLUMNS);
-
-  // Resolve the column count on the client only. The columns render after mount
-  // (the outer root still server-renders to reserve height), so there is no
-  // SSR/hydration column-count swap.
-  useEffect(() => {
-    const query = window.matchMedia(DESKTOP_QUERY);
-    const update = () => setColumnCount(query.matches ? DESKTOP_COLUMNS : MOBILE_COLUMNS);
-    update();
-    setMounted(true);
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
+  // Resolve the column count on the client only: isDesktop is null during SSR
+  // and hydration, and the columns render only once it is known (the outer root
+  // still server-renders to reserve height), so there is no SSR/hydration
+  // column-count swap.
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  const mounted = isDesktop !== null;
+  const columnCount = isDesktop === false ? MOBILE_COLUMNS : DESKTOP_COLUMNS;
 
   const columns = splitIntoColumns(STATIC_TWEETS, columnCount);
 

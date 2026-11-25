@@ -22,10 +22,6 @@ export function TweetEmbed({ id }: { id: string }) {
   const embedTheme: "light" | "dark" = resolvedTheme === "dark" ? "dark" : "light";
 
   useEffect(() => {
-    if (window.twttr?.widgets?.createTweet) setScriptReady(true);
-  }, []);
-
-  useEffect(() => {
     if (!tweetId || !scriptReady || !containerRef.current) return;
     const slot = containerRef.current;
     const widgets = window.twttr?.widgets;
@@ -81,7 +77,9 @@ export function TweetEmbed({ id }: { id: string }) {
       <Script
         src="https://platform.twitter.com/widgets.js"
         strategy="lazyOnload"
-        onLoad={() => setScriptReady(true)}
+        // onReady fires after the first load and again on every later mount,
+        // so a remount after client-side navigation still renders the tweet.
+        onReady={() => setScriptReady(true)}
       />
       <div
         ref={containerRef}
