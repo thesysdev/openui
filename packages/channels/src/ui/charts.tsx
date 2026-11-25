@@ -77,6 +77,11 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
   const maxAbs = Math.max(0, ...data.map((d) => Math.abs(d.v)));
   const yWidth = Math.ceil(textWidth(formatValue(maxAbs * 1.25)) + 14);
   const margin = { top: 26, right: 16, left: 0, bottom: spec.xLabel ? 24 : 8 };
+  // Static rendering can't measure ticks, so thin out X labels that would overlap.
+  const plotWidth = WIDTH - margin.left - margin.right - yWidth;
+  const labelWidth = Math.max(...data.map((d) => textWidth(String(d.name)))) + 10;
+  const fit = Math.max(1, Math.floor(plotWidth / labelWidth));
+  const xInterval = Math.max(0, Math.ceil(data.length / fit) - 1);
 
   // Kept as a flat array, not a Fragment: recharts only scans direct children.
   const axes = [
@@ -84,6 +89,7 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
     <XAxis
       key="x"
       dataKey="name"
+      interval={xInterval}
       stroke={theme.grid}
       tick={{ fill: theme.text, fontFamily: FONT, fontSize: TEXT_SIZE }}
       label={spec.xLabel ? { value: spec.xLabel, position: "insideBottom", offset: -6 } : undefined}
