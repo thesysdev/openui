@@ -64,6 +64,7 @@
     "eslint": "catalog:",
     "eslint-config-next": "16.2.6",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "typescript": "catalog:"
   }
 }
