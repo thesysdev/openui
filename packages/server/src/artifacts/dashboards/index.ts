@@ -1,11 +1,16 @@
-import { createInterpreter, dataToolLoader, toToolDefinitions } from "../tools/execute";
-import { mcpServers } from "../tools/mcp";
-import { runToolRound, type ToolMessage } from "../tools/tool-round";
-import { assertUserIdRequired, ToolExecutionError, type ExecutionContext } from "../tools/types";
-import { isRecord, type CloudApi } from "./api";
-import { createArtifacts } from "./artifacts";
+import { createArtifacts } from "..";
+import { OpenUIApiError } from "../../core/errors";
+import { isRecord, type CloudApi } from "../../core/http";
+import { createInterpreter, dataToolLoader, toToolDefinitions } from "../../interpreter/execute";
+import { mcpServers } from "../../interpreter/mcp";
+import {
+  assertUserIdRequired,
+  ToolExecutionError,
+  type ExecutionContext,
+} from "../../interpreter/types";
 import { artifactConfig } from "./config";
-import { OpenUIApiError, type Dashboard, type DashboardOptions } from "./types";
+import { runToolRound, type ToolMessage } from "./tool-round";
+import type { Dashboard, DashboardOptions } from "./types";
 
 /** OpenUI Cloud's route that builds and edits dashboards, round by round. */
 const DASHBOARD_ROUTE = "/v1/dashboard/chat/completions";

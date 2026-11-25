@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCloudApi } from "./api";
+import { createCloudApi } from "./http";
 
 /** A fetch that answers with these SSE pieces, cut wherever the test says. */
 const sse = (pieces: string[]) => async () =>

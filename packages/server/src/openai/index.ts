@@ -1,12 +1,12 @@
-import { createAutofix as createAutofixPipeline } from "../shared/create-autofix";
-import type { AutofixOptions } from "../shared/types";
+import { createAutofix as createAutofixPipeline } from "../autofix/create-autofix";
+import type { AutofixOptions } from "../autofix/types";
 import { openAIAdapter } from "./adapter";
 
 export {
   chatCompletionMessagesToItems,
   storeChatCompletionHistory,
 } from "./store-conversation-items";
-export type { StoreChatCompletionHistoryOptions } from "./types";
+export type { StoreChatCompletionHistoryOptions } from "./store-conversation-items";
 
 // Create validation and repair helpers for OpenAI Chat Completions and Responses.
 export function createAutofix(options: AutofixOptions) {

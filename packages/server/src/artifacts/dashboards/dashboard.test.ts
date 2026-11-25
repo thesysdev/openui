@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { DataTool } from "../tools/types";
-import type { CloudApi } from "./api";
-import { defineDashboard } from "./dashboard";
-import type { ArtifactLibrary, Dashboard } from "./types";
+import { defineDashboard } from ".";
+import type { CloudApi } from "../../core/http";
+import type { DataTool } from "../../interpreter/types";
+import type { ArtifactLibrary } from "../types";
+import type { Dashboard } from "./types";
 
 // The config block is lang-core's; these tests are about the requests around it.
 vi.mock("./config", () => ({

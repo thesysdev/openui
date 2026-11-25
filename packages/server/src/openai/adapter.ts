@@ -1,6 +1,6 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
-import { isUIOutput, splitClosedFence, unwrapOpenUIFence } from "../shared/utils";
+import { isUIOutput, splitClosedFence, unwrapOpenUIFence } from "../autofix/diagnostics";
+import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../autofix/types";
 
 /** Create a correction or stop chunk with the original completion's routing fields. */
 export function correctionChunk(

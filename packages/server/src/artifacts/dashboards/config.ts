@@ -3,7 +3,7 @@ import {
   type CloudPromptOptions,
   type LibrarySpec,
 } from "@openuidev/lang-core";
-import type { ToolDefinition } from "../tools/types";
+import type { ToolDefinition } from "../../interpreter/types";
 
 const CONFIG_MARKER = "]]>openui:config\n";
 

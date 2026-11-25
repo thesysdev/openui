@@ -1,6 +1,6 @@
 import type { UIMessageChunk } from "ai";
-import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
-import { isUIOutput, splitClosedFence, unwrapOpenUIFence } from "../shared/utils";
+import { isUIOutput, splitClosedFence, unwrapOpenUIFence } from "../autofix/diagnostics";
+import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../autofix/types";
 
 /** Preserve AI SDK UI message chunks and repair text before a successful final step closes. */
 export const vercelAIAdapter: StreamAdapter<UIMessageChunk> = {

@@ -1,10 +1,10 @@
-import { isRecord } from "../client/api";
+import { isRecord } from "../../core/http";
 import {
   ToolExecutionError,
   type DataTool,
   type ExecutionContext,
   type Interpreter,
-} from "./types";
+} from "../../interpreter/types";
 
 /** The model saves one of the dashboard's scripts and runs it once: `{ name, code, args? }`.
  *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */

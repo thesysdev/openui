@@ -1,7 +1,7 @@
 import { generateSystemPrompt, type Parser } from "@openuidev/lang-core";
+import { errorsOf, readCompletion, repairContext } from "./diagnostics";
 import type { AutofixInput, AutofixOptions, AutofixResult } from "./types";
 import { AutofixError, MAX_AUTOFIX_GENERATION_LENGTH } from "./types";
-import { errorsOf, readCompletion, repairContext } from "./utils";
 
 // Return valid programs unchanged and send invalid programs to the Autofix API.
 export async function fixGeneration(

@@ -1,5 +1,18 @@
-import { THESYS_API_BASE_URL } from "../shared/constants";
-import { OpenUIApiError, type OpenUIClientOptions } from "./types";
+import { THESYS_API_BASE_URL } from "./constants";
+import { OpenUIApiError } from "./errors";
+
+export interface OpenUIClientOptions {
+  /** Defaults to the `THESYS_API_KEY` environment variable. */
+  apiKey?: string;
+  /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
+  baseUrl?: string;
+  /**
+   * Your app, when one API key serves several: users' frontend tokens and
+   * artifacts belong to it, and generated scripts run only from it.
+   */
+  appId?: string;
+  fetch?: typeof globalThis.fetch;
+}
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);

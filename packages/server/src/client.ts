@@ -1,18 +1,16 @@
-import type { ExecutionContext } from "../tools/types";
-import { createCloudApi, type CloudApi } from "./api";
 import { createArtifacts } from "./artifacts";
-import { defineDashboard } from "./dashboard";
-import { createFrontendToken } from "./frontend-token";
+import { defineDashboard } from "./artifacts/dashboards";
+import type { Dashboard, DashboardOptions } from "./artifacts/dashboards/types";
+import type { Artifacts } from "./artifacts/types";
+import { OpenUIApiError } from "./core/errors";
+import { createCloudApi, type CloudApi, type OpenUIClientOptions } from "./core/http";
+import type { RequestOptions } from "./core/resource";
 import {
-  OpenUIApiError,
-  type Artifacts,
+  createFrontendToken,
   type CreateFrontendTokenParams,
-  type Dashboard,
-  type DashboardOptions,
   type FrontendToken,
-  type OpenUIClientOptions,
-  type RequestOptions,
-} from "./types";
+} from "./frontend-token";
+import type { ExecutionContext } from "./interpreter/types";
 
 /**
  * One client for OpenUI Cloud on your server. Reads your API key from
