@@ -177,6 +177,36 @@ describe("sourcesTitle", () => {
     expect(sourcesTitle(null, { id: "revenue" })).toBe("revenue");
   });
 
+  it("names a component with no label of its own by the nearest one around it", () => {
+    const component = (props: Record<string, [string, string[]?]>) => ({
+      queries: [],
+      via: [],
+      state: [],
+      props: Object.fromEntries(
+        Object.entries(props).map(([name, [expr, components = []]]) => [
+          name,
+          { queries: [], via: [], state: [], expr, components },
+        ]),
+      ),
+    });
+    // Section("Monthly sales", [Card("Last 6 months of data", [Table([...])])])
+    const nested = {
+      ...sources,
+      components: {
+        section: component({ title: ['"Monthly sales"'], rows: ["[card]", ["card"]] }),
+        card: component({
+          title: ['"Last 6 months of data"'],
+          content: ["[monthsTable]", ["monthsTable"]],
+        }),
+        monthsTable: component({ columns: ["[month, sales]", ["monthsTable.1"]] }),
+        "monthsTable.1": component({ values: ["monthsQ.rows"] }),
+      },
+    };
+    expect(sourcesTitle(nested, { id: "monthsTable" })).toBe("Last 6 months of data");
+    expect(sourcesTitle(nested, { id: "monthsTable.1" })).toBe("Last 6 months of data");
+    expect(sourcesTitle(nested, { id: "card" })).toBe("Last 6 months of data");
+  });
+
   it("names a query opened from the list by its name, and the list Sources", () => {
     expect(sourcesTitle(sources, null, "signupsQ")).toBe("signupsQ");
     expect(sourcesTitle(sources, null)).toBe("Sources");

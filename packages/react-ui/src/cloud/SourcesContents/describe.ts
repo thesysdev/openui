@@ -42,9 +42,40 @@ const LABEL_PROPS = ["title", "label", "name"] as const;
 
 /**
  * A component's human label: its `title`, `label` or `name` prop, when written as a string
- * literal (`Kpi("Revenue this quarter", …)`). Undefined when it has none, or it's computed.
+ * literal (`Kpi("Revenue this quarter", …)`), else the nearest such label around it, e.g. the
+ * title of the card a table is in. Undefined when none is found, or they're computed.
  */
 export function componentLabel(sources: DataSources, id: string): string | undefined {
+  // A component with no label of its own, such as a table in a card, takes the nearest one
+  // around it: the card's title rather than the section's.
+  const parents = parentsOf(sources);
+  const seen = new Set<string>();
+  for (let at: string | undefined = id; at && !seen.has(at); at = parents.get(at)) {
+    seen.add(at);
+    const label = ownLabel(sources, at);
+    if (label) return label;
+  }
+  return undefined;
+}
+
+const parentCache = new WeakMap<DataSources, Map<string, string>>();
+
+/** Each component's parent: the component whose props it is written in. */
+function parentsOf(sources: DataSources): Map<string, string> {
+  let parents = parentCache.get(sources);
+  if (!parents) {
+    parents = new Map();
+    for (const [id, component] of Object.entries(sources.components)) {
+      for (const prop of Object.values(component.props)) {
+        for (const child of prop.components) if (!parents.has(child)) parents.set(child, id);
+      }
+    }
+    parentCache.set(sources, parents);
+  }
+  return parents;
+}
+
+function ownLabel(sources: DataSources, id: string): string | undefined {
   const props = sources.components[id]?.props;
   for (const name of LABEL_PROPS) {
     const expr = props?.[name]?.expr.trim();
