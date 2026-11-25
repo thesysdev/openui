@@ -9,7 +9,7 @@ export const SectionComponent = defineComponent({
   name: "Section",
   props: sectionPropsSchema,
   description:
-    'A titled group of Kpis strips and Rows of Cards. Pass "" as title for the lead KPI section.',
+    'A titled group of Kpis strips and Rows of Cards. Pass "" as title for the lead KPI section; a Section titled "" shows no description.',
   component: SectionView,
 });
 

@@ -12,6 +12,10 @@ import { examples } from "./examples";
  * mistakes that make a card come out empty.
  */
 export const additionalRules: string[] = [
+  "Decide from the request who reads the dashboard and what they came to find out, then order the page for them: the answer first, then what explains it, then detail. Cover every section a request names; you may reorder them and pick the components.",
+  "Each headline number and view near the top tells the reader something the others there don't: never a count beside its own share, or the same numbers in a second chart. Detail further down may break them down again.",
+  "A period still in progress looks like a fall beside complete ones: say so once, and compare it with the same days of the earlier period or project it (forecastFrom), instead of a warning on every card.",
+  'Titles name what is shown in a few plain words, never a question, the request restated or a generic heading ("Overview", "Key insights"). Labels read as people write them: "Oct 2026", "Health & beauty", not "2026-10", "health_beauty", raw timestamps or ALL CAPS; have the query return them that way.',
   "Dashboard holds an optional FilterBar first, then Sections. A Section holds Kpis strips and Rows. A Row holds Cards. Every chart, map, Table, Stat, Goal and KeyValues goes inside a Card's content, never straight into a Row or a Section.",
   "Use only the components listed under Component Signatures. This library has no Button, Select, SelectItem, Input, Form, FormControl, Tabs or text and markdown blocks, whatever other sections of these instructions mention. A choice the reader makes is a filter. Words that explain a number go in a Card's subtitle or a Section's description.",
   "A dashboard only shows data. Never write a Mutation, a form or a refresh button.",
