@@ -13,18 +13,31 @@ export const CREATE_SCRIPT_TOOL = "openui_create_script";
 /** A tool call's result, as the model gets it back. */
 export type ToolMessage = { role: "tool"; tool_call_id: string; content: string };
 
-/** Runs one round of the model's tool calls; each run has the interpreter's timeout. */
-export async function runToolRound<Context extends ExecutionContext>(
-  calls: Array<{ id: string; function?: { name?: string; arguments?: string } }>,
-  tools: Record<string, DataTool<Context>>,
-  context: Context,
-  callerSignal: AbortSignal | undefined,
-  interpreter: Interpreter<Context>,
+/** One of the model's tool calls, as OpenUI Cloud sends it. */
+export type ModelToolCall = { id: string; function?: { name?: string; arguments?: string } };
+
+export interface ToolRound<Context extends ExecutionContext> {
+  calls: ModelToolCall[];
+  tools: Record<string, DataTool<Context>>;
+  context: Context;
+  signal: AbortSignal | undefined;
+  interpreter: Interpreter<Context>;
   /** The dashboard being built: its saved scripts run by it. */
-  artifactId: string,
+  artifactId: string;
   /** The build's version: OpenUI Cloud runs a saved script from the build in progress. */
-  version: string | undefined,
-): Promise<ToolMessage[]> {
+  version: string | undefined;
+}
+
+/** Runs one round of the model's tool calls; each run has the interpreter's timeout. */
+export async function runToolRound<Context extends ExecutionContext>({
+  calls,
+  tools,
+  context,
+  signal: callerSignal,
+  interpreter,
+  artifactId,
+  version,
+}: ToolRound<Context>): Promise<ToolMessage[]> {
   callerSignal?.throwIfAborted();
   const executionOptions = callerSignal ? { signal: callerSignal } : {};
   return Promise.all(

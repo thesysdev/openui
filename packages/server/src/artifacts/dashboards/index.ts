@@ -3,7 +3,7 @@ import { actAsFields } from "../../core/act-as";
 import { invalidInput, OpenUIApiError } from "../../core/errors";
 import { isRecord } from "../../core/guards";
 import type { CloudApi } from "../../core/http";
-import { requireId } from "../../core/resource";
+import { requireId, type RequestOptions } from "../../core/resource";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../../interpreter/execute";
 import { mcpServers } from "../../interpreter/mcp";
 import {
@@ -12,7 +12,7 @@ import {
   type ExecutionContext,
 } from "../../interpreter/types";
 import { artifactConfig } from "./config";
-import { runToolRound, type ToolMessage } from "./tool-round";
+import { runToolRound, type ModelToolCall, type ToolMessage } from "./tool-round";
 import type { Dashboard, DashboardOptions } from "./types";
 
 /** OpenUI Cloud's route that builds and edits dashboards, round by round. */
@@ -59,6 +59,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     invalidInput("Dashboards need data tools: pass `tools`, `mcp`, or both");
   }
 
+  const artifacts = createArtifacts(api);
   // One list of tools for generation and the interpreter; MCP tools are listed once.
   const loadTools = dataToolLoader<Context>({ tools, mcp } as DashboardOptions<Context>);
   const interpreter = createInterpreter<Context>(api, loadTools);
@@ -123,171 +124,172 @@ export function defineDashboard<Context extends ExecutionContext>(
     ...actAsFields(api, { userId: context.userId, groupIds: edit ? context.groupIds : undefined }),
   });
 
+  /** How a round ended: the dashboard started, or the model's tool calls to run. */
+  type Round = { done: true } | { calls: ModelToolCall[]; artifactId: string; version?: string };
+  /** The dashboard's id and the build's version, as far as the build has them. */
+  type Ids = { artifactId?: string; version?: string };
+
+  const notStarted = () =>
+    new OpenUIApiError("OpenUI Cloud didn't start a background artifact", "invalid_response", 502);
+
   /**
-   * Runs the model's tool rounds, then starts generating the user's dashboard
-   * in the background. Resolves once it starts, with the tool response OpenUI
-   * Cloud writes: a sentence for the model and the artifact's header line for
-   * the renderer.
+   * One round, not streamed: OpenUI Cloud replies at once and keeps generating. Once the
+   * dashboard starts, yields the tool response OpenUI Cloud writes: a sentence for the model and
+   * the artifact's header line for the renderer. Each tool-call reply names the id and version.
    */
-  async function start(
-    context: Context,
-    prompt: string,
-    call: { title?: string; id?: string },
+  async function* readReply(
+    body: unknown,
+    _ids: Ids,
     signal?: AbortSignal,
-  ): Promise<string> {
-    let messages = await initialMessages(context, prompt, call);
-    // The dashboard's id, from the first tool-call reply: later rounds and saved scripts go by it.
-    let artifactId: string | undefined;
-    // The build's version, from the same reply: a saved script runs from the build by it.
-    let version: string | undefined;
-    // OpenUI Cloud ends the rounds: the model writes once it's done, or at maxToolRounds.
-    for (;;) {
-      // Not streamed: OpenUI Cloud replies at once and keeps generating.
-      const reply = await api.send("POST", DASHBOARD_ROUTE, {
-        body: request(context, messages, artifactId, call.id !== undefined),
-        signal,
-      });
-      const choice: unknown = Array.isArray(reply["choices"]) ? reply["choices"][0] : undefined;
-      const message = isRecord(choice) ? choice["message"] : undefined;
-      // The dashboard started: the message is the tool response for your agent's model.
-      if (
-        isRecord(choice) &&
-        choice["finish_reason"] === "stop" &&
-        isRecord(message) &&
-        typeof message["content"] === "string" &&
-        message["content"]
-      ) {
-        return message["content"];
-      }
-      const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
-      if (!Array.isArray(toolCalls) || !toolCalls.length) {
-        throw new OpenUIApiError(
-          "OpenUI Cloud didn't start a background artifact",
-          "invalid_response",
-          502,
-        );
-      }
-      artifactId = reply["artifact_id"] as string;
-      version = reply["artifact_version"] as string | undefined;
-      // OpenUI Cloud keeps the build's turns: send only the new results.
-      messages = await runToolRound(
-        toolCalls,
-        await loadTools(),
-        context,
-        signal,
-        interpreter,
-        artifactId,
-        version,
-      );
+  ): AsyncGenerator<string, Round> {
+    const reply = await api.send("POST", DASHBOARD_ROUTE, { body, signal });
+    const choice: unknown = Array.isArray(reply["choices"]) ? reply["choices"][0] : undefined;
+    const message = isRecord(choice) ? choice["message"] : undefined;
+    // The dashboard started: the message is the tool response for your agent's model.
+    if (
+      isRecord(choice) &&
+      choice["finish_reason"] === "stop" &&
+      isRecord(message) &&
+      typeof message["content"] === "string" &&
+      message["content"]
+    ) {
+      yield message["content"];
+      return { done: true };
     }
+    const toolCalls = isRecord(message) ? message["tool_calls"] : undefined;
+    if (!Array.isArray(toolCalls) || !toolCalls.length) throw notStarted();
+    return {
+      calls: toolCalls,
+      artifactId: reply["artifact_id"] as string,
+      version: reply["artifact_version"] as string | undefined,
+    };
   }
 
   /**
-   * The same build, streamed: yields each message OpenUI Cloud sends. The
-   * first says the dashboard started, as soon as it has an id; the last says
-   * whether it was saved. Each is a whole message.
+   * One round, streamed: yields each message OpenUI Cloud sends. The first says the dashboard
+   * started, as soon as it has an id; the last says whether it was saved. Each is a whole
+   * message. The id and version may come in any round, so earlier ones carry over.
    */
-  async function* streamed(
+  async function* readStream(
+    body: unknown,
+    ids: Ids,
+    signal?: AbortSignal,
+  ): AsyncGenerator<string, Round> {
+    let { artifactId, version } = ids;
+    const calls: Array<{ id: string; function: { name: string; arguments: string } }> = [];
+    let finish: unknown;
+    for await (const chunk of api.stream(DASHBOARD_ROUTE, body, signal)) {
+      if (typeof chunk["artifact_id"] === "string") artifactId = chunk["artifact_id"];
+      if (typeof chunk["artifact_version"] === "string") version = chunk["artifact_version"];
+      const choice: unknown = Array.isArray(chunk["choices"]) ? chunk["choices"][0] : undefined;
+      if (!isRecord(choice)) continue;
+      const delta = isRecord(choice["delta"]) ? choice["delta"] : {};
+      if (typeof delta["content"] === "string" && delta["content"]) yield delta["content"];
+      if (Array.isArray(delta["tool_calls"])) {
+        for (const part of delta["tool_calls"]) {
+          const index = Number(part.index ?? calls.length);
+          const call = (calls[index] ??= { id: "", function: { name: "", arguments: "" } });
+          call.id ||= part.id ?? "";
+          call.function.name += part.function?.name ?? "";
+          call.function.arguments += part.function?.arguments ?? "";
+        }
+      }
+      if (choice["finish_reason"]) finish = choice["finish_reason"];
+    }
+    if (finish === "stop") return { done: true };
+    if (finish === undefined) {
+      throw new OpenUIApiError(
+        "OpenUI Cloud's stream ended before the build did",
+        "invalid_response",
+        502,
+      );
+    }
+    if (finish !== "tool_calls" || !calls.length || artifactId === undefined) throw notStarted();
+    return { calls, artifactId, version };
+  }
+
+  /**
+   * A build: runs the model's tool rounds, then starts generating the user's dashboard in the
+   * background. Yields what `readRound` yields.
+   */
+  async function* build(
+    readRound: typeof readReply,
     context: Context,
     prompt: string,
     call: { title?: string; id?: string },
     signal?: AbortSignal,
   ): AsyncGenerator<string> {
     let messages = await initialMessages(context, prompt, call);
-    let artifactId: string | undefined;
-    let version: string | undefined;
+    // From the first tool-call round on: later rounds and saved scripts go by them.
+    let ids: Ids = {};
+    // OpenUI Cloud ends the rounds: the model writes once it's done, or at maxToolRounds.
     for (;;) {
-      const calls: Array<{ id: string; function: { name: string; arguments: string } }> = [];
-      let finish: unknown;
-      for await (const chunk of api.stream(
-        DASHBOARD_ROUTE,
-        request(context, messages, artifactId, call.id !== undefined),
-        signal,
-      )) {
-        if (typeof chunk["artifact_id"] === "string") artifactId = chunk["artifact_id"];
-        if (typeof chunk["artifact_version"] === "string") version = chunk["artifact_version"];
-        const choice: unknown = Array.isArray(chunk["choices"]) ? chunk["choices"][0] : undefined;
-        if (!isRecord(choice)) continue;
-        const delta = isRecord(choice["delta"]) ? choice["delta"] : {};
-        if (typeof delta["content"] === "string" && delta["content"]) yield delta["content"];
-        if (Array.isArray(delta["tool_calls"])) {
-          for (const part of delta["tool_calls"]) {
-            const index = Number(part.index ?? calls.length);
-            const call = (calls[index] ??= { id: "", function: { name: "", arguments: "" } });
-            call.id ||= part.id ?? "";
-            call.function.name += part.function?.name ?? "";
-            call.function.arguments += part.function?.arguments ?? "";
-          }
-        }
-        if (choice["finish_reason"]) finish = choice["finish_reason"];
-      }
-      if (finish === "stop") return;
-      if (finish === undefined) {
-        throw new OpenUIApiError(
-          "OpenUI Cloud's stream ended before the build did",
-          "invalid_response",
-          502,
-        );
-      }
-      if (finish !== "tool_calls" || !calls.length || artifactId === undefined) {
-        throw new OpenUIApiError(
-          "OpenUI Cloud didn't start a background artifact",
-          "invalid_response",
-          502,
-        );
-      }
+      const body = request(context, messages, ids.artifactId, call.id !== undefined);
+      const round = yield* readRound(body, ids, signal);
+      if ("done" in round) return;
+      const { calls, artifactId, version } = round;
+      ids = { artifactId, version };
       // OpenUI Cloud keeps the build's turns: send only the new results.
-      messages = await runToolRound(
+      const tools = await loadTools();
+      messages = await runToolRound({
         calls,
-        await loadTools(),
+        tools,
         context,
         signal,
         interpreter,
         artifactId,
         version,
-      );
+      });
     }
   }
 
-  /** Bad arguments fail the call like any other error: the promise rejects, or the stream
-   *  throws when read. */
-  const call = (
-    stream: boolean | undefined,
-    plain: () => Promise<string>,
-    streamed: () => AsyncGenerator<string>,
-  ) =>
-    (stream
-      ? (async function* () {
-          yield* streamed();
-        })()
-      : (async () => plain())()) as never;
+  /**
+   * Runs a build plain or streamed. `args` is read inside, so bad arguments fail the call like
+   * any other error: the promise rejects, or the stream throws when read.
+   */
+  function run(
+    options: (RequestOptions & { stream?: boolean }) | undefined,
+    context: Context,
+    args: () => { prompt: string; call: { title?: string; id?: string } },
+  ) {
+    const signal = options?.signal;
+    if (options?.stream) {
+      return (async function* () {
+        const { prompt, call } = args();
+        yield* build(readStream, context, prompt, call, signal);
+      })();
+    }
+    return (async () => {
+      const { prompt, call } = args();
+      let started = "";
+      for await (const message of build(readReply, context, prompt, call, signal)) {
+        started = message;
+      }
+      return started;
+    })();
+  }
 
   return {
     create(params, context, options = {}) {
-      const stream = (options as { stream?: boolean } | undefined)?.stream;
-      return call(
-        stream,
-        () => start(context, params.prompt, { title: params.title }, options?.signal),
-        () => streamed(context, params.prompt, { title: params.title }, options?.signal),
-      );
+      return run(options, context, () => ({
+        prompt: params.prompt,
+        call: { title: params.title },
+      })) as never;
     },
 
     // OpenUI Cloud edits the version it stores.
     edit(params, context, options = {}) {
-      const stream = (options as { stream?: boolean } | undefined)?.stream;
-      const id = () => requireId(params.id, "id");
-      return call(
-        stream,
-        () => start(context, params.prompt, { id: id() }, options?.signal),
-        () => streamed(context, params.prompt, { id: id() }, options?.signal),
-      );
+      return run(options, context, () => ({
+        prompt: params.prompt,
+        call: { id: requireId(params.id, "id") },
+      })) as never;
     },
 
     // Always as the user, never the org: the model picks the id.
     async get({ id }, context, { signal } = {}) {
       assertUserIdRequired(context);
       const { userId, groupIds } = context;
-      return createArtifacts(api).get(id, { userId, groupIds, signal });
+      return artifacts.get(id, { userId, groupIds, signal });
     },
 
     interpreter,
