@@ -1,5 +1,6 @@
 import type { CloudPromptOptions, LibrarySpec } from "@openuidev/lang-core";
-import type { CloudList, RequestOptions } from "../core/resource";
+import type { ActAsOptions } from "../core/act-as";
+import type { CloudList } from "../core/resource";
 
 /**
  * The components an artifact can use, as a library spec: `library.toSpec()`, or
@@ -15,15 +16,7 @@ export type ArtifactPromptOptions = CloudPromptOptions;
  * user's artifacts. With it, the call acts as that user and gets what their
  * frontend token would.
  */
-export interface ArtifactRequestOptions extends RequestOptions {
-  /** The user to act as, from your session. Never take it from the browser. */
-  userId?: string;
-  /**
-   * That user's groups, as on their frontend token, so artifacts shared with
-   * those groups count too. Only with `userId`. Up to 10, each up to 64 characters.
-   */
-  groupIds?: string[];
-}
+export type ArtifactRequestOptions = ActAsOptions;
 
 /** Pins belong to a user, so pinning needs one. */
 export type ArtifactUserOptions = ArtifactRequestOptions & { userId: string };

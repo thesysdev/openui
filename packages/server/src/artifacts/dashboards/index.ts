@@ -1,6 +1,8 @@
 import { createArtifacts } from "..";
-import { OpenUIApiError } from "../../core/errors";
-import { isRecord, type CloudApi } from "../../core/http";
+import { invalidInput, OpenUIApiError } from "../../core/errors";
+import { isRecord } from "../../core/guards";
+import type { CloudApi } from "../../core/http";
+import { requireId } from "../../core/resource";
 import { createInterpreter, dataToolLoader, toToolDefinitions } from "../../interpreter/execute";
 import { mcpServers } from "../../interpreter/mcp";
 import {
@@ -14,10 +16,6 @@ import type { Dashboard, DashboardOptions } from "./types";
 
 /** OpenUI Cloud's route that builds and edits dashboards, round by round. */
 const DASHBOARD_ROUTE = "/v1/dashboard/chat/completions";
-
-function invalidInput(message: string): never {
-  throw new OpenUIApiError(message, "invalid_input");
-}
 
 function invalidLibrary(error: unknown): never {
   throw new OpenUIApiError(
@@ -279,10 +277,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     // OpenUI Cloud edits the version it stores.
     edit(params, context, options = {}) {
       const stream = (options as { stream?: boolean } | undefined)?.stream;
-      const id = () => {
-        if (typeof params.id !== "string" || !params.id) invalidInput("id is required");
-        return params.id;
-      };
+      const id = () => requireId(params.id, "id");
       return call(
         stream,
         () => start(context, params.prompt, { id: id() }, options?.signal),

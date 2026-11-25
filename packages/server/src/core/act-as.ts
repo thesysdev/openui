@@ -1,11 +1,16 @@
-import { isIdList } from "../interpreter/types";
 import { invalidInput } from "./errors";
+import { isIdList } from "./guards";
 import type { CloudApi, CloudQuery } from "./http";
 import type { RequestOptions } from "./resource";
 
 /** Who a call is for: a user and their groups, or your org without `userId`. */
 export interface ActAsOptions extends RequestOptions {
+  /** The user to act as, from your session. Never take it from the browser. */
   userId?: string;
+  /**
+   * That user's groups, as on their frontend token, so what's shared with those groups
+   * counts too. Only with `userId`. Up to 10, each up to 64 characters.
+   */
   groupIds?: string[];
 }
 

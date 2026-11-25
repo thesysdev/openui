@@ -1,3 +1,4 @@
+import { isIdList } from "../core/guards";
 import type { McpServers } from "./mcp";
 
 /** Provider-neutral metadata passed to generation, without server handlers. */
@@ -47,11 +48,6 @@ export function assertUserIdRequired(context: unknown): asserts context is Execu
       400,
     );
   }
-}
-
-/** An array of non-empty strings, such as `groupIds`. */
-export function isIdList(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((id) => typeof id === "string" && id.trim() !== "");
 }
 
 export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (

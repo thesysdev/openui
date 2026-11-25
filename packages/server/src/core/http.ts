@@ -1,5 +1,6 @@
 import { THESYS_API_BASE_URL } from "./constants";
-import { OpenUIApiError } from "./errors";
+import { invalidResponse, OpenUIApiError } from "./errors";
+import { isRecord } from "./guards";
 
 export interface OpenUIClientOptions {
   /** Defaults to the `THESYS_API_KEY` environment variable. */
@@ -13,9 +14,6 @@ export interface OpenUIClientOptions {
   appId?: string;
   fetch?: typeof globalThis.fetch;
 }
-
-export const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
 
 /** Query string values; `undefined` ones are left out, arrays repeat the name. */
 export type CloudQuery = Record<string, string | readonly string[] | undefined>;
@@ -121,9 +119,7 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
     } catch {
       result = undefined;
     }
-    if (!isRecord(result)) {
-      throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
-    }
+    if (!isRecord(result)) throw invalidResponse();
     return result;
   }
 
@@ -140,9 +136,7 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
       signal,
     });
     if (!response.ok) throw await apiError(response);
-    if (!response.body) {
-      throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
-    }
+    if (!response.body) throw invalidResponse();
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
     let buffer = "";
     try {

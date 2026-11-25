@@ -29,10 +29,15 @@ export function toList<Row>(
   };
 }
 
+/** `value` as an id: a non-empty string, else an `invalid_input` error naming it. */
+export function requireId(value: unknown, name: string): string {
+  if (typeof value !== "string" || !value) invalidInput(`${name} is required`);
+  return value;
+}
+
 /** `/v1/<collection>/<id><suffix>`, after checking the id. */
 export function idPath(collection: string, id: unknown, suffix = ""): string {
-  if (typeof id !== "string" || !id) invalidInput("id is required");
-  return `/v1/${collection}/${encodeURIComponent(id)}${suffix}`;
+  return `/v1/${collection}/${encodeURIComponent(requireId(id, "id"))}${suffix}`;
 }
 
 /** A number as a query string value, left out when it's undefined. */

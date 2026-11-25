@@ -1,12 +1,6 @@
 import type { RequestOptions } from "../../core/resource";
-import type { McpServers } from "../../interpreter/mcp";
-import type { DataTool, ExecutionContext, Interpreter } from "../../interpreter/types";
+import type { ExecutionContext, Interpreter, InterpreterOptions } from "../../interpreter/types";
 import type { ArtifactLibrary, ArtifactPromptOptions, CloudArtifact } from "../types";
-
-/** Your data tools, an MCP server's, or both. The dashboard's interpreter runs them. */
-type DashboardDataTools<Context extends ExecutionContext> =
-  | { tools: Record<string, DataTool<Context>>; mcp?: McpServers<Context> }
-  | { tools?: Record<string, DataTool<Context>>; mcp: McpServers<Context> };
 
 export type DashboardOptions<Context extends ExecutionContext = ExecutionContext> = {
   library: ArtifactLibrary;
@@ -26,7 +20,7 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
    * calendar and units. The same for every user; sent with every create and edit.
    */
   instructions?: string;
-} & DashboardDataTools<Context>;
+} & InterpreterOptions<Context>;
 
 export interface CreateDashboardParams {
   /** A short title, such as "Q3 sales by region". */

@@ -1,3 +1,4 @@
+import { abortable } from "../core/abort";
 import { toSSE } from "./sse";
 import type {
   AutofixInput,
@@ -7,21 +8,6 @@ import type {
   StreamAdapter,
 } from "./types";
 import { AutofixError } from "./types";
-
-// Stop waiting on cancellation even when an upstream iterator or request is stalled.
-async function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
-  signal.throwIfAborted();
-  let abort!: () => void;
-  const cancelled = new Promise<never>((_, reject) => {
-    abort = () => reject(signal.reason);
-    signal.addEventListener("abort", abort, { once: true });
-  });
-  try {
-    return await Promise.race([promise, cancelled]);
-  } finally {
-    signal.removeEventListener("abort", abort);
-  }
-}
 
 // Bind the shared fix function to an adapter and expose native chunks or HTTP streaming.
 export function createAutofixStream<Chunk>(

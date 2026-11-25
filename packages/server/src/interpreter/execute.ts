@@ -1,6 +1,7 @@
 import { abortable } from "../core/abort";
 import { OpenUIApiError } from "../core/errors";
-import { isRecord, type CloudApi } from "../core/http";
+import { isRecord } from "../core/guards";
+import type { CloudApi } from "../core/http";
 import { mcpServers, mcpToolLoader, mergeTools } from "./mcp";
 import {
   assertUserIdRequired,

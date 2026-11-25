@@ -1,6 +1,7 @@
 import { actAs, callAs } from "../core/act-as";
 import { invalidInput, invalidResponse } from "../core/errors";
-import { isRecord, type CloudApi } from "../core/http";
+import { isRecord } from "../core/guards";
+import type { CloudApi } from "../core/http";
 import { idPath, queryNumber, toList } from "../core/resource";
 import type {
   ArtifactRequestOptions,

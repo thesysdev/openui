@@ -1,4 +1,5 @@
 import type { ParseResult } from "@openuidev/lang-core";
+import { isRecord } from "../core/guards";
 import type { AutofixDiagnostic, AutofixResult, BaseAutofixInput } from "./types";
 import { AutofixError } from "./types";
 
@@ -22,11 +23,6 @@ export function errorsOf({ root, rootExpression, meta }: ParseResult): AutofixDi
       ? [{ code: "missing-root", message: "No root element" }]
       : []),
   ];
-}
-
-// Check whether a value is a non-null object rather than an array.
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 // Check API diagnostics and extract their supported fields.

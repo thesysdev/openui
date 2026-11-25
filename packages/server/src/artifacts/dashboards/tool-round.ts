@@ -1,4 +1,4 @@
-import { isRecord } from "../../core/http";
+import { isRecord } from "../../core/guards";
 import {
   ToolExecutionError,
   type DataTool,

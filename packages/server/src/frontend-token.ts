@@ -1,6 +1,6 @@
-import { OpenUIApiError } from "./core/errors";
+import { invalidInput, invalidResponse } from "./core/errors";
+import { isIdList } from "./core/guards";
 import type { CloudApi } from "./core/http";
-import { isIdList } from "./interpreter/types";
 
 export interface CreateFrontendTokenParams {
   /** The signed-in user, from your session. The token reads their artifacts and those shared with them. */
@@ -32,13 +32,10 @@ export async function createFrontendToken(
   signal?: AbortSignal,
 ): Promise<FrontendToken> {
   if (typeof userId !== "string" || !userId.trim()) {
-    throw new OpenUIApiError(
-      "userId is required: take it from your authenticated session",
-      "invalid_input",
-    );
+    invalidInput("userId is required: take it from your authenticated session");
   }
   if (groupIds !== undefined && !isIdList(groupIds)) {
-    throw new OpenUIApiError("groupIds must be an array of non-empty strings", "invalid_input");
+    invalidInput("groupIds must be an array of non-empty strings");
   }
   const { token, expires_at } = await api.post(
     "/v1/frontend-tokens",
@@ -50,7 +47,7 @@ export async function createFrontendToken(
     signal,
   );
   if (typeof token !== "string" || !token || typeof expires_at !== "number") {
-    throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
+    throw invalidResponse();
   }
   return { token, expires_at };
 }
