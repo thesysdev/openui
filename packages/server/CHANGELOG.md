@@ -1,5 +1,11 @@
 # @openuidev/server
 
+## 0.5.3
+
+### Patch Changes
+
+- [#1715](https://github.com/thesysdev/openui/pull/1715) [`8b5ad9c`](https://github.com/thesysdev/openui/commit/8b5ad9c5689390c58ffaf8a29dc319107e7c92de) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add `instructions` to `openui.defineDashboard()`: your business context as a plain string, such as what the business does, who reads the dashboards, your terms, calendar and units. It's the same for every user and goes with every dashboard create and edit. `promptOptions.preamble` keeps working.
+
 ## 0.5.2
 
 ### Patch Changes
