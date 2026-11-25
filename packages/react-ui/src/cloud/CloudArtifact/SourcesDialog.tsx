@@ -141,6 +141,8 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
     [selection],
   );
   const custom = sourcesState.custom > 0;
+  // A picked value is shown beside the title, as it reads on the dashboard.
+  const meta = query ? undefined : selection?.propElement?.textContent?.trim() || undefined;
   const back = query ? () => setOpened(null) : selection ? clearSelection : undefined;
 
   return (
@@ -184,8 +186,9 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
               </button>
             )}
             <Dialog.Title className={clsx(dialogStyles.title, dialogNames.title)}>
-              {sourcesTitle(panelSelection, query)}
+              {sourcesTitle(sources, panelSelection, query)}
             </Dialog.Title>
+            {meta && <span className={clsx(dialogStyles.meta, dialogNames.meta)}>{meta}</span>}
             <Dialog.Close
               className={clsx(dialogStyles.button, dialogStyles.close, dialogNames.close)}
               aria-label="Close"

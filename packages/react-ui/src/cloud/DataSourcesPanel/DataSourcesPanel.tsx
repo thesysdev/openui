@@ -6,6 +6,7 @@ import { ArrowLeft, Check, ChevronRight, Copy, Download, X } from "lucide-react"
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { block, panelStyles, partClass } from "./dataSourcesPanel.styles";
 import {
+  componentLabel,
   isRecord,
   json,
   originOf,
@@ -113,12 +114,18 @@ interface Row {
   content: ReactNode;
 }
 
-/** The view's heading: the picked component or query, or "Sources" for the list. */
+/**
+ * The view's heading: a query opened from the list by its name; the picked component by its
+ * label (see `componentLabel`), else its id; the list, "Sources".
+ */
 export function sourcesTitle(
+  sources: DataSources | null,
   selection: DataSourcesSelection | null,
   query?: string | null,
 ): string {
-  return query ?? selection?.id ?? "Sources";
+  if (query) return query;
+  if (!selection) return "Sources";
+  return (sources && componentLabel(sources, selection.id)) ?? selection.id;
 }
 
 /**

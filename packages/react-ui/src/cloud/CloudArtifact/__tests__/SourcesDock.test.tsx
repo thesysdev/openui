@@ -30,6 +30,8 @@ const artifact = () => container.querySelector<HTMLElement>(".openui-artifact")!
 /** The open dialog: portaled to `body`, so looked up there. */
 const dialog = () => document.querySelector<HTMLElement>("[role=dialog]");
 const title = () => dialog()?.querySelector("h2")?.textContent;
+/** The picked value, shown beside the title. */
+const meta = () => dialog()?.querySelector(".openui-data-sources-dialog__meta")?.textContent;
 const toggle = () =>
   container.querySelector<HTMLButtonElement>(".openui-artifact-provenance-toggle")!;
 /** The All queries button, by its accessible name. */
@@ -148,11 +150,12 @@ describe("Sources in a live artifact", () => {
     expect(document.querySelector("[role=tooltip]")?.textContent).toBe("All queries");
   });
 
-  it("opens a dialog on a picked number: titled by it, on its Query", async () => {
+  it("opens a dialog on a picked number: titled by its label and value, on its Query", async () => {
     await mount();
     await inspect();
     await pick(valueOf("Revenue this quarter"));
-    expect(title()).toBe("revenue");
+    expect(title()).toBe("Revenue this quarter");
+    expect(meta()).toBe("184,920");
     // No describeSource here: the Query row shows the tool name, not a guess.
     expect(rows()).toEqual(["Querypostgres_query (open)", "Result", "Formula"]);
     expect(dialog()?.querySelector("pre")?.textContent).toContain("FROM orders");
@@ -162,7 +165,8 @@ describe("Sources in a live artifact", () => {
     await mount();
     await inspect();
     await pick(tile("Daily revenue"));
-    expect(title()).toBe("daily");
+    expect(title()).toBe("Daily revenue");
+    expect(meta()).toBeUndefined();
     expect(rows()).toEqual(["Querypostgres_query", "Result (open)"]);
   });
 
@@ -222,7 +226,7 @@ describe("Sources in a live artifact", () => {
     expect(document.body.style.pointerEvents).not.toBe("none");
     await pick(valueOf("Weekly signups"));
     expect(dialog()?.getAttribute("data-state")).toBe("open");
-    expect(title()).toBe("signups");
+    expect(title()).toBe("Weekly signups");
   });
 
   it("gives focus back only once the page is no longer hidden from screen readers", async () => {
@@ -252,6 +256,7 @@ describe("Sources in a live artifact", () => {
     act(() => button("signupsQ")!.click());
     await settle();
     expect(title()).toBe("signupsQ");
+    expect(meta()).toBeUndefined();
     expect(rows()).toEqual(["Queryposthog_query (open)", "Result"]);
     act(() => button("Back to all queries")!.click());
     await settle();
@@ -403,7 +408,8 @@ describe("The hover card in inspect mode", () => {
     expect(card()?.textContent).toContain("Postgres · SQL");
     expect(card()?.textContent).toContain("revenueQ");
     expect(card()?.textContent).toContain("SELECT sum(total) AS revenue FROM orders");
-    expect(card()?.textContent).toContain("1 row · 1 field");
+    // One value: the card shows it.
+    expect(card()?.textContent).toContain("1 row · revenue 184920");
   });
 
   it("shows the next card at once while one shows or just closed, and leaves at once", async () => {
@@ -437,6 +443,16 @@ describe("The hover card in inspect mode", () => {
     expect(listed).toEqual(["revenueQPostgres", "signupsQPostHog", "channelsQGA4"]);
     expect(card()?.textContent).toContain("5 queries");
     expect(card()?.textContent).toContain("+2 more");
+  });
+
+  it("names a value read from no query by its label, with its formula", async () => {
+    act(() => toggle().click());
+    hover(valueOf("Gross margin"));
+    await wait(300);
+    expect(card()?.querySelector(".openui-data-sources-hover-card__name")?.textContent).toBe(
+      "Gross margin",
+    );
+    expect(card()?.textContent).toContain("value: 0.386");
   });
 
   it("shows a card on keyboard focus, described by it, and hides it on blur", async () => {

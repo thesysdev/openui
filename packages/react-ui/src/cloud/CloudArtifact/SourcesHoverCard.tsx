@@ -7,9 +7,10 @@ import { useContext, useEffect, useId, useRef, useState, useSyncExternalStore } 
 import { createPortal } from "react-dom";
 import { useTheme } from "../../components/ThemeProvider";
 import {
+  componentLabel,
   originOf,
   resolve,
-  resultSummary,
+  resultLine,
   unwrapResult,
   type Describe,
 } from "../DataSourcesPanel/describe";
@@ -139,6 +140,8 @@ function HoverCard({
   const origins = resolved.queries.map((name) =>
     originOf(name, sources.queries[name]!, describeSource),
   );
+  /** What the card is about, when it isn't a single query: the component's label, or its id. */
+  const label = componentLabel(sources, target.id) ?? target.id;
 
   let body;
   if (origins.length > 1) {
@@ -147,7 +150,7 @@ function HoverCard({
         <div className={clsx(hoverCardStyles.kind, hoverCardNames.kind)}>
           <Layers aria-hidden />
           <span>{origins.length} queries</span>
-          <span className={clsx(hoverCardStyles.name, hoverCardNames.name)}>{target.id}</span>
+          <span className={clsx(hoverCardStyles.name, hoverCardNames.name)}>{label}</span>
         </div>
         <ul className={clsx(hoverCardStyles.queries, hoverCardNames.queries)}>
           {origins.slice(0, LISTED).map((origin) => (
@@ -167,7 +170,7 @@ function HoverCard({
   } else if (origins.length === 1) {
     const origin = origins[0]!;
     const value = unwrapResult(origin.query.data);
-    const summary = value === undefined ? undefined : resultSummary(value);
+    const summary = value === undefined ? undefined : resultLine(value);
     body = (
       <>
         <div className={clsx(hoverCardStyles.kind, hoverCardNames.kind)}>
@@ -196,7 +199,7 @@ function HoverCard({
         <div className={clsx(hoverCardStyles.kind, hoverCardNames.kind)}>
           <Sigma aria-hidden />
           <span>Formula</span>
-          <span className={clsx(hoverCardStyles.name, hoverCardNames.name)}>{target.id}</span>
+          <span className={clsx(hoverCardStyles.name, hoverCardNames.name)}>{label}</span>
         </div>
         <div className={clsx(hoverCardStyles.code, hoverCardNames.code)}>
           {resolved.formula.length

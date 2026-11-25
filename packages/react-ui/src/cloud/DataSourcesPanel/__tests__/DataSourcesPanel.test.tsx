@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { DataSourcesPanel } from "../DataSourcesPanel";
+import { DataSourcesPanel, sourcesTitle } from "../DataSourcesPanel";
 import { describeSource, sources } from "../stories/fixtures";
 import type { DataSourcesPanelProps } from "../types";
 
@@ -75,6 +75,12 @@ describe("DataSourcesPanel", () => {
     expect(text()).toContain("7 rows · 3 fields");
   });
 
+  it("sums up a one-value Result by its shape, as any other", () => {
+    render({ selection: { id: "revenue" } });
+    expect(rows()).toEqual(["QuerySQL", "Result (open)", "Formula"]);
+    expect(text()).toContain("1 row · 1 field");
+  });
+
   it("shows only the Formula when no query is behind a value", () => {
     render({ selection: { id: "margin", prop: "value" } });
     expect(rows()).toEqual(["Formula (open)"]);
@@ -131,5 +137,46 @@ describe("DataSourcesPanel", () => {
         sources.queries["revenueQ"]?.args &&
         (sources.queries["revenueQ"].args as { sql: string }).sql,
     });
+  });
+});
+
+describe("sourcesTitle", () => {
+  const withProps = (props: Record<string, string>) => ({
+    ...sources,
+    components: {
+      tile: {
+        queries: [],
+        via: [],
+        state: [],
+        props: Object.fromEntries(
+          Object.entries(props).map(([name, expr]) => [
+            name,
+            { queries: [], via: [], state: [], expr, components: [] },
+          ]),
+        ),
+      },
+    },
+  });
+
+  it("names a picked component by its title, label or name, as written", () => {
+    expect(sourcesTitle(sources, { id: "revenue", prop: "value" })).toBe("Revenue this quarter");
+    expect(sourcesTitle(withProps({ label: '"Orders"', name: '"orders"' }), { id: "tile" })).toBe(
+      "Orders",
+    );
+    expect(sourcesTitle(withProps({ name: '"Signups \\"weekly\\""' }), { id: "tile" })).toBe(
+      'Signups "weekly"',
+    );
+  });
+
+  it("falls back to the id when the label isn't a string literal", () => {
+    expect(sourcesTitle(withProps({ title: "headline.text" }), { id: "tile" })).toBe("tile");
+    expect(sourcesTitle(withProps({ label: "42" }), { id: "tile" })).toBe("tile");
+    expect(sourcesTitle(sources, { id: "kpiRow", prop: "children" })).toBe("kpiRow");
+    expect(sourcesTitle(null, { id: "revenue" })).toBe("revenue");
+  });
+
+  it("names a query opened from the list by its name, and the list Sources", () => {
+    expect(sourcesTitle(sources, null, "signupsQ")).toBe("signupsQ");
+    expect(sourcesTitle(sources, null)).toBe("Sources");
   });
 });

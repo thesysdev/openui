@@ -438,6 +438,7 @@ export const dialogNames = {
   root: dialogBlock,
   header: `${dialogBlock}__header`,
   title: `${dialogBlock}__title`,
+  meta: `${dialogBlock}__meta`,
   back: `${dialogBlock}__back`,
   close: `${dialogBlock}__close`,
   custom: `${dialogBlock}__custom`,
@@ -569,6 +570,17 @@ export const dialogStyles = {
     text-overflow: ellipsis;
     white-space: nowrap;
     ${bodyHeavy}
+  `,
+  // The picked value beside the title, e.g. $184,920.
+  meta: css`
+    flex: none;
+    max-width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: ${secondary};
+    font-variant-numeric: tabular-nums;
+    ${bodySmall}
   `,
   // react-ui's small tertiary IconButton; 44px on phones.
   button: css`

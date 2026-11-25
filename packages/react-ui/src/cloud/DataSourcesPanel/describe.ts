@@ -37,6 +37,28 @@ export function originOf(name: string, query: DataSourceQuery, describe?: Descri
   };
 }
 
+/** The props that name a component, in the order tried. */
+const LABEL_PROPS = ["title", "label", "name"] as const;
+
+/**
+ * A component's human label: its `title`, `label` or `name` prop, when written as a string
+ * literal (`Kpi("Revenue this quarter", …)`). Undefined when it has none, or it's computed.
+ */
+export function componentLabel(sources: DataSources, id: string): string | undefined {
+  const props = sources.components[id]?.props;
+  for (const name of LABEL_PROPS) {
+    const expr = props?.[name]?.expr.trim();
+    if (!expr?.startsWith('"')) continue;
+    try {
+      const value: unknown = JSON.parse(expr);
+      if (typeof value === "string" && value.trim()) return value;
+    } catch {
+      // Not a plain string literal.
+    }
+  }
+  return undefined;
+}
+
 /** What the panel shows for a selection: the queries it reads, and its formula. */
 export interface Resolved {
   queries: string[];
@@ -124,6 +146,19 @@ export function resultSummary(value: unknown): string | undefined {
   const fields = new Set(shape.rows.flatMap((row) => Object.keys(row))).size;
   const rows = shape.rows.length;
   return `${rows.toLocaleString()} ${rows === 1 ? "row" : "rows"} · ${fields} ${fields === 1 ? "field" : "fields"}`;
+}
+
+/**
+ * A hover card's line on a result: a single value as `1 row · revenue 184920`; anything else as
+ * `resultSummary` puts it.
+ */
+export function resultLine(value: unknown): string | undefined {
+  const rows = resultShape(value)?.rows;
+  const only = rows?.length === 1 ? Object.entries(rows[0]!) : [];
+  if (only.length !== 1) return resultSummary(value);
+  const [field, cell] = only[0]!;
+  const shown = cell !== null && typeof cell === "object" ? JSON.stringify(cell) : String(cell);
+  return `1 row · ${field} ${shown}`;
 }
 
 export const json = (value: unknown) => JSON.stringify(value, null, 2) ?? "No result yet";
