@@ -23,6 +23,7 @@ import {
 import type { ChartSpec } from "./types";
 
 const COLORS = ["#4A90D9", "#50C878", "#F5A623", "#E0533D", "#9B59B6", "#1ABC9C"];
+const FONT = "Helvetica, Arial, Liberation Sans, DejaVu Sans, sans-serif";
 const WIDTH = 560;
 const HEIGHT = 320;
 
@@ -72,18 +73,20 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
       key="x"
       dataKey="name"
       stroke={theme.grid}
-      tick={{ fill: theme.text }}
+      tick={{ fill: theme.text, fontFamily: FONT, fontSize: 13 }}
       label={spec.xLabel ? { value: spec.xLabel, position: "insideBottom", offset: -6 } : undefined}
     />,
     <YAxis
       key="y"
       allowDecimals={false}
       stroke={theme.grid}
-      tick={{ fill: theme.text }}
+      tick={{ fill: theme.text, fontFamily: FONT, fontSize: 13 }}
       label={spec.yLabel ? { value: spec.yLabel, angle: -90, position: "insideLeft" } : undefined}
     />,
   ];
-  const valueLabels = <LabelList dataKey="v" position="top" fill={theme.text} />;
+  const valueLabels = (
+    <LabelList dataKey="v" position="top" fill={theme.text} fontFamily={FONT} fontSize={13} />
+  );
   const margin = { top: 24, right: 24, left: 16, bottom: spec.xLabel ? 24 : 8 };
 
   if (spec.type === "line") {
@@ -161,7 +164,7 @@ function injectLegend(svg: string, entries: LegendEntry[], color: string): strin
     const y = height + 8 + r * rowH;
     for (const entry of row) {
       items += `<rect x="${x}" y="${y}" width="${swatch}" height="${swatch}" rx="2" fill="${entry.color}"/>`;
-      items += `<text x="${x + swatch + 6}" y="${y + swatch - 1}" font-family="sans-serif" font-size="13" fill="${color}">${escapeXml(entry.text)}</text>`;
+      items += `<text x="${x + swatch + 6}" y="${y + swatch - 1}" font-family="${FONT}" font-size="13" fill="${color}">${escapeXml(entry.text)}</text>`;
       x += entryWidth(entry.text);
     }
   });
