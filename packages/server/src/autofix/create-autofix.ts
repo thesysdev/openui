@@ -19,7 +19,6 @@ export interface AutofixHelpers<Chunk> {
   stream(input: AutofixStreamInput<Chunk>): AutofixStream<Chunk>;
 }
 
-/** Create helpers to validate and repair complete or streamed model output. */
 export function createAutofix<Chunk>(
   api: CloudApi,
   { library }: CreateAutofixParams,
@@ -32,7 +31,6 @@ export function createAutofix<Chunk>(
 
   return {
     fix,
-    // Wrap model emissions with validation and repair before the stream finishes.
     stream: (input: AutofixStreamInput<Chunk>) => createAutofixStream(input, fix, adapter),
   };
 }

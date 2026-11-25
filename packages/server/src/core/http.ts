@@ -128,7 +128,6 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
     return result;
   }
 
-  /** POSTs JSON with `stream: true` and yields each event OpenUI Cloud sends, until `[DONE]`. */
   async function* stream(path: string, body: unknown, signal?: AbortSignal) {
     const response = await request("POST", path, {
       body: { ...(body as object), stream: true },

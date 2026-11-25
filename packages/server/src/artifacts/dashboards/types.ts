@@ -9,9 +9,8 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
   /** How much the model thinks, for models that can: as OpenAI's `reasoning_effort`. */
   reasoningEffort?: "minimal" | "low" | "medium" | "high";
   /**
-   * How many rounds of tool calls the model may make before it must write the dashboard
-   * (OpenUI Cloud's default: 20). Each round can call several of your tools. With `0` the model
-   * calls none of your tools directly; it still saves and runs its data scripts, which call them.
+   * Tool-call rounds before the model must write the dashboard. Default: 20. With `0` the
+   * model calls no tools directly, but its data scripts still call them.
    */
   maxToolRounds?: number;
   promptOptions?: ArtifactPromptOptions;
@@ -40,20 +39,13 @@ export interface GetDashboardParams {
 }
 
 /**
- * Creates and edits live dashboards. Each call first runs the model's tool rounds against your
- * tools (typically 20-45 s), then resolves, once the dashboard starts generating, with the tool's
- * response: return it from your tool as is, and pass it to the renderer. A plain call doesn't
- * report a failure after that point.
- *
- * With `{ stream: true }` it yields two messages instead: one as soon as the dashboard has an id
- * (render it from then on), and the last once the dashboard is saved or failed, saying which.
- * Each carries the dashboard's reference; return the last one to your model.
+ * Creates and edits live dashboards. A call runs the tool rounds (typically 20-45 s), then,
+ * once generation starts, resolves with the tool response: return it from your tool as is and
+ * pass it to the renderer. Later failures aren't reported. `{ stream: true }` yields a message
+ * once the dashboard has an id, and a last one once it's saved or failed: return that one.
  */
 export interface Dashboard<Context extends ExecutionContext = ExecutionContext> {
-  /**
-   * `context` says who's asking, as for the interpreter: the dashboard belongs
-   * to `context.userId`. Until they share it, only they can read, edit and run it.
-   */
+  /** The dashboard is `context.userId`'s: until shared, only they can open, edit and run it. */
   create(
     params: CreateDashboardParams,
     context: Context,
@@ -65,8 +57,8 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
     options?: RequestOptions & { stream?: false },
   ): Promise<string>;
   /**
-   * Edits in place, for its owner or anyone it's shared with for editing, through
-   * `context.userId` or `context.groupIds`. Renderers keep the current version until the edit is ready.
+   * Edits in place, for its owner or anyone it's shared with for editing.
+   * Renderers keep the current version until the edit is ready.
    */
   edit(
     params: EditDashboardParams,
@@ -79,9 +71,8 @@ export interface Dashboard<Context extends ExecutionContext = ExecutionContext> 
     options?: RequestOptions & { stream?: false },
   ): Promise<string>;
   /**
-   * Reads a dashboard the user can open: their own, or one shared with them through
-   * `context.userId` or `context.groupIds`. Give the model its `name` and `content`, or the
-   * renderer its `id`.
+   * Reads a dashboard the user can open, own or shared. Give the model its `name` and
+   * `content`, or the renderer its `id`.
    */
   get(
     params: GetDashboardParams,

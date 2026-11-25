@@ -25,9 +25,7 @@ function invalidLibrary(error: unknown): never {
   );
 }
 
-/** A chat message as OpenAI's Chat Completions API takes it: a build's first
- *  request has the config block and the user's prompt, each later round the
- *  results of the model's tool calls. */
+/** A build's first request sends the config block and prompt; each later round, tool results. */
 type ChatMessage = { role: "system" | "user"; content: string } | ToolMessage;
 
 /** The dashboard behind `openui.defineDashboard`. */
@@ -76,7 +74,6 @@ export function defineDashboard<Context extends ExecutionContext>(
     }
   }
 
-  // OpenUI Cloud's config block: your library, prompt options and instructions, then each call's tools and title.
   let config: ReturnType<typeof artifactConfig>;
   try {
     config = artifactConfig(library, promptOptions, instructions);
@@ -90,12 +87,9 @@ export function defineDashboard<Context extends ExecutionContext>(
     prompt: string,
     call: { title?: string; id?: string },
   ): Promise<ChatMessage[]> {
-    // The dashboard belongs to the user the context names, in the client's app if it has one,
-    // as a frontend token minted for them would say.
+    // The dashboard belongs to `context.userId`, in the client's app if it has one.
     assertUserIdRequired(context);
-    // Everything rides in the config block: tools and title for generation, the artifact an edit changes for OpenUI Cloud.
-    // The model may call these data tools, and openui_create_script, whose saved scripts
-    // this server runs (see runToolRound).
+    // The model may call these tools and openui_create_script, whose scripts runToolRound runs.
     const definitions = await toolDefinitions();
     return [
       {
@@ -120,7 +114,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     messages,
     ...(artifactId !== undefined && { artifact_id: artifactId }),
     ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
-    // An edit can come from a share to one of the user's groups; a new dashboard is the user's alone.
+    // An edit may come through a group share; a new dashboard is the user's alone.
     ...actAsFields(api, { userId: context.userId, groupIds: edit ? context.groupIds : undefined }),
   });
 
@@ -133,9 +127,8 @@ export function defineDashboard<Context extends ExecutionContext>(
     new OpenUIApiError("OpenUI Cloud didn't start a background artifact", "invalid_response", 502);
 
   /**
-   * One round, not streamed: OpenUI Cloud replies at once and keeps generating. Once the
-   * dashboard starts, yields the tool response OpenUI Cloud writes: a sentence for the model and
-   * the artifact's header line for the renderer. Each tool-call reply names the id and version.
+   * One round, not streamed. Once the dashboard starts, yields OpenUI Cloud's tool response
+   * while it keeps generating. Each tool-call reply names the id and version.
    */
   async function* readReply(
     body: unknown,
@@ -166,9 +159,8 @@ export function defineDashboard<Context extends ExecutionContext>(
   }
 
   /**
-   * One round, streamed: yields each message OpenUI Cloud sends. The first says the dashboard
-   * started, as soon as it has an id; the last says whether it was saved. Each is a whole
-   * message. The id and version may come in any round, so earlier ones carry over.
+   * One round, streamed: yields each whole message OpenUI Cloud sends. The id and version
+   * may come in any round, so earlier ones carry over.
    */
   async function* readStream(
     body: unknown,
@@ -208,10 +200,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     return { calls, artifactId, version };
   }
 
-  /**
-   * A build: runs the model's tool rounds, then starts generating the user's dashboard in the
-   * background. Yields what `readRound` yields.
-   */
+  /** Runs the tool rounds until the dashboard starts generating; yields what `readRound` does. */
   async function* build(
     readRound: typeof readReply,
     context: Context,
@@ -243,10 +232,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     }
   }
 
-  /**
-   * Runs a build plain or streamed. `args` is read inside, so bad arguments fail the call like
-   * any other error: the promise rejects, or the stream throws when read.
-   */
+  /** Runs a build plain or streamed. `args` is read inside, so bad ones fail like any error. */
   function run(
     options: (RequestOptions & { stream?: boolean }) | undefined,
     context: Context,

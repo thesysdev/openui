@@ -14,10 +14,7 @@ export interface ActAsOptions extends RequestOptions {
   groupIds?: string[];
 }
 
-/**
- * The fields that name a user, their groups and the client's app, as their frontend token
- * would. No checks: callers check `userId` and `groupIds` first.
- */
+/** User, group and app fields, as a frontend token has them. Unchecked: callers check first. */
 export function actAsFields(
   api: CloudApi,
   { userId, groupIds }: { userId: string; groupIds?: readonly string[] },
@@ -29,10 +26,7 @@ export function actAsFields(
   };
 }
 
-/**
- * Acting as a user names them and their groups, in the client's app if it has one, as their
- * frontend token would. Without a user it's the org, which has no app or groups.
- */
+/** Checked fields to act as a user, as their frontend token would; without `userId`, the org. */
 export function actAs(api: CloudApi, { userId, groupIds }: ActAsOptions = {}): CloudQuery {
   if (userId === undefined) {
     if (groupIds !== undefined) invalidInput("groupIds needs userId: they're that user's groups");

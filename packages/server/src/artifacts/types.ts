@@ -2,19 +2,15 @@ import type { CloudPromptOptions, LibrarySpec } from "@openuidev/lang-core";
 import type { ActAsOptions } from "../core/act-as";
 import type { CloudList } from "../core/resource";
 
-/**
- * The components an artifact can use, as a library spec: `library.toSpec()`, or
- * the JSON from `openui generate --spec`.
- */
+/** The components an artifact can use: `library.toSpec()`, or `openui generate --spec` JSON. */
 export type ArtifactLibrary = LibrarySpec;
 
 /** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */
 export type ArtifactPromptOptions = CloudPromptOptions;
 
 /**
- * Who an artifact call is for. Without `userId` it's your org, which sees every
- * user's artifacts. With it, the call acts as that user and gets what their
- * frontend token would.
+ * Who a call is for: without `userId`, your org, which sees every user's artifacts;
+ * with it, that user, seeing what their frontend token would.
  */
 export type ArtifactRequestOptions = ActAsOptions;
 
@@ -77,7 +73,7 @@ export interface ListArtifactsParams extends ArtifactRequestOptions {
   name?: string;
   /** `true` for pinned artifacts only, `false` for unpinned ones. */
   pinned?: boolean;
-  /** `true` for the user's own artifacts only, `false` for those shared with them. Needs `userId`. */
+  /** `true` for the user's own artifacts only, `false` for shared ones. Needs `userId`. */
   isOwner?: boolean;
   /** Only the artifacts made in this conversation. */
   conversationId?: string;

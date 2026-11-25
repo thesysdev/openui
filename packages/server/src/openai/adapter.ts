@@ -29,7 +29,6 @@ type Held = { id: string; index: number; repair: boolean };
 /** Preserve Chat Completions chunks and repair text before a successful final choice closes. */
 export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
   protocol: "openai-chat-completions",
-  // Track text within each choice and wait for the finish reason before attempting repair.
   async *transform(source, fix) {
     const texts = new Map<string, string | null>();
     const closings = new Map<string, string>();
@@ -44,16 +43,13 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
     ): AsyncGenerator<ChatCompletionChunk> {
       for (const { id, index, repair } of held) {
         const text = texts.get(id);
-        // Repair only a successful final-choice UI generation.
         if (repair && text != null && isUIOutput(text)) {
           const result = await fix(text);
-          // Only append when Autofix actually changed the text.
           if (result.status === "fixed") {
             yield correctionChunk(template, index, `\n${unwrapOpenUIFence(result.content)}\n`);
           }
         }
         const closing = closings.get(id);
-        // Emit the held fence closer after any repair.
         if (closing) yield correctionChunk(template, index, closing);
         done.add(id);
         texts.delete(id);
@@ -66,19 +62,15 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
       const held: Held[] = [];
       const choices = chunk.choices.map((choice) => {
         const id = JSON.stringify([chunk.id, choice.index]);
-        // Already finished this choice; pass through.
         if (done.has(id)) return choice;
-        // Start accumulating this text part.
         if (!texts.has(id)) texts.set(id, "");
 
         // Tools mean this choice is not the final UI answer.
         if (choice.delta.tool_calls?.length || choice.delta.function_call) hasTools.add(id);
-        // Failed choice; release without repair.
         if (choice.delta.refusal != null) failed.add(id);
 
         const previous = texts.get(id);
         const incoming = choice.delta.content ?? "";
-        // Accumulate text and maybe hold a closing fence.
         if (previous != null) {
           const combined = previous + incoming;
           // Too large to send to Autofix; stop holding.
@@ -104,7 +96,6 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
           }
         }
 
-        // Mid-stream; nothing to repair yet.
         if (!choice.finish_reason) return choice;
         const text = texts.get(id);
         const repair =

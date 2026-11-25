@@ -40,7 +40,7 @@ export function toToolDefinitions(
   }));
 }
 
-/** Your data tools and your MCP servers', merged. MCP tools are listed on first use, then reused. */
+/** Your data tools and your MCP servers', merged. MCP tools are listed once, on first use. */
 export function dataToolLoader<Context extends ExecutionContext>(
   options: InterpreterOptions<Context>,
 ): () => Promise<Record<string, DataTool<Context>>> {
@@ -116,7 +116,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
           404,
         );
       }
-      // Only users who can open the artifact can run its scripts: its owner, or anyone it's shared with.
+      // As the user: only those who can open the artifact can run its scripts.
       const source = {
         artifact_id: input.id,
         ...(typeof input.version === "string" &&

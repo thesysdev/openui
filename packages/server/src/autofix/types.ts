@@ -48,11 +48,11 @@ export interface AutofixStreamInput<Chunk> extends BaseAutofixInput {
   stream: StreamSource<Chunk>;
 }
 
-/** Wrap provider events with validation and repair while preserving the selected output protocol. */
+/** Wraps provider events with validation and repair, keeping their output protocol. */
 export interface StreamAdapter<Chunk> {
-  /** SSE format for emitted events; transform must produce chunks compatible with this protocol. */
+  /** SSE format for emitted events; `transform` must yield chunks in it. */
   protocol: "openai-chat-completions" | "vercel-ai";
-  /** Forward events and use fix to validate completed UI before emitting its completion marker. */
+  /** Forwards events, using `fix` on completed UI before its completion marker. */
   transform(
     source: StreamSource<Chunk>,
     fix: (generation: string) => Promise<AutofixResult>,
@@ -60,17 +60,19 @@ export interface StreamAdapter<Chunk> {
 }
 
 export interface AutofixStream<T> {
-  /** Single consumer. Preserves provider chunks and appends the corrected program before UI completion. */
+  /** Single consumer. Provider chunks, plus the corrected program before UI completion. */
   chunks: AsyncIterable<T>;
   /** Alternative to consuming chunks: SSE in the selected adapter's protocol. */
   toResponse(): Response;
-  /** Settles after chunks or toResponse() finish. Null when Autofix did not run. Persist content, not joined deltas. */
+  /**
+   * Settles after chunks or toResponse() finish. Null when Autofix did not run.
+   * Persist its content, not the joined deltas.
+   */
   result: Promise<AutofixResult | null>;
 }
 
 /** Stream and request failures throw; exhausted repairs include their diagnostics. */
 export class AutofixError extends Error {
-  // Attach a code and optional HTTP status or repair result to the error.
   constructor(
     message: string,
     readonly code: string,

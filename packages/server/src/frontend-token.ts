@@ -3,12 +3,11 @@ import { invalidInput, invalidResponse } from "./core/errors";
 import type { CloudApi } from "./core/http";
 
 export interface CreateFrontendTokenParams {
-  /** The signed-in user, from your session. The token reads their artifacts and those shared with them. */
+  /** The signed-in user, from your session: the token reads their artifacts and shared ones. */
   userId: string;
   /**
-   * The groups the user is in, from your own system: artifacts shared with any of them are
-   * readable too. Up to 10, each up to 64 characters. The token carries them until it expires,
-   * so a change shows on the next token.
+   * The user's groups, from your system: artifacts shared with them are readable too.
+   * Up to 10, each up to 64 characters. A change shows on the next token.
    */
   groupIds?: string[];
 }
@@ -21,10 +20,7 @@ export interface FrontendToken {
   expires_at: number;
 }
 
-/**
- * Mints a frontend token for `userId` and their `groupIds`, in the client's app if it has one,
- * with your API key.
- */
+/** Mints a frontend token for `userId` and their `groupIds`, in the client's app if any. */
 export async function createFrontendToken(
   api: CloudApi,
   params: CreateFrontendTokenParams,

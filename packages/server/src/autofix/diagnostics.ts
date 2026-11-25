@@ -3,8 +3,7 @@ import { isRecord } from "../core/guards";
 import type { AutofixDiagnostic, AutofixResult, BaseAutofixInput } from "./types";
 import { AutofixError } from "./types";
 
-// Collect parser errors, missing references, and incomplete output into diagnostics.
-// Warnings (the program still renders) are not errors and never trigger a fix.
+// Errors that need a fix. Warnings don't: the program still renders.
 export function errorsOf({ root, rootExpression, meta }: ParseResult): AutofixDiagnostic[] {
   return [
     ...meta.errors.filter((error) => error.severity !== "warning"),
@@ -25,7 +24,6 @@ export function errorsOf({ root, rootExpression, meta }: ParseResult): AutofixDi
   ];
 }
 
-// Check API diagnostics and extract their supported fields.
 function readDiagnostics(value: unknown): AutofixDiagnostic[] {
   if (!Array.isArray(value))
     throw new AutofixError("Malformed Autofix diagnostics", "invalid_response");
@@ -101,7 +99,7 @@ const CONTENT_END = "]]>openui:end";
 const FENCE_CLOSE = "```";
 const FENCE_CLOSE_WITH_END = "```\n]]>openui:end";
 
-/** OpenUI Lang is a Cloud content marker, a fenced ```openui block, or an unfenced `root =` program. */
+/** UI output: a Cloud content marker, a fenced ```openui block, or an unfenced `root =` program. */
 export function isUIOutput(text: string): boolean {
   return text.includes(CONTENT_OPEN) || text.search(OPENUI_FENCE) >= 0 || ROOT_ASSIGN.test(text);
 }

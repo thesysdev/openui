@@ -6,8 +6,7 @@ import {
   type Interpreter,
 } from "../../interpreter/types";
 
-/** The model saves one of the dashboard's scripts and runs it once: `{ name, code, args? }`.
- *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */
+/** The model's tool to save a script in OpenUI Cloud and run it once: `{ name, code, args? }`. */
 export const CREATE_SCRIPT_TOOL = "openui_create_script";
 
 /** A tool call's result, as the model gets it back. */
@@ -22,7 +21,7 @@ export interface ToolRound<Context extends ExecutionContext> {
   context: Context;
   signal: AbortSignal | undefined;
   interpreter: Interpreter<Context>;
-  /** The dashboard being built: its saved scripts run by it. */
+  /** The dashboard being built, whose saved scripts run by its id. */
   artifactId: string;
   /** The build's version: OpenUI Cloud runs a saved script from the build in progress. */
   version: string | undefined;

@@ -1,7 +1,6 @@
 import { ToolExecutionError, type DataTool, type ExecutionContext } from "./types";
 
-// Only the parts of the MCP SDK's types used here, so the SDK stays an optional
-// peer: the published declarations never import it.
+// Only the MCP SDK types used here, so the SDK stays an optional peer.
 
 /** An MCP tool, as the server lists it. */
 export interface McpTool {
@@ -79,9 +78,8 @@ function invalidTools(message: string): never {
 }
 
 /**
- * A dashboard filter nobody has picked yet arrives as `""` or `null`. MCP
- * servers validate strictly, so leave those out of optional arguments, as if
- * they weren't passed. A required one still goes as is, for the server to judge.
+ * Drops `""` and `null` (unpicked dashboard filters) from optional arguments, since MCP
+ * servers validate strictly. Required ones go as is, for the server to judge.
  */
 function setArguments(args: Record<string, unknown>, required: Set<string>) {
   return Object.fromEntries(
@@ -111,9 +109,8 @@ export function mergeTools<T>(own: Record<string, T> | undefined, mcp: Record<st
 }
 
 /**
- * Lists an MCP server's tools on first use, and the same ones after that: an
- * MCP tool becomes a data tool, and its calls go through `connect(context)`.
- * A failed listing is retried on the next call.
+ * An MCP server's tools as data tools, listed on first use and reused; a failed listing
+ * retries on the next call. Calls go through `connect(context)`.
  */
 export function mcpToolLoader<Context extends ExecutionContext>(
   option: McpOption<Context>,

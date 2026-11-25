@@ -14,17 +14,11 @@ import type { ExecutionContext } from "./interpreter/types";
 import { openAIAutofix, type OpenAIAutofix } from "./openai/autofix";
 import { vercelAutofix, type VercelAutofix } from "./vercel/autofix";
 
-/**
- * One client for OpenUI Cloud on your server. Reads your API key from
- * `THESYS_API_KEY` unless you pass `apiKey`.
- */
+/** One client for OpenUI Cloud on your server. Reads `THESYS_API_KEY` unless you pass `apiKey`. */
 export class OpenUIClient {
   private readonly api: CloudApi;
 
-  /**
-   * Your saved artifacts. Without `userId`, calls cover every user in your org;
-   * with it, they act as that user.
-   */
+  /** Your saved artifacts. Without `userId`, calls cover your whole org; with it, that user. */
   readonly artifacts: Artifacts;
 
   /** Autofix for Chat Completions: `createAutofix({ library })` returns `{ completions }`. */
