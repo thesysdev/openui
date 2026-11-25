@@ -37,7 +37,7 @@ export async function createFrontendToken(
   }
   // actAs checks groupIds and adds the client's app.
   const body = actAs(api, { userId, groupIds });
-  const { token, expires_at } = await api.post("/v1/frontend-tokens", body, signal);
+  const { token, expires_at } = await api.send("POST", "/v1/frontend-tokens", { body, signal });
   if (typeof token !== "string" || !token || typeof expires_at !== "number") {
     throw invalidResponse();
   }

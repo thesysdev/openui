@@ -41,7 +41,7 @@ const rounds = (count: number) =>
 function setup(replies: unknown[], tools: Record<string, DataTool<Context>>) {
   const bodies: Array<{ messages: Message[]; artifact_id?: string }> = [];
   const executes: Array<Record<string, unknown>> = [];
-  const post = async (path: string, body: unknown) => {
+  const send = async (_method: string, path: string, { body }: { body?: unknown } = {}) => {
     if (path === "/v1/frontend-tokens") return { token: "fct_1", expires_at: 1 };
     if (path === "/v1/app/execute") {
       executes.push(body as Record<string, unknown>);
@@ -51,7 +51,7 @@ function setup(replies: unknown[], tools: Record<string, DataTool<Context>>) {
     bodies.push(JSON.parse(JSON.stringify(body)));
     return replies[bodies.length - 1];
   };
-  const dashboard = defineDashboard<Context>({ post } as unknown as CloudApi, {
+  const dashboard = defineDashboard<Context>({ send } as unknown as CloudApi, {
     library: { components: {} } as unknown as ArtifactLibrary,
     model: "provider/model",
     tools,
@@ -137,7 +137,7 @@ describe("defineDashboard create", () => {
     ];
     const bodies: Array<Record<string, unknown>> = [];
     const api = {
-      post: async () => ({}),
+      send: async () => ({}),
       async *stream(_path: string, body: unknown) {
         bodies.push(JSON.parse(JSON.stringify(body)));
         yield* streams[bodies.length - 1]!;

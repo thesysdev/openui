@@ -143,11 +143,10 @@ export function defineDashboard<Context extends ExecutionContext>(
     // OpenUI Cloud ends the rounds: the model writes once it's done, or at maxToolRounds.
     for (;;) {
       // Not streamed: OpenUI Cloud replies at once and keeps generating.
-      const reply = await api.post(
-        DASHBOARD_ROUTE,
-        request(context, messages, artifactId, call.id !== undefined),
+      const reply = await api.send("POST", DASHBOARD_ROUTE, {
+        body: request(context, messages, artifactId, call.id !== undefined),
         signal,
-      );
+      });
       const choice: unknown = Array.isArray(reply["choices"]) ? reply["choices"][0] : undefined;
       const message = isRecord(choice) ? choice["message"] : undefined;
       // The dashboard started: the message is the tool response for your agent's model.

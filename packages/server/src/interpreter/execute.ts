@@ -229,7 +229,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
     signal: AbortSignal,
   ): Promise<Record<string, unknown>> {
     try {
-      return await api.post("/v1/app/execute", body, signal);
+      return await api.send("POST", "/v1/app/execute", { body, signal });
     } catch (error) {
       signal.throwIfAborted();
       if (error instanceof OpenUIApiError) {

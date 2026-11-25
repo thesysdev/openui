@@ -2,7 +2,6 @@ import { createArtifacts } from "./artifacts";
 import { defineDashboard } from "./artifacts/dashboards";
 import type { Dashboard, DashboardOptions } from "./artifacts/dashboards/types";
 import type { Artifacts } from "./artifacts/types";
-import { OpenUIApiError } from "./core/errors";
 import { createCloudApi, type CloudApi, type OpenUIClientOptions } from "./core/http";
 import type { RequestOptions } from "./core/resource";
 import {
@@ -26,12 +25,6 @@ export class OpenUIClient {
   readonly artifacts: Artifacts;
 
   constructor(options: OpenUIClientOptions = {}) {
-    if (
-      options.appId !== undefined &&
-      (typeof options.appId !== "string" || !options.appId.trim())
-    ) {
-      throw new OpenUIApiError("appId must be a non-empty string", "invalid_input");
-    }
     this.api = createCloudApi(options);
     this.artifacts = createArtifacts(this.api);
   }
