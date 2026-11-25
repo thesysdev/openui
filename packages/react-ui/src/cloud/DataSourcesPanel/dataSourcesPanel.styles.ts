@@ -117,12 +117,29 @@ export const panelStyles = {
     overscroll-behavior: contain;
     scrollbar-width: thin;
   `,
+  // A new view fades in, sliding 12px the way it went (`data-direction`); the first doesn't slide.
   view: css`
+    --openui-data-sources-slide: 0px;
     &:focus {
       outline: none;
     }
+    &[data-direction="forward"] {
+      --openui-data-sources-slide: 12px;
+    }
+    &[data-direction="back"] {
+      --openui-data-sources-slide: -12px;
+    }
     @media (prefers-reduced-motion: no-preference) {
-      transition: opacity 150ms ${easeOut};
+      transition:
+        opacity 200ms ${easeOut},
+        transform 200ms ${easeOut};
+      @starting-style {
+        opacity: 0;
+        transform: translateX(var(--openui-data-sources-slide));
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      transition: opacity 150ms;
       @starting-style {
         opacity: 0;
       }
@@ -150,6 +167,33 @@ export const panelStyles = {
     min-height: 40px;
     padding: 0 var(--openui-space-s);
     border-radius: var(--openui-radius-m);
+  `,
+  // A query in the list, when it opens its own view.
+  "list-button": css`
+    ${buttonReset}
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--openui-space-m);
+    align-self: stretch;
+    min-width: 0;
+    margin: 0 calc(-1 * var(--openui-space-s));
+    padding: 0 var(--openui-space-s);
+    border-radius: var(--openui-radius-m);
+    color: ${primary};
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 120ms ease;
+    ${bodySmall}
+    &:focus-visible {
+      outline: ${focusRing};
+      outline-offset: -2px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--openui-highlight);
+      }
+    }
   `,
   "list-label": css`
     flex: 1;

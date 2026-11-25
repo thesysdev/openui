@@ -1,5 +1,6 @@
 "use client";
 
+import type { DataSources } from "@openuidev/react-lang";
 import clsx from "clsx";
 import { ArrowLeft, Check, ChevronRight, Copy, Download, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -14,7 +15,11 @@ import {
   unwrapResult,
   type Origin,
 } from "./describe";
-import type { DataSourcesPanelProps } from "./types";
+import type {
+  DataSourcesContentsProps,
+  DataSourcesPanelProps,
+  DataSourcesSelection,
+} from "./types";
 
 const cx = partClass;
 
@@ -23,7 +28,7 @@ function SourceMark({ origin }: { origin: Pick<Origin, "icon"> }) {
   return origin.icon ? <span className={cx("mark")}>{origin.icon}</span> : null;
 }
 
-function IconAction({
+export function IconAction({
   label,
   onClick,
   className,
@@ -108,32 +113,49 @@ interface Row {
   content: ReactNode;
 }
 
+/** The view's heading: the picked component or query, or "Sources" for the list. */
+export function sourcesTitle(
+  selection: DataSourcesSelection | null,
+  query?: string | null,
+): string {
+  return query ?? selection?.id ?? "Sources";
+}
+
 /**
- * Where a dashboard's data comes from. With nothing selected it lists every query; for a selected
- * component or prop it shows its Query, the Result that came back, and its Formula.
+ * Where a dashboard's data comes from, without a frame: the body of the Sources panel and dialog.
+ * With nothing selected it lists every query; for a selected component or prop it shows its Query,
+ * the Result that came back, and its Formula; for a query opened from the list, its Query and
+ * Result.
  */
-export function DataSourcesPanel({
+export function DataSourcesContents({
   sources,
   selection,
-  onBack,
-  onClose,
+  query = null,
+  onOpenQuery,
   describeSource,
-  className,
-}: DataSourcesPanelProps) {
+}: DataSourcesContentsProps) {
   /** Rows the user opened or closed; their choice beats each row's default as they move around. */
   const [rowState, setRowState] = useState<Readonly<Record<string, boolean>>>({});
   const [copied, setCopied] = useState<string | null>(null);
   const [copyFailed, setCopyFailed] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const panelRef = useRef<HTMLElement>(null);
-  const viewKey = selection ? `${selection.id}\u0000${selection.prop ?? ""}` : "list";
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const viewKey = query
+    ? `query\u0000${query}`
+    : selection
+      ? `${selection.id}\u0000${selection.prop ?? ""}`
+      : "list";
+  // Which way the view moved: into a detail is forward, back to the list is back. The first view
+  // doesn't move.
+  const travel = useRef<{ key: string; direction?: "forward" | "back" }>({ key: viewKey });
+  if (travel.current.key !== viewKey) {
+    travel.current = { key: viewKey, direction: viewKey === "list" ? "back" : "forward" };
+  }
 
   // Focus follows the view, for keyboard and screen reader users.
   useEffect(() => {
     const frame = requestAnimationFrame(() =>
-      panelRef.current
-        ?.querySelector<HTMLElement>("[data-heading]")
-        ?.focus({ preventScroll: true }),
+      bodyRef.current?.querySelector<HTMLElement>("[data-heading]")?.focus({ preventScroll: true }),
     );
     return () => cancelAnimationFrame(frame);
   }, [viewKey]);
@@ -181,90 +203,119 @@ export function DataSourcesPanel({
       {copyButton(key, text, cx("code-copy"))}
     </div>
   );
+  /** A query's Query and Result rows. */
+  const queryRows = (
+    current: DataSources,
+    name: string,
+    { open, labelled }: { open: "query" | "result" | null; labelled: boolean },
+  ): Row[] => {
+    const origin = originOf(name, current.queries[name]!, describeSource);
+    const value = unwrapResult(origin.query.data);
+    return [
+      {
+        id: `query:${name}`,
+        label: "Query",
+        note: labelled ? `${name} · ${origin.codeLabel}` : origin.codeLabel,
+        defaultOpen: open === "query",
+        content: code(`query:${name}`, origin.code),
+      },
+      {
+        id: `result:${name}`,
+        label: "Result",
+        note: labelled ? name : undefined,
+        defaultOpen: open === "result",
+        content:
+          value === undefined ? (
+            <p className={cx("help")}>
+              {origin.query.loading
+                ? "Loading…"
+                : "No data came back. If the query failed, the dashboard shows why."}
+            </p>
+          ) : (
+            <>
+              <DataSourcesResult value={value} loading={origin.query.loading} />
+              <div className={cx("result-foot")}>
+                <span>{resultSummary(value)}</span>
+                {copyButton(`result:${name}`, value)}
+                <IconAction label="Download" onClick={() => download(value, name)}>
+                  <Download size={16} aria-hidden />
+                </IconAction>
+              </div>
+            </>
+          ),
+      },
+    ];
+  };
 
   let body: ReactNode;
-  let heading: ReactNode = null;
   if (!sources) {
     body = <p className={cx("help")}>Sources appear once the dashboard has rendered.</p>;
-  } else if (!selection) {
-    heading = (
-      <h2 className={cx("title")} tabIndex={-1} data-heading>
-        Sources
-      </h2>
-    );
-    const origins = Object.entries(sources.queries).map(([name, query]) =>
-      originOf(name, query, describeSource),
+  } else if (!selection && !(query && query in sources.queries)) {
+    const origins = Object.entries(sources.queries).map(([name, each]) =>
+      originOf(name, each, describeSource),
     );
     body = origins.length ? (
       <ul className={cx("list")} aria-label="Queries">
-        {origins.map((origin) => (
-          <li
-            key={origin.name}
-            className={cx("list-row")}
-            title={`${origin.name} · ${origin.kind}`}
-          >
-            <span className={cx("list-label")}>{origin.name}</span>
-            <span className={cx("list-kind")}>
-              <SourceMark origin={origin} />
-              {origin.kind}
-            </span>
-          </li>
-        ))}
+        {origins.map((origin) => {
+          const label = (
+            <>
+              <span className={cx("list-label")}>{origin.name}</span>
+              <span className={cx("list-kind")}>
+                <SourceMark origin={origin} />
+                {origin.kind}
+              </span>
+            </>
+          );
+          return (
+            <li
+              key={origin.name}
+              className={cx("list-row")}
+              title={`${origin.name} · ${origin.kind}`}
+            >
+              {onOpenQuery ? (
+                <button
+                  type="button"
+                  className={cx("list-button")}
+                  onClick={() => onOpenQuery(origin.name)}
+                >
+                  {label}
+                  <ChevronRight className={cx("chevron")} size={16} aria-hidden />
+                </button>
+              ) : (
+                label
+              )}
+            </li>
+          );
+        })}
       </ul>
     ) : (
       <p className={cx("help")}>This dashboard has no queries.</p>
     );
   } else {
-    const resolved = resolve(sources, selection);
     const rows: Row[] = [];
-    if (resolved) {
-      const many = resolved.queries.length > 1;
-      resolved.queries.forEach((name, index) => {
-        const origin = originOf(name, sources.queries[name]!, describeSource);
-        const value = unwrapResult(origin.query.data);
-        rows.push({
-          id: `query:${name}`,
-          label: "Query",
-          note: many || resolved.viaChildren ? `${name} · ${origin.codeLabel}` : origin.codeLabel,
+    let resolved: ReturnType<typeof resolve> = null;
+    if (!selection) {
+      // A query opened from the list.
+      rows.push(...queryRows(sources, query!, { open: "query", labelled: false }));
+    } else {
+      resolved = resolve(sources, selection);
+      if (resolved) {
+        const labelled = resolved.queries.length > 1 || resolved.viaChildren;
+        resolved.queries.forEach((name, index) => {
           // A picked number reads best from its query; a picked table or chart, from its data.
-          defaultOpen: index === 0 && Boolean(selection.prop),
-          content: code(`query:${name}`, origin.code),
+          const open = index > 0 ? null : selection.prop ? "query" : "result";
+          rows.push(...queryRows(sources, name, { open, labelled }));
         });
-        rows.push({
-          id: `result:${name}`,
-          label: "Result",
-          note: many || resolved.viaChildren ? name : undefined,
-          defaultOpen: index === 0 && !selection.prop,
-          content:
-            value === undefined ? (
-              <p className={cx("help")}>
-                {origin.query.loading
-                  ? "Loading…"
-                  : "No data came back. If the query failed, the dashboard shows why."}
-              </p>
-            ) : (
-              <>
-                <DataSourcesResult value={value} loading={origin.query.loading} />
-                <div className={cx("result-foot")}>
-                  <span>{resultSummary(value)}</span>
-                  {copyButton(`result:${name}`, value)}
-                  <IconAction label="Download" onClick={() => download(value, name)}>
-                    <Download size={16} aria-hidden />
-                  </IconAction>
-                </div>
-              </>
-            ),
-        });
-      });
-      // Formula: how the value is picked from its data (now = @First(…)), or the value as
-      // written when nothing is read. Closed by default under a query; open on its own.
-      if (resolved.formula.length) {
-        rows.push({
-          id: "formula",
-          label: "Formula",
-          defaultOpen: !resolved.queries.length,
-          content: code("formula", resolved.formula.join("\n\n")),
-        });
+        // Formula: how the value is picked from its data (now = @First(…)), or the value as
+        // written when nothing is read. Closed by default under a query; open on its own.
+        if (resolved.formula.length) {
+          rows.push({
+            id: "formula",
+            label: "Formula",
+            defaultOpen: !resolved.queries.length,
+            content: code("formula", resolved.formula.join("\n\n")),
+          });
+        }
       }
     }
     body = rows.length ? (
@@ -302,28 +353,15 @@ export function DataSourcesPanel({
   }
 
   return (
-    <aside ref={panelRef} className={clsx(panelStyles.root, block, className)} aria-label="Sources">
-      <header className={cx("header")}>
-        {selection ? (
-          <IconAction label="Back to all queries" onClick={() => onBack?.()}>
-            <ArrowLeft size={16} aria-hidden />
-          </IconAction>
-        ) : (
-          heading
-        )}
-        {onClose && (
-          <IconAction className={cx("close")} label="Close" onClick={onClose}>
-            <X size={16} aria-hidden />
-          </IconAction>
-        )}
-      </header>
-      <div className={cx("body")}>
-        {/* Keyed by what's picked: a new pick fades in, and its rows never move. */}
+    <>
+      <div className={cx("body")} ref={bodyRef}>
+        {/* Keyed by what's shown: a new view slides in, and its rows never move. */}
         <div
           className={cx("view")}
           key={viewKey}
-          data-heading={selection ? "" : undefined}
-          tabIndex={selection ? -1 : undefined}
+          data-heading=""
+          data-direction={travel.current.direction}
+          tabIndex={-1}
         >
           {body}
         </div>
@@ -331,6 +369,35 @@ export function DataSourcesPanel({
       <span className={cx("sr-only")} role="status">
         {copyFailed ? "Couldn't copy. Please try again." : copied ? "Copied to clipboard" : ""}
       </span>
+    </>
+  );
+}
+
+/** The Sources contents in a panel of their own, with a header to go back and close. */
+export function DataSourcesPanel({
+  onBack,
+  onClose,
+  className,
+  ...contents
+}: DataSourcesPanelProps) {
+  const { selection } = contents;
+  return (
+    <aside className={clsx(panelStyles.root, block, className)} aria-label="Sources">
+      <header className={cx("header")}>
+        {selection ? (
+          <IconAction label="Back to all queries" onClick={() => onBack?.()}>
+            <ArrowLeft size={16} aria-hidden />
+          </IconAction>
+        ) : (
+          <h2 className={cx("title")}>Sources</h2>
+        )}
+        {onClose && (
+          <IconAction className={cx("close")} label="Close" onClick={onClose}>
+            <X size={16} aria-hidden />
+          </IconAction>
+        )}
+      </header>
+      <DataSourcesContents {...contents} />
     </aside>
   );
 }

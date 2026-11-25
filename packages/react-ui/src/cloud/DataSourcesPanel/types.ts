@@ -23,15 +23,22 @@ export interface SourceDescription {
   code?: string;
 }
 
-export interface DataSourcesPanelProps {
+export interface DataSourcesContentsProps {
   /** Where the program's data comes from: `useArtifactProvenance().sources`. */
   sources: DataSources | null;
   /** What was clicked. Null shows every query. */
   selection: DataSourcesSelection | null;
+  /** A query opened from the list, shown when nothing is selected. */
+  query?: string | null;
+  /** Makes each query in the list open its Query and Result. */
+  onOpenQuery?: (name: string) => void;
+  /** Name a data tool: its kind, logo and how its call reads. */
+  describeSource?: (toolName: string, args: unknown) => SourceDescription | undefined;
+}
+
+export interface DataSourcesPanelProps extends DataSourcesContentsProps {
   /** Back to every query. */
   onBack?: () => void;
   onClose?: () => void;
-  /** Name a data tool: its kind, logo and how its call reads. */
-  describeSource?: (toolName: string, args: unknown) => SourceDescription | undefined;
   className?: string;
 }
