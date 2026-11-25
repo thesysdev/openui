@@ -43,7 +43,10 @@ type Palette = (typeof THEMES)[ChartTheme];
 type LegendEntry = { color: string; text: string };
 
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
-const formatValue = (v: unknown) => compact.format(Number(v));
+const formatValue = (v: unknown) => {
+  const n = Number(v);
+  return Math.abs(n) >= 1000 ? compact.format(n) : String(Number(n.toPrecision(3)));
+};
 /** Rough rendered width of a label at TEXT_SIZE, for layout without a DOM to measure. */
 const textWidth = (t: string) => t.length * TEXT_SIZE * 0.6;
 
