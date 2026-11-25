@@ -2,13 +2,14 @@
 
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { Database, LoaderCircle, X } from "lucide-react";
+import { Database, List, LoaderCircle, X } from "lucide-react";
 import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
+import { TooltipWrapper } from "../../components/TooltipWrapper";
 import { AnimatedLabel } from "./AnimatedLabel";
-import { names, styles } from "./cloudArtifact.styles";
+import { names, styles, toggleStyles } from "./cloudArtifact.styles";
 import {
   ChromeOverridesContext,
   ContentConfigContext,
@@ -259,7 +260,12 @@ export interface ProvenanceToggleProps {
   children?: ReactNode;
 }
 
-/** Turns inspect mode on and off. Renders nothing unless `enableProvenance` is on. */
+/**
+ * Turns inspect mode on and off, with `aria-pressed` and `data-state="on" | "off"`; while on, an
+ * All queries button beside it opens the Sources dialog on the list. Renders nothing unless
+ * `enableProvenance` is on. Children replace both: call `openList()` from
+ * `useArtifactProvenance()` for your own All queries.
+ */
 export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
   const inside = useInRegion("chrome");
   const provenance = useContext(ProvenanceContext);
@@ -267,19 +273,40 @@ export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
   if (children !== undefined) return <>{children}</>;
   const open = provenance.isInspecting;
   return (
-    <Button
-      className={names.provenanceToggle}
-      variant={open ? "secondary" : "tertiary"}
-      size="small"
-      iconLeft={<Database size={16} aria-hidden />}
-      aria-pressed={open}
-      onClick={() => {
-        if (open) provenance.clearSelection();
-        provenance.setInspecting(!open);
-      }}
-    >
-      {label ?? "Sources"}
-    </Button>
+    <>
+      {/* Before the toggle, so the toggle stays put under the pointer when this appears. */}
+      {open && (
+        <TooltipWrapper tooltipContent="All queries" side="bottom" align="center">
+          <IconButton
+            className={clsx(toggleStyles.allQueries, names.allQueries)}
+            variant="tertiary"
+            size="small"
+            icon={<List size={16} aria-hidden />}
+            aria-label="All queries"
+            onClick={provenance.openList}
+          />
+        </TooltipWrapper>
+      )}
+      <Button
+        className={clsx(toggleStyles.toggle, names.provenanceToggle)}
+        variant="tertiary"
+        size="small"
+        iconLeft={
+          <span className={toggleStyles.icon}>
+            <Database size={16} aria-hidden />
+            <span className={clsx(toggleStyles.dot, names.provenanceDot)} aria-hidden />
+          </span>
+        }
+        aria-pressed={open}
+        data-state={open ? "on" : "off"}
+        onClick={() => {
+          if (open) provenance.clearSelection();
+          provenance.setInspecting(!open);
+        }}
+      >
+        {label ?? "Sources"}
+      </Button>
+    </>
   );
 }
 

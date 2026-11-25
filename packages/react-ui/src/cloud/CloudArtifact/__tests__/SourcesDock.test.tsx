@@ -32,6 +32,11 @@ const dialog = () => document.querySelector<HTMLElement>("[role=dialog]");
 const title = () => dialog()?.querySelector("h2")?.textContent;
 const toggle = () =>
   container.querySelector<HTMLButtonElement>(".openui-artifact-provenance-toggle")!;
+/** The All queries button, by its accessible name. */
+const allQueries = () =>
+  [...container.querySelectorAll<HTMLButtonElement>("button")].find(
+    (el) => el.getAttribute("aria-label") === "All queries",
+  );
 const valueOf = (title: string) =>
   [...container.querySelectorAll("[data-openui-prop='value']")].find((el) =>
     el.closest("[data-openui-source]:not([data-openui-prop])")?.textContent?.includes(title),
@@ -101,6 +106,46 @@ describe("Sources in a live artifact", () => {
     expect(toggle().getAttribute("aria-pressed")).toBe("true");
     expect(artifact().hasAttribute("data-openui-inspecting")).toBe(true);
     expect(dialog()).toBeNull();
+  });
+
+  it("marks the toggle on and off with data-state, for your own CSS", async () => {
+    await mount();
+    expect(toggle().getAttribute("data-state")).toBe("off");
+    await inspect();
+    expect(toggle().getAttribute("data-state")).toBe("on");
+    await inspect();
+    expect(toggle().getAttribute("data-state")).toBe("off");
+    expect(toggle().getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("shows All queries next to the toggle only while inspecting, and opens the list", async () => {
+    await mount();
+    expect(allQueries()).toBeUndefined();
+    await inspect();
+    expect(allQueries()?.classList.contains("openui-artifact-all-queries")).toBe(true);
+    // As a real click would, it takes focus first, and gets it back when the dialog closes.
+    act(() => {
+      allQueries()!.focus();
+      allQueries()!.click();
+    });
+    await settle();
+    expect(title()).toBe("Sources");
+    expect(names()).toEqual(["revenueQ", "dailyQ", "signupsQ", "channelsQ", "targetQ"]);
+    expect(artifact().hasAttribute("data-openui-inspecting")).toBe(true);
+    await escape();
+    expect(dialog()).toBeNull();
+    expect(document.activeElement).toBe(allQueries());
+    await inspect();
+    expect(allQueries()).toBeUndefined();
+  });
+
+  it("names All queries in a tooltip when it gets focus", async () => {
+    await mount();
+    await inspect();
+    expect(document.querySelector("[role=tooltip]")).toBeNull();
+    act(() => allQueries()!.focus());
+    await settle();
+    expect(document.querySelector("[role=tooltip]")?.textContent).toBe("All queries");
   });
 
   it("opens a dialog on a picked number: titled by it, on its Query", async () => {
@@ -203,6 +248,31 @@ describe("Sources in a live artifact", () => {
     expect(title()).toBe("Sources");
     expect(names()).toHaveLength(5);
     expect(container.textContent).toContain("Open");
+  });
+
+  it("lets your own toggle replace the default one and its All queries button", async () => {
+    function Mine() {
+      const { isInspecting, setInspecting } = useArtifactProvenance();
+      return createElement(
+        "button",
+        { className: "mine", "aria-pressed": isInspecting, onClick: () => setInspecting(true) },
+        "Inspect",
+      );
+    }
+    await mount(true, [
+      createElement(
+        LiveArtifactRenderer.Chrome,
+        { key: "chrome" },
+        createElement(LiveArtifactRenderer.ProvenanceToggle, null, createElement(Mine)),
+        createElement(LiveArtifactRenderer.Content),
+      ),
+    ]);
+    act(() => container.querySelector<HTMLButtonElement>(".mine")!.click());
+    await settle();
+    expect(artifact().hasAttribute("data-openui-inspecting")).toBe(true);
+    expect(container.querySelector(".mine")?.getAttribute("aria-pressed")).toBe("true");
+    expect(container.querySelector(".openui-artifact-provenance-toggle")).toBeNull();
+    expect(allQueries()).toBeUndefined();
   });
 
   it("shows your own contents in the dialog, from Provenance children", async () => {

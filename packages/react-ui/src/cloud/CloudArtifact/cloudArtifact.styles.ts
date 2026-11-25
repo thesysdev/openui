@@ -49,6 +49,8 @@ export const names = {
   panel: "openui-artifact-panel",
   inspecting: "openui-artifact-inspecting",
   provenanceToggle: "openui-artifact-provenance-toggle",
+  provenanceDot: "openui-artifact-provenance-dot",
+  allQueries: "openui-artifact-all-queries",
 } as const;
 
 export const styles = {
@@ -229,5 +231,72 @@ export const styles = {
   `,
   panel: css`
     padding: var(--openui-space-l) var(--openui-space-xl);
+  `,
+};
+
+// ─── Sources toggle and All queries ──────────────────────────────────────
+
+/** Phones, as the Sources sheet: 44px touch targets. */
+const phone = "(max-width: 639px)";
+
+/*
+ * The Sources toggle's own pressed look, over the tertiary button: a highlight fill, a 1px inset
+ * ring and an accent dot on the icon. On takes 120ms (the dot 150ms, growing from half size);
+ * off is instant, so the transitions sit on the "on" state only. Reduced motion keeps fades.
+ * `&&` ties with the button's own hover and active rules, which set the same fill.
+ */
+export const toggleStyles = {
+  toggle: css`
+    && {
+      transition: none;
+    }
+    &&[data-state="on"] {
+      background-color: var(--openui-highlight);
+      box-shadow: inset 0 0 0 1px var(--openui-border-default);
+      transition:
+        background-color 120ms ease,
+        box-shadow 120ms ease;
+    }
+    @media ${phone} {
+      min-height: 44px;
+    }
+  `,
+  icon: css`
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+  `,
+  dot: css`
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
+    border-radius: var(--openui-radius-full);
+    background: var(--openui-interactive-accent-default);
+    box-shadow: 0 0 0 1.5px var(--openui-background);
+    opacity: 0;
+    transform: scale(0.5);
+    pointer-events: none;
+    .${names.provenanceToggle}[data-state="on"] & {
+      opacity: 1;
+      transform: scale(1);
+      transition:
+        opacity 150ms ease-out,
+        transform 150ms ease-out;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      transform: none;
+      .${names.provenanceToggle}[data-state="on"] & {
+        transform: none;
+        transition: opacity 150ms;
+      }
+    }
+  `,
+  allQueries: css`
+    @media ${phone} {
+      min-width: 44px;
+      min-height: 44px;
+    }
   `,
 };
