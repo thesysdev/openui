@@ -35,6 +35,7 @@ import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ContentConfigContext,
+  createPreviewStore,
   createSourcesStore,
   ProvenanceContext,
   RendererStateContext,
@@ -459,6 +460,8 @@ export function ArtifactRendererRoot({
   const [isSourcesOpen, setSourcesOpen] = useState(false);
   // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
+  // What the hover card previews, written as the pointer and focus move.
+  const [previewStore] = useState(createPreviewStore);
   const clearSelection = useCallback(() => setSelection(null), []);
   const openList = useCallback(() => {
     setSelection(null);
@@ -484,6 +487,7 @@ export function ArtifactRendererRoot({
             openList,
             closeDialog,
             sourcesStore,
+            previewStore,
           }
         : null,
     [
@@ -496,6 +500,7 @@ export function ArtifactRendererRoot({
       openList,
       closeDialog,
       sourcesStore,
+      previewStore,
     ],
   );
   const inspecting = enableProvenance && isInspecting;
@@ -539,18 +544,25 @@ export function ArtifactRendererRoot({
   }, [inspecting, isSourcesOpen, setInspecting]);
   // While inspecting, what a click would select gets a hover outline, for any component:
   // set on the element directly, so moving the mouse re-renders nothing.
+  // The hover card previews it too.
   const hovered = useRef<Element | null>(null);
-  const setHovered = useCallback((element: Element | null) => {
-    if (hovered.current === element) return;
-    hovered.current?.removeAttribute("data-openui-hover");
-    element?.setAttribute("data-openui-hover", "");
-    hovered.current = element;
-  }, []);
+  const setHovered = useCallback(
+    (target: SourceTarget | null) => {
+      const element = target ? (target.propElement ?? target.element) : null;
+      if (hovered.current === element) return;
+      hovered.current?.removeAttribute("data-openui-hover");
+      element?.setAttribute("data-openui-hover", "");
+      hovered.current = element;
+      // A move off a focused item leaves its card to focus; a move onto one takes over.
+      if (target || !previewStore.get()?.focus) previewStore.set(target && { target });
+    },
+    [previewStore],
+  );
   const onInspectHover = useCallback(
     (event: SyntheticEvent) => {
       const target = readSourceTarget(event.target, rootRef.current);
       const element = target ? (target.propElement ?? target.element) : null;
-      setHovered(element);
+      setHovered(target);
       // The last pick keeps its outline after the dialog closes, until another one is hovered.
       if (element && !isSourcesOpen) {
         setSelection((current) =>
@@ -561,10 +573,30 @@ export function ArtifactRendererRoot({
     [setHovered, isSourcesOpen],
   );
   const clearHovered = useCallback(() => setHovered(null), [setHovered]);
+  // Focus previews the component around it, for keyboard users; the card decides whether to show.
+  const onInspectFocus = useCallback(
+    (event: SyntheticEvent) => {
+      const target = readSourceTarget(event.target, rootRef.current);
+      previewStore.set(target && { target, focus: event.target as Element });
+    },
+    [previewStore],
+  );
+  const onInspectBlur = useCallback(
+    (event: SyntheticEvent) => {
+      if (previewStore.get()?.focus === event.target) previewStore.set(null);
+    },
+    [previewStore],
+  );
   useEffect(() => {
-    if (!inspecting) clearHovered();
-    return clearHovered;
-  }, [inspecting, clearHovered]);
+    if (!inspecting) {
+      clearHovered();
+      previewStore.set(null);
+    }
+    return () => {
+      clearHovered();
+      previewStore.set(null);
+    };
+  }, [inspecting, clearHovered, previewStore]);
   // Another artifact: start over. (Closing or a remount for live data unmounts the bridge,
   // which clears the selection too.)
   // An edit can give a component id (`lead.2`) to another component: start over too.
@@ -612,6 +644,8 @@ export function ArtifactRendererRoot({
             onMouseDownCapture={inspecting ? onInspectCapture : undefined}
             onMouseOver={inspecting ? onInspectHover : undefined}
             onMouseLeave={inspecting ? clearHovered : undefined}
+            onFocus={inspecting ? onInspectFocus : undefined}
+            onBlur={inspecting ? onInspectBlur : undefined}
           >
             {preview ? (
               <>

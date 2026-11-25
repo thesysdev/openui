@@ -106,19 +106,15 @@ export interface ArtifactProvenanceState {
   sources: DataSources | null;
 }
 
-/**
- * Where the bridge inside `Renderer` puts the sources. A store, not the root's state: a write
- * re-renders only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't
- * loop back to the bridge.
- */
-export interface SourcesStore {
-  get: () => DataSources | null;
-  set: (next: DataSources | null) => void;
+/** A value with listeners: a write re-renders only its readers. */
+export interface ValueStore<T> {
+  get: () => T;
+  set: (next: T) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
-export function createSourcesStore(): SourcesStore {
-  let value: DataSources | null = null;
+function createValueStore<T>(initial: T): ValueStore<T> {
+  let value = initial;
   const listeners = new Set<() => void>();
   return {
     get: () => value,
@@ -134,10 +130,35 @@ export function createSourcesStore(): SourcesStore {
   };
 }
 
+/**
+ * Where the bridge inside `Renderer` puts the sources. A store, not the root's state: a write
+ * re-renders only `useArtifactProvenance()` readers, never the root or `Renderer`, so it can't
+ * loop back to the bridge.
+ */
+export type SourcesStore = ValueStore<DataSources | null>;
+
+export const createSourcesStore = (): SourcesStore => createValueStore<DataSources | null>(null);
+
+/**
+ * What the hover card previews while inspecting: the component under the pointer, or around the
+ * focused element (`focus`). Set by the root as the pointer moves, so moving re-renders only
+ * the card.
+ */
+export interface Previewed {
+  target: SourceTarget;
+  /** The focused element, when focus put it there rather than the pointer. */
+  focus?: Element;
+}
+export type PreviewStore = ValueStore<Previewed | null>;
+
+export const createPreviewStore = (): PreviewStore => createValueStore<Previewed | null>(null);
+
 /** The renderer's provenance state: the public fields, and what only the renderer's parts use. */
 export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
   /** Where the bridge writes the sources. */
   sourcesStore: SourcesStore;
+  /** What the hover card previews. */
+  previewStore: PreviewStore;
   /** Closes the dialog, keeping inspect mode and the selection. */
   closeDialog: () => void;
 }
@@ -171,7 +192,12 @@ export function useArtifactProvenance(): ArtifactProvenanceState {
   const sources = useSyncExternalStore(store.subscribe, store.get, getNoSources);
   return useMemo(() => {
     if (!provenance) return INERT_PROVENANCE;
-    const { sourcesStore: _store, closeDialog: _close, ...state } = provenance;
+    const {
+      sourcesStore: _store,
+      previewStore: _preview,
+      closeDialog: _close,
+      ...state
+    } = provenance;
     return { ...state, sources };
   }, [provenance, sources]);
 }

@@ -18,6 +18,7 @@ import { DataSourcesContents, sourcesTitle } from "../DataSourcesPanel";
 import { dialogNames, dialogStyles } from "../DataSourcesPanel/dataSourcesPanel.styles";
 import type { DataSourcesPanelProps } from "../DataSourcesPanel/types";
 import { ProvenanceContext, useArtifactProvenance } from "./contexts";
+import { SourcesHoverCard } from "./SourcesHoverCard";
 
 /** What an app can tell the default Sources contents, through the `Provenance` slot's props. */
 export type SourcesOptions = Pick<DataSourcesPanelProps, "describeSource">;
@@ -54,6 +55,7 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
     <SourcesContext.Provider value={state}>
       {children}
       <SourcesDialog onCustomHost={setCustomHost} />
+      <SourcesHoverCard describeSource={options.describeSource} />
     </SourcesContext.Provider>
   );
 }

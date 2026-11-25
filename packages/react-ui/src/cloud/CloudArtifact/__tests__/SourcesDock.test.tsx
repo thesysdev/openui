@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { act, createElement, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   dashboardLibrary,
   dashboardProgram,
+  describeSource,
   interpreter,
 } from "../../DataSourcesPanel/stories/fixtures";
 import { LiveArtifactRenderer } from "../ArtifactRenderer";
@@ -253,5 +254,139 @@ describe("Sources in a live artifact", () => {
     await pick(valueOf("Weekly signups"));
     expect(dialog()).toBeNull();
     expect(document.querySelector(".openui-data-sources-dialog__overlay")).toBeNull();
+  });
+});
+
+/** The hover card: portaled to `body`. */
+const card = () => document.querySelector<HTMLElement>("[role=tooltip]");
+function hover(element: Element) {
+  act(() => {
+    element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  });
+}
+/** Moves the pointer off the dashboard. */
+function leave() {
+  act(() => {
+    artifact().dispatchEvent(
+      new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }),
+    );
+  });
+}
+const wait = (ms: number) => act(() => vi.advanceTimersByTime(ms));
+
+describe("The hover card in inspect mode", () => {
+  beforeEach(async () => {
+    await mount(true, [
+      createElement(
+        LiveArtifactRenderer.Chrome,
+        { key: "chrome" },
+        createElement(LiveArtifactRenderer.ProvenanceToggle),
+        createElement(
+          LiveArtifactRenderer.Content,
+          null,
+          createElement(LiveArtifactRenderer.Provenance, { describeSource }),
+        ),
+      ),
+    ]);
+    vi.useFakeTimers();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("shows a number's source after a 300ms rest, not before", async () => {
+    act(() => toggle().click());
+    hover(valueOf("Revenue this quarter"));
+    await wait(299);
+    expect(card()).toBeNull();
+    await wait(1);
+    expect(card()?.textContent).toContain("Postgres · SQL");
+    expect(card()?.textContent).toContain("revenueQ");
+    expect(card()?.textContent).toContain("SELECT sum(total) AS revenue FROM orders");
+    expect(card()?.textContent).toContain("1 row · 1 field");
+  });
+
+  it("shows the next card at once while one shows or just closed, and leaves at once", async () => {
+    act(() => toggle().click());
+    hover(valueOf("Revenue this quarter"));
+    await wait(300);
+    hover(tile("Daily revenue"));
+    expect(card()?.textContent).toContain("dailyQ");
+    expect(card()?.textContent).toContain("7 rows · 3 fields");
+    leave();
+    expect(card()).toBeNull();
+    await wait(399);
+    hover(valueOf("Weekly signups"));
+    expect(card()?.textContent).toContain("PostHog · HogQL");
+    leave();
+    await wait(400);
+    hover(valueOf("Revenue this quarter"));
+    expect(card()).toBeNull();
+    await wait(300);
+    expect(card()?.textContent).toContain("revenueQ");
+  });
+
+  it("lists a container's first three queries, then how many more", async () => {
+    act(() => toggle().click());
+    const board = valueOf("Revenue this quarter").closest(
+      "[data-openui-source]:not([data-openui-prop])",
+    )!.parentElement!;
+    hover(board);
+    await wait(300);
+    const listed = [...(card()?.querySelectorAll("li") ?? [])].map((el) => el.textContent);
+    expect(listed).toEqual(["revenueQPostgres", "signupsQPostHog", "channelsQGA4"]);
+    expect(card()?.textContent).toContain("5 queries");
+    expect(card()?.textContent).toContain("+2 more");
+  });
+
+  it("shows a card on keyboard focus, described by it, and hides it on blur", async () => {
+    act(() => toggle().click());
+    // A focusable tile, as a dashboard's own links and controls are.
+    const revenue = valueOf("Revenue this quarter");
+    revenue.tabIndex = 0;
+    act(() => revenue.focus());
+    await wait(300);
+    expect(card()?.textContent).toContain("revenueQ");
+    expect(revenue.getAttribute("aria-describedby")).toBe(card()!.id);
+    expect(getComputedStyle(card()!).pointerEvents).toBe("none");
+    act(() => revenue.blur());
+    expect(card()).toBeNull();
+    expect(revenue.hasAttribute("aria-describedby")).toBe(false);
+  });
+
+  it("shows no card outside inspect mode, and none once it ends", async () => {
+    hover(valueOf("Revenue this quarter"));
+    await wait(1000);
+    expect(card()).toBeNull();
+    act(() => toggle().click());
+    hover(valueOf("Weekly signups"));
+    await wait(300);
+    expect(card()).not.toBeNull();
+    act(() => toggle().click());
+    expect(card()).toBeNull();
+  });
+
+  it("closes the card when the dialog opens, and doesn't bring it back when it closes", async () => {
+    act(() => toggle().click());
+    const revenue = valueOf("Revenue this quarter");
+    hover(revenue);
+    await wait(300);
+    expect(card()).not.toBeNull();
+    act(() => revenue.click());
+    expect(dialog()).not.toBeNull();
+    expect(card()).toBeNull();
+    act(() => dialog()!.querySelector<HTMLButtonElement>("[aria-label=Close]")!.click());
+    await wait(1000);
+    expect(card()).toBeNull();
+  });
+
+  it("shows no card on a touch screen", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query }));
+    try {
+      act(() => toggle().click());
+      hover(valueOf("Revenue this quarter"));
+      await wait(1000);
+      expect(card()).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
