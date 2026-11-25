@@ -78,10 +78,11 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
 
   const maxAbs = Math.max(0, ...data.map((d) => Math.abs(d.v)));
   const yWidth = Math.ceil(textWidth(formatValue(maxAbs * 1.25)) + 14);
-  // Line and area charts put the last label on the right edge; leave room for half of it.
+  // Line and area charts put the last label on the right edge; leave room for half of it, capped so a long label cannot squeeze the plot.
   const edgeLabel =
     spec.type === "line" || spec.type === "area" ? data[data.length - 1] : undefined;
-  const right = Math.max(16, edgeLabel ? Math.ceil(textWidth(String(edgeLabel.name)) / 2) + 4 : 0);
+  const edgeRoom = edgeLabel ? Math.ceil(textWidth(String(edgeLabel.name)) / 2) + 4 : 0;
+  const right = Math.min(48, Math.max(16, edgeRoom));
   const margin = { top: 26, right, left: 0, bottom: spec.xLabel ? 24 : 8 };
   // Static rendering can't measure ticks, so thin out X labels that would overlap.
   const plotWidth = WIDTH - margin.left - margin.right - yWidth;
