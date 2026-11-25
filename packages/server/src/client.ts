@@ -11,7 +11,7 @@ import {
   type FrontendToken,
 } from "./frontend-token";
 import type { ExecutionContext } from "./interpreter/types";
-import { openAIAutofix, type OpenAIAutofix } from "./openai/autofix";
+import { chatAutofix, type ChatAutofix } from "./openai/autofix";
 import { vercelAutofix, type VercelAutofix } from "./vercel/autofix";
 
 /** One client for OpenUI Cloud on your server. Reads `THESYS_API_KEY` unless you pass `apiKey`. */
@@ -21,8 +21,11 @@ export class OpenUIClient {
   /** Your saved artifacts. Without `userId`, calls cover your whole org; with it, that user. */
   readonly artifacts: Artifacts;
 
-  /** Autofix for Chat Completions: `createAutofix({ library })` returns `{ completions }`. */
-  readonly openai: { createAutofix(params: CreateAutofixParams): OpenAIAutofix };
+  /**
+   * Chat Completions: `createAutofix({ library })`, which returns `{ completions }`. Types come
+   * from `openai`.
+   */
+  readonly chat: { createAutofix(params: CreateAutofixParams): ChatAutofix };
 
   /** Autofix for the Vercel AI SDK: `createAutofix({ library })` returns `{ ai }`. */
   readonly vercel: { createAutofix(params: CreateAutofixParams): VercelAutofix };
@@ -30,7 +33,7 @@ export class OpenUIClient {
   constructor(options: OpenUIClientOptions = {}) {
     this.api = createCloudApi(options);
     this.artifacts = createArtifacts(this.api);
-    this.openai = { createAutofix: (params) => openAIAutofix(this.api, params) };
+    this.chat = { createAutofix: (params) => chatAutofix(this.api, params) };
     this.vercel = { createAutofix: (params) => vercelAutofix(this.api, params) };
   }
 

@@ -1,6 +1,6 @@
 import { standaloneApi } from "../autofix/create-autofix";
 import type { AutofixOptions } from "../autofix/types";
-import { openAIAutofix, type OpenAIAutofix } from "./autofix";
+import { chatAutofix, type ChatAutofix } from "./autofix";
 
 export { AutofixError } from "../autofix/types";
 export type {
@@ -9,7 +9,7 @@ export type {
   AutofixResult,
   AutofixStream,
 } from "../autofix/types";
-export type { OpenAIAutofix } from "./autofix";
+export type { ChatAutofix } from "./autofix";
 export {
   chatCompletionMessagesToItems,
   storeChatCompletionHistory,
@@ -19,8 +19,8 @@ export type { StoreChatCompletionHistoryOptions } from "./store-conversation-ite
 /**
  * Validation and repair helpers for Chat Completions.
  *
- * @deprecated Use `new OpenUIClient().openai.createAutofix({ library })`.
+ * @deprecated Use `new OpenUIClient().chat.createAutofix({ library })`.
  */
-export function createAutofix(options: AutofixOptions): OpenAIAutofix {
-  return openAIAutofix(standaloneApi(options), options);
+export function createAutofix(options: AutofixOptions): ChatAutofix {
+  return chatAutofix(standaloneApi(options), options);
 }
