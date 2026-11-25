@@ -177,8 +177,12 @@ export function TimeSeries(props: TimeSeriesProps) {
   if (allMissing) return <Empty />;
 
   const type = props.type ?? "line";
-  const stacked = !!props.stacked;
-  const percent = props.stacked === "percent";
+  // Bars and areas encode size from zero; a line only encodes change, so zoom
+  // to the data (plus references) or every rate looks flat.
+  const linesOnly = series.every((s) => (s.mark ?? type) === "line");
+  // Lines don't stack: with nothing but lines, stacked is ignored.
+  const stacked = !!props.stacked && !linesOnly;
+  const percent = stacked && props.stacked === "percent";
   const curve =
     props.curve === "step" ? "stepAfter" : props.curve === "linear" ? "linear" : "monotone";
   // Forecast: from forecastFrom on, line/area values move to f{i}, drawn
@@ -210,9 +214,6 @@ export function TimeSeries(props: TimeSeriesProps) {
   const stackId = stacked ? "stack" : undefined;
   const count = series.length;
   const lastBar = series.reduce((last, s, i) => ((s.mark ?? type) === "bar" ? i : last), -1);
-  // Bars and areas encode size from zero; a line only encodes change, so zoom
-  // to the data (plus references) or every rate looks flat.
-  const linesOnly = series.every((s) => (s.mark ?? type) === "line");
   const dense = labels.length > 14;
   const overlapGhosts =
     showPrevious &&
