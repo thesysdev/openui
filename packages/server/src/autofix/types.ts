@@ -3,10 +3,13 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 
 export const MAX_AUTOFIX_GENERATION_LENGTH = 100_000;
 
-export interface AutofixOptions {
-  apiKey: string;
+export interface CreateAutofixParams {
   /** The same generated library spec used by the renderer. Schema is required for local checks. */
   library: LibrarySpec & { schema: LibraryJSONSchema };
+}
+
+export interface AutofixOptions extends CreateAutofixParams {
+  apiKey: string;
   /** Origin of the Gateway; defaults to https://api.thesys.dev. */
   apiBaseUrl?: string;
   fetch?: typeof globalThis.fetch;

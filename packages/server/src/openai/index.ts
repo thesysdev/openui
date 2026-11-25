@@ -1,4 +1,4 @@
-import { createAutofix as createAutofixPipeline } from "../autofix/create-autofix";
+import { createAutofix as createAutofixPipeline, standaloneApi } from "../autofix/create-autofix";
 import type { AutofixOptions } from "../autofix/types";
 import { openAIAdapter } from "./adapter";
 
@@ -11,6 +11,6 @@ export type { StoreChatCompletionHistoryOptions } from "./store-conversation-ite
 // Create validation and repair helpers for OpenAI Chat Completions and Responses.
 export function createAutofix(options: AutofixOptions) {
   return {
-    completions: createAutofixPipeline(options, openAIAdapter),
+    completions: createAutofixPipeline(standaloneApi(options), options, openAIAdapter),
   };
 }
