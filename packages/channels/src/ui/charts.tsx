@@ -63,7 +63,6 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
           cy="50%"
           outerRadius={90}
           isAnimationActive={false}
-          label={(p: any) => `${p.name}: ${p.value}`}
           stroke={theme.background}
         >
           {data.map((_, i) => (
@@ -76,7 +75,11 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
 
   const maxAbs = Math.max(0, ...data.map((d) => Math.abs(d.v)));
   const yWidth = Math.ceil(textWidth(formatValue(maxAbs * 1.25)) + 14);
-  const margin = { top: 26, right: 16, left: 0, bottom: spec.xLabel ? 24 : 8 };
+  // Line and area charts put the last label on the right edge; leave room for half of it.
+  const edgeLabel =
+    spec.type === "line" || spec.type === "area" ? data[data.length - 1] : undefined;
+  const right = Math.max(16, edgeLabel ? Math.ceil(textWidth(String(edgeLabel.name)) / 2) + 4 : 0);
+  const margin = { top: 26, right, left: 0, bottom: spec.xLabel ? 24 : 8 };
   // Static rendering can't measure ticks, so thin out X labels that would overlap.
   const plotWidth = WIDTH - margin.left - margin.right - yWidth;
   const labelWidth = Math.max(...data.map((d) => textWidth(String(d.name)))) + 10;
@@ -153,10 +156,13 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
   );
 }
 
-/** One legend entry per slice for pie charts; a single series entry otherwise. */
+/** One legend entry per slice (with its value) for pie charts; a single series entry otherwise. */
 function legendEntries(spec: ChartSpec): LegendEntry[] {
   if (spec.type === "pie") {
-    return spec.labels.map((text, i) => ({ text, color: COLORS[i % COLORS.length] }));
+    return spec.labels.map((label, i) => ({
+      text: `${label}: ${formatValue(spec.values[i] ?? 0)}`,
+      color: COLORS[i % COLORS.length],
+    }));
   }
   return [{ text: spec.series || spec.title || "Value", color: COLORS[0] }];
 }
