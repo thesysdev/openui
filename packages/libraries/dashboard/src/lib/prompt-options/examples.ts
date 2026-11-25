@@ -9,7 +9,7 @@
 /**
  * A change to explain, with live data from a tool that takes a query string: the period filter's
  * $variable becomes the query's date bounds, and the period before loads every previous value.
- * The tool name and the SQL stand in for the host's own.
+ * The toggle overlays the period before on the daily chart. The tool name and the SQL stand in for the host's own.
  */
 const LIVE_EXAMPLE = `root = Dashboard([filters, lead, change, trend])
 $range = "30d"
@@ -19,12 +19,13 @@ totals = Query("run_sql", {query: "SELECT sum(revenue) AS revenue, sum(orders) A
 earlier = Query("run_sql", {query: "SELECT sum(revenue) AS revenue, sum(orders) AS orders FROM daily_sales WHERE " + before}, {rows: []})
 byCategory = Query("run_sql", {query: "SELECT category, sum(CASE WHEN " + during + " THEN revenue ELSE 0 END) AS revenue, sum(CASE WHEN " + during + " THEN revenue ELSE 0 END) - sum(CASE WHEN " + before + " THEN revenue ELSE 0 END) AS change FROM daily_sales GROUP BY category ORDER BY change"}, {rows: []})
 byDay = Query("run_sql", {query: "SELECT day, revenue FROM daily_sales WHERE " + during + " ORDER BY day"}, {rows: []})
+byDayBefore = Query("run_sql", {query: "SELECT revenue FROM daily_sales WHERE " + before + " ORDER BY day"}, {rows: []})
 now = @First(totals.rows)
 prev = @First(earlier.rows)
-filters = FilterBar([PeriodPicker($range, [{value: "7d", label: "Last 7 days"}, {value: "30d", label: "Last 30 days"}, {value: "90d", label: "Last 90 days"}])])
+filters = FilterBar([PeriodPicker($range, [{value: "7d", label: "Last 7 days"}, {value: "30d", label: "Last 30 days"}, {value: "90d", label: "Last 90 days"}]), CompareToggle("Previous period", true)])
 lead = Section("", [Kpis([Kpi("Revenue", now.revenue, "currency-compact", prev.revenue), Kpi("Orders", now.orders, "number", prev.orders), Kpi("Average order", now.revenue / now.orders, "currency-precise", prev.revenue / prev.orders)])])
 change = Section("Change by category", [Row([Card("Categories, biggest fall first", [Table([Column("Category", byCategory.rows.category, "primary"), Column("Revenue", byCategory.rows.revenue, "bar", "currency-compact"), Column("Change", byCategory.rows.change, "delta", "currency-compact")], 8)], "full", "USD")])])
-trend = Section("Daily revenue", [Row([Card("Revenue by day", [TimeSeries(byDay.rows.day, [Series("Revenue", byDay.rows.revenue)], "area", "currency-compact")], "full", "USD")])])
+trend = Section("Daily revenue", [Row([Card("Revenue by day", [TimeSeries(byDay.rows.day, [Series("Revenue", byDay.rows.revenue, byDayBefore.rows.revenue)], "area", "currency-compact")], "full", "USD")])])
 days = {"7d": 7, "30d": 30, "90d": 90}`;
 
 /**
