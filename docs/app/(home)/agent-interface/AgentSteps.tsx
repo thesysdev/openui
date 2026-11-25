@@ -61,8 +61,7 @@ const AGENT_STEPS: StepsAccordionItem[] = [
   {
     number: 2,
     title: "CRM / Sales",
-    description:
-      "Help teams turn account context into QBRs, follow-ups, and revenue actions.",
+    description: "Help teams turn account context into QBRs, follow-ups, and revenue actions.",
     details: [],
     Illustration: createVideoIllustration("/agent-interface/Play.mp4"),
   },
@@ -77,16 +76,14 @@ const AGENT_STEPS: StepsAccordionItem[] = [
   {
     number: 4,
     title: "DevTools",
-    description:
-      "Help developers move from logs and errors to explanations, fixes, and workflows.",
+    description: "Help developers move from logs and errors to explanations, fixes, and workflows.",
     details: [],
     Illustration: createVideoIllustration("/agent-interface/Fixpanel.mp4"),
   },
   {
     number: 5,
     title: "Project management",
-    description:
-      "Help teams turn scattered work into plans, summaries, blockers, and next steps.",
+    description: "Help teams turn scattered work into plans, summaries, blockers, and next steps.",
     details: [],
     Illustration: createVideoIllustration("/agent-interface/Linea.mp4"),
   },

@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@openuidev/react-ui";
-import { Component, type ReactNode } from "react";
 import styles from "@paste/paste.module.css";
+import { Component, type ReactNode } from "react";
 
 interface Props {
   /** Bump to clear the error state (e.g. when the code or version changes). */

@@ -81,12 +81,36 @@ export function GitHubButton({
   keepBlack,
 }: GitHubButtonProps): JSX.Element {
   if (variant === "desktopPill") {
-    return <DesktopPillVariant href={href} label={label} className={className} arrow={arrow} classes={classes} />;
+    return (
+      <DesktopPillVariant
+        href={href}
+        label={label}
+        className={className}
+        arrow={arrow}
+        classes={classes}
+      />
+    );
   }
   if (variant === "desktopGlow") {
-    return <DesktopGlowVariant href={href} className={className} compact={compact} keepBlack={keepBlack} arrow={arrow} />;
+    return (
+      <DesktopGlowVariant
+        href={href}
+        className={className}
+        compact={compact}
+        keepBlack={keepBlack}
+        arrow={arrow}
+      />
+    );
   }
-  return <MobileBannerVariant href={href} label={label} className={className} arrow={arrow} classes={classes} />;
+  return (
+    <MobileBannerVariant
+      href={href}
+      label={label}
+      className={className}
+      arrow={arrow}
+      classes={classes}
+    />
+  );
 }
 
 // --- desktopPill (= HeroSection's DesktopGithubButton) ----------------------

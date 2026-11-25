@@ -18,10 +18,7 @@ export function getOgImages(): Map<string, OgImage> {
     all.push(pageOgImage(page));
   }
   // Dynamic routes: one adapter per content collection.
-  all.push(
-    ...blog.getPages().map(blogOgImage),
-    ...source.getPages().map(docsOgImage),
-  );
+  all.push(...blog.getPages().map(blogOgImage), ...source.getPages().map(docsOgImage));
 
   images = new Map();
   for (const image of all) {

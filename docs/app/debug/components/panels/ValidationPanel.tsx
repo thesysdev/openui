@@ -4,8 +4,8 @@ import { Tag } from "@openuidev/react-ui";
 import { groupByCode } from "@paste/lib/groupErrors";
 import type { ValidationOutcome } from "@paste/lib/parse";
 import type { OpenUIError } from "@paste/lib/versions/types";
-import { CheckCircle2, Lightbulb } from "lucide-react";
 import styles from "@paste/paste.module.css";
+import { CheckCircle2, Lightbulb } from "lucide-react";
 
 function hintFor(enriched: OpenUIError[] | null, code: string, path: string, component: string) {
   return enriched?.find((e) => e.code === code && e.path === path && e.component === component)
@@ -26,8 +26,7 @@ export function ValidationPanel({ outcome }: { outcome: ValidationOutcome }) {
       </div>
     );
   }
-  if (!result)
-    return <div className={styles.panelEmpty}>Add some OpenUI Lang to validate it.</div>;
+  if (!result) return <div className={styles.panelEmpty}>Add some OpenUI Lang to validate it.</div>;
 
   const { meta } = result;
   const groups = groupByCode(meta.errors);

@@ -15,12 +15,12 @@ Copy the affected OpenUI Lang into [OpenUI Debug](/debug) or replay the request 
 
 ## 3. Change the right layer
 
-| Failure pattern                                | First intervention                                                        |
-| ---------------------------------------------- | ------------------------------------------------------------------------- |
-| Model invents a component or property          | Clarify names, descriptions, and schemas.                                 |
-| Model repeatedly chooses the wrong composition | Add a focused rule or valid example to the system prompt.                 |
-| One model fails much more often                | Evaluate a different model against the same request set.                  |
-| Valid output fails in the browser              | Fix the component renderer or application integration.                    |
+| Failure pattern                                | First intervention                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Model invents a component or property          | Clarify names, descriptions, and schemas.                                             |
+| Model repeatedly chooses the wrong composition | Add a focused rule or valid example to the system prompt.                             |
+| One model fails much more often                | Evaluate a different model against the same request set.                              |
+| Valid output fails in the browser              | Fix the component renderer or application integration.                                |
 | Provider availability interrupts streams       | Review [Gateway fallbacks](/docs/gateway/reliability#recover-from-provider-failures). |
 
 ## 4. Verify the change

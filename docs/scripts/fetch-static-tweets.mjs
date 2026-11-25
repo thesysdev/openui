@@ -113,5 +113,7 @@ export const STATIC_TWEETS: StaticTweet[] = ${JSON.stringify(out, null, 2)};
 writeFileSync(OUT_FILE, ts);
 console.log(`Wrote ${out.length} tweets to ${OUT_FILE}`);
 out.forEach((t) =>
-  console.log(`  @${t.handle.padEnd(15)} likes=${String(t.likes).padStart(3)} replies=${String(t.replies).padStart(2)} media=${t.media?.type || "-"} avatar=${t.avatar}`),
+  console.log(
+    `  @${t.handle.padEnd(15)} likes=${String(t.likes).padStart(3)} replies=${String(t.replies).padStart(2)} media=${t.media?.type || "-"} avatar=${t.avatar}`,
+  ),
 );

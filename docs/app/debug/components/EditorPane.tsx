@@ -1,12 +1,12 @@
 "use client";
 
 import { EditorView } from "@codemirror/view";
-import CodeMirror from "@uiw/react-codemirror";
-import { useMemo } from "react";
-import { useTheme } from "next-themes";
 import { componentHoverTooltip, type ComponentDefs } from "@paste/lib/editor/hover";
 import { openuiLang } from "@paste/lib/editor/openui-lang";
 import styles from "@paste/paste.module.css";
+import CodeMirror from "@uiw/react-codemirror";
+import { useTheme } from "next-themes";
+import { useMemo } from "react";
 
 const editorTheme = EditorView.theme({
   "&": {
@@ -69,7 +69,9 @@ export function EditorPane({
           highlightActiveLine: true,
           autocompletion: false,
         }}
-        placeholder={'Paste OpenUI Lang code, e.g.\n\nroot = Stack([title])\ntitle = TextContent("Hello")'}
+        placeholder={
+          'Paste OpenUI Lang code, e.g.\n\nroot = Stack([title])\ntitle = TextContent("Hello")'
+        }
       />
       {readOnly && <div className={styles.editorLock}>read-only during playback</div>}
     </div>

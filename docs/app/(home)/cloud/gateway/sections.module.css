@@ -625,8 +625,7 @@ section.usageSection {
   }
 
   .faqBand {
-    padding: var(--gateway-section-gap, 96px) 24px
-      calc(var(--gateway-section-gap, 96px) / 2);
+    padding: var(--gateway-section-gap, 96px) 24px calc(var(--gateway-section-gap, 96px) / 2);
   }
 
   .adoptionSection > div {

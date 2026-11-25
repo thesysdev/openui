@@ -8,9 +8,7 @@ const STEPS = [
   {
     title: (
       <>
-        You define
-        {" "}
-        <br className={styles.titleBreak} />
+        You define <br className={styles.titleBreak} />
         your library
       </>
     ),
@@ -24,9 +22,7 @@ const STEPS = [
   {
     title: (
       <>
-        OpenUI generates
-        {" "}
-        <br className={styles.titleBreak} />
+        OpenUI generates <br className={styles.titleBreak} />
         system prompt
       </>
     ),
@@ -35,9 +31,7 @@ const STEPS = [
   {
     title: (
       <>
-        LLM responds
-        {" "}
-        <br className={styles.titleBreak} />
+        LLM responds <br className={styles.titleBreak} />
         in OpenUI Lang
       </>
     ),
@@ -46,9 +40,7 @@ const STEPS = [
   {
     title: (
       <>
-        Renderer parses
-        {" "}
-        <br className={styles.titleBreak} />
+        Renderer parses <br className={styles.titleBreak} />
         and renders UI
       </>
     ),
@@ -65,11 +57,7 @@ export function StepsSection() {
     <section className={styles.section}>
       <ol className={styles.container}>
         {STEPS.map((step, index) => (
-          <li
-            className={styles.step}
-            key={index}
-            {...accordion.getToggleProps(index)}
-          >
+          <li className={styles.step} key={index} {...accordion.getToggleProps(index)}>
             <span className={styles.badge}>{index + 1}</span>
             <h3 className={styles.stepTitle}>{step.title}</h3>
             <ExpandChevron className={styles.chevron} />

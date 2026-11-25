@@ -10,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@openuidev/react-ui";
-import { Pause, Play, RotateCcw, StepForward } from "lucide-react";
 import { CHUNK_STRATEGIES, type ChunkStrategy } from "@paste/lib/streaming/chunker";
 import type { PlaybackControls } from "@paste/lib/streaming/usePlayback";
 import styles from "@paste/paste.module.css";
+import { Pause, Play, RotateCcw, StepForward } from "lucide-react";
 
 const SPEEDS = ["0.25", "0.5", "1", "2", "4", "8"];
 const ICON = { size: 14 };

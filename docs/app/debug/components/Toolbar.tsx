@@ -10,9 +10,6 @@ import {
   SelectValue,
   Tag,
 } from "@openuidev/react-ui";
-import { ArrowLeft, SlidersHorizontal, X } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useMediaQuery } from "@paste/hooks/useMediaQuery";
 import type { VersionListState } from "@paste/hooks/useVersionList";
 import { EXAMPLES } from "@paste/lib/examples";
@@ -20,13 +17,16 @@ import { LIBRARIES, type LibraryId } from "@paste/lib/libraries";
 import type { ChunkStrategy } from "@paste/lib/streaming/chunker";
 import type { PlaybackControls } from "@paste/lib/streaming/usePlayback";
 import type { LoadedLangCore } from "@paste/lib/versions/types";
+import { ArrowLeft, SlidersHorizontal, X } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { HelpDialog } from "./HelpDialog";
 import { PlaybackButtons, StreamSettingsFields } from "./StreamControls";
 // The docs site's own toggle (animated sun/moon, phosphor icons) — same one
 // as the homepage header, so /debug matches the rest of the site.
 import { ThemeToggle } from "@/components/theme-toggle";
-import { VersionPicker } from "./VersionPicker";
 import styles from "@paste/paste.module.css";
+import { VersionPicker } from "./VersionPicker";
 
 export function Toolbar({
   libraryId,
@@ -51,8 +51,7 @@ export function Toolbar({
   bigInput: boolean;
   versionLoading: boolean;
 }) {
-  const playbackActive =
-    playback.state.status === "playing" || playback.state.status === "paused";
+  const playbackActive = playback.state.status === "playing" || playback.state.status === "paused";
   // strategy/seed live here (not in StreamControls) so the play button in the
   // toolbar and the settings fields in the mobile drawer share them.
   const [strategy, setStrategy] = useState<ChunkStrategy>("llm");

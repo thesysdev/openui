@@ -137,5 +137,4 @@ Generative UI takes the model off that path. It compiles intent into an interfac
 
 We have argued before that [specification syntax matters](/blog/stop-making-ai-write-json) for token efficiency at the format level. The architectural version of that argument is larger: the dominant token expense in an interactive data application was never the output format. It was routing data through a language model on every interaction. The model decides what the interface should be. The runtime does the rest.
 
-[^1]:
-    Complex questions follow the same pattern. If the answer is a join, the model can declare one richer SQL query. If it does not fit a single SQL statement, the model can generate a small ephemeral script, bind the widget's filters to its parameters, and the runtime executes it on later interactions without the model, the way a dashboard binds its controls to a saved query.
+[^1]: Complex questions follow the same pattern. If the answer is a join, the model can declare one richer SQL query. If it does not fit a single SQL statement, the model can generate a small ephemeral script, bind the widget's filters to its parameters, and the runtime executes it on later interactions without the model, the way a dashboard binds its controls to a saved query.
