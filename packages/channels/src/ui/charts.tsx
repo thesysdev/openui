@@ -24,8 +24,11 @@ import type { ChartSpec } from "./types";
 
 const COLORS = ["#4A90D9", "#50C878", "#F5A623", "#E0533D", "#9B59B6", "#1ABC9C"];
 const FONT = "Helvetica, Arial, Liberation Sans, DejaVu Sans, sans-serif";
-const WIDTH = 560;
-const HEIGHT = 320;
+// Small logical canvas, rasterized at 2x: chat apps show images ~300px wide, so text stays legible.
+const WIDTH = 420;
+const HEIGHT = 260;
+const SCALE = 2;
+const TEXT_SIZE = 16;
 
 /** Colors for the chart background, text, and grid. */
 export type ChartTheme = "light" | "dark";
@@ -53,7 +56,7 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={120}
+          outerRadius={90}
           isAnimationActive={false}
           label={(p: any) => `${p.name}: ${p.value}`}
           stroke={theme.background}
@@ -73,21 +76,28 @@ function ChartElement({ spec, theme }: { spec: ChartSpec; theme: Palette }) {
       key="x"
       dataKey="name"
       stroke={theme.grid}
-      tick={{ fill: theme.text, fontFamily: FONT, fontSize: 13 }}
+      tick={{ fill: theme.text, fontFamily: FONT, fontSize: TEXT_SIZE }}
       label={spec.xLabel ? { value: spec.xLabel, position: "insideBottom", offset: -6 } : undefined}
     />,
     <YAxis
       key="y"
       allowDecimals={false}
       stroke={theme.grid}
-      tick={{ fill: theme.text, fontFamily: FONT, fontSize: 13 }}
+      tick={{ fill: theme.text, fontFamily: FONT, fontSize: TEXT_SIZE }}
       label={spec.yLabel ? { value: spec.yLabel, angle: -90, position: "insideLeft" } : undefined}
     />,
   ];
   const valueLabels = (
-    <LabelList dataKey="v" position="top" fill={theme.text} fontFamily={FONT} fontSize={13} />
+    <LabelList
+      dataKey="v"
+      position="top"
+      fill={theme.legend}
+      fontFamily={FONT}
+      fontSize={TEXT_SIZE}
+      fontWeight={600}
+    />
   );
-  const margin = { top: 24, right: 24, left: 16, bottom: spec.xLabel ? 24 : 8 };
+  const margin = { top: 26, right: 16, left: 0, bottom: spec.xLabel ? 24 : 8 };
 
   if (spec.type === "line") {
     return (
@@ -142,9 +152,9 @@ function injectLegend(svg: string, entries: LegendEntry[], color: string): strin
   if (!entries.length) return svg;
   const width = Number(svg.match(/width="(\d+)"/)?.[1] ?? WIDTH);
   const height = Number(svg.match(/height="(\d+)"/)?.[1] ?? HEIGHT);
-  const rowH = 22;
+  const rowH = 24;
   const swatch = 12;
-  const entryWidth = (t: string) => swatch + 6 + t.length * 7 + 18;
+  const entryWidth = (t: string) => swatch + 6 + t.length * 8.5 + 18;
 
   const rows: LegendEntry[][] = [[]];
   let cursor = 12;
@@ -164,7 +174,7 @@ function injectLegend(svg: string, entries: LegendEntry[], color: string): strin
     const y = height + 8 + r * rowH;
     for (const entry of row) {
       items += `<rect x="${x}" y="${y}" width="${swatch}" height="${swatch}" rx="2" fill="${entry.color}"/>`;
-      items += `<text x="${x + swatch + 6}" y="${y + swatch - 1}" font-family="${FONT}" font-size="13" fill="${color}">${escapeXml(entry.text)}</text>`;
+      items += `<text x="${x + swatch + 6}" y="${y + swatch - 1}" font-family="${FONT}" font-size="${TEXT_SIZE - 1}" fill="${color}">${escapeXml(entry.text)}</text>`;
       x += entryWidth(entry.text);
     }
   });
@@ -188,7 +198,11 @@ export function renderChartPng(spec: ChartSpec, options: ChartRenderOptions = {}
   let svg = match[0];
   if (!/xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
   svg = injectLegend(svg, legendEntries(spec), theme.legend);
-  return Buffer.from(new Resvg(svg, { background: theme.background }).render().asPng());
+  return Buffer.from(
+    new Resvg(svg, { background: theme.background, fitTo: { mode: "zoom", value: SCALE } })
+      .render()
+      .asPng(),
+  );
 }
 
 export type { ChartSpec } from "./types";
