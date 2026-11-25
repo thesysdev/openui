@@ -172,7 +172,12 @@ export const styles = {
     flex: 1;
     min-height: 120px;
     overflow: auto;
-    & :where([data-openui-selected]) {
+    /*
+     * A pick given focus back keeps this outline, not the page's focus ring: with :focus-visible
+     * outside :where(), the rule outranks a page's own :focus-visible one.
+     */
+    & :where([data-openui-selected]),
+    & :where([data-openui-selected]):focus-visible {
       outline: var(
         --openui-inspect-selected-outline,
         2px solid var(--openui-inspect-color, var(--openui-interactive-accent-default))

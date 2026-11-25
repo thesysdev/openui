@@ -18,6 +18,7 @@ import { DataSourcesContents, sourcesTitle } from "../DataSourcesPanel";
 import { dialogNames, dialogStyles } from "../DataSourcesPanel/dataSourcesPanel.styles";
 import type { DataSourcesContentsProps } from "../DataSourcesPanel/types";
 import { anchorOf, ProvenanceContext, useArtifactProvenance } from "./contexts";
+import { focusBack } from "./focus";
 import { SourcesHoverCard } from "./SourcesHoverCard";
 
 /** What an app can tell the default Sources contents, through the `Provenance` slot's props. */
@@ -60,27 +61,18 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Puts focus on an element, making it focusable for the moment if it isn't. */
-function focusBack(element: Element | null | undefined) {
-  if (!(element instanceof HTMLElement) || !element.isConnected) return;
-  if (element.tabIndex < 0 && !element.hasAttribute("tabindex")) {
-    element.setAttribute("tabindex", "-1");
-    element.addEventListener("blur", () => element.removeAttribute("tabindex"), { once: true });
-  }
-  element.focus({ preventScroll: true });
-}
-
 /**
  * The Sources dialog: centered, a bottom sheet on phones. It stays mounted through its exit, so
  * the CSS transition runs off `data-state`, then unmounts: a closed dialog leaves the page alone.
  */
 function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | null) => void }) {
   const sourcesState = useContext(SourcesContext)!;
-  const { closeDialog } = useContext(ProvenanceContext)!.internal;
+  const { closeDialog, focusToggle } = useContext(ProvenanceContext)!.internal;
   const {
     selection,
     sources,
     isSourcesOpen: isOpen,
+    isInspecting,
     clearSelection,
     setInspecting,
   } = useArtifactProvenance();
@@ -121,16 +113,23 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
 
   // Focus goes back where it came from: the picked component, or what had it before. Noted before
   // the dialog takes focus; given back once it has unmounted and the page is no longer hidden from
-  // screen readers, unless something else took focus meanwhile.
-  const returnTo = useRef<Element | null>(null);
+  // screen readers, unless something else took focus meanwhile. Once inspect mode has ended (an
+  // Escape while the dialog leaves), a pick no longer takes it: the Sources toggle does.
+  const returnTo = useRef<{ element: Element | null; picked: boolean } | null>(null);
   const wasOpen = useRef(isOpen);
   useLayoutEffect(() => {
     if (isOpen && !wasOpen.current) {
-      returnTo.current = selection ? anchorOf(selection) : document.activeElement;
+      returnTo.current = selection
+        ? { element: anchorOf(selection), picked: true }
+        : { element: document.activeElement, picked: false };
       setOpened(null);
     }
     wasOpen.current = isOpen;
   }, [isOpen, selection]);
+  const inspecting = useRef(isInspecting);
+  useEffect(() => {
+    inspecting.current = isInspecting;
+  }, [isInspecting]);
   const [content, setContent] = useState<HTMLElement | null>(null);
   const shown = useRef(false);
   useEffect(() => {
@@ -138,9 +137,12 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
     if (content || !shown.current) return;
     shown.current = false;
     const focused = document.activeElement;
-    if (!focused || focused === document.body) focusBack(returnTo.current);
+    if (!focused || focused === document.body) {
+      if (returnTo.current?.picked && !inspecting.current) focusToggle();
+      else focusBack(returnTo.current?.element);
+    }
     returnTo.current = null;
-  }, [content]);
+  }, [content, focusToggle]);
 
   const panelSelection = useMemo(
     () => (selection ? { id: selection.id, prop: selection.prop } : null),

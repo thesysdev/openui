@@ -88,7 +88,13 @@ function DialogStory({ initial, describeSource: describe, children }: DialogStor
           setPicked(null);
           setOpen(true);
         },
-        internal: { sourcesStore, previewStore, closeDialog: () => setOpen(false) },
+        internal: {
+          sourcesStore,
+          previewStore,
+          closeDialog: () => setOpen(false),
+          // No toggle here: the "Open Sources" button stands in for it.
+          focusToggle: () => trigger.focus(),
+        },
       },
     [trigger, picked, isOpen, sourcesStore, previewStore],
   );

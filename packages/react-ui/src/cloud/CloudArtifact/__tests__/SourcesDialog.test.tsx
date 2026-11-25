@@ -182,6 +182,51 @@ describe("Sources in a live artifact", () => {
     expect(artifact().hasAttribute("data-openui-inspecting")).toBe(false);
   });
 
+  it("leaves no focus on the picked item once Escape ends inspect mode: the toggle gets it", async () => {
+    await mount();
+    await inspect();
+    await pick(tile("Daily revenue"));
+    const picked = container.querySelector<HTMLElement>("[data-openui-selected]")!;
+    await escape();
+    expect(document.activeElement).toBe(picked);
+    await escape();
+    expect(artifact().hasAttribute("data-openui-inspecting")).toBe(false);
+    expect(picked.hasAttribute("tabindex")).toBe(false);
+    expect(document.activeElement).toBe(toggle());
+  });
+
+  it("leaves no focus on the picked item when the toggle ends inspect mode", async () => {
+    await mount();
+    await inspect();
+    const revenue = valueOf("Revenue this quarter");
+    await pick(revenue);
+    await escape();
+    expect(document.activeElement).toBe(revenue);
+    await inspect();
+    expect(revenue.hasAttribute("tabindex")).toBe(false);
+    expect(document.activeElement).toBe(toggle());
+  });
+
+  it("leaves no focus on the picked item when Escape is pressed twice in a row", async () => {
+    await mount();
+    await inspect();
+    await pick(tile("Daily revenue"));
+    const picked = container.querySelector<HTMLElement>("[data-openui-selected]")!;
+    const press = () =>
+      act(() => {
+        (document.activeElement ?? document.body).dispatchEvent(
+          new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+        );
+      });
+    // The second one comes while the dialog is still leaving.
+    press();
+    press();
+    await settle();
+    expect(artifact().hasAttribute("data-openui-inspecting")).toBe(false);
+    expect(picked.hasAttribute("tabindex")).toBe(false);
+    expect(document.activeElement).toBe(toggle());
+  });
+
   it("closes on a click on the dim background, still inspecting", async () => {
     await mount();
     await inspect();

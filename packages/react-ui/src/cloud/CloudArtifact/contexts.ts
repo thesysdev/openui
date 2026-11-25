@@ -161,6 +161,8 @@ export interface ProvenanceInternals {
   previewStore: PreviewStore;
   /** Closes the dialog, keeping inspect mode and the selection. */
   closeDialog: () => void;
+  /** Moves focus to the Sources toggle, or off the page's elements if there is none. */
+  focusToggle: () => void;
 }
 
 /** The renderer's provenance state: the public fields, and its parts' `internal` ones. */

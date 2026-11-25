@@ -326,6 +326,8 @@ For more than an outline, target these on the `Content` slot's element (`.openui
 }
 ```
 
+A picked item that gets focus back when the dialog closes keeps the selected outline in place of the page's focus ring. To restyle it then too, add a rule for `[data-openui-selected]:focus-visible`.
+
 The renderer's root element (`.openui-artifact`) carries `data-openui-inspecting` while inspecting, such as for a ring or tint around the whole dashboard. The default toggle carries `aria-pressed` and `data-state="on"` or `"off"`:
 
 ```css

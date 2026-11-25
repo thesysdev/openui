@@ -46,6 +46,7 @@ import {
   type ProvenanceContextValue,
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
+import { hasLentTabIndex } from "./focus";
 import {
   Chrome,
   ChromeActions,
@@ -152,10 +153,10 @@ const usableInterval = (value: number | false | undefined) =>
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
-/** What handles Escape itself, so it shouldn't also step out of Sources. */
 /** An item a component marked with `bindSource`: Tab reaches it while inspecting. */
 const SOURCE_ITEM = "[data-openui-source]";
 
+/** What handles Escape itself, so it shouldn't also step out of Sources. */
 const OWNS_ESCAPE =
   "[role=menu], [role=menuitem], [role=listbox], [role=option], [role=dialog], [role=combobox], select";
 
@@ -473,13 +474,38 @@ export function ArtifactRendererRoot({
     setSourcesOpen(true);
   }, []);
   const closeDialog = useCallback(() => setSourcesOpen(false), []);
-  // Leaving inspect mode leaves nothing behind: no dialog, no selection.
-  const setInspecting = useCallback((on: boolean) => {
-    setIsInspecting(on);
-    if (on) return;
-    setSourcesOpen(false);
-    setSelection(null);
-  }, []);
+  /** Bound items inspect mode put in the tab order, given back when it ends. */
+  const madeFocusable = useRef(new Set<Element>());
+  // Focus goes to the Sources toggle, else nowhere: an item that holds it once inspect mode ends
+  // would keep the page's focus ring, with nothing to take it off.
+  const focusToggle = useCallback(() => {
+    const toggle = [rootRef.current, renderInHtmlElement]
+      .map((area) => area?.querySelector<HTMLElement>(`.${names.provenanceToggle}`))
+      .find((element) => !!element);
+    if (toggle) toggle.focus({ preventScroll: true });
+    else if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  }, [renderInHtmlElement]);
+  // Leaving inspect mode leaves nothing behind: no dialog, no selection, and no focus on what
+  // only inspect mode made focusable or picked.
+  const setInspecting = useCallback(
+    (on: boolean) => {
+      setIsInspecting(on);
+      if (on) return;
+      setSourcesOpen(false);
+      setSelection(null);
+      const focused = document.activeElement;
+      if (
+        focused &&
+        (madeFocusable.current.has(focused) ||
+          hasLentTabIndex(focused) ||
+          (focused.hasAttribute("data-openui-selected") &&
+            [rootRef.current, renderInHtmlElement].some((area) => area?.contains(focused))))
+      ) {
+        focusToggle();
+      }
+    },
+    [renderInHtmlElement, focusToggle],
+  );
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       enableProvenance
@@ -490,7 +516,7 @@ export function ArtifactRendererRoot({
             clearSelection,
             isSourcesOpen,
             openList,
-            internal: { sourcesStore, previewStore, closeDialog },
+            internal: { sourcesStore, previewStore, closeDialog, focusToggle },
           }
         : null,
     [
@@ -502,6 +528,7 @@ export function ArtifactRendererRoot({
       isSourcesOpen,
       openList,
       closeDialog,
+      focusToggle,
       sourcesStore,
       previewStore,
     ],
@@ -540,7 +567,7 @@ export function ArtifactRendererRoot({
     const areas = [rootRef.current, renderInHtmlElement].filter(
       (area): area is HTMLElement => !!area,
     );
-    const added = new Set<Element>();
+    const added = madeFocusable.current;
     const reach = () => {
       for (const area of areas) {
         for (const element of area.querySelectorAll(SOURCE_ITEM)) {
@@ -559,6 +586,7 @@ export function ArtifactRendererRoot({
       for (const element of added) {
         if (element.getAttribute("tabindex") === "0") element.removeAttribute("tabindex");
       }
+      added.clear();
     };
   }, [inspecting, renderInHtmlElement]);
   const onInspectKey = useCallback((event: ReactKeyboardEvent) => {
