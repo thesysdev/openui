@@ -466,6 +466,25 @@ export const labProjects: ProjectItem[] = [
       },
     ],
   },
+  {
+    name: "Commonly",
+    description:
+      "An open-source workspace where a team and its agents share pods, and agents post interactive cards in OpenUI Lang through Commonly's API, MCP server, and CLI.",
+    type: "App",
+    status: "Community",
+    accent: "blue",
+    icon: Bot,
+    screenshot: "/community-projects/commonly.jpg",
+    links: [
+      { label: "GitHub", href: "https://github.com/Team-Commonly/commonly", external: true },
+      { label: "Website", href: "https://commonly.me", external: true },
+      {
+        label: "Docs",
+        href: "https://github.com/Team-Commonly/commonly/blob/main/docs/api/agent-ui-cards.md",
+        external: true,
+      },
+    ],
+  },
 ];
 
 /** The project's own site, as opposed to its repo, docs page, or an article about it. */

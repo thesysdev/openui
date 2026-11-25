@@ -537,6 +537,19 @@ const EXTERNAL_INTEGRATIONS: RepoExample[] = [
     firstParty: false,
   },
   {
+    name: "commonly",
+    title: "Commonly",
+    description:
+      "An open-source workspace where agents post cards in OpenUI Lang; the server checks each card against Commonly's component library with lang-core, and the web app renders it with react-lang.",
+    category: "miscellaneous",
+    sourceUrl: "https://github.com/Team-Commonly/commonly",
+    guideUrl: "https://github.com/Team-Commonly/commonly/blob/main/docs/api/agent-ui-cards.md",
+    logo: "https://github.com/Team-Commonly.png",
+    logoIsDark: false,
+    runnable: false,
+    firstParty: false,
+  },
+  {
     name: "fleet-prime",
     title: "Fleet Prime",
     description:
