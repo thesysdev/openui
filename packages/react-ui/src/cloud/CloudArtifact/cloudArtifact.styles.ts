@@ -153,7 +153,8 @@ export const styles = {
   // so the selected outline, declared later with the same specificity, wins on both. Rules
   // in `:where()` count for nothing, so an app's own rule overrides them (see the docs). The
   // `--openui-inspect-*` variables, set on any element around the content, restyle them.
-  // Touch screens get no hover outline: it would stick after a tap.
+  // Both are drawn just outside the element, so its own content (a table's row and header fills)
+  // can't paint over them. Touch screens get no hover outline: it would stick after a tap.
   inspecting: css`
     @media (hover: hover) {
       & :where([data-openui-hover]) {
@@ -162,7 +163,7 @@ export const styles = {
           --openui-inspect-hover-outline,
           1px dashed var(--openui-inspect-color, var(--openui-interactive-accent-default))
         );
-        outline-offset: var(--openui-inspect-outline-offset, -2px);
+        outline-offset: var(--openui-inspect-outline-offset, 2px);
       }
     }
   `,
@@ -171,13 +172,12 @@ export const styles = {
     flex: 1;
     min-height: 120px;
     overflow: auto;
-    /* Drawn inside the element: a tile in a strip that hides overflow keeps all four sides. */
     & :where([data-openui-selected]) {
       outline: var(
         --openui-inspect-selected-outline,
         2px solid var(--openui-inspect-color, var(--openui-interactive-accent-default))
       );
-      outline-offset: var(--openui-inspect-outline-offset, -2px);
+      outline-offset: var(--openui-inspect-outline-offset, 2px);
     }
   `,
   loading: css`
