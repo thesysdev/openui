@@ -15,6 +15,21 @@ export interface ActAsOptions extends RequestOptions {
 }
 
 /**
+ * The fields that name a user, their groups and the client's app, as their frontend token
+ * would. No checks: callers check `userId` and `groupIds` first.
+ */
+export function actAsFields(
+  api: CloudApi,
+  { userId, groupIds }: { userId: string; groupIds?: readonly string[] },
+) {
+  return {
+    user_id: userId,
+    ...(groupIds?.length && { group_ids: groupIds }),
+    ...(api.appId !== undefined && { app_id: api.appId }),
+  };
+}
+
+/**
  * Acting as a user names them and their groups, in the client's app if it has one, as their
  * frontend token would. Without a user it's the org, which has no app or groups.
  */
@@ -29,11 +44,7 @@ export function actAs(api: CloudApi, { userId, groupIds }: ActAsOptions = {}): C
   if (groupIds !== undefined && !isIdList(groupIds)) {
     invalidInput("groupIds must be an array of non-empty strings");
   }
-  return {
-    user_id: userId,
-    ...(groupIds?.length && { group_ids: groupIds }),
-    ...(api.appId !== undefined && { app_id: api.appId }),
-  };
+  return actAsFields(api, { userId, groupIds });
 }
 
 /** The query and signal of a call made as `options.userId`, or as your org. */

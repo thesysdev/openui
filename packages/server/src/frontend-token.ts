@@ -1,5 +1,5 @@
+import { actAs } from "./core/act-as";
 import { invalidInput, invalidResponse } from "./core/errors";
-import { isIdList } from "./core/guards";
 import type { CloudApi } from "./core/http";
 
 export interface CreateFrontendTokenParams {
@@ -27,25 +27,17 @@ export interface FrontendToken {
  */
 export async function createFrontendToken(
   api: CloudApi,
-  userId: unknown,
-  groupIds: unknown,
+  params: CreateFrontendTokenParams,
   signal?: AbortSignal,
 ): Promise<FrontendToken> {
+  const { userId, groupIds } = params;
+  // Required here, where acting as nobody would mean the org.
   if (typeof userId !== "string" || !userId.trim()) {
     invalidInput("userId is required: take it from your authenticated session");
   }
-  if (groupIds !== undefined && !isIdList(groupIds)) {
-    invalidInput("groupIds must be an array of non-empty strings");
-  }
-  const { token, expires_at } = await api.post(
-    "/v1/frontend-tokens",
-    {
-      user_id: userId,
-      ...(groupIds?.length && { group_ids: groupIds }),
-      ...(api.appId !== undefined && { app_id: api.appId }),
-    },
-    signal,
-  );
+  // actAs checks groupIds and adds the client's app.
+  const body = actAs(api, { userId, groupIds });
+  const { token, expires_at } = await api.post("/v1/frontend-tokens", body, signal);
   if (typeof token !== "string" || !token || typeof expires_at !== "number") {
     throw invalidResponse();
   }

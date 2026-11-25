@@ -1,4 +1,5 @@
 import { abortable } from "../core/abort";
+import { actAsFields } from "../core/act-as";
 import { OpenUIApiError } from "../core/errors";
 import { isRecord } from "../core/guards";
 import type { CloudApi } from "../core/http";
@@ -120,9 +121,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
         artifact_id: input.id,
         ...(typeof input.version === "string" &&
           input.version && { artifact_version: input.version }),
-        user_id: context.userId,
-        ...(context.groupIds?.length && { group_ids: context.groupIds }),
-        ...(api.appId !== undefined && { app_id: api.appId }),
+        ...actAsFields(api, context),
       };
 
       let state: string | undefined;

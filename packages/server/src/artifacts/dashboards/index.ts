@@ -1,4 +1,5 @@
 import { createArtifacts } from "..";
+import { actAsFields } from "../../core/act-as";
 import { invalidInput, OpenUIApiError } from "../../core/errors";
 import { isRecord } from "../../core/guards";
 import type { CloudApi } from "../../core/http";
@@ -118,10 +119,8 @@ export function defineDashboard<Context extends ExecutionContext>(
     messages,
     ...(artifactId !== undefined && { artifact_id: artifactId }),
     ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
-    user_id: context.userId,
     // An edit can come from a share to one of the user's groups; a new dashboard is the user's alone.
-    ...(edit && context.groupIds?.length && { group_ids: context.groupIds }),
-    ...(api.appId !== undefined && { app_id: api.appId }),
+    ...actAsFields(api, { userId: context.userId, groupIds: edit ? context.groupIds : undefined }),
   });
 
   /**
