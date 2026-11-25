@@ -1,5 +1,5 @@
 import { css, keyframes } from "@openuidev/react-components";
-import { phone, typography } from "../shared.styles";
+import { easeOut, phone, typography } from "../shared.styles";
 
 const bodyHeavy = typography("openui-text-body-default-heavy", "medium");
 const bodySmall = typography("openui-text-body-sm", "regular");
@@ -280,8 +280,8 @@ export const toggleStyles = {
       opacity: 1;
       transform: scale(1);
       transition:
-        opacity 150ms ease-out,
-        transform 150ms ease-out;
+        opacity 150ms ${easeOut},
+        transform 150ms ${easeOut};
     }
     @media (prefers-reduced-motion: reduce) {
       transform: none;
@@ -291,7 +291,28 @@ export const toggleStyles = {
       }
     }
   `,
+  // Comes out of the toggle beside it: a fade and a 4px slide from its right edge. It leaves at
+  // once, as turning Sources off does.
   allQueries: css`
+    && {
+      transform-origin: right center;
+      @media (prefers-reduced-motion: no-preference) {
+        transition:
+          background-color 120ms ease,
+          opacity 150ms ${easeOut},
+          transform 150ms ${easeOut};
+        @starting-style {
+          opacity: 0;
+          transform: translateX(4px) scale(0.96);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        transition: opacity 150ms;
+        @starting-style {
+          opacity: 0;
+        }
+      }
+    }
     @media ${phone} {
       min-width: 44px;
       min-height: 44px;

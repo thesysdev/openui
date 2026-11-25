@@ -1,5 +1,5 @@
 import { css } from "@openuidev/react-components";
-import { easeDrawer, easeOut, phone, typography } from "../shared.styles";
+import { easeDrawer, easeOut, phone, press, typography } from "../shared.styles";
 
 /*
  * The Sources dialog on react-ui's theme: colours, type, spacing and radii are openui tokens.
@@ -53,6 +53,7 @@ export const contentsStyles = {
     color: ${primary};
     cursor: pointer;
     transition: background-color 120ms ease;
+    ${press(0.97)}
     &:focus-visible {
       outline: ${focusRing};
       outline-offset: 2px;
@@ -138,6 +139,7 @@ export const contentsStyles = {
     text-align: left;
     cursor: pointer;
     transition: background-color 120ms ease;
+    ${press(0.99)}
     ${bodySmall}
     &:focus-visible {
       outline: ${focusRing};
@@ -541,6 +543,7 @@ export const dialogStyles = {
     color: ${primary};
     cursor: pointer;
     transition: background-color 120ms ease;
+    ${press(0.97)}
     &:focus-visible {
       outline: ${focusRing};
       outline-offset: 2px;
