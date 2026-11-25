@@ -122,7 +122,7 @@ const Chart = def(
       xLabel: p.xLabel != null ? asText(p.xLabel) : undefined,
       yLabel: p.yLabel != null ? asText(p.yLabel) : undefined,
     });
-    const caption = p.caption != null ? clip(asText(p.caption), 1024) : title;
+    const caption = clip(p.caption != null ? asText(p.caption) : (title ?? ""), 1024);
     return msgFrag({
       type: "image",
       image: { link: "", ...(caption ? { caption } : {}) },
