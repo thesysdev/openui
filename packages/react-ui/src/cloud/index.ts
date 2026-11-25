@@ -22,6 +22,7 @@ export {
   useArtifactUpdate,
 } from "./CloudArtifact/artifactActions";
 export type { ArtifactActionState, ArtifactUpdate } from "./CloudArtifact/artifactActions";
+export type { ArtifactToolResponse } from "./CloudArtifact/artifactReference";
 export { LiveArtifactRenderer, StaticArtifactRenderer } from "./CloudArtifact/ArtifactRenderer";
 export type {
   LiveArtifactRendererProps,
