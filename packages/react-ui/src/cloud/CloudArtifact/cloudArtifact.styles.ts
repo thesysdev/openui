@@ -155,14 +155,17 @@ export const styles = {
   // so the selected outline, declared later with the same specificity, wins on both. Rules
   // in `:where()` count for nothing, so an app's own rule overrides them (see the docs). The
   // `--openui-inspect-*` variables, set on any element around the content, restyle them.
+  // Touch screens get no hover outline: it would stick after a tap.
   inspecting: css`
-    & :where([data-openui-hover]) {
-      cursor: pointer;
-      outline: var(
-        --openui-inspect-hover-outline,
-        1px dashed var(--openui-inspect-color, var(--openui-interactive-accent-default))
-      );
-      outline-offset: var(--openui-inspect-outline-offset, -2px);
+    @media (hover: hover) {
+      & :where([data-openui-hover]) {
+        cursor: pointer;
+        outline: var(
+          --openui-inspect-hover-outline,
+          1px dashed var(--openui-inspect-color, var(--openui-interactive-accent-default))
+        );
+        outline-offset: var(--openui-inspect-outline-offset, -2px);
+      }
     }
   `,
   content: css`

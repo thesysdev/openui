@@ -84,12 +84,21 @@ export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
 
 /** Inspect mode, the selected component and where data comes from, from `useArtifactProvenance()`. */
 export interface ArtifactProvenanceState {
-  /** While on, a click on a component selects it instead of acting. */
+  /** While on, a click on a component selects it and opens the Sources dialog on it, instead of acting. */
   isInspecting: boolean;
+  /** Turning it off also closes the Sources dialog and clears the selection. */
   setInspecting: (on: boolean) => void;
-  /** The component, and prop, last clicked in inspect mode. */
+  /**
+   * The component, and prop, last clicked in inspect mode. It stays after the dialog closes, and
+   * stays outlined until another component is hovered.
+   */
   selection: SourceTarget | null;
+  /** In the dialog, back to the list of every query. */
   clearSelection: () => void;
+  /** Whether the Sources dialog is open. */
+  isOpen: boolean;
+  /** Opens the Sources dialog on the list of every query, e.g. from your own "All queries" button. */
+  openList: () => void;
   /**
    * Where the program's data comes from: every component's sources and every query, with live
    * values. Null unless inspecting or something is selected.
@@ -125,9 +134,12 @@ export function createSourcesStore(): SourcesStore {
   };
 }
 
-/** The renderer's provenance state: the public fields, and the store the bridge writes. */
+/** The renderer's provenance state: the public fields, and what only the renderer's parts use. */
 export interface ProvenanceContextValue extends Omit<ArtifactProvenanceState, "sources"> {
+  /** Where the bridge writes the sources. */
   sourcesStore: SourcesStore;
+  /** Closes the dialog, keeping inspect mode and the selection. */
+  closeDialog: () => void;
 }
 
 /** Null when `enableProvenance` is off. */
@@ -139,6 +151,8 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
   setInspecting: noop,
   selection: null,
   clearSelection: noop,
+  isOpen: false,
+  openList: noop,
   sources: null,
 });
 const INERT_STORE = createSourcesStore();
@@ -157,7 +171,7 @@ export function useArtifactProvenance(): ArtifactProvenanceState {
   const sources = useSyncExternalStore(store.subscribe, store.get, getNoSources);
   return useMemo(() => {
     if (!provenance) return INERT_PROVENANCE;
-    const { sourcesStore: _store, ...state } = provenance;
+    const { sourcesStore: _store, closeDialog: _close, ...state } = provenance;
     return { ...state, sources };
   }, [provenance, sources]);
 }

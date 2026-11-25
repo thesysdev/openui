@@ -6,8 +6,9 @@ import { css } from "@openuidev/react-components";
  * Goober (under react-components' css) splits selectors at commas and mangles a pseudo-class
  * right after ")" or parentheses inside parentheses, so selectors here avoid all three.
  *
- * Motion: an occasional drawer (240ms, drawer curve) and frequent rows (200ms, strong ease-out);
- * a new pick fades without moving; reduced motion keeps fades only.
+ * Motion, transform and opacity only: the dialog grows in (250ms) and out (200ms) on the strong
+ * ease-out; the phone sheet slides (300ms, drawer curve); a new view slides 12px the way it went
+ * (200ms); rows open in 200ms. Reduced motion keeps fades only (150ms).
  */
 
 const typography = (token: string, variation: "regular" | "medium") => `
@@ -427,127 +428,196 @@ export type PanelPart = Exclude<keyof typeof panelStyles, "root">;
 /** A part's classes: its style, and its stable name. */
 export const partClass = (name: PanelPart) => `${panelStyles[name]} ${part(name)}`;
 
-// ── In a live artifact: the panel docks beside the content ──
+// ── In a live artifact: the contents in a dialog, a bottom sheet on phones ──
 
-export const dockNames = {
-  workspace: "openui-data-sources-workspace",
-  slot: "openui-data-sources-slot",
+const dialogBlock = "openui-data-sources-dialog";
+
+/** Stable class names, to target from your own CSS. */
+export const dialogNames = {
+  overlay: `${dialogBlock}__overlay`,
+  root: dialogBlock,
+  header: `${dialogBlock}__header`,
+  title: `${dialogBlock}__title`,
+  back: `${dialogBlock}__back`,
+  close: `${dialogBlock}__close`,
+  custom: `${dialogBlock}__custom`,
 } as const;
 
-export const dockStyles = {
-  workspace: css`
-    position: relative;
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    min-height: 120px;
-    overflow: clip;
-    container-type: inline-size;
-    & > .openui-artifact-content {
-      flex: 1;
-      min-width: 0;
+/** Phones: a bottom sheet, every control at least 44px. */
+const phone = "(max-width: 639px)";
+
+export const dialogStyles = {
+  // The dim background. Its own fade, on the dialog's curve.
+  overlay: css`
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: var(--openui-overlay);
+    opacity: 1;
+    transition: opacity 250ms ${easeOut};
+    @starting-style {
+      opacity: 0;
+    }
+    &[data-state="closed"] {
+      opacity: 0;
+      transition-duration: 200ms;
+    }
+    @media ${phone} {
+      transition-duration: 300ms;
+      &[data-state="closed"] {
+        transition-duration: 300ms;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      transition: opacity 150ms;
+      &[data-state="closed"] {
+        transition-duration: 150ms;
+      }
     }
   `,
-  /* Docked beside the content; the content snaps to its new width, the panel slides. */
-  slot: css`
-    position: relative;
-    z-index: 20;
-    flex: none;
-    width: 0;
-    min-height: 0;
-    pointer-events: none;
-    &[data-open="true"] {
-      width: 320px;
-      pointer-events: auto;
+  // Centered, one size for the list and every detail, so nothing jumps between them.
+  root: css`
+    box-sizing: border-box;
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    width: min(560px, calc(100vw - 32px));
+    height: min(640px, calc(100dvh - 64px));
+    margin: auto;
+    overflow: hidden;
+    border-radius: var(--openui-radius-2xl);
+    background: var(--openui-background);
+    box-shadow: ${overlayShadow};
+    color: ${primary};
+    ${bodySmall}
+    & code {
+      ${codeSmall}
     }
-    /* Stuck to the top of whatever scrolls the dashboard, and no taller than what that shows
-       (the dock measures it; the screen when nothing else scrolls): a dashboard taller than the
-       window keeps the panel in view, and the panel scrolls its own content. */
-    & > .${block} {
-      position: sticky;
-      top: 0;
-      width: 320px;
-      height: 100%;
-      max-height: var(--openui-data-sources-max-height, 100dvh);
-      transform: translateX(100%);
-      visibility: hidden;
+    &:focus {
+      outline: none;
     }
-    &[data-open="true"] > .${block} {
-      transform: translateX(0);
-      visibility: visible;
+    &[data-state="closed"] {
+      pointer-events: none;
     }
     @media (prefers-reduced-motion: no-preference) {
-      & > .${block} {
-        transition:
-          transform 240ms ${easeDrawer},
-          visibility 0s 240ms;
+      transition:
+        opacity 250ms ${easeOut},
+        transform 250ms ${easeOut};
+      @starting-style {
+        opacity: 0;
+        transform: scale(0.96);
       }
-      &[data-open="true"] > .${block} {
-        transition:
-          transform 240ms ${easeDrawer},
-          visibility 0s;
-      }
-    }
-
-    /* Narrow artifact: the panel floats over the content instead of narrowing it. */
-    @container (max-width: 760px) {
-      &[data-open] {
-        position: absolute;
-        inset: 0 0 0 auto;
-        width: min(320px, 100%);
-      }
-      & > .${block} {
-        width: 100%;
-        box-shadow: ${overlayShadow};
+      &[data-state="closed"] {
+        opacity: 0;
+        transform: scale(0.96);
+        transition-duration: 200ms;
       }
     }
-
-    /* Phones: a bottom sheet that slides up its own height, low enough to tap the dashboard. */
-    @media (max-width: 639px) {
-      &[data-open] {
-        position: fixed;
-        inset: auto 0 0 0;
-        width: 100%;
-        height: min(62dvh, 600px);
-        z-index: 45;
-      }
-      & > .${block} {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: auto;
-        max-height: none;
-        padding-top: var(--openui-space-m);
-        border-left: 0;
-        border-radius: var(--openui-radius-3xl) var(--openui-radius-3xl) 0 0;
-        box-shadow: ${overlayShadow};
+    @media ${phone} {
+      inset: auto 0 0 0;
+      width: 100%;
+      height: min(88dvh, calc(100dvh - 48px));
+      margin: 0;
+      border-radius: var(--openui-radius-3xl) var(--openui-radius-3xl) 0 0;
+    }
+    @media ${phone} and (prefers-reduced-motion: no-preference) {
+      transition: transform 300ms ${easeDrawer};
+      @starting-style {
+        opacity: 1;
         transform: translateY(100%);
       }
-      & > .${block}::before {
-        content: "";
-        position: absolute;
-        top: 6px;
-        left: 50%;
-        width: 36px;
-        height: 4px;
-        margin-left: -18px;
-        border-radius: var(--openui-radius-full);
-        background: var(--openui-text-neutral-tertiary);
-      }
-      &[data-open="true"] > .${block} {
-        transform: translateY(0);
+      &[data-state="closed"] {
+        opacity: 1;
+        transform: translateY(100%);
+        transition-duration: 300ms;
       }
     }
-    @media (max-width: 639px) and (prefers-reduced-motion: no-preference) {
-      & > .${block} {
-        transition:
-          transform 300ms ${easeDrawer},
-          visibility 0s 300ms;
+    @media (prefers-reduced-motion: reduce) {
+      transition: opacity 150ms;
+      @starting-style {
+        opacity: 0;
       }
-      &[data-open="true"] > .${block} {
-        transition:
-          transform 300ms ${easeDrawer},
-          visibility 0s;
+      &[data-state="closed"] {
+        opacity: 0;
+      }
+    }
+  `,
+  header: css`
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--openui-space-s);
+    min-height: 52px;
+    box-sizing: border-box;
+    padding: var(--openui-space-xs) var(--openui-space-s) var(--openui-space-xs)
+      var(--openui-space-l);
+    border-bottom: 1px solid ${border};
+    &:has(> .${dialogNames.back}) {
+      padding-left: var(--openui-space-s);
+    }
+    @media ${phone} {
+      min-height: 56px;
+    }
+  `,
+  title: css`
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    ${bodyHeavy}
+  `,
+  // react-ui's small tertiary IconButton; 44px on phones.
+  button: css`
+    ${buttonReset}
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--openui-radius-s);
+    color: ${primary};
+    cursor: pointer;
+    transition: background-color 120ms ease;
+    &:focus-visible {
+      outline: ${focusRing};
+      outline-offset: 2px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--openui-highlight);
+      }
+    }
+    @media ${phone} {
+      width: 44px;
+      height: 44px;
+    }
+  `,
+  close: css`
+    margin-left: auto;
+  `,
+  // An app's own contents, from `Provenance` children.
+  custom: css`
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  `,
+  // Phones: rows and list items at least 44px.
+  body: css`
+    @media ${phone} {
+      & .${part("list-row")} {
+        min-height: 44px;
+      }
+      & .${part("row-toggle")} {
+        min-height: 48px;
+      }
+      & .${part("icon-button")} {
+        width: 44px;
+        height: 44px;
       }
     }
   `,

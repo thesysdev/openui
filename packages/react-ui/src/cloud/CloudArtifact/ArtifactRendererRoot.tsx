@@ -149,6 +149,9 @@ const usableInterval = (value: number | false | undefined) =>
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
+/** What handles Escape itself, so it shouldn't also step out of Sources. */
+const OWNS_ESCAPE =
+  "[role=menu], [role=menuitem], [role=listbox], [role=option], [role=dialog], [role=combobox], select";
 
 /** One field of the artifact's cached summary: only a change to that field re-renders. */
 function useCachedField<K extends "title" | "isOwner" | "isEditable">(
@@ -449,19 +452,51 @@ export function ArtifactRendererRoot({
     ],
   );
 
-  // ── Provenance: inspect mode and the selected component ──
+  // ── Provenance: inspect mode, the selected component and the Sources dialog ──
   const rootRef = useRef<HTMLDivElement>(null);
-  const [isInspecting, setInspecting] = useState(false);
+  const [isInspecting, setIsInspecting] = useState(false);
   const [selection, setSelection] = useState<SourceTarget | null>(null);
+  const [isSourcesOpen, setSourcesOpen] = useState(false);
   // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
   const clearSelection = useCallback(() => setSelection(null), []);
+  const openList = useCallback(() => {
+    setSelection(null);
+    setSourcesOpen(true);
+  }, []);
+  const closeDialog = useCallback(() => setSourcesOpen(false), []);
+  // Leaving inspect mode leaves nothing behind: no dialog, no selection.
+  const setInspecting = useCallback((on: boolean) => {
+    setIsInspecting(on);
+    if (on) return;
+    setSourcesOpen(false);
+    setSelection(null);
+  }, []);
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       enableProvenance
-        ? { isInspecting, setInspecting, selection, clearSelection, sourcesStore }
+        ? {
+            isInspecting,
+            setInspecting,
+            selection,
+            clearSelection,
+            isOpen: isSourcesOpen,
+            openList,
+            closeDialog,
+            sourcesStore,
+          }
         : null,
-    [enableProvenance, isInspecting, selection, clearSelection, sourcesStore],
+    [
+      enableProvenance,
+      isInspecting,
+      setInspecting,
+      selection,
+      clearSelection,
+      isSourcesOpen,
+      openList,
+      closeDialog,
+      sourcesStore,
+    ],
   );
   const inspecting = enableProvenance && isInspecting;
   // While inspecting, pressing a component selects it instead of acting: buttons, links,
@@ -481,10 +516,27 @@ export function ArtifactRendererRoot({
       if (!target) return;
       event.preventDefault();
       event.stopPropagation();
-      if (event.type === "click") setSelection(target);
+      if (event.type === "click") {
+        setSelection(target);
+        setSourcesOpen(true);
+      }
     },
     [inspecting],
   );
+  // Escape undoes one step: the dialog closes first (it handles that key itself), then inspect
+  // mode ends. A menu, list or dialog of the dashboard's own closes before either.
+  useEffect(() => {
+    if (!inspecting) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const target = event.target as Element | null;
+      if (target?.closest?.(OWNS_ESCAPE)) return;
+      if (isSourcesOpen) setSourcesOpen(false);
+      else setInspecting(false);
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [inspecting, isSourcesOpen, setInspecting]);
   // While inspecting, what a click would select gets a hover outline, for any component:
   // set on the element directly, so moving the mouse re-renders nothing.
   const hovered = useRef<Element | null>(null);
@@ -497,9 +549,16 @@ export function ArtifactRendererRoot({
   const onInspectHover = useCallback(
     (event: SyntheticEvent) => {
       const target = readSourceTarget(event.target, rootRef.current);
-      setHovered(target ? (target.propElement ?? target.element) : null);
+      const element = target ? (target.propElement ?? target.element) : null;
+      setHovered(element);
+      // The last pick keeps its outline after the dialog closes, until another one is hovered.
+      if (element && !isSourcesOpen) {
+        setSelection((current) =>
+          current && element !== (current.propElement ?? current.element) ? null : current,
+        );
+      }
     },
-    [setHovered],
+    [setHovered, isSourcesOpen],
   );
   const clearHovered = useCallback(() => setHovered(null), [setHovered]);
   useEffect(() => {
@@ -510,6 +569,7 @@ export function ArtifactRendererRoot({
   // which clears the selection too.)
   // An edit can give a component id (`lead.2`) to another component: start over too.
   useEffect(() => setSelection(null), [id, program]);
+  useEffect(() => setSourcesOpen(false), [id]);
   // Outline the selected component and prop.
   useEffect(() => {
     if (!enableProvenance || !selection) return;
@@ -546,6 +606,7 @@ export function ArtifactRendererRoot({
           <div
             ref={rootRef}
             className={clsx(styles.root, names.root, className)}
+            data-openui-inspecting={inspecting || undefined}
             onClickCapture={inspecting ? onInspectCapture : undefined}
             onPointerDownCapture={inspecting ? onInspectCapture : undefined}
             onMouseDownCapture={inspecting ? onInspectCapture : undefined}

@@ -4,6 +4,7 @@ import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { Database, LoaderCircle, X } from "lucide-react";
 import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
@@ -19,7 +20,7 @@ import {
   type Region,
 } from "./contexts";
 import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
-import { SourcesDockContext, SourcesWorkspace, type SourcesOptions } from "./SourcesDock";
+import { SourcesContext, SourcesProvider, type SourcesOptions } from "./SourcesDialog";
 
 /*
  * Slots, following AgentInterface's three modes:
@@ -293,8 +294,8 @@ export function Content({ className, children }: PartProps) {
   if (!inside || !config) return null;
   return (
     <RegionProvider region="content">
-      {/* With provenance on, the Sources panel docks beside the content. */}
-      <SourcesWorkspace>
+      {/* With provenance on, the Sources dialog opens over the content. */}
+      <SourcesProvider>
         <div
           className={clsx(
             styles.content,
@@ -315,7 +316,7 @@ export function Content({ className, children }: PartProps) {
           )}
           {config.render()}
         </div>
-      </SourcesWorkspace>
+      </SourcesProvider>
     </RegionProvider>
   );
 }
@@ -396,19 +397,18 @@ export interface ProvenanceProps extends SourcesOptions {
 }
 
 /**
- * The Sources panel. Without children, the default panel docks beside the content: it lists the
- * dashboard's sources and shows where the selected component's data comes from; its props name
- * your data tools (`describeSource`). With
- * children, your panel replaces it: read the selection and its sources with
- * `useArtifactProvenance()`. Your panel renders only while something is selected.
+ * The Sources dialog's contents. Without children, the default contents list the dashboard's
+ * sources and show where the selected component's data comes from; its props name your data tools
+ * (`describeSource`). With children, yours replace them inside the dialog, under its title, back
+ * and close: read the selection and its sources with `useArtifactProvenance()`. They render only
+ * while the dialog is open.
  */
 export function Provenance({ children, describeSource }: ProvenanceProps) {
   const inside = useInRegion("content");
-  const provenance = useContext(ProvenanceContext);
-  const dock = useContext(SourcesDockContext);
+  const sources = useContext(SourcesContext);
   const hasChildren = children !== undefined;
-  const setOptions = dock?.setOptions;
-  const setCustom = dock?.setCustom;
+  const setOptions = sources?.setOptions;
+  const setCustom = sources?.setCustom;
   useLayoutEffect(() => {
     if (!inside || hasChildren || !setOptions) return;
     setOptions({ describeSource });
@@ -419,6 +419,7 @@ export function Provenance({ children, describeSource }: ProvenanceProps) {
     setCustom((count) => count + 1);
     return () => setCustom((count) => count - 1);
   }, [inside, hasChildren, setCustom]);
-  if (!inside || !hasChildren || !provenance?.selection) return null;
-  return <>{children}</>;
+  const host = sources?.customHost;
+  if (!inside || !hasChildren || !host) return null;
+  return createPortal(children, host);
 }
