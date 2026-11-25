@@ -16,6 +16,6 @@ export type { AIAutofix } from "./autofix";
  *
  * @deprecated Use `new OpenUIClient().ai.createAutofix({ library })`.
  */
-export function createAutofix(options: AutofixOptions): AIAutofix {
-  return aiAutofix(standaloneApi(options), options);
+export function createAutofix(options: AutofixOptions): { ai: AIAutofix } {
+  return { ai: aiAutofix(standaloneApi(options), options) };
 }

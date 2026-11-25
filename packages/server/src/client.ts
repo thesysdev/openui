@@ -22,12 +22,12 @@ export class OpenUIClient {
   readonly artifacts: Artifacts;
 
   /**
-   * Chat Completions: `createAutofix({ library })`, which returns `{ completions }`. Types come
+   * Chat Completions: `createAutofix({ library })`, which returns `{ fix, stream }`. Types come
    * from `openai`.
    */
   readonly chat: { createAutofix(params: CreateAutofixParams): ChatAutofix };
 
-  /** The Vercel AI SDK: `createAutofix({ library })` returns `{ ai }`. Types come from `ai`. */
+  /** The Vercel AI SDK: `createAutofix({ library })` returns `{ fix, stream }`. Types come from `ai`. */
   readonly ai: { createAutofix(params: CreateAutofixParams): AIAutofix };
 
   constructor(options: OpenUIClientOptions = {}) {

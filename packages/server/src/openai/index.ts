@@ -21,6 +21,6 @@ export type { StoreChatCompletionHistoryOptions } from "./store-conversation-ite
  *
  * @deprecated Use `new OpenUIClient().chat.createAutofix({ library })`.
  */
-export function createAutofix(options: AutofixOptions): ChatAutofix {
-  return chatAutofix(standaloneApi(options), options);
+export function createAutofix(options: AutofixOptions): { completions: ChatAutofix } {
+  return { completions: chatAutofix(standaloneApi(options), options) };
 }

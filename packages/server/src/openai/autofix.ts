@@ -5,10 +5,7 @@ import type { CloudApi } from "../core/http";
 import { openAIAdapter } from "./adapter";
 
 /** Autofix for Chat Completions responses and streams. */
-export interface ChatAutofix {
-  completions: AutofixHelpers<ChatCompletionChunk>;
-}
+export type ChatAutofix = AutofixHelpers<ChatCompletionChunk>;
 
-export const chatAutofix = (api: CloudApi, params: CreateAutofixParams): ChatAutofix => ({
-  completions: createAutofix(api, params, openAIAdapter),
-});
+export const chatAutofix = (api: CloudApi, params: CreateAutofixParams): ChatAutofix =>
+  createAutofix(api, params, openAIAdapter);
