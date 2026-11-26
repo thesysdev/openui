@@ -14,11 +14,9 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { AnimatedLabel } from "./AnimatedLabel";
+import { AnimatedLabel, prefersReducedMotion } from "./AnimatedLabel";
 import { BuildFeedPanel } from "./BuildFeed";
-import { useBuildFeed } from "./buildTracker";
 import { styles as artifactStyles, names } from "./cloudArtifact.styles";
-import { prefersReducedMotion } from "./motion";
 import { pendingLoaderStyles as styles } from "./pendingLoader.styles";
 
 export interface PendingLoaderProps {
@@ -376,7 +374,6 @@ function useWide(ref: RefObject<HTMLElement | null>) {
 
 /** `Pending`'s default: a dotted sketch of a dashboard, with the build's feed over it. */
 export function PendingLoader({ label, color }: PendingLoaderProps) {
-  const { build, noun } = useBuildFeed();
   const stageRef = useRef<HTMLDivElement>(null);
   const wide = useWide(stageRef);
   const [moving] = useState(() => !prefersReducedMotion());
@@ -413,8 +410,8 @@ export function PendingLoader({ label, color }: PendingLoaderProps) {
         </div>
       </div>
       <div className={styles.overlay}>
-        {label === undefined && build ? (
-          <BuildFeedPanel build={build} noun={noun} />
+        {label === undefined ? (
+          <BuildFeedPanel />
         ) : (
           <div className={styles.note} role="status">
             <LoaderCircle

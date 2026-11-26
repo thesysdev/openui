@@ -32,20 +32,16 @@ import { createPortal } from "react-dom";
 import { shallow } from "zustand/shallow";
 import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
-import {
-  BuildFeedContext,
-  THINKING,
-  trackBuild,
-  useArtifactBuild,
-  type BuildFeedValue,
-} from "./buildTracker";
 import { names, styles } from "./cloudArtifact.styles";
 import {
+  BuildContext,
   ContentConfigContext,
   createSourcesStore,
   ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
+  type BuildContextValue,
+  type BuildKind,
   type ContentConfig,
   type ProvenanceContextValue,
 } from "./contexts";
@@ -208,6 +204,34 @@ function useBuildPending({
   // During render, so the slot doesn't blink between the response and the stream's first event.
   if (next !== build) setBuild(next);
   return noResponse || next !== "none";
+}
+
+/**
+ * The build on screen, until its stream ends: a new dashboard from when it's pending, or an edit
+ * from its first step over the dashboard on screen. Opening a saved dashboard isn't a build.
+ */
+function useBuildKind({
+  isPending,
+  hasContent,
+  isStreaming,
+  hasStep,
+  failed,
+}: {
+  isPending: boolean;
+  hasContent: boolean;
+  isStreaming: boolean;
+  hasStep: boolean;
+  failed: boolean;
+}): BuildKind | null {
+  const [build, setBuild] = useState<BuildKind | null>(null);
+  let next = build;
+  if (failed) next = null;
+  else if (isPending) next = "new";
+  else if (next === null && hasStep && hasContent) next = "edit";
+  else if (next !== null && !isStreaming) next = null;
+  // During render, like `useBuildPending`, so the feed doesn't blink as one state hands to the next.
+  if (next !== build) setBuild(next);
+  return next;
 }
 
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
@@ -410,26 +434,17 @@ export function ArtifactRendererRoot({
     hasStep: stream.step !== undefined,
   });
 
-  // ── Build feed: what a build has done, kept per artifact for every renderer of it ──
-  const buildError = artifactError?.message ?? null;
-  useEffect(() => {
-    if (!id) return;
-    trackBuild(id, {
-      step: stream.step,
-      hasContent: !!program,
-      isStreaming: stream.isStreaming,
-      isPending,
-      error: buildError,
-    });
-  }, [id, stream.step, program, stream.isStreaming, isPending, buildError]);
-  const trackedBuild = useArtifactBuild(id);
-  const buildFeed = useMemo<BuildFeedValue>(
-    () => ({
-      // Before its id (or the first report of it), a new dashboard is thinking.
-      build: trackedBuild ?? (isPending ? THINKING : undefined),
-      noun: interpreter ? "dashboard" : undefined,
-    }),
-    [trackedBuild, isPending, interpreter],
+  // ── Build feed: the build on screen, if any ──
+  const build = useBuildKind({
+    isPending,
+    hasContent: !!program,
+    isStreaming: stream.isStreaming,
+    hasStep: stream.step !== undefined,
+    failed: artifactError !== null,
+  });
+  const buildContext = useMemo<BuildContextValue>(
+    () => ({ build, noun: interpreter ? "dashboard" : undefined }),
+    [build, interpreter],
   );
 
   // ── State for useArtifactRenderer() ──
@@ -571,7 +586,7 @@ export function ArtifactRendererRoot({
 
   return (
     <RendererStateContext.Provider value={state}>
-      <BuildFeedContext.Provider value={buildFeed}>
+      <BuildContext.Provider value={buildContext}>
         <ProvenanceContext.Provider value={provenance}>
           <ContentConfigContext.Provider value={contentConfig}>
             <div
@@ -597,7 +612,7 @@ export function ArtifactRendererRoot({
             </div>
           </ContentConfigContext.Provider>
         </ProvenanceContext.Provider>
-      </BuildFeedContext.Provider>
+      </BuildContext.Provider>
     </RendererStateContext.Provider>
   );
 }

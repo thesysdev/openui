@@ -62,6 +62,20 @@ export interface ContentConfig {
 
 export const ContentConfigContext = createContext<ContentConfig | null>(null);
 
+/** The build on screen, until its stream ends: a new dashboard, or a new version of one (an edit). */
+export type BuildKind = "new" | "edit";
+
+/** What the build feed shows. @internal */
+export interface BuildContextValue {
+  build: BuildKind | null;
+  /** "dashboard" for a live renderer. Without it, the feed says "Generating…" while it writes. */
+  noun?: string;
+}
+
+export const BuildContext = createContext<BuildContextValue>({ build: null });
+
+export const useBuildContext = () => useContext(BuildContext);
+
 /** Values a region passes down to its default parts, when given as props. */
 export interface PreviewOverrides {
   title?: string;

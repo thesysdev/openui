@@ -3,8 +3,7 @@
 import clsx from "clsx";
 import { Play } from "lucide-react";
 import { Button } from "../../components/Button";
-import { useBuildFeed } from "../CloudArtifact/buildTracker";
-import { useArtifactRenderer } from "../CloudArtifact/contexts";
+import { useArtifactRenderer, useBuildContext } from "../CloudArtifact/contexts";
 import { PreviewError, PreviewLoader, PreviewTitle } from "../CloudArtifact/slots";
 import { names, styles } from "./agentInterface.styles";
 
@@ -33,7 +32,7 @@ export function DashboardIllustration() {
 /** The card in the chat, laid out like the slides and report cards. */
 export function DashboardCard({ label }: { label: string }) {
   const { isOpen, open, close } = useArtifactRenderer();
-  const { build } = useBuildFeed();
+  const { build } = useBuildContext();
   const toggle = isOpen ? close : open;
   return (
     <div className={styles.cardContainer}>

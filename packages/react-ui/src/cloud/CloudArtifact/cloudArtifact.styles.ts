@@ -58,7 +58,6 @@ export const styles = {
   `,
   // A build's feed wraps onto its own line under the title; a loader pill stays beside it.
   preview: css`
-    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -70,35 +69,13 @@ export const styles = {
     padding: var(--openui-space-s) var(--openui-space-m);
     border: 1px solid var(--openui-border-default);
     border-radius: var(--openui-radius-m);
+    background: transparent;
     color: var(--openui-text-neutral-primary);
+    text-align: left;
+    cursor: pointer;
     transition: background-color 0.12s ease;
     &:hover {
       background: var(--openui-elevated-light);
-    }
-    &:has(> button:first-child:focus-visible) {
-      outline: 2px solid var(--openui-interactive-accent-default);
-      outline-offset: 2px;
-    }
-  `,
-  // The card's open button: its click area stretches over the whole card.
-  previewOpen: css`
-    flex: 1 1 0;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    &::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: var(--openui-radius-m);
-    }
-    &:focus-visible {
-      outline: none;
     }
   `,
   previewFeed: css`
