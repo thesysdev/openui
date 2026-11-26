@@ -129,7 +129,7 @@
     "@resvg/resvg-js": "^2.6.2",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "recharts": "^2.15.0",
+    "recharts": "^2.15.0 || ^3.0.0",
     "zod": "catalog:"
   },
   "peerDependenciesMeta": {
