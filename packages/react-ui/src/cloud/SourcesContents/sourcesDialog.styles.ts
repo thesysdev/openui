@@ -526,7 +526,7 @@ export type ContentsPart = keyof typeof contentsStyles;
 /** A part's classes: its style, and its stable name. */
 export const partClass = (name: ContentsPart) => `${contentsStyles[name]} ${part(name)}`;
 
-// ── In a live artifact: the contents in a dialog, a bottom sheet on phones ──
+// ── In a live artifact: the bottom sheet the Sources popover and menu open in on phones ──
 
 export const dialogNames = {
   overlay: part("overlay"),
@@ -719,6 +719,12 @@ export const dialogStyles = {
       }
       & .${part("row-toggle")} {
         min-height: 48px;
+      }
+      & .${part("source-row")} {
+        min-height: 44px;
+      }
+      & .${part("used-by-chip")} {
+        min-height: 44px;
       }
       & .${part("icon-button")} {
         width: 44px;

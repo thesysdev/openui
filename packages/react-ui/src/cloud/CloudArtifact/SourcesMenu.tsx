@@ -10,7 +10,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type AnimationEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type TransitionEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../../components/ThemeProvider";
@@ -29,6 +31,7 @@ import {
 } from "./contexts";
 import { focusBack } from "./focus";
 import { menuNames, menuStyles } from "./sourcesMenu.styles";
+import { SHEET_EXIT_MS, SheetClose, SheetFrame, usePhone } from "./SourcesSheet";
 
 /** Longer than its 150ms exit, in case `animationend` never comes. */
 const EXIT_MS = 200;
@@ -74,15 +77,17 @@ export function SourcesMenu({
   const renderer = useArtifactRenderer();
   const title = barTitle ?? renderer.title;
   const open = menu !== null;
+  // Below 640px it opens as a bottom sheet.
+  const phone = usePhone();
 
   // Mounted while open, and through the exit, showing what it showed last.
   const [shown, setShown] = useState<MenuState | null>(null);
   if (open && shown !== menu) setShown(menu);
   useEffect(() => {
     if (open || !shown) return;
-    const timer = setTimeout(() => setShown(null), EXIT_MS);
+    const timer = setTimeout(() => setShown(null), phone ? SHEET_EXIT_MS : EXIT_MS);
     return () => clearTimeout(timer);
-  }, [open, shown]);
+  }, [open, shown, phone]);
 
   // Focus goes back to what opened it, unless something else took it meanwhile (an item's
   // popover, from Used by).
@@ -112,6 +117,7 @@ export function SourcesMenu({
     <Menu
       shown={shown}
       open={open}
+      phone={phone}
       sources={sources}
       title={title}
       describeSource={describeSource}
@@ -130,6 +136,7 @@ export function SourcesMenu({
 function Menu({
   shown,
   open,
+  phone,
   sources,
   title,
   describeSource,
@@ -144,6 +151,8 @@ function Menu({
 }: {
   shown: MenuState;
   open: boolean;
+  /** In a bottom sheet, below 640px, instead of under the split button. */
+  phone: boolean;
   sources: DataSources;
   title?: string;
   describeSource?: Describe;
@@ -249,32 +258,25 @@ function Menu({
     </div>
   );
 
-  return createPortal(
-    <div
-      ref={(element) => {
-        refs.setFloating(element);
-        ref.current = element;
-        onRoot(element);
-      }}
-      className={clsx(
-        menuStyles.root,
-        !anchor && menuStyles.unanchored,
-        menuNames.root,
-        portalThemeClassName,
-      )}
-      style={anchor ? floatingStyles : undefined}
-      role="dialog"
-      aria-modal
-      aria-label={`All sources for ${title ?? "this dashboard"}`}
-      aria-hidden={open ? undefined : true}
-      inert={!open || undefined}
-      {...{ [MENU]: "" }}
-      data-state={open ? "open" : "closed"}
-      onKeyDown={trap}
-      onAnimationEnd={(event) => {
-        if (!open && event.target === event.currentTarget) onExited();
-      }}
-    >
+  const attributes = {
+    role: "dialog",
+    "aria-modal": true,
+    "aria-label": `All sources for ${title ?? "this dashboard"}`,
+    "aria-hidden": open ? undefined : true,
+    inert: !open || undefined,
+    [MENU]: "",
+    "data-state": open ? "open" : "closed",
+    onKeyDown: trap,
+    onAnimationEnd: (event: AnimationEvent<HTMLDivElement>) => {
+      if (!open && event.target === event.currentTarget) onExited();
+    },
+    onTransitionEnd: (event: TransitionEvent<HTMLDivElement>) => {
+      if (!open && event.target === event.currentTarget) onExited();
+    },
+  };
+
+  const contents = (
+    <>
       <header className={clsx(menuStyles.header, menuNames.header)}>
         {entry ? (
           <button
@@ -296,15 +298,19 @@ function Menu({
             ? `Used by ${users.length}`
             : `${entries.length} ${entries.length === 1 ? "source" : "sources"}`}
         </span>
-        <button
-          type="button"
-          className={clsx(menuStyles.close, menuNames.close)}
-          aria-label="Close"
-          title="Close"
-          onClick={onClose}
-        >
-          <X aria-hidden />
-        </button>
+        {phone ? (
+          <SheetClose onClose={onClose} />
+        ) : (
+          <button
+            type="button"
+            className={clsx(menuStyles.close, menuNames.close)}
+            aria-label="Close"
+            title="Close"
+            onClick={onClose}
+          >
+            <X aria-hidden />
+          </button>
+        )}
       </header>
       <hr className={clsx(menuStyles.divider, menuNames.divider)} />
       <div className={clsx(menuStyles.body, menuNames.body)}>
@@ -330,6 +336,42 @@ function Menu({
           </div>
         )}
       </div>
+    </>
+  );
+
+  if (phone) {
+    return (
+      <SheetFrame
+        open={open}
+        setRef={(element) => {
+          ref.current = element;
+          onRoot(element);
+        }}
+        themeClassName={portalThemeClassName}
+        attributes={attributes}
+        onDismiss={onClose}
+      >
+        {contents}
+      </SheetFrame>
+    );
+  }
+  return createPortal(
+    <div
+      ref={(element) => {
+        refs.setFloating(element);
+        ref.current = element;
+        onRoot(element);
+      }}
+      {...attributes}
+      className={clsx(
+        menuStyles.root,
+        !anchor && menuStyles.unanchored,
+        menuNames.root,
+        portalThemeClassName,
+      )}
+      style={anchor ? floatingStyles : undefined}
+    >
+      {contents}
     </div>,
     document.body,
   );

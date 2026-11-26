@@ -26,6 +26,7 @@ import { anchorOf, POPOVER, ProvenanceContext, useArtifactProvenance } from "./c
 import { focusBack } from "./focus";
 import { BOUND } from "./inspectMarks";
 import { popoverNames, popoverStyles } from "./sourcesPopover.styles";
+import { SHEET_EXIT_MS, SheetClose, SheetFrame, usePhone } from "./SourcesSheet";
 
 /** Longer than its exit will be, in case `transitionend` never comes. */
 const EXIT_MS = 300;
@@ -73,6 +74,8 @@ export function SourcesPopover({
   const { popover, setPopoverSource, closePopover, focusToggle, renderedIds } = provenance.internal;
   const { selection, sources, isInspecting } = useArtifactProvenance();
   const open = popover !== null && selection !== null;
+  // Below 640px it opens as a bottom sheet.
+  const phone = usePhone();
 
   // Mounted while open, and through the exit, showing what it showed last.
   const [shown, setShown] = useState<Shown | null>(null);
@@ -81,9 +84,9 @@ export function SourcesPopover({
   }
   useEffect(() => {
     if (open || !shown) return;
-    const timer = setTimeout(() => setShown(null), EXIT_MS);
+    const timer = setTimeout(() => setShown(null), phone ? SHEET_EXIT_MS : EXIT_MS);
     return () => clearTimeout(timer);
-  }, [open, shown]);
+  }, [open, shown, phone]);
 
   // Focus goes back to the component on close, or to the Sources toggle once inspect mode ended.
   const [root, setRoot] = useState<HTMLElement | null>(null);
@@ -119,6 +122,7 @@ export function SourcesPopover({
       key={shown.target.id}
       shown={shown}
       open={open}
+      phone={phone}
       sources={sources}
       describeSource={describeSource}
       custom={custom}
@@ -127,6 +131,7 @@ export function SourcesPopover({
       onRoot={setRoot}
       onExited={() => setShown(null)}
       onOpenSource={setPopoverSource}
+      onClose={closePopover}
       onChip={() => (shown.source !== null ? setPopoverSource(null) : closePopover())}
     />
   );
@@ -135,6 +140,7 @@ export function SourcesPopover({
 function Popover({
   shown,
   open,
+  phone,
   sources,
   describeSource,
   custom,
@@ -143,10 +149,13 @@ function Popover({
   onRoot,
   onExited,
   onOpenSource,
+  onClose,
   onChip,
 }: {
   shown: Shown;
   open: boolean;
+  /** In a bottom sheet, below 640px, instead of beside its component. */
+  phone: boolean;
   sources: DataSources;
   describeSource?: Describe;
   custom: boolean;
@@ -156,6 +165,7 @@ function Popover({
   onRoot: (root: HTMLElement | null) => void;
   onExited: () => void;
   onOpenSource: (name: string | null) => void;
+  onClose: () => void;
   onChip: () => void;
 }) {
   const { portalThemeClassName } = useTheme();
@@ -314,12 +324,26 @@ function Popover({
               </>
             )}
           </span>
+          {phone && <SheetClose onClose={onClose} />}
         </header>
         <hr className={clsx(popoverStyles.divider, popoverNames.divider)} />
         <div className={clsx(popoverStyles.body, popoverNames.body)}>{body}</div>
       </>
     ),
   };
+  if (phone) {
+    return (
+      <SheetFrame
+        open={open}
+        setRef={setRef}
+        themeClassName={portalThemeClassName}
+        attributes={frame.attributes}
+        onDismiss={onClose}
+      >
+        {frame.children}
+      </SheetFrame>
+    );
+  }
   return createPortal(
     anchored ? <AnchoredFrame {...frame} /> : <FloatingFrame {...frame} />,
     document.body,
