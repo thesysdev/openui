@@ -20,8 +20,8 @@ const FAQS: MarketingFaq[] = [
   {
     question: "How do I get listed as a Champion?",
     answer: [
-      "Build with OpenUI and help others do the same: contribute to the repo, ship a project, write or demo what you made, or help people get started on Discord.",
-      "Then tell us about it in the OpenUI Discord. The team reviews requests and adds new Champions to this page.",
+      "You don't need to contribute to the OpenUI repo. If you've built something with OpenUI, such as a package, a repo, a demo, or a blog post, you can apply.",
+      "Share what you built in the OpenUI Discord. The team reviews requests and adds new Champions to this page.",
     ],
   },
   {
