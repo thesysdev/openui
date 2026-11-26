@@ -6,6 +6,7 @@ import layout from "../cloud/gateway/sections.module.css";
 import { BevelButton } from "../components/Button/BevelButton";
 import { CHAMPIONS, type Champion } from "../data/champions";
 import pageStyles from "../page.module.css";
+import { FaqSection, type MarketingFaq } from "../sections/FaqSection/FaqSection";
 import {
   FeatureGridSection,
   type GridFeature,
@@ -18,6 +19,34 @@ import styles from "./page.module.css";
 export const metadata = createPageMetadata(page);
 
 const DISCORD_URL = "https://discord.com/invite/Pbv5PsqUSv";
+
+const FAQS: MarketingFaq[] = [
+  {
+    question: "How do I get listed as a Champion?",
+    answer: [
+      "Build with OpenUI and help others do the same: contribute to the repo, ship a project, write or demo what you made, or help people get started on Discord.",
+      "Then tell us about it in the OpenUI Discord. The team reviews requests and adds new Champions to this page.",
+    ],
+  },
+  {
+    question: "Do I need to contribute code?",
+    answer: [
+      "No. Code helps, but so do projects built on OpenUI, tutorials, talks, product feedback, and answering questions from the community.",
+    ],
+  },
+  {
+    question: "What do I need to share to be added?",
+    answer: [
+      "Your name, a square headshot, a one- or two-sentence bio, and the profiles you want linked, such as GitHub, X, or LinkedIn.",
+    ],
+  },
+  {
+    question: "Can I update or remove my profile?",
+    answer: [
+      "Yes. Ask in Discord and we will update or remove it. Profiles live in the open-source OpenUI repo, so you can also open a pull request.",
+    ],
+  },
+];
 
 const WHAT_CHAMPIONS_DO: GridFeature[] = [
   {
@@ -163,6 +192,10 @@ export default function ChampionsPage() {
               </div>
             </div>
           </section>
+        </div>
+
+        <div className={layout.faqBand}>
+          <FaqSection faqs={FAQS} titleId="champions-faq" firstOpen />
         </div>
       </main>
       <Footer />
