@@ -16,7 +16,6 @@ import {
   ProvenanceContext,
   RegionContext,
   useArtifactRenderer,
-  useBuildContext,
   type ArtifactRendererState,
   type Region,
 } from "./contexts";
@@ -138,16 +137,17 @@ export interface LoaderProps {
 }
 
 /**
- * The card's status while the artifact loads: during a build, the build feed on its own line;
- * otherwise a pill. `PreviewError` takes its place after a failure.
+ * The card's status while the artifact loads: while it's pending or streaming, the build feed on
+ * its own line; otherwise a pill. `PreviewError` takes its place after a failure.
  */
 export function PreviewLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("preview");
   const state = useArtifactRenderer();
-  const { build } = useBuildContext();
   if (!inside || !state.isLoading || state.error) return null;
   if (children !== undefined) return <>{children}</>;
-  if (build && label === undefined) return <BuildFeed className={styles.previewFeed} />;
+  if (label === undefined && (state.isPending || state.isStreaming)) {
+    return <BuildFeed className={styles.previewFeed} />;
+  }
   const text = label ?? statusLabel(state);
   return (
     <span
@@ -228,8 +228,7 @@ export function ChromeTitle({ className, children }: PartProps) {
 export function ChromeLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  const { build } = useBuildContext();
-  if (!inside || !state.isLoading || state.isPending || build) return null;
+  if (!inside || !state.isLoading || state.isPending || state.isStreaming) return null;
   if (children !== undefined) return <>{children}</>;
   const text = label ?? statusLabel(state);
   return (
@@ -385,8 +384,7 @@ export function Pending({ children, ...loader }: PendingProps) {
  */
 function BuildDock() {
   const state = useArtifactRenderer();
-  const { build } = useBuildContext();
-  if (!build || state.isPending) return null;
+  if (!state.isStreaming || state.isPending) return null;
   return <DockedBuildFeed />;
 }
 
@@ -394,9 +392,10 @@ export function Loading({ label, children }: LoaderProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
   const config = useContext(ContentConfigContext);
-  const { build } = useBuildContext();
-  // While pending, `Pending` has the content to itself; while a build runs, its feed.
-  if (!inside || !state.isLoading || state.isPending || build || state.error) return null;
+  // While pending, `Pending` has the content to itself; while it streams, the build feed.
+  if (!inside || !state.isLoading || state.isPending || state.isStreaming || state.error) {
+    return null;
+  }
   if (children !== undefined) return <>{children}</>;
   const text = label ?? statusLabel(state);
   return (

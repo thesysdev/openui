@@ -23,6 +23,8 @@ export interface ArtifactRendererState extends Pick<ArtifactSummary, "isOwner" |
    * the scripts it's saving.
    */
   step?: ArtifactBuildStep;
+  /** A new version is streaming in over the one on screen (an edit). */
+  isEditing: boolean;
   /** A newer version finished streaming in over the one on screen in the last few seconds. */
   justUpdated: boolean;
   /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
@@ -58,23 +60,11 @@ export interface ContentConfig {
   render: () => ReactNode;
   /** Nothing to show yet: the first content hasn't arrived. */
   isEmpty: boolean;
-}
-
-export const ContentConfigContext = createContext<ContentConfig | null>(null);
-
-/** The build on screen, until its stream ends: a new dashboard, or a new version of one (an edit). */
-export type BuildKind = "new" | "edit";
-
-/** What the build feed shows. @internal */
-export interface BuildContextValue {
-  build: BuildKind | null;
-  /** "dashboard" for a live renderer. Without it, the feed says "Generating…" while it writes. */
+  /** What's built, for the build feed: "dashboard" in a live renderer. */
   noun?: string;
 }
 
-export const BuildContext = createContext<BuildContextValue>({ build: null });
-
-export const useBuildContext = () => useContext(BuildContext);
+export const ContentConfigContext = createContext<ContentConfig | null>(null);
 
 /** Values a region passes down to its default parts, when given as props. */
 export interface PreviewOverrides {

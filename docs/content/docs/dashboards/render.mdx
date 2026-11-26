@@ -171,6 +171,7 @@ function DashboardError() {
 | `isOwner`, `isEditable`   | Whether the user owns it, and whether they can edit, rename, and share it. Kept current while it's open.    |
 | `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.        |
 | `isStreaming`             | The dashboard is being generated.                                                                           |
+| `isEditing`               | A new version is streaming in over the one on screen (an edit).                                             |
 | `isFetching`              | Its queries are running.                                                                                    |
 | `isLoading`               | Any of the three.                                                                                           |
 | `step`                    | During a build, `{ tools, scripts }`: the data tools it's calling and scripts it's writing, empty at first. |

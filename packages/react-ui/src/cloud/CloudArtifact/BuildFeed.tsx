@@ -3,10 +3,10 @@
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { LoaderCircle } from "lucide-react";
-import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useContext, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { feedNames, feedStyles as s } from "./buildFeed.styles";
 import { names, styles } from "./cloudArtifact.styles";
-import { useArtifactRenderer, useBuildContext } from "./contexts";
+import { ContentConfigContext, useArtifactRenderer } from "./contexts";
 
 /*
  * The build feed: one animated line saying what the build is doing now. "Thinking…", the calls
@@ -31,12 +31,12 @@ export const stepWords = (step: ArtifactBuildStep) =>
 
 /** The feed's line for the build on screen. */
 function useFeedLine(): { label: string; detail?: string; calling: boolean } {
-  const { step, isPending } = useArtifactRenderer();
-  const { build, noun } = useBuildContext();
+  const { step, isPending, isEditing } = useArtifactRenderer();
+  const noun = useContext(ContentConfigContext)?.noun;
   const words = step && stepWords(step);
   if (words) return { label: words.verb, detail: `${words.names}…`, calling: true };
   if (step || isPending) return { label: "Thinking…", calling: false };
-  const verb = build === "edit" ? "Updating" : "Building";
+  const verb = isEditing ? "Updating" : "Building";
   return { label: noun ? `${verb} ${noun}…` : "Generating…", calling: false };
 }
 

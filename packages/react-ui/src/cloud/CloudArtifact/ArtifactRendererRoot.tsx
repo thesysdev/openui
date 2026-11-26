@@ -34,14 +34,11 @@ import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
-  BuildContext,
   ContentConfigContext,
   createSourcesStore,
   ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
-  type BuildContextValue,
-  type BuildKind,
   type ContentConfig,
   type ProvenanceContextValue,
 } from "./contexts";
@@ -207,31 +204,16 @@ function useBuildPending({
 }
 
 /**
- * The build on screen, until its stream ends: a new dashboard from when it's pending, or an edit
- * from its first step over the dashboard on screen. Opening a saved dashboard isn't a build.
+ * An edit: the stream running now started while the artifact had content, so a new version is
+ * coming in over the one on screen. A new dashboard's stream starts without any.
  */
-function useBuildKind({
-  isPending,
-  hasContent,
-  isStreaming,
-  hasStep,
-  failed,
-}: {
-  isPending: boolean;
-  hasContent: boolean;
-  isStreaming: boolean;
-  hasStep: boolean;
-  failed: boolean;
-}): BuildKind | null {
-  const [build, setBuild] = useState<BuildKind | null>(null);
-  let next = build;
-  if (failed) next = null;
-  else if (isPending) next = "new";
-  else if (next === null && hasStep && hasContent) next = "edit";
-  else if (next !== null && !isStreaming) next = null;
+function useIsEditing(isStreaming: boolean, hasContent: boolean): boolean {
+  // Whether the running stream started over content; null between streams.
+  const [overContent, setOverContent] = useState<boolean | null>(null);
+  const next = isStreaming ? (overContent ?? hasContent) : null;
   // During render, like `useBuildPending`, so the feed doesn't blink as one state hands to the next.
-  if (next !== build) setBuild(next);
-  return next;
+  if (next !== overContent) setOverContent(next);
+  return next === true;
 }
 
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
@@ -434,20 +416,8 @@ export function ArtifactRendererRoot({
     hasStep: stream.step !== undefined,
   });
 
-  // ── Build feed: the build on screen, if any ──
-  const build = useBuildKind({
-    isPending,
-    hasContent: !!program,
-    isStreaming: stream.isStreaming,
-    hasStep: stream.step !== undefined,
-    failed: artifactError !== null,
-  });
-  const buildContext = useMemo<BuildContextValue>(
-    () => ({ build, noun: interpreter ? "dashboard" : undefined }),
-    [build, interpreter],
-  );
-
   // ── State for useArtifactRenderer() ──
+  const isEditing = useIsEditing(stream.isStreaming, !!program);
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
   const state = useShallowStable<ArtifactRendererState>({
@@ -461,6 +431,7 @@ export function ArtifactRendererRoot({
     isFetching,
     isLoading: isPending || isStreaming || isFetching,
     step: stream.step,
+    isEditing,
     justUpdated: stream.justUpdated,
     error,
     retry,
@@ -472,6 +443,7 @@ export function ArtifactRendererRoot({
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
+      noun: interpreter ? "dashboard" : undefined,
       render: () =>
         renderContent({
           program,
@@ -586,33 +558,31 @@ export function ArtifactRendererRoot({
 
   return (
     <RendererStateContext.Provider value={state}>
-      <BuildContext.Provider value={buildContext}>
-        <ProvenanceContext.Provider value={provenance}>
-          <ContentConfigContext.Provider value={contentConfig}>
-            <div
-              ref={rootRef}
-              className={clsx(styles.root, names.root, className)}
-              onClickCapture={inspecting ? onInspectCapture : undefined}
-              onPointerDownCapture={inspecting ? onInspectCapture : undefined}
-              onMouseDownCapture={inspecting ? onInspectCapture : undefined}
-              onMouseOver={inspecting ? onInspectHover : undefined}
-              onMouseLeave={inspecting ? clearHovered : undefined}
-            >
-              {preview ? (
-                <>
-                  <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
-                  {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
-                  {isOpen &&
-                    renderInHtmlElement !== null &&
-                    (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
-                </>
-              ) : (
-                <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
-              )}
-            </div>
-          </ContentConfigContext.Provider>
-        </ProvenanceContext.Provider>
-      </BuildContext.Provider>
+      <ProvenanceContext.Provider value={provenance}>
+        <ContentConfigContext.Provider value={contentConfig}>
+          <div
+            ref={rootRef}
+            className={clsx(styles.root, names.root, className)}
+            onClickCapture={inspecting ? onInspectCapture : undefined}
+            onPointerDownCapture={inspecting ? onInspectCapture : undefined}
+            onMouseDownCapture={inspecting ? onInspectCapture : undefined}
+            onMouseOver={inspecting ? onInspectHover : undefined}
+            onMouseLeave={inspecting ? clearHovered : undefined}
+          >
+            {preview ? (
+              <>
+                <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
+                {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
+                {isOpen &&
+                  renderInHtmlElement !== null &&
+                  (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
+              </>
+            ) : (
+              <RegionProvider region="chrome">{regions.chrome ?? <Content />}</RegionProvider>
+            )}
+          </div>
+        </ContentConfigContext.Provider>
+      </ProvenanceContext.Provider>
     </RendererStateContext.Provider>
   );
 }
