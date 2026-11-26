@@ -8,7 +8,7 @@ export const ReferenceComponent = defineComponent({
   name: "Reference",
   props: referencePropsSchema,
   description:
-    'A target or SLO line: Reference("Target", 99.5). axis "x" draws a vertical line (Scatter only), e.g. an average on the x measure.',
+    'A target or SLO line: Reference("Target", 99.5). Its chip prints "Target · 1.2M", so label it "Target", not "Target 1.2M". axis "x" draws a vertical line (Scatter only), e.g. an average on the x measure.',
   component: () => null,
 });
 

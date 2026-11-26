@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { Play } from "lucide-react";
 import { Button } from "../../components/Button";
 import { useArtifactRenderer } from "../CloudArtifact/contexts";
-import { PreviewLoader, PreviewTitle } from "../CloudArtifact/slots";
+import { PreviewError, PreviewLoader, PreviewTitle } from "../CloudArtifact/slots";
 import { names, styles } from "./agentInterface.styles";
 
 /** A thumbnail of a dashboard, like the slides and report ones. */
@@ -31,7 +31,8 @@ export function DashboardIllustration() {
 
 /** The card in the chat, laid out like the slides and report cards. */
 export function DashboardCard({ label }: { label: string }) {
-  const { isOpen, open, close } = useArtifactRenderer();
+  const { isOpen, open, close, isPending, isStreaming } = useArtifactRenderer();
+  const building = isPending || isStreaming;
   const toggle = isOpen ? close : open;
   return (
     <div className={styles.cardContainer}>
@@ -41,8 +42,11 @@ export function DashboardCard({ label }: { label: string }) {
           <PreviewTitle />
           <span className={clsx(styles.cardLabel, names.cardLabel)}>
             {label}
-            <PreviewLoader />
+            {/* A build's feed takes its own line; a loader pill sits beside the label. */}
+            {!building && <PreviewLoader />}
+            <PreviewError />
           </span>
+          {building && <PreviewLoader />}
         </div>
         <Button
           size="small"

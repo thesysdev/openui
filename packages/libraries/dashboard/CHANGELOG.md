@@ -1,5 +1,11 @@
 # @openuidev/dashboard-library
 
+## 1.1.1
+
+### Patch Changes
+
+- [#1722](https://github.com/thesysdev/openui/pull/1722) [`f9d365e`](https://github.com/thesysdev/openui/commit/f9d365e352086e816d4ea531e9ca2a50e6c351a8) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Prompt: order the page as answer, then explanation, then detail; keep headline numbers distinct; add the filters a request implies, opened on what it asks about, including over tools that take a query string; one value axis per chart; plain titles and labels; a period in progress stated once; a CompareToggle only where a chart has previous points. Column, Section and Reference descriptions state how they print deltas, descriptions and reference labels.
+
 ## 1.1.0
 
 ### Minor Changes

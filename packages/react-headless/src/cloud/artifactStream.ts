@@ -101,13 +101,13 @@ const ERROR_CODES = new Set<string>([
   "unauthorized",
 ]);
 
-/** A step's names, or `undefined` for an empty or malformed one. */
+/** A step's names (both empty: the build started), or `undefined` for a malformed one. */
 const stepOf = (data: unknown): ArtifactBuildStep | undefined => {
+  if (typeof data !== "object" || data === null) return undefined;
   const names = (value: unknown) =>
     Array.isArray(value) ? value.filter((name): name is string => typeof name === "string") : [];
-  const { tools, scripts } = (data ?? {}) as Partial<Record<keyof ArtifactBuildStep, unknown>>;
-  const step = { tools: names(tools), scripts: names(scripts) };
-  return step.tools.length > 0 || step.scripts.length > 0 ? step : undefined;
+  const { tools, scripts } = data as Partial<Record<keyof ArtifactBuildStep, unknown>>;
+  return { tools: names(tools), scripts: names(scripts) };
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

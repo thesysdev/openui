@@ -1,5 +1,11 @@
 # @openuidev/react-headless
 
+## 0.20.0
+
+### Patch Changes
+
+- [#1713](https://github.com/thesysdev/openui/pull/1713) [`e2aa773`](https://github.com/thesysdev/openui/commit/e2aa7736700181ef47813d7238d7aa57afdc5fea) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - A dashboard build's `step` with no tools or scripts yet is kept, so a renderer shows the build as soon as it starts.
+
 ## 0.19.0
 
 ### Patch Changes
