@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/assistant-ui",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "OpenUI Lang tool renderers and instruction wiring for assistant-ui",
   "license": "MIT",
   "engines": {
