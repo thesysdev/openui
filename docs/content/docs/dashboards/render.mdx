@@ -96,9 +96,9 @@ The model writes the tool call's arguments before `create` runs, which can take 
 
 Unmount it if the call stops or fails without a result, or it stays pending. In `AgentInterface`, `defineLiveArtifactRenderer` from `@openuidev/react-ui/cloud/agent-interface` does both.
 
-The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming. Over the sketch, the build's feed says what it's doing, with a timer: "Thinking…", then the calls by name ("Calling list_orders…" while it calls tools, "Writing and testing revenueByDay…" while it writes scripts), then "Building dashboard…", then "Ready", "Stopped" or "Couldn't build" and why. Its chevron opens every call so far, newest first, with how long each took.
+The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming. At the bottom centre, the build's feed says what it's doing, with a timer: "Thinking…", then the calls by name ("Calling list_orders…" while it calls tools, "Writing and testing revenueByDay…" while it writes scripts), then "Building dashboard…", then "Ready", "Stopped" or "Couldn't build" and why. Its chevron opens every call so far, newest first, with how long each took.
 
-The card's loader is the same feed, and it stays once the build ends ("Ready · 3 tool calls, 1 script · 11s"). Once the dashboard is on screen, and while an edit builds over it, the feed sits at the bottom of the content instead of the bar's loader, and stays a moment after it ends. The feed remembers a build only in this page: after a reload it shows a build that's still running, from when the page saw it.
+The card's loader is the same feed, and it stays once the build ends ("Ready · 3 tool calls, 1 script · 11s"). The feed stays in that spot for the whole build, over the sketch and then over the dashboard as it's written, and while an edit builds over it. The bar's loader waits while it shows, and it stays a moment after the build ends. The feed remembers a build only in this page: after a reload it shows a build that's still running, from when the page saw it.
 
 ## Slots
 

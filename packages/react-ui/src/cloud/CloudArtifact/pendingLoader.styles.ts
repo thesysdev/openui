@@ -120,14 +120,13 @@ export const pendingLoaderStyles = {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 16px;
   `,
-  // The feed, a fifth of the way down, over the sketch.
+  // The feed at the bottom centre, where it stays once the dashboard is written (the dock).
   overlay: css`
     position: absolute;
-    inset: 22% 0 auto;
+    inset: auto 0 var(--openui-space-m);
     z-index: 5;
     display: flex;
     justify-content: center;
-    padding: 0 var(--openui-space-m);
     pointer-events: none;
   `,
   // A custom label: the renderer's loading pill, over the sketch.
