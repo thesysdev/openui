@@ -47,16 +47,6 @@ function supportsAnchoring() {
   );
 }
 
-/** The ids of the components that render an element of their own, in the anchor's document. */
-function renderedIds(anchor: Element) {
-  const ids = new Set<string>();
-  for (const element of anchor.ownerDocument.querySelectorAll("[data-openui-source]")) {
-    const id = element.getAttribute("data-openui-source");
-    if (id) ids.add(id);
-  }
-  return ids;
-}
-
 /** What the popover shows: its component, and the source open in it. Kept through its exit. */
 interface Shown {
   target: SourceTarget;
@@ -80,7 +70,7 @@ export function SourcesPopover({
   onCustomHost: (host: HTMLElement | null) => void;
 }) {
   const provenance = useContext(ProvenanceContext)!;
-  const { popover, setPopoverSource, closePopover, focusToggle } = provenance.internal;
+  const { popover, setPopoverSource, closePopover, focusToggle, renderedIds } = provenance.internal;
   const { selection, sources, isInspecting } = useArtifactProvenance();
   const open = popover !== null && selection !== null;
 
@@ -120,6 +110,7 @@ export function SourcesPopover({
       describeSource={describeSource}
       custom={custom}
       onCustomHost={onCustomHost}
+      renderedIds={renderedIds}
       onRoot={setRoot}
       onExited={() => setShown(null)}
       onOpenSource={setPopoverSource}
@@ -136,6 +127,7 @@ function Popover({
   describeSource,
   custom,
   onCustomHost,
+  renderedIds,
   onRoot,
   onExited,
   onOpenSource,
@@ -148,6 +140,8 @@ function Popover({
   describeSource?: Describe;
   custom: boolean;
   onCustomHost: (host: HTMLElement | null) => void;
+  /** The components that render an element, found through React's tree as inspect mode finds them. */
+  renderedIds: () => ReadonlySet<string>;
   onRoot: (root: HTMLElement | null) => void;
   onExited: () => void;
   onOpenSource: (name: string | null) => void;
@@ -163,14 +157,14 @@ function Popover({
   const value = target.propElement?.textContent?.trim() || undefined;
 
   const entries = useMemo(() => {
-    const rendered = renderedIds(anchor);
+    const rendered = renderedIds();
     const index = sourceIndex(sources, { renders: (id) => rendered.has(id) });
     const names = index.components.get(target.id)?.sources ?? [];
     return names.flatMap((name) => {
       const each = index.sources.get(name);
       return each ? [sourceEntry(each, sources, describeSource)] : [];
     });
-  }, [sources, target.id, anchor, describeSource]);
+  }, [sources, target.id, renderedIds, describeSource]);
   const entry = source !== null ? entries.find((each) => each.name === source) : undefined;
   const view = entry ? `source\u0000${entry.name}` : "list";
 

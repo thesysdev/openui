@@ -4,6 +4,7 @@ import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { openuiLibrary } from "../../../genui-lib";
 import {
   dashboardLibrary,
   describeSource,
@@ -332,6 +333,55 @@ describe("The Sources popover", () => {
     const dialog = popover("Weekly signups");
     expect(within(dialog).getByText("Picked signups")).toBeTruthy();
     expect(within(dialog).queryByRole("list", { name: "Sources" })).toBeNull();
+  });
+});
+
+describe("The Sources popover, on the standard library", () => {
+  // The standard Table renders no `data-openui-source` of its own, and its columns render
+  // nothing: React's tree finds it, and its columns' queries are its own.
+  const program = `root = Stack([daily])
+dailyQ = Query("postgres_query", {sql: "SELECT day, revenue FROM orders GROUP BY 1"}, {rows: []})
+daily = Table([Col("Day", dailyQ.rows.day), Col("Revenue", dailyQ.rows.revenue)])`;
+  // jsdom has no ResizeObserver, which the standard Table measures itself with.
+  beforeEach(() => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("lists the queries a table's columns read", async () => {
+    const { Chrome, ProvenanceToggle, Content, Provenance } = LiveArtifactRenderer;
+    act(() =>
+      root.render(
+        createElement(LiveArtifactRenderer, {
+          id: "demo-standard-table",
+          content: program,
+          library: openuiLibrary,
+          interpreter: async () => ({ rows: [{ day: "Mon", revenue: 1200 }] }),
+          preview: false,
+          enableProvenance: true,
+          children: createElement(
+            Chrome,
+            null,
+            createElement(ProvenanceToggle),
+            createElement(Content, null, createElement(Provenance, { describeSource })),
+          ),
+        }),
+      ),
+    );
+    await settle();
+    await inspect();
+    const table = container.querySelector<HTMLElement>("[data-openui-bound='daily']");
+    expect(table).not.toBeNull();
+    await user.click(table!);
+    await settle();
+    expect(listed(screen.getByRole("dialog", { name: /^Sources for/ }))).toEqual(["dailyQ"]);
   });
 });
 
