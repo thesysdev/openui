@@ -2,9 +2,9 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { DataSourcesPanel } from "../DataSourcesPanel";
+import { DataSourcesContents, sourcesTitle } from "../DataSourcesContents";
 import { describeSource, sources } from "../stories/fixtures";
-import type { DataSourcesPanelProps } from "../types";
+import type { DataSourcesContentsProps } from "../types";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -20,10 +20,10 @@ afterEach(() => {
   container.remove();
 });
 
-function render(props: Partial<DataSourcesPanelProps>) {
+function render(props: Partial<DataSourcesContentsProps>) {
   act(() =>
     root.render(
-      createElement(DataSourcesPanel, { sources, selection: null, describeSource, ...props }),
+      createElement(DataSourcesContents, { sources, selection: null, describeSource, ...props }),
     ),
   );
 }
@@ -45,7 +45,7 @@ const rows = () =>
   );
 const code = () => [...container.querySelectorAll("pre")].map((el) => el.textContent);
 
-describe("DataSourcesPanel", () => {
+describe("DataSourcesContents", () => {
   it("lists every query, in program order, named by the app", () => {
     render({});
     const items = [...container.querySelectorAll("li")].map((el) => el.textContent);
@@ -73,6 +73,12 @@ describe("DataSourcesPanel", () => {
     expect(rows()).toEqual(["QuerySQL", "Result (open)"]);
     expect(container.querySelectorAll("tbody tr")).toHaveLength(7);
     expect(text()).toContain("7 rows · 3 fields");
+  });
+
+  it("sums up a one-value Result by its shape, as any other", () => {
+    render({ selection: { id: "revenue" } });
+    expect(rows()).toEqual(["QuerySQL", "Result (open)", "Formula"]);
+    expect(text()).toContain("1 row · 1 field");
   });
 
   it("shows only the Formula when no query is behind a value", () => {
@@ -105,14 +111,16 @@ describe("DataSourcesPanel", () => {
     expect(rows()[0]).toBe("QueryScript (open)");
   });
 
-  it("goes back to every query, and closes", () => {
-    const onBack = vi.fn();
-    const onClose = vi.fn();
-    render({ selection: { id: "daily" }, onBack, onClose });
-    click(button("Back to all queries"));
-    click(button("Close"));
-    expect(onBack).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+  // Back and Close are the surrounding surface's; the contents open a
+  // query from the list, and show it.
+  it("opens a query from the list: its Query, then its Result", () => {
+    const onOpenQuery = vi.fn();
+    render({ onOpenQuery });
+    click(button("dailyQ"));
+    expect(onOpenQuery).toHaveBeenCalledWith("dailyQ");
+    render({ onOpenQuery, query: "dailyQ" });
+    expect(rows()).toEqual(["QuerySQL (open)", "Result"]);
+    expect(code()[0]).toContain("GROUP BY 1");
   });
 
   it("says when the picked component is no longer in the program", () => {
@@ -123,7 +131,7 @@ describe("DataSourcesPanel", () => {
   it("without the app's descriptions, guesses nothing: the tool name and its arguments", () => {
     render({ describeSource: undefined });
     expect(container.querySelectorAll("li")[0]?.textContent).toBe("revenueQpostgres_query");
-    expect(container.querySelector("li svg, li .openui-data-sources-panel__mark")).toBeNull();
+    expect(container.querySelector("li svg, li .openui-data-sources-dialog__mark")).toBeNull();
     render({ describeSource: undefined, selection: { id: "revenue", prop: "value" } });
     expect(rows()[0]).toBe("Querypostgres_query (open)");
     expect(JSON.parse(code()[0] ?? "")).toEqual({
@@ -131,5 +139,76 @@ describe("DataSourcesPanel", () => {
         sources.queries["revenueQ"]?.args &&
         (sources.queries["revenueQ"].args as { sql: string }).sql,
     });
+  });
+});
+
+describe("sourcesTitle", () => {
+  const withProps = (props: Record<string, string>) => ({
+    ...sources,
+    components: {
+      tile: {
+        queries: [],
+        via: [],
+        state: [],
+        props: Object.fromEntries(
+          Object.entries(props).map(([name, expr]) => [
+            name,
+            { queries: [], via: [], state: [], expr, components: [] },
+          ]),
+        ),
+      },
+    },
+  });
+
+  it("names a picked component by its title, label or name, as written", () => {
+    expect(sourcesTitle(sources, { id: "revenue", prop: "value" })).toBe("Revenue this quarter");
+    expect(sourcesTitle(withProps({ label: '"Orders"', name: '"orders"' }), { id: "tile" })).toBe(
+      "Orders",
+    );
+    expect(sourcesTitle(withProps({ name: '"Signups \\"weekly\\""' }), { id: "tile" })).toBe(
+      'Signups "weekly"',
+    );
+  });
+
+  it("falls back to the id when the label isn't a string literal", () => {
+    expect(sourcesTitle(withProps({ title: "headline.text" }), { id: "tile" })).toBe("tile");
+    expect(sourcesTitle(withProps({ label: "42" }), { id: "tile" })).toBe("tile");
+    expect(sourcesTitle(sources, { id: "kpiRow", prop: "children" })).toBe("kpiRow");
+    expect(sourcesTitle(null, { id: "revenue" })).toBe("revenue");
+  });
+
+  it("names a component with no label of its own by the nearest one around it", () => {
+    const component = (props: Record<string, [string, string[]?]>) => ({
+      queries: [],
+      via: [],
+      state: [],
+      props: Object.fromEntries(
+        Object.entries(props).map(([name, [expr, components = []]]) => [
+          name,
+          { queries: [], via: [], state: [], expr, components },
+        ]),
+      ),
+    });
+    // Section("Monthly sales", [Card("Last 6 months of data", [Table([...])])])
+    const nested = {
+      ...sources,
+      components: {
+        section: component({ title: ['"Monthly sales"'], rows: ["[card]", ["card"]] }),
+        card: component({
+          title: ['"Last 6 months of data"'],
+          content: ["[monthsTable]", ["monthsTable"]],
+        }),
+        monthsTable: component({ columns: ["[month, sales]", ["monthsTable.1"]] }),
+        "monthsTable.1": component({ values: ["monthsQ.rows"] }),
+      },
+    };
+    expect(sourcesTitle(nested, { id: "monthsTable" })).toBe("Last 6 months of data");
+    expect(sourcesTitle(nested, { id: "monthsTable.1" })).toBe("Last 6 months of data");
+    expect(sourcesTitle(nested, { id: "card" })).toBe("Last 6 months of data");
+  });
+
+  it("names a query opened from the list by its name, and the list Sources", () => {
+    expect(sourcesTitle(sources, null, "signupsQ")).toBe("signupsQ");
+    expect(sourcesTitle(sources, null)).toBe("Sources");
   });
 });

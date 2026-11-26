@@ -1,5 +1,5 @@
 import { css } from "@openuidev/react-components";
-import { typography } from "../CloudArtifact/cloudArtifact.styles";
+import { typography } from "../shared.styles";
 
 /** Stable class names, to target from your own CSS. */
 export const names = {

@@ -128,15 +128,28 @@ export const sources: DataSources = {
 
 /**
  * How the sample app names its tools. It knows them, so it says which product each one reads and
- * shows the query text it sent; the panel itself never guesses either.
+ * shows the query text it sent; the dialog itself never guesses either.
  */
+/** The table a sample query reads: what follows its `FROM`. */
+const tableOf = (text: unknown) => /\bFROM\s+([\w.]+)/i.exec(String(text ?? ""))?.[1];
+
 export const describeSource = (toolName: string, args: unknown): SourceDescription | undefined => {
   const values = (args ?? {}) as Record<string, unknown>;
   switch (toolName) {
     case "postgres_query":
-      return { kind: "Postgres", codeLabel: "SQL", code: String(values["sql"] ?? "") };
+      return {
+        kind: "Postgres",
+        table: tableOf(values["sql"]),
+        codeLabel: "SQL",
+        code: String(values["sql"] ?? ""),
+      };
     case "posthog_query":
-      return { kind: "PostHog", codeLabel: "HogQL", code: String(values["hogql"] ?? "") };
+      return {
+        kind: "PostHog",
+        table: tableOf(values["hogql"]),
+        codeLabel: "HogQL",
+        code: String(values["hogql"] ?? ""),
+      };
     case "ga4_report":
       return { kind: "GA4", codeLabel: "Report" };
     case "revenue_vs_target":
@@ -307,9 +320,51 @@ const Table = defineComponent({
   },
 });
 
+const Heading = defineComponent({
+  name: "Heading",
+  props: z.object({ text: z.string() }),
+  description: "A section heading.",
+  component: ({ props, bindSource }) => (
+    <h3 style={{ gridColumn: "1 / -1", margin: 0, fontSize: 16 }} {...bindSource?.()}>
+      {props.text}
+    </h3>
+  ),
+});
+
+const Note = defineComponent({
+  name: "Note",
+  props: z.object({ text: z.string() }),
+  description: "A line of plain text.",
+  component: ({ props, bindSource }) => (
+    <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: 13 }} {...bindSource?.()}>
+      {props.text}
+    </p>
+  ),
+});
+
+const Group = defineComponent({
+  name: "Group",
+  props: z.object({ title: z.string(), children: z.array(z.any()) }),
+  description: "A titled row of tiles.",
+  component: ({ props, renderNode, bindSource }) => (
+    <section style={{ gridColumn: "1 / -1" }} {...bindSource?.()}>
+      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>{props.title}</div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: 12,
+        }}
+      >
+        {renderNode(props.children)}
+      </div>
+    </section>
+  ),
+});
+
 export const dashboardLibrary = createLibrary({
   root: "Board",
-  components: [Board, Kpi, Bars, Table],
+  components: [Board, Kpi, Bars, Table, Heading, Note, Group],
 });
 
 export const dashboardProgram = `root = Board([revenue, signups, margin, channels, daily, target])
@@ -326,6 +381,31 @@ channels = Bars("Sessions by channel", channelsQ.rows)
 daily = Table("Daily revenue", dailyQ.rows)
 target = Table("Revenue vs target", targetQ.rows)`;
 
+const COST_SQL =
+  "SELECT sum(cost) AS cost FROM order_items WHERE created_at >= date_trunc('quarter', now())";
+
+/**
+ * The Full flow dashboard: a heading and a note (not data-bound), a container of KPIs (one a
+ * literal, one a margin built by a formula from two queries), a chart and a table.
+ */
+export const fullFlowProgram = `root = Board([heading, intro, kpis, channels, daily])
+heading = Heading("Retail overview")
+intro = Note("Paid orders only, refreshed hourly.")
+kpis = Group("This quarter", [revenue, signups, margin, goal])
+revenueQ = Query("postgres_query", {sql: "${REVENUE_SQL}"}, {rows: []})
+costQ = Query("postgres_query", {sql: "${COST_SQL}"}, {rows: []})
+dailyQ = Query("postgres_query", {sql: "${DAILY_SQL}"}, {rows: []})
+signupsQ = Query("posthog_query", {hogql: "${SIGNUPS_HOGQL}"}, {rows: []})
+channelsQ = Query("ga4_report", {dimensions: ["sessionDefaultChannelGroup"], metrics: ["sessions"]}, {rows: []})
+now = @First(revenueQ.rows)
+grossMargin = (@First(revenueQ.rows).revenue - @First(costQ.rows).cost) / @First(revenueQ.rows).revenue
+revenue = Kpi("Revenue this quarter", now.revenue, "Paid orders since Oct 1")
+signups = Kpi("Weekly signups", @First(signupsQ.rows).signups)
+margin = Kpi("Gross margin", grossMargin)
+goal = Kpi("Goal", 250000)
+channels = Bars("Sessions by channel", channelsQ.rows)
+daily = Table("Daily revenue", dailyQ.rows)`;
+
 const results: Record<string, unknown> = {
   postgres_query: null,
   posthog_query: { rows: [{ signups: 2318 }] },
@@ -338,7 +418,10 @@ export async function interpreter(request: { name: string; arguments: Record<str
   await new Promise((resolve) => setTimeout(resolve, 300));
   if (request.name === "postgres_query") {
     const sql = String(request.arguments["sql"] ?? "");
-    return sql.includes("GROUP BY 1") ? { rows: dailyRows } : { rows: [{ revenue: 184920 }] };
+    if (sql.includes("GROUP BY 1")) return { rows: dailyRows };
+    // 38.6% gross margin over the revenue above.
+    if (sql.includes("sum(cost)")) return { rows: [{ cost: 113541 }] };
+    return { rows: [{ revenue: 184920 }] };
   }
   return results[request.name] ?? { rows: [] };
 }

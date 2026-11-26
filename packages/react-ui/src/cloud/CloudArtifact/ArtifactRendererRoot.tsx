@@ -25,6 +25,7 @@ import {
   useState,
   useSyncExternalStore,
   type ReactElement,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type SyntheticEvent,
 } from "react";
@@ -34,15 +35,28 @@ import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
+  anchorOf,
   ContentConfigContext,
   createSourcesStore,
+  MENU,
+  POPOVER,
   ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
   type ContentConfig,
+  type MenuState,
+  type PopoverState,
   type ProvenanceContextValue,
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
+import { hasLentTabIndex } from "./focus";
+import {
+  BOUND,
+  boundTarget,
+  createInspectMarks,
+  findBoundTarget,
+  renderedComponents,
+} from "./inspectMarks";
 import {
   Chrome,
   ChromeActions,
@@ -124,7 +138,7 @@ export interface RenderContentArgs {
 
 export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
   interpreter?: Interpreter;
-  /** Inspect mode, its toggle and panel. Live renderers only. */
+  /** Inspect mode, the Sources split button, popover and All sources menu. Live renderers only. */
   enableProvenance?: boolean;
   renderContent: (args: RenderContentArgs) => ReactNode;
 }
@@ -150,6 +164,9 @@ const usableInterval = (value: number | false | undefined) =>
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
+/** What handles Escape itself, so it shouldn't also step out of Sources. */
+const OWNS_ESCAPE =
+  "[role=menu], [role=menuitem], [role=listbox], [role=option], [role=dialog], [role=combobox], select";
 
 /** One field of the artifact's cached summary: only a change to that field re-renders. */
 function useCachedField<K extends "title" | "isOwner" | "isEditable">(
@@ -466,23 +483,151 @@ export function ArtifactRendererRoot({
     ],
   );
 
-  // ── Provenance: inspect mode and the selected component ──
+  // ── Provenance: inspect mode, the selected component, its popover and the All sources menu ──
   const rootRef = useRef<HTMLDivElement>(null);
-  const [isInspecting, setInspecting] = useState(false);
+  const [isInspecting, setIsInspecting] = useState(false);
   const [selection, setSelection] = useState<SourceTarget | null>(null);
+  // The All sources menu: open on its list, or on one of its sources. Only one Sources surface
+  // is open at a time: the menu or the selection's popover.
+  const [menu, setMenu] = useState<MenuState | null>(null);
+  // The selection's Sources popover: open on its list, or on one of its sources.
+  const [popover, setPopover] = useState<PopoverState | null>(null);
+  // A popover is always the selection's: with nothing selected, it's closed.
+  if (popover && !selection) setPopover(null);
   // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
   const clearSelection = useCallback(() => setSelection(null), []);
+  const openAllSources = useCallback(() => {
+    // What opened it, for where it sits and where focus goes back.
+    const opener = document.activeElement !== document.body ? document.activeElement : null;
+    setSelection(null);
+    setPopover(null);
+    setMenu((current) => current ?? { source: null, opener });
+  }, []);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  const setMenuSource = useCallback(
+    (source: string | null) => setMenu((current) => (current ? { ...current, source } : current)),
+    [],
+  );
+  /** Picks a data-bound component and opens its popover, on its list or on one source. */
+  const openPopover = useCallback(
+    (target: SourceTarget, source: string | null = null, returnTo: Element | null = null) => {
+      setSelection(target);
+      setMenu(null);
+      setPopover({ source, returnTo });
+    },
+    [],
+  );
+  const setPopoverSource = useCallback(
+    (source: string | null) =>
+      setPopover((current) => (current ? { ...current, source } : current)),
+    [],
+  );
+  const closePopover = useCallback(() => setPopover(null), []);
+  // The content can be portaled into `renderInHtmlElement`, outside the root.
+  const contentAreas = useCallback(
+    () => [rootRef.current, renderInHtmlElement].filter((area): area is HTMLElement => !!area),
+    [renderInHtmlElement],
+  );
+  const renderedIds = useCallback(
+    () => renderedComponents(contentAreas(), rootRef.current),
+    [contentAreas],
+  );
+  // A Used by link finds its component on the page itself: outside inspect mode nothing is marked.
+  const openUsedBy = useCallback(
+    (id: string, source: string) => {
+      const target = findBoundTarget(contentAreas(), rootRef.current, sourcesStore.get(), id);
+      if (!target) return;
+      target.element.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+      // Outside inspect mode the component takes no focus: it goes back to what opened the menu.
+      openPopover(target, source, menu?.opener ?? null);
+    },
+    [contentAreas, sourcesStore, openPopover, menu],
+  );
+  // Focus goes to the Sources toggle, else nowhere: an item that holds it once inspect mode ends
+  // would keep the page's focus ring, with nothing to take it off.
+  const focusToggle = useCallback(() => {
+    const toggle = [rootRef.current, renderInHtmlElement]
+      .map((area) => area?.querySelector<HTMLElement>(`.${names.provenanceToggle}`))
+      .find((element) => !!element);
+    if (toggle) toggle.focus({ preventScroll: true });
+    else if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  }, [renderInHtmlElement]);
+  // Leaving inspect mode leaves nothing behind: no popover, no selection, and no focus on what
+  // only inspect mode made focusable or picked. Entering it closes the menu.
+  const setInspecting = useCallback(
+    (on: boolean) => {
+      setIsInspecting(on);
+      if (on) {
+        setMenu(null);
+        return;
+      }
+      setPopover(null);
+      setSelection(null);
+      const focused = document.activeElement;
+      if (
+        focused &&
+        (focused.hasAttribute(BOUND) ||
+          hasLentTabIndex(focused) ||
+          (focused.hasAttribute("data-openui-selected") &&
+            [rootRef.current, renderInHtmlElement].some((area) => area?.contains(focused))))
+      ) {
+        focusToggle();
+      }
+    },
+    [renderInHtmlElement, focusToggle],
+  );
+  const isPopoverOpen = popover !== null && selection !== null;
+  const isAllSourcesOpen = menu !== null;
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       enableProvenance
-        ? { isInspecting, setInspecting, selection, clearSelection, sourcesStore }
+        ? {
+            isInspecting,
+            setInspecting,
+            selection,
+            clearSelection,
+            isPopoverOpen,
+            isAllSourcesOpen,
+            openAllSources,
+            internal: {
+              sourcesStore,
+              menu,
+              setMenuSource,
+              closeMenu,
+              openUsedBy,
+              renderedIds,
+              focusToggle,
+              popover,
+              setPopoverSource,
+              closePopover,
+            },
+          }
         : null,
-    [enableProvenance, isInspecting, selection, clearSelection, sourcesStore],
+    [
+      enableProvenance,
+      isInspecting,
+      setInspecting,
+      selection,
+      clearSelection,
+      isPopoverOpen,
+      isAllSourcesOpen,
+      openAllSources,
+      menu,
+      setMenuSource,
+      closeMenu,
+      openUsedBy,
+      renderedIds,
+      focusToggle,
+      sourcesStore,
+      popover,
+      setPopoverSource,
+      closePopover,
+    ],
   );
   const inspecting = enableProvenance && isInspecting;
-  // While inspecting, pressing a component selects it instead of acting: buttons, links,
-  // inputs and menus (some open on pointer down) all stay still.
+  // While inspecting, the dashboard stays still: buttons, links, inputs and menus (some open on
+  // pointer down) don't act. A click on an outlined component picks it; anywhere else, nothing.
   const onInspectCapture = useCallback(
     (event: SyntheticEvent) => {
       if (!inspecting) return;
@@ -493,19 +638,89 @@ export function ArtifactRendererRoot({
       ) {
         return;
       }
-      // Bounded by this artifact: its bar and panel are not components of an outer Renderer.
+      // Bounded by this artifact: its bar and dialog are not components of an outer Renderer.
       const target = readSourceTarget(event.target, rootRef.current);
       if (!target) return;
       event.preventDefault();
       event.stopPropagation();
-      if (event.type === "click") setSelection(target);
+      const picked = event.type === "click" ? boundTarget(event.target) : null;
+      if (picked) openPopover(picked);
     },
-    [inspecting],
+    [inspecting, openPopover],
   );
-  // While inspecting, what a click would select gets a hover outline, for any component:
-  // set on the element directly, so moving the mouse re-renders nothing.
+  // While inspecting, each data-bound component is outlined, and keyboard users reach it: Tab
+  // stops on each one, and Enter or Space picks the focused one. The marks follow the DOM (items
+  // that render once data loads) and the sources, and are given back when inspect mode ends.
+  useEffect(() => {
+    if (!inspecting) return;
+    const areas = [rootRef.current, renderInHtmlElement].filter(
+      (area): area is HTMLElement => !!area,
+    );
+    const marks = createInspectMarks(rootRef.current);
+    const update = () => marks.update(areas, sourcesStore.get());
+    update();
+    const unsubscribe = sourcesStore.subscribe(update);
+    const observer = new MutationObserver(update);
+    for (const area of areas) observer.observe(area, { childList: true, subtree: true });
+    return () => {
+      unsubscribe();
+      observer.disconnect();
+      marks.clear();
+    };
+  }, [inspecting, renderInHtmlElement, sourcesStore]);
+  const onInspectKey = useCallback(
+    (event: ReactKeyboardEvent) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const element = event.target as Element;
+      if (!element.hasAttribute?.(BOUND)) return;
+      const target = boundTarget(element);
+      if (!target) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openPopover(target);
+    },
+    [openPopover],
+  );
+  // Escape undoes one step: in the menu, from a source back to its list, then the menu closes;
+  // in the popover, from a source back to its list, then the popover closes; then inspect mode
+  // ends. A menu, list or dialog of the dashboard's own closes before any of them.
+  const popoverOpen = enableProvenance && popover !== null;
+  const popoverSource = popover?.source ?? null;
+  const menuOpen = enableProvenance && menu !== null;
+  const menuSource = menu?.source ?? null;
+  useEffect(() => {
+    if (!inspecting && !popoverOpen && !menuOpen) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const target = event.target as Element | null;
+      const owner = target?.closest?.(OWNS_ESCAPE);
+      if (owner && !owner.hasAttribute(POPOVER) && !owner.hasAttribute(MENU)) return;
+      event.preventDefault();
+      if (menuSource !== null) setMenuSource(null);
+      else if (menuOpen) closeMenu();
+      else if (popoverSource !== null) setPopoverSource(null);
+      else if (popoverOpen) closePopover();
+      else setInspecting(false);
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [
+    inspecting,
+    popoverOpen,
+    popoverSource,
+    menuOpen,
+    menuSource,
+    setInspecting,
+    setPopoverSource,
+    closePopover,
+    setMenuSource,
+    closeMenu,
+  ]);
+  // While inspecting, the outlined component under the pointer turns solid: set on the element
+  // directly, so moving the mouse re-renders nothing.
   const hovered = useRef<Element | null>(null);
-  const setHovered = useCallback((element: Element | null) => {
+  const setHovered = useCallback((target: SourceTarget | null) => {
+    const element = target ? anchorOf(target) : null;
     if (hovered.current === element) return;
     hovered.current?.removeAttribute("data-openui-hover");
     element?.setAttribute("data-openui-hover", "");
@@ -513,10 +728,15 @@ export function ArtifactRendererRoot({
   }, []);
   const onInspectHover = useCallback(
     (event: SyntheticEvent) => {
-      const target = readSourceTarget(event.target, rootRef.current);
-      setHovered(target ? (target.propElement ?? target.element) : null);
+      const target = boundTarget(event.target);
+      setHovered(target);
+      // The last pick stays solid after its popover closes, until another one is hovered.
+      const element = target ? anchorOf(target) : null;
+      if (element && !menuOpen && !popoverOpen) {
+        setSelection((current) => (current && element !== anchorOf(current) ? null : current));
+      }
     },
-    [setHovered],
+    [setHovered, menuOpen, popoverOpen],
   );
   const clearHovered = useCallback(() => setHovered(null), [setHovered]);
   useEffect(() => {
@@ -527,13 +747,16 @@ export function ArtifactRendererRoot({
   // which clears the selection too.)
   // An edit can give a component id (`lead.2`) to another component: start over too.
   useEffect(() => setSelection(null), [id, program]);
-  // Outline the selected component and prop.
+  useEffect(() => {
+    setMenu(null);
+    setPopover(null);
+  }, [id]);
+  // The pick's outline stays solid: on the element inspect mode outlined.
   useEffect(() => {
     if (!enableProvenance || !selection) return;
-    const marked = [selection.element, selection.propElement].filter(
-      (el): el is Element => el !== undefined,
-    );
-    marked.forEach((el) => el.setAttribute("data-openui-selected", ""));
+    const picked = anchorOf(selection);
+    picked.setAttribute("data-openui-selected", "");
+    const marked = [selection.element, picked];
     // A component can replace a selected element, e.g. when data loads: the selection is gone.
     const observer = new MutationObserver(() => {
       if (!marked.every((el) => el.isConnected)) setSelection(null);
@@ -544,7 +767,7 @@ export function ArtifactRendererRoot({
     }
     return () => {
       observer.disconnect();
-      marked.forEach((el) => el.removeAttribute("data-openui-selected"));
+      picked.removeAttribute("data-openui-selected");
     };
   }, [enableProvenance, selection, renderInHtmlElement]);
 
@@ -563,9 +786,11 @@ export function ArtifactRendererRoot({
           <div
             ref={rootRef}
             className={clsx(styles.root, names.root, className)}
+            data-openui-inspecting={inspecting || undefined}
             onClickCapture={inspecting ? onInspectCapture : undefined}
             onPointerDownCapture={inspecting ? onInspectCapture : undefined}
             onMouseDownCapture={inspecting ? onInspectCapture : undefined}
+            onKeyDownCapture={inspecting ? onInspectKey : undefined}
             onMouseOver={inspecting ? onInspectHover : undefined}
             onMouseLeave={inspecting ? clearHovered : undefined}
           >

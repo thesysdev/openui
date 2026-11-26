@@ -2,12 +2,13 @@
 
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { CircleAlert, Database, LoaderCircle, X } from "lucide-react";
+import { ChevronDown, CircleAlert, Layers, LoaderCircle, X } from "lucide-react";
 import { useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
-import { names, styles } from "./cloudArtifact.styles";
+import { names, styles, toggleStyles } from "./cloudArtifact.styles";
 import {
   ChromeOverridesContext,
   ContentConfigContext,
@@ -19,7 +20,7 @@ import {
   type Region,
 } from "./contexts";
 import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
-import { SourcesDockContext, SourcesWorkspace, type SourcesOptions } from "./SourcesDock";
+import { SourcesContext, SourcesProvider, type SourcesOptions } from "./SourcesProvider";
 import { BuildFeed, BuildFeedPanel, Dock, FeedPanel, stepWords } from "./StatusPill";
 import { feedStyles } from "./statusPill.styles";
 
@@ -300,27 +301,56 @@ export interface ProvenanceToggleProps {
   children?: ReactNode;
 }
 
-/** Turns inspect mode on and off. Renders nothing unless `enableProvenance` is on. */
+/**
+ * The Sources split button. Its main half turns inspect mode on and off, with `aria-pressed` and
+ * `data-state="on" | "off"`; its chevron opens the All sources menu under it, with
+ * `aria-expanded` and `data-state="open" | "closed"`. Renders nothing unless `enableProvenance`
+ * is on. Children replace it: call `setInspecting` and `openAllSources` from
+ * `useArtifactProvenance()` from your own controls.
+ */
 export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
   const inside = useInRegion("chrome");
   const provenance = useContext(ProvenanceContext);
   if (!inside || !provenance) return null;
   if (children !== undefined) return <>{children}</>;
-  const open = provenance.isInspecting;
+  const on = provenance.isInspecting;
+  const menuOpen = provenance.isAllSourcesOpen;
   return (
-    <Button
-      className={names.provenanceToggle}
-      variant={open ? "secondary" : "tertiary"}
-      size="small"
-      iconLeft={<Database size={16} aria-hidden />}
-      aria-pressed={open}
-      onClick={() => {
-        if (open) provenance.clearSelection();
-        provenance.setInspecting(!open);
-      }}
-    >
-      {label ?? "Sources"}
-    </Button>
+    <div className={clsx(toggleStyles.split, names.sourcesSplit)} role="group">
+      <button
+        type="button"
+        className={clsx(toggleStyles.half, toggleStyles.main, names.provenanceToggle)}
+        aria-pressed={on}
+        data-state={on ? "on" : "off"}
+        onClick={() => {
+          if (on) provenance.clearSelection();
+          provenance.setInspecting(!on);
+        }}
+      >
+        <Layers size={16} aria-hidden />
+        {label ?? "Sources"}
+      </button>
+      <span className={toggleStyles.divider} aria-hidden />
+      <button
+        type="button"
+        className={clsx(toggleStyles.half, toggleStyles.chevron, names.sourcesChevron)}
+        aria-label="All sources"
+        aria-haspopup="dialog"
+        aria-expanded={menuOpen}
+        data-state={menuOpen ? "open" : "closed"}
+        onClick={(event) => {
+          if (menuOpen) {
+            provenance.internal.closeMenu();
+            return;
+          }
+          // Safari doesn't focus a clicked button: focus comes back here when the menu closes.
+          event.currentTarget.focus({ preventScroll: true });
+          provenance.openAllSources();
+        }}
+      >
+        <ChevronDown size={16} aria-hidden />
+      </button>
+    </div>
   );
 }
 
@@ -339,8 +369,8 @@ export function Content({ className, children }: PartProps) {
   if (!inside || !config) return null;
   return (
     <RegionProvider region="content">
-      {/* With provenance on, the Sources panel docks beside the content. */}
-      <SourcesWorkspace>
+      {/* With provenance on, the Sources popover and the All sources menu open over the content. */}
+      <SourcesProvider>
         <div
           className={clsx(
             styles.content,
@@ -362,7 +392,7 @@ export function Content({ className, children }: PartProps) {
           {config.render()}
           <BuildDock fromStart={sawPending} />
         </div>
-      </SourcesWorkspace>
+      </SourcesProvider>
     </RegionProvider>
   );
 }
@@ -459,19 +489,18 @@ export interface ProvenanceProps extends SourcesOptions {
 }
 
 /**
- * The Sources panel. Without children, the default panel docks beside the content: it lists the
- * dashboard's sources and shows where the selected component's data comes from; its props name
- * your data tools (`describeSource`). With
- * children, your panel replaces it: read the selection and its sources with
- * `useArtifactProvenance()`. Your panel renders only while something is selected.
+ * The contents of a picked item's Sources popover and of the All sources menu. Without children,
+ * the default contents list the selected component's sources (or every source) and show where
+ * each one's data comes from; its props name your data tools (`describeSource`). With children,
+ * yours replace them inside the popover or menu, under its header: read the selection and its
+ * sources with `useArtifactProvenance()`. They render only while one is open.
  */
 export function Provenance({ children, describeSource }: ProvenanceProps) {
   const inside = useInRegion("content");
-  const provenance = useContext(ProvenanceContext);
-  const dock = useContext(SourcesDockContext);
+  const sources = useContext(SourcesContext);
   const hasChildren = children !== undefined;
-  const setOptions = dock?.setOptions;
-  const setCustom = dock?.setCustom;
+  const setOptions = sources?.setOptions;
+  const setCustom = sources?.setCustom;
   useLayoutEffect(() => {
     if (!inside || hasChildren || !setOptions) return;
     setOptions({ describeSource });
@@ -482,6 +511,7 @@ export function Provenance({ children, describeSource }: ProvenanceProps) {
     setCustom((count) => count + 1);
     return () => setCustom((count) => count - 1);
   }, [inside, hasChildren, setCustom]);
-  if (!inside || !hasChildren || !provenance?.selection) return null;
-  return <>{children}</>;
+  const host = sources?.customHost;
+  if (!inside || !hasChildren || !host) return null;
+  return createPortal(children, host);
 }

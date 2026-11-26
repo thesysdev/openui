@@ -9,12 +9,14 @@ export interface DataSourcesSelection {
 }
 
 /**
- * How an app names one of its data tools. The panel never guesses: without this, a query shows
- * its tool name and its arguments as JSON. Every field is optional.
+ * How an app names one of its data tools. The Sources dialog never guesses: without this, a query
+ * shows its tool name and its arguments as JSON. Every field is optional.
  */
 export interface SourceDescription {
   /** What kind of source it is, shown in the list, e.g. `Postgres` or `GA4`. Default: the tool name. */
   kind?: string;
+  /** What it reads, e.g. a table: shown after the kind in an item's list, as `Postgres · orders`. */
+  table?: string;
   /** A 14px mark, such as the product's logo. */
   icon?: ReactNode;
   /** The Query row's label, e.g. `SQL` or `HogQL`. Default: the tool name. */
@@ -23,15 +25,15 @@ export interface SourceDescription {
   code?: string;
 }
 
-export interface DataSourcesPanelProps {
+export interface DataSourcesContentsProps {
   /** Where the program's data comes from: `useArtifactProvenance().sources`. */
   sources: DataSources | null;
   /** What was clicked. Null shows every query. */
   selection: DataSourcesSelection | null;
-  /** Back to every query. */
-  onBack?: () => void;
-  onClose?: () => void;
+  /** A query opened from the list, shown when nothing is selected. */
+  query?: string | null;
+  /** Makes each query in the list open its Query and Result. */
+  onOpenQuery?: (name: string) => void;
   /** Name a data tool: its kind, logo and how its call reads. */
   describeSource?: (toolName: string, args: unknown) => SourceDescription | undefined;
-  className?: string;
 }

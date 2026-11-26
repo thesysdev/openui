@@ -7,11 +7,13 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 export type Describe = (toolName: string, args: unknown) => SourceDescription | undefined;
 
-/** A query as the panel shows it. */
+/** A query as the Sources dialog shows it. */
 export interface Origin {
   name: string;
   toolName: string;
   kind: string;
+  /** What it reads, e.g. a table, when `describeSource` says. */
+  table?: string;
   code: string;
   codeLabel: string;
   icon?: ReactNode;
@@ -19,9 +21,9 @@ export interface Origin {
 }
 
 /**
- * How a query reads in the panel. Nothing is guessed: without the app's `describeSource`, a query
- * shows its tool name and the arguments it ran with, as JSON. What the app returns (its kind,
- * icon, label and the call's text) replaces those, field by field.
+ * How a query reads in the Sources dialog. Nothing is guessed: without the app's
+ * `describeSource`, a query shows its tool name and the arguments it ran with, as JSON. What the
+ * app returns (its kind, icon, label and the call's text) replaces those, field by field.
  */
 export function originOf(name: string, query: DataSourceQuery, describe?: Describe): Origin {
   const toolName = query.toolName ?? name;
@@ -30,6 +32,7 @@ export function originOf(name: string, query: DataSourceQuery, describe?: Descri
     name,
     toolName,
     kind: described.kind ?? toolName,
+    table: described.table,
     code: described.code ?? JSON.stringify(query.args ?? {}, null, 2),
     codeLabel: described.codeLabel ?? toolName,
     icon: described.icon,
@@ -37,7 +40,60 @@ export function originOf(name: string, query: DataSourceQuery, describe?: Descri
   };
 }
 
-/** What the panel shows for a selection: the queries it reads, and its formula. */
+/** The props that name a component, in the order tried. */
+const LABEL_PROPS = ["title", "label", "name"] as const;
+
+/**
+ * A component's human label: its `title`, `label` or `name` prop, when written as a string
+ * literal (`Kpi("Revenue this quarter", …)`), else the nearest such label around it, e.g. the
+ * title of the card a table is in. Undefined when none is found, or they're computed.
+ */
+export function componentLabel(sources: DataSources, id: string): string | undefined {
+  // A component with no label of its own, such as a table in a card, takes the nearest one
+  // around it: the card's title rather than the section's.
+  const parents = parentsOf(sources);
+  const seen = new Set<string>();
+  for (let at: string | undefined = id; at && !seen.has(at); at = parents.get(at)) {
+    seen.add(at);
+    const label = ownLabel(sources, at);
+    if (label) return label;
+  }
+  return undefined;
+}
+
+const parentCache = new WeakMap<DataSources, Map<string, string>>();
+
+/** Each component's parent: the component whose props it is written in. */
+function parentsOf(sources: DataSources): Map<string, string> {
+  let parents = parentCache.get(sources);
+  if (!parents) {
+    parents = new Map();
+    for (const [id, component] of Object.entries(sources.components)) {
+      for (const prop of Object.values(component.props)) {
+        for (const child of prop.components) if (!parents.has(child)) parents.set(child, id);
+      }
+    }
+    parentCache.set(sources, parents);
+  }
+  return parents;
+}
+
+function ownLabel(sources: DataSources, id: string): string | undefined {
+  const props = sources.components[id]?.props;
+  for (const name of LABEL_PROPS) {
+    const expr = props?.[name]?.expr.trim();
+    if (!expr?.startsWith('"')) continue;
+    try {
+      const value: unknown = JSON.parse(expr);
+      if (typeof value === "string" && value.trim()) return value;
+    } catch {
+      // Not a plain string literal.
+    }
+  }
+  return undefined;
+}
+
+/** What the Sources dialog shows for a selection: the queries it reads, and its formula. */
 export interface Resolved {
   queries: string[];
   /** The prop as written, then each formula step: `value: now.revenue`, `now = @First(…)`. */
@@ -124,6 +180,19 @@ export function resultSummary(value: unknown): string | undefined {
   const fields = new Set(shape.rows.flatMap((row) => Object.keys(row))).size;
   const rows = shape.rows.length;
   return `${rows.toLocaleString()} ${rows === 1 ? "row" : "rows"} · ${fields} ${fields === 1 ? "field" : "fields"}`;
+}
+
+/**
+ * A hover card's line on a result: a single value as `1 row · revenue 184920`; anything else as
+ * `resultSummary` puts it.
+ */
+export function resultLine(value: unknown): string | undefined {
+  const rows = resultShape(value)?.rows;
+  const only = rows?.length === 1 ? Object.entries(rows[0]!) : [];
+  if (only.length !== 1) return resultSummary(value);
+  const [field, cell] = only[0]!;
+  const shown = cell !== null && typeof cell === "object" ? JSON.stringify(cell) : String(cell);
+  return `1 row · ${field} ${shown}`;
 }
 
 export const json = (value: unknown) => JSON.stringify(value, null, 2) ?? "No result yet";

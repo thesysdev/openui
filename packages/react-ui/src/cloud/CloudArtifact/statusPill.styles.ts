@@ -1,5 +1,5 @@
 import { css, keyframes } from "@openuidev/react-components";
-import { typography } from "./cloudArtifact.styles";
+import { typography } from "../shared.styles";
 
 const bodySmall = typography("openui-text-body-sm", "regular");
 const bodySmallHeavy = typography("openui-text-body-sm-heavy", "medium");

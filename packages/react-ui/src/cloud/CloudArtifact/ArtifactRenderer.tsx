@@ -29,8 +29,8 @@ export interface LiveArtifactRendererProps<
   /** Where the artifact's data tools run: your endpoint (`{ url }`) or an async function. */
   interpreter: Interpreter;
   /**
-   * Show where the artifact's data comes from: an inspect toggle in the bar, and a panel for the
-   * component clicked while inspecting. Off by default.
+   * Show where the artifact's data comes from: a Sources split button in the bar, inspect mode, an
+   * item's Sources popover and the All sources menu. Off by default.
    */
   enableProvenance?: boolean;
 }
@@ -39,22 +39,26 @@ export interface LiveArtifactRendererProps<
 const NO_QUERY_LOADER = <></>;
 
 /**
- * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and while inspecting or
- * selected writes the program's sources to the root's store, for `useArtifactProvenance()`.
+ * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and while inspecting,
+ * selected or with the menu open writes the program's sources to the root's store, for `useArtifactProvenance()`.
  */
 function ProvenanceBridge() {
   const provenance = useContext(ProvenanceContext);
   const clearSelection = provenance?.clearSelection;
   // Closed, or remounted for live data: the selected elements are gone.
   useEffect(() => () => clearSelection?.(), [clearSelection]);
-  return provenance && (provenance.isInspecting || provenance.selection) ? <SourcesWriter /> : null;
+  return provenance &&
+    (provenance.isInspecting || provenance.selection || provenance.isAllSourcesOpen) ? (
+    <SourcesWriter />
+  ) : null;
 }
 
 function SourcesWriter() {
   const provenance = useContext(ProvenanceContext)!;
-  const store = provenance.sourcesStore;
+  const store = provenance.internal.sourcesStore;
   const sources = useDataSources();
-  // Into the store, not the root's state: a write reaches only the panel, never back here.
+  // Into the store, not the root's state: a write reaches only the Sources dialog and inspect
+  // mode's outlines, never back here.
   useEffect(() => {
     store.set(sources);
   }, [store, sources]);
