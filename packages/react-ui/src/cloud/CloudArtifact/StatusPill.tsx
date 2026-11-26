@@ -4,14 +4,15 @@ import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { LoaderCircle } from "lucide-react";
 import { useContext, useLayoutEffect, useRef, type ReactNode } from "react";
-import { feedNames, feedStyles as s } from "./buildFeed.styles";
 import { names, styles } from "./cloudArtifact.styles";
 import { ContentConfigContext, useArtifactRenderer } from "./contexts";
+import { feedNames, feedStyles as s } from "./statusPill.styles";
 
 /*
- * The build feed: one animated line saying what the build is doing now. "Thinking…", the calls
- * running ("Calling a and b…"), then "Building dashboard…" while it's written. It goes when the
- * build's stream ends.
+ * The status pill: what a dashboard is doing, in a small pill over it. While it's built, the build
+ * feed: one animated line saying what the build is doing now. "Thinking…", the calls running
+ * ("Calling a and b…"), then "Building dashboard…" while it's written. While its data loads,
+ * "Loading data…" (the `Loading` slot). `Dock` keeps the pill in view over the content.
  */
 
 /** A step's names, as they are: "a", "a and b", or "a, b and 2 more". */

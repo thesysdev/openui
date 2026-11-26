@@ -7,8 +7,6 @@ import { useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
-import { BuildFeed, BuildFeedPanel, Dock, FeedPanel, stepWords } from "./BuildFeed";
-import { feedStyles } from "./buildFeed.styles";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ChromeOverridesContext,
@@ -22,6 +20,8 @@ import {
 } from "./contexts";
 import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
 import { SourcesDockContext, SourcesWorkspace, type SourcesOptions } from "./SourcesDock";
+import { BuildFeed, BuildFeedPanel, Dock, FeedPanel, stepWords } from "./StatusPill";
+import { feedStyles } from "./statusPill.styles";
 
 /*
  * Slots, following AgentInterface's three modes:

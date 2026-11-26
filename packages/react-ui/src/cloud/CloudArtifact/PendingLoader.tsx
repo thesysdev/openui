@@ -15,7 +15,7 @@ import {
   type RefObject,
 } from "react";
 import { AnimatedLabel, prefersReducedMotion } from "./AnimatedLabel";
-import { BuildFeedPanel } from "./BuildFeed";
+import { BuildFeedPanel } from "./StatusPill";
 import { styles as artifactStyles, names } from "./cloudArtifact.styles";
 import { pendingLoaderStyles as styles } from "./pendingLoader.styles";
 
