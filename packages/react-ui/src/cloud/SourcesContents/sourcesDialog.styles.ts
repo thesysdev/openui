@@ -416,7 +416,6 @@ export const contentsStyles = {
     color: ${primary};
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    overscroll-behavior: contain;
     scrollbar-width: thin;
     ${codeSmall}
   `,
@@ -446,7 +445,6 @@ export const contentsStyles = {
     border: 1px solid ${border};
     border-radius: var(--openui-radius-2xl);
     background: var(--openui-foreground);
-    overscroll-behavior: contain;
     scrollbar-width: thin;
     &:focus-visible {
       outline: ${focusRing};

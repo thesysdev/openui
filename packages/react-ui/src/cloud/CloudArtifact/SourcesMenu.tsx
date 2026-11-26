@@ -203,10 +203,21 @@ function Menu({
   // Focus moves in on open, and follows the view: a source's heading, or on the list, the row it
   // came from (else the first).
   const ref = useRef<HTMLDivElement | null>(null);
+  // Opening focuses the frame itself, so no row shows a focus ring after a click; Tab reaches the
+  // rows from there.
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      wasOpen.current = false;
+      return;
+    }
     const element = ref.current;
     if (!element) return;
+    if (!wasOpen.current) {
+      wasOpen.current = true;
+      element.focus({ preventScroll: true });
+      return;
+    }
     const from = travel.current.from;
     const focus =
       element.querySelector<HTMLElement>("[data-heading]") ??
@@ -261,6 +272,7 @@ function Menu({
   const attributes = {
     role: "dialog",
     "aria-modal": true,
+    tabIndex: -1,
     "aria-label": `All sources for ${title ?? "this dashboard"}`,
     "aria-hidden": open ? undefined : true,
     inert: !open || undefined,
