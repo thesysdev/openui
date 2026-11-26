@@ -307,9 +307,51 @@ const Table = defineComponent({
   },
 });
 
+const Heading = defineComponent({
+  name: "Heading",
+  props: z.object({ text: z.string() }),
+  description: "A section heading.",
+  component: ({ props, bindSource }) => (
+    <h3 style={{ gridColumn: "1 / -1", margin: 0, fontSize: 16 }} {...bindSource?.()}>
+      {props.text}
+    </h3>
+  ),
+});
+
+const Note = defineComponent({
+  name: "Note",
+  props: z.object({ text: z.string() }),
+  description: "A line of plain text.",
+  component: ({ props, bindSource }) => (
+    <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: 13 }} {...bindSource?.()}>
+      {props.text}
+    </p>
+  ),
+});
+
+const Group = defineComponent({
+  name: "Group",
+  props: z.object({ title: z.string(), children: z.array(z.any()) }),
+  description: "A titled row of tiles.",
+  component: ({ props, renderNode, bindSource }) => (
+    <section style={{ gridColumn: "1 / -1" }} {...bindSource?.()}>
+      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>{props.title}</div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: 12,
+        }}
+      >
+        {renderNode(props.children)}
+      </div>
+    </section>
+  ),
+});
+
 export const dashboardLibrary = createLibrary({
   root: "Board",
-  components: [Board, Kpi, Bars, Table],
+  components: [Board, Kpi, Bars, Table, Heading, Note, Group],
 });
 
 export const dashboardProgram = `root = Board([revenue, signups, margin, channels, daily, target])
@@ -325,6 +367,31 @@ margin = Kpi("Gross margin", 0.386)
 channels = Bars("Sessions by channel", channelsQ.rows)
 daily = Table("Daily revenue", dailyQ.rows)
 target = Table("Revenue vs target", targetQ.rows)`;
+
+const COST_SQL =
+  "SELECT sum(cost) AS cost FROM order_items WHERE created_at >= date_trunc('quarter', now())";
+
+/**
+ * The Full flow dashboard: a heading and a note (not data-bound), a container of KPIs (one a
+ * literal, one a margin built by a formula from two queries), a chart and a table.
+ */
+export const fullFlowProgram = `root = Board([heading, intro, kpis, channels, daily])
+heading = Heading("Retail overview")
+intro = Note("Paid orders only, refreshed hourly.")
+kpis = Group("This quarter", [revenue, signups, margin, goal])
+revenueQ = Query("postgres_query", {sql: "${REVENUE_SQL}"}, {rows: []})
+costQ = Query("postgres_query", {sql: "${COST_SQL}"}, {rows: []})
+dailyQ = Query("postgres_query", {sql: "${DAILY_SQL}"}, {rows: []})
+signupsQ = Query("posthog_query", {hogql: "${SIGNUPS_HOGQL}"}, {rows: []})
+channelsQ = Query("ga4_report", {dimensions: ["sessionDefaultChannelGroup"], metrics: ["sessions"]}, {rows: []})
+now = @First(revenueQ.rows)
+grossMargin = (@First(revenueQ.rows).revenue - @First(costQ.rows).cost) / @First(revenueQ.rows).revenue
+revenue = Kpi("Revenue this quarter", now.revenue, "Paid orders since Oct 1")
+signups = Kpi("Weekly signups", @First(signupsQ.rows).signups)
+margin = Kpi("Gross margin", grossMargin)
+goal = Kpi("Goal", 250000)
+channels = Bars("Sessions by channel", channelsQ.rows)
+daily = Table("Daily revenue", dailyQ.rows)`;
 
 const results: Record<string, unknown> = {
   postgres_query: null,
