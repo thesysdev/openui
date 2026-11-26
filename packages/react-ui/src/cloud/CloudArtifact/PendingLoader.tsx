@@ -26,6 +26,11 @@ export interface PendingLoaderProps {
   label?: string;
   /** The color the sketch is drawn in, as any CSS color. Defaults to the text color. */
   color?: string;
+  /**
+   * Draws a dotted title and description at the top of the sketch, for a host that shows the
+   * dashboard's title above it but has none yet. Turn it off once the title is there.
+   */
+  heading?: boolean;
 }
 
 /*
@@ -154,6 +159,16 @@ function Row({ children }: { children: ReactNode }) {
       style={wide ? undefined : { gridTemplateColumns: "minmax(0, 1fr)" }}
     >
       {children}
+    </div>
+  );
+}
+
+/** Dots where a title and its description will be, drawn before the widgets. */
+function Heading() {
+  return (
+    <div className={styles.heading}>
+      <DotLine start={FIRST_MS - 200} width="min(320px, 40%)" strong />
+      <DotLine start={FIRST_MS - 100} width="min(520px, 70%)" />
     </div>
   );
 }
@@ -363,7 +378,7 @@ function useWide(ref: RefObject<HTMLElement | null>) {
 }
 
 /** `Pending`'s default: a dotted sketch of a dashboard, with the build's feed over it. */
-export function PendingLoader({ label, color }: PendingLoaderProps) {
+export function PendingLoader({ label, color, heading = false }: PendingLoaderProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const wide = useWide(stageRef);
   const [moving] = useState(() => !prefersReducedMotion());
@@ -394,6 +409,7 @@ export function PendingLoader({ label, color }: PendingLoaderProps) {
       <div ref={stageRef} className={styles.stage} aria-hidden="true">
         {/* A new key draws the next sketch from its first dot. */}
         <div key={cycle} className={clsx(styles.sketch, leaving && styles.hidden)}>
+          {heading && <Heading />}
           <WideContext.Provider value={wide}>
             <Layout />
           </WideContext.Provider>

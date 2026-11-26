@@ -115,6 +115,16 @@ export const pendingLoaderStyles = {
   strong: css`
     color: color-mix(in srgb, var(--openui-pending-tint) 30%, transparent);
   `,
+  // About as tall as a title and description over a dashboard, so the sketch doesn't move much
+  // when the real ones replace it.
+  heading: css`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    height: 44px;
+    flex-shrink: 0;
+  `,
   row: css`
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));

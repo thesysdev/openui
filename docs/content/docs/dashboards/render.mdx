@@ -100,6 +100,8 @@ The result can arrive before the dashboard is written, while the model still cal
 
 The card's loader shows the same line. The feed stays in the middle until the dashboard fills the top half of what's visible, then moves to the bottom centre for the rest of the build. During an edit it's at the bottom from the start. The bar's loader waits while it shows, and the feed goes when the build's stream ends.
 
+If your page shows the dashboard's title above it, pass `heading` while you don't have the title yet: `<LiveArtifactRenderer.Pending heading />` adds a dotted title and description to the top of the sketch. Turn it off when the title shows; the sketch keeps drawing.
+
 ## Slots
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
