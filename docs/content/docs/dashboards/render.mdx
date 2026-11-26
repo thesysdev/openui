@@ -207,7 +207,16 @@ On touch screens the outlines show, but nothing turns solid on hover: a tap open
 
 ### The Sources popover
 
-The popover opens next to the component, named after it, on the list of the sources it reads: each with its logo, its name, and the tool and table it reads. A source opens its Query (or Formula) with a copy button, and its Result. Its Sources chip turns into All sources, the way back to the list; on the list it closes the popover. Escape steps back one level at a time: from a source to the list, then closed, then out of inspect mode. Focus goes back to the component when it closes.
+The popover opens next to the component, named after it. A Sources chip appears at the component's corner and the card grows out of it, so the chip stays as its header. It prefers the space above the component's top-left corner and moves to the right edge or below when it would be cut off. It's 440px wide and up to 400px tall, and its contents scroll inside it.
+
+- It opens on the list of the sources the component reads, even when there is only one: each with its logo, its name, and the tool and table it reads. A value built by a formula lists the formula first, then the queries it reads.
+- A source opens its Query, labelled with its language (such as SQL or HogQL), or its Formula, with a copy button, and its Result as a table with its row and field count. The list and the detail slide in the direction you go.
+- On a source, the chip turns into All sources, the way back to the list. On the list, the chip closes the popover.
+- A click outside the popover closes it. Nothing behind it is dimmed or blurred.
+- Escape steps back one level at a time: from a source to the list, then closed, then out of inspect mode.
+- Focus moves into the popover and stays there while it's open, and goes back to the component when it closes.
+
+With reduced motion, the popover, the menu and their views fade instead of growing or sliding.
 
 ### The All sources menu
 
@@ -219,6 +228,10 @@ The chevron opens the menu under the split button. It lists every query and form
 - Focus moves into the menu and goes back to the chevron when it closes.
 
 The menu and the popover are portaled to `body` and carry the active theme.
+
+### On phones
+
+Below 640px, the popover and the menu open in a bottom sheet over a dim backdrop, with the same list, detail and back. A tap on the backdrop or the close button closes it. Sources turns on the same outlines, and a tap on one opens its sheet; nothing depends on hover.
 
 Pass `describeSource` to `Provenance` to name your tools. It takes a tool's name and arguments and returns `{ kind, icon, codeLabel, code }`, such as `kind: "Postgres"` and the SQL your tool ran. The popover and the menu use it:
 
