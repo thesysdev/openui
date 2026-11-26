@@ -9,11 +9,11 @@ import {
 } from "../../CloudArtifact/contexts";
 import { Provenance, RegionProvider } from "../../CloudArtifact/slots";
 import { SourcesProvider } from "../../CloudArtifact/SourcesDialog";
-import type { DataSourcesContentsProps, DataSourcesSelection } from "../types";
+import type { DataSourcesContentsProps } from "../types";
 import {
   dashboardLibrary,
-  dashboardProgram,
   describeSource,
+  fullFlowProgram,
   interpreter,
   sources,
 } from "./fixtures";
@@ -54,19 +54,17 @@ const withSlowMotion: Decorator<MotionArgs> = (Story, context) => (
 // ── The Sources dialog on the sample sources, without a live dashboard ──
 
 interface DialogStoryProps extends Pick<DataSourcesContentsProps, "describeSource"> {
-  /** What was picked: a component, or one of its props. None: the list of every query. */
-  initial?: DataSourcesSelection;
   /** Your own contents, as `Provenance` children. */
   children?: ReactNode;
 }
 
 /**
- * The real Sources dialog, fed the sample sources as if the renderer were inspecting. Closing it
- * leaves an "Open Sources" button to open it again on the same pick.
+ * The real Sources dialog of every query, fed the sample sources as if the renderer were
+ * inspecting. Closing it leaves an "Open Sources" button to open it again. (An item's sources open
+ * in its popover: see the live dashboards below.)
  */
-function DialogStory({ initial, describeSource: describe, children }: DialogStoryProps) {
+function DialogStory({ describeSource: describe, children }: DialogStoryProps) {
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
-  const [picked, setPicked] = useState<DataSourcesSelection | null>(initial ?? null);
   const [isOpen, setOpen] = useState(true);
   const [sourcesStore] = useState(() => {
     const store = createSourcesStore();
@@ -79,32 +77,25 @@ function DialogStory({ initial, describeSource: describe, children }: DialogStor
         isInspecting: true,
         // A second Escape leaves inspect mode, which here only closes the dialog.
         setInspecting: (on) => !on && setOpen(false),
-        selection: picked && { ...picked, element: trigger },
-        clearSelection: () => setPicked(null),
+        selection: null,
+        clearSelection: () => {},
         isSourcesOpen: isOpen,
-        openList: () => {
-          setPicked(null);
-          setOpen(true);
-        },
+        openList: () => setOpen(true),
         internal: {
           sourcesStore,
           closeDialog: () => setOpen(false),
           // No toggle here: the "Open Sources" button stands in for it.
           focusToggle: () => trigger.focus(),
+          popover: null,
+          setPopoverSource: () => {},
+          closePopover: () => {},
         },
       },
-    [trigger, picked, isOpen, sourcesStore],
+    [trigger, isOpen, sourcesStore],
   );
   return (
     <div style={{ minHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
-      <button
-        ref={setTrigger}
-        type="button"
-        onClick={() => {
-          setPicked(initial ?? null);
-          setOpen(true);
-        }}
-      >
+      <button ref={setTrigger} type="button" onClick={() => setOpen(true)}>
         Open Sources
       </button>
       {provenance && (
@@ -144,54 +135,28 @@ type Story = StoryObj<DialogStoryProps & MotionArgs>;
 /** Nothing picked, or All queries: every query in the dashboard, in program order. */
 export const List: Story = {};
 
-/** A number: Query (open), Result, and the Formula that picks it from the rows (closed). */
-export const NumberPicked: Story = { args: { initial: { id: "revenue", prop: "value" } } };
-
-/** A table or chart: Query, and its Result open. */
-export const TablePicked: Story = { args: { initial: { id: "daily" } } };
-
-/** A computed value with no query behind it: only its Formula. */
-export const Computed: Story = { args: { initial: { id: "margin", prop: "value" } } };
-
-/** A container: its children's Query and Result rows, each named by its query. */
-export const ContainerPicked: Story = { args: { initial: { id: "kpiRow", prop: "children" } } };
-
-/** A script, named by the app: its call as the Query, then its Result. */
-export const Script: Story = { args: { initial: { id: "target" } } };
-
-/** The number in the dark theme, carried onto the dialog though it is portaled to `body`. */
-export const NumberDark: Story = {
-  args: { initial: { id: "revenue", prop: "value" } },
-  globals: { mode: "dark" },
-};
+/** The list in the dark theme, carried onto the dialog though it is portaled to `body`. */
+export const ListDark: Story = { globals: { mode: "dark" } };
 
 /** On a phone: the same dialog as a bottom sheet over a dimmed page, every control 44px. */
 export const PhoneSheet: Story = {
-  args: { initial: { id: "daily" } },
   parameters: { viewport: { defaultViewport: "mobile2" } },
 };
-
-/** Written in the program: the Formula is the value as written. */
-export const WrittenInProgram: Story = { args: { initial: { id: "goal", prop: "value" } } };
 
 /** Without `describeSource`: plain glyphs, and each tool's own name. */
 export const WithoutAppDescriptions: Story = { args: { describeSource: undefined } };
 
 function CustomSources() {
-  const { selection, sources } = useArtifactProvenance();
-  const component = selection && sources?.components[selection.id];
-  const shown = component && selection.prop ? component.props[selection.prop] : component;
+  const { sources } = useArtifactProvenance();
   return (
     <div style={{ padding: 16, color: "var(--openui-text-neutral-primary)" }}>
-      {shown ? `Reads ${shown.queries.join(", ") || "no queries"}` : "Your own list"}
+      Your own list of {Object.keys(sources?.queries ?? {}).length} queries
     </div>
   );
 }
 
-/** `Provenance` children: your own contents, inside the dialog under its title, back and close. */
-export const CustomContents: Story = {
-  args: { initial: { id: "revenue", prop: "value" }, children: <CustomSources /> },
-};
+/** `Provenance` children: your own contents, inside the dialog under its title and close. */
+export const CustomContents: Story = { args: { children: <CustomSources /> } };
 
 // ── In a live artifact ──
 
@@ -205,8 +170,8 @@ function StartInspecting() {
 /**
  * A live dashboard in inspect mode: Sources is pressed, and All queries sits beside it. Every
  * number, table and chart that reads a query has a dotted outline, which turns solid under the
- * pointer; click one, or Tab to it and press Enter, to open the dialog. Escape closes the dialog,
- * then leaves inspect mode.
+ * pointer; click one, or Tab to it and press Enter, to open its Sources popover beside it. Escape
+ * steps back: from a source to the list, closes the popover, then leaves inspect mode.
  */
 export const LiveDashboard: StoryObj<MotionArgs> = {
   decorators: [
@@ -218,8 +183,8 @@ export const LiveDashboard: StoryObj<MotionArgs> = {
   ],
   render: () => (
     <LiveArtifactRenderer
-      id="demo-retail"
-      content={dashboardProgram}
+      id="demo-full-flow"
+      content={fullFlowProgram}
       library={dashboardLibrary}
       interpreter={interpreter}
       preview={false}
@@ -256,7 +221,7 @@ export const LiveDashboard: StoryObj<MotionArgs> = {
   ),
 };
 
-/** The live dashboard on a phone: no hover; a tap on an outlined item opens the bottom sheet. */
+/** The live dashboard on a phone: no hover; a tap on an outlined item opens its popover. */
 export const LiveDashboardPhone: StoryObj<MotionArgs> = {
   ...LiveDashboard,
   parameters: { viewport: { defaultViewport: "mobile2" } },

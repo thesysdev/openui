@@ -178,6 +178,99 @@ export const contentsStyles = {
     }
   `,
 
+  // ── An item's sources, in its popover: a list of rows, and one source's detail ──
+  "source-list": css`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  `,
+  "source-row": css`
+    ${buttonReset}
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: var(--openui-space-s);
+    border-radius: 10px;
+    color: ${primary};
+    text-align: left;
+    cursor: pointer;
+    ${press(0.99)}
+    &:focus-visible {
+      outline: ${focusRing};
+      outline-offset: -2px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--openui-highlight);
+      }
+    }
+  `,
+  // A tinted square with the source's logo, or a mark for its kind.
+  "source-logo": css`
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--openui-highlight-subtle);
+    color: ${secondary};
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+  `,
+  "source-text": css`
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  `,
+  "source-name": css`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    ${labelSmallHeavy}
+    color: ${primary};
+  `,
+  "source-line": css`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: ${secondary};
+    ${labelSmall}
+  `,
+  detail: css`
+    display: flex;
+    flex-direction: column;
+    gap: var(--openui-space-m);
+    padding: var(--openui-space-2xs) var(--openui-space-2xs) var(--openui-space-s);
+  `,
+  "detail-head": css`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    ${bodyHeavy}
+    &:focus {
+      outline: none;
+    }
+  `,
+  block: css`
+    display: flex;
+    flex-direction: column;
+    gap: var(--openui-space-xs);
+  `,
+  "block-label": css`
+    margin: 0;
+    color: ${secondary};
+    ${labelSmallHeavy}
+  `,
+
   // ── A pick: Query, Result and Formula rows ──
   rows: css`
     display: flex;

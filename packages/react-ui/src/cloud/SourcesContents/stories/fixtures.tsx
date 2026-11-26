@@ -130,13 +130,26 @@ export const sources: DataSources = {
  * How the sample app names its tools. It knows them, so it says which product each one reads and
  * shows the query text it sent; the dialog itself never guesses either.
  */
+/** The table a sample query reads: what follows its `FROM`. */
+const tableOf = (text: unknown) => /\bFROM\s+([\w.]+)/i.exec(String(text ?? ""))?.[1];
+
 export const describeSource = (toolName: string, args: unknown): SourceDescription | undefined => {
   const values = (args ?? {}) as Record<string, unknown>;
   switch (toolName) {
     case "postgres_query":
-      return { kind: "Postgres", codeLabel: "SQL", code: String(values["sql"] ?? "") };
+      return {
+        kind: "Postgres",
+        table: tableOf(values["sql"]),
+        codeLabel: "SQL",
+        code: String(values["sql"] ?? ""),
+      };
     case "posthog_query":
-      return { kind: "PostHog", codeLabel: "HogQL", code: String(values["hogql"] ?? "") };
+      return {
+        kind: "PostHog",
+        table: tableOf(values["hogql"]),
+        codeLabel: "HogQL",
+        code: String(values["hogql"] ?? ""),
+      };
     case "ga4_report":
       return { kind: "GA4", codeLabel: "Report" };
     case "revenue_vs_target":

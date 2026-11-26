@@ -424,11 +424,11 @@ export interface ProvenanceProps extends SourcesOptions {
 }
 
 /**
- * The Sources dialog's contents. Without children, the default contents list the dashboard's
- * sources and show where the selected component's data comes from; its props name your data tools
- * (`describeSource`). With children, yours replace them inside the dialog, under its title, back
- * and close: read the selection and its sources with `useArtifactProvenance()`. They render only
- * while the dialog is open.
+ * The contents of a picked item's Sources popover and of the Sources dialog of every query.
+ * Without children, the default contents list the selected component's sources (or every query)
+ * and show where each one's data comes from; its props name your data tools (`describeSource`).
+ * With children, yours replace them inside the popover or dialog, under its header: read the
+ * selection and its sources with `useArtifactProvenance()`. They render only while one is open.
  */
 export function Provenance({ children, describeSource }: ProvenanceProps) {
   const inside = useInRegion("content");

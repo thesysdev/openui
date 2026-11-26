@@ -17,8 +17,9 @@ import { useTheme } from "../../components/ThemeProvider";
 import { DataSourcesContents, sourcesTitle } from "../SourcesContents";
 import { dialogNames, dialogStyles } from "../SourcesContents/sourcesDialog.styles";
 import type { DataSourcesContentsProps } from "../SourcesContents/types";
-import { anchorOf, ProvenanceContext, useArtifactProvenance } from "./contexts";
+import { ProvenanceContext, useArtifactProvenance } from "./contexts";
 import { focusBack } from "./focus";
+import { SourcesPopover } from "./SourcesPopover";
 
 /** What an app can tell the default Sources contents, through the `Provenance` slot's props. */
 export type SourcesOptions = Pick<DataSourcesContentsProps, "describeSource">;
@@ -29,7 +30,7 @@ interface SourcesState {
   /** How many `Provenance` slots have their own contents: above 0, the default ones step aside. */
   customCount: number;
   setCustom: (update: (count: number) => number) => void;
-  /** Where the app's own contents go, inside the open dialog. */
+  /** Where the app's own contents go, inside the open popover or dialog. */
   customHost: HTMLElement | null;
 }
 
@@ -39,12 +40,17 @@ const NO_OPTIONS: SourcesOptions = {};
 /** Longer than any exit (the phone sheet's 300ms), in case `transitionend` never comes. */
 const EXIT_MS = 350;
 
-/** The artifact's content, and with provenance on, the Sources dialog that opens over it. */
+/**
+ * The artifact's content, and with provenance on, what opens over it: the selected item's Sources
+ * popover, and the Sources dialog of every query.
+ */
 export function SourcesProvider({ children }: { children: ReactNode }) {
   const provenance = useContext(ProvenanceContext);
   const [options, setOptions] = useState<SourcesOptions>(NO_OPTIONS);
   const [customCount, setCustom] = useState(0);
-  const [customHost, setCustomHost] = useState<HTMLElement | null>(null);
+  const [popoverHost, setPopoverHost] = useState<HTMLElement | null>(null);
+  const [dialogHost, setDialogHost] = useState<HTMLElement | null>(null);
+  const customHost = popoverHost ?? dialogHost;
   const state = useMemo<SourcesState>(
     () => ({ options, setOptions, customCount, setCustom, customHost }),
     [options, customCount, customHost],
@@ -54,30 +60,28 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
   return (
     <SourcesContext.Provider value={state}>
       {children}
-      <SourcesDialog onCustomHost={setCustomHost} />
+      <SourcesPopover
+        describeSource={options.describeSource}
+        custom={customCount > 0}
+        onCustomHost={setPopoverHost}
+      />
+      <SourcesDialog onCustomHost={setDialogHost} />
     </SourcesContext.Provider>
   );
 }
 
 /**
- * The Sources dialog: centered, a bottom sheet on phones. It stays mounted through its exit, so
- * the CSS transition runs off `data-state`, then unmounts: a closed dialog leaves the page alone.
+ * The Sources dialog of every query (an item opens its popover instead): centered, a bottom
+ * sheet on phones. It stays mounted through its exit, so the CSS transition runs off
+ * `data-state`, then unmounts: a closed dialog leaves the page alone.
  */
 function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | null) => void }) {
   const sourcesState = useContext(SourcesContext)!;
-  const { closeDialog, focusToggle } = useContext(ProvenanceContext)!.internal;
-  const {
-    selection,
-    sources,
-    isSourcesOpen: isOpen,
-    isInspecting,
-    clearSelection,
-    setInspecting,
-  } = useArtifactProvenance();
+  const { closeDialog } = useContext(ProvenanceContext)!.internal;
+  const { sources, isSourcesOpen: isOpen, setInspecting } = useArtifactProvenance();
   const { portalThemeClassName } = useTheme();
-  /** A query opened from the list, for the selection it was opened under. */
-  const [opened, setOpened] = useState<{ name: string; under: typeof selection } | null>(null);
-  const query = opened && opened.under === selection ? opened.name : null;
+  /** A query opened from the list. */
+  const [query, setQuery] = useState<string | null>(null);
 
   // Mounted while open, and through the exit.
   const [mounted, setMounted] = useState(isOpen);
@@ -109,25 +113,18 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
   }, [isOpen, mounted]);
   const passThrough = isOpen ? undefined : ({ pointerEvents: "none" } as const);
 
-  // Focus goes back where it came from: the picked component, or what had it before. Noted before
-  // the dialog takes focus; given back once it has unmounted and the page is no longer hidden from
-  // screen readers, unless something else took focus meanwhile. Once inspect mode has ended (an
-  // Escape while the dialog leaves), a pick no longer takes it: the Sources toggle does.
-  const returnTo = useRef<{ element: Element | null; picked: boolean } | null>(null);
+  // Focus goes back where it came from, noted before the dialog takes focus and given back once
+  // it has unmounted and the page is no longer hidden from screen readers, unless something else
+  // took focus meanwhile.
+  const returnTo = useRef<Element | null>(null);
   const wasOpen = useRef(isOpen);
   useLayoutEffect(() => {
     if (isOpen && !wasOpen.current) {
-      returnTo.current = selection
-        ? { element: anchorOf(selection), picked: true }
-        : { element: document.activeElement, picked: false };
-      setOpened(null);
+      returnTo.current = document.activeElement;
+      setQuery(null);
     }
     wasOpen.current = isOpen;
-  }, [isOpen, selection]);
-  const inspecting = useRef(isInspecting);
-  useEffect(() => {
-    inspecting.current = isInspecting;
-  }, [isInspecting]);
+  }, [isOpen]);
   const [content, setContent] = useState<HTMLElement | null>(null);
   const shown = useRef(false);
   useEffect(() => {
@@ -135,21 +132,12 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
     if (content || !shown.current) return;
     shown.current = false;
     const focused = document.activeElement;
-    if (!focused || focused === document.body) {
-      if (returnTo.current?.picked && !inspecting.current) focusToggle();
-      else focusBack(returnTo.current?.element);
-    }
+    if (!focused || focused === document.body) focusBack(returnTo.current);
     returnTo.current = null;
-  }, [content, focusToggle]);
+  }, [content]);
 
-  const contentsSelection = useMemo(
-    () => (selection ? { id: selection.id, prop: selection.prop } : null),
-    [selection],
-  );
   const custom = sourcesState.customCount > 0;
-  // A picked value is shown beside the title, as it reads on the dashboard.
-  const meta = query ? undefined : selection?.propElement?.textContent?.trim() || undefined;
-  const back = query ? () => setOpened(null) : selection ? clearSelection : undefined;
+  const back = query ? () => setQuery(null) : undefined;
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && closeDialog()}>
@@ -192,9 +180,8 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
               </button>
             )}
             <Dialog.Title className={clsx(dialogStyles.title, dialogNames.title)}>
-              {sourcesTitle(sources, contentsSelection, query)}
+              {sourcesTitle(sources, null, query)}
             </Dialog.Title>
-            {meta && <span className={clsx(dialogStyles.meta, dialogNames.meta)}>{meta}</span>}
             <Dialog.Close
               className={clsx(dialogStyles.button, dialogStyles.close, dialogNames.close)}
               aria-label="Close"
@@ -208,9 +195,9 @@ function SourcesDialog({ onCustomHost }: { onCustomHost: (host: HTMLElement | nu
           ) : (
             <DataSourcesContents
               sources={sources}
-              selection={contentsSelection}
+              selection={null}
               query={query}
-              onOpenQuery={(name) => setOpened({ name, under: selection })}
+              onOpenQuery={setQuery}
               describeSource={sourcesState.options.describeSource}
             />
           )}

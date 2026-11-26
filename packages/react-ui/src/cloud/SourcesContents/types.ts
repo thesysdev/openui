@@ -15,6 +15,8 @@ export interface DataSourcesSelection {
 export interface SourceDescription {
   /** What kind of source it is, shown in the list, e.g. `Postgres` or `GA4`. Default: the tool name. */
   kind?: string;
+  /** What it reads, e.g. a table: shown after the kind in an item's list, as `Postgres · orders`. */
+  table?: string;
   /** A 14px mark, such as the product's logo. */
   icon?: ReactNode;
   /** The Query row's label, e.g. `SQL` or `HogQL`. Default: the tool name. */

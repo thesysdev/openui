@@ -86,19 +86,22 @@ export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
 export interface ArtifactProvenanceState {
   /**
    * While on, every data-bound component is outlined and in the tab order, and a click (or Enter)
-   * on one selects it and opens the Sources dialog on it. The dashboard itself doesn't act.
+   * on one selects it and opens its Sources popover beside it. The dashboard itself doesn't act.
    */
   isInspecting: boolean;
-  /** Turning it off also closes the Sources dialog and clears the selection. */
+  /** Turning it off also closes any Sources popover or dialog, and clears the selection. */
   setInspecting: (on: boolean) => void;
   /**
    * The data-bound component, and the prop it's outlined on, last picked in inspect mode. It
-   * stays after the dialog closes, and stays solid until another component is hovered.
+   * stays after its popover closes, and stays solid until another component is hovered.
    */
   selection: SourceTarget | null;
-  /** In the dialog, back to the list of every query. */
+  /** Clears the selection, closing its popover. */
   clearSelection: () => void;
-  /** Whether the Sources dialog is open. (`useArtifactRenderer().isOpen` is the dashboard's.) */
+  /**
+   * Whether the Sources dialog of every query is open. (An item's popover is not this dialog;
+   * `useArtifactRenderer().isOpen` is the dashboard's.)
+   */
   isSourcesOpen: boolean;
   /** Opens the Sources dialog on the list of every query, e.g. from your own "All queries" button. */
   openList: () => void;
@@ -142,10 +145,25 @@ export type SourcesStore = ValueStore<DataSources | null>;
 
 export const createSourcesStore = (): SourcesStore => createValueStore<DataSources | null>(null);
 
+/** The selected item's Sources popover, while open. */
+export interface PopoverState {
+  /** The source open in it, by name; null on its list of sources. */
+  source: string | null;
+}
+
+/** On the Sources popover's element: an Escape inside it steps back through the popover. */
+export const POPOVER = "data-openui-sources-popover";
+
 /** What only the renderer's own parts use, kept out of `useArtifactProvenance()`. */
 export interface ProvenanceInternals {
   /** Where the bridge writes the sources. */
   sourcesStore: SourcesStore;
+  /** The selection's popover; null when closed. */
+  popover: PopoverState | null;
+  /** In the open popover, opens a source's detail, or (null) goes back to the list. */
+  setPopoverSource: (name: string | null) => void;
+  /** Closes the popover, keeping inspect mode and the selection. */
+  closePopover: () => void;
   /** Closes the dialog, keeping inspect mode and the selection. */
   closeDialog: () => void;
   /** Moves focus to the Sources toggle, or off the page's elements if there is none. */

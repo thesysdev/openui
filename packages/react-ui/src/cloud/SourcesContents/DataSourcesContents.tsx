@@ -1,8 +1,7 @@
 "use client";
 
 import type { DataSources } from "@openuidev/react-lang";
-import clsx from "clsx";
-import { Check, ChevronRight, Copy, Download } from "lucide-react";
+import { ChevronRight, Download } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   componentLabel,
@@ -15,6 +14,7 @@ import {
   unwrapResult,
   type Origin,
 } from "./describe";
+import { CopyButton, CopyStatus, IconAction, useCopy } from "./parts";
 import { partClass } from "./sourcesDialog.styles";
 import type { DataSourcesContentsProps, DataSourcesSelection } from "./types";
 
@@ -23,30 +23,6 @@ const cx = partClass;
 /** The app's mark for a source, when `describeSource` gives one. */
 function SourceMark({ origin }: { origin: Pick<Origin, "icon"> }) {
   return origin.icon ? <span className={cx("mark")}>{origin.icon}</span> : null;
-}
-
-function IconAction({
-  label,
-  onClick,
-  className,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      className={clsx(cx("icon-button"), className)}
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
 }
 
 function display(item: unknown): ReactNode {
@@ -139,9 +115,7 @@ export function DataSourcesContents({
 }: DataSourcesContentsProps) {
   /** Rows the user opened or closed; their choice beats each row's default as they move around. */
   const [rowState, setRowState] = useState<Readonly<Record<string, boolean>>>({});
-  const [copied, setCopied] = useState<string | null>(null);
-  const [copyFailed, setCopyFailed] = useState(false);
-  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { copied, failed: copyFailed, copy } = useCopy();
   const bodyRef = useRef<HTMLDivElement>(null);
   const viewKey = query
     ? `query\u0000${query}`
@@ -162,24 +136,6 @@ export function DataSourcesContents({
     );
     return () => cancelAnimationFrame(frame);
   }, [viewKey]);
-  useEffect(
-    () => () => {
-      if (copyTimer.current) clearTimeout(copyTimer.current);
-    },
-    [],
-  );
-
-  const copy = async (key: string, value: unknown) => {
-    try {
-      await navigator.clipboard.writeText(typeof value === "string" ? value : json(value));
-      setCopyFailed(false);
-      setCopied(key);
-      if (copyTimer.current) clearTimeout(copyTimer.current);
-      copyTimer.current = setTimeout(() => setCopied(null), 1500);
-    } catch {
-      setCopyFailed(true);
-    }
-  };
   const download = (value: unknown, name: string) => {
     const url = URL.createObjectURL(new Blob([json(value)], { type: "application/json" }));
     const link = document.createElement("a");
@@ -189,16 +145,7 @@ export function DataSourcesContents({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   const copyButton = (key: string, value: unknown, className?: string) => (
-    <IconAction
-      className={className}
-      label={copied === key ? "Copied" : "Copy"}
-      onClick={() => void copy(key, value)}
-    >
-      {/* Keyed, so the swap to the check (and back) replays its arrival. */}
-      <span className={cx("swap")} key={copied === key ? "done" : "copy"}>
-        {copied === key ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
-      </span>
-    </IconAction>
+    <CopyButton className={className} done={copied === key} onCopy={() => void copy(key, value)} />
   );
   const code = (key: string, text: string) => (
     <div className={cx("code-wrap")}>
@@ -369,9 +316,7 @@ export function DataSourcesContents({
           {body}
         </div>
       </div>
-      <span className={cx("sr-only")} role="status">
-        {copyFailed ? "Couldn't copy. Please try again." : copied ? "Copied to clipboard" : ""}
-      </span>
+      <CopyStatus copied={copied !== null} failed={copyFailed} />
     </>
   );
 }

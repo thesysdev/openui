@@ -12,6 +12,8 @@ export interface Origin {
   name: string;
   toolName: string;
   kind: string;
+  /** What it reads, e.g. a table, when `describeSource` says. */
+  table?: string;
   code: string;
   codeLabel: string;
   icon?: ReactNode;
@@ -30,6 +32,7 @@ export function originOf(name: string, query: DataSourceQuery, describe?: Descri
     name,
     toolName,
     kind: described.kind ?? toolName,
+    table: described.table,
     code: described.code ?? JSON.stringify(query.args ?? {}, null, 2),
     codeLabel: described.codeLabel ?? toolName,
     icon: described.icon,

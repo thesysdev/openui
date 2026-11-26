@@ -29,8 +29,6 @@ const artifact = () => container.querySelector<HTMLElement>(".openui-artifact")!
 /** The open dialog: portaled to `body`, so looked up there. */
 const dialog = () => document.querySelector<HTMLElement>("[role=dialog]");
 const title = () => dialog()?.querySelector("h2")?.textContent;
-/** The picked value, shown beside the title. */
-const meta = () => dialog()?.querySelector(".openui-data-sources-dialog__meta")?.textContent;
 const toggle = () =>
   container.querySelector<HTMLButtonElement>(".openui-artifact-provenance-toggle")!;
 /** The All queries button, by its accessible name. */
@@ -92,6 +90,15 @@ async function inspect() {
   await settle();
 }
 
+/** As a real click would, All queries takes focus first. */
+async function openAllQueries() {
+  act(() => {
+    allQueries()!.focus();
+    allQueries()!.click();
+  });
+  await settle();
+}
+
 async function pick(element: HTMLElement) {
   act(() => element.click());
   await settle();
@@ -149,27 +156,16 @@ describe("Sources in a live artifact", () => {
     expect(document.querySelector("[role=tooltip]")?.textContent).toBe("All queries");
   });
 
-  it("opens a dialog on a picked number: titled by its label and value, on its Query", async () => {
+  it("opens a picked item's popover, never this dialog", async () => {
     await mount();
     await inspect();
     await pick(valueOf("Revenue this quarter"));
-    expect(title()).toBe("Revenue this quarter");
-    expect(meta()).toBe("184,920");
-    // No describeSource here: the Query row shows the tool name, not a guess.
-    expect(rows()).toEqual(["Querypostgres_query (open)", "Result", "Formula"]);
-    expect(dialog()?.querySelector("pre")?.textContent).toContain("FROM orders");
+    expect(document.querySelectorAll("[role=dialog]")).toHaveLength(1);
+    expect(dialog()?.getAttribute("aria-label")).toBe("Sources for Revenue this quarter");
+    expect(document.querySelector(".openui-data-sources-dialog")).toBeNull();
   });
 
-  it("opens a picked table on its Result", async () => {
-    await mount();
-    await inspect();
-    await pick(tile("Daily revenue"));
-    expect(title()).toBe("Daily revenue");
-    expect(meta()).toBeUndefined();
-    expect(rows()).toEqual(["Querypostgres_query", "Result (open)"]);
-  });
-
-  it("steps back one Escape at a time: the dialog, then inspect mode", async () => {
+  it("steps back one Escape at a time: the popover, then inspect mode", async () => {
     await mount();
     await inspect();
     await pick(valueOf("Revenue this quarter"));
@@ -217,7 +213,7 @@ describe("Sources in a live artifact", () => {
           new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
         );
       });
-    // The second one comes while the dialog is still leaving.
+    // The second one comes while the popover is still leaving.
     press();
     press();
     await settle();
@@ -229,7 +225,7 @@ describe("Sources in a live artifact", () => {
   it("closes on a click on the dim background, still inspecting", async () => {
     await mount();
     await inspect();
-    await pick(valueOf("Revenue this quarter"));
+    await openAllQueries();
     const overlay = document.querySelector<HTMLElement>(".openui-data-sources-dialog__overlay")!;
     act(() => {
       overlay.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
@@ -240,26 +236,10 @@ describe("Sources in a live artifact", () => {
     expect(artifact().hasAttribute("data-openui-inspecting")).toBe(true);
   });
 
-  it("gives focus back to the picked item, which stays outlined until another is hovered", async () => {
+  it("leaves the page clickable while it closes: a click right away picks an item", async () => {
     await mount();
     await inspect();
-    const revenue = valueOf("Revenue this quarter");
-    await pick(revenue);
-    act(() => dialog()!.querySelector<HTMLButtonElement>("[aria-label=Close]")!.click());
-    await settle();
-    expect(dialog()).toBeNull();
-    expect(document.activeElement).toBe(revenue);
-    expect(revenue.hasAttribute("data-openui-selected")).toBe(true);
-    act(() => {
-      valueOf("Weekly signups").dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    });
-    expect(revenue.hasAttribute("data-openui-selected")).toBe(false);
-  });
-
-  it("leaves the page clickable while it closes: a click right away picks the next item", async () => {
-    await mount();
-    await inspect();
-    await pick(valueOf("Revenue this quarter"));
+    await openAllQueries();
     act(() => dialog()!.querySelector<HTMLButtonElement>("[aria-label=Close]")!.click());
     // Still leaving: its exit plays on, but it no longer takes the pointer.
     const leaving = document.querySelector<HTMLElement>(".openui-data-sources-dialog")!;
@@ -269,42 +249,37 @@ describe("Sources in a live artifact", () => {
     expect(getComputedStyle(overlay).pointerEvents).toBe("none");
     expect(document.body.style.pointerEvents).not.toBe("none");
     await pick(valueOf("Weekly signups"));
-    expect(dialog()?.getAttribute("data-state")).toBe("open");
-    expect(title()).toBe("Weekly signups");
+    expect(dialog()?.getAttribute("aria-label")).toBe("Sources for Weekly signups");
   });
 
-  it("gives focus back only once the page is no longer hidden from screen readers", async () => {
+  it("gives focus back to All queries only once the page is no longer hidden from screen readers", async () => {
     await mount();
     await inspect();
-    const revenue = valueOf("Revenue this quarter");
-    await pick(revenue);
+    await openAllQueries();
     let hiddenWhenFocused: boolean | undefined;
-    revenue.addEventListener("focus", () => {
-      hiddenWhenFocused = revenue.closest("[aria-hidden=true]") !== null;
+    allQueries()!.addEventListener("focus", () => {
+      hiddenWhenFocused = allQueries()!.closest("[aria-hidden=true]") !== null;
     });
     act(() => dialog()!.querySelector<HTMLButtonElement>("[aria-label=Close]")!.click());
     await settle();
-    expect(document.activeElement).toBe(revenue);
+    expect(document.activeElement).toBe(allQueries());
     expect(hiddenWhenFocused).toBe(false);
   });
 
-  it("goes back to the list of every query, still inspecting, and opens one from it", async () => {
+  it("opens a query from the list of every query, and goes back to it", async () => {
     await mount();
     await inspect();
-    await pick(valueOf("Revenue this quarter"));
-    act(() => button("Back to all queries")!.click());
-    await settle();
+    await openAllQueries();
     expect(title()).toBe("Sources");
     expect(names()).toEqual(["revenueQ", "dailyQ", "signupsQ", "channelsQ", "targetQ"]);
-    expect(artifact().hasAttribute("data-openui-inspecting")).toBe(true);
     act(() => button("signupsQ")!.click());
     await settle();
     expect(title()).toBe("signupsQ");
-    expect(meta()).toBeUndefined();
     expect(rows()).toEqual(["Queryposthog_query (open)", "Result"]);
     act(() => button("Back to all queries")!.click());
     await settle();
     expect(title()).toBe("Sources");
+    expect(artifact().hasAttribute("data-openui-inspecting")).toBe(true);
   });
 
   it("lets your own toggle open the list and see that it's open", async () => {
@@ -356,7 +331,7 @@ describe("Sources in a live artifact", () => {
     expect(allQueries()).toBeUndefined();
   });
 
-  it("shows your own contents in the dialog, from Provenance children", async () => {
+  it("shows your own contents in the item's popover, from Provenance children", async () => {
     function Mine() {
       const { selection, setInspecting } = useArtifactProvenance();
       return createElement(
@@ -383,7 +358,7 @@ describe("Sources in a live artifact", () => {
     await pick(valueOf("Revenue this quarter"));
     expect(dialog()?.querySelector(".mine")?.textContent).toBe("Picked revenueStop");
     expect(dialog()?.querySelector(".openui-data-sources-dialog__rows")).toBeNull();
-    // Leaving inspect mode closes the dialog and clears the selection.
+    // Leaving inspect mode closes the popover and clears the selection.
     act(() => button("Stop")!.click());
     await settle();
     expect(dialog()).toBeNull();

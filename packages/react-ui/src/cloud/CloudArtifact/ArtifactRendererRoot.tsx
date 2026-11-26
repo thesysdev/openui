@@ -38,10 +38,12 @@ import {
   anchorOf,
   ContentConfigContext,
   createSourcesStore,
+  POPOVER,
   ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
   type ContentConfig,
+  type PopoverState,
   type ProvenanceContextValue,
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
@@ -461,14 +463,30 @@ export function ArtifactRendererRoot({
   const [isInspecting, setIsInspecting] = useState(false);
   const [selection, setSelection] = useState<SourceTarget | null>(null);
   const [isSourcesOpen, setSourcesOpen] = useState(false);
+  // The selection's Sources popover: open on its list, or on one of its sources.
+  const [popover, setPopover] = useState<PopoverState | null>(null);
+  // A popover is always the selection's: with nothing selected, it's closed.
+  if (popover && !selection) setPopover(null);
   // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
   const clearSelection = useCallback(() => setSelection(null), []);
   const openList = useCallback(() => {
     setSelection(null);
+    setPopover(null);
     setSourcesOpen(true);
   }, []);
   const closeDialog = useCallback(() => setSourcesOpen(false), []);
+  /** Picks a data-bound component and opens its popover, on its list or on one source. */
+  const openPopover = useCallback((target: SourceTarget, source: string | null = null) => {
+    setSelection(target);
+    setSourcesOpen(false);
+    setPopover({ source });
+  }, []);
+  const setPopoverSource = useCallback(
+    (source: string | null) => setPopover((current) => (current ? { source } : current)),
+    [],
+  );
+  const closePopover = useCallback(() => setPopover(null), []);
   // Focus goes to the Sources toggle, else nowhere: an item that holds it once inspect mode ends
   // would keep the page's focus ring, with nothing to take it off.
   const focusToggle = useCallback(() => {
@@ -485,6 +503,7 @@ export function ArtifactRendererRoot({
       setIsInspecting(on);
       if (on) return;
       setSourcesOpen(false);
+      setPopover(null);
       setSelection(null);
       const focused = document.activeElement;
       if (
@@ -509,7 +528,14 @@ export function ArtifactRendererRoot({
             clearSelection,
             isSourcesOpen,
             openList,
-            internal: { sourcesStore, closeDialog, focusToggle },
+            internal: {
+              sourcesStore,
+              closeDialog,
+              focusToggle,
+              popover,
+              setPopoverSource,
+              closePopover,
+            },
           }
         : null,
     [
@@ -523,6 +549,9 @@ export function ArtifactRendererRoot({
       closeDialog,
       focusToggle,
       sourcesStore,
+      popover,
+      setPopoverSource,
+      closePopover,
     ],
   );
   const inspecting = enableProvenance && isInspecting;
@@ -544,12 +573,9 @@ export function ArtifactRendererRoot({
       event.preventDefault();
       event.stopPropagation();
       const picked = event.type === "click" ? boundTarget(event.target) : null;
-      if (picked) {
-        setSelection(picked);
-        setSourcesOpen(true);
-      }
+      if (picked) openPopover(picked);
     },
-    [inspecting],
+    [inspecting, openPopover],
   );
   // While inspecting, each data-bound component is outlined, and keyboard users reach it: Tab
   // stops on each one, and Enter or Space picks the focused one. The marks follow the DOM (items
@@ -571,31 +597,48 @@ export function ArtifactRendererRoot({
       marks.clear();
     };
   }, [inspecting, renderInHtmlElement, sourcesStore]);
-  const onInspectKey = useCallback((event: ReactKeyboardEvent) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    const element = event.target as Element;
-    if (!element.hasAttribute?.(BOUND)) return;
-    const target = boundTarget(element);
-    if (!target) return;
-    event.preventDefault();
-    event.stopPropagation();
-    setSelection(target);
-    setSourcesOpen(true);
-  }, []);
-  // Escape undoes one step: the dialog closes first (it handles that key itself), then inspect
-  // mode ends. A menu, list or dialog of the dashboard's own closes before either.
+  const onInspectKey = useCallback(
+    (event: ReactKeyboardEvent) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const element = event.target as Element;
+      if (!element.hasAttribute?.(BOUND)) return;
+      const target = boundTarget(element);
+      if (!target) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openPopover(target);
+    },
+    [openPopover],
+  );
+  // Escape undoes one step: in the popover, from a source back to its list, then the popover
+  // closes; the dialog closes (it handles that key itself); then inspect mode ends. A menu, list
+  // or dialog of the dashboard's own closes before any of them.
+  const popoverOpen = enableProvenance && popover !== null;
+  const popoverSource = popover?.source ?? null;
   useEffect(() => {
-    if (!inspecting) return;
+    if (!inspecting && !popoverOpen) return;
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       const target = event.target as Element | null;
-      if (target?.closest?.(OWNS_ESCAPE)) return;
-      if (isSourcesOpen) setSourcesOpen(false);
+      const owner = target?.closest?.(OWNS_ESCAPE);
+      if (owner && !owner.hasAttribute(POPOVER)) return;
+      event.preventDefault();
+      if (popoverSource !== null) setPopoverSource(null);
+      else if (popoverOpen) closePopover();
+      else if (isSourcesOpen) setSourcesOpen(false);
       else setInspecting(false);
     };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
-  }, [inspecting, isSourcesOpen, setInspecting]);
+  }, [
+    inspecting,
+    popoverOpen,
+    popoverSource,
+    isSourcesOpen,
+    setInspecting,
+    setPopoverSource,
+    closePopover,
+  ]);
   // While inspecting, the outlined component under the pointer turns solid: set on the element
   // directly, so moving the mouse re-renders nothing.
   const hovered = useRef<Element | null>(null);
@@ -610,13 +653,13 @@ export function ArtifactRendererRoot({
     (event: SyntheticEvent) => {
       const target = boundTarget(event.target);
       setHovered(target);
-      // The last pick stays solid after the dialog closes, until another one is hovered.
+      // The last pick stays solid after its popover closes, until another one is hovered.
       const element = target ? anchorOf(target) : null;
-      if (element && !isSourcesOpen) {
+      if (element && !isSourcesOpen && !popoverOpen) {
         setSelection((current) => (current && element !== anchorOf(current) ? null : current));
       }
     },
-    [setHovered, isSourcesOpen],
+    [setHovered, isSourcesOpen, popoverOpen],
   );
   const clearHovered = useCallback(() => setHovered(null), [setHovered]);
   useEffect(() => {
@@ -627,7 +670,10 @@ export function ArtifactRendererRoot({
   // which clears the selection too.)
   // An edit can give a component id (`lead.2`) to another component: start over too.
   useEffect(() => setSelection(null), [id, program]);
-  useEffect(() => setSourcesOpen(false), [id]);
+  useEffect(() => {
+    setSourcesOpen(false);
+    setPopover(null);
+  }, [id]);
   // The pick's outline stays solid: on the element inspect mode outlined.
   useEffect(() => {
     if (!enableProvenance || !selection) return;

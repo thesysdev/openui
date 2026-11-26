@@ -117,12 +117,12 @@ describe("Inspect mode", () => {
     expect(sourcesToggle().getAttribute("aria-pressed")).toBe("true");
   });
 
-  it("opens the Sources dialog on a click on an outlined component", async () => {
+  it("opens its Sources popover on a click on an outlined component", async () => {
     await mount();
     await inspect();
     await user.click(handle("Daily revenue"));
     await settle();
-    expect(screen.getByRole("dialog", { name: "Daily revenue" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Sources for Daily revenue" })).toBeTruthy();
   });
 
   it("turns the outline under the pointer solid, and only an outlined one", async () => {
@@ -153,7 +153,7 @@ describe("Inspect mode", () => {
     ]);
     await user.keyboard("{Enter}");
     await settle();
-    expect(screen.getByRole("dialog", { name: "Daily revenue" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Sources for Daily revenue" })).toBeTruthy();
   });
 
   it("picks the focused component on Space too", async () => {
@@ -162,7 +162,7 @@ describe("Inspect mode", () => {
     act(() => handle("Weekly signups").focus());
     await user.keyboard(" ");
     await settle();
-    expect(screen.getByRole("dialog", { name: "Weekly signups" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Sources for Weekly signups" })).toBeTruthy();
   });
 
   it("takes the handles out of the tab order when inspect mode ends", async () => {
