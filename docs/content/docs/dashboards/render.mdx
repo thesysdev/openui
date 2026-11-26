@@ -192,12 +192,14 @@ Pressing Sources puts the dashboard in inspect mode. The button looks pressed wh
 
 While inspecting:
 
-- Hovering a number, table or chart outlines it. After a short pause a hover card shows its source kind, the first line of its query and a one-line result, such as `1 row · revenue 184920`. A component with several queries lists the first three, then "+N more". Once a card is showing, the next one appears without the pause. Keyboard focus shows the card too.
-- Clicking a component, or a number in it, selects it instead of acting: filters, links, tabs and sorting don't react. The click opens the Sources dialog on it.
-- Tab reaches every item a component marks with `bindSource()`, and Enter or Space opens the dialog on the focused one. Components found only through React's tree carry no mark, so Tab doesn't reach them; for keyboard users, All queries lists their queries.
+- Every data-bound component, each number, table or chart whose value reads a query directly or through a formula, gets a blue dotted outline. Headings, text, values written as literals and layout containers get none; a container's data-bound children are outlined instead. Where a component marks the element that shows its value with `bindSource("value")`, the outline goes on that element; otherwise on the component's.
+- Hovering an outlined component turns its outline solid. Nothing else reacts to the pointer, and no card pops up.
+- Clicking an outlined component opens the Sources dialog on it. Clicks anywhere else do nothing: filters, links, tabs and sorting don't react.
+- Tab stops on each outlined component in order, with a solid outline as its focus ring, and Enter or Space opens the dialog on the focused one.
+- Escape, with nothing open, leaves inspect mode. A menu, list or dialog of the dashboard's own handles its Escape first.
 - Pressing Sources again leaves inspect mode, and the dashboard behaves normally.
 
-On touch screens there are no outlines or hover cards: a tap opens the dialog.
+On touch screens the outlines show, but nothing turns solid on hover: a tap opens the dialog.
 
 ### The Sources dialog
 
@@ -210,7 +212,7 @@ The dialog is centered and 560px wide. At 639px and below it's a bottom sheet ov
 - Closing the dialog, with its close button or a click on the dim background, keeps inspect mode, so the next item is one hover away. The item keeps its outline until another is hovered, and focus goes back to it.
 - The first Escape closes the dialog, and the second leaves inspect mode.
 
-Pass `describeSource` to `Provenance` to name your tools. It takes a tool's name and arguments and returns `{ kind, icon, codeLabel, code }`, such as `kind: "Postgres"` and the SQL your tool ran. The dialog and the hover card both use it:
+Pass `describeSource` to `Provenance` to name your tools. It takes a tool's name and arguments and returns `{ kind, icon, codeLabel, code }`, such as `kind: "Postgres"` and the SQL your tool ran. The dialog uses it:
 
 ```tsx
 import type { SourceDescription } from "@openuidev/react-ui/cloud";
@@ -292,7 +294,7 @@ function SourcesContents() {
 
 ### Finding components
 
-In React on the web, components are found without any change to the library, through React's own tree. Where that tree can't be read, only components marked with `bindSource()` are found. To make a prop clickable on its own, mark its element with `bindSource("prop")` in the component (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component written inside a statement, such as one Kpi among several, selects on its own. Its id is its position inside the statement (`lead.1`), so an edit to the dashboard can renumber it, and clears the selection; every item an `@Each` draws shares one id. The selection also clears when its component replaces the selected element, such as when its data loads.
+In React on the web, components are found without any change to the library, through React's own tree. Where that tree can't be read, only components marked with `bindSource()` are found. To outline the element that shows a prop's value rather than the whole component, mark it with `bindSource("prop")` in the component (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component written inside a statement, such as one Kpi among several, selects on its own. Its id is its position inside the statement (`lead.1`), so an edit to the dashboard can renumber it, and clears the selection; every item an `@Each` draws shares one id. The selection also clears when its component replaces the selected element, such as when its data loads.
 
 Pass the same `library` object on every render, such as one created at module level: a new library each render makes the whole dashboard render again.
 
@@ -300,26 +302,26 @@ Pass the same `library` object on every render, such as one created at module le
 
 To restyle the outlines, set these variables on `.openui-artifact-content` or any element around it:
 
-| Variable                            | Default                                    |
-| ----------------------------------- | ------------------------------------------ |
-| `--openui-inspect-color`            | `var(--openui-interactive-accent-default)` |
-| `--openui-inspect-hover-outline`    | `1px dashed` in `--openui-inspect-color`   |
-| `--openui-inspect-selected-outline` | `2px solid` in `--openui-inspect-color`    |
-| `--openui-inspect-outline-offset`   | `2px` (drawn just outside the element)     |
+| Variable                          | Default                                                                   |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `--openui-inspect-color`          | `var(--openui-interactive-accent-default)`                                |
+| `--openui-inspect-outline`        | `2px dotted` in `--openui-inspect-color` at 60%: every data-bound element |
+| `--openui-inspect-active-outline` | `2px solid` in `--openui-inspect-color`: hovered, focused or picked       |
+| `--openui-inspect-outline-offset` | `4px` (drawn just outside the element)                                    |
 
 ```css
 .openui-artifact-content {
   --openui-inspect-color: #7c3aed;
-  --openui-inspect-hover-outline: none;
+  --openui-inspect-outline: 1px dashed #7c3aed;
 }
 ```
 
-For more than an outline, target these on the `Content` slot's element (`.openui-artifact-content`, which also carries a `className` you pass to `Content`): `[data-openui-hover]` is what a click would select, under the mouse; `[data-openui-selected]` is the selected component and the selected prop's element; `.openui-artifact-inspecting` is on while inspect mode is. The default outlines give way to any rule like these:
+For more than an outline, target these on the `Content` slot's element (`.openui-artifact-content`, which also carries a `className` you pass to `Content`): `[data-openui-bound]` is on each outlined element while inspecting, with the component's id as its value; `[data-openui-hover]` is the outlined element under the mouse; `[data-openui-selected]` is the picked one; `.openui-artifact-inspecting` is on while inspect mode is. The default outlines give way to any rule like these:
 
 ```css
-/* No hover outline; a thicker selected outline. Hover first: a clicked element has both. */
+/* A thicker outline under the mouse and on the pick. Hover first: a clicked element has both. */
 .openui-artifact-content [data-openui-hover] {
-  outline: none;
+  outline: 3px solid #7c3aed;
 }
 .openui-artifact-content [data-openui-selected] {
   outline: 3px solid hotpink;
@@ -348,9 +350,8 @@ These class names are stable:
 | `openui-artifact-all-queries`       | The All queries button.                                                                                                                 |
 | `openui-data-sources-dialog`        | The dialog. Its parts: `__overlay`, `__header`, `__title`, `__meta`, `__back`, `__close` and `__custom` (around `Provenance` children). |
 | `openui-data-sources-dialog__*`     | The default contents' parts, such as `__list-button`.                                                                                   |
-| `openui-data-sources-hover-card`    | The hover card.                                                                                                                         |
 
-The dialog and the hover card are portaled to `body`, so target them by these classes rather than under `.openui-artifact`.
+The dialog is portaled to `body`, so target them by these classes rather than under `.openui-artifact`.
 
 ## Theme
 

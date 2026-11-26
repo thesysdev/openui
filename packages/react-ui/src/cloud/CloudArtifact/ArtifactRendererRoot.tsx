@@ -37,7 +37,6 @@ import { names, styles } from "./cloudArtifact.styles";
 import {
   anchorOf,
   ContentConfigContext,
-  createPreviewStore,
   createSourcesStore,
   ProvenanceContext,
   RendererStateContext,
@@ -47,6 +46,7 @@ import {
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
 import { hasLentTabIndex } from "./focus";
+import { BOUND, boundTarget, createInspectMarks } from "./inspectMarks";
 import {
   Chrome,
   ChromeActions,
@@ -153,9 +153,6 @@ const usableInterval = (value: number | false | undefined) =>
 const noopSubscribe = () => () => {};
 const notDeleted = () => false;
 const notCached = () => undefined;
-/** An item a component marked with `bindSource`: Tab reaches it while inspecting. */
-const SOURCE_ITEM = "[data-openui-source]";
-
 /** What handles Escape itself, so it shouldn't also step out of Sources. */
 const OWNS_ESCAPE =
   "[role=menu], [role=menuitem], [role=listbox], [role=option], [role=dialog], [role=combobox], select";
@@ -466,16 +463,12 @@ export function ArtifactRendererRoot({
   const [isSourcesOpen, setSourcesOpen] = useState(false);
   // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
-  // What the hover card previews, written as the pointer and focus move.
-  const [previewStore] = useState(createPreviewStore);
   const clearSelection = useCallback(() => setSelection(null), []);
   const openList = useCallback(() => {
     setSelection(null);
     setSourcesOpen(true);
   }, []);
   const closeDialog = useCallback(() => setSourcesOpen(false), []);
-  /** Bound items inspect mode put in the tab order, given back when it ends. */
-  const madeFocusable = useRef(new Set<Element>());
   // Focus goes to the Sources toggle, else nowhere: an item that holds it once inspect mode ends
   // would keep the page's focus ring, with nothing to take it off.
   const focusToggle = useCallback(() => {
@@ -496,7 +489,7 @@ export function ArtifactRendererRoot({
       const focused = document.activeElement;
       if (
         focused &&
-        (madeFocusable.current.has(focused) ||
+        (focused.hasAttribute(BOUND) ||
           hasLentTabIndex(focused) ||
           (focused.hasAttribute("data-openui-selected") &&
             [rootRef.current, renderInHtmlElement].some((area) => area?.contains(focused))))
@@ -516,7 +509,7 @@ export function ArtifactRendererRoot({
             clearSelection,
             isSourcesOpen,
             openList,
-            internal: { sourcesStore, previewStore, closeDialog, focusToggle },
+            internal: { sourcesStore, closeDialog, focusToggle },
           }
         : null,
     [
@@ -530,12 +523,11 @@ export function ArtifactRendererRoot({
       closeDialog,
       focusToggle,
       sourcesStore,
-      previewStore,
     ],
   );
   const inspecting = enableProvenance && isInspecting;
-  // While inspecting, pressing a component selects it instead of acting: buttons, links,
-  // inputs and menus (some open on pointer down) all stay still.
+  // While inspecting, the dashboard stays still: buttons, links, inputs and menus (some open on
+  // pointer down) don't act. A click on an outlined component picks it; anywhere else, nothing.
   const onInspectCapture = useCallback(
     (event: SyntheticEvent) => {
       if (!inspecting) return;
@@ -551,49 +543,39 @@ export function ArtifactRendererRoot({
       if (!target) return;
       event.preventDefault();
       event.stopPropagation();
-      if (event.type === "click") {
-        setSelection(target);
+      const picked = event.type === "click" ? boundTarget(event.target) : null;
+      if (picked) {
+        setSelection(picked);
         setSourcesOpen(true);
       }
     },
     [inspecting],
   );
-  // Keyboard users reach what a click would pick: while inspecting, every item marked with
-  // `data-openui-source` joins the tab order (only those without a tabindex of their own, given
-  // back after), and Enter or Space picks the focused one. Components found only through React
-  // (no attribute) can't be reached this way; All queries lists their queries.
+  // While inspecting, each data-bound component is outlined, and keyboard users reach it: Tab
+  // stops on each one, and Enter or Space picks the focused one. The marks follow the DOM (items
+  // that render once data loads) and the sources, and are given back when inspect mode ends.
   useEffect(() => {
     if (!inspecting) return;
     const areas = [rootRef.current, renderInHtmlElement].filter(
       (area): area is HTMLElement => !!area,
     );
-    const added = madeFocusable.current;
-    const reach = () => {
-      for (const area of areas) {
-        for (const element of area.querySelectorAll(SOURCE_ITEM)) {
-          if (element.hasAttribute("tabindex")) continue;
-          element.setAttribute("tabindex", "0");
-          added.add(element);
-        }
-      }
-    };
-    reach();
-    // Items that render later, e.g. once data loads, join too.
-    const observer = new MutationObserver(reach);
+    const marks = createInspectMarks(rootRef.current);
+    const update = () => marks.update(areas, sourcesStore.get());
+    update();
+    const unsubscribe = sourcesStore.subscribe(update);
+    const observer = new MutationObserver(update);
     for (const area of areas) observer.observe(area, { childList: true, subtree: true });
     return () => {
+      unsubscribe();
       observer.disconnect();
-      for (const element of added) {
-        if (element.getAttribute("tabindex") === "0") element.removeAttribute("tabindex");
-      }
-      added.clear();
+      marks.clear();
     };
-  }, [inspecting, renderInHtmlElement]);
+  }, [inspecting, renderInHtmlElement, sourcesStore]);
   const onInspectKey = useCallback((event: ReactKeyboardEvent) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     const element = event.target as Element;
-    if (!element.matches?.(SOURCE_ITEM)) return;
-    const target = readSourceTarget(element, rootRef.current);
+    if (!element.hasAttribute?.(BOUND)) return;
+    const target = boundTarget(element);
     if (!target) return;
     event.preventDefault();
     event.stopPropagation();
@@ -614,28 +596,22 @@ export function ArtifactRendererRoot({
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [inspecting, isSourcesOpen, setInspecting]);
-  // While inspecting, what a click would select gets a hover outline, for any component:
-  // set on the element directly, so moving the mouse re-renders nothing.
-  // The hover card previews it too.
+  // While inspecting, the outlined component under the pointer turns solid: set on the element
+  // directly, so moving the mouse re-renders nothing.
   const hovered = useRef<Element | null>(null);
-  const setHovered = useCallback(
-    (target: SourceTarget | null) => {
-      const element = target ? anchorOf(target) : null;
-      if (hovered.current === element) return;
-      hovered.current?.removeAttribute("data-openui-hover");
-      element?.setAttribute("data-openui-hover", "");
-      hovered.current = element;
-      // A move off a focused item leaves its card to focus; a move onto one takes over.
-      if (target || !previewStore.get()?.focus) previewStore.set(target && { target });
-    },
-    [previewStore],
-  );
+  const setHovered = useCallback((target: SourceTarget | null) => {
+    const element = target ? anchorOf(target) : null;
+    if (hovered.current === element) return;
+    hovered.current?.removeAttribute("data-openui-hover");
+    element?.setAttribute("data-openui-hover", "");
+    hovered.current = element;
+  }, []);
   const onInspectHover = useCallback(
     (event: SyntheticEvent) => {
-      const target = readSourceTarget(event.target, rootRef.current);
-      const element = target ? anchorOf(target) : null;
+      const target = boundTarget(event.target);
       setHovered(target);
-      // The last pick keeps its outline after the dialog closes, until another one is hovered.
+      // The last pick stays solid after the dialog closes, until another one is hovered.
+      const element = target ? anchorOf(target) : null;
       if (element && !isSourcesOpen) {
         setSelection((current) => (current && element !== anchorOf(current) ? null : current));
       }
@@ -643,42 +619,21 @@ export function ArtifactRendererRoot({
     [setHovered, isSourcesOpen],
   );
   const clearHovered = useCallback(() => setHovered(null), [setHovered]);
-  // Focus previews the component around it, for keyboard users; the card decides whether to show.
-  const onInspectFocus = useCallback(
-    (event: SyntheticEvent) => {
-      const target = readSourceTarget(event.target, rootRef.current);
-      previewStore.set(target && { target, focus: event.target as Element });
-    },
-    [previewStore],
-  );
-  const onInspectBlur = useCallback(
-    (event: SyntheticEvent) => {
-      if (previewStore.get()?.focus === event.target) previewStore.set(null);
-    },
-    [previewStore],
-  );
   useEffect(() => {
-    if (!inspecting) {
-      clearHovered();
-      previewStore.set(null);
-    }
-    return () => {
-      clearHovered();
-      previewStore.set(null);
-    };
-  }, [inspecting, clearHovered, previewStore]);
+    if (!inspecting) clearHovered();
+    return clearHovered;
+  }, [inspecting, clearHovered]);
   // Another artifact: start over. (Closing or a remount for live data unmounts the bridge,
   // which clears the selection too.)
   // An edit can give a component id (`lead.2`) to another component: start over too.
   useEffect(() => setSelection(null), [id, program]);
   useEffect(() => setSourcesOpen(false), [id]);
-  // Outline the selected component and prop.
+  // The pick's outline stays solid: on the element inspect mode outlined.
   useEffect(() => {
     if (!enableProvenance || !selection) return;
-    const marked = [selection.element, selection.propElement].filter(
-      (el): el is Element => el !== undefined,
-    );
-    marked.forEach((el) => el.setAttribute("data-openui-selected", ""));
+    const picked = anchorOf(selection);
+    picked.setAttribute("data-openui-selected", "");
+    const marked = [selection.element, picked];
     // A component can replace a selected element, e.g. when data loads: the selection is gone.
     const observer = new MutationObserver(() => {
       if (!marked.every((el) => el.isConnected)) setSelection(null);
@@ -689,7 +644,7 @@ export function ArtifactRendererRoot({
     }
     return () => {
       observer.disconnect();
-      marked.forEach((el) => el.removeAttribute("data-openui-selected"));
+      picked.removeAttribute("data-openui-selected");
     };
   }, [enableProvenance, selection, renderInHtmlElement]);
 
@@ -715,8 +670,6 @@ export function ArtifactRendererRoot({
             onKeyDownCapture={inspecting ? onInspectKey : undefined}
             onMouseOver={inspecting ? onInspectHover : undefined}
             onMouseLeave={inspecting ? clearHovered : undefined}
-            onFocus={inspecting ? onInspectFocus : undefined}
-            onBlur={inspecting ? onInspectBlur : undefined}
           >
             {preview ? (
               <>

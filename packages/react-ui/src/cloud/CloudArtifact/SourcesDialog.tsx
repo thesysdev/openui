@@ -19,7 +19,6 @@ import { dialogNames, dialogStyles } from "../SourcesContents/sourcesDialog.styl
 import type { DataSourcesContentsProps } from "../SourcesContents/types";
 import { anchorOf, ProvenanceContext, useArtifactProvenance } from "./contexts";
 import { focusBack } from "./focus";
-import { SourcesHoverCard } from "./SourcesHoverCard";
 
 /** What an app can tell the default Sources contents, through the `Provenance` slot's props. */
 export type SourcesOptions = Pick<DataSourcesContentsProps, "describeSource">;
@@ -56,7 +55,6 @@ export function SourcesProvider({ children }: { children: ReactNode }) {
     <SourcesContext.Provider value={state}>
       {children}
       <SourcesDialog onCustomHost={setCustomHost} />
-      <SourcesHoverCard describeSource={options.describeSource} />
     </SourcesContext.Provider>
   );
 }

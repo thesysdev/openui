@@ -149,22 +149,41 @@ export const styles = {
     align-items: center;
     gap: var(--openui-space-xs);
   `,
-  // Inspect mode: what a click would select is outlined under the mouse. Before `content`,
-  // so the selected outline, declared later with the same specificity, wins on both. Rules
-  // in `:where()` count for nothing, so an app's own rule overrides them (see the docs). The
-  // `--openui-inspect-*` variables, set on any element around the content, restyle them.
-  // Both are drawn just outside the element, so its own content (a table's row and header fills)
-  // can't paint over them. Touch screens get no hover outline: it would stick after a tap.
+  // Inspect mode: every data-bound component is outlined, dotted, in the accent color at 60%. The
+  // one under the pointer, the focused one and the pick are solid. Rules in `:where()` count for
+  // nothing, so an app's own rule overrides them (see the docs). The `--openui-inspect-*`
+  // variables, set on any element around the content, restyle them. Drawn outside the element, so
+  // its own content (a table's row and header fills) can't paint over them. Only a fine pointer
+  // gets the hover outline: on a touch screen it would stick after a tap.
   inspecting: css`
-    @media (hover: hover) {
-      & :where([data-openui-hover]) {
-        cursor: pointer;
+    & :where([data-openui-bound]) {
+      cursor: pointer;
+      outline: var(
+        --openui-inspect-outline,
+        2px dotted
+          color-mix(
+            in oklch,
+            var(--openui-inspect-color, var(--openui-interactive-accent-default)) 60%,
+            transparent
+          )
+      );
+      outline-offset: var(--openui-inspect-outline-offset, 4px);
+      transition: outline-color 120ms ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      & :where([data-openui-bound][data-openui-hover]) {
         outline: var(
-          --openui-inspect-hover-outline,
-          1px dashed var(--openui-inspect-color, var(--openui-interactive-accent-default))
+          --openui-inspect-active-outline,
+          2px solid var(--openui-inspect-color, var(--openui-interactive-accent-default))
         );
-        outline-offset: var(--openui-inspect-outline-offset, 2px);
       }
+    }
+    /* The focus ring: a solid outline, as under the pointer. */
+    & :where([data-openui-bound]):focus-visible {
+      outline: var(
+        --openui-inspect-active-outline,
+        2px solid var(--openui-inspect-color, var(--openui-interactive-accent-default))
+      );
     }
   `,
   content: css`
@@ -173,16 +192,17 @@ export const styles = {
     min-height: 120px;
     overflow: auto;
     /*
-     * A pick given focus back keeps this outline, not the page's focus ring: with :focus-visible
-     * outside :where(), the rule outranks a page's own :focus-visible one.
+     * The pick stays solid. Given focus back when the dialog closes, it keeps this outline rather
+     * than the page's focus ring: with :focus-visible outside :where(), the rule outranks a page's
+     * own :focus-visible one.
      */
     & :where([data-openui-selected]),
     & :where([data-openui-selected]):focus-visible {
       outline: var(
-        --openui-inspect-selected-outline,
+        --openui-inspect-active-outline,
         2px solid var(--openui-inspect-color, var(--openui-interactive-accent-default))
       );
-      outline-offset: var(--openui-inspect-outline-offset, 2px);
+      outline-offset: var(--openui-inspect-outline-offset, 4px);
     }
   `,
   loading: css`

@@ -2,7 +2,6 @@ import type { Decorator, Meta, StoryObj } from "@storybook/react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { LiveArtifactRenderer } from "../../CloudArtifact/ArtifactRenderer";
 import {
-  createPreviewStore,
   createSourcesStore,
   ProvenanceContext,
   useArtifactProvenance,
@@ -41,7 +40,7 @@ function SlowMotion({ rate }: { rate: number }) {
 }
 
 interface MotionArgs {
-  /** Plays the dialog, sheet, toggle and hover card transitions at a fifth of their speed. */
+  /** Plays the dialog, sheet, toggle and outline transitions at a fifth of their speed. */
   slowMotion?: boolean;
 }
 
@@ -74,7 +73,6 @@ function DialogStory({ initial, describeSource: describe, children }: DialogStor
     store.set(sources);
     return store;
   });
-  const [previewStore] = useState(createPreviewStore);
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       trigger && {
@@ -90,13 +88,12 @@ function DialogStory({ initial, describeSource: describe, children }: DialogStor
         },
         internal: {
           sourcesStore,
-          previewStore,
           closeDialog: () => setOpen(false),
           // No toggle here: the "Open Sources" button stands in for it.
           focusToggle: () => trigger.focus(),
         },
       },
-    [trigger, picked, isOpen, sourcesStore, previewStore],
+    [trigger, picked, isOpen, sourcesStore],
   );
   return (
     <div style={{ minHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
@@ -206,9 +203,10 @@ function StartInspecting() {
 }
 
 /**
- * A live dashboard in inspect mode: Sources is pressed, and All queries sits beside it. Hover a
- * number, table or chart for its outline and, after a moment, its hover card; click it to open
- * the dialog. Escape closes the dialog, then leaves inspect mode.
+ * A live dashboard in inspect mode: Sources is pressed, and All queries sits beside it. Every
+ * number, table and chart that reads a query has a dotted outline, which turns solid under the
+ * pointer; click one, or Tab to it and press Enter, to open the dialog. Escape closes the dialog,
+ * then leaves inspect mode.
  */
 export const LiveDashboard: StoryObj<MotionArgs> = {
   decorators: [
@@ -258,7 +256,7 @@ export const LiveDashboard: StoryObj<MotionArgs> = {
   ),
 };
 
-/** The live dashboard on a phone: no hover; a tap in inspect mode opens the bottom sheet. */
+/** The live dashboard on a phone: no hover; a tap on an outlined item opens the bottom sheet. */
 export const LiveDashboardPhone: StoryObj<MotionArgs> = {
   ...LiveDashboard,
   parameters: { viewport: { defaultViewport: "mobile2" } },

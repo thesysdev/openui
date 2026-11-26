@@ -84,13 +84,16 @@ export const RegionContext = createContext<ReadonlySet<Region>>(new Set());
 
 /** Inspect mode, the selected component and where data comes from, from `useArtifactProvenance()`. */
 export interface ArtifactProvenanceState {
-  /** While on, a click on a component selects it and opens the Sources dialog on it, instead of acting. */
+  /**
+   * While on, every data-bound component is outlined and in the tab order, and a click (or Enter)
+   * on one selects it and opens the Sources dialog on it. The dashboard itself doesn't act.
+   */
   isInspecting: boolean;
   /** Turning it off also closes the Sources dialog and clears the selection. */
   setInspecting: (on: boolean) => void;
   /**
-   * The component, and prop, last clicked in inspect mode. It stays after the dialog closes, and
-   * stays outlined until another component is hovered.
+   * The data-bound component, and the prop it's outlined on, last picked in inspect mode. It
+   * stays after the dialog closes, and stays solid until another component is hovered.
    */
   selection: SourceTarget | null;
   /** In the dialog, back to the list of every query. */
@@ -139,26 +142,10 @@ export type SourcesStore = ValueStore<DataSources | null>;
 
 export const createSourcesStore = (): SourcesStore => createValueStore<DataSources | null>(null);
 
-/**
- * What the hover card previews while inspecting: the component under the pointer, or around the
- * focused element (`focus`). Set by the root as the pointer moves, so moving re-renders only
- * the card.
- */
-export interface Previewed {
-  target: SourceTarget;
-  /** The focused element, when focus put it there rather than the pointer. */
-  focus?: Element;
-}
-export type PreviewStore = ValueStore<Previewed | null>;
-
-export const createPreviewStore = (): PreviewStore => createValueStore<Previewed | null>(null);
-
 /** What only the renderer's own parts use, kept out of `useArtifactProvenance()`. */
 export interface ProvenanceInternals {
   /** Where the bridge writes the sources. */
   sourcesStore: SourcesStore;
-  /** What the hover card previews. */
-  previewStore: PreviewStore;
   /** Closes the dialog, keeping inspect mode and the selection. */
   closeDialog: () => void;
   /** Moves focus to the Sources toggle, or off the page's elements if there is none. */
