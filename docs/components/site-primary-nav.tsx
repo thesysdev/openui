@@ -13,6 +13,7 @@ import {
   Monitor,
   PlugsConnected,
   PresentationChart,
+  UsersThree,
   type Icon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -239,6 +240,12 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
               "Product updates, deep dives, and notes on building generative UI from our team.",
             ...SITE_NAV_LINKS.blog,
             icon: Book,
+          },
+          {
+            title: "Champions",
+            description: "Meet the community members who help build and shape OpenUI.",
+            ...SITE_NAV_LINKS.champions,
+            icon: UsersThree,
           },
         ],
       },

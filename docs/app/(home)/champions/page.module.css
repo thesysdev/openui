@@ -1,0 +1,125 @@
+.hero {
+  padding-bottom: 8px;
+}
+
+/* The shared desktop hero pads 7rem above and 3rem below the lockup; pull it in
+   so the Champions show in the first screen. */
+@media (min-width: 1024px) {
+  .hero {
+    margin-top: -4rem;
+    margin-bottom: -1.5rem;
+    padding-bottom: 0;
+  }
+}
+
+.softBand {
+  background: var(--openui-background);
+}
+
+.section {
+  padding-block: 112px;
+}
+
+.meetSection {
+  padding-block: 40px 112px;
+}
+
+.meetHeading {
+  max-width: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 24px;
+  margin: 32px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 16px;
+  background: var(--openui-foreground, var(--openui-background));
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.cardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.name {
+  margin: 0;
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.meta {
+  margin: 6px 0 0;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: 15px;
+}
+
+.bio {
+  margin: 0;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: auto 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 999px;
+  background: var(--openui-highlight-subtle);
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-text);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.links a:hover {
+  border-color: var(--openui-text-neutral-secondary);
+}
+
+.features {
+  margin-top: 56px;
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}

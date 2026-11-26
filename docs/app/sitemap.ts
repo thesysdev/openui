@@ -8,6 +8,7 @@ const STATIC_PATHS = [
   "/demo/intelligent-ui",
   "/demo/sales-dashboard",
   "/pricing",
+  "/champions",
   "/cloud/gateway",
   "/cloud/gateway/models",
   "/cloud/observability",

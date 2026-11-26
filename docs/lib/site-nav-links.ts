@@ -28,5 +28,6 @@ export const SITE_NAV_LINKS = {
   benchmarks: { href: "/benchmarks" },
   pricing: { href: "/pricing" },
   blog: { href: "/blog" },
+  champions: { href: "/champions" },
   integrations: { href: "/docs/integrations" },
 } as const;
