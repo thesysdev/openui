@@ -25,10 +25,11 @@ const noMotion = `
 `;
 
 export const pendingLoaderStyles = {
-  // The sketch is `--openui-pending-color`, by default the text color it inherits (not a theme
-  // token, so it follows the page even outside a ThemeProvider), at a low strength.
+  // The sketch is `--openui-pending-color`, by default the page's text color for its color-scheme
+  // (`CanvasText`, not a theme token, so it follows a light or dark page without a ThemeProvider),
+  // at a low strength.
   root: css`
-    --openui-pending-tint: var(--openui-pending-color, currentColor);
+    --openui-pending-tint: var(--openui-pending-color, CanvasText);
     position: relative;
     display: flex;
     flex-direction: column;

@@ -24,7 +24,7 @@ export interface PendingLoaderProps {
    * Text for a note over the sketch, in place of the build's feed. A new label drifts in.
    */
   label?: string;
-  /** The color the sketch is drawn in, as any CSS color. Defaults to the text color. */
+  /** The color the sketch is drawn in, as any CSS color. Defaults to the page's text color for its color-scheme. */
   color?: string;
   /**
    * Draws a dotted title and description at the top of the sketch, for a host that shows the

@@ -77,22 +77,23 @@ export const feedStyles = {
     text-overflow: ellipsis;
     white-space: nowrap;
   `,
-  // A small pill over the dashboard area, as wide as its words. In the page's own font: only
-  // the size is set, so it reads as part of the app around it.
+  // A small pill over the dashboard area, as wide as its words. In the page's own font, and in
+  // the page's colors: system colors follow its color-scheme (light or dark), so it needs no
+  // ThemeProvider of its own.
   panel: css`
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     max-width: calc(100% - 2rem);
     padding: var(--openui-space-xs) 12px;
-    border: 1px solid var(--openui-border-default);
+    border: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
     border-radius: var(--openui-radius-full);
-    background: color-mix(in srgb, var(--openui-background) 95%, transparent);
+    background: color-mix(in srgb, Canvas 95%, transparent);
     box-shadow:
       0 1px 3px 0 rgb(0 0 0 / 0.1),
       0 1px 2px -1px rgb(0 0 0 / 0.1);
     backdrop-filter: blur(8px);
-    color: var(--openui-text-neutral-secondary);
+    color: color-mix(in srgb, CanvasText 62%, transparent);
     font-family: inherit;
     font-size: 12px;
     line-height: 16px;
