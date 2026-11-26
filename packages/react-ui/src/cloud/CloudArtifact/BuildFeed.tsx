@@ -3,7 +3,7 @@
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { LoaderCircle } from "lucide-react";
-import { useContext, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useContext, useLayoutEffect, useRef, type ReactNode } from "react";
 import { feedNames, feedStyles as s } from "./buildFeed.styles";
 import { names, styles } from "./cloudArtifact.styles";
 import { ContentConfigContext, useArtifactRenderer } from "./contexts";
@@ -40,12 +40,15 @@ function useFeedLine(): { label: string; detail?: string; calling: boolean } {
   return { label: noun ? `${verb} ${noun}…` : "Generating…", calling: false };
 }
 
-/** The line: a spinner while it calls tools, the label, then the names. It shimmers. */
-export function BuildFeed({ className }: { className?: string }) {
+/**
+ * The line: a spinner while it calls tools (always, with `spinner`), the label, then the names.
+ * It shimmers.
+ */
+export function BuildFeed({ className, spinner }: { className?: string; spinner?: boolean }) {
   const { label, detail, calling } = useFeedLine();
   return (
     <span className={clsx(s.line, feedNames.feed, className)} role="status">
-      {calling && (
+      {(calling || spinner) && (
         <LoaderCircle className={clsx(styles.spinner, names.spinner)} size={14} aria-hidden />
       )}
       <span className={s.shimmer}>
@@ -60,14 +63,22 @@ export function BuildFeed({ className }: { className?: string }) {
   );
 }
 
-/** The feed over the dashboard area, in a small floating card. */
+/** A small floating pill over the dashboard area. */
+export function FeedPanel({ children }: { children: ReactNode }) {
+  return <div className={clsx(s.panel, feedNames.panel)}>{children}</div>;
+}
+
+/** The feed over the dashboard area, in a small floating pill. */
 export function BuildFeedPanel() {
   return (
-    <div className={clsx(s.panel, feedNames.panel)}>
-      <BuildFeed />
-    </div>
+    <FeedPanel>
+      <BuildFeed spinner />
+    </FeedPanel>
   );
 }
+
+/** The dock's glide from the middle to the bottom: quick to start, gentle to land. */
+const GLIDE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 /** How far down the area its content reaches (px): the bottom of its in-flow children. */
 function contentEnd(area: HTMLElement, dock: HTMLElement): number {
@@ -81,67 +92,98 @@ function contentEnd(area: HTMLElement, dock: HTMLElement): number {
   return end;
 }
 
-interface DockPlace {
-  /** At the bottom: the content fills the top half of what's visible. It stays there. */
-  docked: boolean;
-  /** Half the visible height (px), where the middle is. */
-  middle: number;
-  /** It moved down during the build, rather than starting at the bottom (an edit). */
-  moved: boolean;
-}
-
-/** Where the docked feed sits, from the area it's in, measured as the content grows. */
-function useDockPlace(anchorRef: RefObject<HTMLDivElement | null>): DockPlace {
-  const [place, setPlace] = useState<DockPlace>({ docked: false, middle: 0, moved: false });
-  useLayoutEffect(() => {
-    const anchor = anchorRef.current;
-    const area = anchor?.parentElement;
-    if (!anchor || !area) return;
-    let first = true;
-    const measure = () => {
-      const middle = area.clientHeight / 2;
-      const docked = contentEnd(area, anchor) >= middle;
-      // Docked on arrival (an edit) it just sits there; docked while watching, it moves down.
-      const moved = docked && !first;
-      first = false;
-      if (docked) stop();
-      setPlace((current) =>
-        docked
-          ? { docked, middle, moved }
-          : current.middle === middle
-            ? current
-            : { ...current, middle },
-      );
-    };
-    const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
-    const mutations =
-      typeof MutationObserver === "undefined" ? null : new MutationObserver(measure);
-    const stop = () => {
-      resize?.disconnect();
-      mutations?.disconnect();
-    };
-    resize?.observe(area);
-    mutations?.observe(area, { childList: true, subtree: true, characterData: true });
-    measure();
-    return stop;
-  }, [anchorRef]);
-  return place;
+/**
+ * The part of an element on screen: its box, cut by each ancestor that clips it and by the window.
+ * Whatever scrolls, the content or the page around it, this is what can be seen of it.
+ */
+function visibleBox(el: HTMLElement) {
+  let { top, bottom, left, right } = el.getBoundingClientRect();
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const { overflowX, overflowY } = getComputedStyle(node);
+    if (overflowX === "visible" && overflowY === "visible") continue;
+    const box = node.getBoundingClientRect();
+    top = Math.max(top, box.top + node.clientTop);
+    bottom = Math.min(bottom, box.top + node.clientTop + node.clientHeight);
+    left = Math.max(left, box.left + node.clientLeft);
+    right = Math.min(right, box.left + node.clientLeft + node.clientWidth);
+  }
+  return {
+    top: Math.max(top, 0),
+    bottom: Math.min(bottom, window.innerHeight),
+    left: Math.max(left, 0),
+    right: Math.min(right, window.innerWidth),
+  };
 }
 
 /**
- * The feed once the dashboard is on screen: in the middle of what's visible until the dashboard
- * fills its top half, then at the bottom, where it stays. An edit starts at the bottom.
+ * A capsule over the content that stays in view, however the content or the page scrolls: in the
+ * middle of what's visible until the content fills its top half, then at the bottom of what's
+ * visible, over the content. Content that fills it already (an edit) starts there; so does one
+ * `at="bottom"`. `delayed`: it rises in after a moment, so a quick one doesn't flash.
  */
-export function DockedBuildFeed() {
+export function Dock({
+  children,
+  delayed = false,
+  at,
+}: {
+  children: ReactNode;
+  delayed?: boolean;
+  at?: "bottom";
+}) {
   const anchorRef = useRef<HTMLDivElement>(null);
-  const { docked, middle, moved } = useDockPlace(anchorRef);
+  const spotRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const anchor = anchorRef.current;
+    const spot = spotRef.current;
+    const area = anchor?.parentElement;
+    if (!anchor || !spot || !area) return;
+    let docked = at === "bottom";
+    let first = true;
+    let settle = 0;
+    const place = () => {
+      const view = visibleBox(area);
+      const middle = (view.top + view.bottom) / 2;
+      if (!docked) {
+        const end = area.getBoundingClientRect().top + contentEnd(area, anchor) - area.scrollTop;
+        docked = end >= middle;
+        if (docked) {
+          // Growing content no longer moves it; size and scrolling still do.
+          mutations?.disconnect();
+          // Docked on arrival it just sits there; docked while watching, it glides down. The
+          // transition is set with the move, and only for it: scrolling never animates.
+          if (!first && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            spot.style.transition = `top 0.5s ${GLIDE}, translate 0.5s ${GLIDE}`;
+            settle = window.setTimeout(() => (spot.style.transition = ""), 550);
+          }
+        }
+      }
+      first = false;
+      spot.style.visibility = view.bottom > view.top ? "" : "hidden";
+      spot.style.left = `${view.left}px`;
+      spot.style.width = `${Math.max(view.right - view.left, 0)}px`;
+      spot.style.top = `${docked ? view.bottom : middle}px`;
+      spot.style.translate = docked ? "0 calc(-100% - var(--openui-space-m))" : "0 -50%";
+    };
+    const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(place);
+    const mutations =
+      docked || typeof MutationObserver === "undefined" ? null : new MutationObserver(place);
+    resize?.observe(area);
+    mutations?.observe(area, { childList: true, subtree: true, characterData: true });
+    window.addEventListener("scroll", place, { capture: true, passive: true });
+    window.addEventListener("resize", place);
+    place();
+    return () => {
+      resize?.disconnect();
+      mutations?.disconnect();
+      window.removeEventListener("scroll", place, { capture: true });
+      window.removeEventListener("resize", place);
+      window.clearTimeout(settle);
+    };
+  }, [at]);
   return (
     <div ref={anchorRef} className={s.dock}>
-      <div
-        className={clsx(s.dockSpot, docked && s.dockSpotDown, moved && s.dockSpotMoving)}
-        style={docked ? undefined : { bottom: middle, translate: "0 50%" }}
-      >
-        <BuildFeedPanel />
+      <div ref={spotRef} className={clsx(s.dockSpot, delayed && s.delayed)}>
+        {children}
       </div>
     </div>
   );

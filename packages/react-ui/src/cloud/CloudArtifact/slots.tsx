@@ -3,11 +3,12 @@
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { CircleAlert, Database, LoaderCircle, X } from "lucide-react";
-import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
-import { BuildFeed, DockedBuildFeed, stepWords } from "./BuildFeed";
+import { BuildFeed, BuildFeedPanel, Dock, FeedPanel, stepWords } from "./BuildFeed";
+import { feedStyles } from "./buildFeed.styles";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   ChromeOverridesContext,
@@ -329,6 +330,10 @@ export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
 export function Content({ className, children }: PartProps) {
   const inside = useInRegion("chrome");
   const config = useContext(ContentConfigContext);
+  // A build watched from its start (pending, then streaming) keeps its feed on screen throughout.
+  const { isPending } = useArtifactRenderer();
+  const [sawPending, setSawPending] = useState(false);
+  if (isPending && !sawPending) setSawPending(true);
   // On the content, not the root: with `renderInHtmlElement` the content is portaled out of it.
   const inspecting = useContext(ProvenanceContext)?.isInspecting ?? false;
   if (!inside || !config) return null;
@@ -355,7 +360,7 @@ export function Content({ className, children }: PartProps) {
             children
           )}
           {config.render()}
-          <BuildDock />
+          <BuildDock fromStart={sawPending} />
         </div>
       </SourcesWorkspace>
     </RegionProvider>
@@ -382,16 +387,22 @@ export function Pending({ children, ...loader }: PendingProps) {
  * Once the dashboard is on screen (an edit, or a new one being written): the build's feed, in the
  * middle until the dashboard fills the top half, then at the bottom. Before that, `Pending` shows it.
  */
-function BuildDock() {
+function BuildDock({ fromStart }: { fromStart: boolean }) {
   const state = useArtifactRenderer();
   if (!state.isStreaming || state.isPending) return null;
-  return <DockedBuildFeed />;
+  // Opening a saved dashboard replays its stream for a moment: delayed, that never shows. A build
+  // seen from its start, or an edit, shows at once.
+  return (
+    <Dock delayed={!fromStart && !state.isEditing}>
+      <BuildFeedPanel />
+    </Dock>
+  );
 }
 
+/** While the data loads: "Loading data…", in the capsule a build's feed uses. */
 export function Loading({ label, children }: LoaderProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
-  const config = useContext(ContentConfigContext);
   // While pending, `Pending` has the content to itself; while it streams, the build feed.
   if (!inside || !state.isLoading || state.isPending || state.isStreaming || state.error) {
     return null;
@@ -399,18 +410,14 @@ export function Loading({ label, children }: LoaderProps) {
   if (children !== undefined) return <>{children}</>;
   const text = label ?? statusLabel(state);
   return (
-    <div
-      className={clsx(
-        styles.loading,
-        names.loading,
-        config?.isEmpty && [styles.loadingEmpty, names.loadingEmpty],
-      )}
-      role="status"
-      title={text}
-    >
-      <Spinner />
-      <StatusText text={text} />
-    </div>
+    <Dock delayed at="bottom">
+      <FeedPanel>
+        <span className={clsx(feedStyles.line, names.loading)} role="status" title={text}>
+          <Spinner />
+          <StatusText text={text} />
+        </span>
+      </FeedPanel>
+    </Dock>
   );
 }
 

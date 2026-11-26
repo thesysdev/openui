@@ -98,7 +98,7 @@ Unmount it if the call stops or fails without a result, or it stays pending. In 
 
 The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming. In the middle of the area, the build's feed says what it's doing now: "Thinking…", then the calls by name ("Calling list_orders…" while it calls tools, "Writing and testing revenueByDay…" while it writes scripts), then "Building dashboard…" while it's written.
 
-The card's loader shows the same line. The feed stays in the middle until the dashboard fills the top half of what's visible, then moves to the bottom centre for the rest of the build. During an edit it's at the bottom from the start. The bar's loader waits while it shows, and the feed goes when the build's stream ends.
+The card's loader shows the same line. In the open dashboard it's a small pill in your page's font. It stays in the middle until the dashboard fills the top half of what's visible, then glides to the bottom centre for the rest of the build. During an edit it's at the bottom from the start. It floats over the dashboard at the bottom of what's visible, whether the content or your page scrolls. The bar's loader waits while it shows, and the feed goes when the build's stream ends. `Loading` uses the same pill at the bottom, saying "Loading data…" while live data loads; it shows after a moment, so a quick load doesn't flash it.
 
 If your page shows the dashboard's title above it, pass `heading` while you don't have the title yet: `<LiveArtifactRenderer.Pending heading />` adds a dotted title and description to the top of the sketch. Turn it off when the title shows; the sketch keeps drawing.
 

@@ -43,7 +43,6 @@ export const names = {
   close: "openui-artifact-close",
   content: "openui-artifact-content",
   loading: "openui-artifact-loading",
-  loadingEmpty: "openui-artifact-loading-empty",
   pending: "openui-artifact-pending",
   error: "openui-artifact-error",
   errorEmpty: "openui-artifact-error-empty",
@@ -198,11 +197,8 @@ export const styles = {
       outline-offset: var(--openui-inspect-outline-offset, -2px);
     }
   `,
-  // A column, so a build's docked feed (last) can sit at the bottom of a short dashboard.
   content: css`
     position: relative;
-    display: flex;
-    flex-direction: column;
     flex: 1;
     min-height: 120px;
     overflow: auto;
@@ -214,33 +210,6 @@ export const styles = {
       );
       outline-offset: var(--openui-inspect-outline-offset, -2px);
     }
-  `,
-  loading: css`
-    position: absolute;
-    top: var(--openui-space-xs);
-    right: var(--openui-space-xs);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--openui-space-2xs);
-    box-sizing: border-box;
-    max-width: calc(100% - 2 * var(--openui-space-xs));
-    padding: var(--openui-space-3xs) var(--openui-space-s);
-    border: 1px solid var(--openui-border-default);
-    border-radius: var(--openui-radius-full);
-    background: var(--openui-background);
-    box-shadow: var(--openui-shadow-s);
-    ${labelSmall}
-    color: var(--openui-text-neutral-secondary);
-  `,
-  // Nothing to show yet: center the loader in the empty content.
-  loadingEmpty: css`
-    inset: 0;
-    justify-content: center;
-    padding: 0;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
   `,
   // The content's full width. A long message wraps, so it never pushes past the edge.
   error: css`

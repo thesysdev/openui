@@ -15,6 +15,17 @@ const shimmer = keyframes`
   }
 `;
 
+const appear = keyframes`
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+`;
+
 /** Stable class names, to target from your own CSS. */
 export const feedNames = {
   feed: "openui-artifact-feed",
@@ -22,8 +33,6 @@ export const feedNames = {
   detail: "openui-artifact-feed-detail",
   panel: "openui-artifact-feed-panel",
 } as const;
-
-const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 export const feedStyles = {
   line: css`
@@ -68,47 +77,63 @@ export const feedStyles = {
     text-overflow: ellipsis;
     white-space: nowrap;
   `,
-  // The feed over the dashboard area, in a small floating card.
+  // A small pill over the dashboard area, as wide as its words. In the page's own font: only
+  // the size is set, so it reads as part of the app around it.
   panel: css`
     box-sizing: border-box;
-    width: min(26rem, calc(100% - 2rem));
-    padding: var(--openui-space-xs) var(--openui-space-m) var(--openui-space-xs)
-      var(--openui-space-s);
+    display: inline-flex;
+    align-items: center;
+    max-width: calc(100% - 2rem);
+    padding: var(--openui-space-xs) 12px;
     border: 1px solid var(--openui-border-default);
-    border-radius: var(--openui-radius-l);
+    border-radius: var(--openui-radius-full);
     background: color-mix(in srgb, var(--openui-background) 95%, transparent);
-    box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.25);
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1);
     backdrop-filter: blur(8px);
+    color: var(--openui-text-neutral-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 16px;
+    & .${feedNames.feed} {
+      gap: 6px;
+      height: 16px;
+      color: inherit;
+    }
+    & .${feedNames.feed} > svg {
+      color: inherit;
+    }
+    & .${feedNames.label}, & .${feedNames.detail} {
+      font: inherit;
+      letter-spacing: normal;
+      color: inherit;
+    }
   `,
-  // Once the dashboard is on screen: an anchor at the bottom of the content, or of what's visible
-  // of it. The feed sits above it, in the middle of what's visible, then at the bottom.
+  // A marker in the content that takes no room: the capsule is placed from the content's box.
   dock: css`
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    flex-shrink: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
     height: 0;
-    margin-top: auto;
     pointer-events: none;
   `,
+  // Over what's visible of the content, however the page scrolls; placed by script.
   dockSpot: css`
-    position: absolute;
-    right: 0;
-    left: 0;
+    position: fixed;
+    z-index: 5;
     display: flex;
     justify-content: center;
+    pointer-events: none;
   `,
-  dockSpotDown: css`
-    bottom: var(--openui-space-m);
-    translate: 0 0;
-  `,
-  // Moving down from the middle once the dashboard fills the top half.
-  dockSpotMoving: css`
-    transition:
-      bottom 0.45s ${ease},
-      translate 0.45s ${ease};
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
+  // Rises and fades in after a moment, so a quick load doesn't flash it.
+  delayed: css`
+    & > * {
+      animation: ${appear} 0.2s ease-out 0.3s both;
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
     }
   `,
 };
