@@ -26,20 +26,20 @@ The renderer must sit inside [`OpenUICloudProvider`](/docs/dashboards/authentica
 
 ## Props
 
-| Prop                                    | Description                                                                                                                        |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `response`                              | The response from `create` or `edit`, unchanged.                                                                                   |
-| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.                            |
-| `library`                               | The component library. Use the same library the spec on the server came from.                                                      |
-| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                                   |
-| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                                        |
-| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                                                 |
-| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                                               |
-| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                                     |
-| `enableProvenance`                      | Show where the data comes from: a Sources toggle in the bar, inspect mode and a Sources dialog. See [Data sources](#data-sources). |
-| `onError`                               | Receives rendering, query, and loading errors.                                                                                     |
-| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never.                             |
-| `className`                             | Added to the root element.                                                                                                         |
+| Prop                                    | Description                                                                                                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `response`                              | The response from `create` or `edit`, unchanged.                                                                                                                          |
+| `id`                                    | The dashboard's id, instead of `response`. Use it to open a saved dashboard, such as one from the list.                                                                   |
+| `library`                               | The component library. Use the same library the spec on the server came from.                                                                                             |
+| `interpreter`                           | Where queries run: `{ url, headers? }` for a route, or an async function that takes the request.                                                                          |
+| `preview`                               | `true` (default): a card that opens the dashboard. `false`: the dashboard renders in place.                                                                               |
+| `renderInHtmlElement`                   | The element the dashboard opens in, such as a side panel. Default: under the card.                                                                                        |
+| `isOpen`, `onOpenChange`, `defaultOpen` | Control whether the dashboard is open from its card.                                                                                                                      |
+| `actions`                               | Buttons in the open dashboard's bar, next to the close button.                                                                                                            |
+| `enableProvenance`                      | Show where the data comes from: a Sources split button in the bar, inspect mode, each item's Sources popover and the All sources menu. See [Data sources](#data-sources). |
+| `onError`                               | Receives rendering, query, and loading errors.                                                                                                                            |
+| `pollInterval`                          | How often the open dashboard checks for edits and access changes, in ms (at least 3s). `false`: never.                                                                    |
+| `className`                             | Added to the root element.                                                                                                                                                |
 
 ## Layouts
 
@@ -102,16 +102,16 @@ The result can arrive before the dashboard is written, while the model still cal
 
 Each part of the renderer is a slot, passed as a child. A slot can be left out to keep the default, given props to change the default's values, or given children to replace its look.
 
-| Slot                                                                          | Region  | What it is                                                                                                                    |
-| ----------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                                            |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`                         | Preview | The card's parts.                                                                                                             |
-| `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                                                 |
-| `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                                              |
-| `ProvenanceToggle`                                                            | Chrome  | Turns inspect mode on and off, with All queries beside it while on. Only with `enableProvenance`.                             |
-| `Content`                                                                     | Chrome  | The dashboard itself.                                                                                                         |
-| `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children.                    |
-| `Provenance`                                                                  | Content | The Sources dialog's contents: `describeSource` for the default ones, or children for your own. Only with `enableProvenance`. |
+| Slot                                                                          | Region  | What it is                                                                                                                                                   |
+| ----------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                                                                           |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`                         | Preview | The card's parts.                                                                                                                                            |
+| `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                                                                                |
+| `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                                                                             |
+| `ProvenanceToggle`                                                            | Chrome  | The Sources split button: inspect mode on and off, and a chevron that opens the All sources menu. Only with `enableProvenance`.                              |
+| `Content`                                                                     | Chrome  | The dashboard itself.                                                                                                                                        |
+| `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children.                                                   |
+| `Provenance`                                                                  | Content | The contents of the Sources popover and the All sources menu: `describeSource` for the default ones, or children for your own. Only with `enableProvenance`. |
 
 For example, a full-height panel with its own header:
 
@@ -180,39 +180,47 @@ function DashboardError() {
 
 ## Data sources
 
-With `enableProvenance`, the bar shows a Sources button that shows where the dashboard's data comes from. It's off until you pass the prop.
+With `enableProvenance`, the bar shows a Sources split button that shows where the dashboard's data comes from. It's off until you pass the prop.
 
 ```tsx
 <LiveArtifactRenderer id={id} library={library} interpreter={interpreter} enableProvenance />
 ```
 
-### Inspect mode
+### The Sources split button
 
-Pressing Sources puts the dashboard in inspect mode. The button looks pressed while it's on: a filled background, a thin ring and a dot on its icon. An All queries button appears beside it.
+Sources at the top right has two halves. The main half turns inspect mode on and off and looks pressed while it's on, with a blue-tinted background and blue text; it carries `aria-pressed` and `data-state="on"` or `"off"`. The chevron beside it opens the [All sources menu](#the-all-sources-menu) and looks active while the menu is open; it carries `aria-expanded` and `data-state="open"` or `"closed"`.
+
+Only one Sources surface is open at a time: opening the menu closes any popover, turning inspect mode on closes the menu, and turning it off closes any popover.
+
+### Inspect mode
 
 While inspecting:
 
 - Every data-bound component, each number, table or chart whose value reads a query directly or through a formula, gets a blue dotted outline. Headings, text, values written as literals and layout containers get none; a container's data-bound children are outlined instead. Where a component marks the element that shows its value with `bindSource("value")`, the outline goes on that element; otherwise on the component's.
 - Hovering an outlined component turns its outline solid. Nothing else reacts to the pointer, and no card pops up.
-- Clicking an outlined component opens the Sources dialog on it. Clicks anywhere else do nothing: filters, links, tabs and sorting don't react.
-- Tab stops on each outlined component in order, with a solid outline as its focus ring, and Enter or Space opens the dialog on the focused one.
+- Clicking an outlined component opens its Sources popover beside it. Clicks anywhere else do nothing: filters, links, tabs and sorting don't react.
+- Tab stops on each outlined component in order, with a solid outline as its focus ring, and Enter or Space opens the focused one's popover.
 - Escape, with nothing open, leaves inspect mode. A menu, list or dialog of the dashboard's own handles its Escape first.
 - Pressing Sources again leaves inspect mode, and the dashboard behaves normally.
 
-On touch screens the outlines show, but nothing turns solid on hover: a tap opens the dialog.
+On touch screens the outlines show, but nothing turns solid on hover: a tap opens the popover.
 
-### The Sources dialog
+### The Sources popover
 
-The dialog is centered and 560px wide. At 639px and below it's a bottom sheet over the dimmed dashboard. It's portaled to `body` and carries the active theme.
+The popover opens next to the component, named after it, on the list of the sources it reads: each with its logo, its name, and the tool and table it reads. A source opens its Query (or Formula) with a copy button, and its Result. Its Sources chip turns into All sources, the way back to the list; on the list it closes the popover. Escape steps back one level at a time: from a source to the list, then closed, then out of inspect mode. Focus goes back to the component when it closes.
 
-- Its title names the item by its `title`, `label` or `name` prop when that's written as text, such as "Revenue this quarter", else by its id; a picked number shows its value beside the title. A query opened from the list is titled by its name.
-- On a number it opens on the number's Query. On a table or chart it opens on the Result. A container shows each child's Query and Result. A computed value with no query shows only its Formula, and a script shows its call and what it reads.
-- Query, Result and Formula expand and collapse. A query copies with one click, and a result downloads as JSON.
-- The back arrow leads to the list of every query, and any query opens from the list. All queries opens the dialog on that list, including queries that only feed formulas and never appear on screen.
-- Closing the dialog, with its close button or a click on the dim background, keeps inspect mode, so the next item is one hover away. The item keeps its outline until another is hovered, and focus goes back to it.
-- The first Escape closes the dialog, and the second leaves inspect mode.
+### The All sources menu
 
-Pass `describeSource` to `Provenance` to name your tools. It takes a tool's name and arguments and returns `{ kind, icon, codeLabel, code }`, such as `kind: "Postgres"` and the SQL your tool ran. The dialog uses it:
+The chevron opens the menu under the split button. It lists every query and formula that a data-bound component reads, once each, with how many items use it.
+
+- A source opens its detail: its Used by links, its Query or Formula with copy, and its Result. The header turns into Back to all sources.
+- A Used by link closes the menu, scrolls its item into view and opens that item's popover on the same source. Inspect mode stays as it was, so closing that popover leaves the plain dashboard when it was off.
+- A click outside, the close button or Escape closes it. Escape steps back from a source to the list first.
+- Focus moves into the menu and goes back to the chevron when it closes.
+
+The menu and the popover are portaled to `body` and carry the active theme.
+
+Pass `describeSource` to `Provenance` to name your tools. It takes a tool's name and arguments and returns `{ kind, icon, codeLabel, code }`, such as `kind: "Postgres"` and the SQL your tool ran. The popover and the menu use it:
 
 ```tsx
 import type { SourceDescription } from "@openuidev/react-ui/cloud";
@@ -235,18 +243,20 @@ function describeSource(toolName: string, args: unknown): SourceDescription | un
 
 ### Your own toggle and contents
 
-Place the toggle yourself with `ProvenanceToggle`, as with `CloseButton`. Its children replace both the toggle and All queries. Build them with `useArtifactProvenance()`:
+Place the split button yourself with `ProvenanceToggle`, as with `CloseButton`. Its children replace it. Build your own with `useArtifactProvenance()`; the menu opens under the button that called `openAllSources`, and focus goes back to it on close:
 
 ```tsx
 import { useArtifactProvenance } from "@openuidev/react-ui/cloud";
 
 function SourcesButton() {
-  const { isInspecting, setInspecting, openList } = useArtifactProvenance();
+  const { isInspecting, setInspecting, isAllSourcesOpen, openAllSources } = useArtifactProvenance();
   return (
     <>
-      {isInspecting && <button onClick={openList}>All queries</button>}
       <button aria-pressed={isInspecting} onClick={() => setInspecting(!isInspecting)}>
         Sources
+      </button>
+      <button aria-expanded={isAllSourcesOpen} onClick={openAllSources}>
+        All sources
       </button>
     </>
   );
@@ -257,7 +267,7 @@ function SourcesButton() {
 </LiveArtifactRenderer.ProvenanceToggle>;
 ```
 
-Children of `Provenance`, inside `Content`, replace the dialog's contents. They render inside the open dialog, under its title, back arrow and close button:
+Children of `Provenance`, inside `Content`, replace the contents of the popover and the menu. They render inside the open one, under its header:
 
 ```tsx
 function SourcesContents() {
@@ -283,14 +293,15 @@ function SourcesContents() {
 </LiveArtifactRenderer>;
 ```
 
-| Field                           | Description                                                                                                                                                                    |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `isInspecting`, `setInspecting` | Inspect mode. Turning it off also closes the dialog and clears the selection.                                                                                                  |
-| `selection`                     | The clicked component's `id` (its statement's name, or `lead.1` for a component written inside `lead`), `prop`, `element` and `propElement`. It stays after the dialog closes. |
-| `clearSelection`                | In the dialog, back to the list of every query.                                                                                                                                |
-| `isSourcesOpen`                 | Whether the Sources dialog is open.                                                                                                                                            |
-| `openList`                      | Opens the dialog on the list of every query, as All queries does.                                                                                                              |
-| `sources`                       | [`useDataSources()`](/docs/api-reference/react-lang#context-hooks-inside-renderer-components): every component's sources and every query. Null unless inspecting or selected.  |
+| Field                           | Description                                                                                                                                                                                     |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isInspecting`, `setInspecting` | Inspect mode. Turning it on closes the All sources menu; turning it off closes any popover and clears the selection.                                                                            |
+| `selection`                     | The clicked component's `id` (its statement's name, or `lead.1` for a component written inside `lead`), `prop`, `element` and `propElement`. It stays after its popover closes.                 |
+| `clearSelection`                | Clears the selection, closing its popover.                                                                                                                                                      |
+| `isPopoverOpen`                 | Whether a component's Sources popover is open.                                                                                                                                                  |
+| `isAllSourcesOpen`              | Whether the All sources menu is open.                                                                                                                                                           |
+| `openAllSources`                | Opens the All sources menu, closing any popover, as the chevron does.                                                                                                                           |
+| `sources`                       | [`useDataSources()`](/docs/api-reference/react-lang#context-hooks-inside-renderer-components): every component's sources and every query. Null unless inspecting, selected or the menu is open. |
 
 ### Finding components
 
@@ -328,9 +339,9 @@ For more than an outline, target these on the `Content` slot's element (`.openui
 }
 ```
 
-A picked item that gets focus back when the dialog closes keeps the selected outline in place of the page's focus ring. To restyle it then too, add a rule for `[data-openui-selected]:focus-visible`.
+A picked item that gets focus back when its popover closes keeps the selected outline in place of the page's focus ring. To restyle it then too, add a rule for `[data-openui-selected]:focus-visible`.
 
-The renderer's root element (`.openui-artifact`) carries `data-openui-inspecting` while inspecting, such as for a ring or tint around the whole dashboard. The default toggle carries `aria-pressed` and `data-state="on"` or `"off"`:
+The renderer's root element (`.openui-artifact`) carries `data-openui-inspecting` while inspecting, such as for a ring or tint around the whole dashboard. The split button's main half carries `aria-pressed` and `data-state="on"` or `"off"`:
 
 ```css
 .openui-artifact[data-openui-inspecting] {
@@ -343,15 +354,15 @@ The renderer's root element (`.openui-artifact`) carries `data-openui-inspecting
 
 These class names are stable:
 
-| Class                               | Element                                                                                                                                 |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `openui-artifact-provenance-toggle` | The Sources toggle.                                                                                                                     |
-| `openui-artifact-provenance-dot`    | The dot on the toggle's icon while it's on.                                                                                             |
-| `openui-artifact-all-queries`       | The All queries button.                                                                                                                 |
-| `openui-data-sources-dialog`        | The dialog. Its parts: `__overlay`, `__header`, `__title`, `__meta`, `__back`, `__close` and `__custom` (around `Provenance` children). |
-| `openui-data-sources-dialog__*`     | The default contents' parts, such as `__list-button`.                                                                                   |
+| Class                               | Element                                                                                                                      |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `openui-artifact-sources-split`     | The Sources split button.                                                                                                    |
+| `openui-artifact-provenance-toggle` | Its main half, which turns inspect mode on and off.                                                                          |
+| `openui-artifact-sources-chevron`   | Its chevron, which opens the All sources menu.                                                                               |
+| `openui-sources-popover`            | An item's Sources popover. Its parts: `__header`, `__chip`, `__meta`, `__divider`, `__body` and `__custom`.                  |
+| `openui-sources-menu`               | The All sources menu. Its parts: `__header`, `__label`, `__back`, `__meta`, `__close`, `__divider`, `__body` and `__custom`. |
 
-The dialog is portaled to `body`, so target them by these classes rather than under `.openui-artifact`.
+The popover and the menu are portaled to `body`, so target them by these classes rather than under `.openui-artifact`.
 
 ## Theme
 

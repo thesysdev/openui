@@ -45,8 +45,8 @@ export const names = {
   panel: "openui-artifact-panel",
   inspecting: "openui-artifact-inspecting",
   provenanceToggle: "openui-artifact-provenance-toggle",
-  provenanceDot: "openui-artifact-provenance-dot",
-  allQueries: "openui-artifact-all-queries",
+  sourcesSplit: "openui-artifact-sources-split",
+  sourcesChevron: "openui-artifact-sources-chevron",
 } as const;
 
 export const styles = {
@@ -255,87 +255,90 @@ export const styles = {
   `,
 };
 
-// ─── Sources toggle and All queries ──────────────────────────────────────
+// ─── The Sources split button ────────────────────────────────────────────
 
 /*
- * The Sources toggle's own pressed look, over the tertiary button: a highlight fill, a 1px inset
- * ring and an accent dot on the icon. On takes 120ms (the dot 150ms, growing from half size);
- * off is instant, so the transitions sit on the "on" state only. Reduced motion keeps fades.
- * `&&` ties with the button's own hover and active rules, which set the same fill.
+ * Two halves in one outline: radius 10, a 1px inset border, a 1px divider between them. The main
+ * half keeps the Sources toggle's pressed look while inspect mode is on: a blue-tinted fill and
+ * blue text, in 120ms (off is instant). The chevron takes the active fill while its menu is open.
+ * Hover styles are for fine pointers only.
  */
+const accent = "var(--openui-interactive-accent-default)";
 export const toggleStyles = {
-  toggle: css`
-    && {
-      transition: none;
+  split: css`
+    display: inline-flex;
+    flex: none;
+    align-items: stretch;
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 1px var(--openui-border-default);
+    overflow: hidden;
+  `,
+  half: css`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--openui-text-neutral-primary);
+    cursor: pointer;
+    ${labelSmall}
+    font-weight: 500;
+    & > svg {
+      flex: none;
     }
-    &&[data-state="on"] {
-      background-color: var(--openui-highlight);
-      box-shadow: inset 0 0 0 1px var(--openui-border-default);
-      transition:
-        background-color 120ms ease,
-        box-shadow 120ms ease;
+    &:focus-visible {
+      outline: 2px solid ${accent};
+      outline-offset: -2px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--openui-highlight);
+      }
     }
     @media ${phone} {
       min-height: 44px;
     }
   `,
-  icon: css`
-    position: relative;
-    display: inline-flex;
-    flex-shrink: 0;
-  `,
-  dot: css`
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 6px;
-    height: 6px;
-    border-radius: var(--openui-radius-full);
-    background: var(--openui-interactive-accent-default);
-    box-shadow: 0 0 0 1.5px var(--openui-background);
-    opacity: 0;
-    transform: scale(0.5);
-    pointer-events: none;
-    .${names.provenanceToggle}[data-state="on"] & {
-      opacity: 1;
-      transform: scale(1);
+  main: css`
+    padding: 0 10px;
+    &[data-state="on"] {
+      background: color-mix(in srgb, ${accent} 12%, transparent);
+      color: ${accent};
       transition:
-        opacity 150ms ${easeOut},
-        transform 150ms ${easeOut};
+        background-color 120ms ease,
+        color 120ms ease;
     }
-    @media (prefers-reduced-motion: reduce) {
-      transform: none;
-      .${names.provenanceToggle}[data-state="on"] & {
-        transform: none;
-        transition: opacity 150ms;
+    @media (hover: hover) and (pointer: fine) {
+      &[data-state="on"]:hover {
+        background: color-mix(in srgb, ${accent} 18%, transparent);
       }
     }
   `,
-  // Comes out of the toggle beside it: a fade and a 4px slide from its right edge. It leaves at
-  // once, as turning Sources off does.
-  allQueries: css`
-    && {
-      transform-origin: right center;
+  chevron: css`
+    justify-content: center;
+    padding: 0 6px;
+    color: var(--openui-text-neutral-secondary);
+    & > svg {
       @media (prefers-reduced-motion: no-preference) {
-        transition:
-          background-color 120ms ease,
-          opacity 150ms ${easeOut},
-          transform 150ms ${easeOut};
-        @starting-style {
-          opacity: 0;
-          transform: translateX(4px) scale(0.96);
-        }
+        transition: rotate 150ms ${easeOut};
       }
-      @media (prefers-reduced-motion: reduce) {
-        transition: opacity 150ms;
-        @starting-style {
-          opacity: 0;
-        }
+    }
+    &[data-state="open"] {
+      background: var(--openui-highlight);
+      color: var(--openui-text-neutral-primary);
+      & > svg {
+        rotate: 180deg;
       }
     }
     @media ${phone} {
       min-width: 44px;
-      min-height: 44px;
     }
+  `,
+  divider: css`
+    flex: none;
+    width: 1px;
+    background: var(--openui-border-default);
   `,
 };

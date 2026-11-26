@@ -1,22 +1,9 @@
 import type { Decorator, Meta, StoryObj } from "@storybook/react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { LiveArtifactRenderer } from "../../CloudArtifact/ArtifactRenderer";
-import {
-  createSourcesStore,
-  ProvenanceContext,
-  useArtifactProvenance,
-  type ProvenanceContextValue,
-} from "../../CloudArtifact/contexts";
-import { Provenance, RegionProvider } from "../../CloudArtifact/slots";
-import { SourcesProvider } from "../../CloudArtifact/SourcesDialog";
+import { useArtifactProvenance } from "../../CloudArtifact/contexts";
 import type { DataSourcesContentsProps } from "../types";
-import {
-  dashboardLibrary,
-  describeSource,
-  fullFlowProgram,
-  interpreter,
-  sources,
-} from "./fixtures";
+import { dashboardLibrary, describeSource, fullFlowProgram, interpreter } from "./fixtures";
 
 // ── Slowed motion, for reviewing the transitions ──
 
@@ -40,7 +27,7 @@ function SlowMotion({ rate }: { rate: number }) {
 }
 
 interface MotionArgs {
-  /** Plays the dialog, sheet, toggle and outline transitions at a fifth of their speed. */
+  /** Plays the popover, menu, split button and outline transitions at a fifth of their speed. */
   slowMotion?: boolean;
 }
 
@@ -51,100 +38,110 @@ const withSlowMotion: Decorator<MotionArgs> = (Story, context) => (
   </>
 );
 
-// ── The Sources dialog on the sample sources, without a live dashboard ──
+// ── A live dashboard ──
 
-interface DialogStoryProps extends Pick<DataSourcesContentsProps, "describeSource"> {
+interface DashboardProps extends Pick<DataSourcesContentsProps, "describeSource"> {
+  /** What is open when it mounts: inspect mode, or the All sources menu. */
+  start?: "inspect" | "menu";
   /** Your own contents, as `Provenance` children. */
   children?: ReactNode;
 }
 
+/** Turns inspect mode on, or opens the All sources menu, once the dashboard has mounted. */
+function Start({ start }: { start: DashboardProps["start"] }) {
+  const { setInspecting, openAllSources } = useArtifactProvenance();
+  useEffect(() => {
+    // After the queries' first results, so the menu lists what the dashboard renders.
+    const timer = setTimeout(() => {
+      if (start === "inspect") setInspecting(true);
+      if (start === "menu") openAllSources();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [start, setInspecting, openAllSources]);
+  return null;
+}
+
 /**
- * The real Sources dialog of every query, fed the sample sources as if the renderer were
- * inspecting. Closing it leaves an "Open Sources" button to open it again. (An item's sources open
- * in its popover: see the live dashboards below.)
+ * The sample dashboard, live, with the Sources split button in its bar: the main half turns
+ * inspect mode on and off, and the chevron opens the All sources menu under it.
  */
-function DialogStory({ describeSource: describe, children }: DialogStoryProps) {
-  const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
-  const [isOpen, setOpen] = useState(true);
-  const [sourcesStore] = useState(() => {
-    const store = createSourcesStore();
-    store.set(sources);
-    return store;
-  });
-  const provenance = useMemo<ProvenanceContextValue | null>(
-    () =>
-      trigger && {
-        isInspecting: true,
-        // A second Escape leaves inspect mode, which here only closes the dialog.
-        setInspecting: (on) => !on && setOpen(false),
-        selection: null,
-        clearSelection: () => {},
-        isSourcesOpen: isOpen,
-        openList: () => setOpen(true),
-        internal: {
-          sourcesStore,
-          closeDialog: () => setOpen(false),
-          // No toggle here: the "Open Sources" button stands in for it.
-          focusToggle: () => trigger.focus(),
-          popover: null,
-          setPopoverSource: () => {},
-          closePopover: () => {},
-        },
-      },
-    [trigger, isOpen, sourcesStore],
-  );
+function Dashboard({ start, describeSource: describe, children }: DashboardProps) {
   return (
-    <div style={{ minHeight: "100vh", padding: 24, boxSizing: "border-box" }}>
-      <button ref={setTrigger} type="button" onClick={() => setOpen(true)}>
-        Open Sources
-      </button>
-      {provenance && (
-        <ProvenanceContext.Provider value={provenance}>
-          <SourcesProvider>
-            <RegionProvider region="content">
-              <Provenance describeSource={describe}>{children}</Provenance>
-            </RegionProvider>
-          </SourcesProvider>
-        </ProvenanceContext.Provider>
-      )}
+    <div style={{ height: "100vh", width: "100%", display: "flex", flexDirection: "column" }}>
+      <LiveArtifactRenderer
+        id="demo-full-flow"
+        content={fullFlowProgram}
+        library={dashboardLibrary}
+        interpreter={interpreter}
+        preview={false}
+        enableProvenance
+      >
+        <LiveArtifactRenderer.Chrome>
+          <Start start={start} />
+          <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                minHeight: 44,
+                padding: "6px 12px",
+                boxSizing: "border-box",
+                borderBottom: "1px solid var(--openui-border-default)",
+                font: "var(--openui-text-body-default-heavy)",
+                color: "var(--openui-text-neutral-primary)",
+              }}
+            >
+              <span style={{ flex: 1 }}>Retail overview</span>
+              <LiveArtifactRenderer.ChromeLoader />
+              <LiveArtifactRenderer.ProvenanceToggle />
+            </div>
+            <LiveArtifactRenderer.Content>
+              <LiveArtifactRenderer.Loading />
+              <LiveArtifactRenderer.Error />
+              <LiveArtifactRenderer.Provenance describeSource={describe}>
+                {children}
+              </LiveArtifactRenderer.Provenance>
+            </LiveArtifactRenderer.Content>
+          </div>
+        </LiveArtifactRenderer.Chrome>
+      </LiveArtifactRenderer>
     </div>
   );
 }
 
 /**
- * Where a dashboard's data comes from. In a live artifact with `enableProvenance`, Sources puts
- * the dashboard in inspect mode, and a click on a component opens this dialog on it: a centered
- * 560px dialog, a bottom sheet at 639px and below. Its back arrow leads to the list of every
- * query. Switch light and dark with the toolbar's Theme; turn on `slowMotion` to watch the
- * transitions.
+ * Where a dashboard's data comes from. In a live artifact with `enableProvenance`, the Sources
+ * split button's main half puts the dashboard in inspect mode, where a click on an outlined
+ * component opens its Sources popover beside it; its chevron opens the All sources menu. Switch
+ * light and dark with the toolbar's Theme; turn on `slowMotion` to watch the transitions.
  */
-const meta: Meta<DialogStoryProps & MotionArgs> = {
+const meta: Meta<DashboardProps & MotionArgs> = {
   title: "Components/Sources",
   parameters: { layout: "fullscreen" },
-  args: { slowMotion: false },
+  args: { slowMotion: false, describeSource },
   argTypes: { slowMotion: { control: "boolean" } },
   decorators: [withSlowMotion],
-  render: ({ slowMotion: _slow, ...props }) => (
-    <DialogStory describeSource={describeSource} {...props} />
-  ),
+  render: ({ slowMotion: _slow, ...props }) => <Dashboard {...props} />,
 };
 export default meta;
 
-type Story = StoryObj<DialogStoryProps & MotionArgs>;
+type Story = StoryObj<DashboardProps & MotionArgs>;
 
-/** Nothing picked, or All queries: every query in the dashboard, in program order. */
-export const List: Story = {};
+/**
+ * The All sources menu: every query and formula once, with how many items use each. A source
+ * opens its Used by, Query or Formula and Result; a Used by link opens that item's popover.
+ * Escape steps back from a source to the list, then closes it.
+ */
+export const AllSources: Story = { args: { start: "menu" } };
 
-/** The list in the dark theme, carried onto the dialog though it is portaled to `body`. */
-export const ListDark: Story = { globals: { mode: "dark" } };
-
-/** On a phone: the same dialog as a bottom sheet over a dimmed page, every control 44px. */
-export const PhoneSheet: Story = {
-  parameters: { viewport: { defaultViewport: "mobile2" } },
-};
+/** The menu in the dark theme, carried onto it though it is portaled to `body`. */
+export const AllSourcesDark: Story = { args: { start: "menu" }, globals: { mode: "dark" } };
 
 /** Without `describeSource`: plain glyphs, and each tool's own name. */
-export const WithoutAppDescriptions: Story = { args: { describeSource: undefined } };
+export const WithoutAppDescriptions: Story = {
+  args: { start: "menu", describeSource: undefined },
+};
 
 function CustomSources() {
   const { sources } = useArtifactProvenance();
@@ -155,74 +152,19 @@ function CustomSources() {
   );
 }
 
-/** `Provenance` children: your own contents, inside the dialog under its title and close. */
-export const CustomContents: Story = { args: { children: <CustomSources /> } };
-
-// ── In a live artifact ──
-
-/** Turns inspect mode on when the dashboard mounts. */
-function StartInspecting() {
-  const { setInspecting } = useArtifactProvenance();
-  useEffect(() => setInspecting(true), [setInspecting]);
-  return null;
-}
+/** `Provenance` children: your own contents, inside the menu or popover under its header. */
+export const CustomContents: Story = { args: { start: "menu", children: <CustomSources /> } };
 
 /**
- * A live dashboard in inspect mode: Sources is pressed, and All queries sits beside it. Every
- * number, table and chart that reads a query has a dotted outline, which turns solid under the
- * pointer; click one, or Tab to it and press Enter, to open its Sources popover beside it. Escape
- * steps back: from a source to the list, closes the popover, then leaves inspect mode.
+ * Inspect mode: Sources is pressed. Every number, table and chart that reads a query has a dotted
+ * outline, which turns solid under the pointer; click one, or Tab to it and press Enter, to open
+ * its Sources popover beside it. Escape steps back: from a source to the list, closes the
+ * popover, then leaves inspect mode.
  */
-export const LiveDashboard: StoryObj<MotionArgs> = {
-  decorators: [
-    (Story) => (
-      <div style={{ height: "100vh", width: "100%", display: "flex", flexDirection: "column" }}>
-        <Story />
-      </div>
-    ),
-  ],
-  render: () => (
-    <LiveArtifactRenderer
-      id="demo-full-flow"
-      content={fullFlowProgram}
-      library={dashboardLibrary}
-      interpreter={interpreter}
-      preview={false}
-      enableProvenance
-    >
-      <LiveArtifactRenderer.Chrome>
-        <StartInspecting />
-        <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              minHeight: 44,
-              padding: "6px 12px",
-              boxSizing: "border-box",
-              borderBottom: "1px solid var(--openui-border-default)",
-              font: "var(--openui-text-body-default-heavy)",
-              color: "var(--openui-text-neutral-primary)",
-            }}
-          >
-            <span style={{ flex: 1 }}>Retail overview</span>
-            <LiveArtifactRenderer.ChromeLoader />
-            <LiveArtifactRenderer.ProvenanceToggle />
-          </div>
-          <LiveArtifactRenderer.Content>
-            <LiveArtifactRenderer.Loading />
-            <LiveArtifactRenderer.Error />
-            <LiveArtifactRenderer.Provenance describeSource={describeSource} />
-          </LiveArtifactRenderer.Content>
-        </div>
-      </LiveArtifactRenderer.Chrome>
-    </LiveArtifactRenderer>
-  ),
-};
+export const LiveDashboard: Story = { args: { start: "inspect" } };
 
 /** The live dashboard on a phone: no hover; a tap on an outlined item opens its popover. */
-export const LiveDashboardPhone: StoryObj<MotionArgs> = {
+export const LiveDashboardPhone: Story = {
   ...LiveDashboard,
   parameters: { viewport: { defaultViewport: "mobile2" } },
 };

@@ -38,17 +38,25 @@ import {
   anchorOf,
   ContentConfigContext,
   createSourcesStore,
+  MENU,
   POPOVER,
   ProvenanceContext,
   RendererStateContext,
   type ArtifactRendererState,
   type ContentConfig,
+  type MenuState,
   type PopoverState,
   type ProvenanceContextValue,
 } from "./contexts";
 import { toolError, type ArtifactError } from "./errors";
 import { hasLentTabIndex } from "./focus";
-import { BOUND, boundTarget, createInspectMarks } from "./inspectMarks";
+import {
+  BOUND,
+  boundTarget,
+  createInspectMarks,
+  findBoundTarget,
+  renderedComponents,
+} from "./inspectMarks";
 import {
   Chrome,
   ChromeActions,
@@ -129,7 +137,7 @@ export interface RenderContentArgs {
 
 export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
   interpreter?: Interpreter;
-  /** Inspect mode, its toggle and the Sources dialog. Live renderers only. */
+  /** Inspect mode, the Sources split button, popover and All sources menu. Live renderers only. */
   enableProvenance?: boolean;
   renderContent: (args: RenderContentArgs) => ReactNode;
 }
@@ -458,11 +466,13 @@ export function ArtifactRendererRoot({
     ],
   );
 
-  // ── Provenance: inspect mode, the selected component and the Sources dialog ──
+  // ── Provenance: inspect mode, the selected component, its popover and the All sources menu ──
   const rootRef = useRef<HTMLDivElement>(null);
   const [isInspecting, setIsInspecting] = useState(false);
   const [selection, setSelection] = useState<SourceTarget | null>(null);
-  const [isSourcesOpen, setSourcesOpen] = useState(false);
+  // The All sources menu: open on its list, or on one of its sources. Only one Sources surface
+  // is open at a time: the menu or the selection's popover.
+  const [menu, setMenu] = useState<MenuState | null>(null);
   // The selection's Sources popover: open on its list, or on one of its sources.
   const [popover, setPopover] = useState<PopoverState | null>(null);
   // A popover is always the selection's: with nothing selected, it's closed.
@@ -470,23 +480,53 @@ export function ArtifactRendererRoot({
   // The bridge inside `Renderer` writes the program's sources here, for `useArtifactProvenance()`.
   const [sourcesStore] = useState(createSourcesStore);
   const clearSelection = useCallback(() => setSelection(null), []);
-  const openList = useCallback(() => {
+  const openAllSources = useCallback(() => {
+    // What opened it, for where it sits and where focus goes back.
+    const opener = document.activeElement !== document.body ? document.activeElement : null;
     setSelection(null);
     setPopover(null);
-    setSourcesOpen(true);
+    setMenu((current) => current ?? { source: null, opener });
   }, []);
-  const closeDialog = useCallback(() => setSourcesOpen(false), []);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  const setMenuSource = useCallback(
+    (source: string | null) => setMenu((current) => (current ? { ...current, source } : current)),
+    [],
+  );
   /** Picks a data-bound component and opens its popover, on its list or on one source. */
-  const openPopover = useCallback((target: SourceTarget, source: string | null = null) => {
-    setSelection(target);
-    setSourcesOpen(false);
-    setPopover({ source });
-  }, []);
+  const openPopover = useCallback(
+    (target: SourceTarget, source: string | null = null, returnTo: Element | null = null) => {
+      setSelection(target);
+      setMenu(null);
+      setPopover({ source, returnTo });
+    },
+    [],
+  );
   const setPopoverSource = useCallback(
-    (source: string | null) => setPopover((current) => (current ? { source } : current)),
+    (source: string | null) =>
+      setPopover((current) => (current ? { ...current, source } : current)),
     [],
   );
   const closePopover = useCallback(() => setPopover(null), []);
+  // The content can be portaled into `renderInHtmlElement`, outside the root.
+  const contentAreas = useCallback(
+    () => [rootRef.current, renderInHtmlElement].filter((area): area is HTMLElement => !!area),
+    [renderInHtmlElement],
+  );
+  const renderedIds = useCallback(
+    () => renderedComponents(contentAreas(), rootRef.current),
+    [contentAreas],
+  );
+  // A Used by link finds its component on the page itself: outside inspect mode nothing is marked.
+  const openUsedBy = useCallback(
+    (id: string, source: string) => {
+      const target = findBoundTarget(contentAreas(), rootRef.current, sourcesStore.get(), id);
+      if (!target) return;
+      target.element.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+      // Outside inspect mode the component takes no focus: it goes back to what opened the menu.
+      openPopover(target, source, menu?.opener ?? null);
+    },
+    [contentAreas, sourcesStore, openPopover, menu],
+  );
   // Focus goes to the Sources toggle, else nowhere: an item that holds it once inspect mode ends
   // would keep the page's focus ring, with nothing to take it off.
   const focusToggle = useCallback(() => {
@@ -496,13 +536,15 @@ export function ArtifactRendererRoot({
     if (toggle) toggle.focus({ preventScroll: true });
     else if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   }, [renderInHtmlElement]);
-  // Leaving inspect mode leaves nothing behind: no dialog, no selection, and no focus on what
-  // only inspect mode made focusable or picked.
+  // Leaving inspect mode leaves nothing behind: no popover, no selection, and no focus on what
+  // only inspect mode made focusable or picked. Entering it closes the menu.
   const setInspecting = useCallback(
     (on: boolean) => {
       setIsInspecting(on);
-      if (on) return;
-      setSourcesOpen(false);
+      if (on) {
+        setMenu(null);
+        return;
+      }
       setPopover(null);
       setSelection(null);
       const focused = document.activeElement;
@@ -518,6 +560,8 @@ export function ArtifactRendererRoot({
     },
     [renderInHtmlElement, focusToggle],
   );
+  const isPopoverOpen = popover !== null && selection !== null;
+  const isAllSourcesOpen = menu !== null;
   const provenance = useMemo<ProvenanceContextValue | null>(
     () =>
       enableProvenance
@@ -526,11 +570,16 @@ export function ArtifactRendererRoot({
             setInspecting,
             selection,
             clearSelection,
-            isSourcesOpen,
-            openList,
+            isPopoverOpen,
+            isAllSourcesOpen,
+            openAllSources,
             internal: {
               sourcesStore,
-              closeDialog,
+              menu,
+              setMenuSource,
+              closeMenu,
+              openUsedBy,
+              renderedIds,
               focusToggle,
               popover,
               setPopoverSource,
@@ -544,9 +593,14 @@ export function ArtifactRendererRoot({
       setInspecting,
       selection,
       clearSelection,
-      isSourcesOpen,
-      openList,
-      closeDialog,
+      isPopoverOpen,
+      isAllSourcesOpen,
+      openAllSources,
+      menu,
+      setMenuSource,
+      closeMenu,
+      openUsedBy,
+      renderedIds,
       focusToggle,
       sourcesStore,
       popover,
@@ -610,22 +664,25 @@ export function ArtifactRendererRoot({
     },
     [openPopover],
   );
-  // Escape undoes one step: in the popover, from a source back to its list, then the popover
-  // closes; the dialog closes (it handles that key itself); then inspect mode ends. A menu, list
-  // or dialog of the dashboard's own closes before any of them.
+  // Escape undoes one step: in the menu, from a source back to its list, then the menu closes;
+  // in the popover, from a source back to its list, then the popover closes; then inspect mode
+  // ends. A menu, list or dialog of the dashboard's own closes before any of them.
   const popoverOpen = enableProvenance && popover !== null;
   const popoverSource = popover?.source ?? null;
+  const menuOpen = enableProvenance && menu !== null;
+  const menuSource = menu?.source ?? null;
   useEffect(() => {
-    if (!inspecting && !popoverOpen) return;
+    if (!inspecting && !popoverOpen && !menuOpen) return;
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       const target = event.target as Element | null;
       const owner = target?.closest?.(OWNS_ESCAPE);
-      if (owner && !owner.hasAttribute(POPOVER)) return;
+      if (owner && !owner.hasAttribute(POPOVER) && !owner.hasAttribute(MENU)) return;
       event.preventDefault();
-      if (popoverSource !== null) setPopoverSource(null);
+      if (menuSource !== null) setMenuSource(null);
+      else if (menuOpen) closeMenu();
+      else if (popoverSource !== null) setPopoverSource(null);
       else if (popoverOpen) closePopover();
-      else if (isSourcesOpen) setSourcesOpen(false);
       else setInspecting(false);
     };
     window.addEventListener("keydown", escape);
@@ -634,10 +691,13 @@ export function ArtifactRendererRoot({
     inspecting,
     popoverOpen,
     popoverSource,
-    isSourcesOpen,
+    menuOpen,
+    menuSource,
     setInspecting,
     setPopoverSource,
     closePopover,
+    setMenuSource,
+    closeMenu,
   ]);
   // While inspecting, the outlined component under the pointer turns solid: set on the element
   // directly, so moving the mouse re-renders nothing.
@@ -655,11 +715,11 @@ export function ArtifactRendererRoot({
       setHovered(target);
       // The last pick stays solid after its popover closes, until another one is hovered.
       const element = target ? anchorOf(target) : null;
-      if (element && !isSourcesOpen && !popoverOpen) {
+      if (element && !menuOpen && !popoverOpen) {
         setSelection((current) => (current && element !== anchorOf(current) ? null : current));
       }
     },
-    [setHovered, isSourcesOpen, popoverOpen],
+    [setHovered, menuOpen, popoverOpen],
   );
   const clearHovered = useCallback(() => setHovered(null), [setHovered]);
   useEffect(() => {
@@ -671,7 +731,7 @@ export function ArtifactRendererRoot({
   // An edit can give a component id (`lead.2`) to another component: start over too.
   useEffect(() => setSelection(null), [id, program]);
   useEffect(() => {
-    setSourcesOpen(false);
+    setMenu(null);
     setPopover(null);
   }, [id]);
   // The pick's outline stays solid: on the element inspect mode outlined.

@@ -111,7 +111,7 @@ describe("DataSourcesContents", () => {
     expect(rows()[0]).toBe("QueryScript (open)");
   });
 
-  // Back and Close are the Sources dialog's (see SourcesDialog.test.tsx); the contents open a
+  // Back and Close are the surrounding surface's; the contents open a
   // query from the list, and show it.
   it("opens a query from the list: its Query, then its Result", () => {
     const onOpenQuery = vi.fn();

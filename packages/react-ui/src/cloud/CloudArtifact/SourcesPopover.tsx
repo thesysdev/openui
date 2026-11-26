@@ -98,13 +98,14 @@ export function SourcesPopover({
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const inspecting = useRef(isInspecting);
   inspecting.current = isInspecting;
-  const returnTo = useRef<Element | null>(null);
-  if (open) returnTo.current = anchorOf(selection);
+  const returnTo = useRef<{ component: Element; opener?: Element | null } | null>(null);
+  if (open) returnTo.current = { component: anchorOf(selection), opener: popover.returnTo };
   useEffect(() => {
     if (open || !root) return;
     const focused = document.activeElement;
     if (focused && focused !== document.body && !root.contains(focused)) return;
-    if (inspecting.current) focusBack(returnTo.current);
+    if (inspecting.current) focusBack(returnTo.current?.component ?? null);
+    else if (returnTo.current?.opener?.isConnected) focusBack(returnTo.current.opener);
     else focusToggle();
   }, [open, root, focusToggle]);
 

@@ -244,6 +244,56 @@ export const contentsStyles = {
     color: ${secondary};
     ${labelSmall}
   `,
+  // In the All sources menu: how many items use the source, on the row's right.
+  "source-count": css`
+    flex: none;
+    color: ${secondary};
+    font-variant-numeric: tabular-nums;
+    ${labelSmall}
+  `,
+  // A source's Used by, in the All sources menu: one chip per item, each opening its popover.
+  "used-by": css`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  `,
+  "used-by-chip": css`
+    ${buttonReset}
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    padding: 4px 6px 4px 10px;
+    border-radius: 8px;
+    background: var(--openui-highlight-subtle);
+    color: ${primary};
+    cursor: pointer;
+    ${labelSmall}
+    ${press(0.97)}
+    & > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    & > svg {
+      flex: none;
+      width: 14px;
+      height: 14px;
+      color: ${secondary};
+    }
+    &:focus-visible {
+      outline: ${focusRing};
+      outline-offset: -2px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--openui-highlight);
+      }
+    }
+  `,
   detail: css`
     display: flex;
     flex-direction: column;

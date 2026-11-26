@@ -69,13 +69,18 @@ function Logo({ entry }: { entry: SourceEntry }) {
   );
 }
 
-/** An item's sources, one row each: its logo, name and what it reads. A row opens its detail. */
+/**
+ * Sources, one row each: its logo, name and what it reads, and with `count`, on its right, e.g.
+ * how many items use it. A row opens its detail.
+ */
 export function SourceList({
   entries,
   onOpen,
+  count,
 }: {
   entries: SourceEntry[];
   onOpen: (name: string) => void;
+  count?: (entry: SourceEntry) => string;
 }) {
   return (
     <ul className={cx("source-list")} aria-label="Sources">
@@ -94,6 +99,11 @@ export function SourceList({
               </span>
               <span className={cx("source-line")}>{entry.line}</span>
             </span>
+            {count && (
+              <span className={cx("source-count")} data-source-count="">
+                {count(entry)}
+              </span>
+            )}
           </button>
         </li>
       ))}
@@ -101,8 +111,11 @@ export function SourceList({
   );
 }
 
-/** One source: its code (Query or Formula) with a copy button, and a query's Result. */
-export function SourceDetail({ entry }: { entry: SourceEntry }) {
+/**
+ * One source: its code (Query or Formula) with a copy button, and a query's Result. `before`
+ * goes between its heading and its code, such as the All sources menu's Used by.
+ */
+export function SourceDetail({ entry, before }: { entry: SourceEntry; before?: ReactNode }) {
   const { copied, failed, copy } = useCopy();
   const value = entry.result?.value;
   const summary = value === undefined ? undefined : resultSummary(value);
@@ -112,6 +125,7 @@ export function SourceDetail({ entry }: { entry: SourceEntry }) {
         <Logo entry={entry} />
         {entry.name}
       </h3>
+      {before}
       <section className={cx("block")} aria-label={entry.codeLabel}>
         <h4 className={cx("block-label")}>{entry.codeLabel}</h4>
         <div className={cx("code-wrap")}>

@@ -89,7 +89,10 @@ export interface ArtifactProvenanceState {
    * on one selects it and opens its Sources popover beside it. The dashboard itself doesn't act.
    */
   isInspecting: boolean;
-  /** Turning it off also closes any Sources popover or dialog, and clears the selection. */
+  /**
+   * Turning it on closes the All sources menu; turning it off closes any Sources popover and
+   * clears the selection.
+   */
   setInspecting: (on: boolean) => void;
   /**
    * The data-bound component, and the prop it's outlined on, last picked in inspect mode. It
@@ -98,16 +101,21 @@ export interface ArtifactProvenanceState {
   selection: SourceTarget | null;
   /** Clears the selection, closing its popover. */
   clearSelection: () => void;
+  /** Whether a data-bound component's Sources popover is open. */
+  isPopoverOpen: boolean;
   /**
-   * Whether the Sources dialog of every query is open. (An item's popover is not this dialog;
-   * `useArtifactRenderer().isOpen` is the dashboard's.)
+   * Whether the All sources menu is open. (`useArtifactRenderer().isOpen` is the dashboard's.)
+   * Only one of the two is open at a time.
    */
-  isSourcesOpen: boolean;
-  /** Opens the Sources dialog on the list of every query, e.g. from your own "All queries" button. */
-  openList: () => void;
+  isAllSourcesOpen: boolean;
+  /**
+   * Opens the All sources menu, closing any popover, e.g. from your own toolbar's button. It
+   * opens under that button, and focus goes back to it on close.
+   */
+  openAllSources: () => void;
   /**
    * Where the program's data comes from: every component's sources and every query, with live
-   * values. Null unless inspecting or something is selected.
+   * values. Null unless inspecting, something is selected or the menu is open.
    */
   sources: DataSources | null;
 }
@@ -149,10 +157,26 @@ export const createSourcesStore = (): SourcesStore => createValueStore<DataSourc
 export interface PopoverState {
   /** The source open in it, by name; null on its list of sources. */
   source: string | null;
+  /**
+   * Where focus goes on close outside inspect mode, where the component takes none: what opened
+   * the All sources menu, for a popover opened from its Used by.
+   */
+  returnTo?: Element | null;
 }
 
 /** On the Sources popover's element: an Escape inside it steps back through the popover. */
 export const POPOVER = "data-openui-sources-popover";
+
+/** The All sources menu, while open. */
+export interface MenuState {
+  /** The source open in it, by name; null on its list. */
+  source: string | null;
+  /** What opened it: the menu sits under it, and focus goes back to it on close. */
+  opener: Element | null;
+}
+
+/** On the All sources menu's element: an Escape inside it steps back through the menu. */
+export const MENU = "data-openui-sources-menu";
 
 /** What only the renderer's own parts use, kept out of `useArtifactProvenance()`. */
 export interface ProvenanceInternals {
@@ -164,8 +188,19 @@ export interface ProvenanceInternals {
   setPopoverSource: (name: string | null) => void;
   /** Closes the popover, keeping inspect mode and the selection. */
   closePopover: () => void;
-  /** Closes the dialog, keeping inspect mode and the selection. */
-  closeDialog: () => void;
+  /** The All sources menu; null when closed. */
+  menu: MenuState | null;
+  /** In the open menu, opens a source's detail, or (null) goes back to the list. */
+  setMenuSource: (name: string | null) => void;
+  /** Closes the menu, keeping inspect mode. */
+  closeMenu: () => void;
+  /**
+   * A Used by link: closes the menu, scrolls the component into view and opens its popover on
+   * `source`, whether or not inspect mode is on, which stays as it was.
+   */
+  openUsedBy: (id: string, source: string) => void;
+  /** The ids of the program's components that render an element on the page right now. */
+  renderedIds: () => ReadonlySet<string>;
   /** Moves focus to the Sources toggle, or off the page's elements if there is none. */
   focusToggle: () => void;
 }
@@ -187,8 +222,9 @@ const INERT_PROVENANCE: ArtifactProvenanceState = Object.freeze({
   setInspecting: noop,
   selection: null,
   clearSelection: noop,
-  isSourcesOpen: false,
-  openList: noop,
+  isPopoverOpen: false,
+  isAllSourcesOpen: false,
+  openAllSources: noop,
   sources: null,
 });
 const INERT_STORE = createSourcesStore();

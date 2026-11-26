@@ -39,6 +39,48 @@ function scan(areas: Element[], boundary: Element | null) {
 }
 
 /**
+ * Each data-bound component's outlined element, whether or not inspect mode marks it: the element
+ * of its prop that shows the value when the component marks one, else the component's own.
+ */
+function boundElements(areas: Element[], boundary: Element | null, sources: DataSources | null) {
+  const found = new Map<Element, { target: SourceTarget; label: string }>();
+  if (!sources) return found;
+  const { components, props } = scan(areas, boundary);
+  const index = sourceIndex(sources, { renders: (id) => components.has(id) });
+  for (const { id, props: read } of index.components.values()) {
+    const element = components.get(id);
+    if (!element) continue;
+    const prop = read.find((name) => props.has(`${id}\u0000${name}`));
+    const propElement = prop ? props.get(`${id}\u0000${prop}`) : undefined;
+    const anchor = propElement ?? element;
+    if (found.has(anchor)) continue;
+    found.set(anchor, {
+      target: { id, prop, element, propElement },
+      label: componentLabel(sources, id) ?? id,
+    });
+  }
+  return found;
+}
+
+/** The ids of the components that render an element of their own in `areas`. */
+export function renderedComponents(areas: Element[], boundary: Element | null): Set<string> {
+  return new Set(scan(areas, boundary).components.keys());
+}
+
+/** The data-bound component `id` as inspect mode would pick it, found with or without its marks. */
+export function findBoundTarget(
+  areas: Element[],
+  boundary: Element | null,
+  sources: DataSources | null,
+  id: string,
+): SourceTarget | null {
+  for (const { target } of boundElements(areas, boundary, sources).values()) {
+    if (target.id === id) return target;
+  }
+  return null;
+}
+
+/**
  * Outlines what inspect mode can pick: each data-bound component of the program (see
  * `sourceIndex`), on the element of its prop that shows the value when the component marks one
  * with `bindSource("value")`, else on the component's own element. That element gets `BOUND`,
@@ -65,23 +107,7 @@ export function createInspectMarks(boundary: Element | null) {
   }
 
   function update(areas: Element[], sources: DataSources | null) {
-    const next = new Map<Element, { target: SourceTarget; label: string }>();
-    if (sources) {
-      const { components, props } = scan(areas, boundary);
-      const index = sourceIndex(sources, { renders: (id) => components.has(id) });
-      for (const { id, props: read } of index.components.values()) {
-        const element = components.get(id);
-        if (!element) continue;
-        const prop = read.find((name) => props.has(`${id}\u0000${name}`));
-        const propElement = prop ? props.get(`${id}\u0000${prop}`) : undefined;
-        const anchor = propElement ?? element;
-        if (next.has(anchor)) continue;
-        next.set(anchor, {
-          target: { id, prop, element, propElement },
-          label: componentLabel(sources, id) ?? id,
-        });
-      }
-    }
+    const next = boundElements(areas, boundary, sources);
     for (const [element, restore] of marked) {
       const now = next.get(element);
       if (now && element.getAttribute(BOUND) === now.target.id) continue;

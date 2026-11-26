@@ -55,5 +55,5 @@ export type {
   ArtifactListState,
   UseArtifactListOptions,
 } from "./CloudArtifact/useArtifactList";
-// What `describeSource` returns. The Sources dialog itself is drawn by the renderer, not exported.
+// What `describeSource` returns. The Sources popover and menu are drawn by the renderer, not exported.
 export type { SourceDescription } from "./SourcesContents/types";

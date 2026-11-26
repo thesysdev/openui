@@ -139,6 +139,9 @@ describe("Inspect mode", () => {
   it("lets Tab reach each data-bound component in order, and Enter pick it", async () => {
     await mount();
     await inspect();
+    // Past the split button's chevron, the last stop before the dashboard.
+    await user.tab();
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("All sources");
     const reached: string[] = [];
     for (let step = 0; step < 5; step++) {
       await user.tab();
@@ -171,8 +174,11 @@ describe("Inspect mode", () => {
     await inspect();
     expect(handles()).toEqual([]);
     expect(outlined()).toEqual([]);
-    // From the Sources toggle, the last stop before the dashboard, Tab leaves the page.
+    // From the Sources button, Tab reaches its chevron, the last stop before the dashboard, then
+    // leaves the page.
     expect(document.activeElement).toBe(sourcesToggle());
+    await user.tab();
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("All sources");
     await user.tab();
     expect(document.activeElement).toBe(document.body);
   });

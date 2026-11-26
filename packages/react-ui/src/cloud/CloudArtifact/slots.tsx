@@ -2,12 +2,11 @@
 
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { Database, List, LoaderCircle, X } from "lucide-react";
+import { ChevronDown, Layers, LoaderCircle, X } from "lucide-react";
 import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
-import { TooltipWrapper } from "../../components/TooltipWrapper";
 import { AnimatedLabel } from "./AnimatedLabel";
 import { names, styles, toggleStyles } from "./cloudArtifact.styles";
 import {
@@ -21,7 +20,7 @@ import {
   type Region,
 } from "./contexts";
 import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
-import { SourcesContext, SourcesProvider, type SourcesOptions } from "./SourcesDialog";
+import { SourcesContext, SourcesProvider, type SourcesOptions } from "./SourcesProvider";
 
 /*
  * Slots, following AgentInterface's three modes:
@@ -261,52 +260,55 @@ export interface ProvenanceToggleProps {
 }
 
 /**
- * Turns inspect mode on and off, with `aria-pressed` and `data-state="on" | "off"`; while on, an
- * All queries button beside it opens the Sources dialog on the list. Renders nothing unless
- * `enableProvenance` is on. Children replace both: call `openList()` from
- * `useArtifactProvenance()` for your own All queries.
+ * The Sources split button. Its main half turns inspect mode on and off, with `aria-pressed` and
+ * `data-state="on" | "off"`; its chevron opens the All sources menu under it, with
+ * `aria-expanded` and `data-state="open" | "closed"`. Renders nothing unless `enableProvenance`
+ * is on. Children replace it: call `setInspecting` and `openAllSources` from
+ * `useArtifactProvenance()` from your own controls.
  */
 export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
   const inside = useInRegion("chrome");
   const provenance = useContext(ProvenanceContext);
   if (!inside || !provenance) return null;
   if (children !== undefined) return <>{children}</>;
-  const open = provenance.isInspecting;
+  const on = provenance.isInspecting;
+  const menuOpen = provenance.isAllSourcesOpen;
   return (
-    <>
-      {/* Before the toggle, so the toggle stays put under the pointer when this appears. */}
-      {open && (
-        <TooltipWrapper tooltipContent="All queries" side="bottom" align="center">
-          <IconButton
-            className={clsx(toggleStyles.allQueries, names.allQueries)}
-            variant="tertiary"
-            size="small"
-            icon={<List size={16} aria-hidden />}
-            aria-label="All queries"
-            onClick={provenance.openList}
-          />
-        </TooltipWrapper>
-      )}
-      <Button
-        className={clsx(toggleStyles.toggle, names.provenanceToggle)}
-        variant="tertiary"
-        size="small"
-        iconLeft={
-          <span className={toggleStyles.icon}>
-            <Database size={16} aria-hidden />
-            <span className={clsx(toggleStyles.dot, names.provenanceDot)} aria-hidden />
-          </span>
-        }
-        aria-pressed={open}
-        data-state={open ? "on" : "off"}
+    <div className={clsx(toggleStyles.split, names.sourcesSplit)} role="group">
+      <button
+        type="button"
+        className={clsx(toggleStyles.half, toggleStyles.main, names.provenanceToggle)}
+        aria-pressed={on}
+        data-state={on ? "on" : "off"}
         onClick={() => {
-          if (open) provenance.clearSelection();
-          provenance.setInspecting(!open);
+          if (on) provenance.clearSelection();
+          provenance.setInspecting(!on);
         }}
       >
+        <Layers size={16} aria-hidden />
         {label ?? "Sources"}
-      </Button>
-    </>
+      </button>
+      <span className={toggleStyles.divider} aria-hidden />
+      <button
+        type="button"
+        className={clsx(toggleStyles.half, toggleStyles.chevron, names.sourcesChevron)}
+        aria-label="All sources"
+        aria-haspopup="dialog"
+        aria-expanded={menuOpen}
+        data-state={menuOpen ? "open" : "closed"}
+        onClick={(event) => {
+          if (menuOpen) {
+            provenance.internal.closeMenu();
+            return;
+          }
+          // Safari doesn't focus a clicked button: focus comes back here when the menu closes.
+          event.currentTarget.focus({ preventScroll: true });
+          provenance.openAllSources();
+        }}
+      >
+        <ChevronDown size={16} aria-hidden />
+      </button>
+    </div>
   );
 }
 
@@ -321,7 +323,7 @@ export function Content({ className, children }: PartProps) {
   if (!inside || !config) return null;
   return (
     <RegionProvider region="content">
-      {/* With provenance on, the Sources dialog opens over the content. */}
+      {/* With provenance on, the Sources popover and the All sources menu open over the content. */}
       <SourcesProvider>
         <div
           className={clsx(
@@ -424,11 +426,11 @@ export interface ProvenanceProps extends SourcesOptions {
 }
 
 /**
- * The contents of a picked item's Sources popover and of the Sources dialog of every query.
- * Without children, the default contents list the selected component's sources (or every query)
- * and show where each one's data comes from; its props name your data tools (`describeSource`).
- * With children, yours replace them inside the popover or dialog, under its header: read the
- * selection and its sources with `useArtifactProvenance()`. They render only while one is open.
+ * The contents of a picked item's Sources popover and of the All sources menu. Without children,
+ * the default contents list the selected component's sources (or every source) and show where
+ * each one's data comes from; its props name your data tools (`describeSource`). With children,
+ * yours replace them inside the popover or menu, under its header: read the selection and its
+ * sources with `useArtifactProvenance()`. They render only while one is open.
  */
 export function Provenance({ children, describeSource }: ProvenanceProps) {
   const inside = useInRegion("content");

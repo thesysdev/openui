@@ -29,8 +29,8 @@ export interface LiveArtifactRendererProps<
   /** Where the artifact's data tools run: your endpoint (`{ url }`) or an async function. */
   interpreter: Interpreter;
   /**
-   * Show where the artifact's data comes from: an inspect toggle in the bar, and a Sources dialog
-   * for the component clicked while inspecting. Off by default.
+   * Show where the artifact's data comes from: a Sources split button in the bar, inspect mode, an
+   * item's Sources popover and the All sources menu. Off by default.
    */
   enableProvenance?: boolean;
 }
@@ -40,7 +40,7 @@ const NO_QUERY_LOADER = <></>;
 
 /**
  * Renders nothing. It sits inside `Renderer`, where `useDataSources` works, and while inspecting,
- * selected or open writes the program's sources to the root's store, for `useArtifactProvenance()`.
+ * selected or with the menu open writes the program's sources to the root's store, for `useArtifactProvenance()`.
  */
 function ProvenanceBridge() {
   const provenance = useContext(ProvenanceContext);
@@ -48,7 +48,7 @@ function ProvenanceBridge() {
   // Closed, or remounted for live data: the selected elements are gone.
   useEffect(() => () => clearSelection?.(), [clearSelection]);
   return provenance &&
-    (provenance.isInspecting || provenance.selection || provenance.isSourcesOpen) ? (
+    (provenance.isInspecting || provenance.selection || provenance.isAllSourcesOpen) ? (
     <SourcesWriter />
   ) : null;
 }
