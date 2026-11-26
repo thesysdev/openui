@@ -180,7 +180,7 @@ export function DashboardPanel(source: DashboardSource) {
           >
             <PanelReport />
             <LiveArtifactRenderer.Content className="relative h-full overflow-y-auto p-4 sm:p-6">
-              {/* Until the dashboard starts streaming: what the build is doing. */}
+              {/* Until the dashboard streams: a sketch of it, and what the build is doing. */}
               <LiveArtifactRenderer.Pending />
               <LiveArtifactRenderer.Error>
                 <DashboardError />
@@ -257,8 +257,8 @@ function StatusDot({ tone }: { tone: Tone }) {
 
 /**
  * The renderer's state, in the panel's bar. `useArtifactRenderer()` reads the renderer it sits in.
- * While the dashboard builds or loads, the bar shows the renderer's own status, in the words
- * `Pending` uses, such as "Calling get_npm_downloads…". It stays quiet while `Pending` shows.
+ * While the data loads, the bar shows the renderer's own "Loading data…". While the dashboard is
+ * built, it stays quiet: the build's status shows over the dashboard instead.
  */
 function StatusBadge() {
   const { isLoading, error } = useArtifactRenderer();
