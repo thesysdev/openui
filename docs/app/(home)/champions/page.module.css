@@ -113,10 +113,6 @@
   border-color: var(--openui-text-neutral-secondary);
 }
 
-.features {
-  margin-top: 56px;
-}
-
 .cta {
   display: flex;
   flex-direction: column;

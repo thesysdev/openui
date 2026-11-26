@@ -7,10 +7,6 @@ import { BevelButton } from "../components/Button/BevelButton";
 import { CHAMPIONS, type Champion } from "../data/champions";
 import pageStyles from "../page.module.css";
 import { FaqSection, type MarketingFaq } from "../sections/FaqSection/FaqSection";
-import {
-  FeatureGridSection,
-  type GridFeature,
-} from "../sections/FeatureGridSection/FeatureGridSection";
 import { Footer } from "../sections/Footer/Footer";
 import { HeroSection } from "../sections/HeroSection/HeroSection";
 import page from "./metadata";
@@ -35,6 +31,12 @@ const FAQS: MarketingFaq[] = [
     ],
   },
   {
+    question: "What do Champions get?",
+    answer: [
+      "Early access to new features, a direct line to the OpenUI team, and a spot on this page.",
+    ],
+  },
+  {
     question: "What do I need to share to be added?",
     answer: [
       "Your name, a square headshot, a one- or two-sentence bio, and the profiles you want linked, such as GitHub, X, or LinkedIn.",
@@ -45,24 +47,6 @@ const FAQS: MarketingFaq[] = [
     answer: [
       "Yes. Ask in Discord and we will update or remove it. Profiles live in the open-source OpenUI repo, so you can also open a pull request.",
     ],
-  },
-];
-
-const WHAT_CHAMPIONS_DO: GridFeature[] = [
-  {
-    icon: "repair",
-    title: "Ship to OpenUI",
-    description: "Fix bugs, add components, and improve the parser, bindings, and tooling.",
-  },
-  {
-    icon: "chart",
-    title: "Shape the roadmap",
-    description: "Try features early and give the team direct feedback on what to build next.",
-  },
-  {
-    icon: "handshake",
-    title: "Share what they build",
-    description: "Write, demo, and help others in the community get started with Generative UI.",
   },
 ];
 
@@ -150,51 +134,26 @@ export default function ChampionsPage() {
           </section>
         </div>
 
-        <section className={`${layout.section} ${styles.section}`} aria-labelledby="what-they-do">
+        <section className={`${layout.section} ${styles.section}`} aria-labelledby="become">
           <div className={layout.sectionLockup}>
-            <h2 id="what-they-do" className={layout.heading}>
-              What Champions do
+            <h2 id="become" className={layout.heading}>
+              Become a Champion
             </h2>
-            <p className={layout.lead}>
-              Champions get early access to new features, a direct line to the OpenUI team, and a
-              spot on this page.
-            </p>
-          </div>
-          <div className={styles.features}>
-            <FeatureGridSection
-              features={WHAT_CHAMPIONS_DO}
-              showHeader={false}
-              showCompat={false}
-              showBottomSeparator={false}
-              flushOuterCards
-              flushSectionPadding
-              mobileAccordion={false}
-            />
+            <div className={styles.cta}>
+              <p className={layout.lead}>
+                Building with OpenUI or contributing to the repo? Tell us about it on Discord.
+              </p>
+              <BevelButton
+                href={DISCORD_URL}
+                variant="primary"
+                label="Join the Discord"
+                badge={<ArrowRight size={16} />}
+              />
+            </div>
           </div>
         </section>
 
-        <div className={styles.softBand}>
-          <section className={`${layout.section} ${styles.section}`} aria-labelledby="become">
-            <div className={layout.sectionLockup}>
-              <h2 id="become" className={layout.heading}>
-                Become a Champion
-              </h2>
-              <div className={styles.cta}>
-                <p className={layout.lead}>
-                  Building with OpenUI or contributing to the repo? Tell us about it on Discord.
-                </p>
-                <BevelButton
-                  href={DISCORD_URL}
-                  variant="primary"
-                  label="Join the Discord"
-                  badge={<ArrowRight size={16} />}
-                />
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <div className={layout.faqBand}>
+        <div className={`${layout.faqBand} ${styles.softBand}`}>
           <FaqSection faqs={FAQS} titleId="champions-faq" firstOpen />
         </div>
       </main>
