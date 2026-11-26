@@ -24,6 +24,7 @@ import { componentLabel, type Describe } from "../SourcesContents/describe";
 import { sourceIndex } from "../SourcesContents/sourceIndex";
 import { anchorOf, POPOVER, ProvenanceContext, useArtifactProvenance } from "./contexts";
 import { focusBack } from "./focus";
+import { SourcesOverlay } from "./SourcesOverlay";
 import { popoverNames, popoverStyles } from "./sourcesPopover.styles";
 
 /** Longer than its exit will be, in case `transitionend` never comes. */
@@ -109,16 +110,6 @@ export function SourcesPopover({
     else focusToggle();
   }, [open, root, focusToggle]);
 
-  // A click outside closes it. (A pick of another component then opens that one's.)
-  useEffect(() => {
-    if (!open || !root) return;
-    const outside = (event: PointerEvent) => {
-      if (!root.contains(event.target as Node)) closePopover();
-    };
-    document.addEventListener("pointerdown", outside, true);
-    return () => document.removeEventListener("pointerdown", outside, true);
-  }, [open, root, closePopover]);
-
   if (!shown || !sources) return null;
   return (
     <Popover
@@ -132,6 +123,7 @@ export function SourcesPopover({
       onRoot={setRoot}
       onExited={() => setShown(null)}
       onOpenSource={setPopoverSource}
+      onDismiss={closePopover}
       onChip={() => (shown.source !== null ? setPopoverSource(null) : closePopover())}
     />
   );
@@ -147,6 +139,7 @@ function Popover({
   onRoot,
   onExited,
   onOpenSource,
+  onDismiss,
   onChip,
 }: {
   shown: Shown;
@@ -158,6 +151,8 @@ function Popover({
   onRoot: (root: HTMLElement | null) => void;
   onExited: () => void;
   onOpenSource: (name: string | null) => void;
+  /** A click on the blur around it. */
+  onDismiss: () => void;
   onChip: () => void;
 }) {
   const { portalThemeClassName } = useTheme();
@@ -205,6 +200,20 @@ function Popover({
       element;
     focus.focus({ preventScroll: true });
   }, [open, view]);
+
+  // The card grows out of its chip and shrinks back into it: its motion clips the card to the
+  // chip's box, read here (in the card's coordinates) as the chip's label changes.
+  const chip = useRef<HTMLButtonElement | null>(null);
+  useLayoutEffect(() => {
+    const card = ref.current;
+    const face = chip.current;
+    if (!card || !face) return;
+    const set = (name: string, px: number) => card.style.setProperty(name, `${px}px`);
+    set("--openui-sources-chip-x", face.offsetLeft);
+    set("--openui-sources-chip-y", face.offsetTop);
+    set("--openui-sources-chip-width", face.offsetWidth);
+    set("--openui-sources-chip-height", face.offsetHeight);
+  }, [view]);
 
   // Focus stays inside: Tab and Shift+Tab wrap around its controls.
   const trap = (event: ReactKeyboardEvent) => {
@@ -276,14 +285,22 @@ function Popover({
       <>
         <header className={clsx(popoverStyles.header, popoverNames.header)}>
           <button
+            ref={chip}
             type="button"
             className={clsx(popoverStyles.chip, popoverNames.chip)}
             aria-label={entry ? "Back to all sources" : "Close Sources"}
             data-chip={entry ? "back" : "close"}
             onClick={onChip}
           >
-            {entry ? <ArrowLeft aria-hidden /> : <Layers aria-hidden />}
-            <span>{entry ? "All sources" : "Sources"}</span>
+            {/* Keyed, so a swap between the two plays its motion; not on open, which has its own. */}
+            <span
+              key={entry ? "back" : "close"}
+              className={clsx(popoverStyles.chipFace, popoverNames.chipFace)}
+              data-swapped={travel.current.direction ? "" : undefined}
+            >
+              {entry ? <ArrowLeft aria-hidden /> : <Layers aria-hidden />}
+              <span>{entry ? "All sources" : "Sources"}</span>
+            </span>
           </button>
           <span className={clsx(popoverStyles.meta, popoverNames.meta)}>
             {label}
@@ -300,9 +317,19 @@ function Popover({
       </>
     ),
   };
-  return createPortal(
-    anchored ? <AnchoredFrame {...frame} /> : <FloatingFrame {...frame} />,
-    document.body,
+  return (
+    <>
+      <SourcesOverlay
+        anchor={anchor}
+        open={open}
+        themeClassName={portalThemeClassName}
+        onDismiss={onDismiss}
+      />
+      {createPortal(
+        anchored ? <AnchoredFrame {...frame} /> : <FloatingFrame {...frame} />,
+        document.body,
+      )}
+    </>
   );
 }
 

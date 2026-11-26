@@ -12,6 +12,7 @@ import {
 } from "../../SourcesContents/stories/fixtures";
 import { LiveArtifactRenderer } from "../ArtifactRenderer";
 import { useArtifactProvenance } from "../contexts";
+import { cutoutPath } from "../SourcesOverlay";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 // Every event Testing Library sends goes through React's `act`, as @testing-library/react does.
@@ -76,6 +77,8 @@ const sourcesToggle = () => screen.getByRole("button", { name: "Sources" });
 const dashboard = () => screen.getByRole("heading", { name: "Retail overview" }).parentElement!;
 const handle = (name: string) => within(dashboard()).getByRole("button", { name });
 const popover = (label: string) => screen.getByRole("dialog", { name: `Sources for ${label}` });
+/** The blur over the artifact while a popover is open. */
+const overlay = () => document.querySelector<HTMLElement>("[data-openui-sources-overlay]");
 /** The sources a popover lists, by the names their rows start with. */
 const listed = (dialog: HTMLElement) =>
   within(within(dialog).getByRole("list", { name: "Sources" }))
@@ -229,13 +232,48 @@ describe("The Sources popover", () => {
     }
   });
 
-  it("closes on a click outside, still inspecting, and gives focus back to the component", async () => {
+  it("closes on a click on the blur, still inspecting, and gives focus back to the component", async () => {
     await open("Daily revenue");
-    await user.click(screen.getByText("Paid orders only, refreshed hourly."));
+    await user.click(overlay()!);
     await settle();
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(sourcesToggle().getAttribute("aria-pressed")).toBe("true");
     expect(document.activeElement).toBe(handle("Daily revenue"));
+  });
+
+  it("blurs the artifact behind it while open, and the blur goes with it", async () => {
+    const dialog = await open("Weekly signups");
+    const blur = overlay();
+    expect(blur).not.toBeNull();
+    expect(blur!.getAttribute("data-state")).toBe("open");
+    // Decoration only: nothing in it for a screen reader, and it sits under the popover.
+    expect(blur!.getAttribute("aria-hidden")).toBe("true");
+    expect(blur!.compareDocumentPosition(dialog) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await user.keyboard("{Escape}");
+    await settle();
+    expect(overlay()).toBeNull();
+  });
+
+  it("plays its exit before it unmounts", async () => {
+    await open("Weekly signups");
+    await user.keyboard("{Escape}");
+    // Closed but still there, inert and hidden, with its blur, until its exit ends.
+    const closed = document.querySelector<HTMLElement>("[data-openui-sources-popover]");
+    expect(closed?.getAttribute("data-state")).toBe("closed");
+    expect(closed?.getAttribute("aria-hidden")).toBe("true");
+    expect(closed?.hasAttribute("inert")).toBe(true);
+    expect(overlay()?.getAttribute("data-state")).toBe("closed");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    // A child's animation ending is not the exit.
+    act(() => {
+      closed!.querySelector("header")!.dispatchEvent(new Event("animationend", { bubbles: true }));
+    });
+    expect(document.querySelector("[data-openui-sources-popover]")).toBe(closed);
+    act(() => {
+      closed!.dispatchEvent(new Event("animationend", { bubbles: true }));
+    });
+    expect(document.querySelector("[data-openui-sources-popover]")).toBeNull();
+    expect(overlay()).toBeNull();
   });
 
   it("keeps the closed component's outline solid until another is hovered", async () => {
@@ -294,6 +332,100 @@ describe("The Sources popover", () => {
     const dialog = popover("Weekly signups");
     expect(within(dialog).getByText("Picked signups")).toBeTruthy();
     expect(within(dialog).queryByRole("list", { name: "Sources" })).toBeNull();
+  });
+});
+
+describe("The blur's cut-out", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  type Box = { x: number; y: number; width: number; height: number };
+  const place = (element: Element, box: () => Box) =>
+    vi
+      .spyOn(element, "getBoundingClientRect")
+      .mockImplementation(() => DOMRect.fromRect(box()) as DOMRect);
+
+  /** Opens a component's popover with the artifact's content and the component at these boxes. */
+  async function openAt(label: string, content: Box, component: () => Box) {
+    await mount();
+    await inspect();
+    place(container.querySelector(".openui-artifact-content")!, () => content);
+    const element = handle(label);
+    place(element, component);
+    await user.click(element);
+    await settle();
+    return overlay()!;
+  }
+
+  it("covers the artifact's content and leaves the component's box clear", async () => {
+    const blur = await openAt("Daily revenue", { x: 20, y: 60, width: 800, height: 600 }, () => ({
+      x: 40,
+      y: 100,
+      width: 200,
+      height: 80,
+    }));
+    expect(blur.style.left).toBe("20px");
+    expect(blur.style.top).toBe("60px");
+    expect(blur.style.width).toBe("800px");
+    expect(blur.style.height).toBe("600px");
+    // In the overlay's own coordinates, 8px clear of the box (its outline sits 4 to 6px out).
+    expect(blur.style.getPropertyValue("clip-path")).toBe(
+      cutoutPath({ width: 800, height: 600 }, { x: 12, y: 32, width: 216, height: 96 }),
+    );
+  });
+
+  it("follows the component when the content scrolls and when the window resizes", async () => {
+    let box = { x: 40, y: 100, width: 200, height: 80 };
+    const blur = await openAt("Daily revenue", { x: 0, y: 0, width: 800, height: 600 }, () => box);
+    box = { x: 40, y: 20, width: 200, height: 80 };
+    act(() => {
+      container.querySelector(".openui-artifact-content")!.dispatchEvent(new Event("scroll"));
+    });
+    await settle();
+    expect(blur.style.getPropertyValue("clip-path")).toBe(
+      cutoutPath({ width: 800, height: 600 }, { x: 32, y: 12, width: 216, height: 96 }),
+    );
+    box = { x: 10, y: 20, width: 120, height: 80 };
+    act(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
+    await settle();
+    expect(blur.style.getPropertyValue("clip-path")).toBe(
+      cutoutPath({ width: 800, height: 600 }, { x: 2, y: 12, width: 136, height: 96 }),
+    );
+  });
+
+  it("keeps the cut-out inside the artifact when the component is partly scrolled out", async () => {
+    const blur = await openAt("Daily revenue", { x: 0, y: 100, width: 800, height: 600 }, () => ({
+      x: 40,
+      y: 60,
+      width: 200,
+      height: 80,
+    }));
+    // The box runs above the content's top edge: the cut-out stops at it.
+    expect(blur.style.getPropertyValue("clip-path")).toBe(
+      cutoutPath({ width: 800, height: 600 }, { x: 32, y: 0, width: 216, height: 48 }),
+    );
+  });
+});
+
+describe("cutoutPath", () => {
+  it("draws the whole box, then the rounded hole, filled even-odd", () => {
+    expect(cutoutPath({ width: 100, height: 50 }, { x: 10, y: 10, width: 40, height: 30 })).toBe(
+      'path(evenodd, "M0 0H100V50H0Z' +
+        "M22 10H38A12 12 0 0 1 50 22V28A12 12 0 0 1 38 40H22A12 12 0 0 1 10 28V22A12 12 0 0 1 22 10Z" +
+        '")',
+    );
+  });
+
+  it("rounds a small hole by at most half its side, and leaves out an empty one", () => {
+    expect(cutoutPath({ width: 100, height: 50 }, { x: 0, y: 0, width: 10, height: 8 })).toBe(
+      'path(evenodd, "M0 0H100V50H0Z' +
+        "M4 0H6A4 4 0 0 1 10 4V4A4 4 0 0 1 6 8H4A4 4 0 0 1 0 4V4A4 4 0 0 1 4 0Z" +
+        '")',
+    );
+    expect(cutoutPath({ width: 100, height: 50 }, { x: 0, y: 0, width: 0, height: 8 })).toBe(
+      'path(evenodd, "M0 0H100V50H0Z")',
+    );
   });
 });
 
