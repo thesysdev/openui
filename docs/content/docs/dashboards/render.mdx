@@ -111,7 +111,7 @@ Each part of the renderer is a slot, passed as a child. A slot can be left out t
 | `ProvenanceToggle`                                                            | Chrome  | The Sources button. Only with `enableProvenance`.                                                          |
 | `Content`                                                                     | Chrome  | The dashboard itself.                                                                                      |
 | `Pending`, `Loading`, `Error`                                                 | Content | Shown only before the dashboard has content, while it loads, or after it fails, even with custom children. |
-| `Provenance`                                                                  | Content | What the Sources popover and All sources show. Only with `enableProvenance`.                               |
+| `Provenance`                                                                  | Content | Takes `describeSource`. Only with `enableProvenance`.                                                      |
 
 For example, a full-height panel with its own header:
 
@@ -208,56 +208,9 @@ function describeSource(toolName: string, args: unknown): SourceDescription | un
 </LiveArtifactRenderer>;
 ```
 
-### Your own button and contents
+In a `Chrome` with your own children, place the Sources button with `ProvenanceToggle`, as with `CloseButton`.
 
-Children of `ProvenanceToggle` replace the Sources button, and children of `Provenance` replace what the popover and All sources show. Both read `useArtifactProvenance()`:
-
-```tsx
-import { useArtifactProvenance } from "@openuidev/react-ui/cloud";
-
-function SourcesContents() {
-  const { selection, sources } = useArtifactProvenance();
-  const component = selection && sources?.components[selection.id];
-  if (!sources || !component) return null;
-
-  const shown = selection.prop ? component.props[selection.prop] : component;
-  const queries = shown?.queries.map((name) => sources.queries[name]); // tool, args, data
-  const formula = shown?.via.map((name) => `${name} = ${sources.formulas[name]}`);
-  return <div>{/* your UI */}</div>;
-}
-
-<LiveArtifactRenderer.Provenance>
-  <SourcesContents />
-</LiveArtifactRenderer.Provenance>;
-```
-
-| Field                           | Description                                                                                                                                                                        |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `isInspecting`, `setInspecting` | Inspect mode.                                                                                                                                                                      |
-| `selection`                     | The clicked component's `id` (its statement's name, or `lead.1` for a component written inside `lead`), `prop`, `element` and `propElement`.                                       |
-| `clearSelection`                | Clears the selection and closes its popover.                                                                                                                                       |
-| `isPopoverOpen`                 | Whether a component's popover is open.                                                                                                                                             |
-| `isAllSourcesOpen`              | Whether All sources is open.                                                                                                                                                       |
-| `openAllSources`                | Opens All sources under the element that called it.                                                                                                                                |
-| `sources`                       | [`useDataSources()`](/docs/api-reference/react-lang#context-hooks-inside-renderer-components): every component's sources and every query. Null while nothing is open or inspected. |
-
-### Finding components
-
-In React on the web, components are found through React's own tree, with no change to the library. Where that tree can't be read, only components marked with `bindSource()` are found. To outline the element that shows a prop's value instead of the whole component, mark it with `bindSource("prop")` (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). A component inside a statement, such as one Kpi among several, gets its position as its id (`lead.1`), so an edit can renumber it and clear the selection.
-
-Pass the same `library` object on every render, such as one created at module level: a new library each render makes the whole dashboard render again.
-
-### Styling
-
-The outlines read `--openui-inspect-color`, `--openui-inspect-outline`, `--openui-inspect-active-outline` and `--openui-inspect-outline-offset`. Set them on `.openui-artifact-content` or any element around it:
-
-```css
-.openui-artifact-content {
-  --openui-inspect-color: #7c3aed;
-}
-```
-
-Inspect state is on data attributes: `data-openui-inspecting` on the renderer's root, and `data-openui-bound`, `data-openui-hover` and `data-openui-selected` on the outlined elements. The popover and All sources are portaled to `body`, as `.openui-sources-popover` and `.openui-sources-menu`.
+Components are found through React's own tree, with no change to the library. Where that tree can't be read, only components marked with `bindSource()` are found (see [`defineComponent`](/docs/api-reference/react-lang#definecomponentconfig)). Pass the same `library` object on every render, such as one created at module level: a new library each render makes the whole dashboard render again.
 
 ## Theme
 
