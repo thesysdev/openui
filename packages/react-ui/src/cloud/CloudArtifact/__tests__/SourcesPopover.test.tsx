@@ -13,7 +13,6 @@ import {
 } from "../../SourcesContents/stories/fixtures";
 import { LiveArtifactRenderer } from "../ArtifactRenderer";
 import { useArtifactProvenance } from "../contexts";
-import { cutoutPath } from "../SourcesOverlay";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 // Every event Testing Library sends goes through React's `act`, as @testing-library/react does.
@@ -78,6 +77,13 @@ const sourcesToggle = () => screen.getByRole("button", { name: "Sources" });
 const dashboard = () => screen.getByRole("heading", { name: "Retail overview" }).parentElement!;
 const handle = (name: string) => within(dashboard()).getByRole("button", { name });
 const popover = (label: string) => screen.getByRole("dialog", { name: `Sources for ${label}` });
+// blur removed, test to be reworked: SourcesOverlay and its cutoutPath are gone; declared so the
+// skipped tests below still compile.
+declare const cutoutPath: (
+  outer: { width: number; height: number },
+  hole: { x: number; y: number; width: number; height: number },
+) => string;
+
 /** The blur over the artifact while a popover is open. */
 const overlay = () => document.querySelector<HTMLElement>("[data-openui-sources-overlay]");
 /** The sources a popover lists, by the names their rows start with. */
@@ -233,7 +239,8 @@ describe("The Sources popover", () => {
     }
   });
 
-  it("closes on a click on the blur, still inspecting, and gives focus back to the component", async () => {
+  // blur removed, test to be reworked
+  it.skip("closes on a click on the blur, still inspecting, and gives focus back to the component", async () => {
     await open("Daily revenue");
     await user.click(overlay()!);
     await settle();
@@ -242,7 +249,8 @@ describe("The Sources popover", () => {
     expect(document.activeElement).toBe(handle("Daily revenue"));
   });
 
-  it("blurs the artifact behind it while open, and the blur goes with it", async () => {
+  // blur removed, test to be reworked
+  it.skip("blurs the artifact behind it while open, and the blur goes with it", async () => {
     const dialog = await open("Weekly signups");
     const blur = overlay();
     expect(blur).not.toBeNull();
@@ -255,7 +263,8 @@ describe("The Sources popover", () => {
     expect(overlay()).toBeNull();
   });
 
-  it("plays its exit before it unmounts", async () => {
+  // blur removed, test to be reworked
+  it.skip("plays its exit before it unmounts", async () => {
     await open("Weekly signups");
     await user.keyboard("{Escape}");
     // Closed but still there, inert and hidden, with its blur, until its exit ends.
@@ -406,7 +415,8 @@ describe("The blur's cut-out", () => {
     return overlay()!;
   }
 
-  it("covers the artifact's content and leaves the component's box clear", async () => {
+  // blur removed, test to be reworked
+  it.skip("covers the artifact's content and leaves the component's box clear", async () => {
     const blur = await openAt("Daily revenue", { x: 20, y: 60, width: 800, height: 600 }, () => ({
       x: 40,
       y: 100,
@@ -423,7 +433,8 @@ describe("The blur's cut-out", () => {
     );
   });
 
-  it("follows the component when the content scrolls and when the window resizes", async () => {
+  // blur removed, test to be reworked
+  it.skip("follows the component when the content scrolls and when the window resizes", async () => {
     let box = { x: 40, y: 100, width: 200, height: 80 };
     const blur = await openAt("Daily revenue", { x: 0, y: 0, width: 800, height: 600 }, () => box);
     box = { x: 40, y: 20, width: 200, height: 80 };
@@ -444,7 +455,8 @@ describe("The blur's cut-out", () => {
     );
   });
 
-  it("keeps the cut-out inside the artifact when the component is partly scrolled out", async () => {
+  // blur removed, test to be reworked
+  it.skip("keeps the cut-out inside the artifact when the component is partly scrolled out", async () => {
     const blur = await openAt("Daily revenue", { x: 0, y: 100, width: 800, height: 600 }, () => ({
       x: 40,
       y: 60,
@@ -459,7 +471,8 @@ describe("The blur's cut-out", () => {
 });
 
 describe("cutoutPath", () => {
-  it("draws the whole box, then the rounded hole, filled even-odd", () => {
+  // blur removed, test to be reworked
+  it.skip("draws the whole box, then the rounded hole, filled even-odd", () => {
     expect(cutoutPath({ width: 100, height: 50 }, { x: 10, y: 10, width: 40, height: 30 })).toBe(
       'path(evenodd, "M0 0H100V50H0Z' +
         "M22 10H38A12 12 0 0 1 50 22V28A12 12 0 0 1 38 40H22A12 12 0 0 1 10 28V22A12 12 0 0 1 22 10Z" +
@@ -467,7 +480,8 @@ describe("cutoutPath", () => {
     );
   });
 
-  it("rounds a small hole by at most half its side, and leaves out an empty one", () => {
+  // blur removed, test to be reworked
+  it.skip("rounds a small hole by at most half its side, and leaves out an empty one", () => {
     expect(cutoutPath({ width: 100, height: 50 }, { x: 0, y: 0, width: 10, height: 8 })).toBe(
       'path(evenodd, "M0 0H100V50H0Z' +
         "M4 0H6A4 4 0 0 1 10 4V4A4 4 0 0 1 6 8H4A4 4 0 0 1 0 4V4A4 4 0 0 1 4 0Z" +

@@ -16,7 +16,6 @@ import { easeOut, press, typography } from "../shared.styles";
  * - Close: the content fades out in 100ms while the card shrinks back into the chip in 200ms.
  * - List to source and back: the view slides 12px in 200ms the way it went; the chip's icon and
  *   label swap in 200ms.
- * - The blur fades in over 250ms and out over 200ms.
  * With reduced motion nothing grows, scales or slides: everything only fades.
  */
 
@@ -38,7 +37,6 @@ export const popoverNames = {
   body: `${block}__body`,
   view: `${block}__view`,
   custom: `${block}__custom`,
-  overlay: `${block}-overlay`,
 } as const;
 
 // ── Motion ──
@@ -160,22 +158,6 @@ export const popoverStyles = {
       }
     }
     ${closingContents}
-  `,
-  /** The blur over the artifact, under the popover. Placed and clipped inline by its component. */
-  overlay: css`
-    position: fixed;
-    z-index: 9998;
-    background: var(
-      --openui-sources-overlay-background,
-      color-mix(in srgb, var(--openui-background, #fff) 40%, transparent)
-    );
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    animation: ${fadeIn} 250ms ${easeOut} both;
-    &[data-state="closed"] {
-      pointer-events: none;
-      animation: ${fadeOut} 200ms ease-out both;
-    }
   `,
   /**
    * Above its anchor, from its left edge, 8px clear of it; right-aligned to it when that would

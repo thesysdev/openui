@@ -24,7 +24,7 @@ import { componentLabel, type Describe } from "../SourcesContents/describe";
 import { sourceIndex } from "../SourcesContents/sourceIndex";
 import { anchorOf, POPOVER, ProvenanceContext, useArtifactProvenance } from "./contexts";
 import { focusBack } from "./focus";
-import { SourcesOverlay } from "./SourcesOverlay";
+import { BOUND } from "./inspectMarks";
 import { popoverNames, popoverStyles } from "./sourcesPopover.styles";
 
 /** Longer than its exit will be, in case `transitionend` never comes. */
@@ -100,6 +100,19 @@ export function SourcesPopover({
     else focusToggle();
   }, [open, root, focusToggle]);
 
+  // A click outside closes it. One on an outlined component is left to inspect mode, which
+  // opens that component's popover instead (or keeps this one).
+  useEffect(() => {
+    if (!open || !root) return;
+    const outside = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (!target || root.contains(target) || target.closest?.(`[${BOUND}]`)) return;
+      closePopover();
+    };
+    document.addEventListener("pointerdown", outside, true);
+    return () => document.removeEventListener("pointerdown", outside, true);
+  }, [open, root, closePopover]);
+
   if (!shown || !sources) return null;
   return (
     <Popover
@@ -114,7 +127,6 @@ export function SourcesPopover({
       onRoot={setRoot}
       onExited={() => setShown(null)}
       onOpenSource={setPopoverSource}
-      onDismiss={closePopover}
       onChip={() => (shown.source !== null ? setPopoverSource(null) : closePopover())}
     />
   );
@@ -131,7 +143,6 @@ function Popover({
   onRoot,
   onExited,
   onOpenSource,
-  onDismiss,
   onChip,
 }: {
   shown: Shown;
@@ -145,8 +156,6 @@ function Popover({
   onRoot: (root: HTMLElement | null) => void;
   onExited: () => void;
   onOpenSource: (name: string | null) => void;
-  /** A click on the blur around it. */
-  onDismiss: () => void;
   onChip: () => void;
 }) {
   const { portalThemeClassName } = useTheme();
@@ -311,19 +320,9 @@ function Popover({
       </>
     ),
   };
-  return (
-    <>
-      <SourcesOverlay
-        anchor={anchor}
-        open={open}
-        themeClassName={portalThemeClassName}
-        onDismiss={onDismiss}
-      />
-      {createPortal(
-        anchored ? <AnchoredFrame {...frame} /> : <FloatingFrame {...frame} />,
-        document.body,
-      )}
-    </>
+  return createPortal(
+    anchored ? <AnchoredFrame {...frame} /> : <FloatingFrame {...frame} />,
+    document.body,
   );
 }
 
