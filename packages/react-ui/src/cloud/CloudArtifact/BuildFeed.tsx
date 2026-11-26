@@ -2,11 +2,10 @@
 
 import clsx from "clsx";
 import { ChevronRight, CodeXml, LoaderCircle, Wrench } from "lucide-react";
-import { useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { feedNames, feedStyles as s } from "./buildFeed.styles";
 import {
   callTime,
-  isBuildActive,
   runningCalls,
   stepWords,
   type ArtifactBuild,
@@ -17,58 +16,16 @@ import { names, styles } from "./cloudArtifact.styles";
 /*
  * What a build is doing, the same in the card and over the dashboard. Collapsed, one line:
  * "Thinking…", the calls running now ("Calling a and b…"), "Building dashboard…", then how it
- * ended, with the build's time on the right. Opened, every call, newest first, with what it took.
+ * ended. Opened, every call, newest first, with what it took.
  */
 
-// One clock for every timer on the page, so the card and the panel never show different seconds.
-let second = 0;
-const tickers = new Set<() => void>();
-let ticking: ReturnType<typeof setInterval> | undefined;
-function onTick(listener: () => void) {
-  tickers.add(listener);
-  if (ticking === undefined) {
-    second = Math.floor(Date.now() / 1000);
-    ticking = setInterval(() => {
-      second = Math.floor(Date.now() / 1000);
-      tickers.forEach((ticker) => ticker());
-    }, 250);
-  }
-  return () => {
-    tickers.delete(listener);
-    if (!tickers.size) {
-      clearInterval(ticking);
-      ticking = undefined;
-    }
-  };
-}
-const noTick = () => () => {};
-
-/** Seconds the build has run, or ran. Null before the page has a clock (the server render). */
-function useElapsed(build: ArtifactBuild): number | null {
-  const active = isBuildActive(build);
-  const now = useSyncExternalStore(
-    active ? onTick : noTick,
-    () => second,
-    () => 0,
-  );
-  const end = build.endedAt !== undefined ? build.endedAt / 1000 : now;
-  return end ? Math.max(0, Math.floor(end - build.startedAt / 1000)) : null;
-}
-
-const clock = (seconds: number) =>
-  `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-
-/** "44s", or "1m 12s". */
-const duration = (seconds: number) =>
-  seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-
 /** "503ms", "1.3s", "1m 4s". */
-const callDuration = (ms: number) =>
-  ms < 1000
-    ? `${Math.round(ms)}ms`
-    : ms < 60_000
-      ? `${(ms / 1000).toFixed(1)}s`
-      : duration(Math.round(ms / 1000));
+function callDuration(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  const seconds = Math.round(ms / 1000);
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
 
 /** "7 tool calls, 4 scripts". Empty for a build that made none. */
 function callSummary(build: ArtifactBuild): string {
@@ -131,16 +88,6 @@ function feedStatus(build: ArtifactBuild, noun: string | undefined): Status {
   }
 }
 
-function Timer({ build }: { build: ArtifactBuild }) {
-  const elapsed = useElapsed(build);
-  if (elapsed === null) return null;
-  return (
-    <span className={clsx(s.time, feedNames.time)}>
-      {isBuildActive(build) ? clock(elapsed) : duration(elapsed)}
-    </span>
-  );
-}
-
 const Spinner = () => (
   <LoaderCircle className={clsx(styles.spinner, names.spinner)} size={14} aria-hidden />
 );
@@ -181,7 +128,6 @@ function Line({
       {canOpen && (
         <ChevronRight size={12} aria-hidden className={clsx(s.chevron, open && s.chevronOpen)} />
       )}
-      <Timer build={build} />
     </>
   );
   // Nothing to open: plain text, so a click on it reaches the card under it.
@@ -220,7 +166,9 @@ function CallRow({ build, call, live }: { build: ArtifactBuild; call: BuildCall;
         </span>
         {call.count > 1 && <span className={s.repeat}>×{call.count}</span>}
       </span>
-      <span className={s.time}>{ms !== undefined ? callDuration(ms) : ""}</span>
+      <span className={clsx(s.time, feedNames.time)}>
+        {ms !== undefined ? callDuration(ms) : ""}
+      </span>
     </li>
   );
 }

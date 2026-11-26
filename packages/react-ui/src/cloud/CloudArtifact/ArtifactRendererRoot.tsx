@@ -34,7 +34,7 @@ import { cacheFor, type ArtifactCache } from "./artifactCache";
 import { parseArtifactReference } from "./artifactReference";
 import {
   BuildFeedContext,
-  thinkingSince,
+  THINKING,
   trackBuild,
   useArtifactBuild,
   type BuildFeedValue,
@@ -411,9 +411,6 @@ export function ArtifactRendererRoot({
   });
 
   // ── Build feed: what a build has done, kept per artifact for every renderer of it ──
-  // When it started pending: a new dashboard's build starts then, before it has an id.
-  const [pendingSince, setPendingSince] = useState<number | null>(null);
-  if (isPending !== (pendingSince !== null)) setPendingSince(isPending ? Date.now() : null);
   const buildError = artifactError?.message ?? null;
   useEffect(() => {
     if (!id) return;
@@ -423,19 +420,16 @@ export function ArtifactRendererRoot({
       isStreaming: stream.isStreaming,
       isPending,
       error: buildError,
-      pendingSince,
     });
-  }, [id, stream.step, program, stream.isStreaming, isPending, buildError, pendingSince]);
+  }, [id, stream.step, program, stream.isStreaming, isPending, buildError]);
   const trackedBuild = useArtifactBuild(id);
   const buildFeed = useMemo<BuildFeedValue>(
     () => ({
       // Before its id (or the first report of it), a new dashboard is thinking.
-      build:
-        trackedBuild ??
-        (isPending && pendingSince !== null ? thinkingSince(pendingSince) : undefined),
+      build: trackedBuild ?? (isPending ? THINKING : undefined),
       noun: interpreter ? "dashboard" : undefined,
     }),
-    [trackedBuild, isPending, pendingSince, interpreter],
+    [trackedBuild, isPending, interpreter],
   );
 
   // ── State for useArtifactRenderer() ──

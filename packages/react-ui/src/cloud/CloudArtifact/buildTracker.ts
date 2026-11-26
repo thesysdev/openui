@@ -7,7 +7,7 @@ import { createContext, useContext, useSyncExternalStore } from "react";
  * What a dashboard build has done, for the build feed: Thinking → the calls, by name → writing →
  * how it ended. The stream reports only its latest step, so the calls are kept here, per artifact,
  * from what every renderer of it sees. Two renderers of one dashboard (a card and a panel) show the
- * same feed and the same time; a step both see counts once.
+ * same feed; a step both see counts once.
  */
 
 export type BuildPhase = "thinking" | "building" | "ready" | "stopped" | "failed";
@@ -32,7 +32,6 @@ export interface ArtifactBuild {
   /** When each round was seen (ms): a call took until the next round, the writing or the end. */
   roundAt: number[];
   writingAt?: number;
-  startedAt: number;
   endedAt?: number;
   /** Why it failed, as the stream said. */
   error?: string;
@@ -47,8 +46,6 @@ export interface BuildInput {
   isStreaming: boolean;
   isPending: boolean;
   error: string | null;
-  /** When the renderer started pending: a new dashboard's build began before it had an id. */
-  pendingSince: number | null;
 }
 
 const builds = new Map<string, ArtifactBuild>();
@@ -65,16 +62,15 @@ function subscribe(listener: () => void) {
   };
 }
 
-/** A build that began before its artifact had an id: the tool call that makes it is running. */
-export const thinkingSince = (startedAt: number): ArtifactBuild => ({
+/** A build that has just begun: before its artifact has an id, the tool call that makes it runs. */
+export const THINKING: ArtifactBuild = {
   edit: false,
   phase: "thinking",
   calls: [],
   rounds: 0,
   roundAt: [],
-  startedAt,
   connected: false,
-});
+};
 
 /** Moves the artifact's build on from what a renderer sees. */
 export function trackBuild(id: string, input: BuildInput): void {
@@ -89,10 +85,7 @@ export function trackBuild(id: string, input: BuildInput): void {
     const create = input.isPending && !input.hasContent;
     const edit = input.hasContent && newStep;
     if (!create && !edit) return;
-    build = {
-      ...thinkingSince(create ? (input.pendingSince ?? now) : now),
-      edit: !create,
-    };
+    build = { ...THINKING, edit: !create };
   }
 
   if (newStep) {
