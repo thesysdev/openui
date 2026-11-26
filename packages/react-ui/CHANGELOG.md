@@ -1,5 +1,16 @@
 # @openuidev/react-ui
 
+## 0.20.1
+
+### Patch Changes
+
+- [#1729](https://github.com/thesysdev/openui/pull/1729) [`8eda6b9`](https://github.com/thesysdev/openui/commit/8eda6b93d2cca13f079aae510145594a05af6ace) Thanks [@ankit-thesys](https://github.com/ankit-thesys)! - Sources shows where a dashboard's data comes from in place, next to the thing it explains. With `enableProvenance`, the bar's Sources is a split button: its main half turns inspect mode on and off and looks pressed while it's on (`aria-pressed`, `data-state="on" | "off"`), and its chevron opens the All sources menu under it (`aria-expanded`, `data-state="open" | "closed"`). Inspect mode outlines every data-bound component (each number, table or chart that reads a query, directly or through a formula) with a blue dotted outline, all at once; headings, text and layout containers get none. Hovering one turns its outline solid, with no hover card. A click, or Enter or Space on a focused one, opens its Sources popover beside it: a Sources chip at its corner that the card grows out of, on the list of its sources, then each source's Query or Formula with copy and its Result. A click outside closes it, and Escape steps back one level at a time. The All sources menu lists every query and formula once with how many items use it, and a source's Used by links open that item's popover on that source. Below 640px the popover and the menu open in a bottom sheet. With reduced motion everything fades instead of growing or sliding.
+
+  `useArtifactProvenance()` adds `openAllSources`, `isPopoverOpen` and `isAllSourcesOpen`. The Sources panel docked beside the dashboard is removed. New class names: `openui-artifact-sources-split`, `openui-artifact-sources-chevron`, `openui-sources-popover` and `openui-sources-menu` (with their `__header`, `__body` and other parts). The default contents' parts are renamed from `openui-data-sources-panel__*` to `openui-data-sources-dialog__*`, and the dock's class names `openui-data-sources-workspace` and `openui-data-sources-slot` are removed. Hosts that styled them, or that relied on `Provenance` children rendering inline beside the dashboard, need to update: they now render inside the open popover or menu, under its header.
+
+- Updated dependencies []:
+  - @openuidev/react-headless@0.20.1
+
 ## 0.20.0
 
 ### Minor Changes
