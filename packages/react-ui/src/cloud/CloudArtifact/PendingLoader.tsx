@@ -163,12 +163,26 @@ function Row({ children }: { children: ReactNode }) {
   );
 }
 
-/** Dots where a title and its description will be, drawn before the widgets. */
+/** Dotted boxes where a title and its description will be, traced before the widgets. */
 function Heading() {
   return (
     <div className={styles.heading}>
-      <DotLine start={FIRST_MS - 200} width="min(320px, 40%)" strong />
-      <DotLine start={FIRST_MS - 100} width="min(520px, 70%)" />
+      <div className={styles.headingTitle}>
+        <DotBox
+          trace
+          start={FIRST_MS - 200}
+          radius={8}
+          style={{ height: 22, width: "min(320px, 40%)" }}
+        />
+      </div>
+      <div className={styles.headingDescription}>
+        <DotBox
+          trace
+          start={FIRST_MS - 100}
+          radius={6}
+          style={{ height: 14, width: "min(520px, 70%)" }}
+        />
+      </div>
     </div>
   );
 }

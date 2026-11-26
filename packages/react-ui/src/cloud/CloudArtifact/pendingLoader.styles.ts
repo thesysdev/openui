@@ -35,6 +35,8 @@ export const pendingLoaderStyles = {
     box-sizing: border-box;
     /* Fills a content area with a height, even a short one; on a page without one, the stage sets it. */
     height: 100%;
+    /* The sketch's padding follows this width, as a dashboard's follows its own. */
+    container: openui-pending / inline-size;
   `,
   // A flex item, not `height: 100%`, which a page without a height can't resolve: there the
   // basis gives the root a dashboard's 400px.
@@ -46,11 +48,18 @@ export const pendingLoaderStyles = {
     overflow: hidden;
   `,
   // Where the dashboard's content will be. It runs past the bottom, as a dashboard would.
+  // Where the dashboard's content will be, with a dashboard's padding: so it lines up with the
+  // dashboard when it arrives, and with a title the page draws above it.
   sketch: css`
     position: absolute;
-    top: var(--openui-space-l);
-    right: var(--openui-space-l);
-    left: var(--openui-space-l);
+    top: 24px;
+    right: 36px;
+    left: 36px;
+    @container openui-pending (max-width: 720px) {
+      top: 20px;
+      right: 16px;
+      left: 16px;
+    }
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -115,15 +124,28 @@ export const pendingLoaderStyles = {
   strong: css`
     color: color-mix(in srgb, var(--openui-pending-tint) 30%, transparent);
   `,
-  // About as tall as a title and description over a dashboard, so the sketch doesn't move much
-  // when the real ones replace it.
+  // A page title's lines (22px type at 1.25, then 13.5px at 1.5, 6px apart), and the room a title
+  // leaves above a dashboard: with the sketch's gap, the widgets start where they will under the
+  // real title and description, so nothing moves when those replace it.
   heading: css`
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 18px;
-    height: 44px;
+    gap: 6px;
+    padding-bottom: 8px;
     flex-shrink: 0;
+    @container openui-pending (max-width: 720px) {
+      padding-bottom: 4px;
+    }
+  `,
+  headingTitle: css`
+    display: flex;
+    align-items: center;
+    height: 27.5px;
+  `,
+  headingDescription: css`
+    display: flex;
+    align-items: center;
+    height: 20.25px;
   `,
   row: css`
     display: grid;
