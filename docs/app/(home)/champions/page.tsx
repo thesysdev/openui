@@ -37,15 +37,16 @@ const FAQS: MarketingFaq[] = [
     ],
   },
   {
-    question: "What do I need to share to be added?",
+    question: "I'm new to OpenUI. Where do I start?",
     answer: [
-      "Your name, a square headshot, a one- or two-sentence bio, and the profiles you want linked, such as GitHub, X, or LinkedIn.",
+      "Scaffold an app with npx @openuidev/cli@latest create and follow the Getting Started guide in the docs.",
+      "To contribute, browse the open issues in the OpenUI GitHub repo, and ask in Discord if you want help picking one.",
     ],
   },
   {
-    question: "Can I update or remove my profile?",
+    question: "Can I nominate someone?",
     answer: [
-      "Yes. Ask in Discord and we will update or remove it. Profiles live in the open-source OpenUI repo, so you can also open a pull request.",
+      "Yes. If someone has been building with OpenUI or helping others, mention them in Discord and tell us what they have done.",
     ],
   },
 ];
