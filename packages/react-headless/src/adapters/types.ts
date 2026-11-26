@@ -77,7 +77,7 @@ export interface ArtifactShare extends ArtifactShareTarget {
   createdAt: number;
 }
 
-/** What a dashboard being built is doing: the data tools it called and the scripts it's saving. */
+/** What a dashboard being built is doing: the data tools it called and the scripts it's saving (both empty: it just started). */
 export interface ArtifactBuildStep {
   tools: string[];
   scripts: string[];

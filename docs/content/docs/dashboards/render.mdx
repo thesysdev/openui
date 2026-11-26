@@ -83,7 +83,7 @@ In this mode the renderer draws no frame unless a `Chrome` slot is passed. See [
 
 ### Before the tool returns
 
-The model writes the tool call's arguments before `create` runs, which can take a while. Mount the renderer as soon as the call starts, without `response` or `id`. Until the result arrives it shows the `Pending` slot, a skeleton dashboard, and then the same renderer streams the dashboard:
+The model writes the tool call's arguments before `create` runs, which can take a while. Mount the renderer as soon as the call starts, without `response` or `id`. Until the result arrives it shows the `Pending` slot, a sketch of a dashboard, and then the same renderer streams the dashboard:
 
 ```tsx
 <LiveArtifactRenderer
@@ -96,7 +96,7 @@ The model writes the tool call's arguments before `create` runs, which can take 
 
 Unmount it if the call stops or fails without a result, or it stays pending. In `AgentInterface`, `defineLiveArtifactRenderer` from `@openuidev/react-ui/cloud/agent-interface` does both.
 
-The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming, and says what the build is doing: "Reading your data" while it calls tools, "Preparing your data" while it saves scripts. The card's and the bar's loaders say the same.
+The result can arrive before the dashboard is written, while the model still calls your data tools. `Pending` then keeps showing until the dashboard starts streaming. In the middle of the area, the build's feed says what it's doing now: "Thinking…", then the calls by name ("Calling list_orders…" while it calls tools, "Writing and testing revenueByDay…" while it writes scripts), then "Building dashboard…" while it's written.
 
 ## Slots
 
@@ -105,7 +105,7 @@ Each part of the renderer is a slot, passed as a child. A slot can be left out t
 | Slot                                                                          | Region  | What it is                                                                                                 |
 | ----------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
 | `Preview`                                                                     | Preview | The card that opens the dashboard.                                                                         |
-| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`                         | Preview | The card's parts.                                                                                          |
+| `PreviewTitle`, `PreviewDescription`, `PreviewLoader`, `PreviewError`         | Preview | The card's parts.                                                                                          |
 | `Chrome`                                                                      | Chrome  | The frame around the open dashboard: a bar, then the content.                                              |
 | `ChromeTitle`, `ChromeLoader`, `EditedNotice`, `ChromeActions`, `CloseButton` | Chrome  | The bar's parts.                                                                                           |
 | `ProvenanceToggle`                                                            | Chrome  | Turns inspect mode on and off. Only with `enableProvenance`.                                               |
@@ -123,7 +123,7 @@ For example, a full-height panel with its own header:
       <StatusBadge />
     </header>
     <LiveArtifactRenderer.Content className="panel-body">
-      <LiveArtifactRenderer.Pending color="#2c59f5" label="Planning your dashboard" />
+      <LiveArtifactRenderer.Pending color="#2c59f5" />
       <LiveArtifactRenderer.Loading label="Loading live data…" />
       <LiveArtifactRenderer.Error>
         <DashboardError />
@@ -163,20 +163,21 @@ function DashboardError() {
 }
 ```
 
-| Field                     | Description                                                                                              |
-| ------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `id`, `title`             | The dashboard's id and title.                                                                            |
-| `isOwner`, `isEditable`   | Whether the user owns it, and whether they can edit, rename, and share it. Kept current while it's open. |
-| `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.     |
-| `isStreaming`             | The dashboard is being generated.                                                                        |
-| `isFetching`              | Its queries are running.                                                                                 |
-| `isLoading`               | Any of the three.                                                                                        |
-| `step`                    | While a dashboard is built, `{ tools, scripts }`: the data tools it called and the scripts it's saving.  |
-| `justUpdated`             | A newer version replaced the one on screen in the last few seconds.                                      |
-| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                             |
-| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                            |
-| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                           |
-| `preview`                 | Whether the renderer has a card.                                                                         |
+| Field                     | Description                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `id`, `title`             | The dashboard's id and title.                                                                               |
+| `isOwner`, `isEditable`   | Whether the user owns it, and whether they can edit, rename, and share it. Kept current while it's open.    |
+| `isPending`               | Nothing to show yet: the tool call that makes it is running, or the build hasn't started writing it.        |
+| `isStreaming`             | The dashboard is being generated.                                                                           |
+| `isEditing`               | A new version is streaming in over the one on screen (an edit).                                             |
+| `isFetching`              | Its queries are running.                                                                                    |
+| `isLoading`               | Any of the three.                                                                                           |
+| `step`                    | During a build, `{ tools, scripts }`: the data tools it's calling and scripts it's writing, empty at first. |
+| `justUpdated`             | A newer version replaced the one on screen in the last few seconds.                                         |
+| `error`                   | A loading error (`source: "artifact"`) or a query error (`source: "query"`).                                |
+| `retry`                   | Retries what failed. Undefined when there's nothing to retry.                                               |
+| `isOpen`, `open`, `close` | The open state, when the dashboard has a card.                                                              |
+| `preview`                 | Whether the renderer has a card.                                                                            |
 
 ## Data sources
 

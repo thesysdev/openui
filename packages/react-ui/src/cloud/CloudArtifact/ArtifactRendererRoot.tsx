@@ -56,6 +56,7 @@ import {
   Pending,
   Preview,
   PreviewDescription,
+  PreviewError,
   PreviewLoader,
   PreviewTitle,
   Provenance,
@@ -200,6 +201,19 @@ function useBuildPending({
   // During render, so the slot doesn't blink between the response and the stream's first event.
   if (next !== build) setBuild(next);
   return noResponse || next !== "none";
+}
+
+/**
+ * An edit: the stream running now started while the artifact had content, so a new version is
+ * coming in over the one on screen. A new dashboard's stream starts without any.
+ */
+function useIsEditing(isStreaming: boolean, hasContent: boolean): boolean {
+  // Whether the running stream started over content; null between streams.
+  const [overContent, setOverContent] = useState<boolean | null>(null);
+  const next = isStreaming ? (overContent ?? hasContent) : null;
+  // During render, like `useBuildPending`, so the feed doesn't blink as one state hands to the next.
+  if (next !== overContent) setOverContent(next);
+  return next === true;
 }
 
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
@@ -403,6 +417,7 @@ export function ArtifactRendererRoot({
   });
 
   // ── State for useArtifactRenderer() ──
+  const isEditing = useIsEditing(stream.isStreaming, !!program);
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
   const state = useShallowStable<ArtifactRendererState>({
@@ -416,6 +431,7 @@ export function ArtifactRendererRoot({
     isFetching,
     isLoading: isPending || isStreaming || isFetching,
     step: stream.step,
+    isEditing,
     justUpdated: stream.justUpdated,
     error,
     retry,
@@ -427,6 +443,7 @@ export function ArtifactRendererRoot({
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
+      noun: interpreter ? "dashboard" : undefined,
       render: () =>
         renderContent({
           program,
@@ -576,6 +593,7 @@ export const slots = {
   PreviewTitle,
   PreviewDescription,
   PreviewLoader,
+  PreviewError,
   Chrome,
   ChromeTitle,
   ChromeLoader,

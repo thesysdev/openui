@@ -2,8 +2,8 @@
 
 import type { ArtifactBuildStep } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { Database, LoaderCircle, X } from "lucide-react";
-import { useContext, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { CircleAlert, Database, LoaderCircle, X } from "lucide-react";
+import { useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
@@ -20,6 +20,8 @@ import {
 } from "./contexts";
 import { PendingLoader, type PendingLoaderProps } from "./PendingLoader";
 import { SourcesDockContext, SourcesWorkspace, type SourcesOptions } from "./SourcesDock";
+import { BuildFeed, BuildFeedPanel, Dock, FeedPanel, stepWords } from "./StatusPill";
+import { feedStyles } from "./statusPill.styles";
 
 /*
  * Slots, following AgentInterface's three modes:
@@ -48,15 +50,23 @@ const Spinner = () => (
   <LoaderCircle className={clsx(styles.spinner, names.spinner)} size={14} aria-hidden />
 );
 
-/** What a dashboard being built is doing: reading data while it calls tools, else preparing scripts. */
-const stepLabel = (step: ArtifactBuildStep | undefined) =>
-  !step ? undefined : step.tools.length > 0 ? "Reading your data" : "Preparing your data";
-
-const loadingLabel = ({ step, isPending, isStreaming }: ArtifactRendererState) => {
-  const doing = stepLabel(step);
-  if (doing) return `${doing}…`;
-  return isPending ? "Preparing…" : isStreaming ? "Generating…" : "Loading data…";
+/** What a dashboard being built is doing, by name: calling data tools, else writing and testing scripts. */
+const stepLabel = (step: ArtifactBuildStep | undefined) => {
+  const words = step && stepWords(step);
+  return words && `${words.verb} ${words.names}`;
 };
+
+/** The status line where there's no build feed: the bar while data loads, or a custom loader. */
+const statusLabel = ({ step, isPending, isStreaming }: ArtifactRendererState) =>
+  `${stepLabel(step) ?? (isPending ? "Preparing" : isStreaming ? "Generating" : "Loading data")}…`;
+
+/** A status line: the text shimmers, and a new one drifts in. */
+const StatusText = ({ text }: { text: string }) => (
+  <AnimatedLabel
+    text={text}
+    className={clsx(styles.shimmer, styles.loaderText, names.loaderText)}
+  />
+);
 
 // ─── Preview region ──────────────────────────────────────────────────────
 
@@ -85,6 +95,7 @@ export function Preview({ title, description, className, children }: PreviewProp
           <PreviewDescription />
         </span>
         <PreviewLoader />
+        <PreviewError />
       </button>
     </PreviewOverridesContext.Provider>
   );
@@ -126,19 +137,46 @@ export interface LoaderProps {
   children?: ReactNode;
 }
 
-/** The card's status while the artifact loads: the text shimmers, and a new one drifts in. */
+/**
+ * The card's status while the artifact loads: while it's pending or streaming, the build feed on
+ * its own line; otherwise a pill. `PreviewError` takes its place after a failure.
+ */
 export function PreviewLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("preview");
   const state = useArtifactRenderer();
-  if (!inside || !state.isLoading) return null;
+  if (!inside || !state.isLoading || state.error) return null;
   if (children !== undefined) return <>{children}</>;
+  if (label === undefined && (state.isPending || state.isStreaming)) {
+    return <BuildFeed className={styles.previewFeed} />;
+  }
+  const text = label ?? statusLabel(state);
   return (
-    <span className={clsx(styles.loader, names.loader)} role="status">
+    <span
+      className={clsx(styles.loader, styles.pill, styles.pillInfo, names.loader)}
+      role="status"
+      title={text}
+    >
       <Spinner />
-      <AnimatedLabel
-        text={label ?? loadingLabel(state)}
-        className={clsx(styles.shimmer, names.loaderText)}
-      />
+      <StatusText text={text} />
+    </span>
+  );
+}
+
+/** The card's error: why the artifact can't be shown, or which data tool failed. */
+export function PreviewError({ message, children }: ErrorProps) {
+  const inside = useInRegion("preview");
+  const state = useArtifactRenderer();
+  if (!inside || !state.error) return null;
+  if (children !== undefined) return <>{children}</>;
+  const text = message ?? state.error.message;
+  return (
+    <span
+      className={clsx(styles.loader, styles.pill, styles.pillDanger, names.previewError)}
+      role="alert"
+      title={text}
+    >
+      <CircleAlert size={14} aria-hidden />
+      <span className={styles.loaderText}>{text}</span>
     </span>
   );
 }
@@ -165,7 +203,10 @@ export function Chrome({ title, actions, className, children }: ChromeProps) {
           <EditedNotice />
           <ChromeActions />
         </div>
-        <Content />
+        <Content>
+          <Pending />
+          <ErrorSlot />
+        </Content>
       </div>
     </ChromeOverridesContext.Provider>
   );
@@ -184,16 +225,17 @@ export function ChromeTitle({ className, children }: PartProps) {
   );
 }
 
+/** The bar's status while the artifact loads. While a build runs, its feed says it instead. */
 export function ChromeLoader({ label, children }: LoaderProps) {
   const inside = useInRegion("chrome");
   const state = useArtifactRenderer();
-  // While pending, `Pending` says what's happening, in the content.
-  if (!inside || !state.isLoading || state.isPending) return null;
+  if (!inside || !state.isLoading || state.isPending || state.isStreaming) return null;
   if (children !== undefined) return <>{children}</>;
+  const text = label ?? statusLabel(state);
   return (
-    <span className={clsx(styles.loader, names.loader)} role="status">
+    <span className={clsx(styles.loader, names.loader)} role="status" title={text}>
       <Spinner />
-      {label ?? loadingLabel(state)}
+      <StatusText text={text} />
     </span>
   );
 }
@@ -288,6 +330,10 @@ export function ProvenanceToggle({ label, children }: ProvenanceToggleProps) {
 export function Content({ className, children }: PartProps) {
   const inside = useInRegion("chrome");
   const config = useContext(ContentConfigContext);
+  // A build watched from its start (pending, then streaming) keeps its feed on screen throughout.
+  const { isPending } = useArtifactRenderer();
+  const [sawPending, setSawPending] = useState(false);
+  if (isPending && !sawPending) setSawPending(true);
   // On the content, not the root: with `renderInHtmlElement` the content is portaled out of it.
   const inspecting = useContext(ProvenanceContext)?.isInspecting ?? false;
   if (!inside || !config) return null;
@@ -314,6 +360,7 @@ export function Content({ className, children }: PartProps) {
             children
           )}
           {config.render()}
+          <BuildDock fromStart={sawPending} />
         </div>
       </SourcesWorkspace>
     </RegionProvider>
@@ -325,36 +372,52 @@ export interface PendingProps extends PendingLoaderProps {
 }
 
 /**
- * Before the artifact has anything to show: a skeleton dashboard that rearranges itself, while the
- * tool call that makes it runs and on through a build, saying what the build is doing.
+ * Before the artifact has anything to show: a dotted sketch of a dashboard, drawn widget by widget,
+ * while the tool call that makes it runs and on through a build, with the build's feed over it.
  */
-export function Pending({ children, label, ...loader }: PendingProps) {
+export function Pending({ children, ...loader }: PendingProps) {
   const inside = useInRegion("content");
-  const { isPending, step } = useArtifactRenderer();
-  if (!inside || !isPending) return null;
+  const state = useArtifactRenderer();
+  if (!inside || !state.isPending) return null;
   if (children !== undefined) return <>{children}</>;
-  return <PendingLoader {...loader} label={label ?? stepLabel(step)} />;
+  return <PendingLoader {...loader} />;
 }
 
+/**
+ * Once the dashboard is on screen (an edit, or a new one being written): the build's feed, in the
+ * middle until the dashboard fills the top half, then at the bottom. Before that, `Pending` shows it.
+ */
+function BuildDock({ fromStart }: { fromStart: boolean }) {
+  const state = useArtifactRenderer();
+  if (!state.isStreaming || state.isPending) return null;
+  // Opening a saved dashboard replays its stream for a moment: delayed, that never shows. A build
+  // seen from its start, or an edit, shows at once.
+  return (
+    <Dock delayed={!fromStart && !state.isEditing}>
+      <BuildFeedPanel />
+    </Dock>
+  );
+}
+
+/** While the data loads: "Loading data…", in the capsule a build's feed uses. */
 export function Loading({ label, children }: LoaderProps) {
   const inside = useInRegion("content");
   const state = useArtifactRenderer();
-  const config = useContext(ContentConfigContext);
-  // While pending, `Pending` has the content to itself.
-  if (!inside || !state.isLoading || state.isPending || state.error) return null;
+  // While pending, `Pending` has the content to itself; while it streams, the build feed.
+  if (!inside || !state.isLoading || state.isPending || state.isStreaming || state.error) {
+    return null;
+  }
   if (children !== undefined) return <>{children}</>;
+  const text = label ?? statusLabel(state);
   return (
-    <div
-      className={clsx(
-        styles.loading,
-        names.loading,
-        config?.isEmpty && [styles.loadingEmpty, names.loadingEmpty],
-      )}
-      role="status"
-    >
-      <Spinner />
-      {label ?? loadingLabel(state)}
-    </div>
+    <Dock delayed at="bottom">
+      <FeedPanel>
+        <span className={clsx(feedStyles.line, names.loading)} role="status" title={text}>
+          <Spinner />
+          <StatusText text={text} />
+        </span>
+      </FeedPanel>
+    </Dock>
   );
 }
 
