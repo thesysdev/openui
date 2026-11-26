@@ -37,8 +37,12 @@ const rounds = (count: number) =>
   Array.from({ length: count }, (_, i) => toolCalls(toolCall(`c${i}`, "sales")));
 
 /** A dashboard on a mocked API that answers each chat POST with the next reply. */
-function setup(replies: unknown[], tools: Record<string, DataTool<Context>>) {
-  const bodies: Array<{ messages: Message[]; artifact_id?: string }> = [];
+function setup(
+  replies: unknown[],
+  tools: Record<string, DataTool<Context>>,
+  options: { toolChoice?: "auto" | "none" } = {},
+) {
+  const bodies: Array<{ messages: Message[]; artifact_id?: string; tool_choice?: string }> = [];
   const executes: Array<Record<string, unknown>> = [];
   const post = async (path: string, body: unknown) => {
     if (path === "/v1/frontend-tokens") return { token: "fct_1", expires_at: 1 };
@@ -54,6 +58,7 @@ function setup(replies: unknown[], tools: Record<string, DataTool<Context>>) {
     library: { components: {} } as unknown as ArtifactLibrary,
     model: "provider/model",
     tools,
+    ...options,
   });
   return { dashboard, bodies, executes };
 }
@@ -86,6 +91,37 @@ describe("defineDashboard create", () => {
       tools: Array<{ name: string }>;
     };
     expect(config.tools.map((t) => t.name)).toEqual(["sales", "bare"]);
+  });
+
+  it("sends no tool_choice unless asked", async () => {
+    const { dashboard, bodies } = setup([started], { sales });
+    await create(dashboard);
+    expect(bodies[0]).not.toHaveProperty("tool_choice");
+  });
+
+  it('with toolChoice "none", builds in one request that still lists the data tools', async () => {
+    const { dashboard, bodies } = setup([started], { sales }, { toolChoice: "none" });
+    await expect(create(dashboard)).resolves.toBe("Dashboard started");
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]!.tool_choice).toBe("none");
+    const config = JSON.parse(bodies[0]!.messages[0]!["content"] as string) as {
+      tools: Array<{ name: string }>;
+    };
+    expect(config.tools.map((t) => t.name)).toEqual(["sales"]);
+  });
+
+  it("rejects a toolChoice other than auto or none", () => {
+    expect(() => setup([], { sales }, { toolChoice: "required" as "none" })).toThrow(
+      'toolChoice must be "auto" or "none"',
+    );
+  });
+
+  it("sends tool_choice on a build's first request only", async () => {
+    // A server that doesn't know tool_choice answers with tool calls anyway.
+    const { dashboard, bodies } = setup([rounds(1)[0], started], { sales }, { toolChoice: "none" });
+    await create(dashboard);
+    expect(bodies[0]!.tool_choice).toBe("none");
+    expect(bodies[1]).not.toHaveProperty("tool_choice");
   });
 
   it("runs a saved script of the build by the dashboard's id and version, and sends the id back", async () => {
