@@ -5,25 +5,15 @@ import {
 } from "../components/IllustratedFeatures/IllustratedFeatures";
 import landing from "../components/ProductLanding.module.css";
 import {
-  AgentIllustration,
   InteractiveIllustration,
-  ModelsIllustration,
   SafetyIllustration,
   ValidatedIllustration,
 } from "./FeatureIllustrations";
 import { SharingIllustration, SourcesIllustration } from "./LaunchIllustrations";
 import styles from "./page.module.css";
 
-/* Each card's illustration, by feature id. */
-const ILLUSTRATIONS: Record<string, ReactNode> = {
-  models: <ModelsIllustration />,
-  interactive: <InteractiveIllustration />,
-  agent: <AgentIllustration />,
-  validation: <ValidatedIllustration />,
-  safety: <SafetyIllustration />,
-};
-
-const LAUNCH_FEATURES = [
+/* The launch pair leads, as halves on the shader stage. */
+const LAUNCH: { title: string; description: string; art: ReactNode }[] = [
   {
     title: "Share and edit",
     description: "Your users can share a dashboard and edit it together.",
@@ -36,36 +26,23 @@ const LAUNCH_FEATURES = [
   },
 ];
 
-/* The OUI-1 feature grid: two halves on the shader stage, three thirds on a
-   flat stage. */
-const HALVES = [
+/* Then three thirds on a flat stage. Models, and how it fits your agent, have
+   their own section below. */
+const THIRDS: { title: string; description: string; art: ReactNode }[] = [
   {
-    id: "models",
-    title: "Hundreds of models",
-    description: "Use models from OpenAI, Anthropic, Google, and more through one API.",
-  },
-  {
-    id: "interactive",
     title: "Interactive by default",
     description: "Users filter and drill down into the data without another prompt.",
-  },
-];
-
-const THIRDS = [
-  {
-    id: "agent",
-    title: "Works with your agent",
-    description: "Keep your agent framework and tools. Change only how you render.",
+    art: <InteractiveIllustration />,
   },
   {
-    id: "validation",
     title: "Validated output",
     description: "Invalid output is caught and repaired before it reaches your users.",
+    art: <ValidatedIllustration />,
   },
   {
-    id: "safety",
     title: "Safe by design",
     description: "Only your components render, and only your tools get called.",
+    art: <SafetyIllustration />,
   },
 ];
 
@@ -84,7 +61,7 @@ export function DashboardFeatures() {
         </h2>
         <div className={styles.features}>
           <IllustratedFeatures>
-            {LAUNCH_FEATURES.map((feature) => (
+            {LAUNCH.map((feature) => (
               <IllustratedFeature
                 key={feature.title}
                 span="half"
@@ -94,25 +71,15 @@ export function DashboardFeatures() {
                 {feature.art}
               </IllustratedFeature>
             ))}
-            {HALVES.map((feature) => (
-              <IllustratedFeature
-                key={feature.id}
-                span="half"
-                title={feature.title}
-                description={feature.description}
-              >
-                {ILLUSTRATIONS[feature.id]}
-              </IllustratedFeature>
-            ))}
             {THIRDS.map((feature) => (
               <IllustratedFeature
-                key={feature.id}
+                key={feature.title}
                 span="third"
                 shader={false}
                 title={feature.title}
                 description={feature.description}
               >
-                {ILLUSTRATIONS[feature.id]}
+                {feature.art}
               </IllustratedFeature>
             ))}
           </IllustratedFeatures>

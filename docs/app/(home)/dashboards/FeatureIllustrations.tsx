@@ -1,7 +1,7 @@
 "use client";
 
 import { CaretRight } from "@phosphor-icons/react";
-import { ChevronDown, Database, Globe, MousePointer2, Plug, X } from "lucide-react";
+import { ChevronDown, MousePointer2, X } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -10,10 +10,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import appless from "../appless/AppLessFeatures.module.css";
-import { StackChip } from "../components/StackChip/StackChip";
 import oui from "../oui-1/OuiFeatures.module.css";
-import { STACK_ROWS } from "../sections/CompatibilitySection/CompatibilitySection";
 import styles from "./FeatureIllustrations.module.css";
 
 /* The dashboard feature cards, drawn in the OUI-1 and AppLess illustration
@@ -31,53 +28,6 @@ const useReducedMotion = () =>
     () => window.matchMedia(REDUCED_MOTION).matches,
     () => false,
   );
-
-/* ---------- Hundreds of models: AppLess "Keep exploring" ---------- */
-
-const MODEL_ROWS = [0, 1, 2, 3, 5].map((i) => STACK_ROWS[0].items[i]);
-const MODEL_IDS = [
-  "openai/gpt-5",
-  "anthropic/claude-sonnet-4.5",
-  "google/gemini-2.5-pro",
-  "deepseek/deepseek-chat",
-  "mistralai/mistral-large",
-];
-
-export function ModelsIllustration() {
-  return (
-    /* One API on the left edge, and the models behind it running off the right. */
-    <div className={`${appless.scene} ${appless.sceneSmall}`} aria-hidden="true">
-      {/* The extra right padding centres the label in the part of the button
-          the stage leaves visible. */}
-      <span className={appless.searchButton} style={{ paddingRight: 19.5 }}>
-        One API
-      </span>
-      <span className={appless.exploreLink}>
-        {Array.from({ length: 7 }, (_, i) => (
-          <CaretRight key={i} size={8} weight="bold" style={{ opacity: 0.25 + i * 0.1 }} />
-        ))}
-      </span>
-      <div className={appless.hotelScreen}>
-        <span className={appless.screenTitle}>Models</span>
-        {MODEL_ROWS.map((model, i) => (
-          <div key={model.name} className={appless.hotel}>
-            <span
-              style={{ "--stack-logo-size": "36px", "--stack-logo-glyph": "18px" } as CSSProperties}
-            >
-              <StackChip item={model} iconOnly plain="fine" />
-            </span>
-            <span>
-              <b>{model.name}</b>
-              <small style={{ fontFamily: "var(--home-font-mono)", fontSize: 11 }}>
-                {MODEL_IDS[i]}
-              </small>
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ---------- Interactive by default: filters that redraw the dashboard ---------- */
 
@@ -279,48 +229,6 @@ function Third({ children }: { children: ReactNode }) {
     <div className={styles.third} aria-hidden="true">
       {children}
     </div>
-  );
-}
-
-/* Works with your agent: the stack stays, only the bottom layer is new. The
-   kept layers carry a few examples of what they already are. */
-const AGENT_MARKS = STACK_ROWS[1].items.slice(0, 3);
-const TOOL_ICONS = [
-  { Icon: Database, name: "Databases" },
-  { Icon: Globe, name: "REST APIs" },
-  { Icon: Plug, name: "MCP servers" },
-];
-
-export function AgentIllustration() {
-  return (
-    <Third>
-      <div className={styles.layers}>
-        <span className={styles.layer}>
-          agent
-          <span className={styles.layerMarks}>
-            {AGENT_MARKS.map((item) => (
-              <span key={item.name} className={styles.layerMark}>
-                <StackChip item={item} iconOnly plain="fine" />
-              </span>
-            ))}
-          </span>
-        </span>
-        <span className={styles.layer}>
-          tools
-          <span className={styles.layerMarks}>
-            {TOOL_ICONS.map(({ Icon, name }) => (
-              <span key={name} className={`${styles.layerMark} ${styles.layerIcon}`}>
-                <Icon size={12} strokeWidth={2} />
-              </span>
-            ))}
-          </span>
-        </span>
-        <span className={`${styles.layer} ${styles.layerHero}`}>
-          render
-          <span className={styles.layerTag}>OpenUI</span>
-        </span>
-      </div>
-    </Third>
   );
 }
 

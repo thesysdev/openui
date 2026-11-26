@@ -5,7 +5,7 @@ import { LogoBubbles } from "../../components/LogoBubbles/LogoBubbles";
 import { stackChipStyles, type StackChipItem } from "../../components/StackChip/StackChip";
 import styles from "./CompatibilitySection.module.css";
 
-interface StackRow {
+export interface StackRow {
   label: string;
   /* Plain-language name and one line for the card. `label` stays the
      technical term for the hidden list and any reader who wants it. */
@@ -277,6 +277,25 @@ export const STACK_ROWS: StackRow[] = [
   },
 ];
 
+/* The four cards in one panel: each group's logos, its plain name and one
+   line. Other pages put it under their own heading. */
+export function CompatibilityCards({ rows = STACK_ROWS }: { rows?: StackRow[] }) {
+  return (
+    <ul className={styles.cards}>
+      {rows.map((row, index) => (
+        <li key={row.label} className={styles.card}>
+          {/* Logos lead each column as its picture. */}
+          <LogoBubbles items={row.items} stagger={index} />
+          <h3 className={styles.cardTitle}>{row.title}</h3>
+          <p className={styles.cardDescription}>{row.description}</p>
+          {/* The names stay for screen readers; the logos carry them visually. */}
+          <p className="sr-only">{row.items.map((item) => item.name).join(", ")}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /* Four cards in plain words rather than the stack diagram: what each group
    means to someone choosing a tool, then the logos that prove it. */
 export function CompatibilitySection() {
@@ -288,18 +307,7 @@ export function CompatibilitySection() {
         subtitle="Works with any model, any frontend framework, and any design system or component library you already use."
       />
       <div className={styles.container}>
-        <ul className={styles.cards}>
-          {STACK_ROWS.map((row, index) => (
-            <li key={row.label} className={styles.card}>
-              {/* Logos lead each column as its picture. */}
-              <LogoBubbles items={row.items} stagger={index} />
-              <h3 className={styles.cardTitle}>{row.title}</h3>
-              <p className={styles.cardDescription}>{row.description}</p>
-              {/* The names stay for screen readers; the logos carry them visually. */}
-              <p className="sr-only">{row.items.map((item) => item.name).join(", ")}</p>
-            </li>
-          ))}
-        </ul>
+        <CompatibilityCards />
       </div>
     </section>
   );
