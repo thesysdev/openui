@@ -191,7 +191,8 @@ export const feedStyles = {
     backdrop-filter: blur(8px);
     pointer-events: auto;
   `,
-  // Once the dashboard is on screen: at the bottom of the content, or of what's visible of it.
+  // Once the dashboard is on screen: an anchor at the bottom of the content, or of what's visible
+  // of it. The feed sits above it, in the middle of what's visible, then at the bottom.
   dock: css`
     position: sticky;
     bottom: 0;
@@ -200,11 +201,25 @@ export const feedStyles = {
     height: 0;
     margin-top: auto;
     pointer-events: none;
-    & > * {
-      position: absolute;
-      bottom: var(--openui-space-m);
-      left: 50%;
-      translate: -50% 0;
+  `,
+  dockSpot: css`
+    position: absolute;
+    right: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+  `,
+  dockSpotDown: css`
+    bottom: var(--openui-space-m);
+    translate: 0 0;
+  `,
+  // Moving down from the middle once the dashboard fills the top half.
+  dockSpotMoving: css`
+    transition:
+      bottom 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      translate 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
     }
   `,
 };

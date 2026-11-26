@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { ChevronRight, CodeXml, LoaderCircle, Wrench } from "lucide-react";
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { feedNames, feedStyles as s } from "./buildFeed.styles";
 import {
   callTime,
@@ -225,6 +225,84 @@ export function BuildFeed({ build, noun, className }: BuildFeedProps) {
           </ul>
         )}
       </SmoothHeight>
+    </div>
+  );
+}
+
+/** How far down the area its content reaches (px): the bottom of its in-flow children. */
+function contentEnd(area: HTMLElement, dock: HTMLElement): number {
+  let end = 0;
+  for (const child of area.children) {
+    if (child === dock || !(child instanceof HTMLElement)) continue;
+    const { position } = getComputedStyle(child);
+    if (position === "absolute" || position === "fixed") continue;
+    end = Math.max(end, child.offsetTop + child.offsetHeight);
+  }
+  return end;
+}
+
+interface DockPlace {
+  /** At the bottom: the content fills the top half of what's visible. It stays there. */
+  docked: boolean;
+  /** Half the visible height (px), where the middle is. */
+  middle: number;
+  /** It moved down during the build, rather than starting at the bottom (an edit). */
+  moved: boolean;
+}
+
+/** Where the docked feed sits, from the area it's in, measured as the content grows. */
+function useDockPlace(anchorRef: RefObject<HTMLDivElement | null>): DockPlace {
+  const [place, setPlace] = useState<DockPlace>({ docked: false, middle: 0, moved: false });
+  useLayoutEffect(() => {
+    const anchor = anchorRef.current;
+    const area = anchor?.parentElement;
+    if (!anchor || !area) return;
+    let first = true;
+    const measure = () => {
+      const middle = area.clientHeight / 2;
+      const docked = contentEnd(area, anchor) >= middle;
+      // Docked on arrival (an edit) it just sits there; docked while watching, it moves down.
+      const moved = docked && !first;
+      first = false;
+      if (docked) stop();
+      setPlace((current) =>
+        docked
+          ? { docked, middle, moved }
+          : current.middle === middle
+            ? current
+            : { ...current, middle },
+      );
+    };
+    const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    const mutations =
+      typeof MutationObserver === "undefined" ? null : new MutationObserver(measure);
+    const stop = () => {
+      resize?.disconnect();
+      mutations?.disconnect();
+    };
+    resize?.observe(area);
+    mutations?.observe(area, { childList: true, subtree: true, characterData: true });
+    measure();
+    return stop;
+  }, [anchorRef]);
+  return place;
+}
+
+/**
+ * The feed once the dashboard is on screen: in the middle of what's visible until the dashboard
+ * fills its top half, then at the bottom, where it stays. An edit starts at the bottom.
+ */
+export function DockedBuildFeed({ build, noun }: BuildFeedProps) {
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const { docked, middle, moved } = useDockPlace(anchorRef);
+  return (
+    <div ref={anchorRef} className={s.dock}>
+      <div
+        className={clsx(s.dockSpot, docked && s.dockSpotDown, moved && s.dockSpotMoving)}
+        style={docked ? undefined : { bottom: middle, translate: "0 50%" }}
+      >
+        <BuildFeedPanel build={build} noun={noun} />
+      </div>
     </div>
   );
 }

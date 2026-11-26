@@ -120,12 +120,13 @@ export const pendingLoaderStyles = {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 16px;
   `,
-  // The feed at the bottom centre, where it stays once the dashboard is written (the dock).
+  // The feed in the middle, where it stays until the dashboard fills the top half (the dock).
   overlay: css`
     position: absolute;
-    inset: auto 0 var(--openui-space-m);
+    inset: 0;
     z-index: 5;
     display: flex;
+    align-items: center;
     justify-content: center;
     pointer-events: none;
   `,

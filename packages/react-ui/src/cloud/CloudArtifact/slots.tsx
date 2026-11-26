@@ -7,8 +7,7 @@ import { useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNo
 import { Button } from "../../components/Button";
 import { IconButton } from "../../components/IconButton";
 import { AnimatedLabel } from "./AnimatedLabel";
-import { BuildFeed, BuildFeedPanel } from "./BuildFeed";
-import { feedStyles } from "./buildFeed.styles";
+import { BuildFeed, DockedBuildFeed } from "./BuildFeed";
 import { isBuildActive, stepWords, useBuildFeed, type ArtifactBuild } from "./buildTracker";
 import { names, styles } from "./cloudArtifact.styles";
 import {
@@ -403,19 +402,15 @@ function useLingeringBuild(): ArtifactBuild | undefined {
 }
 
 /**
- * Once the dashboard is on screen (an edit, or a new one being written): the build's feed, pinned
- * to the bottom of the content. Before that, `Pending` shows it.
+ * Once the dashboard is on screen (an edit, or a new one being written): the build's feed, in the
+ * middle until the dashboard fills the top half, then at the bottom. Before that, `Pending` shows it.
  */
 function BuildDock() {
   const state = useArtifactRenderer();
   const { noun } = useBuildFeed();
   const build = useLingeringBuild();
   if (!build || state.isPending) return null;
-  return (
-    <div className={feedStyles.dock}>
-      <BuildFeedPanel build={build} noun={noun} />
-    </div>
-  );
+  return <DockedBuildFeed build={build} noun={noun} />;
 }
 
 export function Loading({ label, children }: LoaderProps) {
