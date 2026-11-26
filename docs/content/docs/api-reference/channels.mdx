@@ -33,15 +33,15 @@ optional peers, needed only to [rasterize charts](#charts).
 
 ## Entry points
 
-| Entry point                     | Renders to                    | Channel           | `output` type  | Also exports                                       |
-| :------------------------------ | :---------------------------- | :---------------- | :------------- | :------------------------------------------------- |
-| `@openuidev/channels`           |                               |                   |                | `createEngine`, `MemoryStore`, shared types        |
-| `@openuidev/channels/slack`     | Slack Block Kit               | `slackChannel`    | `SlackBlock[]` | `createSlackUI`, `inputValue`, `viewValues`        |
-| `@openuidev/channels/teams`     | Teams Adaptive Cards 1.5      | `teamsChannel`    | `TeamsCard`    | `decodeSubmit`                                     |
-| `@openuidev/channels/telegram`  | Telegram Rich Messages        | `telegramChannel` | `TgCard`       | `decodeCallback`, `encodeCallback`, `callbackFits` |
-| `@openuidev/channels/whatsapp`  | WhatsApp interactive messages | `whatsappChannel` | `WaMessage[]`  | `decodeReplyId`, `encodeReplyId`                   |
-| `@openuidev/channels/ui`        |                               |                   |                | `ChartSpec`, `FieldSpec`, `FormSpec` types         |
-| `@openuidev/channels/ui/charts` | PNG                           |                   |                | `renderChartPng`. Needs the optional peers         |
+| Entry point                     | Renders to                    | Channel           | `output` type  | Also exports                                        |
+| :------------------------------ | :---------------------------- | :---------------- | :------------- | :-------------------------------------------------- |
+| `@openuidev/channels`           |                               |                   |                | `createEngine`, `MemoryStore`, shared types         |
+| `@openuidev/channels/slack`     | Slack Block Kit               | `slackChannel`    | `SlackBlock[]` | `createSlackUI`, `inputValue`, `viewValues`         |
+| `@openuidev/channels/teams`     | Teams Adaptive Cards 1.5      | `teamsChannel`    | `TeamsCard`    | `decodeSubmit`                                      |
+| `@openuidev/channels/telegram`  | Telegram Rich Messages        | `telegramChannel` | `TgCard`       | `decodeCallback`, `encodeCallback`, `callbackFits`  |
+| `@openuidev/channels/whatsapp`  | WhatsApp interactive messages | `whatsappChannel` | `WaMessage[]`  | `decodeReplyId`, `encodeReplyId`, `typingIndicator` |
+| `@openuidev/channels/ui`        |                               |                   |                | `ChartSpec`, `FieldSpec`, `FormSpec` types          |
+| `@openuidev/channels/ui/charts` | PNG                           |                   |                | `renderChartPng`. Needs the optional peers          |
 
 Slack has a high-level API, [`createSlackUI`](#createslackuioptions). The other platforms export a
 channel and a prompt builder that you drive with [`createEngine`](#createenginechannel-options).
@@ -328,7 +328,11 @@ What to plan for on each platform:
 - **WhatsApp.** `output` is an array of Cloud API message payloads. Add `messaging_product` and
   `to` to each and send them in order. Messages cannot be edited, so each interaction sends the
   updated card as a new message. A card holds 3 buttons and a list 10 options. Extras are dropped
-  with a console warning.
+  with a console warning. List options can carry a second line (`Option(value, label, description?)`), and lists and cards
+  take an optional header and footer. A card can also show a photo above its text
+  (`Card(text, buttons?, footer?, image?)`), and `Location(latitude, longitude, name?, address?)`
+  sends a native map pin. While the model generates, POST `typingIndicator(messageId)`
+  to show "typing…" on the user's message.
 
 ## Charts
 
@@ -350,6 +354,8 @@ for (const spec of result.charts) {
   // Upload `png`, then replace the marker for `spec.id` in `result.output`.
 }
 ```
+
+Pass `renderChartPng(spec, { theme: "dark" })` for a dark background that suits dark-mode chats.
 
 | Platform | Marker in `output`                                                                          |
 | :------- | :------------------------------------------------------------------------------------------ |

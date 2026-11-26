@@ -1,0 +1,1066 @@
+/* The launch scenes. Colours come from the page's feature tokens where it has them (the OpenUI
+   site, with its dark theme) and fall back to the OpenDashboards palette; the widget chrome is the
+   dashboard library's Card. Motion follows transitions.dev: smooth-out opens, quick closes, and
+   shapes that morph while they move. */
+
+.root {
+  --la-ink: var(--feat-ink, #0a0a0b);
+  --la-muted: var(--feat-muted, #6b6d76);
+  --la-panel: var(--feat-panel, #fff);
+  --la-line: color-mix(in srgb, var(--la-ink) 9%, transparent);
+  --la-fill: color-mix(in srgb, var(--la-ink) 5%, transparent);
+  --la-soft: color-mix(in srgb, var(--la-ink) 38%, transparent);
+  --la-draft: color-mix(in srgb, var(--la-ink) 42%, transparent);
+  --la-card: #fff;
+  --la-card-line: rgb(0 0 0 / 0.06);
+  --la-shadow:
+    0 0 0 1px var(--la-card-line), 0 1px 2px rgb(16 24 40 / 0.05),
+    0 8px 20px -8px rgb(16 24 40 / 0.18);
+  --la-lift:
+    0 0 0 1px var(--la-card-line), 0 2px 4px rgb(16 24 40 / 0.06),
+    0 16px 36px -12px rgb(16 24 40 / 0.28);
+  --la-button-shadow: 0 1px 2px rgb(0 0 0 / 0.14), 0 6px 16px -8px rgb(0 0 0 / 0.32);
+  --la-accent: #5b5bf6;
+  --la-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --la-move: cubic-bezier(0.65, 0, 0.35, 1);
+  --la-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  text-align: left;
+}
+
+:global([data-theme="dark"]) .root {
+  --la-card: rgb(21 21 21);
+  --la-card-line: rgb(255 255 255 / 0.07);
+  --la-shadow: 0 0 0 1px var(--la-card-line), 0 10px 28px -10px rgb(0 0 0 / 0.7);
+  --la-lift: 0 0 0 1px rgb(255 255 255 / 0.1), 0 18px 40px -12px rgb(0 0 0 / 0.8);
+  --la-button-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 16px -8px rgb(0 0 0 / 0.6);
+}
+
+/* The scene: 588 wide, scaled to the card. --cy is its vertical centre; phone cards are taller. */
+.scene {
+  --cy: 180px;
+  /* The build feed's box: where it sits, its width, its header and each row. */
+  --feed-top: -92px;
+  --feed-w: 452px;
+  --feed-head: 64px;
+  --feed-row: 42px;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 588px;
+  height: calc(var(--cy) * 2);
+  transform-origin: 0 0;
+  transform: scale(tan(atan2(100cqw, 588px)));
+  color: var(--la-ink);
+  font-size: 12px;
+  line-height: 1.3;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 767.98px) {
+  .scene {
+    --cy: 213.5px;
+  }
+}
+
+.scene *,
+.scene *::before,
+.scene *::after {
+  box-sizing: border-box;
+}
+
+/* A capture in each theme; only the current theme's shows. */
+.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.shot[data-theme-shot="dark"],
+.logo[data-theme-shot="dark"] {
+  display: none;
+}
+
+:global([data-theme="dark"]) .shot[data-theme-shot="light"],
+:global([data-theme="dark"]) .logo[data-theme-shot="light"] {
+  display: none;
+}
+
+:global([data-theme="dark"]) .shot[data-theme-shot="dark"],
+:global([data-theme="dark"]) .logo[data-theme-shot="dark"] {
+  display: block;
+}
+
+/* ---------- The viewer's pointer ---------- */
+
+.cursor {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition:
+    translate var(--travel) var(--la-move),
+    opacity 260ms ease;
+}
+
+.cursor[data-on] {
+  opacity: 1;
+}
+
+/* The pointer's tip sits on the cursor's point. */
+.cursor > svg {
+  position: absolute;
+  top: -3.9px;
+  left: -3.9px;
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+  transform-origin: 3.9px 3.9px;
+  fill: var(--la-panel);
+  stroke: var(--la-ink);
+  stroke-width: 1.5px;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.16));
+}
+
+.cursor > svg[data-click] {
+  animation: la-click 280ms ease;
+}
+
+@keyframes la-click {
+  40% {
+    scale: 0.82;
+  }
+}
+
+/* ---------- Sharing ---------- */
+
+/* Share, alone in the centre, as a real button: x above, below and on the icon's side, 1.5x on
+   the text's side. It rounds into the middle avatar. */
+.shareButton {
+  position: absolute;
+  z-index: 2;
+  top: var(--cy);
+  left: 294px;
+  width: var(--share-w);
+  height: var(--share-h);
+  overflow: hidden;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 60%), var(--la-ink);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    var(--la-button-shadow);
+  color: var(--la-panel);
+  translate: -50% -50%;
+  transition:
+    width 850ms var(--la-move),
+    height 850ms var(--la-move),
+    border-radius 850ms var(--la-move),
+    background-color 600ms ease 150ms,
+    box-shadow 600ms ease,
+    scale 200ms var(--la-ease);
+}
+
+.shareButton[data-pressed] {
+  scale: 0.95;
+  transition-duration: 850ms, 850ms, 850ms, 600ms, 600ms, 100ms;
+}
+
+.shareLabel {
+  position: absolute;
+  top: 50%;
+  left: var(--share-pad);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 550;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  translate: 0 -50%;
+  transition: opacity 260ms ease;
+}
+
+.shareLabel svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+}
+
+.shareInitial {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.shareButton[data-state="avatar"] {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, transparent, transparent), var(--tone);
+  box-shadow: 0 0 0 1.75px #fff;
+}
+
+.shareButton[data-state="avatar"] .shareLabel {
+  opacity: 0;
+}
+
+.shareButton[data-state="avatar"] .shareInitial {
+  opacity: 1;
+  transition-delay: 450ms;
+}
+
+/* The middle avatar hands over to its collaborator, which looks the same, in one frame. Hidden,
+   it's the button again, ready for the loop to hand back to it. */
+.shareButton[data-state="gone"] {
+  opacity: 0;
+  transition: none;
+}
+
+/* A collaborator: an avatar, then their pointer. While it moves, the avatar draws in to a dot
+   and the dot sharpens into the arrow, all three at once. A white copy of the shape, a little
+   larger, sits behind it as its edge. */
+.collaborator {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  opacity: 0;
+  scale: 0.6;
+  transform-origin: 40px 40px;
+  transition:
+    translate var(--travel) var(--la-move) var(--delay),
+    opacity 320ms ease var(--delay),
+    scale 620ms var(--la-bounce) var(--delay);
+}
+
+.collaborator[data-on] {
+  opacity: 1;
+  scale: 1;
+}
+
+.collaborator[data-instant] {
+  scale: 1;
+  transition:
+    translate var(--travel) var(--la-move) var(--delay),
+    opacity 0s,
+    scale 0s;
+}
+
+.collaboratorBody {
+  position: absolute;
+  inset: 0;
+  transform-origin: 40px 40px;
+}
+
+.collaboratorBody[data-click] {
+  animation: la-click 280ms ease;
+}
+
+.collaboratorEdge,
+.collaboratorShape {
+  position: absolute;
+  inset: 0;
+  /* Avatar to dot: it starts drawing in at once and speeds up. */
+  transition: clip-path 470ms cubic-bezier(0.3, 0, 0.6, 0.6);
+}
+
+.collaboratorEdge {
+  background: #fff;
+}
+
+.collaboratorShape {
+  background: var(--tone);
+}
+
+/* Dot to arrow: it keeps that speed and settles as it lands. */
+.collaborator[data-shape="arrow"] .collaboratorEdge,
+.collaborator[data-shape="arrow"] .collaboratorShape {
+  transition: clip-path 730ms cubic-bezier(0.2, 0.45, 0.35, 1);
+}
+
+/* Back to an avatar while hidden, for the next loop. */
+.collaborator[data-shape="avatar"] .collaboratorEdge,
+.collaborator[data-shape="avatar"] .collaboratorShape {
+  transition: none;
+}
+
+.collaboratorInitial {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 80px;
+  height: 80px;
+  place-items: center;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  transform-origin: 49.5px 49.5px;
+  transition:
+    opacity 280ms ease var(--delay),
+    scale 420ms ease-in var(--delay);
+}
+
+.collaborator:not([data-shape="avatar"]) .collaboratorInitial {
+  opacity: 0;
+  scale: 0.3;
+}
+
+/* The one widget the editors work on: the library's Card, zoomed to fit what it shows. It rises
+   in while the pointers arrive, and at the end closes into Share for the loop. */
+.widget {
+  position: absolute;
+  top: var(--cy);
+  left: 294px;
+  width: var(--card-w);
+  height: calc(var(--bar-h) + var(--legend-h));
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--la-card);
+  box-shadow: var(--la-shadow);
+  opacity: 0;
+  translate: -50% calc(-50% + 34px);
+  scale: calc(var(--z) * 0.95);
+}
+
+.widget[data-pie] {
+  height: calc(var(--pie-h) + var(--legend-h));
+}
+
+.widget[data-state="on"] {
+  opacity: 1;
+  translate: -50% -50%;
+  scale: var(--z);
+  transition:
+    opacity 600ms ease 120ms,
+    translate 1100ms var(--la-ease) 120ms,
+    scale 900ms var(--la-ease),
+    height 900ms var(--la-ease),
+    box-shadow 450ms ease;
+}
+
+/* Selected by an editor: a faint glow in their colour. */
+.widget[data-selected] {
+  box-shadow:
+    var(--la-shadow),
+    0 0 0 1px color-mix(in srgb, var(--glow) 16%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--glow) 38%, transparent);
+}
+
+.widget[data-state="button"] {
+  width: var(--share-w);
+  height: var(--share-h);
+  opacity: 1;
+  translate: -50% -50%;
+  scale: 1;
+  box-shadow: var(--la-button-shadow);
+  transition:
+    width 800ms var(--la-move),
+    height 800ms var(--la-move),
+    scale 800ms var(--la-move),
+    box-shadow 500ms ease;
+}
+
+/* What the card shows, kept centred so it closes evenly from every side. */
+.widgetContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--card-w);
+  translate: -50% -50%;
+  transition: opacity 400ms ease;
+}
+
+.widget[data-state="button"] .widgetContent {
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+/* The chart area grows from the bar to the taller half pie; the legend below it moves down. */
+.widgetChart {
+  position: relative;
+  height: var(--bar-h);
+  overflow: hidden;
+  transition: height 900ms var(--la-ease);
+}
+
+.widget[data-pie] .widgetChart {
+  height: var(--pie-h);
+}
+
+.chartLayer {
+  position: absolute;
+  inset: 0 0 auto;
+  opacity: 0;
+  transition: opacity 450ms ease;
+}
+
+.chartLayer[data-on] {
+  opacity: 1;
+}
+
+/* Share's face, which the closing card takes on once it's nearly button-sized. */
+.widgetFace {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 60%), var(--la-ink);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16);
+  color: var(--la-panel);
+  opacity: 0;
+}
+
+.widgetFace .shareLabel {
+  opacity: 0;
+  transition: none;
+}
+
+.widget[data-state="button"] .widgetFace {
+  opacity: 1;
+  transition: opacity 320ms ease 380ms;
+}
+
+.widget[data-state="button"] .widgetFace .shareLabel {
+  opacity: 1;
+  transition: opacity 260ms ease 620ms;
+}
+
+/* Cursor chat: the editor's ask, typed beside their pointer. */
+.chat {
+  position: absolute;
+  top: 62px;
+  left: 54px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 5px 0 11px;
+  border-radius: 4px 15px 15px 15px;
+  background: var(--tone);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.85);
+  transform-origin: 0 0;
+  transition:
+    opacity 200ms ease,
+    transform 200ms var(--la-ease);
+}
+
+.chat[data-open] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 320ms var(--la-ease),
+    transform 320ms var(--la-ease);
+}
+
+.chatText {
+  clip-path: inset(0 100% 0 0);
+}
+
+.chatText[data-typed] {
+  clip-path: inset(0);
+  transition: clip-path 0.95s steps(var(--chars), end) 220ms;
+}
+
+.chat i {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.25);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 120ms ease;
+}
+
+.chat i[data-sent] {
+  background: #fff;
+  color: var(--tone);
+  transform: scale(0.85);
+}
+
+.chat svg {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.5;
+}
+
+/* ---------- Probing and Sources ---------- */
+
+/* The build feed, as the dashboard shows it while it builds: a headline with its running time,
+   then a row per tool call, newest at the bottom. The running one is in ink on a soft fill. Once
+   the build is written, the box resizes to the chart's card: the skeleton is drawn in it, and the
+   card fades in over it. It always sits under the chart. */
+.feed {
+  position: absolute;
+  z-index: 0;
+  top: calc(var(--cy) + var(--feed-top));
+  left: 294px;
+  width: var(--feed-w);
+  height: calc(var(--feed-head) + var(--rows) * var(--feed-row));
+  overflow: hidden;
+  padding: 12px 12px 0;
+  border-radius: 18px;
+  background: var(--la-card);
+  box-shadow: var(--la-shadow);
+  opacity: 0;
+  translate: -50% 0;
+  /* Off: gone at once, under the chart's card that took its place. */
+  transition: none;
+}
+
+/* On: there at once, where the Sources panel closed into it; then its rows fade in. */
+.feed[data-state="on"] {
+  opacity: 1;
+  transition: height 450ms var(--la-ease);
+}
+
+.feed[data-state="skeleton"] {
+  top: calc(var(--cy) + var(--skeleton-top));
+  width: var(--skeleton-w);
+  height: var(--skeleton-h);
+  border-radius: 13px;
+  opacity: 1;
+  translate: -50% 0;
+  transition:
+    top 500ms var(--la-move),
+    width 500ms var(--la-move),
+    height 500ms var(--la-move),
+    border-radius 500ms var(--la-move);
+}
+
+.feed > * {
+  opacity: 0;
+}
+
+.feed[data-state="on"] > * {
+  opacity: 1;
+  transition: opacity 320ms ease 60ms;
+}
+
+.feed[data-state="skeleton"] > * {
+  transition: opacity 160ms ease;
+}
+
+.feedHeader {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 38px;
+  margin: 0 0 6px;
+  padding: 0 10px 2px;
+  border-bottom: 1px solid var(--la-line);
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.feedHeader > svg {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.8;
+  animation: la-twinkle 2.4s ease-in-out infinite;
+}
+
+@keyframes la-twinkle {
+  50% {
+    scale: 1.15;
+    rotate: 20deg;
+  }
+}
+
+.feedHeadline {
+  animation: la-rise 300ms var(--la-ease) both;
+}
+
+/* The headline shimmers while the build works: light passes over the words; they don't move. */
+.feedHeadline[data-on] {
+  background: linear-gradient(
+      90deg,
+      var(--la-soft) 0%,
+      var(--la-ink) 40%,
+      var(--la-ink) 60%,
+      var(--la-soft) 100%
+    )
+    0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation:
+    la-rise 300ms var(--la-ease) both,
+    la-shimmer 2.2s linear infinite;
+}
+
+@keyframes la-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes la-rise {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
+.feedElapsed {
+  margin-left: auto;
+  color: var(--la-muted);
+  font-size: 14px;
+  font-weight: 450;
+  font-variant-numeric: tabular-nums;
+}
+
+.feed ol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feedRow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 11px;
+  color: var(--la-muted);
+  font-size: 15.5px;
+  font-weight: 450;
+  white-space: nowrap;
+  animation: la-rise 320ms var(--la-ease) both;
+  transition:
+    color 300ms ease,
+    background-color 300ms ease;
+}
+
+.feedRow[data-state="active"] {
+  background: var(--la-fill);
+  color: var(--la-ink);
+}
+
+.feedTile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--la-line);
+  border-radius: 8px;
+  background: var(--la-card);
+  color: var(--la-ink);
+  transition: opacity 300ms ease;
+}
+
+.feedRow[data-state="done"] .feedTile {
+  opacity: 0.6;
+}
+
+.feedTile svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.8;
+}
+
+.feedLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--la-fill);
+  color: var(--la-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.feedStatus {
+  display: grid;
+  flex: none;
+  margin-left: auto;
+  color: var(--la-muted);
+}
+
+.feedRow[data-state="active"] .feedStatus {
+  color: var(--la-ink);
+}
+
+.feedStatus svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.feedRow[data-state="done"] .feedStatus svg {
+  animation: la-pop 260ms var(--la-ease) both;
+}
+
+@keyframes la-pop {
+  from {
+    opacity: 0;
+    scale: 0.5;
+  }
+}
+
+.spinner {
+  animation: la-spin 0.9s linear infinite;
+}
+
+@keyframes la-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.logo {
+  display: block;
+  flex: none;
+  width: 17px;
+  height: auto;
+}
+
+.sourceTile .logo {
+  width: 24px;
+}
+
+.mark {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  background: var(--mark-color);
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+}
+
+/* The built chart: drawn in dots, then the real card. */
+.chart {
+  position: absolute;
+  z-index: 1;
+  top: var(--cy);
+  left: 294px;
+  opacity: 0;
+  transition:
+    opacity 420ms ease,
+    transform 850ms var(--la-ease);
+}
+
+.chart[data-state="draft"],
+.chart[data-state="card"] {
+  opacity: 1;
+  transition:
+    opacity 300ms ease,
+    transform 850ms var(--la-ease);
+}
+
+.chartCard {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 16px;
+  background: var(--la-card);
+  box-shadow: var(--la-shadow);
+  opacity: 0;
+  translate: -50% -50%;
+  scale: 0.985;
+  transition:
+    opacity 300ms ease,
+    scale 300ms ease,
+    box-shadow 450ms ease;
+}
+
+.chart[data-state="card"] .chartCard {
+  opacity: 1;
+  scale: 1;
+  transition:
+    opacity 500ms ease,
+    scale 600ms var(--la-ease),
+    box-shadow 450ms ease;
+}
+
+.chart[data-selected] .chartCard {
+  box-shadow:
+    var(--la-shadow),
+    0 0 0 1px color-mix(in srgb, var(--la-accent) 18%, transparent),
+    0 10px 28px -14px color-mix(in srgb, var(--la-accent) 36%, transparent);
+}
+
+/* Sources open: the chart moves up and away, leaving the panel on its own. */
+.chart[data-open] {
+  opacity: 0;
+  transition:
+    opacity 450ms ease 80ms,
+    transform 850ms var(--la-ease);
+}
+
+.draft {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  translate: -50% -50%;
+  transition: opacity 450ms ease;
+}
+
+.chart[data-state="card"] .draft {
+  opacity: 0;
+}
+
+.draftDots {
+  fill: none;
+  stroke: var(--la-draft);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0 4.8;
+}
+
+.draftReveal {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 10;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+
+.draft[data-on] .draftReveal {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--duration) cubic-bezier(0.45, 0, 0.25, 1) var(--delay);
+}
+
+/* The chart's Sources: a button under it, which opens into a panel in the middle of the card. */
+.sources {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--cy) + var(--pill-top));
+  left: 294px;
+  width: var(--pill-w);
+  height: var(--pill-h);
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--la-card);
+  box-shadow: var(--la-shadow);
+  opacity: 0;
+  translate: -50% 0;
+  scale: 0.9;
+  /* Hidden: gone at once, where the build feed took its place. */
+  transition: none;
+}
+
+.sources[data-state="button"],
+.sources[data-state="panel"],
+.sources[data-state="feed"] {
+  opacity: 1;
+  scale: 1;
+}
+
+.sources[data-state="button"] {
+  transition:
+    opacity 380ms var(--la-ease),
+    scale 500ms var(--la-bounce),
+    top 800ms var(--la-ease),
+    width 750ms var(--la-ease),
+    height 750ms var(--la-ease),
+    border-radius 750ms var(--la-ease),
+    box-shadow 600ms ease;
+}
+
+.sources[data-state="panel"] {
+  top: calc(var(--cy) - var(--panel-h) / 2);
+  width: var(--panel-w);
+  height: var(--panel-h);
+  border-radius: 18px;
+  box-shadow: var(--la-lift);
+  /* Opening: it grows and moves to the centre together, in one ease-in-out. */
+  transition:
+    top 700ms var(--la-move),
+    width 700ms var(--la-move),
+    height 700ms var(--la-move),
+    border-radius 700ms var(--la-move),
+    box-shadow 700ms var(--la-move);
+}
+
+/* Closing, for the loop: the panel shrinks into the build feed's first frame, which takes over. */
+.sources[data-state="feed"] {
+  top: calc(var(--cy) + var(--feed-top));
+  width: var(--feed-w);
+  height: calc(var(--feed-head) + var(--feed-row));
+  border-radius: 18px;
+  transition:
+    top 650ms var(--la-move),
+    width 650ms var(--la-move),
+    height 650ms var(--la-move),
+    box-shadow 650ms var(--la-move);
+}
+
+/* The button: x above, below and on the icon's side, 1.5x on the text's side. */
+.sourcesButton {
+  position: absolute;
+  top: 50%;
+  left: var(--pill-pad);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 16px;
+  white-space: nowrap;
+  translate: 0 -50%;
+  transition: opacity 220ms ease;
+}
+
+.sourcesButton svg,
+.sourcesHead svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.8;
+}
+
+.sources[data-state="panel"] .sourcesButton,
+.sources[data-state="feed"] .sourcesButton {
+  opacity: 0;
+}
+
+.sourcesPanel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: var(--panel-w);
+  padding: 14px 12px;
+}
+
+.sourcesHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 4px 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--la-line);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.sourcesHead,
+.sourceRow {
+  opacity: 0;
+  translate: 0 6px;
+  transition:
+    opacity 180ms ease,
+    translate 180ms ease;
+}
+
+.sources[data-state="panel"] .sourcesHead,
+.sources[data-state="panel"] .sourceRow {
+  opacity: 1;
+  translate: none;
+  transition:
+    opacity 380ms ease 420ms,
+    translate 460ms var(--la-ease) 420ms;
+}
+
+.sources[data-state="panel"] .sourceRow:nth-of-type(3) {
+  transition-delay: 480ms;
+}
+
+/* A source: its mark, what it is, and the call that read it. */
+.sourceRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 54px;
+  padding: 0 4px;
+}
+
+.sourceTile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--la-line);
+  border-radius: 10px;
+}
+
+.sourceTile .mark {
+  width: 18px;
+  height: 18px;
+}
+
+.sourceText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.sourceText > span {
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 19px;
+}
+
+.sourceText code {
+  color: var(--la-muted);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  line-height: 15px;
+}
+
+/* Off screen: everything that loops holds still. */
+.root:not([data-playing]) *,
+.root:not([data-playing]) *::before,
+.root:not([data-playing]) *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation: none !important;
+  }
+}

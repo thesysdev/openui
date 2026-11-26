@@ -283,16 +283,27 @@
   height: 88px;
 }
 
+/* Each lane runs to the gate's centre, and a circle the size of the gate's halo cuts it there, so
+   tokens go in and come out along the circle's edge, not a straight line. */
 .lane {
+  --gate-r: 14px;
+
   overflow: hidden;
+  mask-composite: intersect;
 }
 
 .laneIn {
-  mask-image: linear-gradient(to right, transparent, #000 35%);
+  margin-right: -16px;
+  mask-image:
+    linear-gradient(to right, transparent, #000 35%),
+    radial-gradient(circle at 100% 50%, transparent var(--gate-r), #000 calc(var(--gate-r) + 0.5px));
 }
 
 .laneOut {
-  mask-image: linear-gradient(to left, transparent, #000 35%);
+  margin-left: -16px;
+  mask-image:
+    linear-gradient(to left, transparent, #000 35%),
+    radial-gradient(circle at 0 50%, transparent var(--gate-r), #000 calc(var(--gate-r) + 0.5px));
 }
 
 .tokens {
@@ -322,6 +333,7 @@
 
 .gate {
   position: relative;
+  z-index: 1;
   justify-self: center;
   width: 0;
   height: 88px;

@@ -1,5 +1,13 @@
 # @openuidev/browser-bundle
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`1ff6b26`](https://github.com/thesysdev/openui/commit/1ff6b265c5af6f242b4f5949c8db36db2c51f5ea), [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`cebe02b`](https://github.com/thesysdev/openui/commit/cebe02b1c38eb7177a69d49fd7cf10a5f8a20b66), [`bbc525d`](https://github.com/thesysdev/openui/commit/bbc525d919cd622f18d6b111d4db26fb7538b94f), [`a8ba1dd`](https://github.com/thesysdev/openui/commit/a8ba1dde96a59e5f7a66276c79114e98b946ab83)]:
+  - @openuidev/react-ui@0.19.0
+  - @openuidev/react-lang@1.2.0
+
 ## 0.2.2
 
 ### Patch Changes

@@ -913,10 +913,10 @@
       {
         "type": "image",
         "image": {
-          "link": ""
+          "link": "",
+          "caption": "Issues by state"
         },
-        "chartId": "chart_0",
-        "caption": "Issues by state"
+        "chartId": "chart_0"
       },
       {
         "type": "image",
@@ -989,6 +989,169 @@
     "forms": {},
     "state": {
       "$priority": "high"
+    }
+  },
+  "render:waBooking": {
+    "output": [
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "list",
+          "header": {
+            "type": "text",
+            "text": "Italian in North Beach"
+          },
+          "body": {
+            "text": "5 places have a table for 4 around 8 PM tonight."
+          },
+          "footer": {
+            "text": "Live availability"
+          },
+          "action": {
+            "button": "Restaurants",
+            "sections": [
+              {
+                "rows": [
+                  {
+                    "id": "chat:{\"a\":\"places\",\"v\":\"vt\"}",
+                    "title": "Vela Trattoria",
+                    "description": "4.7 stars · 0.3 mi · 7:45, 8:15, 8:45"
+                  },
+                  {
+                    "id": "chat:{\"a\":\"places\",\"v\":\"nr\"}",
+                    "title": "Nonna Rosa",
+                    "description": "4.6 stars · 0.5 mi · 8:00, 9:00"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": "",
+          "caption": "Busiest around 8, quieter after 9."
+        },
+        "chartId": "chart_0"
+      },
+      {
+        "type": "interactive",
+        "interactive": {
+          "type": "button",
+          "header": {
+            "type": "image",
+            "image": {
+              "link": "https://example.com/vela-trattoria.jpg"
+            }
+          },
+          "body": {
+            "text": "Pick a time for 4 tonight:"
+          },
+          "footer": {
+            "text": "Held for 15 minutes"
+          },
+          "action": {
+            "buttons": [
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_0\"}",
+                  "title": "7:45 PM"
+                }
+              },
+              {
+                "type": "reply",
+                "reply": {
+                  "id": "chat:{\"a\":\"el_1\"}",
+                  "title": "8:15 PM"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "image",
+        "image": {
+          "link": "https://example.com/vela-trattoria-room.jpg",
+          "caption": "Vela Trattoria, Grant Ave"
+        }
+      },
+      {
+        "type": "location",
+        "location": {
+          "latitude": 37.8002,
+          "longitude": -122.4074,
+          "name": "Vela Trattoria",
+          "address": "Grant Ave, North Beach"
+        }
+      }
+    ],
+    "text": "OpenUI message",
+    "actionMap": {
+      "places": {
+        "kind": "input",
+        "target": "$place"
+      },
+      "el_0": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$time",
+              "valueAST": {
+                "k": "Str",
+                "v": "19:45"
+              }
+            }
+          ]
+        }
+      },
+      "el_1": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$time",
+              "valueAST": {
+                "k": "Str",
+                "v": "20:15"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "6p",
+          "7p",
+          "8p",
+          "9p"
+        ],
+        "values": [
+          28,
+          55,
+          86,
+          72
+        ],
+        "title": "How busy tonight",
+        "series": "Busy %",
+        "xLabel": "",
+        "yLabel": ""
+      }
+    ],
+    "forms": {},
+    "state": {
+      "$place": "",
+      "$time": ""
     }
   },
   "render:tgCounter": {
@@ -3053,10 +3216,10 @@
       {
         "type": "image",
         "image": {
-          "link": ""
+          "link": "",
+          "caption": "Issues by state"
         },
-        "chartId": "chart_0",
-        "caption": "Issues by state"
+        "chartId": "chart_0"
       },
       {
         "type": "image",
