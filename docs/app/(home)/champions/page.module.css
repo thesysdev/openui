@@ -1,38 +1,61 @@
-.hero {
-  padding-bottom: 8px;
+/* One white page: hero, one row of cards, FAQ. The cards and the FAQ sit on the
+   hero's left edge (the same edge as the nav and footer), so on desktop they
+   take the hero's 75rem frame and 2rem side padding instead of the narrower
+   section gutter. */
+.main {
+  /* Card frame shared with the FAQ items below, so both read as one family. */
+  --champion-surface: #fff;
+  --champion-border: rgba(10, 10, 10, 0.08);
+  --champion-slot: rgba(10, 10, 10, 0.025);
+  --champion-dash: rgba(10, 10, 10, 0.16);
+  --champion-slot-strong: #f5f5f5;
+  --champion-dot: rgba(10, 10, 10, 0.1);
 }
 
-/* The shared desktop hero pads 7rem above and 3rem below the lockup; pull it in
-   so the Champions show in the first screen. */
+[data-theme="dark"] .main {
+  --champion-surface: rgba(255, 255, 255, 0.042);
+  --champion-border: rgba(255, 255, 255, 0.09);
+  --champion-slot: rgba(255, 255, 255, 0.03);
+  --champion-dash: rgba(255, 255, 255, 0.18);
+  --champion-slot-strong: rgba(255, 255, 255, 0.04);
+  --champion-dot: rgba(255, 255, 255, 0.1);
+}
+
 @media (min-width: 1024px) {
+  .main {
+    --home-container-max: calc(75rem + 4rem);
+    --home-container-gutter: 2rem;
+  }
+
   .hero {
-    margin-top: -4rem;
-    margin-bottom: -1.5rem;
-    padding-bottom: 0;
+    margin-bottom: -1rem;
   }
 }
 
-.softBand {
-  background: var(--openui-background);
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-.section {
-  padding-block: 112px;
-}
+/* ── Cards ── */
 
-.meetSection {
-  padding-block: 40px 112px;
-}
-
-.meetHeading {
-  max-width: none;
+.champions {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--home-container-max);
+  margin-inline: auto;
+  padding-inline: var(--home-container-gutter);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-  gap: 24px;
-  margin: 32px 0 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -40,82 +63,271 @@
 .card {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--openui-border-default);
+  padding: 8px;
+  border: 1px solid var(--champion-border);
   border-radius: 16px;
-  background: var(--openui-foreground, var(--openui-background));
+  background: var(--champion-surface);
+  box-shadow:
+    0 2px 6px rgba(22, 34, 51, 0.03),
+    0 10px 28px rgba(22, 34, 51, 0.045);
+  transition:
+    transform 250ms ease,
+    box-shadow 250ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 10px rgba(22, 34, 51, 0.04),
+    0 18px 40px rgba(22, 34, 51, 0.07);
+}
+
+[data-theme="dark"] .card {
+  box-shadow: none;
+}
+
+/* Inner radius = card radius - card padding, so the corners stay concentric. */
+.media {
+  position: relative;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--champion-slot);
 }
 
 .photo {
   display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: 1;
+  height: 100%;
   object-fit: cover;
+  object-position: 50% 30%;
 }
 
-.cardBody {
+.body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px;
+  gap: 12px;
+  padding: 16px 12px 12px;
+}
+
+.identity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nameBlock {
+  min-width: 0;
 }
 
 .name {
   margin: 0;
   color: var(--openui-text-neutral-primary);
   font-family: var(--home-font-display);
-  font-size: 22px;
+  font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.2;
+  letter-spacing: -0.2px;
 }
 
-.meta {
-  margin: 6px 0 0;
+.handle {
+  margin: 4px 0 0;
+  overflow: hidden;
   color: var(--openui-text-neutral-secondary);
   font-family: var(--home-font-text);
-  font-size: 15px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bio {
   margin: 0;
   color: var(--openui-text-neutral-secondary);
   font-family: var(--home-font-text);
-  font-size: var(--home-body-size);
-  line-height: var(--home-body-leading);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .links {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: auto 0 0;
+  flex-shrink: 0;
+  gap: 4px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.links a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 6px 12px;
-  border: 1px solid var(--openui-border-default);
+.iconLink {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
   border-radius: 999px;
-  background: var(--openui-highlight-subtle);
+  color: var(--openui-text-neutral-secondary);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.iconLink:hover {
+  background: var(--champion-slot);
   color: var(--openui-text-neutral-primary);
-  font-family: var(--home-font-text);
-  font-size: 14px;
-  text-decoration: none;
 }
 
-.links a:hover {
-  border-color: var(--openui-text-neutral-secondary);
+.iconLink:focus-visible {
+  outline: 2px solid var(--openui-text-neutral-primary);
+  outline-offset: 2px;
 }
 
-.cta {
+/* ── Join card ── */
+
+.joinCard {
   display: flex;
+}
+
+.joinSlot {
+  position: relative;
+  display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 240px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px dashed var(--champion-dash);
+  border-radius: 16px;
+  /* A faint dot grid, fading out from the centre, so the slot reads as an
+     empty seat rather than a flat grey box. */
+  background:
+    radial-gradient(circle at 50% 45%, var(--champion-slot-strong) 0, transparent 62%),
+    radial-gradient(var(--champion-dot) 1px, transparent 1.2px) 0 0 / 14px 14px,
+    var(--champion-slot-strong);
+  color: var(--openui-text-neutral-primary);
+  text-align: center;
+  text-decoration: none;
+  transition: border-color 200ms ease;
+}
+
+.joinSlot:hover {
+  border-color: var(--openui-border-interactive);
+}
+
+/* Bevelled white disc, the same treatment as the site's button badges. */
+.joinIcon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  place-items: center;
+  border: 1px solid var(--champion-border);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff 0%, #f6f6f6 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 2px rgba(22, 34, 51, 0.08),
+    0 8px 20px rgba(22, 34, 51, 0.08);
+  color: var(--openui-text-neutral-primary);
+  transition:
+    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 300ms ease;
+}
+
+.joinIcon svg {
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.joinSlot:hover .joinIcon {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 4px rgba(22, 34, 51, 0.08),
+    0 14px 28px rgba(22, 34, 51, 0.12);
+}
+
+.joinSlot:hover .joinIcon svg {
+  transform: rotate(90deg);
+}
+
+[data-theme="dark"] .joinIcon {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.joinTitle {
+  font-family: var(--home-font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.joinText {
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: 0.9375rem;
+}
+
+.note {
+  max-width: 40rem;
+  margin: 0;
+  padding-block: clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem);
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-display);
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+  text-wrap: pretty;
+}
+
+/* ── FAQ ── */
+
+.faq {
+  padding-block: clamp(3rem, 6vw, 5rem) clamp(4rem, 8vw, 7.5rem);
+}
+
+/* ── Tablet: two across, the join slot becomes a full-width strip ── */
+
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .joinCard {
+    grid-column: 1 / -1;
+  }
+
+  .joinSlot {
+    min-height: 160px;
+  }
+}
+
+/* ── Phones: one column ── */
+
+@media (max-width: 639px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .joinIcon,
+  .joinIcon svg {
+    transition: none;
+  }
+}
+
+/* The shared mobile hero sizes its title for the one-word "OpenUI"; two words
+   need a smaller size to fit a phone. */
+@media (max-width: 1023px) {
+  .hero [class*="mobileTitle"] {
+    font-size: clamp(2.5rem, 11vw, 4.5rem);
+    letter-spacing: -1px;
+  }
 }

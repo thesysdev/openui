@@ -15,7 +15,7 @@ export interface Champion {
   handle: string;
   photo: string;
   location?: string;
-  /** One or two sentences on what they work on in OpenUI. */
+  /** One short line on what they did in OpenUI. */
   bio: string;
   links: ChampionLink[];
 }
@@ -25,7 +25,7 @@ export const CHAMPIONS: Champion[] = [
     name: "Shinobu Hayashi",
     handle: "Shinyaigeek",
     photo: "/champions/shinyaigeek.webp",
-    bio: "Web developer focused on reliable web. Hardened the OpenUI monorepo's toolchain with pnpm catalogs and supply-chain checks, and fixed streaming behavior in react-ui components like Tabs and Accordion.",
+    bio: "Hardened the monorepo toolchain and fixed streaming in react-ui.",
     links: [
       { label: "GitHub", href: "https://github.com/Shinyaigeek" },
       { label: "X", href: "https://x.com/Shinyaigeek" },
@@ -36,7 +36,7 @@ export const CHAMPIONS: Champion[] = [
     name: "Sayandip Roy",
     handle: "shogun444",
     photo: "/champions/shogun444.webp",
-    bio: "Design engineer. Brought tool providers and markdown rendering to the Vue bindings, made the CLI and package builds work on Windows, and fixed the parser's handling of markdown inside strings.",
+    bio: "Brought tool providers and markdown to the Vue bindings.",
     links: [{ label: "GitHub", href: "https://github.com/shogun444" }],
   },
 ];
