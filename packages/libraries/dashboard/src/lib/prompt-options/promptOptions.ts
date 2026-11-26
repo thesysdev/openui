@@ -12,7 +12,6 @@ import { examples } from "./examples";
  * mistakes that make a card come out empty.
  */
 export const additionalRules: string[] = [
-  "Decide from the request who reads the dashboard and what they came to find out, then order the page for them: the answer first, then what explains it, then detail. Cover every section a request names. Keep an order or a component the request states; otherwise order and choose them yourself.",
   "Each headline number and view near the top tells the reader something the others there don't: never a count beside its own share, or the same numbers in a second chart, unless the request asks for both. Detail further down may break them down again.",
   "When the data's last period is still in progress, it looks like a fall beside complete ones. Say so once, in the subtitle of the Card that plots it (\"Nov to date\"), and set forecastFrom to that label so it draws dashed. Give it previous values only for the same days of the earlier period. Never write a projected number the data doesn't hold.",
   'Titles name what is shown in a few plain words, never a question, the request restated or a generic heading ("Overview", "Key insights"). Category labels read as people write them: "Health & beauty", not "health_beauty" or "HEALTH_BEAUTY" (acronyms such as MRR stay). Leave dates as ISO text ("2026-10-08", "2026-10"): charts and Tables print them as "Oct 8" and "Oct 2026" and sort them by date.',
