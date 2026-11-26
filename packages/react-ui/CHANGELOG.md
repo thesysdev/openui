@@ -1,5 +1,17 @@
 # @openuidev/react-ui
 
+## 0.20.0
+
+### Minor Changes
+
+- [#1713](https://github.com/thesysdev/openui/pull/1713) [`e2aa773`](https://github.com/thesysdev/openui/commit/e2aa7736700181ef47813d7238d7aa57afdc5fea) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `LiveArtifactRenderer` and `StaticArtifactRenderer`: a build's feed. The card and the open dashboard show one animated line saying what a build is doing now: "Thinking…", the calls by name, then "Building dashboard…". `Pending` is now a dotted sketch of a dashboard drawn widget by widget, and `label` replaces the feed with a note. Its new `heading` draws a dotted title and description at the top, for a page that shows the dashboard's title but doesn't have it yet. **Breaking:** `Pending` and `PendingLoader` no longer take `shapeColor`, `cardColor`, `borderColor`, `cols` or `rows`; the sketch is drawn in `color` and follows the area's width. `Loading` is now the same small pill as the feed, at the bottom of what's visible, instead of a badge in the corner. Both float over the dashboard whether the content or the page scrolls, and take the page's light or dark colors from its `color-scheme`, as the sketch does, without a `ThemeProvider`. `useArtifactRenderer()` gains `isEditing`: a new version is streaming in over the one on screen.
+
+### Patch Changes
+
+- [#1713](https://github.com/thesysdev/openui/pull/1713) [`e2aa773`](https://github.com/thesysdev/openui/commit/e2aa7736700181ef47813d7238d7aa57afdc5fea) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `LiveArtifactRenderer` and `StaticArtifactRenderer`: one status everywhere. The card, the bar and the pending skeleton show the same line, and a build names its tools and scripts ("Calling list_orders…", "Writing and testing revenueByDay…"). The card's status is a pill in the theme's colors, and a new `PreviewError` part shows the error there. The open dashboard drops its second loading pill, its bar's loader waits while `Pending` shows, and a long error message wraps inside the alert.
+- Updated dependencies [[`e2aa773`](https://github.com/thesysdev/openui/commit/e2aa7736700181ef47813d7238d7aa57afdc5fea)]:
+  - @openuidev/react-headless@0.20.0
+
 ## 0.19.0
 
 ### Minor Changes

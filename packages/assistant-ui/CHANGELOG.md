@@ -1,5 +1,14 @@
 # @openuidev/assistant-ui
 
+## 0.2.2
+
+### Patch Changes
+
+- [#1733](https://github.com/thesysdev/openui/pull/1733) [`53258b9`](https://github.com/thesysdev/openui/commit/53258b96208b017c3c97491491f9b4341b6feafa) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - `@openuidev/assistant-ui` accepts `@openuidev/react-ui` and `@openuidev/react-headless` 0.20.
+- Updated dependencies [[`e2aa773`](https://github.com/thesysdev/openui/commit/e2aa7736700181ef47813d7238d7aa57afdc5fea), [`e2aa773`](https://github.com/thesysdev/openui/commit/e2aa7736700181ef47813d7238d7aa57afdc5fea), [`e2aa773`](https://github.com/thesysdev/openui/commit/e2aa7736700181ef47813d7238d7aa57afdc5fea)]:
+  - @openuidev/react-ui@0.20.0
+  - @openuidev/react-headless@0.20.0
+
 ## 0.2.1
 
 ### Patch Changes
