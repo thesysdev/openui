@@ -418,7 +418,10 @@ export async function interpreter(request: { name: string; arguments: Record<str
   await new Promise((resolve) => setTimeout(resolve, 300));
   if (request.name === "postgres_query") {
     const sql = String(request.arguments["sql"] ?? "");
-    return sql.includes("GROUP BY 1") ? { rows: dailyRows } : { rows: [{ revenue: 184920 }] };
+    if (sql.includes("GROUP BY 1")) return { rows: dailyRows };
+    // 38.6% gross margin over the revenue above.
+    if (sql.includes("sum(cost)")) return { rows: [{ cost: 113541 }] };
+    return { rows: [{ revenue: 184920 }] };
   }
   return results[request.name] ?? { rows: [] };
 }
