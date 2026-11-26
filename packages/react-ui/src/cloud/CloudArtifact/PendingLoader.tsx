@@ -26,16 +26,6 @@ export interface PendingLoaderProps {
   label?: string;
   /** The color the sketch is drawn in, as any CSS color. Defaults to the text color. */
   color?: string;
-  /** @deprecated The skeleton is a dotted sketch now, drawn in `color`. Ignored. */
-  shapeColor?: string;
-  /** @deprecated Ignored. */
-  cardColor?: string;
-  /** @deprecated Ignored. */
-  borderColor?: string;
-  /** @deprecated The sketch follows the area's width. Ignored. */
-  cols?: number;
-  /** @deprecated Ignored. */
-  rows?: number;
 }
 
 /*
