@@ -90,6 +90,6 @@
     "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "vitest": "^4.0.18"
+    "vitest": "catalog:"
   }
 }

@@ -220,7 +220,7 @@
     "tsx": "^4.19.2",
     "rimraf": "^5.0.7",
     "vite": "^6.4.2",
-    "vitest": "^4.0.18",
+    "vitest": "catalog:",
     "webpack": "^5.104.1"
   },
   "keywords": [

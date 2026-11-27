@@ -76,7 +76,7 @@
     "ng-packagr": "catalog:",
     "rxjs": "catalog:",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.0"
+    "vitest": "catalog:"
   },
   "module": "./dist/fesm2022/openuidev-angular-lang.mjs",
   "types": "./dist/types/openuidev-angular-lang.d.ts",
