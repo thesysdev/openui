@@ -85,7 +85,9 @@ The full reference is at [openui.com/docs/api-reference/server-python](https://o
 
 ## Develop
 
+The tests run against a fake OpenUI Cloud. `tests/fixtures/ts_parity.json` holds the TypeScript SDK's output for the converters, config block, dashboard tools and Autofix, so a change that drifts from `@openuidev/server` fails here.
+
 ```bash
 uv sync
-uv run ruff check && uv run ruff format --check && uv run mypy
+uv run ruff check && uv run ruff format --check && uv run mypy && uv run pytest
 ```
