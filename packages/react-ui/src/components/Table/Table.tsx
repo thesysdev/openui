@@ -139,8 +139,15 @@ const ScrollableTable = React.forwardRef<HTMLTableElement, ScrollableTableProps>
 
       compute();
 
+      // Streamed rows and columns grow the table without resizing its
+      // container, so observe the table as well. Re-measuring from an effect
+      // keyed on `children` ran on every render and set state inside each
+      // passive-effect flush; a burst of streamed chunks turned that into
+      // "Maximum update depth exceeded".
       const ro = new ResizeObserver(() => compute());
       ro.observe(container);
+      const table = container.querySelector("table");
+      if (table) ro.observe(table);
 
       const onScroll = () => {
         setCanScrollLeft(container.scrollLeft > 0);
@@ -152,7 +159,7 @@ const ScrollableTable = React.forwardRef<HTMLTableElement, ScrollableTableProps>
         ro.disconnect();
         container.removeEventListener("scroll", onScroll);
       };
-    }, [children]);
+    }, []);
 
     const scrollToNextColumn = useCallback(() => {
       const container = scrollContainerRef.current;
