@@ -199,13 +199,13 @@ That question led us to OpenUI Lang. Not JSON with extra syntax bolted on. An ac
 Here's a TODO app with live data in OpenUI Lang:
 
 ```text
-root = Stack([CardHeader("Todos"), Stack([Input("title", $title, "What needs to be done?"), submitBtn], "row"), tbl, footer])
+root = Col([Title("Todos"), Row([Input($title, "Title", "text", "What needs to be done?"), submitBtn]), tbl, footer])
 todos = Query("list_todos", {}, {rows: []})
 createResult = Mutation("create_todo", {title: $title})
 submitBtn = Button("Add", Action([@Run(createResult), @Run(todos), @Reset($title)]))
 openCount = @Count(@Filter(todos.rows, "completed", "==", false))
-tbl = Table([Col("Title", todos.rows.title), Col("Done", todos.rows.completed)])
-footer = TextContent("" + openCount + " items left", "small")
+tbl = Table(["Title", "Done"], @Each(todos.rows, "r", [r.title, r.completed]))
+footer = Text("" + openCount + " items left", "sm")
 ```
 
 Seven lines. `root` comes first so the UI shell renders immediately during streaming. `submitBtn`, `tbl`, and `footer` are forward references that fill in as subsequent lines arrive. `$title` is used without declaration because undeclared reactive variables are auto-initialized. The query fetches from your tools, the mutation fires on button press, and `@Count(@Filter(...))` computes the remaining count. User types, clicks Add, and everything updates. No LLM roundtrip.
@@ -240,7 +240,7 @@ The real difference isn't just syntax. It's functional composition. `@Count` wra
 ```text
 filtered = @Filter(todos.rows, "title", "contains", $search)
 sorted = @Sort(filtered, $sortBy, "desc")
-emptyState = @Count(filtered) > 0 ? tbl : TextContent("No results.")
+emptyState = @Count(filtered) > 0 ? tbl : Text("No results.")
 ```
 
 Filter, sort, branch. Three lines, each building on the last. `@Sum`, `@Avg`, `@Round`, `@Each` all compose the same way. The LLM doesn't need to learn a new abstraction. It already knows how function calls work.
@@ -281,8 +281,8 @@ Five patch operations just to add a dropdown. Miss a bracket? Malformed. Wrong e
 
 ```text
 $filter = "all"
-filterBar = Select("filter", $filter, [SelectItem("all", "All"), SelectItem("active", "Active"), SelectItem("completed", "Completed")])
-root = Stack([CardHeader("Todos"), Stack([Input("title", $title, "What needs to be done?"), submitBtn], "row"), filterBar, tbl, footer])
+filterBar = Select($filter, [{value: "all", label: "All"}, {value: "active", label: "Active"}, {value: "completed", label: "Completed"}], "Filter")
+root = Col([Title("Todos"), Row([Input($title, "Title", "text", "What needs to be done?"), submitBtn]), filterBar, tbl, footer])
 ```
 
 Three lines. For those familiar with code, you already understand what happened here. It's just reassignment. `root` existed before without `filterBar`. Now the LLM redeclares it with `filterBar` included. Same name, new value. Last definition wins. `$filter` and `filterBar` are new names, so they get added. Everything else (`tbl`, `footer`, `submitBtn`) isn't mentioned, so it stays untouched.
@@ -306,7 +306,7 @@ And because each statement has a name, OpenUI renderer returns diagnostics that 
   "code": "unknown-component",
   "statementId": "chart",
   "message": "Unknown component \"DataTable\"",
-  "hint": "Available components: Card, Header, Table, Stack, PieChart, BarChart"
+  "hint": "Available components: Col, Row, Card, Title, Text, Table, Chart"
 }
 ```
 
@@ -373,13 +373,13 @@ Here's the same TODO app (add items, mark complete, show count) in both formats.
 **OpenUI Lang:**
 
 ```text
-root = Stack([CardHeader("Todos"), Stack([Input("title", $title, "What needs to be done?"), submitBtn], "row"), tbl, footer])
+root = Col([Title("Todos"), Row([Input($title, "Title", "text", "What needs to be done?"), submitBtn]), tbl, footer])
 todos = Query("list_todos", {}, {rows: []})
 createResult = Mutation("create_todo", {title: $title})
 submitBtn = Button("Add", Action([@Run(createResult), @Run(todos), @Reset($title)]))
 openCount = @Count(@Filter(todos.rows, "completed", "==", false))
-tbl = Table([Col("Title", todos.rows.title), Col("Done", todos.rows.completed)])
-footer = TextContent("" + openCount + " items left", "small")
+tbl = Table(["Title", "Done"], @Each(todos.rows, "r", [r.title, r.completed]))
+footer = Text("" + openCount + " items left", "sm")
 ```
 
 </div>

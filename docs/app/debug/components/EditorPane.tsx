@@ -69,7 +69,7 @@ export function EditorPane({
           highlightActiveLine: true,
           autocompletion: false,
         }}
-        placeholder={'Paste OpenUI Lang code, e.g.\n\nroot = Stack([title])\ntitle = TextContent("Hello")'}
+        placeholder={'Paste OpenUI Lang code, e.g.\n\nroot = Col([title])\ntitle = Title("Hello")'}
       />
       {readOnly && <div className={styles.editorLock}>read-only during playback</div>}
     </div>

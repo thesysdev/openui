@@ -9,7 +9,7 @@ description: Parse and render OpenUI Lang streams in React.
 
 ```tsx
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library } from "@openuidev/intelligent-ui-library";
 
 export function AssistantMessage({
   content,
@@ -18,7 +18,7 @@ export function AssistantMessage({
   content: string | null;
   isStreaming: boolean;
 }) {
-  return <Renderer library={openuiLibrary} response={content} isStreaming={isStreaming} />;
+  return <Renderer library={library} response={content} isStreaming={isStreaming} />;
 }
 ```
 
@@ -124,7 +124,7 @@ If no `onError` callback is provided, errors are logged to `console.warn` instea
 
 ```tsx
 <Renderer
-  library={openuiLibrary}
+  library={library}
   response={content}
   onAction={(event) => {
     if (event.type === "continue_conversation") {

@@ -252,7 +252,7 @@ import {
   openAIAdapter,
   openAIMessageFormat,
 } from "@openuidev/react-ui";
-import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
+import { library } from "@openuidev/intelligent-ui-library";
 
 const llm = {
   send: ({ messages, signal }) =>
@@ -267,7 +267,7 @@ const llm = {
 
 <AgentInterface
   llm={llm}
-  componentLibrary={openuiChatLibrary}
+  componentLibrary={library}
 />
 `}
           />
@@ -298,7 +298,7 @@ const llm = {
         </p>
 
         <FeatureCards direction="horizontal" cols={4} className="mb-4 sm:mb-6">
-          <FeatureCard direction="horizontal" title="Layout" description="Grid, Stack, Flex" />
+          <FeatureCard direction="horizontal" title="Layout" description="Col, Row, Grid" />
           <FeatureCard direction="horizontal" title="Forms" description="Input, Select, Radio" />
           <FeatureCard
             direction="horizontal"
@@ -322,8 +322,8 @@ const llm = {
             <TabsContent value="quick-example" className="mt-4">
               <CodeBlock
                 title="Quick example"
-                code={`import { createLibrary, defineComponent } from '@openuidev/react-lang';
-import { openuiLibrary } from '@openuidev/react-ui';
+                code={`import { defineComponent } from '@openuidev/react-lang';
+import { library } from '@openuidev/intelligent-ui-library';
 import { z } from 'zod/v4';
 
 // Generate prompt with CLI: openui generate ./src/library.ts
@@ -337,10 +337,8 @@ const CustomWidget = defineComponent({
   component: () => null,
 });
 
-const customLibrary = createLibrary({
-  root: openuiLibrary.root ?? 'Stack',
-  componentGroups: openuiLibrary.componentGroups,
-  components: [...Object.values(openuiLibrary.components), CustomWidget],
+const customLibrary = library.extend({
+  components: { add: [CustomWidget] },
 });`}
               />
             </TabsContent>
@@ -350,10 +348,10 @@ const customLibrary = createLibrary({
                 title="Using with Chat UI"
                 code={`import {
   AgentInterface,
-  openuiLibrary,
   openAIAdapter,
   openAIMessageFormat,
 } from '@openuidev/react-ui';
+import { library } from '@openuidev/intelligent-ui-library';
 
 const llm = {
   send: ({ messages, signal }) =>
@@ -370,7 +368,7 @@ function App() {
   return (
     <AgentInterface
       llm={llm}
-      componentLibrary={openuiLibrary}
+      componentLibrary={library}
     />
   );
 }`}

@@ -22,6 +22,8 @@
     "@codemirror/view": "^6.43.6",
     "@fontsource/inter": "5.3.0",
     "@openuidev/cli": "workspace:*",
+    "@openuidev/dashboard-library": "workspace:^",
+    "@openuidev/intelligent-ui-library": "workspace:^",
     "@openuidev/lang-core": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
     "@openuidev/react-lang": "workspace:^",

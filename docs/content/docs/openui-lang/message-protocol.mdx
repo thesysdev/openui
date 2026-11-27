@@ -47,7 +47,7 @@ What the context holds is up to your app. OpenUI does not require a shape.
 import { parseMessage } from "@openuidev/react-lang";
 
 const { content, context, attributes, end } = parseMessage(stored);
-// content:    "root = Card([title, saveBtn])\n..."
+// content:    "root = Col([Card([title, saveBtn])])\n..."
 // context:    { formState: { note: "rush" } }
 // attributes: { library: "support@1.2.0" }
 // end:        true
@@ -109,7 +109,7 @@ Strip the markers before a stored message goes back to the model. For an assista
 The `StoredMessage` component above is the whole client side. Your app also:
 
 1. Saves each finished response: `save(buildMessage({ content: responseText, end: true }))`.
-2. Renders it with `<StoredMessage stored={row.message} library={openuiLibrary} save={...} />`, where `save` writes the new message back to the same row.
+2. Renders it with `<StoredMessage stored={row.message} library={library} save={...} />`, where `save` writes the new message back to the same row.
 3. Sends `parseMessage(row.message).content` as the assistant turn when it builds the history for the next request.
 
 The user fills in a form, reloads the page, and sees the form with the same values. The model sees only the program, never a `]]>openui:` line.
@@ -132,8 +132,8 @@ A stored message is the response text with marker lines:
 
 ```text
 ]]>openui:content?library=support%401.2.0
-root = Card([title, saveBtn])
-title = TextContent("Order 42")
+root = Col([Card([title, saveBtn])])
+title = Text("Order 42")
 saveBtn = Button("Save", @ToAssistant("Save order", {orderId: 42}))
 ]]>openui:context
 {"formState":{"note":"rush"}}

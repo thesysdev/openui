@@ -49,11 +49,11 @@ In [OpenUI Lang](/docs/openui-lang/overview), the response to "show revenue by r
 
 ```text
 $days = "7"
-root = Stack([filter, chart, tbl])
-filter = Select("days", [SelectItem("7", "Last 7 days"), SelectItem("30", "Last 30 days"), SelectItem("90", "Last 90 days")], null, null, $days)
+root = Col([filter, chart, tbl])
+filter = Select($days, [{value: "7", label: "Last 7 days"}, {value: "30", label: "Last 30 days"}, {value: "90", label: "Last 90 days"}], "days", null, null)
 metrics = Query("query_orders", {days: $days, groupBy: "region"}, {rows: []})
-chart = BarChart(metrics.rows.region, [Series("Revenue", metrics.rows.revenue)])
-tbl = Table([Col("Region", metrics.rows.region), Col("Revenue", metrics.rows.revenue, "number")])
+chart = Chart("bar", metrics.rows, "region", ["revenue"])
+tbl = Table(["Region", "Revenue"], @Each(metrics.rows, "r", [r.region, r.revenue]))
 ```
 
 Six statements, a few hundred output tokens, and no data anywhere in them. `metrics.rows.revenue` is a reference the runtime resolves, not a value the model typed. Three pieces make it work:
@@ -76,8 +76,8 @@ The output is a delta. The spec language is assignment-based and the last defini
 
 ```text
 metrics = Query("query_orders", {days: $days, groupBy: "category"}, {rows: []})
-chart = BarChart(metrics.rows.category, [Series("Revenue", metrics.rows.revenue)])
-tbl = Table([Col("Category", metrics.rows.category), Col("Revenue", metrics.rows.revenue, "number")])
+chart = Chart("bar", metrics.rows, "category", ["revenue"])
+tbl = Table(["Category", "Revenue"], @Each(metrics.rows, "r", [r.category, r.revenue]))
 ```
 
 The runtime merges these into the running program ([incremental editing](/docs/openui-lang/incremental-editing)). `$days`, `filter`, and `root` are untouched and keep working, and the new query runs outside the model, same as a filter change.

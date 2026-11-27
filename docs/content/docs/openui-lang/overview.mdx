@@ -24,7 +24,7 @@ Four pieces make that flow work:
 
 <GatewayCallout description="For production, route generation through the Gateway to correct invalid OpenUI Lang while it streams and recover from provider failures." />
 
-`@X(...)` is either a [function](/docs/openui-lang/functions), which computes a value, or an [action](/docs/openui-lang/actions), which runs on click. The name decides which. For example, `@Count(open)` in `TextContent("Open: " + @Count(open))` is a function, and `@ToAssistant("Explain this")` in `Button("Explain", @ToAssistant("Explain this"))` is an action.
+`@X(...)` is either a [function](/docs/openui-lang/functions), which computes a value, or an [action](/docs/openui-lang/actions), which runs on click. The name decides which. For example, `@Count(open)` in `Text("Open: " + @Count(open))` is a function, and `@ToAssistant("Explain this")` in `Button("Explain", @ToAssistant("Explain this"))` is an action.
 
 ## The core loop
 

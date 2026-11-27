@@ -18,7 +18,7 @@ OpenUI Lang is an open, compact language for describing interfaces with componen
 
 1.  **System prompt includes OpenUI Lang spec**: Your backend adds the prompt generated from your component library to your system prompt. It tells the LLM to respond in OpenUI Lang instead of plain text or JSON.
 
-2.  **LLM generates OpenUI Lang**: Instead of returning markdown, the model outputs a compact, line-oriented syntax (e.g., `root = Stack([chart])`) constrained to your component library.
+2.  **LLM generates OpenUI Lang**: Instead of returning markdown, the model outputs a compact, line-oriented syntax (e.g., `root = Col([chart])`) constrained to your component library.
 
 3.  **Streaming render**: On the client, the `<Renderer />` component parses each line as it arrives and maps it to your React components. Structure renders first, then data fills in.
 

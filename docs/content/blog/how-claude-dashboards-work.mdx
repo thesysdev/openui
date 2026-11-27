@@ -313,11 +313,11 @@ Here is the signups dashboard's core in OpenUI Lang, using components from the d
 
 ```text
 $weeks = "8"
-root = Stack([filter, chart])
-filter = Select("weeks", [SelectItem("4", "Last 4 weeks"), SelectItem("8", "Last 8 weeks")], null, null, $weeks)
+root = Col([filter, chart])
+filter = Select($weeks, [{value: "4", label: "Last 4 weeks"}, {value: "8", label: "Last 8 weeks"}], "weeks", null, null)
 weekly = Query("weekly_signups", {weeks: $weeks}, {rows: []})
 latest = @Last(@Sort(weekly.rows, "week_start"))
-chart = BarChart(weekly.rows.week_start, [Series("Signups", weekly.rows.signups)])
+chart = Chart("bar", weekly.rows, "week_start", ["signups"])
 ```
 
 A tile reads `latest.signups`. That is the `latest` calc, the `weeks` param and the chart draw, in six statements and with no page code.
