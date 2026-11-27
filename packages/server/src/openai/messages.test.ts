@@ -1,16 +1,7 @@
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { describe, expect, it } from "vitest";
-import type { ConversationItem } from "../conversations/types";
+import { stored } from "../__tests__/conversation-items";
 import { chatCompletionsConverter } from "./messages";
-
-/** Items as OpenUI Cloud returns them: with an id. */
-const stored = (items: object[]) =>
-  items.map((item, i) => ({
-    id: `item_${i}`,
-    object: "conversation.item",
-    conversation_id: "conv_1",
-    ...item,
-  })) as ConversationItem[];
 
 describe("chatCompletionsConverter.fromItems", () => {
   it("rebuilds a turn: a reply's text and its tool calls are one assistant message", () => {

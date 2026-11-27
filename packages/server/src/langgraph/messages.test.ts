@@ -6,17 +6,8 @@ import {
   ToolMessage,
 } from "@langchain/core/messages";
 import { describe, expect, it } from "vitest";
-import type { ConversationItem } from "../conversations/types";
+import { stored } from "../__tests__/conversation-items";
 import { langGraphConverter } from "./messages";
-
-/** Items as OpenUI Cloud returns them: with an id. */
-const stored = (items: object[]) =>
-  items.map((item, i) => ({
-    id: `item_${i}`,
-    object: "conversation.item",
-    conversation_id: "conv_1",
-    ...item,
-  })) as ConversationItem[];
 
 describe("langGraphConverter.toItems", () => {
   it("converts a turn with a tool call, skipping system messages", () => {
