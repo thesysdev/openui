@@ -218,7 +218,7 @@
     "storybook": "^8.5.3",
     "tailwindcss": "^3",
     "tsx": "^4.19.2",
-    "rimraf": "^5.0.7",
+    "rimraf": "catalog:",
     "vite": "^6.4.2",
     "vitest": "^4.0.18",
     "webpack": "^5.104.1"
