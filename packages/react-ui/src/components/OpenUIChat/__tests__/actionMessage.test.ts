@@ -26,3 +26,21 @@ it("sends continue_conversation itself and hands a custom action to onAction", (
   expect(send).toHaveBeenCalledTimes(1);
   expect(onAction.mock.calls.map(([e]) => e.type)).toEqual(["CopyToClipboard"]);
 });
+
+it("runChatAction opens http(s) @OpenUrl targets but never script schemes", () => {
+  const open = vi.fn();
+  vi.stubGlobal("window", { open });
+  const openUrl = (url: string): ActionEvent => ({
+    type: BuiltinActionType.OpenUrl,
+    params: { url },
+    humanFriendlyMessage: "",
+  });
+  runChatAction(openUrl("https://example.com/docs"), vi.fn());
+  expect(open).toHaveBeenCalledWith("https://example.com/docs", "_blank", "noopener,noreferrer");
+  open.mockClear();
+  runChatAction(openUrl("javascript:alert(document.cookie)"), vi.fn());
+  runChatAction(openUrl("java\tscript:alert(1)"), vi.fn());
+  runChatAction(openUrl("data:text/html,<script>alert(1)</script>"), vi.fn());
+  expect(open).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
+});
