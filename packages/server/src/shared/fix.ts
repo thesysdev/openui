@@ -1,6 +1,6 @@
 import { generateSystemPrompt, type Parser } from "@openuidev/lang-core";
 import type { AutofixInput, AutofixOptions, AutofixResult } from "./types";
-import { AutofixError, MAX_AUTOFIX_GENERATION_LENGTH } from "./types";
+import { AutofixError } from "./types";
 import { errorsOf, readCompletion, repairContext } from "./utils";
 
 // Return valid programs unchanged and send invalid programs to the Autofix API.
@@ -19,9 +19,6 @@ export async function fixGeneration(
   { generation, messages = [], signal }: AutofixInput,
 ): Promise<AutofixResult> {
   signal?.throwIfAborted();
-  if (generation.length > MAX_AUTOFIX_GENERATION_LENGTH) {
-    throw new AutofixError("Generation exceeds 100,000 characters", "generation_too_large");
-  }
   const initialErrors = errorsOf(parser.parse(generation));
   if (initialErrors.length === 0) {
     return {
