@@ -214,7 +214,6 @@ langgraph_converter: ConversationItemConverter[BaseMessage, LangGraphHistoryMess
 ```
 
 - `to_items` skips system messages and unpaired tool calls, as `items.create` does. `from_items` keeps a tool call only with its result.
-- `langgraph_converter` also has `to_chat_messages` and `from_chat_messages`, which convert between LangChain and Chat Completions messages.
 - Subclass `ConversationItemConverter` to store another SDK's messages, then pass its `to_items` result to `openui.conversations.items.create`.
 
 ## Artifacts

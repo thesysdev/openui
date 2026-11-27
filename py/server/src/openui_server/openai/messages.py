@@ -6,7 +6,12 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
-from ..conversations.converter import ConversationItemConverter
+from ..conversations.converter import (
+    ConversationItemConverter,
+    paired_call_ids,
+    text_of,
+    tool_output_text,
+)
 
 if TYPE_CHECKING:
     from openai.types.chat import (
@@ -17,7 +22,6 @@ if TYPE_CHECKING:
     )
     from openai.types.responses import ResponseInputContentParam, ResponseInputItemParam
 from ..conversations.types import ConversationItem
-from ..core.http import json_text
 
 
 def _user_content_of(content: Any) -> list[ResponseInputContentParam]:
@@ -47,7 +51,7 @@ def _texts(parts: Iterable[Any], only_text_type: bool = False) -> str:
     )
 
 
-def _assistant_text_of(content: Any) -> str:
+def _assistanttext_of(content: Any) -> str:
     if isinstance(content, str):
         return content
     return _texts(content, only_text_type=True) if isinstance(content, list) else ""
@@ -102,7 +106,7 @@ def chat_messages_to_items(
             if content:
                 items.append({"type": "message", "role": "user", "content": content})
         elif message["role"] == "assistant":
-            text = _assistant_text_of(message.get("content"))
+            text = _assistanttext_of(message.get("content"))
             if text:
                 # OpenAI's input types have no short assistant message; Conversations takes it.
                 assistant: dict[str, Any] = {
@@ -134,17 +138,12 @@ def chat_messages_to_items(
     return items
 
 
-def _text_of(part: Any) -> str:
-    text = part.get("text") if isinstance(part, Mapping) else None
-    return text if isinstance(text, str) else ""
-
-
 def _user_message_content(content: Any) -> str | list[ChatCompletionContentPartParam]:
     """A user message's content: plain text, or parts when it has an image."""
     if isinstance(content, str):
         return content
     if not any(part.get("type") == "input_image" for part in content):
-        return "".join(_text_of(part) for part in content)
+        return "".join(text_of(part) for part in content)
 
     parts: list[ChatCompletionContentPartParam] = []
     for part in content:
@@ -156,25 +155,16 @@ def _user_message_content(content: Any) -> str | list[ChatCompletionContentPartP
                 )
             else:
                 parts.append({"type": "image_url", "image_url": {"url": part["image_url"]}})
-        elif _text_of(part):
-            parts.append({"type": "text", "text": _text_of(part)})
+        elif text_of(part):
+            parts.append({"type": "text", "text": text_of(part)})
     return parts
-
-
-def _tool_output_text(output: Any) -> str:
-    if isinstance(output, str):
-        return output
-    if isinstance(output, list):
-        return "".join(_text_of(part) for part in output)
-    return json_text(output if output is not None else "")
 
 
 def items_to_chat_messages(items: Sequence[ConversationItem]) -> list[ChatCompletionMessageParam]:
     """Stored items back to Chat Completions messages, oldest first: the reverse of
     `chat_messages_to_items()`. A tool call and its result are kept only together, since Chat
     Completions rejects either alone; other item types, such as `reasoning`, are skipped."""
-    called = {item.get("call_id") for item in items if item.get("type") == "function_call"}
-    answered = {item.get("call_id") for item in items if item.get("type") == "function_call_output"}
+    paired = paired_call_ids(items)
 
     messages: list[ChatCompletionMessageParam] = []
     # The latest message, when it's the assistant's: a reply's text and its tool calls are one.
@@ -193,7 +183,7 @@ def items_to_chat_messages(items: Sequence[ConversationItem]) -> list[ChatComple
                 if text:
                     reply = {"role": "assistant", "content": text}
                     messages.append(reply)
-        elif kind == "function_call" and item.get("call_id") in answered:
+        elif kind == "function_call" and item.get("call_id") in paired:
             call: ChatCompletionMessageToolCallParam = {
                 "id": item["call_id"],
                 "type": "function",
@@ -207,12 +197,12 @@ def items_to_chat_messages(items: Sequence[ConversationItem]) -> list[ChatComple
                 messages.append(reply)
             reply.setdefault("tool_calls", [])
             cast("list[ChatCompletionMessageToolCallParam]", reply["tool_calls"]).append(call)
-        elif kind == "function_call_output" and item.get("call_id") in called:
+        elif kind == "function_call_output" and item.get("call_id") in paired:
             messages.append(
                 {
                     "role": "tool",
                     "tool_call_id": item["call_id"],
-                    "content": _tool_output_text(item.get("output")),
+                    "content": tool_output_text(item.get("output")),
                 }
             )
             reply = None

@@ -1,4 +1,4 @@
-"""LangGraph's LangChain messages to Chat Completions messages and back (`langgraph/messages.ts`).
+"""LangGraph's LangChain messages to conversation items and back (`langgraph/messages.ts`).
 Messages are told apart by `message.type`, so `langchain_core` is only used for its types."""
 
 from __future__ import annotations
@@ -7,57 +7,59 @@ import json
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
+from ..conversations.converter import (
+    ConversationItemConverter,
+    paired_call_ids,
+    text_of,
+    tool_output_text,
+)
+from ..conversations.types import ConversationItem, LangGraphAIMessage, LangGraphHistoryMessage
+from ..core.http import json_text
+
 if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage, ToolCall
-    from openai.types.chat import (
-        ChatCompletionContentPartParam,
-        ChatCompletionMessageParam,
-        ChatCompletionMessageToolCallParam,
-    )
-    from openai.types.responses import ResponseInputItemParam
-
-from ..conversations.converter import ConversationItemConverter
-from ..conversations.types import (
-    ConversationItem,
-    LangGraphAIMessage,
-    LangGraphHistoryMessage,
-    LangGraphHumanMessage,
-)
-from ..core.http import json_text
-from ..openai.messages import chat_completions_converter
+    from openai.types.responses import ResponseInputContentParam, ResponseInputItemParam
 
 # Python's merged stream chunks keep their own type name.
 _AI_TYPES = ("ai", "AIMessageChunk")
 
 
-# LangChain's text/image_url content blocks use the Chat Completions shape. A bare string in the
-# list is text, as LangChain's Python messages allow.
-def _user_content_of(content: Any) -> str | list[ChatCompletionContentPartParam]:
+def _detail_of(detail: Any) -> str:
+    return detail if detail in ("low", "high") else "auto"
+
+
+def _image_url_of(image: Any) -> Any:
+    return (
+        image
+        if isinstance(image, str)
+        else image.get("url")
+        if isinstance(image, Mapping)
+        else None
+    )
+
+
+def _input_parts_of(content: Any) -> list[ResponseInputContentParam]:
+    """A human message's text and image blocks as input parts. A bare string in the list is
+    text, as LangChain's Python messages allow."""
     if isinstance(content, str):
-        return content
-    parts: list[ChatCompletionContentPartParam] = []
+        return [{"type": "input_text", "text": content}] if content else []
+    parts: list[ResponseInputContentParam] = []
     for block in content or []:
         if isinstance(block, str):
-            parts.append({"type": "text", "text": block})
+            if block:
+                parts.append({"type": "input_text", "text": block})
         elif not isinstance(block, Mapping):
             continue
-        elif block.get("type") == "text" and isinstance(block.get("text"), str):
-            parts.append({"type": "text", "text": block["text"]})
+        elif block.get("type") == "text" and isinstance(block.get("text"), str) and block["text"]:
+            parts.append({"type": "input_text", "text": block["text"]})
         elif block.get("type") == "image_url":
             image = block.get("image_url")
-            if isinstance(image, str):
-                parts.append({"type": "image_url", "image_url": {"url": image}})
-            elif isinstance(image, Mapping) and isinstance(image.get("url"), str):
-                detail = image.get("detail")
-                parts.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": image["url"],
-                            "detail": detail if detail in ("low", "high") else "auto",
-                        },
-                    }
-                )
+            url = _image_url_of(image)
+            if not isinstance(url, str) or not url:
+                continue
+            detail = _detail_of(image.get("detail") if isinstance(image, Mapping) else None)
+            part = {"type": "input_image", "image_url": url, "detail": detail}
+            parts.append(cast("ResponseInputContentParam", part))
     return parts
 
 
@@ -78,45 +80,22 @@ def _text_of(content: Any) -> str:
     return "".join(texts)
 
 
-def _tool_calls_of(message: BaseMessage) -> list[ChatCompletionMessageToolCallParam]:
-    calls: list[ToolCall] = getattr(message, "tool_calls", None) or []
-    result: list[ChatCompletionMessageToolCallParam] = []
-    for call in calls:
-        id, name, args = call.get("id"), call.get("name"), call.get("args")
-        if id and name:
-            arguments = args if isinstance(args, str) else json_text(args or {})
-            result.append(
-                {"type": "function", "id": id, "function": {"name": name, "arguments": arguments}}
-            )
-    return result
-
-
-def langgraph_to_chat_messages(
-    messages: Sequence[BaseMessage],
-) -> list[ChatCompletionMessageParam]:
-    """A LangGraph turn as Chat Completions messages. System messages are instructions, not
-    history."""
-    result: list[ChatCompletionMessageParam] = []
-    for message in messages:
-        if message.type == "human":
-            result.append({"role": "user", "content": _user_content_of(message.content)})
-        elif message.type in _AI_TYPES:
-            result.append(
-                {
-                    "role": "assistant",
-                    "content": _text_of(message.content),
-                    "tool_calls": _tool_calls_of(message),
-                }
-            )
-        elif message.type == "tool" and getattr(message, "tool_call_id", None):
-            result.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": getattr(message, "tool_call_id"),  # noqa: B009
-                    "content": _text_of(message.content),
-                }
-            )
-    return result
+def _human_content_of(content: Any) -> str | list[str | dict[str, Any]]:
+    """A stored user message as LangChain content: text, or blocks when it has an image."""
+    if isinstance(content, str):
+        return content
+    if not any(part.get("type") == "input_image" for part in content):
+        return "".join(text_of(part) for part in content)
+    blocks: list[str | dict[str, Any]] = []
+    for part in content:
+        if part.get("type") == "input_image" and isinstance(part.get("image_url"), str):
+            image: dict[str, Any] = {"url": part["image_url"]}
+            if part.get("detail") in ("low", "high", "auto"):
+                image["detail"] = part["detail"]
+            blocks.append({"type": "image_url", "image_url": image})
+        elif text_of(part):
+            blocks.append({"type": "text", "text": text_of(part)})
+    return blocks
 
 
 def _args_of(arguments: Any) -> dict[str, Any]:
@@ -127,74 +106,104 @@ def _args_of(arguments: Any) -> dict[str, Any]:
     return args if isinstance(args, dict) else {}
 
 
-def chat_to_langgraph_messages(
-    messages: Sequence[ChatCompletionMessageParam],
-) -> list[LangGraphHistoryMessage]:
-    """Chat Completions messages as LangGraph takes them: plain `{"role", "content"}` dicts,
-    which its `add_messages` reducer turns into LangChain messages."""
-    result: list[LangGraphHistoryMessage] = []
-    for message in messages:
-        if message["role"] == "user":
-            parts = message["content"]
-            # LangChain's text and image_url blocks are Chat Completions' parts.
-            human: LangGraphHumanMessage = {
-                "role": "human",
-                "content": parts if isinstance(parts, str) else cast("Any", list(parts)),
-            }
-            result.append(human)
-        elif message["role"] == "assistant":
-            content = message.get("content")
-            ai: LangGraphAIMessage = {
-                "role": "ai",
-                "content": content if isinstance(content, str) else "",
-            }
-            tool_calls: list[ToolCall] = []
-            for call in message.get("tool_calls") or []:
-                if call["type"] == "function":
-                    function = call["function"]
-                    args = _args_of(function.get("arguments"))
-                    tool_calls.append(
-                        {
-                            "type": "tool_call",
-                            "id": call["id"],
-                            "name": function["name"],
-                            "args": args,
-                        }
-                    )
-            if tool_calls:
-                ai["tool_calls"] = tool_calls
-            result.append(ai)
-        elif message["role"] == "tool":
-            content = message["content"]
-            result.append(
-                {
-                    "role": "tool",
-                    "content": content if isinstance(content, str) else "",
-                    "tool_call_id": message["tool_call_id"],
-                }
-            )
-    return result
+def _tool_calls_of(message: BaseMessage) -> list[ToolCall]:
+    calls: list[ToolCall] = getattr(message, "tool_calls", None) or []
+    return [call for call in calls if call.get("id") and call.get("name")]
 
 
 class LangGraphConverter(ConversationItemConverter["BaseMessage", "LangGraphHistoryMessage"]):
-    """LangGraph's LangChain messages to conversation items, through Chat Completions, and back
-    as plain messages `graph.invoke` takes."""
+    """LangChain messages to conversation items, and back as plain messages `graph.invoke`
+    takes."""
 
     def to_items(self, messages: Sequence[BaseMessage]) -> list[ResponseInputItemParam]:
-        return chat_completions_converter.to_items(self.to_chat_messages(messages))
+        """LangChain messages as Conversations API items. Pass only the new turn. Skips system
+        messages, and tool calls or results without their pair."""
+        calls: set[str] = set()
+        results: set[str] = set()
+        for message in messages:
+            if message.type in _AI_TYPES:
+                calls.update(str(call["id"]) for call in _tool_calls_of(message))
+            elif message.type == "tool" and getattr(message, "tool_call_id", None):
+                results.add(getattr(message, "tool_call_id"))  # noqa: B009
+
+        items: list[ResponseInputItemParam] = []
+        for message in messages:
+            if message.type == "human":
+                content = _input_parts_of(message.content)
+                if content:
+                    items.append({"type": "message", "role": "user", "content": content})
+            elif message.type in _AI_TYPES:
+                text = _text_of(message.content)
+                if text:
+                    # OpenAI's input types have no short assistant message; Conversations takes it.
+                    assistant: dict[str, Any] = {
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [{"type": "output_text", "text": text}],
+                    }
+                    items.append(cast("ResponseInputItemParam", assistant))
+                for call in _tool_calls_of(message):
+                    if call["id"] not in results:
+                        continue
+                    args = call.get("args")
+                    items.append(
+                        {
+                            "type": "function_call",
+                            "call_id": str(call["id"]),
+                            "name": call["name"],
+                            "arguments": args if isinstance(args, str) else json_text(args or {}),
+                        }
+                    )
+            elif message.type == "tool" and getattr(message, "tool_call_id", None) in calls:
+                items.append(
+                    {
+                        "type": "function_call_output",
+                        "call_id": getattr(message, "tool_call_id"),  # noqa: B009
+                        "output": _text_of(message.content) or "{}",
+                    }
+                )
+        return items
 
     def from_items(self, items: Sequence[ConversationItem]) -> list[LangGraphHistoryMessage]:
-        return self.from_chat_messages(chat_completions_converter.from_items(items))
-
-    def to_chat_messages(self, messages: Sequence[BaseMessage]) -> list[ChatCompletionMessageParam]:
-        """A LangGraph turn as Chat Completions messages."""
-        return langgraph_to_chat_messages(messages)
-
-    def from_chat_messages(
-        self, messages: Sequence[ChatCompletionMessageParam]
-    ) -> list[LangGraphHistoryMessage]:
-        """Chat Completions messages as LangGraph takes them."""
-        return chat_to_langgraph_messages(messages)
+        """Stored items as plain `{"role", "content"}` messages that `graph.invoke` takes. Keeps a
+        tool call only with its result; skips other types, such as `reasoning`."""
+        paired = paired_call_ids(items)
+        messages: list[LangGraphHistoryMessage] = []
+        # The latest message, when it's an AI one: a reply's text and its tool calls are one.
+        reply: LangGraphAIMessage | None = None
+        for item in items:
+            kind, content = item.get("type"), item.get("content") or ""
+            if kind == "message" and item.get("role") == "user":
+                human = _human_content_of(content)
+                if human:
+                    messages.append({"role": "human", "content": human})
+                    reply = None
+            elif kind == "message" and item.get("role") == "assistant":
+                text = content if isinstance(content, str) else "".join(map(text_of, content))
+                if text:
+                    reply = {"role": "ai", "content": text}
+                    messages.append(reply)
+            elif kind == "function_call" and item.get("call_id") in paired:
+                call: ToolCall = {
+                    "type": "tool_call",
+                    "id": item["call_id"],
+                    "name": item.get("name") or "",
+                    "args": _args_of(item.get("arguments")),
+                }
+                if reply is None:
+                    reply = {"role": "ai", "content": "", "tool_calls": []}
+                    messages.append(reply)
+                reply.setdefault("tool_calls", []).append(call)
+            elif kind == "function_call_output" and item.get("call_id") in paired:
+                messages.append(
+                    {
+                        "role": "tool",
+                        "content": tool_output_text(item.get("output")),
+                        "tool_call_id": item["call_id"],
+                    }
+                )
+                reply = None
+        return messages
 
 
 langgraph_converter = LangGraphConverter()
