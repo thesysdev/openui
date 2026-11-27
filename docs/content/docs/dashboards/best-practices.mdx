@@ -1,0 +1,60 @@
+---
+title: Best Practices
+description: Give the dashboard model your business context, and help your agent write good dashboard prompts.
+---
+
+The dashboard model builds each dashboard from three things: your business context, the prompt your agent writes, and your [data tools](/docs/dashboards/connect-data). This page covers the first two.
+
+## Business context
+
+The model knows your data tools, but not your business. Business context tells it what your terms mean, which period "this quarter" is, and which numbers matter.
+
+### What to include
+
+Start with what the business does and who reads the dashboards. Then define your terms, especially the ones you use differently from most, such as "Logos are customer accounts." For each key metric, say how it's calculated, which tool answers it, and what good looks like, such as "Churn above 2% a month is a concern."
+
+Finish with your calendar and units (fiscal year, time zone, currency, and rounding) and the defaults to use when a prompt doesn't say, such as the time range and comparison.
+
+### What to leave out
+
+Leave out anything about one user, such as their name or team. Dashboards get shared, so scope each viewer's data in your tools with [`context`](/docs/dashboards/connect-data#use-the-context) instead. What one tool returns belongs in that tool's `description`, and current numbers go stale, so let your tools return them. Never include secrets or personal data.
+
+### How to write it
+
+Write facts, one per line, in your users' words: "The fiscal year starts on February 1" works better than "Be careful with dates." Only define metrics your tools can produce, or the model tries to show a number it can't compute.
+
+Then test it with vague prompts, such as "How's this quarter going?". When the model picks the wrong metric or period, add the fact it was missing.
+
+### Provide it
+
+Pass it as `instructions` to [`defineDashboard`](/docs/dashboards/define-dashboards). It's sent with every `create` and `edit`.
+
+## Your agent
+
+Your agent, the model your users chat with, decides when to make a dashboard and writes its prompt. The dashboard model never sees the conversation: only that prompt, your `instructions`, and your data tools.
+
+### What it should know
+
+Give your agent a line on each data tool, so it knows what dashboards can show and turns down requests they can't answer instead of making an empty dashboard. Tell it to make a dashboard when the user wants to track, compare, or explore numbers, and to reply in text otherwise.
+
+It can't see the data, so it can say what a dashboard shows but not the numbers in it. The user watches the dashboard build, so a reply of one or two sentences is enough.
+
+### Writing the prompt
+
+The prompt is the dashboard model's whole brief, so it has to stand on its own. Resolve the conversation first: replace "that account" or "like before" with the actual names, filters, and periods. Start with the question behind the request, such as "Is the team on track for the quarter?", so the model knows what to lead with. Then name what to show: metrics, breakdowns, time range, comparisons, and the filters people can change.
+
+Write "the viewer's team" rather than a person's name, unless the user means one team by name. The dashboard gets shared, and your tools scope it to whoever opens it. Leave out numbers, since the dashboard loads them through your tools, unless your tools can't fetch them, such as a list the user pasted. Leave out your business context too, because `instructions` already carries it. Finish with a short, specific title, such as "Q4 pipeline by region", which users see in their lists.
+
+| Weak                                     | Better                                                                                                                                                                                   |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Make the sales dashboard we discussed." | "Is the viewer's team on track this fiscal quarter? Lead with open pipeline against last quarter, then pipeline by stage and the 10 largest open deals. Add region and segment filters." |
+
+### Editing
+
+When the user asks for a change, the agent edits the open dashboard with `edit_dashboard` and its id, and makes a new one only when asked. Each edit should be one change, described against what's there: "Add a table of the 10 largest open deals below the stage chart."
+
+For a dashboard from an earlier chat, the agent calls `get_dashboard` first to see its layout and whether `isEditable` is true. If it isn't, the user can only view it, so the agent makes a new one instead.
+
+### Provide it
+
+Put these rules in your agent's system prompt. [Add to your agent](/docs/dashboards/add-to-your-agent#instruct-the-agent) has one to start from.

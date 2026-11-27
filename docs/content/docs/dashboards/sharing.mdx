@@ -33,18 +33,47 @@ The API key column is for calls with your API key and no `userId`, which [act as
 
 ## Groups
 
-Pass the groups the user is in as `groupIds`, everywhere you pass `userId`: on the [frontend token](/docs/dashboards/authentication#frontend-token-route) and in the server [`context`](/docs/dashboards/authentication#the-user-id).
+Groups are yours: OpenUI matches a group share against the `groupIds` you pass, and never stores who's in a group.
+
+### What to include
+
+- **The units people already share with**: teams, departments, the whole company.
+- **Every level above the user**, so a share with a department reaches its teams. Maya, on team East in Sales at Acme, gets `team:t_81`, `dept:d_7`, and `company:c_42`.
+- **One group for everyone**, such as `company:<companyId>`. There's no built-in share for everyone.
+
+### What to leave out
+
+- **Permissions, feature flags, and roles nobody shares with.** They use up the 10.
+- **Groups meant to limit data.** A share opens the dashboard; your data tools decide which data it shows.
+
+### Ids
+
+- Use stable ids prefixed by kind, such as `team:t_81`, never names, which change.
+- A user can be in up to 10 groups, a dashboard can be shared with up to 10 groups, and the user and group ids you share with are up to 64 characters. OpenUI doesn't check that a user or group exists.
+- If your app serves many companies, ids must be unique across them: `team:sales` at two companies is one group to OpenUI. Use database ids or prefix them with the company, and never give every company the same `everyone` group. The same goes for user ids.
+
+### Pass them
+
+Build the user's groups in one function, in a fixed order:
+
+```ts title="lib/groups.ts"
+export function groupsFor(user: User): string[] {
+  return [
+    `company:${user.companyId}`,
+    ...user.departmentIds.toSorted().map((id) => `dept:${id}`),
+    ...user.teamIds.toSorted().map((id) => `team:${id}`),
+  ].slice(0, 10); // a fixed order, so the same groups are cut every time
+}
+```
+
+Pass them as `groupIds` everywhere you pass `userId`: on the [frontend token](/docs/dashboards/authentication#frontend-token-route) and in the server [`context`](/docs/dashboards/authentication#the-user-id).
 
 ```ts
-const groupIds = session.user.teamIds; // from your own system
+const groupIds = groupsFor(session.user);
 
 await openui.createFrontendToken({ userId: session.user.id, groupIds });
 await dashboards.edit({ id, prompt }, { userId: session.user.id, groupIds });
 ```
-
-Group ids are strings you choose, such as `team:sales` or an account id. A user can be in up to 10 groups, a dashboard can be shared with up to 10 groups, and the user and group ids you share with are up to 64 characters. OpenUI doesn't check that a user or group exists.
-
-To share with everyone, put every user in one group, such as `everyone`, and share with that group.
 
 Groups ride on the frontend token, which lasts 15 minutes. A user you remove from a group keeps that group's dashboards until their next token. Removing a share takes effect on the next request, and unpins the dashboard for users who pinned it only through that share.
 
