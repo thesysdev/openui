@@ -185,4 +185,17 @@ describe("langGraphConverter round trip", () => {
     });
     expect(langGraphConverter.toItems(history)).toEqual(items);
   });
+
+  it("stores the plain messages fromItems returns as the same items", () => {
+    const items = langGraphConverter.toItems([
+      new HumanMessage("Table for 2 at 8?"),
+      new AIMessage({
+        content: "Booking.",
+        tool_calls: [{ id: "t1", name: "book", args: { people: 2 }, type: "tool_call" }],
+      }),
+      new ToolMessage({ tool_call_id: "t1", content: "confirmed" }),
+    ]);
+    const plain = langGraphConverter.fromItems(stored(items));
+    expect(langGraphConverter.toItems(plain)).toEqual(items);
+  });
 });

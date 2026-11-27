@@ -212,17 +212,14 @@ export interface Conversations {
   readonly items: ConversationItems;
 }
 
-/** A conversation's items as one SDK's messages. */
+/** A conversation's items as one SDK's messages, in and out. */
 export interface MessageConversationItems<Input, Output> {
   /**
-   * Converts the messages to items and adds them in order, then resolves with the items as
-   * stored. Add only the new turn: earlier messages are already there.
+   * Adds the new turn and resolves with it as stored, in the shape `list` returns: without
+   * system messages, or tool calls and results missing their pair. Add only the new turn:
+   * earlier messages are already there.
    */
-  create(
-    id: string,
-    messages: readonly Input[],
-    options?: RequestOptions,
-  ): Promise<ConversationItem[]>;
+  create(id: string, messages: readonly Input[], options?: RequestOptions): Promise<Output[]>;
   /** The whole thread as messages, oldest first, ready to send to the model. */
   list(id: string, options?: RequestOptions): Promise<Output[]>;
 }
@@ -247,5 +244,11 @@ export type LangGraphHistoryMessage =
   | { role: "ai"; content: string; tool_calls?: ToolCall[] }
   | { role: "tool"; content: string; tool_call_id: string };
 
-/** Conversations whose items are LangGraph's LangChain messages. */
-export type LangGraphConversations = MessageConversations<BaseMessage, LangGraphHistoryMessage>;
+/**
+ * Conversations whose items are LangGraph's messages: LangChain messages, or the plain ones
+ * `items.list` returns, in; plain messages out.
+ */
+export type LangGraphConversations = MessageConversations<
+  BaseMessage | LangGraphHistoryMessage,
+  LangGraphHistoryMessage
+>;

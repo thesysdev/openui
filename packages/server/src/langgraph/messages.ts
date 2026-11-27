@@ -3,6 +3,7 @@ import type {
   BaseMessage,
   HumanMessage,
   MessageContent,
+  ToolCall,
   ToolMessage,
 } from "@langchain/core/messages";
 import type {
@@ -84,33 +85,72 @@ function argsOf(json: string): Record<string, unknown> {
 }
 
 /** LangChain messages to conversation items and back. */
+/** What `items.create` takes: LangChain messages, or the plain ones `fromItems` returns. */
+type LangGraphMessage = BaseMessage | LangGraphHistoryMessage;
+
+/** A message the turn can store, in one shape for both kinds. */
+type TurnMessage =
+  | { kind: "human"; content: MessageContent }
+  | { kind: "ai"; text: string; toolCalls: ToolCall[] }
+  | { kind: "tool"; text: string; toolCallId: string };
+
+const stringOf = (value: unknown) => (typeof value === "string" ? value : "");
+
+function turnMessageOf(message: LangGraphMessage): TurnMessage | undefined {
+  // A LangChain message has a `type`; a plain one, a `role`.
+  if (typeof (message as { type?: unknown }).type === "string") {
+    const langchain = message as BaseMessage;
+    if (isType<HumanMessage>(langchain, "human")) {
+      return { kind: "human", content: langchain.content };
+    }
+    if (isType<AIMessage>(langchain, "ai")) {
+      return { kind: "ai", text: langchain.text, toolCalls: langchain.tool_calls ?? [] };
+    }
+    if (isType<ToolMessage>(langchain, "tool") && langchain.tool_call_id) {
+      return { kind: "tool", text: langchain.text, toolCallId: langchain.tool_call_id };
+    }
+    return undefined;
+  }
+  const plain = message as LangGraphHistoryMessage;
+  if (plain.role === "human") return { kind: "human", content: plain.content };
+  if (plain.role === "ai") {
+    return { kind: "ai", text: stringOf(plain.content), toolCalls: plain.tool_calls ?? [] };
+  }
+  if (plain.role === "tool" && plain.tool_call_id) {
+    return { kind: "tool", text: stringOf(plain.content), toolCallId: plain.tool_call_id };
+  }
+  return undefined;
+}
+
+/** LangChain messages to conversation items and back. */
 export class LangGraphConverter extends ConversationItemConverter<
-  BaseMessage,
+  LangGraphMessage,
   LangGraphHistoryMessage
 > {
   /**
-   * LangChain messages as Conversations API items. Pass only the new turn. Skips system
-   * messages, and tool calls or results without their pair.
+   * LangChain messages, or the plain ones `fromItems` returns, as Conversations API items. Pass
+   * only the new turn. Skips system messages, and tool calls or results without their pair.
    */
-  toItems(messages: readonly BaseMessage[]): ResponseInputItem[] {
+  toItems(messages: readonly LangGraphMessage[]): ResponseInputItem[] {
+    const turn = messages.flatMap((message) => turnMessageOf(message) ?? []);
     const calls = new Set<string>();
     const results = new Set<string>();
-    for (const message of messages) {
-      if (isType<AIMessage>(message, "ai")) {
-        for (const call of message.tool_calls ?? []) if (call.id && call.name) calls.add(call.id);
-      } else if (isType<ToolMessage>(message, "tool") && message.tool_call_id) {
-        results.add(message.tool_call_id);
+    for (const message of turn) {
+      if (message.kind === "ai") {
+        for (const call of message.toolCalls) if (call.id && call.name) calls.add(call.id);
+      } else if (message.kind === "tool") {
+        results.add(message.toolCallId);
       }
     }
 
     const items: ResponseInputItem[] = [];
-    for (const message of messages) {
-      if (isType<HumanMessage>(message, "human")) {
+    for (const message of turn) {
+      if (message.kind === "human") {
         const content = inputPartsOf(message.content);
         if (content.length > 0) {
           items.push({ type: "message", role: "user", content } satisfies EasyInputMessage);
         }
-      } else if (isType<AIMessage>(message, "ai")) {
+      } else if (message.kind === "ai") {
         if (message.text) {
           items.push({
             type: "message",
@@ -118,7 +158,7 @@ export class LangGraphConverter extends ConversationItemConverter<
             content: [{ type: "output_text", text: message.text }],
           } as ResponseInputItem);
         }
-        for (const call of message.tool_calls ?? []) {
+        for (const call of message.toolCalls) {
           if (!call.id || !call.name || !results.has(call.id)) continue;
           items.push({
             type: "function_call",
@@ -127,10 +167,10 @@ export class LangGraphConverter extends ConversationItemConverter<
             arguments: typeof call.args === "string" ? call.args : JSON.stringify(call.args ?? {}),
           } satisfies ResponseFunctionToolCall);
         }
-      } else if (isType<ToolMessage>(message, "tool") && calls.has(message.tool_call_id)) {
+      } else if (calls.has(message.toolCallId)) {
         items.push({
           type: "function_call_output",
-          call_id: message.tool_call_id,
+          call_id: message.toolCallId,
           output: message.text || "{}",
         } satisfies ResponseInputItem.FunctionCallOutput);
       }

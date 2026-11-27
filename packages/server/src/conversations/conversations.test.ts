@@ -163,9 +163,9 @@ describe("openui.chat.conversations and openui.langgraph.conversations", () => {
     ]);
   });
 
-  it("items.create converts the turn and sends only the items", async () => {
+  it("chat items.create sends the turn as items and returns it as stored, as messages", async () => {
     const { openui, requests } = setup();
-    const items = await openui.chat.conversations.items.create("conv_1", [
+    const stored = await openui.chat.conversations.items.create("conv_1", [
       { role: "system", content: "rules" },
       { role: "user", content: "hi" },
       { role: "assistant", content: "hello" },
@@ -179,7 +179,32 @@ describe("openui.chat.conversations and openui.langgraph.conversations", () => {
         { type: "message", role: "assistant", content: [{ type: "output_text", text: "hello" }] },
       ],
     });
-    expect(items.map((item) => item.id)).toEqual(["item_0", "item_1"]);
+    // The system message isn't stored, so it isn't returned.
+    expect(stored).toEqual([
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "hello" },
+    ]);
+  });
+
+  it("langgraph items.create takes the plain messages items.list returns, and returns them", async () => {
+    const { openui, requests } = setup();
+    const turn = [
+      { role: "human" as const, content: "Book a table" },
+      {
+        role: "ai" as const,
+        content: "",
+        tool_calls: [{ type: "tool_call" as const, id: "t1", name: "book", args: { people: 2 } }],
+      },
+      { role: "tool" as const, content: "booked", tool_call_id: "t1" },
+    ];
+    expect(await openui.langgraph.conversations.items.create("conv_1", turn)).toEqual(turn);
+    expect(requests[0]!.body).toEqual({
+      items: [
+        { type: "message", role: "user", content: [{ type: "input_text", text: "Book a table" }] },
+        { type: "function_call", call_id: "t1", name: "book", arguments: '{"people":2}' },
+        { type: "function_call_output", call_id: "t1", output: "booked" },
+      ],
+    });
   });
 
   it("items.create needs an array of messages", async () => {

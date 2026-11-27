@@ -132,7 +132,7 @@ export function createConversations(api: CloudApi): Conversations {
   };
 }
 
-/** `conversations`, with items taken and read back as one SDK's messages, through `converter`. */
+/** `conversations`, with items taken and returned as one SDK's messages, through `converter`. */
 export function withMessages<Input, Output>(
   conversations: Conversations,
   converter: ConversationItemConverter<Input, Output>,
@@ -143,7 +143,7 @@ export function withMessages<Input, Output>(
     items: {
       async create(id, messages, options) {
         if (!Array.isArray(messages)) invalidInput("messages must be an array");
-        return items.create(id, converter.toItems(messages), options);
+        return converter.fromItems(await items.create(id, converter.toItems(messages), options));
       },
 
       // Every page, since a reply's text and its tool calls can sit on either side of one.
