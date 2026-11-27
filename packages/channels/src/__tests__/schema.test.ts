@@ -6,6 +6,8 @@ import assert from "node:assert/strict";
 import { describe, test } from "vitest";
 import { buildScenarios } from "./fixtures/scenarios";
 import {
+  validateDiscord,
+  validateDiscordModal,
   validateSlack,
   validateSlackModal,
   validateTeams,
@@ -18,7 +20,11 @@ const scenarios = await buildScenarios();
 describe("golden scenarios conform to platform schemas", () => {
   for (const [key, value] of Object.entries<any>(scenarios)) {
     test(key, () => {
-      if (key.startsWith("modal:")) {
+      if (key.startsWith("discord:modal:")) {
+        assert.deepEqual(validateDiscordModal(value), []);
+      } else if (key.includes("discord")) {
+        assert.deepEqual(validateDiscord(value.output), []);
+      } else if (key.startsWith("modal:")) {
         assert.deepEqual(validateSlackModal(value), []);
       } else if (key.includes("teams")) {
         assert.deepEqual(validateTeams(value.output), []);

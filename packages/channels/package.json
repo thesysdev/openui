@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/channels",
   "version": "0.2.0",
-  "description": "Generative UI for chat platforms: natively-rendered, interactive messages for Slack (Block Kit), Microsoft Teams (Adaptive Cards), Telegram, and WhatsApp, compiled from OpenUI Lang",
+  "description": "Generative UI for chat platforms: natively-rendered, interactive messages for Slack (Block Kit), Microsoft Teams (Adaptive Cards), Discord (Components V2), Telegram, and WhatsApp, compiled from OpenUI Lang",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.cjs",
@@ -14,6 +14,9 @@
       ],
       "teams": [
         "dist/teams/index.d.cts"
+      ],
+      "discord": [
+        "dist/discord/index.d.cts"
       ],
       "telegram": [
         "dist/telegram/index.d.cts"
@@ -63,6 +66,16 @@
       "require": {
         "types": "./dist/teams/index.d.cts",
         "default": "./dist/teams/index.cjs"
+      }
+    },
+    "./discord": {
+      "import": {
+        "types": "./dist/discord/index.d.mts",
+        "default": "./dist/discord/index.mjs"
+      },
+      "require": {
+        "types": "./dist/discord/index.d.cts",
+        "default": "./dist/discord/index.cjs"
       }
     },
     "./telegram": {
@@ -154,6 +167,8 @@
     "block-kit",
     "teams",
     "adaptive-cards",
+    "discord",
+    "discord-components",
     "telegram",
     "whatsapp",
     "chatbot",

@@ -1,6 +1,6 @@
 # @openuidev/channels
 
-> Generative UI for chat platforms — natively-rendered, interactive messages for Slack, Microsoft Teams, Telegram, and WhatsApp.
+> Generative UI for chat platforms — natively-rendered, interactive messages for Slack, Microsoft Teams, Discord, Telegram, and WhatsApp.
 
 [![npm version](https://img.shields.io/npm/v/%40openuidev%2Fchannels.svg)](https://www.npmjs.com/package/@openuidev/channels)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -236,6 +236,7 @@ transport — Bolt, Vercel's Chat SDK, Bot Framework, or raw HTTP.
 |---|---|---|---|
 | `/slack` | Slack | Block Kit | Native charts, Block Kit streaming, modals, entity selects, edit-in-place |
 | `/teams` | Microsoft Teams | Adaptive Cards 1.5 | Native tables/FactSets/columns, inline forms, edit-in-place |
+| `/discord` | Discord | Components V2 | Accent containers, selects, modal forms, chart attachments, streaming edits, edit-in-place |
 | `/telegram` | Telegram | Bot API Rich Messages | Tables, checklists, in-card charts, inline keyboard, edit-in-place |
 | `/whatsapp` | WhatsApp Cloud API | Interactive messages | Button cards, list menus, chart images |
 
@@ -280,14 +281,14 @@ const next = await engine.applyInteraction(source, result.state, {   // a click 
 });
 ```
 
-The Teams, Telegram, and WhatsApp subpaths export the same `*Channel` + `buildSystemPrompt` pair
-for `createEngine`.
+The Teams, Discord, Telegram, and WhatsApp subpaths export the same `*Channel` + `buildSystemPrompt`
+pair for `createEngine`.
 
 ## Charts
 
 The model emits `Chart(type, labels, values, title?, series?, xLabel?, yLabel?)` with `bar`,
 `line`, `pie`, or `area`. Slack renders them natively as interactive `data_visualization` blocks
-(up to 2 per message). Teams, Telegram, and WhatsApp receive PNGs from the opt-in rasterizer at
+(up to 2 per message). Teams, Discord, Telegram, and WhatsApp receive PNGs from the opt-in rasterizer at
 `@openuidev/channels/ui/charts`, which needs the optional peer dependencies `react`, `react-dom`,
 `recharts`, and `@resvg/resvg-js`.
 

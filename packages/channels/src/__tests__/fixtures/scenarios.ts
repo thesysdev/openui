@@ -2,6 +2,7 @@
 // (button, bound input), and the form flow (modal build + submit). Shared by
 // golden.test.ts (compare) and generate.ts (regenerate the fixture).
 import { createEngine } from "../../core";
+import { discordChannel, formModal } from "../../discord";
 import { buildModal, slackChannel } from "../../slack";
 import { teamsChannel } from "../../teams";
 import { telegramChannel } from "../../telegram";
@@ -13,16 +14,19 @@ export async function buildScenarios(): Promise<Record<string, unknown>> {
   const waEngine = createEngine(whatsappChannel);
   const tgEngine = createEngine(telegramChannel);
   const teamsEngine = createEngine(teamsChannel);
+  const discordEngine = createEngine(discordChannel);
   const out: Record<string, unknown> = {};
 
   for (const [name, source] of Object.entries(samples)) {
-    const e = name.startsWith("wa")
-      ? waEngine
-      : name.startsWith("teams")
-        ? teamsEngine
-        : name.startsWith("tg")
-          ? tgEngine
-          : engine;
+    const e = name.startsWith("discord")
+      ? discordEngine
+      : name.startsWith("wa")
+        ? waEngine
+        : name.startsWith("teams")
+          ? teamsEngine
+          : name.startsWith("tg")
+            ? tgEngine
+            : engine;
     out[`render:${name}`] = await e.renderState(source);
   }
 
@@ -35,6 +39,32 @@ export async function buildScenarios(): Promise<Record<string, unknown>> {
     actionId: "save",
     patch: { $title: "Hello", $points: 5, $urgent: "true", $team: "web" },
   });
+
+  // Discord interactions: button press and select pick (UPDATE_MESSAGE), and the
+  // Form flow (modal build + modal submit patch).
+  const d0 = await discordEngine.renderState(samples.discordCounter);
+  out["discord:action:inc"] = await discordEngine.applyAction(
+    samples.discordCounter,
+    d0.state,
+    "inc",
+  );
+  const dc = await discordEngine.renderState(samples.discordContent);
+  out["discord:action:sel=low"] = await discordEngine.applyAction(
+    samples.discordContent,
+    dc.state,
+    "sel",
+    "low",
+  );
+  const dFormId = Object.keys(dc.forms)[0];
+  out["discord:modal:goal"] = formModal(dFormId, dc.forms[dFormId]);
+  out["discord:submit:goal"] = await discordEngine.applyInteraction(
+    samples.discordContent,
+    dc.state,
+    {
+      actionId: dFormId,
+      patch: { $goal: 250, $note: "stretch" },
+    },
+  );
 
   // Telegram interactions: button tap and select pick (edit-in-place model).
   const t0 = await tgEngine.renderState(samples.tgCounter);
