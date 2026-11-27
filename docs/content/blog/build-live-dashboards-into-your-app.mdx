@@ -39,37 +39,21 @@ It's built on [OpenUI Lang](/docs/openui-lang/overview). The model writes a shor
 
 Under the hood, OpenDashboards uses the [OpenUI Dashboards API](/docs/dashboards) to build and serve each dashboard. Here's what that API does, if you want to build something like it into your own app.
 
-## 1. A build harness that gets the numbers right
+## Getting the numbers right
 
-A model on its own gets dashboards wrong often enough to matter: it guesses a column name, binds a chart to a field the data doesn't have, or writes a program that doesn't parse. The harness around the model is what turns a request into a dashboard you can ship.
+A model can write a dashboard that looks fine and shows the wrong thing: a chart that reads a column that doesn't exist, or a total over the wrong rows. This is where we put most of our effort.
 
-<figure>
+- **A prompt tuned for dashboards.** It's generated from your component library, with rules for what makes a good dashboard: how to lay out a page, when to add filters and previous periods, how to label numbers.
+- **Checks before and after the model writes.** Before, the model looks at your data by calling your tools, so its charts are bound to fields that exist. After, tools verify that every query and script it wrote matches the shape of what your tools actually return.
+- **A replay before saving.** The finished dashboard and its scripts are run again on the server with your real data. Anything that would come out empty or broken goes back to the model to fix, so the dashboard works the first time someone opens it, without a round of "this chart is empty, fix it".
 
-![The build harness. Build: your request, a prompt from your library, the model exploring your data tools in rounds, then writing the dashboard. Check: the dashboard is checked against your library and rendered with your real data; anything wrong is repaired, up to 3 tries, and checked again; then it's saved and streamed to every viewer.](/images/blog/build-live-dashboards-into-your-app/harness.svg)
-
-</figure>
-
-**A prompt built from your component library.** The model can only use components it knows precisely. The API generates the system prompt from your library's spec: every component's signature grouped by what it's for, the functions and filters, how data flows from a query into a chart, and your library's own rules and examples. Your data tools go in as typed signatures with an example of their output, so the model binds charts to fields that exist. When your library changes, the prompt changes with it.
-
-**An agent loop over your data.** A good dashboard starts with looking at the data, but your tools run on your server, not next to the model. So each build is a back-and-forth: the API returns the tool calls the model wants, your server runs them and sends the results back, and the model continues, for up to 20 rounds by default. When a number needs combining from several tools, the model writes a small script, and it runs once on the spot so the model sees the real result.
-
-**Checks before anything is saved.** Every dashboard is checked twice:
-
-- **Against your component library**, as it's written. Unknown components, missing arguments and wrong types are caught, and the model repairs the program, up to 3 attempts.
-- **Against your real data.** While exploring, the model already called your tools. The API renders the dashboard on the server with those same results, so a chart reading `rows.revenue` when the rows have `amount` is caught before anyone sees it, and goes back to the model along with the fields that do exist. A repair that drops every query, or most of the dashboard, is rejected.
-
-We measure the harness as we tune it, and the gains are large:
+We built it to work with any size of model, so you can choose by cost. On our hardest set of requests (funnels, retention cohorts, web vitals, revenue against a target), Claude Haiku 5.5 scored 110 out of 120 in a blind review through the harness, against 94 on its own, and none of its dashboards broke. DeepSeek v4.1 Flash built every test dashboard correctly at a third of a cent per build.
 
 <figure>
 
-![What changed. Dashboard quality with Claude Haiku 5.5, scored blind: 94 out of 120 as a single call, 110 through the harness. Clean dashboards out of 27 requests: 22 to 24 as a single call, 27 through the harness. Time to add filters and previous periods to a dashboard: 301 seconds on Claude Sonnet 5.5 at its default effort, 90 seconds on Gemini 4 Neon at low effort.](/images/blog/build-live-dashboards-into-your-app/improvements.svg)
+![Claude Haiku 5.5 on our hardest dashboard requests. Quality, scored blind out of 120: 94 on its own, 110 with the harness. Dashboards that broke: 1 of 7 on its own, 0 of 8 with the harness.](/images/blog/build-live-dashboards-into-your-app/haiku-harness.svg)
 
 </figure>
-
-- **Quality.** The same model, Claude Haiku 5.5, built the same six dashboards as a single call and through the harness, and a reviewer scored them blind. The harness lifted the score from 94 to 110 out of 120.
-- **Correctness.** Across 27 dashboard requests over public data APIs, with no data shown to the model beforehand, every build through the harness came out clean: every query ran and every chart had data. The same requests as a single call came out clean 22 to 24 times.
-- **Small models.** The harness carries cheap models too. DeepSeek v4.1 Flash built our signups and website-traffic dashboards correctly in all 6 runs, with data in every panel and the right numbers, for a third of a cent or less per build. It was slower and less predictable than Sonnet, but just as correct.
-- **Speed.** Thinking effort turned out to matter more than the model. Adding filters and previous periods to a full web-analytics dashboard took 301 seconds on Claude Sonnet 5.5 at its default effort, most of it hidden thinking. On Gemini 4 Neon at low effort it took 90 seconds, with every build clean, and that's what OpenDashboards uses.
 
 ## 2. Running model-written scripts safely
 
