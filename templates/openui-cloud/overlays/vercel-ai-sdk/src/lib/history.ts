@@ -1,5 +1,5 @@
-import { storeChatCompletionHistory } from "@openuidev/server/openai";
 import type { ModelMessage } from "ai";
+import { openui } from "./openui";
 
 // The Chat Completions shapes saved here (the full union lives in the `openai` package).
 type ChatMessage =
@@ -70,14 +70,6 @@ function toChatCompletionMessages(messages: ModelMessage[]): ChatMessage[] {
 }
 
 /** Save one turn (the new user message plus the model's replies) to the OpenUI Cloud thread. */
-export async function storeTurn(options: {
-  apiKey: string;
-  conversationId: string;
-  messages: ModelMessage[];
-}) {
-  await storeChatCompletionHistory({
-    apiKey: options.apiKey,
-    conversationId: options.conversationId,
-    messages: toChatCompletionMessages(options.messages),
-  });
+export async function storeTurn(conversationId: string, messages: ModelMessage[]) {
+  await openui.chat.conversations.items.create(conversationId, toChatCompletionMessages(messages));
 }

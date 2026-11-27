@@ -1,5 +1,6 @@
 import { graph } from "@/agent";
 import { resolveRequestedModel } from "@/lib/models";
+import { openui, ownsThread } from "@/lib/openui";
 import {
   coerceMessageLikeToMessage,
   isHumanMessage,
@@ -8,7 +9,10 @@ import {
 
 export const runtime = "nodejs";
 
-/** Stream native LangGraph events; the browser supplies the full conversation. */
+/**
+ * Stream native LangGraph events. The earlier turns come from the thread's conversation, so only
+ * the browser's last message, the new question, is used.
+ */
 export async function POST(request: Request) {
   const {
     messages: input,
@@ -47,8 +51,20 @@ export async function POST(request: Request) {
     return Response.json({ error: "model is not available in this agent" }, { status: 400 });
   }
 
+  if (!(await ownsThread(threadId, request.signal))) {
+    return Response.json({ error: "Thread not found" }, { status: 404 });
+  }
+  const history = await openui.langgraph.conversations.items.list(threadId, {
+    signal: request.signal,
+  });
+
   const stream = await graph.stream(
-    { messages, model, conversationId: threadId, turnStart: messages.length - 1 },
+    {
+      messages: [...history.map(coerceMessageLikeToMessage), question],
+      model,
+      conversationId: threadId,
+      turnStart: history.length,
+    },
     { streamMode: "messages", encoding: "text/event-stream", signal: request.signal },
   );
 
