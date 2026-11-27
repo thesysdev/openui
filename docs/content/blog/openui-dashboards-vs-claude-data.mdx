@@ -39,8 +39,6 @@ If that sounds like Claude Data (launched as Claude Dashboards), it should. In [
 
 We also built a complete app on it and open-sourced it. [OpenDashboards](https://github.com/thesysdev/opendashboards) connects to your databases and analytics and builds dashboards from a chat. It's MIT-licensed: run it, fork it, or read how every part works.
 
-The observations about Claude Data in this article were made on claude.ai in November 2026; details we only saw in the beta are dated where they appear.
-
 ## The same design underneath
 
 Our earlier post started from what a dashboard has to do that a chat answer doesn't. A chat answer is written once, for one person. A dashboard is opened again next week, by people who weren't in the chat, and its numbers have to be current, traceable and cheap to look at every time.
@@ -49,12 +47,14 @@ Claude Data and OpenUI Dashboards solve that the same way. The model writes down
 
 | | Claude Data | OpenUI Dashboards |
 | --- | --- | --- |
+| **Model** | Claude | Hundreds of models, including Claude, Gemini and DeepSeek |
 | **Where it runs** | Inside Claude | Your product |
 | **What the model writes** | Stored documents: datasets, calcs, and an HTML page with JavaScript | One program in [OpenUI Lang](/docs/openui-lang/overview) |
 | **What draws it** | HTML and d3 the model writes (design systems since GA) | Your component library |
 | **Where data comes from** | The reader's connectors, called by claude.ai | Your data tools on your server, or an MCP server |
 | **Where a number comes from** | Sources panel, for numbers the model marked | Sources panel, traced from the program for every component |
-| **Model** | Claude | Hundreds of models, including Claude, Gemini and DeepSeek |
+| **Cost** | Each builder's paid Claude plan | Per build, set by the model you pick: 1–3 cents, or under a cent |
+| **Sharing** | Inside Claude | With users and groups in your app, each reader on their own data |
 | **Code** | Closed | Renderer, component library, SDK and OpenDashboards are MIT |
 
 ## Speed
@@ -83,7 +83,7 @@ Less to write means less to wait for. We gave both the signups example from the 
 | OpenUI Dashboards, DeepSeek v4.1 Flash | 16.5 s | 3 of 3 |
 | OpenUI Dashboards, Gemini 3.8 Flash | 26.9 s | 3 of 3 |
 
-That's about 15 times faster on Sonnet. It compares products, not models: a chat product timed with a stopwatch, against an API call. Most of the gap is likely the output itself, a page of HTML and JavaScript against six statements. The [methodology](#methodology) has the details.
+That's about 15 times faster on Sonnet. It compares products, not models: a chat product timed with a stopwatch, against an API call. Most of the gap is likely the output itself, a page of HTML and JavaScript against six statements. See the [methodology](#methodology).
 
 {/* TODO: the two finished signups dashboards side by side, both showing 1,544 and +78. */}
 
@@ -122,7 +122,7 @@ Claude Data's answer is the Sources panel. Click a number and it shows the datas
 
 OpenUI Dashboards traces sources from the program itself. Every component and every prop can be followed back through the statements in between to the queries that fed it, because that's how the program is written: `chart` reads `weekly.rows.signups`, and `weekly` is a `Query`. The model doesn't mark anything, so it can't forget to, and the bar chart is as traceable as the headline number.
 
-Turn it on with one prop:
+It's one prop on the renderer:
 
 ```tsx
 import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
@@ -136,24 +136,9 @@ The renderer's bar gets an inspect toggle. With it on, clicking a component, or 
 - **Formula:** each statement between the query and the value, such as `latest = @Last(@Sort(weekly.rows, "week_start"))`.
 - **Filters:** the `$variables` the value reads, with their current values.
 
-{/* TODO: screenshot of the Sources panel open on a KPI in OpenDashboards. */}
+{/* TODO: GIF of data provenance in OpenDashboards: turn on inspect, click a KPI, the Sources panel shows its query, formula and filters; click a chart, then change a filter and watch the panel follow. */}
 
-The panel is yours to replace. `useArtifactProvenance()` gives you the selection and every component's sources, so you can show them in your own design, name your tools in your users' words, or add a "copy query" button:
-
-```tsx
-import { useArtifactProvenance } from "@openuidev/react-ui/cloud";
-
-function SourcesPanel() {
-  const { selection, sources } = useArtifactProvenance();
-  const component = selection && sources?.components[selection.id];
-  if (!sources || !component) return null;
-  const queries = component.queries.map((name) => sources.queries[name]); // tool, args, data
-  const formula = component.via.map((name) => `${name} = ${sources.formulas[name]}`);
-  return <aside>{/* your UI */}</aside>;
-}
-```
-
-It works with any component library, with no change to the components: in React on the web, components are found through React's own tree.
+The panel is yours to replace: build your own Sources panel in your design, name your tools in your users' words, or add a "copy query" button. It works with any component library, with no change to your components.
 
 ## Cost
 
@@ -223,20 +208,6 @@ A shared dashboard shares its layout and queries, never the sharer's data. Its d
 
 Claude Data's dashboards are shared inside Claude, and its page is code the model wrote, so Anthropic sandboxes it and keeps connector credentials on its own servers. When we tested the beta, page code could ask for any tool on the reader's connectors, each behind a consent card, and a test write went through after one consent click. Anthropic now says viewers of a shared dashboard see only the queries an editor approved. We haven't retested since the general release.
 
-## Rough edges
-
-- **The builder is hosted.** The renderer, component library, SDK and OpenDashboards are open source; the step where the model writes and checks the dashboard runs on the OpenUI Cloud API.
-- **Bigger dashboards take longer.** The times above are for small dashboards. A dashboard with many panels, filters and previous-period comparisons takes longer to build, because there's more to write and more to check.
-- **Claude Data does more than dashboards.** It also makes data stories, narrated videos and letters, and has certified queries and version history.
-
-## Methodology
-
-**Claude Data:** claude.ai on the web, November 26, 2026, a paid Claude account on its default model (Claude Opus 5.5, medium effort). The signups prompt with the 8 weekly numbers pasted into the chat, in three new chats, timed from sending the message to Claude finishing its reply with the dashboard drawn: 122, 113 and 109 seconds. All three showed 1,544 signups last week, up 78.
-
-**OpenUI Dashboards:** the production API through `@openuidev/server` 0.5.2 from npm, `stream: true`, November 25, 2026, three runs per model per dashboard, one at a time, timed from the call to the "Created" message. The signups numbers came from a `weekly_signups` data tool; the traffic dashboard used a HogQL tool on a PostHog project. Each saved query was then run again; a panel counted as having data only if it differed from the same dashboard with every query failing. Costs are tokens at OpenRouter list prices on November 25, 2026; OpenUI's own pricing may differ.
-
-The two sides didn't use the same model, so read the speed comparison as product against product, not model against model.
-
 ## Try it
 
 - **Use it:** [opendashboards.com](https://opendashboards.com), or [clone OpenDashboards](https://github.com/thesysdev/opendashboards).
@@ -249,3 +220,7 @@ npx @openuidev/cli@latest create --example assistant-ui-dashboards
 - **See it live:** the [sales dashboard demo](https://www.openui.com/demo/sales-dashboard).
 
 If you saw Claude Data and wanted it in your own product, this is how to build it. Tell us what breaks.
+
+## Methodology
+
+Claude Data: claude.ai, November 26, 2026, the account's default model (Claude Opus 5.5), the signups prompt with the numbers pasted in, three new chats, timed until the dashboard was drawn. OpenUI Dashboards: the production API through `@openuidev/server` 0.5.2, November 25, 2026, three runs per model, timed until the dashboard was saved; every saved query was run again to check its data. Costs are at OpenRouter list prices. The two sides used different models, so the speed comparison is product against product.
