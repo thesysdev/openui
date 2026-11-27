@@ -595,7 +595,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     let depth = 0,
       ternaryDepth = 0,
       inStr: false | '"' | "'" = false,
-      esc = false;
+      esc = false,
+      elseEmpty = false; // a ternary `:` with no else operand yet, as in split()
     let stmtStart = completedEnd;
 
     for (let i = completedEnd; i < cleaned.length; i++) {
@@ -612,6 +613,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         if (c === inStr) inStr = false;
         continue;
       }
+      if (c !== " " && c !== "\t" && c !== "\r" && c !== "\n") elseEmpty = false;
       if (c === '"' || c === "'") {
         inStr = c;
         continue;
@@ -621,8 +623,10 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
       // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
       else if (c === "?" && depth === 0) ternaryDepth++;
-      else if (c === ":" && depth === 0 && ternaryDepth > 0) ternaryDepth--;
-      else if (c === "\n" && depth <= 0 && ternaryDepth <= 0) {
+      else if (c === ":" && depth === 0 && ternaryDepth > 0) {
+        ternaryDepth--;
+        elseEmpty = true;
+      } else if (c === "\n" && depth <= 0 && ternaryDepth <= 0 && !elseEmpty) {
         // Before splitting, look ahead past whitespace to see if the next
         // meaningful character is `?` or `:` — ternary continuation.
         let peek = i + 1;
