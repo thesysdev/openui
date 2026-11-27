@@ -175,6 +175,7 @@ const FOOTER_GROUPS: { title: string; links: FooterLink[] }[] = [
     links: [
       { title: "Blog", ...SITE_NAV_LINKS.blog },
       { title: "Benchmarks", ...SITE_NAV_LINKS.benchmarks },
+      { title: "Champions", ...SITE_NAV_LINKS.champions },
       { title: "GitHub", href: "https://github.com/thesysdev/openui", newTab: true },
       { title: "Discord", href: "https://discord.com/invite/Pbv5PsqUSv", newTab: true },
     ],
