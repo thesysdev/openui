@@ -1,0 +1,123 @@
+---
+title: "OpenDashboards: an open-source alternative to Claude Data"
+seoTitle: "OpenDashboards: an open-source alternative to Claude Data, for your own product"
+description: "OpenDashboards puts Claude Data's live dashboards inside your own product: ask a question, get a live dashboard drawn with your components, on the model you choose. The app, renderer, component library and SDK are MIT-licensed."
+author: Thesys Engineering Team
+date: 2026-11-27
+featured: false
+---
+
+OpenDashboards is Claude Data you can put inside your own product. Ask a question about your data, get a live dashboard, drawn with your components, on the model you choose. The app is MIT-licensed and [on GitHub](https://github.com/thesysdev/opendashboards).
+
+Claude Data, called Claude Dashboards when it launched in beta on October 8, turns a question about your data into a live dashboard inside Claude. Claude builds it once, and after that it loads live data for every reader with no model call. We liked the design enough to [take it apart](/blog/how-claude-dashboards-work) earlier this month. Then we wanted it in our own apps: the admin panel, the analytics page, the app customers already log in to. So we built it on [OpenUI](https://github.com/thesysdev/openui), our open-source generative UI stack, and open-sourced the whole app.
+
+{/* TODO: hero GIF here, recorded in the hosted app: a question typed in, the dashboard filling in. */}
+
+| | Claude Data | OpenDashboards |
+| --- | --- | --- |
+| Where it runs | Inside Claude (web, desktop, mobile) | Your product, or our hosted app |
+| Code | Closed | App, renderer, component library and SDK on GitHub, MIT |
+| What it's drawn with | HTML and d3 that Claude writes (design systems since GA) | Your component library |
+| Data | Connectors added in Claude | Your databases and APIs, through tools in your backend |
+| Model | Claude, on a paid Claude plan | Your choice of the models we support |
+
+Both keep the model out of the page at view time, both save the query behind each number, and both have a Sources panel that shows where a number came from.
+
+## It looks like your product
+
+When we took the beta apart, Claude wrote every tile, axis and tooltip as HTML and d3: 12 to 14 KB of page code for two numbers and a bar chart. Claude Data now supports design systems, but the dashboard still lives in Claude.
+
+OpenDashboards draws with a component library: ours, [`@openuidev/dashboard-library`](https://www.npmjs.com/package/@openuidev/dashboard-library), or your own buttons, cards and charts. The model doesn't write page code. It writes a short program in [OpenUI Lang](/docs/openui-lang/overview) that names your components and the data behind them. Here is the core of that same signups dashboard:
+
+```text
+$weeks = "8"
+root = Stack([filter, chart])
+filter = Select("weeks", [SelectItem("4", "Last 4 weeks"), SelectItem("8", "Last 8 weeks")], null, null, $weeks)
+weekly = Query("weekly_signups", {weeks: $weeks}, {rows: []})
+latest = @Last(@Sort(weekly.rows, "week_start"))
+chart = BarChart(weekly.rows.week_start, [Series("Signups", weekly.rows.signups)])
+```
+
+Six statements instead of a page of code, and every dashboard looks like it shipped with your app.
+
+{/* TODO: same prompt, two skins: our library next to a custom component set. */}
+
+## The builder is fast
+
+We gave both the same job: the weekly-signups example from our last post. Eight weeks of numbers, and the ask "show last week's number, the change on the week before, and a bar chart per week".
+
+On claude.ai, Claude Data took **about 1 minute 53 seconds** (median of 3 runs, on the account's default model). The OpenDashboards builder, called through our SDK on Claude Sonnet 5.5, finished the same job in **7.6 seconds** (median of 3). Every run on both sides got the numbers right: 1,544 signups last week, up 78.
+
+This compares products, not models: a chat product on Opus 5.5 timed with a stopwatch, against an API call on Sonnet 5.5. Most of the gap is likely what the model has to write: a full HTML and d3 page on one side, six statements on the other.
+
+{/* TODO: both finished signups dashboards side by side, showing 1,544 and +78; model and method in the caption. */}
+
+## Your model, your cost
+
+Claude Data lives in Claude, so everyone who builds one needs a paid Claude plan.
+
+OpenDashboards runs on your choice of the models we support: Claude Sonnet 5.5, Gemini 3.8 Flash, Gemini 4 Neon, Hydrogen and DeepSeek v4.1 Flash. We built two dashboards on three of them, three times each:
+
+| Model | Signups | Website traffic (PostHog, 14 days) | Cost per build, at list prices |
+| --- | --- | --- | --- |
+| Claude Sonnet 5.5 | 7.6 s | 14.0 s | 1–3 cents |
+| Gemini 3.8 Flash | 26.9 s | 14.3 s | 1–3 cents |
+| DeepSeek v4.1 Flash | 16.5 s | 38.1 s | a third of a cent or less |
+
+All 18 builds worked, and every panel had data. DeepSeek was 4 to 40 times cheaper than the others and just as correct here, though slower and less predictable. The first build costs more, before the prompt is cached: about 5 cents on Sonnet.
+
+Your users don't need an AI plan. They use your product, and you pay per build.
+
+## Your backend holds the keys
+
+In OpenDashboards, data comes from tools in your own backend, with your own auth. Credentials stay on your server, and every query runs from it. The model can call only the tools you register. The page in the reader's browser runs no model-written code: the renderer draws your components and calls your tools. When a number needs combining, the model can write a small script, which runs in a sandboxed interpreter and can also call only your tools.
+
+While a dashboard is being built, the results the model looks at go through the OpenUI Cloud API and the model provider you picked, and OpenUI Cloud stores the dashboards and chats. After that, readers' query results move only between their browser and your backend. Your routes still need to check who the user is and validate the arguments, like any other API.
+
+Claude Data takes a different route. The page is code the model wrote, so Anthropic sandboxes it and keeps credentials on its own servers. When we tested the beta on November 2 and 3, page code could ask for any tool on the reader's connectors, each behind a consent card, and a test write went through after one consent click. Anthropic now says viewers of a shared dashboard see only the queries an editor approved. We haven't retested since the general release.
+
+## It's open source
+
+The app, the renderer, the component library and the SDK are all MIT. Run OpenDashboards as it is, or fork it as the start of dashboards in your own product. Read exactly how a dashboard is built and drawn. Swap the component library, the connectors or the model. Or skip the app and add the pieces to an app you already have, with the SDK:
+
+```ts
+import { OpenUIClient } from "@openuidev/server";
+import spec from "../generated/spec.json";
+import { dataTools } from "./data";
+
+export const dashboards = new OpenUIClient().defineDashboard({
+  library: spec,
+  model: "anthropic/claude-sonnet-5.5",
+  tools: dataTools,
+});
+```
+
+The one step that isn't on GitHub is where the model writes the dashboard: that runs on the OpenUI Cloud API, on the model you pick.
+
+Claude Data is ahead in places. It also makes data stories, narrated videos and letters, and it has certified queries and version history. If you want live dashboards inside your own product, on your own components, OpenDashboards is the place to start.
+
+## Try it
+
+**Try it now** at [opendashboards.com](https://opendashboards.com). Connect Postgres, PostHog, BigQuery, ClickHouse, Google Analytics or an MCP server, and ask for a dashboard.
+
+**Run it yourself.** You need Node 20.9 or later, pnpm, Docker and a Thesys API key from [console.thesys.dev](https://console.thesys.dev). OpenUI Cloud has a free tier.
+
+```bash
+git clone https://github.com/thesysdev/opendashboards.git
+cd opendashboards
+pnpm install
+cp .env.example .env.local   # then add THESYS_API_KEY
+pnpm db:up
+pnpm db:reset
+pnpm dev                     # http://localhost:3000
+```
+
+**Put it in your product** with the [dashboards docs](/docs/dashboards), an [example app](https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/assistant-ui-dashboards), and a [skill](https://github.com/thesysdev/skills) for your coding agent.
+
+## How we measured
+
+Claude Data: claude.ai on the web, November 26, 2026, a paid Claude account on its default model (Claude Opus 5.5, medium effort). The same prompt with the 8 weekly numbers pasted into the chat, in three new chats, timed from sending the message to Claude finishing its reply with the dashboard drawn: 122, 113 and 109 seconds.
+
+OpenDashboards builder: OpenUI's production API through `@openuidev/server` 0.5.2 from npm, `stream: true`, November 25, 2026, three runs per model per dashboard, timed from the call to the "Created" message. The signups numbers came from a `weekly_signups` tool. Each saved query was then run again to check every panel had real data. Costs are tokens at OpenRouter list prices on November 25, 2026; our own pricing may differ.
+
+If you saw Claude Data and wanted it in your own app, [clone the repo](https://github.com/thesysdev/opendashboards) and ask it a question about your data. Tell us what breaks.
