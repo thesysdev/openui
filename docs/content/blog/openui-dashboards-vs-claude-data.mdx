@@ -162,7 +162,7 @@ The renderer's bar gets an inspect toggle. With it on, clicking a component, or 
   <LazyVideo
     src="/videos/blog/openui-dashboards-vs-claude-data/provenance.mp4"
     poster="/videos/blog/openui-dashboards-vs-claude-data/provenance-poster.webp"
-    aria-label="Data provenance in OpenDashboards: Sources turned on, then clicking 1,544 and +78 on a weekly signups dashboard. The Sources panel shows +78 comes from the formula latest = @First(summary.rows), and summary from a SQL query on the weekly_signups table."
+    aria-label="Data provenance in OpenDashboards: with Sources on, clicking 1,544 on a weekly signups dashboard opens a panel showing it comes from latest, a formula over summary, and summary, a Postgres query."
     autoPlay
     muted
     loop
@@ -172,7 +172,7 @@ The renderer's bar gets an inspect toggle. With it on, clicking a component, or 
   />
 </div>
 
-In the video, the +78 traces back through `latest = @First(summary.rows)` to `summary`, the SQL query on `weekly_signups` that produced it. Nothing on the dashboard had to be marked for that to work.
+Click 1,544 and the panel shows what it's made of: `latest`, a formula over `summary`, and `summary`, the Postgres query on `weekly_signups`. Click either one to see the formula or the SQL and its result. Nothing on the dashboard had to be marked for that to work.
 
 The panel is yours to replace: build your own Sources panel in your design, name your tools in your users' words, or add a "copy query" button. It works with any component library, with no change to your components.
 
@@ -207,8 +207,6 @@ That lets you choose per product, or per kind of user: a fast model for small da
 Claude Data lives inside Claude. OpenUI Dashboards lives inside your app, in three ways.
 
 **Your components.** A dashboard renders only with the component library you pass in. The prebuilt dashboard library works without setup, and moving to your design system later changes the library, not the integration. The model can only use components that exist, so every dashboard looks like the rest of your app. Claude Data now supports design systems too, but its dashboards still live in Claude.
-
-{/* TODO: the same prompt rendered with the prebuilt library and with a custom component set. */}
 
 **Your data.** A dashboard loads its data through data tools: functions on your server that return JSON, or tools from an MCP server. The model sees each tool's description, arguments and an example output while it builds. The browser runs the tools through an interpreter route on your server every time the dashboard opens, and a query can also refresh on an interval while it's open. When a value has to be combined from several tools, the model writes a small script that runs in OpenUI's JS interpreter with secure execution and can call only your tools.
 
