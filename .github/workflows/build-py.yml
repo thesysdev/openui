@@ -29,7 +29,7 @@ jobs:
         python: ["3.11", "3.14"]
     defaults:
       run:
-        working-directory: py/openui-server
+        working-directory: py/server
     steps:
       - uses: actions/checkout@v4
 

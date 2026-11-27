@@ -1,13 +1,13 @@
-// The Python SDKs ship with their npm twin's version: py/openui-server is @openuidev/server
-// in Python, and they release together. `changeset version` bumps the npm package; this copies
-// that version to the Python package's pyproject.toml and uv.lock.
+// The Python SDKs ship with their npm twin's version: py/server (openui-server on PyPI) is
+// @openuidev/server in Python, and they release together. `changeset version` bumps the npm
+// package; this copies that version to the Python package's pyproject.toml and uv.lock.
 //
 // Usage: node scripts/sync-python-version.mjs [--check]
 //   --check  changes nothing; exits 1 when a Python package's version differs from its twin's.
 import { readFileSync, writeFileSync } from "node:fs";
 
 const root = new URL("..", import.meta.url);
-const TWINS = [{ npm: "packages/server", python: "py/openui-server" }];
+const TWINS = [{ npm: "packages/server", python: "py/server" }];
 
 // npm prereleases as PEP 440: 1.2.0-beta.1 → 1.2.0b1.
 function pep440(version) {

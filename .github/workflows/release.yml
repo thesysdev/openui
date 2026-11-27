@@ -83,7 +83,7 @@ jobs:
 
       - name: Publish openui-server to PyPI
         if: steps.changesets.outputs.hasChangesets == 'false'
-        working-directory: py/openui-server
+        working-directory: py/server
         run: |
           node ../../scripts/sync-python-version.mjs --check
           version=$(node -p 'require("../../packages/server/package.json").version')

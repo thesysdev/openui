@@ -59,7 +59,7 @@ const main = () => {
   }
   const packageByDir = new Map([...packages].map(([name, p]) => [p.dir, name]));
   // Python SDK dir -> its npm twin, which releases it at the same version.
-  const pythonTwins = new Map([["py/openui-server", "@openuidev/server"]]);
+  const pythonTwins = new Map([["py/server", "@openuidev/server"]]);
 
   const config = JSON.parse(readFileSync(".changeset/config.json", "utf8"));
   const fixedGroups = config.fixed ?? [];
