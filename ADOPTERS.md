@@ -30,6 +30,7 @@ Organizations using OpenUI in their products or internal workflows.
 | [Bub](https://bub.build/)                       | [Chojan Shang](https://github.com/PsiACE)                                | Bub is a tiny, plugin-based agent runtime; its AG-UI plugin connects Bub to an OpenUI chat frontend that streams replies and runs browser tools.                                                                                                              |
 | [Qredence](https://www.qredence.ai/)            | [Zachary Bensalem](https://github.com/Zochory)                           | Fleet Prime is Qredence's local web workspace for Prime Agent; it uses OpenUI Lang and the OpenUI dashboard library to render generated dashboards and inline UI from session data.                                                                           |
 | [Commonly](https://github.com/Team-Commonly/commonly) | [Team-Commonly](https://github.com/Team-Commonly) | Commonly is an open-source (Apache-2.0) workspace where a team and its agents share pods; agents post interactive cards in OpenUI Lang, rendered in chat with `@openuidev/react-lang`. |
+| [Krater](https://krater.ai) | [Malte Pruser](https://github.com/maltepruser) | Krater is an AI platform for small businesses; its chat uses OpenUI Lang so replies from any model can include charts, tables, cards, and forms built on Krater's design system. |
 
 <!--
 Example row, copy and edit:
