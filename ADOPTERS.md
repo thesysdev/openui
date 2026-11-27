@@ -29,6 +29,7 @@ Organizations using OpenUI in their products or internal workflows.
 | [Learnify](https://learnify.ahmedfahim.dev)     | [Ahmed Fahim](https://github.com/ahmedfahim21)                           | Learnify is an NPTEL lecture companion that lets learners pause any lecture and ask in their own language, using OpenUI to render answers, quizzes, flashcards, and notes from the lecture.                                                                   |
 | [Bub](https://bub.build/)                       | [Chojan Shang](https://github.com/PsiACE)                                | Bub is a tiny, plugin-based agent runtime; its AG-UI plugin connects Bub to an OpenUI chat frontend that streams replies and runs browser tools.                                                                                                              |
 | [Qredence](https://www.qredence.ai/)            | [Zachary Bensalem](https://github.com/Zochory)                           | Fleet Prime is Qredence's local web workspace for Prime Agent; it uses OpenUI Lang and the OpenUI dashboard library to render generated dashboards and inline UI from session data.                                                                           |
+| [Commonly](https://github.com/Team-Commonly/commonly) | [Team-Commonly](https://github.com/Team-Commonly) | Commonly is an open-source (Apache-2.0) workspace where a team and its agents share pods; agents post interactive cards in OpenUI Lang, rendered in chat with `@openuidev/react-lang`. |
 
 <!--
 Example row, copy and edit:
