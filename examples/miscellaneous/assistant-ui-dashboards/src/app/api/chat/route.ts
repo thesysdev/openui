@@ -7,6 +7,9 @@ import toolkit from "../../../lib/toolkit";
 
 export const runtime = "nodejs";
 
+// The dashboard tools run the build inside this request; give it time to finish.
+export const maxDuration = 300;
+
 // The toolkit's server build: create_dashboard and edit_dashboard, with their `execute`.
 const dashboardTools = new AISDKToolkit({ toolkit });
 
