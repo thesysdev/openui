@@ -6,9 +6,6 @@ import type { RetryAttemptInfo } from "../../../lib/retry";
 
 export const EXAMPLES_CATALOG_PATH = "examples/examples.json";
 
-/** GitHub owners whose repositories `--example repo:<owner>/<repo>[/<path>]` may clone. */
-const ALLOWED_EXAMPLE_REPO_OWNERS = ["thesysdev"];
-
 /** Catalog `path` prefix for an example outside the OpenUI repo: `repo:<owner>/<repo>[/<path>]`. */
 const REPO_PATH_PREFIX = "repo:";
 
@@ -36,7 +33,7 @@ function catalogError(message: string): CreateError {
   return new CreateError("args_resolution", message, "invalid_input", "EXAMPLES_CATALOG_INVALID");
 }
 
-/** Parse `[repo:]<owner>/<repo>[/<path>]`; `undefined` when invalid or the owner is not allowed. */
+/** Parse `[repo:]<owner>/<repo>[/<path>]`; `undefined` when invalid. */
 function parseRepoSpec(spec: string): { repo: SourceRepo; subpath: string } | undefined {
   const withoutPrefix = spec.startsWith(REPO_PATH_PREFIX)
     ? spec.slice(REPO_PATH_PREFIX.length)
@@ -46,7 +43,6 @@ function parseRepoSpec(spec: string): { repo: SourceRepo; subpath: string } | un
   if (
     !REPO_SEGMENT_RE.test(owner) ||
     !REPO_SEGMENT_RE.test(name) ||
-    !ALLOWED_EXAMPLE_REPO_OWNERS.includes(owner.toLowerCase()) ||
     subpath.some((part) => part === "." || part === "..")
   ) {
     return undefined;
@@ -80,7 +76,7 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     const parsed = parseRepoSpec(relative);
     if (!parsed) {
       throw catalogError(
-        `${EXAMPLES_CATALOG_PATH} has an invalid path "${entry.path}". Use ${REPO_PATH_PREFIX}<owner>/<repo>[/<path>] with a repository from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}.`,
+        `${EXAMPLES_CATALOG_PATH} has an invalid path "${entry.path}". Use ${REPO_PATH_PREFIX}<owner>/<repo>[/<path>].`,
       );
     }
     repo = parsed.repo;
@@ -154,7 +150,7 @@ function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProje
   if (!parsed) {
     throw new CreateError(
       "args_resolution",
-      `unsupported example repository "${spec}". Use ${REPO_PATH_PREFIX}<owner>/<repo>[/<path>] with a repository from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}, or an example name from ${EXAMPLES_CATALOG_PATH}.`,
+      `unsupported example repository "${spec}". Use ${REPO_PATH_PREFIX}<owner>/<repo>[/<path>] or an example name from ${EXAMPLES_CATALOG_PATH}.`,
       "invalid_input",
       "INVALID_EXAMPLE",
     );
@@ -168,7 +164,10 @@ function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProje
     description: "",
     path: subpath,
     repo,
-    env: { file: ".env" },
+    env:
+      repo.owner.toLowerCase() === "thesysdev"
+        ? { file: ".env", key: "THESYS_API_KEY" }
+        : { file: ".env" },
   };
 }
 
