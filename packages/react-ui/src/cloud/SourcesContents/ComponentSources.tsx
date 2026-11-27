@@ -3,7 +3,7 @@
 import type { DataSources } from "@openuidev/react-lang";
 import { Database, Sigma } from "lucide-react";
 import type { ReactNode } from "react";
-import { DataSourcesResult } from "./DataSourcesContents";
+import { DataSourcesResult, DataSourcesResultError } from "./DataSourcesContents";
 import { originOf, resultSummary, unwrapResult, type Describe } from "./describe";
 import { CopyButton, CopyStatus, useCopy } from "./parts";
 import type { Source } from "./sourceIndex";
@@ -20,8 +20,8 @@ export interface SourceEntry {
   /** The code block's label: the query's language (`SQL`, `HogQL`), or `Formula`. */
   codeLabel: string;
   code: string;
-  /** A query's result: undefined until it comes back. */
-  result?: { value: unknown; loading: boolean };
+  /** A query's result and any error. */
+  result?: { value: unknown; loading: boolean; error?: string };
 }
 
 const names = (text: string) => new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? []);
@@ -57,7 +57,11 @@ export function sourceEntry(
     line: [origin.kind, origin.table].filter(Boolean).join(" · "),
     codeLabel: origin.codeLabel,
     code: origin.code,
-    result: { value: unwrapResult(source.query.data), loading: source.query.loading },
+    result: {
+      value: unwrapResult(source.query.data),
+      loading: source.query.loading,
+      error: source.query.error?.message,
+    },
   };
 }
 
@@ -118,7 +122,8 @@ export function SourceList({
 export function SourceDetail({ entry, before }: { entry: SourceEntry; before?: ReactNode }) {
   const { copied, failed, copy } = useCopy();
   const value = entry.result?.value;
-  const summary = value === undefined ? undefined : resultSummary(value);
+  const error = entry.result?.error;
+  const summary = error === undefined && value !== undefined ? resultSummary(value) : undefined;
   return (
     <div className={cx("detail")}>
       <h3 className={cx("detail-head")} tabIndex={-1} data-heading="">
@@ -141,7 +146,9 @@ export function SourceDetail({ entry, before }: { entry: SourceEntry; before?: R
         // Not a region of its own: its table is the "Result" region.
         <div className={cx("block")}>
           <h4 className={cx("block-label")}>Result</h4>
-          {value === undefined ? (
+          {error !== undefined ? (
+            <DataSourcesResultError message={error} />
+          ) : value === undefined ? (
             <p className={cx("help")}>
               {entry.result.loading
                 ? "Loading…"

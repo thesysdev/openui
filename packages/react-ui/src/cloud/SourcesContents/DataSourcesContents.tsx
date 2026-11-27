@@ -20,6 +20,14 @@ import type { DataSourcesContentsProps, DataSourcesSelection } from "./types";
 
 const cx = partClass;
 
+export function DataSourcesResultError({ message }: { message: string }) {
+  return (
+    <p className={cx("result-error")} role="alert">
+      {message}
+    </p>
+  );
+}
+
 /** The app's mark for a source, when `describeSource` gives one. */
 function SourceMark({ origin }: { origin: Pick<Origin, "icon"> }) {
   return origin.icon ? <span className={cx("mark")}>{origin.icon}</span> : null;
@@ -174,25 +182,26 @@ export function DataSourcesContents({
         label: "Result",
         note: labelled ? name : undefined,
         defaultOpen: open === "result",
-        content:
-          value === undefined ? (
-            <p className={cx("help")}>
-              {origin.query.loading
-                ? "Loading…"
-                : "No data came back. If the query failed, the dashboard shows why."}
-            </p>
-          ) : (
-            <>
-              <DataSourcesResult value={value} loading={origin.query.loading} />
-              <div className={cx("result-foot")}>
-                <span>{resultSummary(value)}</span>
-                {copyButton(`result:${name}`, value)}
-                <IconAction label="Download" onClick={() => download(value, name)}>
-                  <Download size={16} aria-hidden />
-                </IconAction>
-              </div>
-            </>
-          ),
+        content: origin.query.error ? (
+          <DataSourcesResultError message={origin.query.error.message} />
+        ) : value === undefined ? (
+          <p className={cx("help")}>
+            {origin.query.loading
+              ? "Loading…"
+              : "No data came back. If the query failed, the dashboard shows why."}
+          </p>
+        ) : (
+          <>
+            <DataSourcesResult value={value} loading={origin.query.loading} />
+            <div className={cx("result-foot")}>
+              <span>{resultSummary(value)}</span>
+              {copyButton(`result:${name}`, value)}
+              <IconAction label="Download" onClick={() => download(value, name)}>
+                <Download size={16} aria-hidden />
+              </IconAction>
+            </div>
+          </>
+        ),
       },
     ];
   };

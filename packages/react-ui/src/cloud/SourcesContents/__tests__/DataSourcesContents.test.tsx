@@ -81,6 +81,28 @@ describe("DataSourcesContents", () => {
     expect(text()).toContain("1 row · 1 field");
   });
 
+  it("shows a failed query's error instead of its fallback result and export controls", () => {
+    const message = "The query timed out";
+    render({
+      selection: { id: "revenue" },
+      sources: {
+        ...sources,
+        queries: {
+          ...sources.queries,
+          revenueQ: {
+            ...sources.queries["revenueQ"]!,
+            data: { rows: [] },
+            error: { source: "query", code: "tool-error", message, statementId: "revenueQ" },
+          },
+        },
+      },
+    });
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe(message);
+    expect(text()).not.toContain("No rows returned.");
+    expect(text()).not.toContain("0 rows · 0 fields");
+    expect(container.querySelector('[aria-label="Download"]')).toBeNull();
+  });
+
   it("shows only the Formula when no query is behind a value", () => {
     render({ selection: { id: "margin", prop: "value" } });
     expect(rows()).toEqual(["Formula (open)"]);
