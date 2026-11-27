@@ -1,0 +1,125 @@
+---
+title: "Svelte 5"
+seoTitle: "Generative UI for Svelte"
+description: "Build AI-powered interfaces in Svelte 5 with OpenUI. Let AI use your Svelte components to show interactive charts, tables and forms instead of plain text."
+---
+
+To build generative UI in Svelte, register Svelte 5 components with Zod schemas and render streamed OpenUI Lang with @openuidev/svelte-lang. Components read parsed values with $props() and render nested output through a renderNode snippet.
+
+Each .svelte component receives the parsed values as props and a renderNode snippet that it renders with `{@render}`. Renderer takes callbacks such as onAction and onStateUpdate as ordinary props, and context helpers like getTriggerAction and getIsStreaming give components access to actions and streaming state. The Svelte runtime covers components, simple actions and form state; unlike the React, Vue and Angular runtimes, it does not yet run Query() calls, `Action([...])` step plans or $variable state.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/svelte)
+
+## Install
+
+```bash
+npm install @openuidev/svelte-lang zod
+```
+
+## Write the component with $props()
+
+Destructure props and renderNode from $props(). renderNode is a Snippet passed as a prop, not through context, so render children with \{@render renderNode(...)\} and forward it to any child component that renders nested nodes.
+
+```svelte title="src/lib/components/Card.svelte"
+<script lang="ts">
+  import type { Snippet } from "svelte";
+
+  let {
+    props,
+    renderNode,
+  }: {
+    props: { title?: string; children?: unknown };
+    renderNode: Snippet<[unknown]>;
+  } = $props();
+</script>
+
+<div>
+  {#if props.title}
+    <h3>{props.title}</h3>
+  {/if}
+  {#if props.children}
+    {@render renderNode(props.children)}
+  {/if}
+</div>
+```
+
+[View source →](https://github.com/thesysdev/openui/blob/main/examples/app-frameworks/svelte/src/lib/components/Card.svelte)
+
+## Register components in a library
+
+Pair each .svelte file with defineComponent and a Zod schema, and list a container's allowed children with their .ref schemas. Build the system prompt with library.prompt(), or in a SvelteKit server route share the schemas and generate it with @openuidev/lang-core ^0.4.
+
+```ts title="src/lib/library.ts"
+import { createLibrary, defineComponent } from "@openuidev/svelte-lang";
+import { z } from "zod";
+// Card is the component above; TextContent renders props.text in a <p>.
+import Card from "./components/Card.svelte";
+import TextContent from "./components/TextContent.svelte";
+
+const TextContentDef = defineComponent({
+  name: "TextContent",
+  props: z.object({ text: z.string() }),
+  description: "Displays a block of text. Supports markdown formatting within the string.",
+  component: TextContent,
+});
+
+const CardDef = defineComponent({
+  name: "Card",
+  props: z.object({
+    title: z.string(),
+    // The components Card accepts as children, by their .ref schemas.
+    children: z.array(TextContentDef.ref),
+  }),
+  description: "A card container with a title and child components",
+  component: Card,
+});
+
+export const library = createLibrary({
+  components: [TextContentDef, CardDef],
+  root: "Card",
+});
+
+// The system prompt to send with each model request.
+export const systemPrompt = library.prompt();
+```
+
+[View source →](https://github.com/thesysdev/openui/blob/main/examples/app-frameworks/svelte/src/lib/library.ts)
+
+## Render the stream
+
+Pass the accumulated text, the library and isStreaming to Renderer, with onAction as an ordinary callback prop. The Svelte Renderer has no onError prop, so read parser errors from onParseResult.
+
+```svelte title="AssistantMessage.svelte"
+<script lang="ts">
+  import { BuiltinActionType, Renderer, type ActionEvent } from "@openuidev/svelte-lang";
+  // The library from src/lib/library.ts.
+  import { library } from "$lib/library";
+
+  // The model's OpenUI Lang output so far, and whether it is still streaming.
+  let {
+    response,
+    isStreaming,
+  }: { response: string | null; isStreaming: boolean } = $props();
+
+  function handleAction(event: ActionEvent) {
+    if (
+      event.type === BuiltinActionType.ContinueConversation &&
+      event.humanFriendlyMessage
+    ) {
+      // Send event.humanFriendlyMessage to your chat as the next user message.
+    }
+  }
+</script>
+
+<Renderer {response} {library} {isStreaming} onAction={handleAction} />
+```
+
+[Read more →](/docs/api-reference/svelte-lang)
+
+## Related
+
+- [Svelte Lang API reference](/docs/api-reference/svelte-lang)
+- [npm package](https://www.npmjs.com/package/@openuidev/svelte-lang)
+- [Package source](https://github.com/thesysdev/openui/tree/main/packages/svelte-lang)
+- [Example source](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/svelte)
+- [Svelte](https://svelte.dev)

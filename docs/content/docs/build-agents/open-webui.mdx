@@ -1,0 +1,96 @@
+---
+title: "Open WebUI"
+seoTitle: "Open WebUI generative UI: rich interfaces in Open WebUI"
+description: "To add generative UI to Open WebUI, install the OpenUI plugin to render charts, forms, tables, cards, and follow-ups directly inside Open WebUI conversations."
+---
+
+To add generative UI to Open WebUI, install the OpenUI plugin to render charts, forms, tables, cards, and follow-ups directly inside Open WebUI conversations.
+
+The plugin gives the model a render_openui tool and returns a self-contained HTML response. Open WebUI shows it as an inline iframe embed, which loads the OpenUI browser bundle and renders the generated program.
+
+[View source on GitHub →](https://github.com/thesysdev/openwebui-plugin)
+
+## Install the tool
+
+Import the plugin from the Open WebUI community site, or create a tool in Admin > Tools and paste in the plugin's tool.py.
+
+```python title="tool.py"
+"""
+title: OpenUI - Generative UI
+author: thesysdev/vishxrad
+version: 0.5.0
+description: Renders interactive generative UI components (charts, forms, tables, cards, follow-ups) in chat using OpenUI Lang.
+"""
+# The rest of tool.py: the Tools class with the cdn_base_url valve and render_openui.
+```
+
+[View source →](https://github.com/thesysdev/openwebui-plugin/blob/main/tool.py)
+
+## Enable it for a model
+
+Turn the tool on for the models or chats that should render UI. The model calls render_openui when an answer needs a chart, form, table, or card.
+
+```python title="tool.py"
+from starlette.responses import HTMLResponse
+
+
+class Tools:
+    async def render_openui(
+        self,
+        openui_lang_code: str,
+        title: str = "Response",
+        __event_emitter__=None,
+        __event_call__=None,
+    ) -> tuple:
+        # Omitted: the docstring, which tells the model when to call the tool and
+        # teaches OpenUI Lang syntax, and the status updates sent to __event_emitter__.
+
+        # Helpers in tool.py: read Open WebUI's light/dark theme, then build an HTML
+        # page that loads the OpenUI browser bundle and renders openui_lang_code.
+        theme = await _get_openwebui_theme(__event_call__)
+        html = _build_openui_html(
+            openui_lang_code, title, self.valves.cdn_base_url, theme
+        )
+        response = HTMLResponse(content=html, headers={"Content-Disposition": "inline"})
+
+        # result_context tells the model the UI is already on screen, so it describes
+        # it instead of echoing the OpenUI Lang code.
+        return response, result_context
+```
+
+[View source →](https://github.com/thesysdev/openwebui-plugin/blob/main/tool.py)
+
+## Choose where the bundle loads from
+
+The cdn_base_url valve sets where the OpenUI browser bundle loads from. By default it is the latest @openuidev/browser-bundle on jsDelivr.
+
+```python title="tool.py"
+from pydantic import BaseModel, Field
+
+_CDN_BASE = "https://cdn.jsdelivr.net/npm/@openuidev/browser-bundle@latest"
+
+
+class Tools:
+    class Valves(BaseModel):
+        # Edit in Admin > Tools. The page loads <cdn_base_url>/dist/openui-bundle.min.js
+        # and /dist/openui-styles.css. A URL that isn't https (or http on localhost)
+        # falls back to _CDN_BASE.
+        cdn_base_url: str = Field(
+            default=_CDN_BASE,
+            description=(
+                "Base CDN URL for the OpenUI bundle. "
+                "Change if self-hosting or using a different version."
+            ),
+        )
+
+    def __init__(self):
+        self.valves = self.Valves()
+```
+
+[View source →](https://github.com/thesysdev/openwebui-plugin/blob/main/tool.py)
+
+## Related
+
+- [Plugin source](https://github.com/thesysdev/openwebui-plugin)
+- [Install guide on Open WebUI](https://openwebui.com/posts/generative_ui_plugin_for_open_webui_6c017d62)
+- [Open WebUI](https://openwebui.com)

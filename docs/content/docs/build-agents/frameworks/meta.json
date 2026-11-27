@@ -1,5 +1,14 @@
 {
   "title": "Agent frameworks",
   "defaultOpen": false,
-  "pages": ["vercel-ai-sdk", "langgraph", "vercel-eve", "pi"]
+  "pages": [
+    "vercel-ai-sdk",
+    "langgraph",
+    "vercel-eve",
+    "pi",
+    "mastra",
+    "google-adk",
+    "grok-build",
+    "ag-ui"
+  ]
 }

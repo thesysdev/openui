@@ -1,0 +1,130 @@
+---
+title: "Angular"
+seoTitle: "Generative UI for Angular"
+description: "Build AI-powered interfaces in Angular with OpenUI. Let AI use your Angular components to show interactive charts, tables and forms instead of plain text."
+---
+
+To build generative UI in Angular, register standalone components with Zod schemas and render streamed OpenUI Lang with the `<openui-renderer>` component from @openuidev/angular-lang. Results reach your app through outputs such as (action) and (error).
+
+Each registered component accepts props, renderNode and statementId inputs, and defineComponent pairs its class with a Zod schema. The `<openui-renderer>` component takes response, library and isStreaming inputs, emits (action), (stateUpdate), (parseResult) and (error) outputs, and runs Query() and mutation calls through a toolProvider. Inside it, injection helpers such as injectTriggerAction and injectIsStreaming expose actions and streaming state, the latter as a Signal.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/angular)
+
+## Install
+
+```bash
+npm install @openuidev/angular-lang zod rxjs
+```
+
+## Define a standalone component
+
+Give the component props, renderNode and statementId inputs, which the renderer sets on every instance, and register its class with defineComponent and a Zod schema. Use optional access in the template, since props can be incomplete while the model streams.
+
+```ts title="library.ts"
+import { Component, Input } from "@angular/core";
+import { createLibrary, defineComponent } from "@openuidev/angular-lang";
+import { z } from "zod/v4";
+
+@Component({
+  selector: "demo-greeting",
+  template: `<p>Hello, {{ props?.name }}!</p>`,
+})
+export class GreetingComponent {
+  // The renderer sets these three inputs on every instance.
+  @Input() props: { name?: string } | null = null;
+  @Input() renderNode: ((value: unknown) => unknown) | null = null;
+  @Input() statementId: string | undefined;
+}
+
+const Greeting = defineComponent({
+  name: "Greeting",
+  description: "Greet the user by name.",
+  props: z.object({ name: z.string() }),
+  component: GreetingComponent,
+});
+
+export const library = createLibrary({
+  components: [Greeting],
+  root: "Greeting",
+});
+```
+
+[Read more →](/docs/api-reference/angular-lang)
+
+## Generate the prompt on a Node server
+
+Keep the Zod schemas in a file both sides import, and rebuild the library on the server with @openuidev/lang-core ^0.4 and component: null so it never loads Angular classes. The example's build script passes library.toSpec() to generateSystemPrompt and writes the prompt to a file the server reads.
+
+```js title="server/library.mjs"
+import { createLibrary, defineComponent, generateSystemPrompt } from "@openuidev/lang-core";
+import { z } from "zod/v4";
+// { Name: { description, props } } for each component, plus prompt rules and examples.
+// The Angular app's library imports the same file and adds the component classes.
+import { definitions, promptOptions } from "../src/app/openui/schema.ts";
+
+// component: null keeps Angular classes out of the Node process.
+const blocks = Object.entries(definitions).map(([name, definition]) =>
+  defineComponent({ name, ...definition, component: null }),
+);
+const root = defineComponent({
+  name: "Response",
+  description: "Root container for every assistant message.",
+  props: z.object({ children: z.array(z.union(blocks.map((block) => block.ref))) }),
+  component: null,
+});
+
+export const library = createLibrary({ root: "Response", components: [root, ...blocks] });
+
+// The example runs this in scripts/generate.mjs and saves the result to a file.
+export const systemPrompt = generateSystemPrompt({
+  library: library.toSpec(),
+  promptOptions,
+});
+```
+
+[View source →](https://github.com/thesysdev/openui/blob/main/examples/app-frameworks/angular/server/library.mjs)
+
+## Render with openui-renderer
+
+Add Renderer to the host component's imports, bind [response], [library] and [isStreaming], and handle (action) to send the next turn. The same element also emits (stateUpdate) and (error) and accepts a [toolProvider] for Query() and mutation calls.
+
+```ts title="assistant-message.ts"
+import { Component, Input } from "@angular/core";
+import { BuiltinActionType, Renderer, type ActionEvent } from "@openuidev/angular-lang";
+// The library from library.ts.
+import { library } from "./library";
+
+@Component({
+  selector: "assistant-message",
+  imports: [Renderer],
+  template: `
+    <openui-renderer
+      [response]="response"
+      [library]="library"
+      [isStreaming]="isStreaming"
+      (action)="handleAction($event)"
+    />
+  `,
+})
+export class AssistantMessageComponent {
+  @Input() response: string | null = null;
+  @Input() isStreaming = false;
+  readonly library = library;
+
+  handleAction(event: ActionEvent): void {
+    if (event.type === BuiltinActionType.ContinueConversation && event.humanFriendlyMessage) {
+      // Send event.humanFriendlyMessage to your chat as the next user message.
+    }
+  }
+}
+```
+
+[Read more →](/docs/api-reference/angular-lang)
+
+## Related
+
+- [Angular Lang API reference](/docs/api-reference/angular-lang)
+- [npm package](https://www.npmjs.com/package/@openuidev/angular-lang)
+- [Package source](https://github.com/thesysdev/openui/tree/main/packages/angular-lang)
+- [Example source](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/angular)
+- [Angular](https://angular.dev)

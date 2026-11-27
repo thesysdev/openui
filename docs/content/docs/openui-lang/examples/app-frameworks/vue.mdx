@@ -1,0 +1,109 @@
+---
+title: "Vue 3"
+seoTitle: "Generative UI for Vue"
+description: "Build AI-powered interfaces in Vue 3 with OpenUI. Let AI use your Vue components to show interactive charts, tables and forms instead of plain text."
+---
+
+To build generative UI in Vue, register Vue 3 single-file components with Zod schemas and render streamed OpenUI Lang with @openuidev/vue-lang. The Renderer component takes the response as a prop, and composables such as useTriggerAction connect your components to it.
+
+Each SFC declares a props prop for the parsed values and a renderNode prop for nested content, and defineComponent pairs it with a Zod schema whose key order sets the positional arguments in OpenUI Lang. Renderer reports back through callback props such as onAction, onStateUpdate and onError rather than emitted events. Inside it, composables like useTriggerAction, useSetFieldValue and useIsStreaming give components access to actions, form state and streaming status.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/vue)
+
+## Install
+
+```bash
+npm install @openuidev/vue-lang zod
+```
+
+## Write the component as an SFC
+
+A registered component receives the parsed values in a props prop and a renderNode function. Declare both with defineProps, otherwise Vue forwards renderNode to the root element as an attribute.
+
+```vue title="Greeting.vue"
+<script setup lang="ts">
+import type { RenderNodeResult } from "@openuidev/vue-lang";
+
+defineProps<{
+  props: { name?: string };
+  renderNode: (value: unknown) => RenderNodeResult;
+}>();
+</script>
+
+<template>
+  <p>Hello, {{ props.name }}!</p>
+</template>
+```
+
+[Read more →](/docs/api-reference/vue-lang)
+
+## Register it and generate the prompt
+
+Pair the SFC with a Zod schema in defineComponent, collect the definitions with createLibrary, and call library.prompt(). A Nuxt server route cannot import .vue files, so share the schemas there and generate the prompt with @openuidev/lang-core ^0.4.
+
+```ts title="library.ts"
+import { createLibrary, defineComponent } from "@openuidev/vue-lang";
+import { z } from "zod/v4";
+// The SFC from the previous step.
+import GreetingComponent from "./Greeting.vue";
+
+const Greeting = defineComponent({
+  name: "Greeting",
+  description: "Greet the user by name.",
+  props: z.object({ name: z.string() }),
+  component: GreetingComponent,
+});
+
+export const library = createLibrary({
+  components: [Greeting],
+  root: "Greeting",
+});
+
+// The system prompt to send with each model request.
+export const systemPrompt = library.prompt({
+  preamble: "You are a helpful assistant.",
+  examples: ['root = Greeting("Alice")'],
+});
+```
+
+[Read more →](/docs/api-reference/vue-lang)
+
+## Render the stream with Renderer
+
+Bind the accumulated text, the library and the streaming flag with :response, :library and :is-streaming. Renderer callbacks are props, not emitted events, so bind onAction with :on-action and send continuation actions back to the model as a new turn.
+
+```vue title="AssistantMessage.vue"
+<script setup lang="ts">
+import { BuiltinActionType, Renderer, type ActionEvent } from "@openuidev/vue-lang";
+// The library from library.ts.
+import { library } from "./library";
+
+// The model's OpenUI Lang output so far, and whether it is still streaming.
+defineProps<{ response: string | null; isStreaming: boolean }>();
+
+function handleAction(event: ActionEvent) {
+  if (event.type === BuiltinActionType.ContinueConversation && event.humanFriendlyMessage) {
+    // Send event.humanFriendlyMessage to your chat as the next user message.
+  }
+}
+</script>
+
+<template>
+  <Renderer
+    :response="response"
+    :library="library"
+    :is-streaming="isStreaming"
+    :on-action="handleAction"
+  />
+</template>
+```
+
+[Read more →](/docs/api-reference/vue-lang)
+
+## Related
+
+- [Vue Lang API reference](/docs/api-reference/vue-lang)
+- [npm package](https://www.npmjs.com/package/@openuidev/vue-lang)
+- [Package source](https://github.com/thesysdev/openui/tree/main/packages/vue-lang)
+- [Example source](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/vue)
+- [Vue](https://vuejs.org)
