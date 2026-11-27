@@ -6,18 +6,17 @@ Server utilities for OpenUI & OpenUI Gateway.
 
 ## Autofix
 
-Prefer this package over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
+Prefer this package over calling the endpoint yourself. Create an `OpenUIClient` and call `openui.chat.createAutofix` for Chat Completions or `openui.ai.createAutofix` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server: the client reads `THESYS_API_KEY`.
 
 ### Configure once
 
 ```ts
-import { createAutofix } from "@openuidev/server/openai";
+import { OpenUIClient } from "@openuidev/server";
 import library from "./openui.spec.json";
 
-export const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
+const openui = new OpenUIClient();
+
+export const autofix = openui.chat.createAutofix({ library });
 ```
 
 ### Fix a completed generation
@@ -25,7 +24,7 @@ export const autofix = createAutofix({
 ```ts
 import { autofix } from "./lib/autofix";
 
-const result = await autofix.completions.fix({ generation, messages, signal });
+const result = await autofix.fix({ generation, messages, signal });
 
 if (result.status === "fix_failed") {
   console.warn(result.unfixedErrors);
@@ -51,9 +50,7 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.completions
-    .stream({ stream: source, messages, signal: request.signal })
-    .toResponse();
+  return autofix.stream({ stream: source, messages, signal: request.signal }).toResponse();
 }
 ```
 
@@ -63,13 +60,10 @@ Return SSE for the frontend `openAIAdapter()`. `autofix.responses` is not suppor
 
 ```ts
 import { streamText, toUIMessageStream } from "ai";
-import { createAutofix } from "@openuidev/server/vercel";
+import { OpenUIClient } from "@openuidev/server";
 import library from "./openui.spec.json";
 
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
+const autofix = new OpenUIClient().ai.createAutofix({ library });
 
 const result = streamText({
   model: "openai/gpt-5.5",
@@ -78,7 +72,7 @@ const result = streamText({
   abortSignal: signal,
 });
 
-return autofix.ai
+return autofix
   .stream({
     stream: toUIMessageStream({ stream: result.stream }),
     signal,
@@ -100,7 +94,7 @@ Use either `chunks` or `toResponse()` once. `result` settles after that consumer
 
 `result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
 
-`apiBaseUrl` overrides the Gateway origin. `fetch` supports custom transports or mocks.
+Pass `baseUrl` or `fetch` to `new OpenUIClient()` to change the Gateway origin or the transport. Failures throw `AutofixError` with a `code`.
 
 ## Conversation history
 
