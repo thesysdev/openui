@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { agUIAdapter } from "../../stream/adapters";
 import type { Message, Thread, UserMessage } from "../types";
 import { makeStore } from "./__helpers/makeStore";
 
@@ -352,6 +353,41 @@ describe("createChatStore", () => {
       expect(store.getState().threadError).toBeInstanceOf(Error);
       expect(store.getState().threadError?.message).toBe("api down");
       expect(store.getState().isRunning).toBe(false);
+    });
+
+    it("streams AG-UI reasoning into its own message ahead of the answer", async () => {
+      vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+        cb(0);
+        return 0;
+      });
+      vi.stubGlobal("cancelAnimationFrame", () => {});
+      const sse = [
+        { type: "REASONING_MESSAGE_START", messageId: "r1", role: "reasoning" },
+        { type: "REASONING_MESSAGE_CONTENT", messageId: "r1", delta: "let me " },
+        { type: "REASONING_MESSAGE_CONTENT", messageId: "r1", delta: "think" },
+        { type: "REASONING_MESSAGE_END", messageId: "r1" },
+        { type: "TEXT_MESSAGE_START", messageId: "m1", role: "assistant" },
+        { type: "TEXT_MESSAGE_CONTENT", messageId: "m1", delta: "answer" },
+      ]
+        .map((e) => `data: ${JSON.stringify(e)}\n\n`)
+        .join("");
+      const store = makeStore({
+        send: vi.fn().mockResolvedValue(new Response(sse, { status: 200 })),
+        streamProtocol: agUIAdapter(),
+      });
+      store.setState({ selectedThreadId: "t1" });
+
+      try {
+        await store.getState().processMessage({ role: "user", content: "hello" });
+      } finally {
+        vi.unstubAllGlobals();
+      }
+
+      expect(store.getState().messages.map((m) => ({ role: m.role, content: m.content }))).toEqual([
+        { role: "user", content: "hello" },
+        { role: "reasoning", content: "let me think" },
+        { role: "assistant", content: "answer" },
+      ]);
     });
   });
 

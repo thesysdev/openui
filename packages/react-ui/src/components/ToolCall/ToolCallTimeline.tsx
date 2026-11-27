@@ -20,10 +20,17 @@ import { toolLabel, useToolLabels } from "./toolLabels";
 
 /**
  * One display row of the timeline: a tool activity, or a thinking-text step
- * (prose the model emitted alongside its tool calls), in run order.
+ * (prose the model emitted alongside its tool calls, or its reasoning), in run order.
  */
 export type TimelineStep =
-  { type: "text"; id: string; text: string } | { type: "activity"; activity: ToolActivity };
+  | {
+      type: "text";
+      id: string;
+      text: string;
+      /** The model's reasoning (a `reasoning` message), shown open while it streams. */
+      reasoning?: boolean;
+    }
+  | { type: "activity"; activity: ToolActivity };
 
 const stepKey = (step: TimelineStep) =>
   step.type === "text" ? `text-${step.id}` : step.activity.id;
@@ -296,16 +303,18 @@ export function ToolCallTimeline({
   // "Working" once the run ends.
   const isThreadRunning = useThread((s) => s.isRunning);
   const labels = useToolLabels();
+  const lastActivity = activities[activities.length - 1];
   const thinking =
     isThreadRunning &&
     isLast &&
-    activities.length > 0 &&
-    (isToolRunning(activities[activities.length - 1]!.status) || awaitingResponse);
+    displaySteps.length > 0 &&
+    ((!!lastActivity && isToolRunning(lastActivity.status)) || awaitingResponse);
 
-  // Collapsed by default; the header carries the live step instead.
-  const [expanded, setExpanded] = useState(false);
-  // The one open row in the list, by step key.
-  const [openStep, setOpenStep] = useState<string | null>(null);
+  // Collapsed by default; the header carries the live step instead. `null`
+  // until the user toggles, so the list can follow live reasoning on its own.
+  const [expanded, setExpanded] = useState<boolean | null>(null);
+  // The one open row in the list, by step key; `undefined` until the user picks one.
+  const [openStep, setOpenStep] = useState<string | null | undefined>(undefined);
   // Live message reveals from the first step; historical reveals them all so
   // it never animates "Working" on mount.
   const [revealedCount, setRevealedCount] = useState(() =>
@@ -318,8 +327,8 @@ export function ToolCallTimeline({
   useEffect(() => {
     if (!prevThinking.current && thinking) {
       setRevealedCount(1);
-      setExpanded(false);
-      setOpenStep(null);
+      setExpanded(null);
+      setOpenStep(undefined);
       followRef.current = true;
     } else if (prevThinking.current && !thinking) {
       setRevealedCount(displaySteps.length);
@@ -378,8 +387,18 @@ export function ToolCallTimeline({
     if (el && distanceFromBottom(el) >= 24) followRef.current = false;
   }, []);
 
+  const revealing = revealedCount < displaySteps.length;
+  const working = thinking || revealing;
+  const current = displaySteps[Math.min(revealedCount - 1, displaySteps.length - 1)];
+  // Reasoning streams in the open list while it is the step in progress, and
+  // folds away once the run moves on to a tool or the answer.
+  const liveReasoningKey =
+    working && current?.type === "text" && current.reasoning ? stepKey(current) : null;
+  const isExpanded = expanded ?? liveReasoningKey !== null;
+  const openKey = openStep === undefined ? liveReasoningKey : openStep;
+
   useLayoutEffect(() => {
-    if (!thinking || !expanded || !followRef.current) return;
+    if (!thinking || !isExpanded || !followRef.current) return;
     const el = itemsRef.current;
     if (!el || distanceFromBottom(el) < 1) return;
     const reduceMotion =
@@ -415,24 +434,22 @@ export function ToolCallTimeline({
     }
   }, [isThreadRunning, revealedCount, displaySteps.length]);
 
-  // Guard the array that is actually indexed below. `steps` is caller-supplied
-  // and can be empty even when `activities` is not, and `??` keeps an empty
-  // array rather than falling back to `activities`.
-  if (activities.length === 0 || displaySteps.length === 0) return null;
+  // `steps` is caller-supplied and can be empty even when `activities` is not,
+  // and `??` keeps an empty array rather than falling back to `activities`.
+  if (!current) return null;
 
-  const revealing = revealedCount < displaySteps.length;
-  const working = thinking || revealing;
-  const current = displaySteps[Math.min(revealedCount - 1, displaySteps.length - 1)]!;
   // Collapsed while live, the header shows the newest revealed step until the
   // run settles; open, the list shows it instead.
-  const liveStep = working && !expanded ? current : null;
+  const liveStep = working && !isExpanded ? current : null;
 
   // Persistent live announcement reflecting the current step's status — driven by
   // the same fallback the primitives use so SRs hear status changes as content
   // updates (the header ticker remounts its line and never announces on its own).
   const liveLabel =
     current.type === "text"
-      ? current.text
+      ? current.reasoning
+        ? "Thinking"
+        : current.text
       : (current.activity.statusMessage ??
         toolLabel(current.activity.status, current.activity.toolName, labels));
 
@@ -461,8 +478,8 @@ export function ToolCallTimeline({
       <button
         className="openui-behind-the-scenes__toggle"
         type="button"
-        aria-expanded={expanded}
-        onClick={() => setExpanded((open) => !open)}
+        aria-expanded={isExpanded}
+        onClick={() => setExpanded(!isExpanded)}
       >
         <HeaderTicker itemKey={liveStep ? stepKey(liveStep) : "summary"}>
           {liveStep ? (
@@ -488,9 +505,9 @@ export function ToolCallTimeline({
 
       <div
         className={clsx("openui-behind-the-scenes__collapse", {
-          "openui-behind-the-scenes__collapse--open": expanded,
+          "openui-behind-the-scenes__collapse--open": isExpanded,
         })}
-        inert={!expanded}
+        inert={!isExpanded}
       >
         <div className="openui-behind-the-scenes__collapse-inner">
           <div
@@ -515,7 +532,7 @@ export function ToolCallTimeline({
                     live={working && newest}
                     detailedViewPanel={detailedViewPanel}
                     forceDefault={forceDefault}
-                    open={openStep === key}
+                    open={openKey === key}
                     onOpenChange={(open) => setOpenStep(open ? key : null)}
                   />
                 </div>
