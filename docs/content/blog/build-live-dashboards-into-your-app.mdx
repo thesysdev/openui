@@ -55,24 +55,17 @@ We built it to work with any size of model, so you can choose by cost. On our ha
 
 </figure>
 
-## 2. Running model-written scripts safely
+## Running scripts safely
 
-OpenUI Lang has no HTML or JavaScript in it. The model only names components from your library and the tools that feed them, and the renderer draws nothing else, so a dashboard on its own can't run code.
+OpenUI Lang has no HTML or JavaScript in it. The model names components from your library, and data comes in through `Query`, which calls one of your tools and puts its result straight into those components. There's no code between your data and the screen, so a dashboard on its own can't run anything.
 
-Some numbers need logic, though, like grouping customers by age from their birth dates or combining two tools into one metric. For that, the model writes a small JavaScript script. Scripts are what make dashboards flexible, and they're also code a model wrote. Run them in the browser and anyone could build a dashboard with a malicious script, share it, and have it run in every viewer's browser with that viewer's access. So scripts never run in the browser.
+Some numbers need real logic, like grouping customers by age or combining two tools into one metric. For those, the model writes a small JavaScript script. Scripts make dashboards far more flexible, but they're code a model wrote. If they ran in the browser, anyone could build a dashboard with a harmful script, share it, and have it run in every viewer's browser with that viewer's access.
 
-**A fresh sandbox for every run.** Each script runs on the server in a new QuickJS virtual machine, compiled to WebAssembly, in its own worker, and is thrown away afterwards. The script gets your tools, its arguments and a console, and nothing else: there's no network to call and no filesystem to read.
+So scripts have to run on the server, in a sandbox that:
 
-| Limit | Value |
-| --- | --- |
-| CPU | 500 ms of compute at a time |
-| Time | 2 s between tool calls, then the run is stopped |
-| Memory | 64 MB |
-| Tool calls | 48 per run |
-
-**Your tools, run as the viewer.** A script never reaches your tools directly. It pauses, its calls go back to your server to run with the viewer's own access, and it resumes with the results. The paused state travels as a signed token, so it can't be altered, and it's useless after 10 minutes.
-
-**Scripts stay on the server.** Browsers only ever receive the dashboard's program. The API looks up a script's code itself from the saved dashboard, and a request can't supply code of its own. As a second layer, every script is checked before it's saved: it must parse and call only your tools, and one that reaches for `fetch`, `eval` or `require` is rejected.
+- **starts fresh and empty every time:** no network, no filesystem, thrown away after each run, with hard limits on time and memory so a runaway script stops;
+- **can call your other tools safely:** only the tools you registered, each call running on your server with the viewer's own access, so a script can combine data without reaching anything it shouldn't;
+- **keeps code on the server:** browsers get the dashboard, never the script, and nobody can swap in code of their own.
 
 ## 3. Auth and sharing
 
@@ -104,7 +97,7 @@ A build makes several model calls with the same long prompt, and the model and e
 
 ## Use the OpenUI Dashboards API
 
-The OpenUI Dashboards API does all of the above. On your side, it's one definition:
+The OpenUI Dashboards API does all of this out of the box: the tuned prompt and the checks before and after the model writes, a sandbox that runs each script in a fresh QuickJS virtual machine compiled to WebAssembly, and everything in the sections above. On your side, it's one definition:
 
 ```ts title="lib/openui.ts"
 import { OpenUIClient } from "@openuidev/server";
