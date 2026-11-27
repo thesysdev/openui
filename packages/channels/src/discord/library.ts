@@ -150,7 +150,7 @@ const List = def(
 const Table = def(
   "Table",
   z.object({ headers: z.array(z.string()), rows: z.array(z.array(z.string())) }),
-  'A small table, rendered as an aligned monospace block (Discord has no native table). Keep it to a few short columns. e.g. Table(["Package", "Weekly"], [["lang-core", "1.5M"]]).',
+  'A small table, rendered as an aligned monospace block (Discord has no native table). Keep it to a few short columns. e.g. Table(["Task", "State"], [["Login fix", "Done"]]).',
   ({ props: p }) => {
     const rows: string[][] = [
       (p.headers ?? []).map(asText),
@@ -254,7 +254,7 @@ const Button = dataDef(
 const LinkButton = dataDef(
   "LinkButton",
   z.object({ label: z.string(), url: z.string() }),
-  'A button that opens a URL: LinkButton("View on GitHub", "https://github.com"). Lives inside Actions.',
+  'A button that opens a URL: LinkButton("View docs", "https://example.com"). Lives inside Actions.',
 );
 
 function button(n: ElementNode, ctx: RenderArgs["ctx"]): Record<string, any> | null {
@@ -397,7 +397,7 @@ const Form = def(
     fields: z.array(z.union([TextInput.ref, TextArea.ref, NumberInput.ref, Select.ref])),
     action: z.any().optional(),
   }),
-  'A form. Renders as one button labeled `title`; clicking opens a pop-up of up to 5 fields. Submitting sets each field\'s $variable, then runs the optional action. e.g. Form("Set goal", "Save", [NumberInput("Weekly downloads", $goal)], Action([@Set($stage, "goal")])).',
+  'A form. Renders as one button labeled `title`; clicking opens a pop-up of up to 5 fields. Submitting sets each field\'s $variable, then runs the optional action. e.g. Form("Set target", "Save", [NumberInput("Target", $target)], Action([@Set($stage, "saved")])).',
   ({ props: p, node, ctx }) => {
     const id = ctx.idFor(node, "form");
     const spec: FormSpec = {
