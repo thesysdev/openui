@@ -1,15 +1,25 @@
 ---
-title: "How to build a product like OpenDashboards into your app"
-seoTitle: "How to build live dashboards like OpenDashboards and Claude Data into your own app"
-description: "OpenDashboards is an open-source app for live dashboards, built on OpenUI Lang and the OpenUI Dashboards API. This is what that API does under the hood, from a build harness that checks every dashboard against real data to a sandbox for model-written scripts, and what you'd need to build something like it into your own app."
+title: "What it takes to ship AI-generated dashboards in your app"
+seoTitle: "How to build live dashboards like OpenDashboards, Claude Dashboards and Claude Data into your own app"
+description: "Claude Dashboards turns a question about your data into a live dashboard. This post walks through what it takes to build the same into your own agent: making sure every dashboard works, keeping the numbers right, letting users edit without breaking anything, sharing safely, and keeping token costs down, along with how we solve each of these in the OpenUI Dashboards API."
 author: Thesys Engineering Team
 date: 2026-11-27
 featured: false
 ---
 
-A live dashboard is built once by a model and loads fresh data every time someone opens it, with no model call. Claude Data does this inside Claude, and we [took it apart](/blog/how-claude-dashboards-work) earlier this month. Plenty of teams want the same thing inside their own app.
+Claude Dashboards lets you ask Claude a question about your data and get a live dashboard in return. Claude generates the dashboard once, and every time someone opens it, it loads fresh data without making another model call. We [took it apart](https://www.openui.com/blog/how-claude-dashboards-work) earlier this month. In this post, we'll look at what it takes to build something similar into your own agent.
 
-We built one and open-sourced it. [OpenDashboards](https://github.com/thesysdev/opendashboards) lets you connect a database or an analytics tool, ask for a dashboard in plain English, and keep refining it by chat.
+Getting an LLM to generate a dashboard is surprisingly easy. Getting it to work reliably in production is a different story. You need to make sure that:
+
+- Every generated dashboard actually works.
+- The numbers it shows are accurate.
+- Users can edit a dashboard without breaking what's already there.
+- Dashboards can be shared without compromising data, security, or access permissions.
+- None of this costs a fortune in tokens.
+
+We'll go through each of these challenges, why they arise, and how we solve them in the [OpenUI Dashboards API](https://openui.com/dashboards).
+
+We've also built [OpenDashboards](https://opendashboards.com) on top of this API to show what a complete product can look like. Think Metabase, but instead of manually building dashboards, you connect your database or analytics tool, describe what you want in plain English, and refine it through conversation.
 
 <div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
   <LazyVideo
@@ -25,19 +35,33 @@ We built one and open-sourced it. [OpenDashboards](https://github.com/thesysdev/
   />
 </div>
 
-It's built on [OpenUI Lang](/docs/openui-lang/overview). The model writes a short program that names components from your library, and a `Query` in that program names one of your data tools, so the renderer loads fresh data every time the dashboard opens. OpenUI Lang has worked this way since v0.5 in April.
+## Live dashboards rest on a declarative program, not generated code
 
-Under the hood, OpenDashboards uses the [OpenUI Dashboards API](/docs/dashboards) to build and serve each dashboard. Here's what goes into it.
+The OpenUI Dashboards API generates dashboards in [OpenUI Lang](https://www.openui.com/docs/openui-lang/overview). Instead of writing HTML or JavaScript, the model writes a short program that names components from your library. A `Query` in that program names one of your data tools, so the renderer loads fresh data every time the dashboard opens. OpenUI Lang has worked this way since v0.5 in April.
 
-## Getting the numbers right
+This matters for everything that follows. The program only describes the dashboard; it doesn't run anything. That's what makes it possible to check a dashboard before anyone sees it, edit just part of it, and share it safely.
 
-A model can write a dashboard that looks fine and shows the wrong thing: a chart that reads a column that doesn't exist, or a total over the wrong rows. This is where we put most of our effort.
+## A model will sometimes write a dashboard that doesn't work
 
-- **A prompt tuned for dashboards.** It's generated from your component library, with rules for what makes a good dashboard: how to lay out a page, when to add filters and previous periods, how to label numbers.
-- **Checks before and after the model writes.** Before, the model looks at your data by calling your tools, so its charts are bound to fields that exist. After, we check that every query and script it wrote matches the shape of what your tools actually return: a chart reading `rows.revenue` when the rows have `amount` is caught before anyone sees it.
-- **A replay before saving.** The finished dashboard and its scripts are run again on the server with your real data. Anything that would come out empty or broken goes back to the model to fix, so broken charts are caught before anyone opens the dashboard, without a round of "this chart is empty, fix it".
+Whatever format the model writes, whether that's HTML, JSON or OpenUI Lang, even a good model will sometimes get the markup wrong, the queries wrong, or both. When that happens, whoever opens the dashboard gets an error or an empty page. Cheaper models get it wrong more often.
 
-We built it to work with any size of model, so you can choose by cost. On our hardest set of requests (funnels, retention cohorts, web vitals, revenue against a target), Claude Haiku 5.5 scored 110 out of 120 in a blind review with these checks, against 94 on its own. On its own, about 1 in 7 of its dashboards broke; with the checks, none did. DeepSeek v4.1 Flash built every test dashboard correctly at a third of a cent per build.
+In a demo, you can retry until it works. In your product, you can't hand a user a broken dashboard and ask them to try again.
+
+In the OpenUI Dashboards API, we catch invalid OpenUI Lang and invalid queries before a dashboard is saved and fix them, so your users only ever get a dashboard that works.
+
+On our hardest set of requests (funnels, retention cohorts, web vitals, revenue against a target), about 1 in 7 of Claude Haiku 5.5's dashboards broke on its own. With these checks, none did.
+
+## A dashboard that works can still show the wrong numbers
+
+A dashboard can load without errors and still show the wrong thing: a chart that reads a column that doesn't exist, or a total over the wrong rows. That's worse than a broken dashboard, because nothing tells your user something's off, and they act on the numbers.
+
+This is where we put most of our effort, and it's [how the OpenUI Dashboards API works](https://www.openui.com/docs/dashboards/how-it-works):
+
+- **A prompt tuned for dashboards.** We generate it from your component library, with rules for what makes a good dashboard: how to lay out a page, when to add filters and previous periods, and how to label numbers.
+- **Checks before and after the model writes.** Before writing, the model looks at your data by calling your tools, so its charts are bound to fields that actually exist. After, we check that every query and script it wrote matches the shape of what your tools return. A chart reading `rows.revenue` when the rows have `amount` is caught before anyone sees it.
+- **A replay before saving.** We run the finished dashboard and its scripts again on the server with your real data. Anything that comes out empty or broken goes back to the model to fix, so you never have to tell it "this chart is empty, fix it."
+
+With these checks, Claude Haiku 5.5 scored 110 out of 120 in a blind review on our hardest requests, against 94 on its own.
 
 <figure>
 
@@ -45,25 +69,13 @@ We built it to work with any size of model, so you can choose by cost. On our ha
 
 </figure>
 
-## Keeping it safe
+## People never build a dashboard just once
 
-OpenUI Lang has no HTML or JavaScript in it. The model names components from your library, and data comes in through `Query`, which calls one of your tools and puts its result straight into those components. There's no code between your data and the screen, so a dashboard on its own can't run code.
+Your users won't build a dashboard once and be done with it. They'll refine it, share it, and keep it open on a second screen.
 
-Some numbers need real logic, like grouping customers by age or combining two tools into one metric. For those, the model writes a small JavaScript script. Scripts make dashboards far more flexible, but they're code a model wrote. If they ran in the browser, anyone could build a dashboard with a harmful script, share it, and have it run in every viewer's browser with that viewer's access.
+**Edits that keep what's there.** When someone asks to "add a pie chart by payment method", they expect a pie chart added, not the whole dashboard rebuilt and the filters they tuned lost. If the model rewrites the full dashboard on every edit, whatever format it writes, that's exactly what can happen.
 
-So scripts have to run on the server, in a sandbox that:
-
-- **starts fresh and empty every time:** no network, no filesystem, thrown away after each run, with hard limits on time and memory so a runaway script stops;
-- **can call your other tools safely:** only the tools you registered, each call running on your server with the viewer's own access, so a script can combine data without reaching anything it shouldn't;
-- **keeps code on the server:** browsers get the dashboard, never the script, and nobody can swap in code of their own.
-
-The browser needs care too. It has to load a user's dashboards without ever holding your API key, which takes a short-lived token, minted by your server for one user, signed so it can't be altered to claim someone else, and refreshed before it expires.
-
-## Edits and live updates
-
-People don't build a dashboard once. They refine it, share it, and leave it open on a second screen.
-
-**Edits that keep what's there.** "Add a pie chart by payment method" should add a pie chart, not rebuild the dashboard and lose the filters someone tuned. OpenUI Lang's [incremental editing](/docs/openui-lang/incremental-editing) makes that possible: the model writes only the parts that change, and they're merged into the dashboard. Around it you need the same checks as a new build, everyone kept on the current version until the new one is ready, and a guard so two people editing at once can't overwrite each other.
+In the OpenUI Dashboards API, [editing a dashboard](https://www.openui.com/docs/dashboards/edit) uses OpenUI Lang's [incremental editing](https://www.openui.com/docs/openui-lang/incremental-editing): the model writes only the parts that change, and we merge them into the dashboard. Every edit goes through the same checks as a new build, everyone stays on the current version until the new one is ready, and two people editing at once can't overwrite each other.
 
 <div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
   <LazyVideo
@@ -81,18 +93,57 @@ People don't build a dashboard once. They refine it, share it, and leave it open
 
 <p className="text-sm text-fd-muted-foreground">An edit in OpenDashboards, at 8× speed: the dashboard stays up while the new KPI is built, then it slots in.</p>
 
-**Live updates for everyone watching.** A dashboard being built should appear at once for everyone looking at it and fill in as it's written, showing only the dashboard, never the model's commentary or script code. Open dashboards should pick up a new version, a rename or a change in access on their own, reconnect when the connection drops, and show a build that has stopped making progress as stalled instead of spinning forever.
+**Live updates for everyone watching.** While a dashboard is being built, everyone looking at it sees it appear at once and fill in as it's written. They see only the dashboard, never the model's commentary or script code.
 
-## Storage and sharing
+## Sharing turns every dashboard into a security boundary
 
-A dashboard in your product belongs to one of your users, and nobody should see data that isn't theirs. That takes two things:
+Sharing is what makes a dashboard useful. It also means a dashboard that one person asked a model to write opens in someone else's browser, with someone else's access. That can go wrong in three ways, and you need to handle each one.
 
-- **Storage that knows who owns what.** Each dashboard is saved with its owner, its program and its scripts, and the scripts stay on the server. A dashboard is saved as soon as its build starts, so it can be listed, shared or deleted before it's finished. The data the model looked at while building stays with the user who built it. For fast opens, each viewer's last results are kept for up to a day and are only shown for the version they came from. Your data tools themselves always run on your own server; while a dashboard is being built, the results the model looks at pass through to the model provider you chose.
-- **Sharing without sharing data.** When someone shares a dashboard with a person or a team, they share its layout and queries, never its results. Queries run as whoever is viewing, so your data tools can give two people different numbers on the same dashboard. Access is checked on every request, so removing a share takes effect on the next one, and someone without access can't tell the dashboard exists. Team membership travels in the token, so removing someone from a team takes effect when their token expires, within 15 minutes.
+### Data leaks
 
-## Use the OpenUI Dashboards API
+If a shared dashboard carries the results its builder saw, or runs its queries as the builder, whoever opens it sees data that isn't theirs.
 
-The OpenUI Dashboards API gives you a build harness tuned for dashboards that does all of the above out of the box, including a sandbox that runs each script in a fresh QuickJS virtual machine compiled to WebAssembly. Integrating it takes one definition:
+In the OpenUI Dashboards API, sharing a dashboard with a person or a team shares its layout and queries, never its results. Your [data tools](https://www.openui.com/docs/dashboards/connect-data) always run on your own servers, with the auth context of whoever is viewing the dashboard. So two people can open the same dashboard and each see only their own numbers.
+
+### Code execution
+
+If a dashboard can run code in the browser, anyone who can build a dashboard can put a harmful script in one and send you the link. Just opening it could steal your cookies or farm crypto in your browser. In a multi-tenant product, that's a compliance nightmare.
+
+Generating HTML or JavaScript is the default approach for a reason: it's flexible. But that flexibility is exactly the problem once dashboards can be shared.
+
+OpenUI Lang has no HTML or JavaScript in it. The model names components from your library, and data comes in through `Query`, which calls one of your tools and puts its result straight into those components. There's no code between your data and the screen, so a shared dashboard has nothing to run in the viewer's browser.
+
+Some numbers still need real logic, like grouping customers by age or combining two tools into one metric. For those, the model writes a small JavaScript script. In the OpenUI Dashboards API, scripts only ever run on the server, in a sandbox that:
+
+- **starts fresh and empty every time:** no network, no filesystem, thrown away after each run, with hard limits on time and memory so a runaway script stops;
+- **can call your other tools safely:** only the tools you registered, each call running on your server with the viewer's own access, so a script can combine data without reaching anything it shouldn't;
+- **keeps code on the server:** browsers get the dashboard, never the script, and nobody can swap in code of their own.
+
+Because the rest of the dashboard can't run code, this sandbox can stay light. Each script runs in a fresh QuickJS virtual machine compiled to WebAssembly, so there's no full-blown sandbox, such as a container for every run, to operate.
+
+### Access control
+
+"Shared" isn't one permission. Someone with `view` access should be able to open a dashboard, and someone with `edit` access should be able to change it. If you don't model these explicitly, or you skip a check somewhere, someone can end up editing or resharing a dashboard they should only be able to see.
+
+The OpenUI Dashboards API checks [access](https://www.openui.com/docs/dashboards/sharing) on every request, so removing a share takes effect on the next one, and someone without access can't tell the dashboard exists.
+
+The browser needs care too. It has to load a user's dashboards without ever holding your API key. With the API, your server mints a short-lived [token](https://www.openui.com/docs/dashboards/authentication) for each user, signed so it can't be altered to claim someone else, and refreshed before it expires.
+
+## In your app, every token is on your bill
+
+Inside Claude, token cost is Anthropic's concern, not yours. When you ship dashboards in your own app, you pay for every build and every edit, so it's worth designing for cost from the start.
+
+A few things keep that bill down:
+
+- **Opening a dashboard costs nothing.** There's no model call when someone opens it; the renderer runs your queries for fresh data. You pay for a dashboard when it's built, not every time it's viewed.
+- **Edits cost less than rebuilds.** With incremental editing, the model writes only the parts that change, not the whole dashboard again.
+- **You can use a smaller model.** We built the API to work with any size of model, so you can choose by cost. The checks above are what make cheaper models work: DeepSeek v4.1 Flash built every test dashboard correctly at a third of a cent per build.
+
+**TBD:** numbers.
+
+## Building this into your app
+
+In the [OpenUI Dashboards API](https://openui.com/dashboards), we've taken care of all of this, so you don't have to. All it needs from you is your component library, a model and your data tools:
 
 ```ts title="lib/openui.ts"
 import { OpenUIClient } from "@openuidev/server";
@@ -106,9 +157,12 @@ export const dashboards = new OpenUIClient().defineDashboard({
 });
 ```
 
-Give `dashboards.create()` and `dashboards.edit()` to your chat agent as tools, or call them from your own code. The renderer shows the result in your app, drawn with your components.
+To get started, ask your coding agent:
 
-- **Start building** with the [OpenUI Dashboards docs](/docs/dashboards), or create the example app in one command: `npx @openuidev/cli@latest create --example assistant-ui-dashboards`.
-- **See a complete app** in [OpenDashboards](https://github.com/thesysdev/opendashboards), or use it at [opendashboards.com](https://opendashboards.com).
+```text
+Install the OpenUI skill with `npx skills add thesysdev/skills`. Ask me whether to build a new app with live dashboards (scaffold it with `npx @openuidev/cli@latest create --example assistant-ui-dashboards`) or add them to my existing one, then follow the skill's dashboards guide to complete it.
+```
 
-The Dashboards API is part of OpenUI Cloud, which has a [free tier](/docs/gateway/pricing-credits).
+To see it in a complete product, try [OpenDashboards](https://opendashboards.com) or read [its source on GitHub](https://github.com/thesysdev/opendashboards).
+
+The Dashboards API is part of OpenUI Cloud, which has a [free tier](https://www.openui.com/docs/gateway/pricing-credits).
