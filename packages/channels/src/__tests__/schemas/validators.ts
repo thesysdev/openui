@@ -337,8 +337,20 @@ export function validateDiscord(message: DiscordMessage): string[] {
   if (!(message.flags & (1 << 15))) out.push("IS_COMPONENTS_V2 flag missing");
   if ("content" in message || "embeds" in message)
     out.push("Components V2 messages cannot set content or embeds");
+  if (message.allowed_mentions?.parse?.length !== 0)
+    out.push("allowed_mentions must be { parse: [] } so card text cannot ping");
   const top = message.components ?? [];
   if (!top.length) out.push("message has no components");
+  const ids = new Set<string>();
+  const walkIds = (c: any) => {
+    if (typeof c?.custom_id === "string") {
+      if (ids.has(c.custom_id)) out.push(`duplicate custom_id ${c.custom_id}`);
+      ids.add(c.custom_id);
+    }
+    if (c?.accessory) walkIds(c.accessory);
+    (c?.components ?? []).forEach(walkIds);
+  };
+  top.forEach(walkIds);
   top.forEach((c, i) => {
     if (!DISCORD_TOP_LEVEL.has(c.type)) out.push(`#${i}: type ${c.type} not allowed at top level`);
     discordComponent(c, `#${i}`, out);

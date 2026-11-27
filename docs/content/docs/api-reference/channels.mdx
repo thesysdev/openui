@@ -332,7 +332,8 @@ What to plan for on each platform:
   modal. Tables render as aligned monospace text. A message holds 40 components and 4,000
   characters of text; extra content is dropped with a console warning. Answer interactions within
   3 seconds, or defer first. `createCardPreview(edit, render)` streams partial cards by editing the
-  message, without chart attachments until the final render.
+  message, without chart attachments until the final render. Every message sets
+  `allowed_mentions: { parse: [] }`, so text in a card never pings anyone.
 - **Telegram.** `output` is `{ blocks, keyboard }`. Send it with `sendRichMessage`, with `keyboard`
   as the inline keyboard, and edit it in place. Callback data is limited to 64 bytes. A button or
   option that does not fit is skipped with a console warning, so option values must be short ids.

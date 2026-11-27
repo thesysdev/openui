@@ -13,8 +13,8 @@ import { createLibrary, markReactive } from "@openuidev/lang-core";
 import * as z from "zod/v4";
 import type { ChannelLibrary, RenderArgs, RenderFn } from "../core/types";
 import { defineBlockComponent } from "../core/walker";
-import type { FieldSpec } from "../ui/types";
-import { customIdFits, FORM_PREFIX } from "./payload";
+import type { FieldSpec, FormSpec } from "../ui/types";
+import { customIdFits, DUP_SEP, FORM_PREFIX, formModal } from "./payload";
 import { IS_COMPONENTS_V2, type DiscordMessage } from "./types";
 
 const def = (name: string, props: any, description: string, render: RenderFn) =>
@@ -33,8 +33,12 @@ const isElement = (n: unknown): n is ElementNode =>
 
 const asText = (v: unknown) => (v == null ? "" : String(v));
 
-/** Normalize light markdown to Discord's dialect (*bold* -> **bold**). */
-const md = (v: unknown) => asText(v).replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1**$2**");
+/** Normalize light markdown to Discord's dialect (*bold* -> **bold**), leaving code untouched. */
+const md = (v: unknown) =>
+  asText(v)
+    .split(/(```[\s\S]*?```|`[^`\n]*`)/)
+    .map((part, i) => (i % 2 ? part : part.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1**$2**")))
+    .join("");
 
 // Component type numbers (Discord API).
 const T = {
@@ -47,6 +51,9 @@ const T = {
   gallery: 12,
   separator: 14,
 } as const;
+
+const MAX_URL = 512;
+const NO_MENTIONS = { parse: [] as string[] };
 
 const text = (content: string) => (content ? [{ type: T.text, content }] : []);
 
@@ -253,7 +260,14 @@ const LinkButton = dataDef(
 function button(n: ElementNode, ctx: RenderArgs["ctx"]): Record<string, any> | null {
   const p: any = n.props ?? {};
   const label = asText(p.label).slice(0, 80);
-  if (n.typeName === "LinkButton") return { type: T.button, style: 5, label, url: asText(p.url) };
+  if (n.typeName === "LinkButton") {
+    const url = asText(p.url);
+    if (!url || url.length > MAX_URL) {
+      console.warn(`[openui] link button URL exceeds Discord's ${MAX_URL}-char limit; skipping`);
+      return null;
+    }
+    return { type: T.button, style: 5, label, url };
+  }
   if (n.typeName !== "Button") return null;
   const id = ctx.idFor(n);
   if (p.action && Array.isArray(p.action.steps))
@@ -288,9 +302,14 @@ const Option = dataDef(
 const optionsOf = (p: any, current?: unknown) =>
   (p.options ?? [])
     .filter(isElement)
+    .filter((o: any) => {
+      const fits = customIdFits(asText(o.props?.value));
+      if (!fits) console.warn("[openui] Discord option values must be 1-100 chars; skipping one");
+      return fits;
+    })
     .slice(0, 25)
     .map((o: any) => {
-      const value = asText(o.props?.value).slice(0, 100);
+      const value = asText(o.props?.value);
       return {
         label: asText(o.props?.label).slice(0, 100),
         value,
@@ -381,12 +400,17 @@ const Form = def(
   'A form. Renders as one button labeled `title`; clicking opens a pop-up of up to 5 fields. Submitting sets each field\'s $variable, then runs the optional action. e.g. Form("Set goal", "Save", [NumberInput("Weekly downloads", $goal)], Action([@Set($stage, "goal")])).',
   ({ props: p, node, ctx }) => {
     const id = ctx.idFor(node, "form");
-    ctx.registerForm(id, {
+    const spec: FormSpec = {
       title: asText(p.title),
       submit: asText(p.submit) || "Submit",
       fields: (p.fields ?? []).map((n: any) => fieldSpec(n, ctx)).filter(Boolean) as FieldSpec[],
       action: p.action && Array.isArray(p.action.steps) ? p.action : undefined,
-    });
+    };
+    ctx.registerForm(id, spec);
+    if (!formModal(id, spec).components.length) {
+      console.warn(`[openui] form "${id}" has no fields Discord can show; skipping its button`);
+      return [];
+    }
     return [
       {
         type: T.row,
@@ -510,6 +534,18 @@ export const discordChannel: ChannelLibrary<DiscordMessage> = {
       }
     }
     if (!body.length) body.push({ type: T.text, content: "…" });
+    // Discord rejects a message whose custom_ids repeat (a statement reused in two places).
+    const seen = new Map<string, number>();
+    const dedupe = (c: any) => {
+      if (typeof c?.custom_id === "string") {
+        const n = seen.get(c.custom_id) ?? 0;
+        seen.set(c.custom_id, n + 1);
+        if (n) c.custom_id = `${c.custom_id}${DUP_SEP}${n}`;
+      }
+      if (c?.accessory) dedupe(c.accessory);
+      for (const k of c?.components ?? []) dedupe(k);
+    };
+    body.forEach(dedupe);
     const container = {
       type: 17,
       ...(accent !== undefined ? { accent_color: accent } : {}),
@@ -517,7 +553,7 @@ export const discordChannel: ChannelLibrary<DiscordMessage> = {
     };
     const firstText = body.map(textOf).find(Boolean) ?? "";
     return {
-      output: { flags: IS_COMPONENTS_V2, components: [container] },
+      output: { flags: IS_COMPONENTS_V2, allowed_mentions: NO_MENTIONS, components: [container] },
       text: firstText.replace(/^[#>\-\s]+/, "").slice(0, 200) || "OpenUI message",
     };
   },
@@ -525,6 +561,7 @@ export const discordChannel: ChannelLibrary<DiscordMessage> = {
     return {
       output: {
         flags: IS_COMPONENTS_V2,
+        allowed_mentions: NO_MENTIONS,
         components: [{ type: T.text, content: "Could not render a reply from the model output." }],
       },
       text: "Could not render UI",

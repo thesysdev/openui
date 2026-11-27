@@ -143,3 +143,72 @@ test("streamed previews are debounced, skip errors, and omit chart attachments",
   }
   assert.match(edits.at(-1).components[0].components[0].content, /Downloads/);
 });
+
+test("a reused button gets unique custom_ids that decode to the same action", async () => {
+  const src = `
+$n = 0
+inc = Button("+1", Action([@Set($n, $n + 1)]))
+root = Root([Actions([inc]), Text("again"), Actions([inc])])`.trim();
+  const r = await engine.renderState(src);
+  assert.deepEqual(validateDiscord(r.output), []);
+  const ids = r.output.components[0].components
+    .filter((c: any) => c.type === 1)
+    .map((row: any) => row.components[0].custom_id);
+  assert.deepEqual(ids, ["inc", "inc~1"]);
+  const next = await engine.applyInteraction(src, r.state, decodeComponent({ custom_id: ids[1] }));
+  assert.equal(next.state.$n, 1);
+});
+
+test("card text cannot ping: every message disables allowed mentions", async () => {
+  const r = await engine.renderState(`root = Root([Text("@everyone hi")])`);
+  assert.deepEqual(r.output.allowed_mentions, { parse: [] });
+});
+
+test("blank or malformed numbers keep the current value", () => {
+  const form = {
+    title: "",
+    submit: "",
+    fields: [{ target: "$goal", kind: "number", label: "Goal" }],
+  } as any;
+  const submit = (value: string) =>
+    decodeModalSubmit(
+      { custom_id: "form:f", components: [{ type: 18, component: { custom_id: "$goal", value } }] },
+      form,
+    ).patch;
+  assert.deepEqual(submit(""), {});
+  assert.deepEqual(submit("1,5"), {});
+  assert.deepEqual(submit("abc"), {});
+  assert.deepEqual(submit("1.5"), { $goal: 1.5 });
+  assert.deepEqual(submit("-2,500"), { $goal: -2500 });
+});
+
+test("options, links and forms Discord would reject are dropped, not truncated", async () => {
+  const long = "x".repeat(101);
+  const src = `
+$v = "a"
+$w = ""
+s = Select("s", $v, "Pick", [Option("a", "A"), Option("${long}", "Long")])
+empty = Form("Empty", "Go", [Select("w", $w, "W", [Option("${long}", "Long")])])
+link = Actions([LinkButton("Signed", "https://e.com/${"q".repeat(600)}"), Button("Ok")])
+root = Root([s, empty, link])`.trim();
+  const r = await engine.renderState(src);
+  assert.deepEqual(validateDiscord(r.output), []);
+  const all = r.output.components[0].components.flatMap((c: any) => c.components ?? []);
+  assert.deepEqual(
+    all.find((c: any) => c.type === 3).options.map((o: any) => o.value),
+    ["a"],
+  );
+  assert.deepEqual(
+    all.filter((c: any) => c.type === 2).map((b: any) => b.label),
+    ["Ok"],
+  );
+});
+
+test("Markdown leaves code spans and fences alone", async () => {
+  const src = 'root = Root([Markdown("*bold* and `a*b*c`\\n```\\nx*y*z\\n```")])';
+  const r = await engine.renderState(src);
+  assert.equal(
+    r.output.components[0].components[0].content,
+    "**bold** and `a*b*c`\n```\nx*y*z\n```",
+  );
+});

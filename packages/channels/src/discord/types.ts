@@ -13,6 +13,8 @@ export const IS_COMPONENTS_V2 = 1 << 15;
  */
 export type DiscordMessage = {
   flags: number;
+  /** Always `{ parse: [] }`: text in a card never pings users, roles or @everyone. */
+  allowed_mentions?: { parse: string[] };
   components: Record<string, any>[];
 };
 

@@ -8,6 +8,8 @@ import type { FieldSpec, FormSpec } from "../ui/types";
 import type { DiscordModal } from "./types";
 
 export const FORM_PREFIX = "form:";
+/** Separator for the suffix that keeps repeated custom_ids unique (`inc~1`). */
+export const DUP_SEP = "~";
 
 /** True when a custom_id fits Discord's 100-character limit. */
 export function customIdFits(id: string): boolean {
@@ -23,7 +25,7 @@ export function decodeComponent(data: {
   custom_id: string;
   values?: string[];
 }): Interaction & { formId?: string } {
-  const id = data.custom_id ?? "";
+  const id = (data.custom_id ?? "").replace(/~\d+$/, "");
   if (id.startsWith(FORM_PREFIX)) return { formId: id.slice(FORM_PREFIX.length) };
   if (Array.isArray(data.values)) return { actionId: id, value: data.values[0] };
   return { actionId: id };
@@ -33,19 +35,22 @@ const inputKind: Partial<Record<FieldSpec["kind"], number>> = { textarea: 2 };
 
 /** Build the modal for a Form: one labelled input or select per field (max 5). */
 export function formModal(formId: string, form: FormSpec): DiscordModal {
-  const components = form.fields.slice(0, 5).map((f) => {
+  const shown = form.fields.filter(
+    (f) => (f.kind !== "select" && f.kind !== "multiselect") || f.options?.length,
+  );
+  const components = shown.slice(0, 5).map((f) => {
     const label = f.label.slice(0, 45) || f.target;
-    if ((f.kind === "select" || f.kind === "multiselect") && f.options?.length) {
+    if (f.kind === "select" || f.kind === "multiselect") {
       return {
         type: 18,
         label,
         component: {
           type: 3,
           custom_id: f.target,
-          ...(f.kind === "multiselect" ? { max_values: Math.min(25, f.options.length) } : {}),
-          options: f.options.slice(0, 25).map((o) => ({
+          ...(f.kind === "multiselect" ? { max_values: Math.min(25, f.options!.length) } : {}),
+          options: f.options!.slice(0, 25).map((o) => ({
             label: o.label.slice(0, 100),
-            value: o.value.slice(0, 100),
+            value: o.value,
             ...(o.value === f.initial ? { default: true } : {}),
           })),
         },
@@ -72,6 +77,13 @@ export function formModal(formId: string, form: FormSpec): DiscordModal {
   };
 }
 
+/** Plain numbers, optionally with comma thousands separators ("2,000,000"). */
+function parseNumber(raw: string): number | undefined {
+  const v = raw.trim();
+  if (!/^-?(\d+|\d{1,3}(,\d{3})+)(\.\d+)?$/.test(v)) return undefined;
+  return Number(v.replace(/,/g, ""));
+}
+
 /**
  * Normalize a MODAL_SUBMIT interaction's `data` into a form submit. Pass the
  * form spec (from RenderResult.forms) to coerce number fields.
@@ -93,8 +105,8 @@ export function decodeModalSubmit(
           : c.values[0]
         : c.value;
       if (kind === "number" && typeof v === "string") {
-        const n = Number(v.replace(/[,_\s]/g, ""));
-        v = Number.isFinite(n) ? n : v;
+        v = parseNumber(v);
+        if (v === undefined) return; // blank or not a number: keep the current value
       }
       patch[c.custom_id] = v;
     }

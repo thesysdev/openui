@@ -1535,6 +1535,9 @@
   "render:discordCounter": {
     "output": {
       "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
       "components": [
         {
           "type": 17,
@@ -1646,6 +1649,9 @@
   "render:discordContent": {
     "output": {
       "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
       "components": [
         {
           "type": 17,
@@ -3027,6 +3033,9 @@
   "discord:action:inc": {
     "output": {
       "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
       "components": [
         {
           "type": 17,
@@ -3138,6 +3147,9 @@
   "discord:action:sel=low": {
     "output": {
       "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
       "components": [
         {
           "type": 17,
@@ -3388,6 +3400,9 @@
   "discord:submit:goal": {
     "output": {
       "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
       "components": [
         {
           "type": 17,
