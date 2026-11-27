@@ -1,6 +1,6 @@
 import type { BaseMessage } from "@langchain/core/messages";
 import {
-  storeChatCompletionHistory,
+  storeConversationItems,
   type StoreChatCompletionHistoryOptions,
 } from "../openai/store-conversation-items";
 import { langGraphConverter } from "./messages";
@@ -25,8 +25,5 @@ export function langGraphMessagesToItems(messages: readonly BaseMessage[]) {
  * @deprecated Use `openui.langgraph.conversations.items.create(conversationId, messages)`.
  */
 export function storeLangGraphHistory(options: StoreLangGraphHistoryOptions) {
-  return storeChatCompletionHistory({
-    ...options,
-    messages: langGraphConverter.toChatMessages(options.messages),
-  });
+  return storeConversationItems(options, langGraphConverter.toItems(options.messages));
 }

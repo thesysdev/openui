@@ -2,6 +2,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 import type { ConversationItemList } from "openai/resources/conversations/items";
 import type { ResponseInputItem } from "openai/resources/responses/responses";
 import { createConversations } from "../conversations";
+import type { ConversationItemInput } from "../conversations/types";
 import { createCloudApi } from "../core/http";
 import { chatCompletionsConverter } from "./messages";
 
@@ -44,8 +45,16 @@ export function chatCompletionMessagesToItems(
  *
  * @deprecated Use `openui.chat.conversations.items.create(conversationId, messages)`.
  */
-export async function storeChatCompletionHistory(
+export function storeChatCompletionHistory(
   options: StoreChatCompletionHistoryOptions,
+): Promise<ConversationItemList> {
+  return storeConversationItems(options, chatCompletionsConverter.toItems(options.messages));
+}
+
+/** Adds items to a conversation as your org, and returns them as OpenAI's list. */
+export async function storeConversationItems(
+  options: Omit<StoreChatCompletionHistoryOptions, "messages">,
+  items: ConversationItemInput[],
 ): Promise<ConversationItemList> {
   const conversations = createConversations(
     createCloudApi({
@@ -54,10 +63,7 @@ export async function storeChatCompletionHistory(
       fetch: options.fetch as typeof globalThis.fetch | undefined,
     }),
   );
-  const data = await conversations.items.create(
-    options.conversationId,
-    chatCompletionsConverter.toItems(options.messages),
-  );
+  const data = await conversations.items.create(options.conversationId, items);
   return {
     object: "list",
     data: data as ConversationItemList["data"],

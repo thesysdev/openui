@@ -11,7 +11,12 @@ import type {
   ResponseInputItem,
   ResponseInputMessageContentList,
 } from "openai/resources/responses/responses";
-import { ConversationItemConverter } from "../conversations/converter";
+import {
+  ConversationItemConverter,
+  pairedCallIds,
+  textOf,
+  toolOutputText,
+} from "../conversations/converter";
 import type { ConversationContentPart, ConversationItem } from "../conversations/types";
 
 // Only openai's types are imported, so the root entry never loads the openai package.
@@ -79,8 +84,6 @@ function pairedToolCalls(messages: readonly ChatCompletionMessageParam[]): Set<o
   return paired;
 }
 
-const textOf = (part: ConversationContentPart) => (typeof part.text === "string" ? part.text : "");
-
 /** A user message's content: plain text, or parts when it has an image. */
 function userMessageContent(
   content: string | ConversationContentPart[],
@@ -104,12 +107,6 @@ function userMessageContent(
     }
   }
   return parts;
-}
-
-function toolOutputText(output: unknown): string {
-  if (typeof output === "string") return output;
-  if (Array.isArray(output)) return output.map(textOf).join("");
-  return JSON.stringify(output ?? "");
 }
 
 /** Chat Completions messages to conversation items and back. */
@@ -175,12 +172,7 @@ export class ChatCompletionsConverter extends ConversationItemConverter<ChatComp
    * Chat Completions rejects either alone; skips other types, such as `reasoning`.
    */
   fromItems(items: readonly ConversationItem[]): ChatCompletionMessageParam[] {
-    const called = new Set(
-      items.flatMap((item) => (item.type === "function_call" ? [item.call_id] : [])),
-    );
-    const answered = new Set(
-      items.flatMap((item) => (item.type === "function_call_output" ? [item.call_id] : [])),
-    );
+    const paired = pairedCallIds(items);
 
     const messages: ChatCompletionMessageParam[] = [];
     for (const item of items) {
@@ -193,7 +185,7 @@ export class ChatCompletionsConverter extends ConversationItemConverter<ChatComp
             typeof item.content === "string" ? item.content : item.content.map(textOf).join("");
           if (text) messages.push({ role: "assistant", content: text });
         }
-      } else if (item.type === "function_call" && answered.has(item.call_id)) {
+      } else if (item.type === "function_call" && paired.has(item.call_id)) {
         const call = {
           id: item.call_id,
           type: "function" as const,
@@ -203,7 +195,7 @@ export class ChatCompletionsConverter extends ConversationItemConverter<ChatComp
         const last = messages.at(-1);
         if (last?.role === "assistant") (last.tool_calls ??= []).push(call);
         else messages.push({ role: "assistant", content: null, tool_calls: [call] });
-      } else if (item.type === "function_call_output" && called.has(item.call_id)) {
+      } else if (item.type === "function_call_output" && paired.has(item.call_id)) {
         messages.push({
           role: "tool",
           tool_call_id: item.call_id,

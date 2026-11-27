@@ -5,144 +5,174 @@ import type {
   MessageContent,
   ToolMessage,
 } from "@langchain/core/messages";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { ConversationItemConverter } from "../conversations/converter";
 import type {
+  EasyInputMessage,
+  ResponseFunctionToolCall,
+  ResponseInputItem,
+  ResponseInputMessageContentList,
+} from "openai/resources/responses/responses";
+import {
+  ConversationItemConverter,
+  pairedCallIds,
+  textOf,
+  toolOutputText,
+} from "../conversations/converter";
+import type {
+  ConversationContentPart,
   ConversationItem,
-  ConversationItemInput,
   LangGraphHistoryMessage,
 } from "../conversations/types";
-import { chatCompletionsConverter } from "../openai/messages";
+import { isRecord } from "../core/guards";
 
 // Matched by `type`, not `isInstance`, so the root entry never loads @langchain/core.
 
 const isType = <M extends BaseMessage>(message: BaseMessage, type: string): message is M =>
   message.type === type;
 
-type UserContent = Extract<ChatCompletionMessageParam, { role: "user" }>["content"];
+type ImageDetail = "low" | "high" | "auto";
 
-// LangChain's text/image_url content blocks use the Chat Completions shape.
-function userContentOf(content: HumanMessage["content"]): UserContent {
-  if (typeof content === "string") return content;
-  const parts: Exclude<UserContent, string> = [];
+const detailOf = (detail: unknown): ImageDetail =>
+  detail === "low" || detail === "high" ? detail : "auto";
+
+/** A human message's text and image blocks as input parts. */
+function inputPartsOf(content: HumanMessage["content"]): ResponseInputMessageContentList {
+  if (typeof content === "string") return content ? [{ type: "input_text", text: content }] : [];
+  const parts: ResponseInputMessageContentList = [];
   for (const block of content) {
-    if (typeof block !== "object" || block === null) continue;
-    if (block.type === "text" && typeof block.text === "string") {
-      parts.push({ type: "text", text: block.text });
-    } else if (block.type === "image_url") {
+    if (!isRecord(block)) continue;
+    if (block["type"] === "text" && typeof block["text"] === "string" && block["text"]) {
+      parts.push({ type: "input_text", text: block["text"] });
+    } else if (block["type"] === "image_url") {
       const image = block["image_url"];
-      if (typeof image === "string") {
-        parts.push({ type: "image_url", image_url: { url: image } });
-      } else if (
-        typeof image === "object" &&
-        image !== null &&
-        "url" in image &&
-        typeof image.url === "string"
-      ) {
-        const detail = "detail" in image ? image.detail : undefined;
-        parts.push({
-          type: "image_url",
-          image_url: {
-            url: image.url,
-            detail: detail === "low" || detail === "high" ? detail : "auto",
-          },
-        });
-      }
+      const url = typeof image === "string" ? image : isRecord(image) ? image["url"] : undefined;
+      if (typeof url !== "string" || !url) continue;
+      const detail = detailOf(isRecord(image) ? image["detail"] : undefined);
+      parts.push({ type: "input_image", image_url: url, detail });
     }
   }
   return parts;
 }
 
+/** A stored user message as LangChain content: text, or blocks when it has an image. */
+function humanContentOf(content: string | ConversationContentPart[]): MessageContent {
+  if (typeof content === "string") return content;
+  if (!content.some((part) => part.type === "input_image")) return content.map(textOf).join("");
+  return content.flatMap((part): Exclude<MessageContent, string> => {
+    if (part.type === "input_image" && typeof part["image_url"] === "string") {
+      const detail = part["detail"];
+      return [
+        {
+          type: "image_url",
+          image_url: {
+            url: part["image_url"],
+            ...((detail === "low" || detail === "high" || detail === "auto") && { detail }),
+          },
+        },
+      ];
+    }
+    return textOf(part) ? [{ type: "text", text: textOf(part) }] : [];
+  });
+}
+
 function argsOf(json: string): Record<string, unknown> {
   try {
     const args: unknown = JSON.parse(json);
-    return typeof args === "object" && args !== null && !Array.isArray(args)
-      ? (args as Record<string, unknown>)
-      : {};
+    return isRecord(args) ? args : {};
   } catch {
     return {};
   }
 }
 
-const stringOf = (content: unknown) => (typeof content === "string" ? content : "");
-
-/** LangChain messages to conversation items and back, through Chat Completions messages. */
+/** LangChain messages to conversation items and back. */
 export class LangGraphConverter extends ConversationItemConverter<
   BaseMessage,
   LangGraphHistoryMessage
 > {
-  toItems(messages: readonly BaseMessage[]): ConversationItemInput[] {
-    return chatCompletionsConverter.toItems(this.toChatMessages(messages));
-  }
-
-  /** Plain `{ role, content }` messages that `graph.invoke` takes. */
-  fromItems(items: readonly ConversationItem[]): LangGraphHistoryMessage[] {
-    return this.fromChatMessages(chatCompletionsConverter.fromItems(items));
-  }
-
-  /** A LangGraph turn as Chat Completions messages, without system messages. */
-  toChatMessages(messages: readonly BaseMessage[]): ChatCompletionMessageParam[] {
-    const result: ChatCompletionMessageParam[] = [];
+  /**
+   * LangChain messages as Conversations API items. Pass only the new turn. Skips system
+   * messages, and tool calls or results without their pair.
+   */
+  toItems(messages: readonly BaseMessage[]): ResponseInputItem[] {
+    const calls = new Set<string>();
+    const results = new Set<string>();
     for (const message of messages) {
-      if (isType<HumanMessage>(message, "human")) {
-        result.push({ role: "user", content: userContentOf(message.content) });
-      } else if (isType<AIMessage>(message, "ai")) {
-        result.push({
-          role: "assistant",
-          content: message.text,
-          tool_calls: (message.tool_calls ?? [])
-            .filter((call) => call.id && call.name)
-            .map((call) => ({
-              type: "function",
-              id: call.id!,
-              function: {
-                name: call.name,
-                arguments:
-                  typeof call.args === "string" ? call.args : JSON.stringify(call.args ?? {}),
-              },
-            })),
-        });
+      if (isType<AIMessage>(message, "ai")) {
+        for (const call of message.tool_calls ?? []) if (call.id && call.name) calls.add(call.id);
       } else if (isType<ToolMessage>(message, "tool") && message.tool_call_id) {
-        result.push({ role: "tool", tool_call_id: message.tool_call_id, content: message.text });
+        results.add(message.tool_call_id);
       }
     }
-    return result;
+
+    const items: ResponseInputItem[] = [];
+    for (const message of messages) {
+      if (isType<HumanMessage>(message, "human")) {
+        const content = inputPartsOf(message.content);
+        if (content.length > 0) {
+          items.push({ type: "message", role: "user", content } satisfies EasyInputMessage);
+        }
+      } else if (isType<AIMessage>(message, "ai")) {
+        if (message.text) {
+          items.push({
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: message.text }],
+          } as ResponseInputItem);
+        }
+        for (const call of message.tool_calls ?? []) {
+          if (!call.id || !call.name || !results.has(call.id)) continue;
+          items.push({
+            type: "function_call",
+            call_id: call.id,
+            name: call.name,
+            arguments: typeof call.args === "string" ? call.args : JSON.stringify(call.args ?? {}),
+          } satisfies ResponseFunctionToolCall);
+        }
+      } else if (isType<ToolMessage>(message, "tool") && calls.has(message.tool_call_id)) {
+        items.push({
+          type: "function_call_output",
+          call_id: message.tool_call_id,
+          output: message.text || "{}",
+        } satisfies ResponseInputItem.FunctionCallOutput);
+      }
+    }
+    return items;
   }
 
-  /** Chat Completions messages as plain `{ role, content }` objects LangGraph's reducer takes. */
-  fromChatMessages(messages: readonly ChatCompletionMessageParam[]): LangGraphHistoryMessage[] {
-    return messages.flatMap((message): LangGraphHistoryMessage[] => {
-      if (message.role === "user") {
-        return [{ role: "human", content: message.content as MessageContent }];
+  /**
+   * Stored items as plain `{ role, content }` messages that `graph.invoke` takes. Keeps a tool
+   * call only with its result; skips other types, such as `reasoning`.
+   */
+  fromItems(items: readonly ConversationItem[]): LangGraphHistoryMessage[] {
+    const paired = pairedCallIds(items);
+    const messages: LangGraphHistoryMessage[] = [];
+    for (const item of items) {
+      if (item.type === "message" && item.role === "user") {
+        const content = humanContentOf(item.content);
+        if (content.length > 0) messages.push({ role: "human", content });
+      } else if (item.type === "message" && item.role === "assistant") {
+        const text =
+          typeof item.content === "string" ? item.content : item.content.map(textOf).join("");
+        if (text) messages.push({ role: "ai", content: text });
+      } else if (item.type === "function_call" && paired.has(item.call_id)) {
+        const call = {
+          type: "tool_call" as const,
+          id: item.call_id,
+          name: item.name,
+          args: argsOf(item.arguments),
+        };
+        // A reply's text and its tool calls are one AI message.
+        const last = messages.at(-1);
+        if (last?.role === "ai") (last.tool_calls ??= []).push(call);
+        else messages.push({ role: "ai", content: "", tool_calls: [call] });
+      } else if (item.type === "function_call_output" && paired.has(item.call_id)) {
+        messages.push({
+          role: "tool",
+          content: toolOutputText(item.output),
+          tool_call_id: item.call_id,
+        });
       }
-      if (message.role === "assistant") {
-        const toolCalls = (message.tool_calls ?? []).flatMap((call) =>
-          call.type === "function"
-            ? [
-                {
-                  type: "tool_call" as const,
-                  id: call.id,
-                  name: call.function.name,
-                  args: argsOf(call.function.arguments),
-                },
-              ]
-            : [],
-        );
-        return [
-          {
-            role: "ai",
-            content: stringOf(message.content),
-            ...(toolCalls.length > 0 && { tool_calls: toolCalls }),
-          },
-        ];
-      }
-      if (message.role === "tool") {
-        return [
-          { role: "tool", content: stringOf(message.content), tool_call_id: message.tool_call_id },
-        ];
-      }
-      return [];
-    });
+    }
+    return messages;
   }
 }
 
