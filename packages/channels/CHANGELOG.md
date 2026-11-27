@@ -1,5 +1,15 @@
 # @openuidev/channels
 
+## 0.3.0
+
+### Minor Changes
+
+- [#1748](https://github.com/thesysdev/openui/pull/1748) [`039dd48`](https://github.com/thesysdev/openui/commit/039dd484b6420ee1b7801c43fac22eb7f2ad6bc1) Thanks [@vishxrad](https://github.com/vishxrad)! - Add `@openuidev/channels/discord`: renders OpenUI Lang as Discord Components V2 messages (an accent-colored container with text, sections, media galleries, separators, buttons, and selects). Forms open as modals, interactions update the message in place, charts are uploaded as `attachment://` files, and `createCardPreview` streams partial cards through message edits.
+
+### Patch Changes
+
+- [#1740](https://github.com/thesysdev/openui/pull/1740) [`83408bf`](https://github.com/thesysdev/openui/commit/83408bf293e96e1db5b27079da9fa04f53e6430d) Thanks [@vishxrad](https://github.com/vishxrad)! - `renderChartPng` (`@openuidev/channels/ui/charts`) needs recharts 2. recharts 3 lays charts out in effects, which never run in `renderToStaticMarkup`, so it rendered an empty chart and `renderChartPng` threw "chart produced no <svg>". That error now says to install `recharts@^2.15`, and the README and docs say recharts 2 is required. The peer range still accepts recharts 3, so apps that use recharts 3 elsewhere and never rasterize charts keep installing cleanly.
+
 ## 0.2.0
 
 ### Minor Changes
