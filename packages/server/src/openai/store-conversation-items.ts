@@ -3,7 +3,7 @@ import type { ConversationItemList } from "openai/resources/conversations/items"
 import type { ResponseInputItem } from "openai/resources/responses/responses";
 import { createConversations } from "../conversations";
 import { createCloudApi } from "../core/http";
-import { chatMessagesToItems } from "./messages";
+import { chatCompletionsConverter } from "./messages";
 
 export type StoreChatCompletionHistoryOptions = {
   apiKey: string;
@@ -35,14 +35,14 @@ export type StoreChatCompletionHistoryOptions = {
 export function chatCompletionMessagesToItems(
   messages: ChatCompletionMessageParam[],
 ): ResponseInputItem[] {
-  return chatMessagesToItems(messages);
+  return chatCompletionsConverter.toItems(messages);
 }
 
 /**
  * Add Chat Completions messages to a conversation as Conversations API items, with the
  * API key as your org. Pass only the new turn. A rejected write throws `OpenUIApiError`.
  *
- * @deprecated Use `openui.chat.conversations.items.create(conversationId, messages, { userId })`.
+ * @deprecated Use `openui.chat.conversations.items.create(conversationId, messages)`.
  */
 export async function storeChatCompletionHistory(
   options: StoreChatCompletionHistoryOptions,
@@ -56,7 +56,7 @@ export async function storeChatCompletionHistory(
   );
   const data = await conversations.items.create(
     options.conversationId,
-    chatMessagesToItems(options.messages),
+    chatCompletionsConverter.toItems(options.messages),
   );
   return {
     object: "list",

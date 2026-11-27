@@ -18,6 +18,7 @@ export type {
   CreateAutofixParams,
 } from "./autofix/types";
 export { OpenUIClient } from "./client";
+export type { ConversationItemConverter } from "./conversations/converter";
 export type {
   ChatConversations,
   CloudConversation,
@@ -41,5 +42,7 @@ export type { CloudList } from "./core/resource";
 export type { McpConfig, McpToolClient } from "./interpreter/mcp";
 export { ToolExecutionError } from "./interpreter/types";
 export type { DataTool, ExecutionContext, InterpreterRequest } from "./interpreter/types";
+export { langGraphConverter } from "./langgraph/messages";
 export type { ChatAutofix } from "./openai/autofix";
+export { chatCompletionsConverter } from "./openai/messages";
 export type { AIAutofix } from "./vercel/autofix";

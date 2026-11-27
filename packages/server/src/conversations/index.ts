@@ -1,12 +1,12 @@
-import { actAs, callAs } from "../core/act-as";
+import { actAs } from "../core/act-as";
 import { invalidInput, invalidResponse } from "../core/errors";
 import { isRecord } from "../core/guards";
 import type { CloudApi } from "../core/http";
 import { idPath, queryNumber, requireId, toList } from "../core/resource";
+import type { ConversationItemConverter } from "./converter";
 import type {
   CloudConversation,
   ConversationItem,
-  ConversationItemInput,
   ConversationItems,
   ConversationMetadata,
   Conversations,
@@ -55,7 +55,7 @@ function createItems(api: CloudApi): ConversationItems {
     async list(id, params = {}) {
       const { limit, after, before, order } = params;
       const page = await api.send("GET", conversationPath(id, "/items"), {
-        query: { ...actAs(api, params), limit: queryNumber(limit), after, before, order },
+        query: { limit: queryNumber(limit), after, before, order },
         signal: params.signal,
       });
       return toList(page, toItem);
@@ -63,21 +63,21 @@ function createItems(api: CloudApi): ConversationItems {
 
     async create(id, items, options) {
       if (!Array.isArray(items)) invalidInput("items must be an array");
-      // Checked first, so a bad id or userId fails even with no items.
+      // Checked first, so a bad id fails even with no items.
       const path = conversationPath(id, "/items");
-      const call = callAs(api, options);
       if (items.length === 0) return [];
-      return toList(await api.send("POST", path, { ...call, body: { items } }), toItem).data;
+      const page = await api.send("POST", path, { body: { items }, signal: options?.signal });
+      return toList(page, toItem).data;
     },
 
     async get(id, itemId, options) {
-      return toItem(await api.send("GET", itemPath(id, itemId), callAs(api, options)));
+      return toItem(await api.send("GET", itemPath(id, itemId), { signal: options?.signal }));
     },
 
     async update(id, itemId, { content, status }, options) {
       const body = { content, status };
       return toItem(
-        await api.send("POST", itemPath(id, itemId), { ...callAs(api, options), body }),
+        await api.send("POST", itemPath(id, itemId), { body, signal: options?.signal }),
       );
     },
   };
@@ -87,9 +87,11 @@ function createItems(api: CloudApi): ConversationItems {
 export function createConversations(api: CloudApi): Conversations {
   return {
     async list(params = {}) {
-      const { limit, after, before } = params;
+      const { userId, limit, after, before } = params;
+      // A filter on the owner: OpenUI Cloud lists their conversations in every app.
+      const { user_id } = actAs(api, { userId });
       const page = await api.send("GET", "/v1/conversations", {
-        query: { ...actAs(api, params), limit: queryNumber(limit), after, before },
+        query: { user_id, limit: queryNumber(limit), after, before },
         signal: params.signal,
       });
       return toList(page, toConversation);
@@ -102,36 +104,38 @@ export function createConversations(api: CloudApi): Conversations {
           "userId is required: the conversation is that user's, for their frontend token",
         );
       }
-      const body = { title, metadata };
+      // The owner and the client's app go in the body: the API key names them on create.
+      const body = { title, metadata, ...actAs(api, { userId: options.userId }) };
       return toConversation(
-        await api.send("POST", "/v1/conversations", { ...callAs(api, options), body }),
+        await api.send("POST", "/v1/conversations", { body, signal: options.signal }),
       );
     },
 
     async get(id, options) {
-      return toConversation(await api.send("GET", conversationPath(id), callAs(api, options)));
+      return toConversation(
+        await api.send("GET", conversationPath(id), { signal: options?.signal }),
+      );
     },
 
     async update(id, { title, metadata }, options) {
       const body = { title, metadata };
       return toConversation(
-        await api.send("POST", conversationPath(id), { ...callAs(api, options), body }),
+        await api.send("POST", conversationPath(id), { body, signal: options?.signal }),
       );
     },
 
     async delete(id, options) {
-      await api.send("DELETE", conversationPath(id), callAs(api, options));
+      await api.send("DELETE", conversationPath(id), { signal: options?.signal });
     },
 
     items: createItems(api),
   };
 }
 
-/** `conversations`, with items taken and read back as one SDK's messages. */
+/** `conversations`, with items taken and read back as one SDK's messages, through `converter`. */
 export function withMessages<Input, Output>(
   conversations: Conversations,
-  toItems: (messages: readonly Input[]) => ConversationItemInput[],
-  fromItems: (items: ConversationItem[]) => Output[],
+  converter: ConversationItemConverter<Input, Output>,
 ): MessageConversations<Input, Output> {
   const { items, ...rest } = conversations;
   return {
@@ -139,7 +143,7 @@ export function withMessages<Input, Output>(
     items: {
       async create(id, messages, options) {
         if (!Array.isArray(messages)) invalidInput("messages must be an array");
-        return items.create(id, toItems(messages), options);
+        return items.create(id, converter.toItems(messages), options);
       },
 
       // Every page, since a reply's text and its tool calls can sit on either side of one.
@@ -151,7 +155,7 @@ export function withMessages<Input, Output>(
           thread.push(...page.data);
           after = page.hasMore ? page.lastId : undefined;
         } while (after);
-        return fromItems(thread);
+        return converter.fromItems(thread);
       },
     },
   };

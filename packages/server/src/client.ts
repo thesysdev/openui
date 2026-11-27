@@ -17,9 +17,9 @@ import {
   type FrontendToken,
 } from "./frontend-token";
 import type { ExecutionContext } from "./interpreter/types";
-import { chatToLangGraphMessages, langGraphToChatMessages } from "./langgraph/messages";
+import { langGraphConverter } from "./langgraph/messages";
 import { chatAutofix, type ChatAutofix } from "./openai/autofix";
-import { chatMessagesToItems, itemsToChatMessages } from "./openai/messages";
+import { chatCompletionsConverter } from "./openai/messages";
 import { aiAutofix, type AIAutofix } from "./vercel/autofix";
 
 /** One client for OpenUI Cloud on your server. Reads `THESYS_API_KEY` unless you pass `apiKey`. */
@@ -55,15 +55,11 @@ export class OpenUIClient {
     this.artifacts = createArtifacts(this.api);
     this.conversations = createConversations(this.api);
     this.chat = {
-      conversations: withMessages(this.conversations, chatMessagesToItems, itemsToChatMessages),
+      conversations: withMessages(this.conversations, chatCompletionsConverter),
       createAutofix: (params) => chatAutofix(this.api, params),
     };
     this.langgraph = {
-      conversations: withMessages(
-        this.conversations,
-        (messages) => chatMessagesToItems(langGraphToChatMessages(messages)),
-        (items) => chatToLangGraphMessages(itemsToChatMessages(items)),
-      ),
+      conversations: withMessages(this.conversations, langGraphConverter),
     };
     this.ai = { createAutofix: (params) => aiAutofix(this.api, params) };
   }

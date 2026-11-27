@@ -11,6 +11,7 @@ import type {
   ResponseInputItem,
   ResponseInputMessageContentList,
 } from "openai/resources/responses/responses";
+import { ConversationItemConverter } from "../conversations/converter";
 import type { ConversationContentPart, ConversationItem } from "../conversations/types";
 
 // Only openai's types are imported, so the root entry never loads the openai package.
@@ -78,64 +79,6 @@ function pairedToolCalls(messages: readonly ChatCompletionMessageParam[]): Set<o
   return paired;
 }
 
-/**
- * Chat Completions messages as Conversations API items. Pass only the new turn. Skips
- * system/developer messages and unpaired tool calls or results.
- */
-export function chatMessagesToItems(
-  messages: readonly ChatCompletionMessageParam[],
-): ResponseInputItem[] {
-  const items: ResponseInputItem[] = [];
-  const paired = pairedToolCalls(messages);
-
-  for (const message of messages) {
-    if (message.role === "system" || message.role === "developer") continue;
-
-    if (message.role === "user") {
-      const content = userContentOf(message.content);
-      if (content.length === 0) continue;
-      items.push({
-        type: "message",
-        role: "user",
-        content,
-      } satisfies EasyInputMessage);
-      continue;
-    }
-
-    if (message.role === "assistant") {
-      const text = assistantTextOf(message.content);
-      if (text) {
-        items.push({
-          type: "message",
-          role: "assistant",
-          content: [{ type: "output_text", text }],
-        } as ResponseInputItem);
-      }
-      for (const call of message.tool_calls ?? []) {
-        if (call.type !== "function" || !paired.has(call)) continue;
-        items.push({
-          type: "function_call",
-          call_id: call.id,
-          name: call.function.name,
-          arguments: call.function.arguments?.trim() ? call.function.arguments : "{}",
-        } satisfies ResponseFunctionToolCall);
-      }
-      continue;
-    }
-
-    if (message.role === "tool") {
-      if (!paired.has(message)) continue;
-      items.push({
-        type: "function_call_output",
-        call_id: message.tool_call_id,
-        output: toolOutputOf(message.content) || "{}",
-      } satisfies ResponseInputItem.FunctionCallOutput);
-    }
-  }
-
-  return items;
-}
-
 const textOf = (part: ConversationContentPart) => (typeof part.text === "string" ? part.text : "");
 
 /** A user message's content: plain text, or parts when it has an image. */
@@ -169,48 +112,108 @@ function toolOutputText(output: unknown): string {
   return JSON.stringify(output ?? "");
 }
 
-/**
- * Stored items back to Chat Completions messages. Keeps a tool call only with its result, since
- * Chat Completions rejects either alone; skips other types, such as `reasoning`.
- */
-export function itemsToChatMessages(
-  items: readonly ConversationItem[],
-): ChatCompletionMessageParam[] {
-  const called = new Set(
-    items.flatMap((item) => (item.type === "function_call" ? [item.call_id] : [])),
-  );
-  const answered = new Set(
-    items.flatMap((item) => (item.type === "function_call_output" ? [item.call_id] : [])),
-  );
+/** Chat Completions messages to conversation items and back. */
+export class ChatCompletionsConverter extends ConversationItemConverter<ChatCompletionMessageParam> {
+  /**
+   * Chat Completions messages as Conversations API items. Pass only the new turn. Skips
+   * system/developer messages and unpaired tool calls or results.
+   */
+  toItems(messages: readonly ChatCompletionMessageParam[]): ResponseInputItem[] {
+    const items: ResponseInputItem[] = [];
+    const paired = pairedToolCalls(messages);
 
-  const messages: ChatCompletionMessageParam[] = [];
-  for (const item of items) {
-    if (item.type === "message") {
-      if (item.role === "user") {
-        const content = userMessageContent(item.content);
-        if (content.length > 0) messages.push({ role: "user", content });
-      } else if (item.role === "assistant") {
-        const text =
-          typeof item.content === "string" ? item.content : item.content.map(textOf).join("");
-        if (text) messages.push({ role: "assistant", content: text });
+    for (const message of messages) {
+      if (message.role === "system" || message.role === "developer") continue;
+
+      if (message.role === "user") {
+        const content = userContentOf(message.content);
+        if (content.length === 0) continue;
+        items.push({
+          type: "message",
+          role: "user",
+          content,
+        } satisfies EasyInputMessage);
+        continue;
       }
-    } else if (item.type === "function_call" && answered.has(item.call_id)) {
-      const call = {
-        id: item.call_id,
-        type: "function" as const,
-        function: { name: item.name, arguments: item.arguments },
-      };
-      // A reply's text and its tool calls are one assistant message.
-      const last = messages.at(-1);
-      if (last?.role === "assistant") (last.tool_calls ??= []).push(call);
-      else messages.push({ role: "assistant", content: null, tool_calls: [call] });
-    } else if (item.type === "function_call_output" && called.has(item.call_id)) {
-      messages.push({
-        role: "tool",
-        tool_call_id: item.call_id,
-        content: toolOutputText(item.output),
-      });
+
+      if (message.role === "assistant") {
+        const text = assistantTextOf(message.content);
+        if (text) {
+          items.push({
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text }],
+          } as ResponseInputItem);
+        }
+        for (const call of message.tool_calls ?? []) {
+          if (call.type !== "function" || !paired.has(call)) continue;
+          items.push({
+            type: "function_call",
+            call_id: call.id,
+            name: call.function.name,
+            arguments: call.function.arguments?.trim() ? call.function.arguments : "{}",
+          } satisfies ResponseFunctionToolCall);
+        }
+        continue;
+      }
+
+      if (message.role === "tool") {
+        if (!paired.has(message)) continue;
+        items.push({
+          type: "function_call_output",
+          call_id: message.tool_call_id,
+          output: toolOutputOf(message.content) || "{}",
+        } satisfies ResponseInputItem.FunctionCallOutput);
+      }
     }
+
+    return items;
   }
-  return messages;
+
+  /**
+   * Stored items back to Chat Completions messages. Keeps a tool call only with its result, since
+   * Chat Completions rejects either alone; skips other types, such as `reasoning`.
+   */
+  fromItems(items: readonly ConversationItem[]): ChatCompletionMessageParam[] {
+    const called = new Set(
+      items.flatMap((item) => (item.type === "function_call" ? [item.call_id] : [])),
+    );
+    const answered = new Set(
+      items.flatMap((item) => (item.type === "function_call_output" ? [item.call_id] : [])),
+    );
+
+    const messages: ChatCompletionMessageParam[] = [];
+    for (const item of items) {
+      if (item.type === "message") {
+        if (item.role === "user") {
+          const content = userMessageContent(item.content);
+          if (content.length > 0) messages.push({ role: "user", content });
+        } else if (item.role === "assistant") {
+          const text =
+            typeof item.content === "string" ? item.content : item.content.map(textOf).join("");
+          if (text) messages.push({ role: "assistant", content: text });
+        }
+      } else if (item.type === "function_call" && answered.has(item.call_id)) {
+        const call = {
+          id: item.call_id,
+          type: "function" as const,
+          function: { name: item.name, arguments: item.arguments },
+        };
+        // A reply's text and its tool calls are one assistant message.
+        const last = messages.at(-1);
+        if (last?.role === "assistant") (last.tool_calls ??= []).push(call);
+        else messages.push({ role: "assistant", content: null, tool_calls: [call] });
+      } else if (item.type === "function_call_output" && called.has(item.call_id)) {
+        messages.push({
+          role: "tool",
+          tool_call_id: item.call_id,
+          content: toolOutputText(item.output),
+        });
+      }
+    }
+    return messages;
+  }
 }
+
+/** Converts Chat Completions messages to conversation items and back. */
+export const chatCompletionsConverter = new ChatCompletionsConverter();

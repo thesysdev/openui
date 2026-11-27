@@ -3,16 +3,12 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 import type { CloudList, RequestOptions } from "../core/resource";
 
 /**
- * Who a call is for: without `userId`, your org, which sees every user's conversations;
- * with it, that user, seeing what their frontend token would.
+ * A conversation belongs to a user, in the client's app, so creating one needs them.
  */
-export interface ConversationRequestOptions extends RequestOptions {
-  /** The user to act as, from your session. Never take it from the browser. */
-  userId?: string;
+export interface ConversationUserOptions extends RequestOptions {
+  /** The owner, from your session. Never take it from the browser. */
+  userId: string;
 }
-
-/** A conversation belongs to a user, so creating one needs one. */
-export type ConversationUserOptions = ConversationRequestOptions & { userId: string };
 
 /** Up to 16 pairs: keys up to 64 characters, values up to 512. */
 export type ConversationMetadata = Record<string, string>;
@@ -33,7 +29,9 @@ export interface CloudConversation {
 /** One page of conversations, newest first. */
 export type CloudConversationList = CloudList<CloudConversation>;
 
-export interface ListConversationsParams extends ConversationRequestOptions {
+export interface ListConversationsParams extends RequestOptions {
+  /** Only this user's conversations, in every app. From your session, never the browser. */
+  userId?: string;
   /** Page size, 1 to 100. */
   limit?: number;
   /** The page after this id: the last page's `lastId`. */
@@ -153,7 +151,7 @@ export type ConversationItem =
 /** One page of items, newest first unless you ask for `order: "asc"`. */
 export type ConversationItemList = CloudList<ConversationItem>;
 
-export interface ListConversationItemsParams extends ConversationRequestOptions {
+export interface ListConversationItemsParams extends RequestOptions {
   /** Page size, 1 to 100. */
   limit?: number;
   /** The page after this id: the last page's `lastId`. */
@@ -181,18 +179,21 @@ export interface ConversationItems {
   create(
     id: string,
     items: readonly ConversationItemInput[],
-    options?: ConversationRequestOptions,
+    options?: RequestOptions,
   ): Promise<ConversationItem[]>;
-  get(id: string, itemId: string, options?: ConversationRequestOptions): Promise<ConversationItem>;
+  get(id: string, itemId: string, options?: RequestOptions): Promise<ConversationItem>;
   update(
     id: string,
     itemId: string,
     params: UpdateConversationItemParams,
-    options?: ConversationRequestOptions,
+    options?: RequestOptions,
   ): Promise<ConversationItem>;
 }
 
-/** Read and manage conversations with the API key. */
+/**
+ * Read and manage conversations with the API key, as your org. Before acting on an id from
+ * the browser, check the conversation's `userId` is the signed-in user.
+ */
 export interface Conversations {
   list(params?: ListConversationsParams): Promise<CloudConversationList>;
   /** Creates it for `options.userId`, so their frontend token can read it too. */
@@ -200,14 +201,14 @@ export interface Conversations {
     params: CreateConversationParams,
     options: ConversationUserOptions,
   ): Promise<CloudConversation>;
-  get(id: string, options?: ConversationRequestOptions): Promise<CloudConversation>;
+  get(id: string, options?: RequestOptions): Promise<CloudConversation>;
   update(
     id: string,
     params: UpdateConversationParams,
-    options?: ConversationRequestOptions,
+    options?: RequestOptions,
   ): Promise<CloudConversation>;
   /** Deleted conversations can't be restored. */
-  delete(id: string, options?: ConversationRequestOptions): Promise<void>;
+  delete(id: string, options?: RequestOptions): Promise<void>;
   readonly items: ConversationItems;
 }
 
@@ -220,10 +221,10 @@ export interface MessageConversationItems<Input, Output> {
   create(
     id: string,
     messages: readonly Input[],
-    options?: ConversationRequestOptions,
+    options?: RequestOptions,
   ): Promise<ConversationItem[]>;
   /** The whole thread as messages, oldest first, ready to send to the model. */
-  list(id: string, options?: ConversationRequestOptions): Promise<Output[]>;
+  list(id: string, options?: RequestOptions): Promise<Output[]>;
 }
 
 /** `openui.conversations`, with items taken and read back as one SDK's messages. */
