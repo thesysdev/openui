@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" width="960" height="300" font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif">
+  <title>Claude Haiku 5.5 on our hardest dashboard requests. Quality, scored blind out of 120: 94 on its own, 110 with the checks. Dashboards that broke: about 1 in 7 on its own, none with the checks.</title>
+  <rect width="960" height="300" rx="16" fill="#ffffff"/>
+  <text x="40" y="48" font-size="18" font-weight="600" fill="#18181b">Claude Haiku 5.5 on our hardest dashboard requests</text>
+  <g font-size="13" fill="#52525b">
+    <rect x="40" y="66" width="14" height="14" rx="3" fill="#d4d4d8"/>
+    <text x="62" y="78">On its own</text>
+    <rect x="160" y="66" width="14" height="14" rx="3" fill="#6d5dfc"/>
+    <text x="182" y="78">With the checks</text>
+  </g>
+
+  <!-- Panel 1: quality out of 120, bars from x=40, max width 380 -->
+  <text x="40" y="128" font-size="15" font-weight="600" fill="#18181b">Quality, scored blind</text>
+  <text x="40" y="148" font-size="13" fill="#71717a">out of 120, higher is better</text>
+  <rect x="40" y="166" width="298" height="30" rx="5" fill="#d4d4d8"/>
+  <text x="348" y="187" font-size="16" fill="#3f3f46">94</text>
+  <rect x="40" y="206" width="348" height="30" rx="5" fill="#6d5dfc"/>
+  <text x="398" y="227" font-size="16" font-weight="700" fill="#18181b">110</text>
+
+  <!-- Panel 2: share of dashboards that broke, scale 0..100% over 380px from x=520 -->
+  <text x="520" y="128" font-size="15" font-weight="600" fill="#18181b">Dashboards that broke</text>
+  <text x="520" y="148" font-size="13" fill="#71717a">came out empty or with failing queries, lower is better</text>
+  <rect x="520" y="166" width="54" height="30" rx="5" fill="#f87171"/>
+  <text x="584" y="187" font-size="16" fill="#3f3f46">about 1 in 7 (14%)</text>
+  <rect x="520" y="206" width="3" height="30" rx="1.5" fill="#6d5dfc"/>
+  <text x="533" y="227" font-size="16" font-weight="700" fill="#18181b">none</text>
+  <text x="40" y="276" font-size="12" fill="#a1a1aa">Funnels, retention cohorts, web vitals, revenue against a target, and more. Scored blind by a reviewer who didn't know which setup built which.</text>
+</svg>
