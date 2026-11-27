@@ -112,7 +112,9 @@
   },
   "peerDependencies": {
     "@langchain/core": "^1.2.3",
+    "@modelcontextprotocol/client": "^2.0.0",
     "@modelcontextprotocol/sdk": ">=1.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "ai": ">=5.0.0",
     "openai": ">=6.0.0"
   },
@@ -120,7 +122,13 @@
     "@langchain/core": {
       "optional": true
     },
+    "@modelcontextprotocol/client": {
+      "optional": true
+    },
     "@modelcontextprotocol/sdk": {
+      "optional": true
+    },
+    "@modelcontextprotocol/server": {
       "optional": true
     },
     "ai": {

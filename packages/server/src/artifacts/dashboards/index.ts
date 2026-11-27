@@ -12,6 +12,8 @@ import {
   type ExecutionContext,
 } from "../../interpreter/types";
 import { artifactConfig } from "./config";
+import { dashboardMcpHandler, dashboardMcpServer } from "./dashboard-mcp";
+import { dashboardTools } from "./dashboard-tools";
 import { runToolRound, type ModelToolCall, type ToolMessage } from "./tool-round";
 import type { Dashboard, DashboardOptions } from "./types";
 
@@ -255,7 +257,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     })();
   }
 
-  return {
+  const core: Pick<Dashboard<Context>, "create" | "edit" | "get"> = {
     create(params, context, options = {}) {
       return run(options, context, () => ({
         prompt: params.prompt,
@@ -277,7 +279,14 @@ export function defineDashboard<Context extends ExecutionContext>(
       const { userId, groupIds } = context;
       return artifacts.get(id, { userId, groupIds, signal });
     },
+  };
 
+  // The same tools, for agent frameworks or over MCP.
+  return {
+    ...core,
     interpreter,
+    tools: (user) => dashboardTools(core, toolDefinitions, user),
+    mcpServer: (context) => dashboardMcpServer(core, toolDefinitions, context),
+    mcpHandler: (user) => dashboardMcpHandler(core, toolDefinitions, user),
   };
 }

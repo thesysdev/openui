@@ -1,4 +1,16 @@
-export type { Dashboard, DashboardOptions } from "./artifacts/dashboards/types";
+export type {
+  Dashboard,
+  DashboardMcpHandler,
+  DashboardMcpServer,
+  DashboardOptions,
+  DashboardTool,
+  DashboardToolSchema,
+  DashboardTools,
+  McpAuthInfo,
+  McpClientTransport,
+  McpFetch,
+  McpResolve,
+} from "./artifacts/dashboards/types";
 export type {
   ArtifactShareTarget,
   CloudArtifact,
