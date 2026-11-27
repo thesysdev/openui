@@ -80,7 +80,7 @@ export function formModal(formId: string, form: FormSpec): DiscordModal {
 /** Plain numbers, optionally with comma thousands separators ("2,000,000"). */
 function parseNumber(raw: string): number | undefined {
   const v = raw.trim();
-  if (!/^-?(\d+|\d{1,3}(,\d{3})+)(\.\d+)?$/.test(v)) return undefined;
+  if (!/^-?(?:(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?|\.\d+)$/.test(v)) return undefined;
   return Number(v.replace(/,/g, ""));
 }
 

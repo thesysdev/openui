@@ -179,6 +179,7 @@ test("blank or malformed numbers keep the current value", () => {
   assert.deepEqual(submit("1,5"), {});
   assert.deepEqual(submit("abc"), {});
   assert.deepEqual(submit("1.5"), { $goal: 1.5 });
+  assert.deepEqual(submit(".5"), { $goal: 0.5 });
   assert.deepEqual(submit("-2,500"), { $goal: -2500 });
 });
 
@@ -211,4 +212,16 @@ test("Markdown leaves code spans and fences alone", async () => {
     r.output.components[0].components[0].content,
     "**bold** and `a*b*c`\n```\nx*y*z\n```",
   );
+});
+
+test("a repeated control whose suffixed id would exceed 100 chars is dropped", async () => {
+  const id = "b".repeat(99);
+  const src = `${id} = Button("Go")\nroot = Root([Actions([${id}]), Actions([${id}, Button("Other")])])`;
+  const r = await engine.renderState(src);
+  assert.deepEqual(validateDiscord(r.output), []);
+  const ids = r.output.components[0].components.flatMap((row: any) =>
+    row.components.map((b: any) => b.custom_id),
+  );
+  assert.equal(ids.filter((x: string) => x === id).length, 1);
+  assert.ok(ids.every((x: string) => x.length <= 100));
 });

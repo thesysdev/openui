@@ -544,8 +544,12 @@ export const discordChannel: ChannelLibrary<DiscordMessage> = {
       }
       if (c?.accessory) dedupe(c.accessory);
       for (const k of c?.components ?? []) dedupe(k);
+      if (c?.type === T.row) c.components = c.components.filter((k: any) => !tooLong(k));
     };
+    const tooLong = (k: any) => typeof k.custom_id === "string" && !customIdFits(k.custom_id);
     body.forEach(dedupe);
+    for (let i = body.length - 1; i >= 0; i--)
+      if (body[i].type === T.row && !body[i].components.length) body.splice(i, 1);
     const container = {
       type: 17,
       ...(accent !== undefined ? { accent_color: accent } : {}),
