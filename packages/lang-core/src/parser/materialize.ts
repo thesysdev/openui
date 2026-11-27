@@ -14,6 +14,7 @@ import {
 } from "./types";
 import {
   buildParamsSignature,
+  excessArgsIssue,
   INVALID,
   pushValidationIssue,
   resolveInvalidValue,
@@ -120,11 +121,7 @@ export function mapCallArgs(
 ): Record<string, ASTNode> | null {
   const { params } = def;
   if (args.length > params.length) {
-    pushValidationIssue(ctx, name, "", {
-      code: "excess-args",
-      declared: params.length,
-      got: args.length,
-    });
+    pushValidationIssue(ctx, name, "", excessArgsIssue(args, params.length));
   }
   const mapped = nameArgs(args, params);
   let invalid = false;
@@ -389,11 +386,7 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
 
         // Report excess positional args (extra args are silently dropped)
         if (args.length > def.params.length) {
-          pushValidationIssue(ctx, name, "", {
-            code: "excess-args",
-            declared: def.params.length,
-            got: args.length,
-          });
+          pushValidationIssue(ctx, name, "", excessArgsIssue(args, def.params.length));
         }
 
         // Validate required props — try defaultValue first before dropping

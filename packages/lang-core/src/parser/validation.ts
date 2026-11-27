@@ -1,4 +1,4 @@
-import { isASTNode } from "./ast";
+import { isASTNode, type ASTNode } from "./ast";
 import {
   isElementNode,
   type ElementNode,
@@ -136,7 +136,7 @@ export type ValidationIssue =
   | { code: "null-required"; signature?: string }
   | { code: "unknown-component"; available?: string[] }
   | { code: "inline-reserved" }
-  | { code: "excess-args"; declared: number; got: number }
+  | { code: "excess-args"; declared: number; got: number; onlyNullDropped: boolean }
   | { code: "unknown-function" }
   | { code: "query-cycle"; cycle: string[] }
   | { code: "no-root"; reason: "missing" | "not-component" | "fallback" };
@@ -170,6 +170,19 @@ function validationMessage(component: string, path: string, issue: ValidationIss
   }
 }
 
+/**
+ * The issue for a call with more args than its signature. The extra args are dropped; when every
+ * one of them is the literal `null`, nothing the model wrote is lost, so it is only a warning.
+ */
+export function excessArgsIssue(args: ASTNode[], declared: number): ValidationIssue {
+  return {
+    code: "excess-args",
+    declared,
+    got: args.length,
+    onlyNullDropped: args.slice(declared).every((arg) => arg.k === "Null"),
+  };
+}
+
 /** Append a validation error, deriving its message from the structured issue. */
 export function pushValidationIssue(
   ctx: MaterializeCtx,
@@ -183,8 +196,10 @@ export function pushValidationIssue(
     path,
     message: validationMessage(component, path, issue),
     statementId: ctx.currentStatementId,
-    ...(issue.code === "no-root" &&
-      issue.reason === "fallback" && { severity: "warning" as const }),
+    ...(((issue.code === "no-root" && issue.reason === "fallback") ||
+      (issue.code === "excess-args" && issue.onlyNullDropped)) && {
+      severity: "warning" as const,
+    }),
   });
 }
 

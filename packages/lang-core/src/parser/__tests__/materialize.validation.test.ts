@@ -202,6 +202,18 @@ describe("recursive descent & error reporting", () => {
     ).toEqual(["excess-args", "type-mismatch"]);
   });
 
+  it("excess-args is a warning only when every dropped arg is null (#1711)", () => {
+    const excess = (src: string) => errorsFor(src).filter((e) => e.code === "excess-args");
+    // nothing is lost: the element renders in full
+    expect(excess('root = ScalarBox("a", 1, true, null)')).toEqual([
+      expect.objectContaining({ severity: "warning" }),
+    ]);
+    expect(excess('root = ScalarBox("a", 1, true, null, null)')[0]?.severity).toBe("warning");
+    // a dropped value is lost, so it stays an error
+    expect(excess('root = ScalarBox("a", 1, true, "extra")')[0]).not.toHaveProperty("severity");
+    expect(excess('root = ScalarBox("a", 1, true, null, "x")')[0]).not.toHaveProperty("severity");
+  });
+
   it("messages are self-sufficient and attributed to the defining statement", () => {
     // top-level required violations carry the typed component signature
     expect(errorsFor("root = ReqScalar()")[0].message).toBe(
