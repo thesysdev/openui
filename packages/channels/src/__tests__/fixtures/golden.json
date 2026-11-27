@@ -1532,6 +1532,326 @@
       "$priority": "high"
     }
   },
+  "render:discordCounter": {
+    "output": {
+      "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
+      "components": [
+        {
+          "type": 17,
+          "accent_color": 5793266,
+          "components": [
+            {
+              "type": 10,
+              "content": "## Counter"
+            },
+            {
+              "type": 10,
+              "content": "Count is **0**"
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 2,
+                  "style": 1,
+                  "label": "+1",
+                  "custom_id": "inc"
+                },
+                {
+                  "type": 2,
+                  "style": 2,
+                  "label": "-1",
+                  "custom_id": "dec"
+                },
+                {
+                  "type": 2,
+                  "style": 4,
+                  "label": "Reset",
+                  "custom_id": "reset"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "text": "Counter",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 0
+    }
+  },
+  "render:discordContent": {
+    "output": {
+      "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
+      "components": [
+        {
+          "type": 17,
+          "components": [
+            {
+              "type": 10,
+              "content": "## Sprint status"
+            },
+            {
+              "type": 9,
+              "components": [
+                {
+                  "type": 10,
+                  "content": "**web-app** · sprint 14"
+                }
+              ],
+              "accessory": {
+                "type": 11,
+                "media": {
+                  "url": "https://example.com/logo.png"
+                }
+              }
+            },
+            {
+              "type": 10,
+              "content": "**Open**  12\n**Done**  8"
+            },
+            {
+              "type": 14,
+              "divider": true,
+              "spacing": 1
+            },
+            {
+              "type": 10,
+              "content": "```\nTask       State\nLogin fix  Done\nDocs       Todo\n```"
+            },
+            {
+              "type": 12,
+              "items": [
+                {
+                  "media": {
+                    "url": "attachment://chart_0.png"
+                  },
+                  "description": "Issues by state"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "> Ship early, ship often"
+            },
+            {
+              "type": 10,
+              "content": "```bash\nnpm start\n```"
+            },
+            {
+              "type": 10,
+              "content": "1. first\n2. second"
+            },
+            {
+              "type": 12,
+              "items": [
+                {
+                  "media": {
+                    "url": "https://example.com/x.png"
+                  },
+                  "description": "team"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "Some **bold** and [a link](https://example.com)"
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 3,
+                  "custom_id": "sel",
+                  "placeholder": "Filter by priority",
+                  "options": [
+                    {
+                      "label": "High",
+                      "value": "high",
+                      "description": "Ship this week",
+                      "default": true
+                    },
+                    {
+                      "label": "Low",
+                      "value": "low"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 2,
+                  "style": 1,
+                  "label": "Set goal",
+                  "custom_id": "form:goal"
+                },
+                {
+                  "type": 2,
+                  "style": 5,
+                  "label": "Docs",
+                  "url": "https://example.com/docs"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "-# Updated just now"
+            }
+          ]
+        }
+      ]
+    },
+    "text": "Sprint status",
+    "actionMap": {
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {
+      "goal": {
+        "title": "Set goal",
+        "submit": "Save",
+        "fields": [
+          {
+            "target": "$goal",
+            "kind": "number",
+            "label": "Points",
+            "initial": 100
+          },
+          {
+            "target": "$note",
+            "kind": "text",
+            "label": "Note",
+            "initial": null
+          },
+          {
+            "target": "$priority",
+            "kind": "select",
+            "label": "Priority",
+            "initial": "high",
+            "options": [
+              {
+                "value": "high",
+                "label": "High"
+              },
+              {
+                "value": "low",
+                "label": "Low"
+              }
+            ]
+          }
+        ],
+        "action": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$saved",
+              "valueAST": {
+                "k": "Str",
+                "v": "yes"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "state": {
+      "$priority": "high",
+      "$goal": 100,
+      "$note": null,
+      "$saved": null
+    }
+  },
   "render:teamsCounter": {
     "output": {
       "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
@@ -2707,6 +3027,579 @@
       "$at": "09:30",
       "$urgent": "true",
       "$team": "web",
+      "$saved": "yes"
+    }
+  },
+  "discord:action:inc": {
+    "output": {
+      "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
+      "components": [
+        {
+          "type": 17,
+          "accent_color": 5793266,
+          "components": [
+            {
+              "type": 10,
+              "content": "## Counter"
+            },
+            {
+              "type": 10,
+              "content": "Count is **1**"
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 2,
+                  "style": 1,
+                  "label": "+1",
+                  "custom_id": "inc"
+                },
+                {
+                  "type": 2,
+                  "style": 2,
+                  "label": "-1",
+                  "custom_id": "dec"
+                },
+                {
+                  "type": 2,
+                  "style": 4,
+                  "label": "Reset",
+                  "custom_id": "reset"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "text": "Counter",
+    "actionMap": {
+      "inc": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "+",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dec": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$count",
+              "valueAST": {
+                "k": "BinOp",
+                "op": "-",
+                "left": {
+                  "k": "StateRef",
+                  "n": "$count"
+                },
+                "right": {
+                  "k": "Num",
+                  "v": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "reset": {
+        "kind": "action",
+        "plan": {
+          "steps": [
+            {
+              "type": "reset",
+              "targets": [
+                "$count"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "charts": [],
+    "forms": {},
+    "state": {
+      "$count": 1
+    }
+  },
+  "discord:action:sel=low": {
+    "output": {
+      "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
+      "components": [
+        {
+          "type": 17,
+          "components": [
+            {
+              "type": 10,
+              "content": "## Sprint status"
+            },
+            {
+              "type": 9,
+              "components": [
+                {
+                  "type": 10,
+                  "content": "**web-app** · sprint 14"
+                }
+              ],
+              "accessory": {
+                "type": 11,
+                "media": {
+                  "url": "https://example.com/logo.png"
+                }
+              }
+            },
+            {
+              "type": 10,
+              "content": "**Open**  12\n**Done**  8"
+            },
+            {
+              "type": 14,
+              "divider": true,
+              "spacing": 1
+            },
+            {
+              "type": 10,
+              "content": "```\nTask       State\nLogin fix  Done\nDocs       Todo\n```"
+            },
+            {
+              "type": 12,
+              "items": [
+                {
+                  "media": {
+                    "url": "attachment://chart_0.png"
+                  },
+                  "description": "Issues by state"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "> Ship early, ship often"
+            },
+            {
+              "type": 10,
+              "content": "```bash\nnpm start\n```"
+            },
+            {
+              "type": 10,
+              "content": "1. first\n2. second"
+            },
+            {
+              "type": 12,
+              "items": [
+                {
+                  "media": {
+                    "url": "https://example.com/x.png"
+                  },
+                  "description": "team"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "Some **bold** and [a link](https://example.com)"
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 3,
+                  "custom_id": "sel",
+                  "placeholder": "Filter by priority",
+                  "options": [
+                    {
+                      "label": "High",
+                      "value": "high",
+                      "description": "Ship this week"
+                    },
+                    {
+                      "label": "Low",
+                      "value": "low",
+                      "default": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 2,
+                  "style": 1,
+                  "label": "Set goal",
+                  "custom_id": "form:goal"
+                },
+                {
+                  "type": 2,
+                  "style": 5,
+                  "label": "Docs",
+                  "url": "https://example.com/docs"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "-# Updated just now"
+            }
+          ]
+        }
+      ]
+    },
+    "text": "Sprint status",
+    "actionMap": {
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {
+      "goal": {
+        "title": "Set goal",
+        "submit": "Save",
+        "fields": [
+          {
+            "target": "$goal",
+            "kind": "number",
+            "label": "Points",
+            "initial": 100
+          },
+          {
+            "target": "$note",
+            "kind": "text",
+            "label": "Note",
+            "initial": null
+          },
+          {
+            "target": "$priority",
+            "kind": "select",
+            "label": "Priority",
+            "initial": "low",
+            "options": [
+              {
+                "value": "high",
+                "label": "High"
+              },
+              {
+                "value": "low",
+                "label": "Low"
+              }
+            ]
+          }
+        ],
+        "action": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$saved",
+              "valueAST": {
+                "k": "Str",
+                "v": "yes"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "state": {
+      "$priority": "low",
+      "$goal": 100,
+      "$note": null,
+      "$saved": null
+    }
+  },
+  "discord:modal:goal": {
+    "custom_id": "form:goal",
+    "title": "Set goal",
+    "components": [
+      {
+        "type": 18,
+        "label": "Points",
+        "description": "A number",
+        "component": {
+          "type": 4,
+          "custom_id": "$goal",
+          "style": 1,
+          "required": false,
+          "value": "100"
+        }
+      },
+      {
+        "type": 18,
+        "label": "Note",
+        "component": {
+          "type": 4,
+          "custom_id": "$note",
+          "style": 1,
+          "required": false
+        }
+      },
+      {
+        "type": 18,
+        "label": "Priority",
+        "component": {
+          "type": 3,
+          "custom_id": "$priority",
+          "options": [
+            {
+              "label": "High",
+              "value": "high",
+              "default": true
+            },
+            {
+              "label": "Low",
+              "value": "low"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "discord:submit:goal": {
+    "output": {
+      "flags": 32768,
+      "allowed_mentions": {
+        "parse": []
+      },
+      "components": [
+        {
+          "type": 17,
+          "components": [
+            {
+              "type": 10,
+              "content": "## Sprint status"
+            },
+            {
+              "type": 9,
+              "components": [
+                {
+                  "type": 10,
+                  "content": "**web-app** · sprint 14"
+                }
+              ],
+              "accessory": {
+                "type": 11,
+                "media": {
+                  "url": "https://example.com/logo.png"
+                }
+              }
+            },
+            {
+              "type": 10,
+              "content": "**Open**  12\n**Done**  8"
+            },
+            {
+              "type": 14,
+              "divider": true,
+              "spacing": 1
+            },
+            {
+              "type": 10,
+              "content": "```\nTask       State\nLogin fix  Done\nDocs       Todo\n```"
+            },
+            {
+              "type": 12,
+              "items": [
+                {
+                  "media": {
+                    "url": "attachment://chart_0.png"
+                  },
+                  "description": "Issues by state"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "> Ship early, ship often"
+            },
+            {
+              "type": 10,
+              "content": "```bash\nnpm start\n```"
+            },
+            {
+              "type": 10,
+              "content": "1. first\n2. second"
+            },
+            {
+              "type": 12,
+              "items": [
+                {
+                  "media": {
+                    "url": "https://example.com/x.png"
+                  },
+                  "description": "team"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "Some **bold** and [a link](https://example.com)"
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 3,
+                  "custom_id": "sel",
+                  "placeholder": "Filter by priority",
+                  "options": [
+                    {
+                      "label": "High",
+                      "value": "high",
+                      "description": "Ship this week",
+                      "default": true
+                    },
+                    {
+                      "label": "Low",
+                      "value": "low"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": 1,
+              "components": [
+                {
+                  "type": 2,
+                  "style": 1,
+                  "label": "Set goal",
+                  "custom_id": "form:goal"
+                },
+                {
+                  "type": 2,
+                  "style": 5,
+                  "label": "Docs",
+                  "url": "https://example.com/docs"
+                }
+              ]
+            },
+            {
+              "type": 10,
+              "content": "-# Updated just now"
+            }
+          ]
+        }
+      ]
+    },
+    "text": "Sprint status",
+    "actionMap": {
+      "sel": {
+        "kind": "input",
+        "target": "$priority"
+      }
+    },
+    "charts": [
+      {
+        "id": "chart_0",
+        "type": "bar",
+        "labels": [
+          "Todo",
+          "Doing",
+          "Done"
+        ],
+        "values": [
+          5,
+          3,
+          8
+        ],
+        "title": "Issues by state"
+      }
+    ],
+    "forms": {
+      "goal": {
+        "title": "Set goal",
+        "submit": "Save",
+        "fields": [
+          {
+            "target": "$goal",
+            "kind": "number",
+            "label": "Points",
+            "initial": 250
+          },
+          {
+            "target": "$note",
+            "kind": "text",
+            "label": "Note",
+            "initial": "stretch"
+          },
+          {
+            "target": "$priority",
+            "kind": "select",
+            "label": "Priority",
+            "initial": "high",
+            "options": [
+              {
+                "value": "high",
+                "label": "High"
+              },
+              {
+                "value": "low",
+                "label": "Low"
+              }
+            ]
+          }
+        ],
+        "action": {
+          "steps": [
+            {
+              "type": "set",
+              "target": "$saved",
+              "valueAST": {
+                "k": "Str",
+                "v": "yes"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "state": {
+      "$priority": "high",
+      "$goal": 250,
+      "$note": "stretch",
       "$saved": "yes"
     }
   },

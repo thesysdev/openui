@@ -23,6 +23,7 @@ export default defineConfig([
   { ...shared, entry: { index: "src/index.ts" }, outDir: "dist", clean: true },
   subpath("slack"),
   subpath("teams"),
+  subpath("discord"),
   subpath("telegram"),
   subpath("whatsapp"),
   subpath("ui"),

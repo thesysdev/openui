@@ -132,6 +132,39 @@ row = Actions([link, copy])
 root = Root([h, f, d, t, c, q, cd, l, ck, det, img, md, sel, row])
 `.trim(),
 
+  discordCounter: `
+$count = 0
+title = Header("Counter")
+label = Text("Count is *" + $count + "*")
+inc = Button("+1", Action([@Set($count, $count + 1)]))
+dec = Button("-1", Action([@Set($count, $count - 1)]), "secondary")
+reset = Button("Reset", Action([@Reset($count)]), "danger")
+row = Actions([inc, dec, reset])
+root = Root([title, label, row], "#5865F2")
+`.trim(),
+
+  discordContent: `
+$priority = "high"
+$goal = 100
+h = Header("Sprint status", 2)
+s = Section("**web-app** · sprint 14", "https://example.com/logo.png")
+f = Fields([Field("Open", "12"), Field("Done", "8")])
+d = Divider()
+t = Table(["Task", "State"], [["Login fix", "Done"], ["Docs", "Todo"]])
+c = Chart("bar", ["Todo", "Doing", "Done"], [5, 3, 8], "Issues by state")
+q = Quote("Ship early, ship often")
+cd = Code("npm start", "bash")
+l = List(["first", "second"], true)
+img = Image("https://example.com/x.png", "team")
+md = Markdown("Some **bold** and [a link](https://example.com)")
+sel = Select("priority", $priority, "Filter by priority", [Option("high", "High", "Ship this week"), Option("low", "Low")])
+goal = Form("Set goal", "Save", [NumberInput("Points", $goal), TextInput("Note", $note), Select("prio", $priority, "Priority", [Option("high", "High"), Option("low", "Low")])], Action([@Set($saved, "yes")]))
+link = LinkButton("Docs", "https://example.com/docs")
+row = Actions([link])
+ctx = Context("Updated just now")
+root = Root([h, s, f, d, t, c, q, cd, l, img, md, sel, goal, row, ctx])
+`.trim(),
+
   teamsCounter: `
 $count = 0
 title = Header("Counter")

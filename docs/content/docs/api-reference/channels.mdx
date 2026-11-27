@@ -1,6 +1,6 @@
 ---
 title: "@openuidev/channels"
-description: API reference for rendering OpenUI Lang as native, interactive messages in Slack, Microsoft Teams, Telegram, and WhatsApp.
+description: API reference for rendering OpenUI Lang as native, interactive messages in Slack, Microsoft Teams, Discord, Telegram, and WhatsApp.
 ---
 
 Use this package to answer in a chat platform with a native, interactive card instead of markdown.
@@ -34,15 +34,16 @@ renders empty charts on the server.
 
 ## Entry points
 
-| Entry point                     | Renders to                    | Channel           | `output` type  | Also exports                                        |
-| :------------------------------ | :---------------------------- | :---------------- | :------------- | :-------------------------------------------------- |
-| `@openuidev/channels`           |                               |                   |                | `createEngine`, `MemoryStore`, shared types         |
-| `@openuidev/channels/slack`     | Slack Block Kit               | `slackChannel`    | `SlackBlock[]` | `createSlackUI`, `inputValue`, `viewValues`         |
-| `@openuidev/channels/teams`     | Teams Adaptive Cards 1.5      | `teamsChannel`    | `TeamsCard`    | `decodeSubmit`                                      |
-| `@openuidev/channels/telegram`  | Telegram Rich Messages        | `telegramChannel` | `TgCard`       | `decodeCallback`, `encodeCallback`, `callbackFits`  |
-| `@openuidev/channels/whatsapp`  | WhatsApp interactive messages | `whatsappChannel` | `WaMessage[]`  | `decodeReplyId`, `encodeReplyId`, `typingIndicator` |
-| `@openuidev/channels/ui`        |                               |                   |                | `ChartSpec`, `FieldSpec`, `FormSpec` types          |
-| `@openuidev/channels/ui/charts` | PNG                           |                   |                | `renderChartPng`. Needs the optional peers          |
+| Entry point                     | Renders to                    | Channel           | `output` type    | Also exports                                        |
+| :------------------------------ | :---------------------------- | :---------------- | :--------------- | :-------------------------------------------------- |
+| `@openuidev/channels`           |                               |                   |                  | `createEngine`, `MemoryStore`, shared types         |
+| `@openuidev/channels/slack`     | Slack Block Kit               | `slackChannel`    | `SlackBlock[]`   | `createSlackUI`, `inputValue`, `viewValues`         |
+| `@openuidev/channels/teams`     | Teams Adaptive Cards 1.5      | `teamsChannel`    | `TeamsCard`      | `decodeSubmit`                                      |
+| `@openuidev/channels/discord`   | Discord Components V2         | `discordChannel`  | `DiscordMessage` | `decodeComponent`, `formModal`, `decodeModalSubmit` |
+| `@openuidev/channels/telegram`  | Telegram Rich Messages        | `telegramChannel` | `TgCard`         | `decodeCallback`, `encodeCallback`, `callbackFits`  |
+| `@openuidev/channels/whatsapp`  | WhatsApp interactive messages | `whatsappChannel` | `WaMessage[]`    | `decodeReplyId`, `encodeReplyId`, `typingIndicator` |
+| `@openuidev/channels/ui`        |                               |                   |                  | `ChartSpec`, `FieldSpec`, `FormSpec` types          |
+| `@openuidev/channels/ui/charts` | PNG                           |                   |                  | `renderChartPng`. Needs the optional peers          |
 
 Slack has a high-level API, [`createSlackUI`](#createslackuioptions). The other platforms export a
 channel and a prompt builder that you drive with [`createEngine`](#createenginechannel-options).
@@ -196,7 +197,7 @@ timestamp as `messageId`.
 
 ## `createEngine(channel, options?)`
 
-The engine is what `createSlackUI` is built on, and the API for Teams, Telegram, and WhatsApp. It
+The engine is what `createSlackUI` is built on, and the API for Teams, Discord, Telegram, and WhatsApp. It
 binds one platform's channel and returns functions over a program and its state. It stores nothing
 and never talks to a transport: you send the output and save the state.
 
@@ -272,7 +273,7 @@ input that is set to `value`, or a form's action looked up by form id.
 If the model output does not parse into a root component, `output` is the channel's error message
 rather than a thrown error.
 
-## Teams, Telegram, and WhatsApp
+## Teams, Discord, Telegram, and WhatsApp
 
 Each platform subpath exports its channel, the helpers in the [entry points](#entry-points) table,
 and a prompt builder:
@@ -315,14 +316,25 @@ if (saved) {
 }
 ```
 
-`sendAdaptiveCard` and `updateAdaptiveCard` stand for your transport. Telegram and WhatsApp follow
-the same pattern with their own channel and decoder.
+`sendAdaptiveCard` and `updateAdaptiveCard` stand for your transport. Discord, Telegram, and
+WhatsApp follow the same pattern with their own channel and decoder.
 
 What to plan for on each platform:
 
 - **Teams.** `output` is one complete Adaptive Card, updated in place. Forms are inline: pressing
   any button submits every input on the card. `decodeSubmit` returns the `$variable` inputs as
   `patch` and converts numeric strings to numbers.
+- **Discord.** `output` is a Components V2 message body (`flags` plus one container). Send it with
+  `POST /channels/{id}/messages` and update it in place by answering each component interaction
+  with an `UPDATE_MESSAGE` (type 7) response. `decodeComponent(interaction.data)` returns the
+  interaction, or `{ formId }` for a Form button: answer that with a `MODAL` (type 9) response whose
+  data is `formModal(formId, result.forms[formId])`, then pass the modal submit to
+  `decodeModalSubmit`. Messages have no text or number inputs, so typed values go through the
+  modal. Tables render as aligned monospace text. A message holds 40 components and 4,000
+  characters of text; extra content is dropped with a console warning. Answer interactions within
+  3 seconds, or defer first. `createCardPreview(edit, render)` streams partial cards by editing the
+  message, without chart attachments until the final render. Every message sets
+  `allowed_mentions: { parse: [] }`, so text in a card never pings anyone.
 - **Telegram.** `output` is `{ blocks, keyboard }`. Send it with `sendRichMessage`, with `keyboard`
   as the inline keyboard, and edit it in place. Callback data is limited to 64 bytes. A button or
   option that does not fit is skipped with a console warning, so option values must be short ids.
@@ -344,7 +356,7 @@ On Slack, charts render natively as `data_visualization` blocks. Slack allows tw
 Further charts become placeholder blocks, which the default `deliver` drops. If a workspace rejects
 native chart blocks, the default `deliver` sends the card without charts.
 
-Teams, Telegram, and WhatsApp receive charts as images. Each chart appears in `result.charts` as a
+Teams, Discord, Telegram, and WhatsApp receive charts as images. Each chart appears in `result.charts` as a
 `ChartSpec`, and in `output` as a marker your transport replaces with the uploaded image:
 
 ```ts
@@ -362,6 +374,7 @@ Pass `renderChartPng(spec, { theme: "dark" })` for a dark background that suits 
 | :------- | :------------------------------------------------------------------------------------------ |
 | Slack    | Placeholder image block, detected with `isChartPlaceholder`. Its `block_id` is the chart id |
 | Teams    | `Image` element whose URL is `CHART_MARKER_PREFIX` followed by the chart id                 |
+| Discord  | Media gallery item whose URL is `attachment://` followed by the chart id and `.png`         |
 | Telegram | Photo block that references `attach://` followed by the chart id                            |
 | WhatsApp | Message that carries a `chartId`                                                            |
 
@@ -381,6 +394,7 @@ These are available for your own delivery, storage layout, components, or platfo
 | `@openuidev/channels/slack`    | `isChartBlock`, `isChartPlaceholder`                            | Detect native chart blocks and chart placeholders                                   |
 | `@openuidev/channels/slack`    | `SlackUIOptions`, `SlackTools`, `SlackToolSpec`, `StreamedCard` | Types for `createSlackUI`, with `SlackUI` and `SlackDeliverArgs`                    |
 | `@openuidev/channels/telegram` | `richText`                                                      | Converts light inline markdown to Telegram rich text                                |
+| `@openuidev/channels/discord`  | `createCardPreview`, `DiscordCardPreview`, `IS_COMPONENTS_V2`   | Streams partial renders into a message through your edit function                   |
 
 When you call `createCardPreview` yourself, give it an engine created with `quiet: true` and no
 tool provider, so partial programs use query defaults instead of calling tools on every update.
