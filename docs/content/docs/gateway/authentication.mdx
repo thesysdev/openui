@@ -50,7 +50,15 @@ sequenceDiagram
 
 Mint the token from your backend using the inference API key:
 
-```ts title="server.ts"
+```ts tab="@openuidev/server" tab-group="mint-token"
+import { OpenUIClient } from "@openuidev/server";
+
+const openui = new OpenUIClient(); // reads THESYS_API_KEY
+
+const { token, expires_at } = await openui.createFrontendToken({ userId }, { signal });
+```
+
+```ts tab="HTTP" tab-group="mint-token"
 const response = await fetch("https://api.thesys.dev/v1/frontend-tokens", {
   method: "POST",
   headers: {
@@ -80,7 +88,7 @@ The frontend token lets the browser call the [Conversations API](/docs/gateway/a
 ```ts title="client.ts"
 const response = await fetch("https://api.thesys.dev/v1/conversations", {
   headers: {
-    Authorization: `Bearer ${frontendToken}`,
+    "x-thesys-frontend-token": frontendToken,
   },
 });
 
