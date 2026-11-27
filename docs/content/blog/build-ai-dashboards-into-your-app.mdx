@@ -139,7 +139,16 @@ A few things keep that bill down:
 - **Edits cost less than rebuilds.** With incremental editing, the model writes only the parts that change, not the whole dashboard again.
 - **You can use a smaller model.** We built the API to work with any size of model, so you can choose by cost. The checks above are what make cheaper models work: DeepSeek v4.1 Flash built every test dashboard correctly at a third of a cent per build.
 
-**TBD:** numbers.
+Here's what that looks like in practice. We gave Claude Dashboards and the OpenUI Dashboards API the same request (eight weeks of signups: last week's number, the change on the week before, and a bar chart per week) on the same model, Claude Sonnet 5.5 at medium effort, three times each:
+
+| | Time to a finished dashboard (median of 3) | Output tokens per build |
+| --- | --- | --- |
+| Claude Dashboards on claude.ai | 84 s | about 3,900 |
+| OpenUI Dashboards API | **5 s** | **about 420** |
+
+Both got the numbers right every time. The difference is what the model has to write: for each dashboard, Claude writes a full HTML page with its own JavaScript and d3 code, while the API's model writes a few lines of OpenUI Lang that name components you already have. Fewer tokens out means a faster build and a smaller bill.
+
+<p className="text-sm text-fd-muted-foreground">Claude's tokens are what it wrote for the dashboard and its reply, counted with Anthropic's token counter; its thinking isn't visible on claude.ai, so its real count is higher. The API's count is exact, from its usage data.</p>
 
 ## Building this into your app
 
