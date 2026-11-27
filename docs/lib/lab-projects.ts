@@ -485,6 +485,17 @@ export const labProjects: ProjectItem[] = [
       },
     ],
   },
+  {
+    name: "Krater",
+    description:
+      "An AI platform for small businesses where chat replies across 500+ models use OpenUI Lang for inline charts, tables, cards, and forms, built on Krater's own design system.",
+    type: "App",
+    status: "Community",
+    accent: "blue",
+    icon: Bot,
+    screenshot: "/community-projects/krater.jpg",
+    links: [{ label: "Website", href: "https://krater.ai", external: true }],
+  },
 ];
 
 /** The project's own site, as opposed to its repo, docs page, or an article about it. */
