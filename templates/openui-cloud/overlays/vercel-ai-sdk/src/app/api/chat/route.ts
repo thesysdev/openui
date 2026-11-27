@@ -13,6 +13,7 @@ import {
 import { requiredEnv } from "@/lib/env";
 import { storeTurn } from "@/lib/history";
 import { resolveRequestedModel } from "@/lib/models";
+import { ownsThread } from "@/lib/openui";
 import { appTools } from "@/lib/tools";
 
 // The generated spec carries the library and its prompt options; generateSystemPrompt takes them separately.
@@ -42,6 +43,10 @@ export async function POST(req: Request) {
     return badRequest("threadId is required");
   }
 
+  if (!(await ownsThread(threadId, req.signal))) {
+    return Response.json({ error: { message: "Thread not found" } }, { status: 404 });
+  }
+
   const model = resolveRequestedModel(requestedModel);
   if (!model) {
     return badRequest("model is not available in this agent");
@@ -64,11 +69,7 @@ export async function POST(req: Request) {
     // Only the new user message and this turn's replies; never the replayed history.
     onEnd: async ({ responseMessages }) => {
       try {
-        await storeTurn({
-          apiKey,
-          conversationId: threadId,
-          messages: [question, ...responseMessages],
-        });
+        await storeTurn(threadId, [question, ...responseMessages]);
       } catch (error) {
         console.error("Failed to save the turn to OpenUI Cloud:", error);
       }

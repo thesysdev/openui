@@ -22,7 +22,7 @@
     "@openuidev/react-headless": "0.18.7",
     "@openuidev/react-lang": "1.1.1",
     "@openuidev/react-ui": "0.18.7",
-    "@openuidev/server": "^0.4.2",
+    "@openuidev/server": "^0.6.0",
     "langchain": "^1.5.5",
     "next": "^16.3.0",
     "react": "19.2.3",

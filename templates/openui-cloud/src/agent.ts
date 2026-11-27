@@ -2,12 +2,12 @@ import { tool } from "@langchain/core/tools";
 import { StateSchema } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { storeLangGraphHistory } from "@openuidev/server/langgraph";
 import { createAgent, createMiddleware } from "langchain";
 import { z } from "zod";
 import librarySpec from "./generated/spec.json";
 import { requiredEnv } from "./lib/env";
 import { DEFAULT_MODEL } from "./lib/models";
+import { openui } from "./lib/openui";
 import { executeGetWeather, getWeatherTool } from "./lib/tools/get-weather";
 
 // The generated spec carries the library and its prompt options; generateSystemPrompt takes them separately.
@@ -56,11 +56,10 @@ const persistTurn = createMiddleware({
   afterAgent: async (state) => {
     // Save the completed turn in one call: new user message, assistant messages,
     // tool calls, and tool results. Exclude all replayed history.
-    await storeLangGraphHistory({
-      apiKey: requiredEnv("THESYS_API_KEY"),
-      conversationId: state.conversationId,
-      messages: state.messages.slice(state.turnStart),
-    });
+    await openui.langgraph.conversations.items.create(
+      state.conversationId,
+      state.messages.slice(state.turnStart),
+    );
   },
 });
 

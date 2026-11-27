@@ -1,6 +1,10 @@
-import { storeChatCompletionHistory } from "@openuidev/server/openai";
+import { OpenUIClient } from "@openuidev/server";
 import { defineState } from "eve/context";
 import { defineHook, type HookContext } from "eve/hooks";
+
+/** Reads THESYS_API_KEY; the same user and app as /api/frontend-token. */
+const openui = new OpenUIClient({ appId: process.env.APP_ID || undefined });
+const userId = process.env.DEMO_USER_ID || "demo-user";
 
 /** Session auth attribute carrying the OpenUI Cloud thread id; set in channels/eve.ts. */
 export const THREAD_ID_ATTRIBUTE = "openuiThreadId";
@@ -68,11 +72,10 @@ export default defineHook({
       if (!conversationId || messages.length === 0) return;
       // A thrown hook fails the turn, so a failed save is only logged.
       try {
-        await storeChatCompletionHistory({
-          apiKey: process.env.THESYS_API_KEY ?? "",
-          conversationId,
-          messages,
-        });
+        // The thread id comes from the browser: save only to this user's threads.
+        const conversation = await openui.conversations.get(conversationId);
+        if (conversation.userId !== userId) throw new Error("The thread isn't this user's.");
+        await openui.chat.conversations.items.create(conversationId, messages);
       } catch (error) {
         console.error("Failed to save the turn to OpenUI Cloud:", error);
       }

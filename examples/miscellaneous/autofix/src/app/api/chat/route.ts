@@ -1,12 +1,15 @@
 import spec from "@/generated/spec.json";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { createAutofix } from "@openuidev/server/openai";
+import { OpenUIClient } from "@openuidev/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 export const runtime = "nodejs";
 
 const { promptOptions, ...library } = spec;
+
+// Reads THESYS_API_KEY when a request needs it.
+const openui = new OpenUIClient();
 
 export async function POST(request: Request) {
   const { messages } = (await request.json()) as {
@@ -21,10 +24,7 @@ export async function POST(request: Request) {
   }
 
   const openai = new OpenAI();
-  const autofix = createAutofix({
-    apiKey: process.env.THESYS_API_KEY!,
-    library,
-  });
+  const autofix = openui.chat.createAutofix({ library });
 
   const source = await openai.chat.completions.create(
     {
@@ -38,7 +38,5 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.completions
-    .stream({ stream: source, messages, signal: request.signal })
-    .toResponse();
+  return autofix.stream({ stream: source, messages, signal: request.signal }).toResponse();
 }

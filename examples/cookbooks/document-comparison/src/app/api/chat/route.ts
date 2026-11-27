@@ -1,19 +1,11 @@
-import { storeChatCompletionHistory } from "@openuidev/server/openai";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { listDocuments, openDatabase } from "../../../lib/documents";
-import { loadChatCompletionHistory } from "../../../lib/gateway-history";
+import { openui, ownsThread } from "../../../lib/openui";
 import { comparisonPrompt } from "../../../lib/prompt";
 import { executeSearchDocuments, searchDocumentsTool } from "../../../lib/tools/search-documents";
 
 export const runtime = "nodejs";
-
-// The thread's earlier turns, loaded from its Gateway conversation with their tool calls and
-// results rather than taken from the browser, so the model sees where each earlier answer came
-// from. To send less of a long thread, compact the messages here.
-function conversation(apiKey: string, threadId: string, signal: AbortSignal) {
-  return loadChatCompletionHistory({ apiKey, conversationId: threadId, signal });
-}
 
 export async function POST(request: Request) {
   // Agent Interface's storage creates the Gateway conversation first and sends its id as threadId.
@@ -39,7 +31,15 @@ export async function POST(request: Request) {
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const searchTool = searchDocumentsTool(documents);
 
-  const thread = [...(await conversation(apiKey, threadId, request.signal)), question];
+  if (!(await ownsThread(threadId, request.signal)))
+    return Response.json({ error: "Thread not found." }, { status: 404 });
+  const conversations = openui.chat.conversations;
+
+  // The thread's earlier turns, from its Gateway conversation with their tool calls and results
+  // rather than taken from the browser, so the model sees where each earlier answer came from.
+  // To send less of a long thread, compact the messages here.
+  const history = await conversations.items.list(threadId, { signal: request.signal });
+  const thread = [...history, question];
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: comparisonPrompt(documents) },
     ...thread,
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   const stored = runner
     .done()
     .catch(() => {})
-    .then(() => storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }))
+    .then(() => conversations.items.create(threadId, turn))
     .catch((error: unknown) =>
       console.error("Could not store the turn in the Gateway conversation.", error),
     );
