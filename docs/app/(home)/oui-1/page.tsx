@@ -179,7 +179,7 @@ export default function OuiOnePage() {
               </h2>
               <BevelButton
                 href={guide}
-                variant="secondary"
+                variant="tertiary"
                 label="Read setup docs"
                 badge={<ArrowRight size={16} strokeWidth={2.25} />}
               />

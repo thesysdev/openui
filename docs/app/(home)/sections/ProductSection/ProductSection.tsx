@@ -80,6 +80,9 @@ export type ProductSectionProps = {
   /* Optional artwork-specific ratios. Desktop exports can stay canonical;
      mobile uses a controlled center crop instead of squeezing the frame. */
   stageAspectRatio?: string;
+  /* "stage" drops the label, headline and buttons, for a page that places
+     its own copy somewhere else. */
+  parts?: "all" | "stage";
   stageMobileAspectRatio?: string;
   cards: ProductCard[];
 };
@@ -106,53 +109,53 @@ export function ProductSection({
   stageAspectRatio,
   stageMobileAspectRatio,
   cards,
+  parts = "all",
 }: ProductSectionProps) {
-  const primaryVariant = tone === "dark" ? "light" : "primary";
-  const secondaryVariant = tone === "dark" ? "dark" : "secondary";
-
   return (
     <section className={`${styles.product} ${tone === "dark" ? styles.onDark : ""}`.trim()}>
-      <div className={styles.lockup}>
-        <div className={styles.lead}>
-          <ProductLabel name={name} tag={tag} />
-          <h3 className={styles.headline}>{headline}</h3>
-          <div className={styles.ctas}>
-            {primaryCta && (
+      {parts !== "stage" && (
+        <div className={styles.lockup}>
+          <div className={styles.lead}>
+            <ProductLabel name={name} tag={tag} />
+            <h3 className={styles.headline}>{headline}</h3>
+            <div className={styles.ctas}>
+              {primaryCta && (
+                <BevelButton
+                  className={styles.primaryCta}
+                  variant="primary"
+                  href={primaryCta.href}
+                  label={primaryCta.label}
+                  external={primaryCta.external}
+                  badge={
+                    primaryCta.external ? (
+                      <ArrowUpRight size={16} weight="bold" />
+                    ) : (
+                      <ArrowRight size={16} weight="bold" />
+                    )
+                  }
+                />
+              )}
               <BevelButton
-                className={styles.primaryCta}
-                variant={primaryVariant}
-                href={primaryCta.href}
-                label={primaryCta.label}
-                external={primaryCta.external}
+                className={styles.secondaryCta}
+                variant="secondary"
+                href={secondaryCta.href}
+                label={secondaryCta.label}
+                external={secondaryCta.external}
                 badge={
-                  primaryCta.external ? (
+                  secondaryCta.external ? (
                     <ArrowUpRight size={16} weight="bold" />
                   ) : (
                     <ArrowRight size={16} weight="bold" />
                   )
                 }
               />
-            )}
-            <BevelButton
-              className={styles.secondaryCta}
-              variant={secondaryVariant}
-              href={secondaryCta.href}
-              label={secondaryCta.label}
-              external={secondaryCta.external}
-              badge={
-                secondaryCta.external ? (
-                  <ArrowUpRight size={16} weight="bold" />
-                ) : (
-                  <ArrowRight size={16} weight="bold" />
-                )
-              }
-            />
+            </div>
           </div>
-        </div>
-        {/* Opposite the headline on desktop, beneath it on a phone: the same
+          {/* Opposite the headline on desktop, beneath it on a phone: the same
             split the page hero uses. */}
-        {description && <p className={styles.description}>{description}</p>}
-      </div>
+          {description && <p className={styles.description}>{description}</p>}
+        </div>
+      )}
 
       <div
         className={`${styles.stage} ${fullBleedArt ? styles.stageFullBleed : ""} ${

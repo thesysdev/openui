@@ -1,15 +1,14 @@
-/* The hero's agent CTA: one primary pill in BevelButton's language — the
-   label first, then the marks of the agents the prompt is written for.
-   Primary is theme-inverted: black on the light page, white on the dark. */
+/* The hero's agent CTA, in BevelButton's language: the label first, then the
+   marks of the agents the prompt is written for. The secondary of the four
+   button styles; the command pill beside it is the primary. */
 .build {
-  /* The bevel tokens live on the home page's theme, so they are undefined in
-     the site header and the pill there would come out flat and transparent.
-     Pinned locally, the same way GitHubButton does it. */
-  --home-surface-raised: #f7f7f8;
-  --home-bevel:
-    inset 0 2px 1px -0.5px rgba(255, 255, 255, 1), inset 0 -3px 6px -1px rgba(0, 0, 0, 0.1);
-  --home-bevel-on-dark:
-    inset 0 7px 12px -6px rgba(255, 255, 255, 0.16), inset 0 -5px 8px -2px rgba(0, 0, 0, 0.6);
+  /* Secondary, light page. The same four tokens BevelButton uses. */
+  --btn-fill: rgba(10, 10, 10, 0.02);
+  --btn-ink: #0a0a0a;
+  --btn-edge: rgba(0, 0, 0, 0.08);
+  --btn-disc: #fff;
+  /* Near-black marks keep their ink on a light disc. */
+  --mark-ink: none;
 
   position: relative;
   display: inline-flex;
@@ -17,26 +16,65 @@
   gap: 0.75rem;
   flex-shrink: 0;
   height: 3rem;
-  /* The circles sit 8px off the pill's top and bottom, so the right edge
-     holds the same 8px and the facepile nests concentrically. */
-  padding: 0 calc(0.5rem - 1px) 0 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* The circles sit 10px off the pill's top and bottom, so the right edge
+     holds the same 10px and the facepile nests concentrically. */
+  padding: 0 calc(0.625rem - 1px) 0 1.25rem;
+  border: 1px solid var(--btn-edge);
   border-radius: 9999px;
-  background: #0a0a0a;
-  box-shadow: var(--home-bevel-on-dark);
-  color: #fff;
+  background: var(--btn-fill);
+  color: var(--btn-ink);
   font-family: "Inter Display", sans-serif;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
+  /* A long, soft ease-out, so the pill settles into its hover size rather
+     than snapping to it. */
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Secondary, dark page. */
 [data-theme="dark"] .build {
-  background: var(--home-surface-raised);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: var(--home-bevel);
-  color: #0a0a0a;
+  --btn-fill: rgba(255, 255, 255, 0.06);
+  --btn-ink: #fff;
+  --btn-edge: rgba(255, 255, 255, 0.08);
+  --btn-disc: #1e1e21;
+  --mark-ink: brightness(0) invert(1);
+}
+
+/* Without the command pill beside it this button is the only call to action,
+   so it takes the primary of the four styles. Doubled class names to outrank
+   the secondary rules above. */
+.build.buildAlone {
+  --btn-fill: #0a0a0a;
+  --btn-ink: #fff;
+  --btn-edge: rgba(255, 255, 255, 0.12);
+  --btn-disc: #1e1e21;
+  --mark-ink: brightness(0) invert(1);
+}
+
+[data-theme="dark"] .build.buildAlone {
+  --btn-fill: #fff;
+  --btn-ink: #0a0a0a;
+  --btn-edge: rgba(0, 0, 0, 0.08);
+  --btn-disc: #fff;
+  --mark-ink: none;
+}
+
+/* Hover, as on BevelButton: the pill grows a touch; its fill stays put.
+   Pointer devices only, so a tap never leaves it grown. */
+@media (hover: hover) {
+  .build:hover,
+  .alt:hover {
+    transform: scale(1.015);
+  }
+}
+
+/* No growing for anyone who has asked for less motion. */
+@media (hover: hover) and (prefers-reduced-motion: reduce) {
+  .build:hover,
+  .alt:hover {
+    transform: none;
+  }
 }
 
 /* The black pill tooltip under the button, held back behind a short delay
@@ -136,28 +174,22 @@
   align-items: center;
 }
 
-/* A facepile: each mark in its own circle, a step above the pill, with a
-   ring in the pill's colour so the overlaps cut cleanly. */
+/* A facepile: each mark in its own disc, a solid step off the pill's fill,
+   held by a hairline. */
 .markRing {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 2px solid #0a0a0a;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--btn-edge);
   border-radius: 50%;
-  background: #2e2e33;
-  /* A hairline stroke inside the ring, so each circle keeps its own edge. */
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: var(--btn-disc);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
 }
 
 .markRing + .markRing {
-  margin-left: -8px;
-}
-
-[data-theme="dark"] .markRing {
-  border-color: var(--home-surface-raised);
-  background: #fff;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  margin-left: -7px;
 }
 
 .mark {
@@ -173,78 +205,76 @@
   height: 22px;
 }
 
-/* Cursor's and Codex's marks are drawn in near-black and would disappear on
-   the black pill, so on the light page they are knocked out to white. On the
-   dark page the pill is light and they keep their own ink. Claude's carries
-   its own colour on both. */
+/* Cursor's and Codex's marks are drawn in near-black: they keep their ink on
+   a light disc and are knocked out to white on a dark one. The disc follows
+   the button, not the page (the standalone button inverts), so --mark-ink is
+   set beside the button's colours. Claude's carries its own colour on both. */
 .markInk {
-  filter: brightness(0) invert(1);
+  filter: var(--mark-ink);
 }
 
-[data-theme="dark"] .markInk {
-  filter: none;
-}
-
+/* Holds the button and its menu, and the tokens they share, so the menu is
+   drawn in the same colours as the button that opens it. */
 .runnerWrap {
+  /* Primary, light page. */
+  --btn-fill: #0a0a0a;
+  --btn-ink: #fff;
+  --btn-edge: rgba(255, 255, 255, 0.12);
+  --btn-disc: #1e1e21;
+  --btn-wash: rgba(255, 255, 255, 0.08);
+
   position: relative;
   display: inline-flex;
   flex-shrink: 0;
 }
 
-/* The hand-run twin of the agent button: the same pill, on the surface
-   instead of inverted, with the runner chip where the facepile sits. */
-.alt {
-  /* Pinned like .build's, since the tokens live on the home page theme. */
-  --home-surface-raised: #f7f7f8;
-  --home-bevel:
-    inset 0 2px 1px -0.5px rgba(255, 255, 255, 1), inset 0 -3px 6px -1px rgba(0, 0, 0, 0.1);
-  --home-bevel-on-dark:
-    inset 0 7px 12px -6px rgba(255, 255, 255, 0.16), inset 0 -5px 8px -2px rgba(0, 0, 0, 0.6);
+/* Primary, dark page. */
+[data-theme="dark"] .runnerWrap {
+  --btn-fill: #fff;
+  --btn-ink: #0a0a0a;
+  --btn-edge: rgba(0, 0, 0, 0.08);
+  --btn-disc: #fff;
+  --btn-wash: rgba(0, 0, 0, 0.05);
+}
 
+/* The hand-run twin of the agent button: the same pill, carrying the create
+   command itself. The primary of the four button styles. */
+.alt {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   height: 3rem;
-  padding: 0 calc(0.5rem - 1px) 0 1.25rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  /* The circle sits 10px off the pill's top and bottom, so the right edge
+     holds the same 10px, exactly as the facepile does. */
+  padding: 0 calc(0.625rem - 1px) 0 1.25rem;
+  border: 1px solid var(--btn-edge);
   border-radius: 9999px;
-  background: var(--home-surface-raised, #f7f7f8);
-  box-shadow: var(--home-bevel);
-  color: #0a0a0a;
+  background: var(--btn-fill);
+  color: var(--btn-ink);
   font-family: "Inter Display", sans-serif;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
+  /* A long, soft ease-out, so the pill settles into its hover size rather
+     than snapping to it. */
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-[data-theme="dark"] .alt {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: var(--home-surface-ink, #0a0a0a);
-  box-shadow: var(--home-bevel-on-dark);
-  color: #f2f2f4;
-}
-
-/* The runner's own chip, the same height as the logo circles. */
+/* No chip of its own: just the command, in the clipping box the runner
+   slides inside. It takes the button's own type, the same as the label on
+   the agent button beside it. A fixed width, so swapping in a longer runner
+   leaves the button the same size: the command runs under the fade at the
+   right instead of pushing the pill wider. */
 .runnerPill {
   display: inline-flex;
   align-items: center;
+  width: 17.25rem;
   overflow: hidden;
-  height: 32px;
-  padding: 0 0.75rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 9999px;
-  background: #fff;
-  font-family: var(--font-geist-mono);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #0a0a0a;
-}
-
-[data-theme="dark"] .runnerPill {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: #1d1d1d;
-  color: #f2f2f4;
+  height: 1.5rem;
+  line-height: 1.5rem;
+  text-align: left;
+  white-space: nowrap;
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
 }
 
 /* Announces the copy to screen readers; the chip itself is visual only. */
@@ -255,6 +285,28 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* The rest of the command, beside the runner: the same mono face, a step
+   quieter, so the runner still reads as the part that changes. */
+.runnerSpec {
+  margin-left: 0.375rem;
+  opacity: 0.65;
+}
+
+/* The copy affordance, in the same disc the agent marks sit in. */
+.runnerAction {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--btn-edge);
+  border-radius: 50%;
+  background: var(--btn-disc);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  color: var(--btn-ink);
 }
 
 /* A hovered row's runner takes the chip, sliding in swiftly from below. */
@@ -283,6 +335,7 @@
   position: absolute;
   top: 100%;
   left: 0;
+  width: 100%;
   z-index: 60;
   padding-top: 0.375rem;
   opacity: 0;
@@ -308,9 +361,11 @@
   flex-direction: column;
   gap: 0.125rem;
   padding: 0.375rem;
-  border: 1px solid var(--openui-border-default);
-  border-radius: 1rem;
-  background: var(--openui-foreground);
+  border: 1px solid var(--btn-edge);
+  /* The button's own corner: half its 3rem height, so the two curves match. */
+  border-radius: 1.5rem;
+  background: var(--btn-fill);
+  color: var(--btn-ink);
   box-shadow: var(--openui-shadow-l);
 }
 
@@ -319,58 +374,75 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.375rem 0.625rem;
+  position: relative;
+  /* 8px above and below: 40px rows, so the options don't crowd each other. */
+  padding: 0.5rem 0.9375rem;
   border: 0;
-  border-radius: 0.625rem;
+  border-radius: 9999px;
   background: transparent;
-  font-family: var(--font-geist-mono);
-  font-size: 0.8125rem;
-  color: var(--openui-text-neutral-primary);
+  /* The same type as the command on the button that opens this menu. */
+  font-family: "Inter Display", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: inherit;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
-.runnerItem:hover {
-  background: rgba(0, 0, 0, 0.04);
+/* The command itself, cut off under a fade at the right rather than wrapping
+   or widening the menu. Left aligned against the centring the hero's CTA
+   stack sets. */
+.runnerItemText {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
 }
 
-[data-theme="dark"] .runnerItem:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.runnerItem strong {
-  font-weight: 600;
-}
-
-/* "Copied" on the row just copied, until the copy feedback times out. */
-.runnerCopied {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.1875rem;
-  padding: 0.125rem 0.4375rem 0.125rem 0.3125rem;
-  border-radius: 9999px;
-  background: rgba(34, 197, 94, 0.12);
-  color: #15803d;
-  font-family: "Inter Display", sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  line-height: 1rem;
+/* The copy disc, in the row the pointer is on. Holds its space when hidden so
+   the rows do not shift. */
+.runnerItemAction {
+  position: absolute;
+  /* The 4px here plus the card's own 6px padding put the disc at the same
+     10px inset the button's disc has. */
+  top: 50%;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--btn-edge);
+  border-radius: 50%;
+  background: var(--btn-disc);
+  color: var(--btn-ink);
   opacity: 0;
-  transform: scale(0.9);
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  translate: 0 -50%;
+  transition: opacity 0.15s ease;
 }
 
-[data-theme="dark"] .runnerCopied {
-  background: rgba(74, 222, 128, 0.14);
-  color: #4ade80;
-}
-
-.runnerCopiedShown {
+.runnerItem:hover .runnerItemAction,
+.runnerItem:focus-visible .runnerItemAction {
   opacity: 1;
-  transform: none;
+}
+
+/* A copied row keeps its tick up without the pointer on it. */
+.runnerItemAction[data-copied] {
+  opacity: 1;
+}
+
+/* A wash of the card's own ink under the hovered row. */
+.runnerItem:hover {
+  background: var(--btn-wash);
+}
+
+/* As on the button: the runner carries no extra weight, the spec behind it
+   is the quieter half. */
+.runnerItem strong {
+  font-weight: inherit;
 }
 
 /* Mobile: full-width pill, one footprint with the hero CTAs. The connector

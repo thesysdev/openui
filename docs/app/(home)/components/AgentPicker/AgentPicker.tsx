@@ -75,6 +75,9 @@ export function AgentPicker({
 }) {
   const [copied, setCopied] = useState(false);
   const [copiedRunner, setCopiedRunner] = useState<string | null>(null);
+  /* Which control did the copying, so the tick lands on that one alone
+     rather than on the button and the menu row at once. */
+  const [copiedFrom, setCopiedFrom] = useState<"primary" | "dropdown" | null>(null);
   const [hoveredRunner, setHoveredRunner] = useState<string | null>(null);
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const runnerResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,23 +108,98 @@ export function AgentPicker({
     if (!(await copyText(cliCommand))) return;
     captureCreateCliCommandCopied(cliCommand, { source: analyticsSource, interaction });
     setCopiedRunner(runner);
+    setCopiedFrom(interaction);
     if (runnerResetTimeoutRef.current) {
       clearTimeout(runnerResetTimeoutRef.current);
     }
-    runnerResetTimeoutRef.current = setTimeout(() => setCopiedRunner(null), COPY_FEEDBACK_MS);
+    runnerResetTimeoutRef.current = setTimeout(() => {
+      setCopiedRunner(null);
+      setCopiedFrom(null);
+    }, COPY_FEEDBACK_MS);
   };
 
   return (
     <>
+      {/* The hand-run pairing: the same shape as the agent button, with the
+          runner where the facepile sits. Desktop only; the mobile stack
+          orders the two differently. Hovering opens the other runners, each
+          row copying its create command. */}
+      {runner ? (
+        <span className={styles.runnerWrap}>
+          <button
+            type="button"
+            className={styles.alt}
+            aria-haspopup="menu"
+            onClick={() => handleRunnerCopy("pnpx", "primary")}
+          >
+            <span className={styles.runnerPill}>
+              {/* Keyed, so a hovered row's runner slides in from below. The
+                  spec sits outside the key: only the runner swaps. */}
+              <span key={hoveredRunner ?? "pnpx"} className={styles.runnerName}>
+                {hoveredRunner ?? "pnpx"}
+              </span>
+              <span className={styles.runnerSpec}>{CLI_SPEC}</span>
+            </span>
+            {/* The same circle the agent marks sit in, holding the copy
+                affordance; it turns to a check once the command is copied. */}
+            <span className={styles.runnerAction} aria-hidden="true">
+              {copiedFrom === "primary" && copiedRunner === (hoveredRunner ?? "pnpx") ? (
+                <Check size={14} strokeWidth={2.75} />
+              ) : (
+                <Copy size={13} strokeWidth={2} />
+              )}
+            </span>
+          </button>
+          <span className={styles.srOnly} role="status">
+            {copiedRunner ? `Copied ${copiedRunner} ${CLI_SPEC}` : ""}
+          </span>
+          <div className={styles.runnerMenu} onMouseLeave={() => setHoveredRunner(null)}>
+            <div className={styles.runnerCard} role="menu" aria-label="Copy the create command">
+              {CLI_RUNNERS.map((runner) => (
+                <button
+                  key={runner}
+                  type="button"
+                  role="menuitem"
+                  className={styles.runnerItem}
+                  onClick={() => handleRunnerCopy(runner, "dropdown")}
+                  onMouseEnter={() => setHoveredRunner(runner)}
+                >
+                  <span className={styles.runnerItemText}>
+                    <strong>{runner}</strong>
+                    <span className={styles.runnerSpec}>{CLI_SPEC}</span>
+                  </span>
+                  {/* The button's own copy disc, on the row the pointer is on;
+                      it turns to a tick once that row has been copied. */}
+                  <span
+                    className={styles.runnerItemAction}
+                    data-copied={
+                      (copiedFrom === "dropdown" && copiedRunner === runner) || undefined
+                    }
+                    aria-hidden="true"
+                  >
+                    {copiedFrom === "dropdown" && copiedRunner === runner ? (
+                      <Check size={13} strokeWidth={2.75} />
+                    ) : (
+                      <Copy size={13} strokeWidth={2} />
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </span>
+      ) : null}
       <button
         type="button"
         onClick={handleClick}
-        className={`${styles.build} ${className}`.trim()}
+        className={`${styles.build} ${runner ? "" : styles.buildAlone} ${className}`
+          .replace(/\s+/g, " ")
+          .trim()}
         aria-label="Copy the setup prompt for your coding agent"
         /* Drives the tooltip's copied message; the button itself holds still. */
         data-copied={copied || undefined}
       >
-        <span className={styles.label}>Setup for agents</span>
+        <span className={styles.label}>Build with agents</span>
         <span className={styles.marks} aria-hidden="true">
           {AGENTS.map((agent) => (
             <span key={agent.id} className={styles.markRing} data-agent={agent.id}>
@@ -149,59 +227,6 @@ export function AgentPicker({
           {copied ? "Paste prompt in agent" : "Copy prompt for agent"}
         </span>
       </button>
-      {/* The hand-run pairing: the same shape as the agent button, with the
-          runner where the facepile sits. Desktop only; the mobile stack
-          orders the two differently. Hovering opens the other runners, each
-          row copying its create command. */}
-      {runner ? (
-        <span className={styles.runnerWrap}>
-          <button
-            type="button"
-            className={styles.alt}
-            aria-haspopup="menu"
-            onClick={() => handleRunnerCopy("pnpx", "primary")}
-          >
-            <span className={styles.label}>Build with</span>
-            <span className={styles.runnerPill}>
-              {/* Keyed, so a hovered row's runner slides in from below. */}
-              <span key={hoveredRunner ?? "pnpx"} className={styles.runnerName}>
-                {hoveredRunner ?? "pnpx"}
-              </span>
-            </span>
-          </button>
-          <span className={styles.srOnly} role="status">
-            {copiedRunner ? `Copied ${copiedRunner} ${CLI_SPEC}` : ""}
-          </span>
-          <div className={styles.runnerMenu} onMouseLeave={() => setHoveredRunner(null)}>
-            <div className={styles.runnerCard} role="menu" aria-label="Copy the create command">
-              {CLI_RUNNERS.map((runner) => (
-                <button
-                  key={runner}
-                  type="button"
-                  role="menuitem"
-                  className={styles.runnerItem}
-                  onClick={() => handleRunnerCopy(runner, "dropdown")}
-                  onMouseEnter={() => setHoveredRunner(runner)}
-                >
-                  <span>
-                    <strong>{runner}</strong> {CLI_SPEC}
-                  </span>
-                  {/* The copied row's chip; the others keep its space empty. */}
-                  <span
-                    className={`${styles.runnerCopied} ${
-                      copiedRunner === runner ? styles.runnerCopiedShown : ""
-                    }`.trim()}
-                    aria-hidden="true"
-                  >
-                    <Check size={12} strokeWidth={2.75} />
-                    Copied
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </span>
-      ) : null}
     </>
   );
 }
