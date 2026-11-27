@@ -2,9 +2,33 @@
 
 import { useTheme } from "next-themes";
 import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 const EMBED_MAX_WIDTH = 550;
+
+// One "widgets.js is ready" flag shared by every embed. next/script loads a
+// src once and calls onLoad/onReady only for some of the components that ask
+// for it: an embed that asks while the script is loading gets onLoad but not
+// onReady, and one that asks just after it loaded gets neither. Whichever
+// embed is called flips the flag for all of them.
+let widgetsReady = false;
+const widgetsReadyListeners = new Set<() => void>();
+
+function markWidgetsReady() {
+  if (widgetsReady) return;
+  widgetsReady = true;
+  for (const listener of widgetsReadyListeners) listener();
+}
+
+function subscribeToWidgetsReady(listener: () => void) {
+  widgetsReadyListeners.add(listener);
+  return () => {
+    widgetsReadyListeners.delete(listener);
+  };
+}
+
+const getWidgetsReady = () => widgetsReady;
+const getServerWidgetsReady = () => false;
 
 function extractTweetId(idOrUrl: string): string | null {
   const trimmed = idOrUrl.trim();
@@ -16,7 +40,11 @@ function extractTweetId(idOrUrl: string): string | null {
 
 export function TweetEmbed({ id }: { id: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scriptReady, setScriptReady] = useState(false);
+  const scriptReady = useSyncExternalStore(
+    subscribeToWidgetsReady,
+    getWidgetsReady,
+    getServerWidgetsReady,
+  );
   const { resolvedTheme } = useTheme();
   const tweetId = extractTweetId(id);
   const embedTheme: "light" | "dark" = resolvedTheme === "dark" ? "dark" : "light";
@@ -77,9 +105,10 @@ export function TweetEmbed({ id }: { id: string }) {
       <Script
         src="https://platform.twitter.com/widgets.js"
         strategy="lazyOnload"
-        // onReady fires after the first load and again on every later mount,
-        // so a remount after client-side navigation still renders the tweet.
-        onReady={() => setScriptReady(true)}
+        // onLoad covers an embed that mounts while the script is loading;
+        // onReady covers the first load and a remount after it has loaded.
+        onLoad={markWidgetsReady}
+        onReady={markWidgetsReady}
       />
       <div
         ref={containerRef}
