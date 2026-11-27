@@ -3,6 +3,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataSourcesContents, sourcesTitle } from "../DataSourcesContents";
+import { withQueryErrors } from "../queryError";
 import { describeSource, sources } from "../stories/fixtures";
 import type { DataSourcesContentsProps } from "../types";
 
@@ -79,6 +80,27 @@ describe("DataSourcesContents", () => {
     render({ selection: { id: "revenue" } });
     expect(rows()).toEqual(["QuerySQL", "Result (open)", "Formula"]);
     expect(text()).toContain("1 row · 1 field");
+  });
+
+  it("shows a failed query's error instead of its fallback result and export controls", () => {
+    const message = "The query timed out";
+    render({
+      selection: { id: "revenue" },
+      sources: withQueryErrors(
+        {
+          ...sources,
+          queries: {
+            ...sources.queries,
+            revenueQ: { ...sources.queries["revenueQ"]!, data: { rows: [] } },
+          },
+        },
+        [{ source: "query", code: "tool-error", message, statementId: "revenueQ" }],
+      ),
+    });
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe(message);
+    expect(text()).not.toContain("No rows returned.");
+    expect(text()).not.toContain("0 rows · 0 fields");
+    expect(container.querySelector('[aria-label="Download"]')).toBeNull();
   });
 
   it("shows only the Formula when no query is behind a value", () => {

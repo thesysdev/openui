@@ -105,6 +105,15 @@ export const contentsStyles = {
     color: ${secondary};
     ${bodySmall}
   `,
+  "result-error": css`
+    margin: var(--openui-space-m) 0 0;
+    padding: var(--openui-space-s) var(--openui-space-m);
+    border: 1px solid var(--openui-border-danger);
+    border-radius: var(--openui-radius-m);
+    background: var(--openui-danger-background);
+    overflow-wrap: anywhere;
+    ${bodySmall}
+  `,
 
   // ── Every query ──
   list: css`

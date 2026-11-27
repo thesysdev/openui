@@ -56,7 +56,10 @@ afterEach(() => {
 /** Long enough for the sample queries (300ms) and any exit. */
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 400)));
 
-async function mount(toolbar?: ReactNode) {
+const isRevenueQuery = (request: Parameters<typeof interpreter>[0]) =>
+  request.name === "postgres_query" && String(request.arguments["sql"]).includes("sum(total)");
+
+async function mount(toolbar?: ReactNode, runQuery = interpreter) {
   const { Chrome, ProvenanceToggle, Content, Provenance } = LiveArtifactRenderer;
   act(() =>
     root.render(
@@ -64,7 +67,7 @@ async function mount(toolbar?: ReactNode) {
         id: "demo-full-flow",
         content: fullFlowProgram,
         library: dashboardLibrary,
-        interpreter,
+        interpreter: runQuery,
         preview: false,
         enableProvenance: true,
         children: createElement(
@@ -173,6 +176,39 @@ describe("The All sources menu", () => {
     await settle();
     expect(rows()).toHaveLength(7);
     expect(document.activeElement).toBe(row("revenueQ"));
+  });
+
+  it("shows the query error instead of empty rows in a Used by item's Result", async () => {
+    const message = 'relation "orders" does not exist';
+    await mount(undefined, async (request) => {
+      if (isRevenueQuery(request)) throw new Error(message);
+      return interpreter(request);
+    });
+    const dialog = await openMenu();
+    await user.click(row("revenueQ"));
+    await settle();
+    await user.click(within(dialog).getByRole("button", { name: "Revenue this quarter" }));
+    await settle();
+    const opened = popover("Revenue this quarter");
+    expect(opened.textContent).toContain(message);
+    expect(within(opened).getByRole("alert").textContent).toContain(message);
+    expect(opened.textContent).not.toContain("No rows returned.");
+    expect(opened.textContent).not.toContain("0 rows · 0 fields");
+  });
+
+  it("shows empty rows in the Result when the query succeeds without rows", async () => {
+    await mount(undefined, async (request) =>
+      isRevenueQuery(request) ? { rows: [] } : interpreter(request),
+    );
+    const dialog = await openMenu();
+    await user.click(row("revenueQ"));
+    await settle();
+    await user.click(within(dialog).getByRole("button", { name: "Revenue this quarter" }));
+    await settle();
+    const opened = within(popover("Revenue this quarter"));
+    expect(opened.getByText("No rows returned.")).toBeTruthy();
+    expect(opened.getByText("0 rows · 0 fields")).toBeTruthy();
+    expect(opened.queryByRole("alert")).toBeNull();
   });
 
   it("shows a formula as Formula, with copy", async () => {

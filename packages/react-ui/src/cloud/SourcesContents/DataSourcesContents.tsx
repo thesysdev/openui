@@ -15,10 +15,19 @@ import {
   type Origin,
 } from "./describe";
 import { CopyButton, CopyStatus, IconAction, useCopy } from "./parts";
+import { queryError } from "./queryError";
 import { partClass } from "./sourcesDialog.styles";
 import type { DataSourcesContentsProps, DataSourcesSelection } from "./types";
 
 const cx = partClass;
+
+export function DataSourcesResultError({ message }: { message: string }) {
+  return (
+    <p className={cx("result-error")} role="alert">
+      {message}
+    </p>
+  );
+}
 
 /** The app's mark for a source, when `describeSource` gives one. */
 function SourceMark({ origin }: { origin: Pick<Origin, "icon"> }) {
@@ -161,6 +170,7 @@ export function DataSourcesContents({
   ): Row[] => {
     const origin = originOf(name, current.queries[name]!, describeSource);
     const value = unwrapResult(origin.query.data);
+    const failure = queryError(origin.query);
     return [
       {
         id: `query:${name}`,
@@ -174,25 +184,26 @@ export function DataSourcesContents({
         label: "Result",
         note: labelled ? name : undefined,
         defaultOpen: open === "result",
-        content:
-          value === undefined ? (
-            <p className={cx("help")}>
-              {origin.query.loading
-                ? "Loading…"
-                : "No data came back. If the query failed, the dashboard shows why."}
-            </p>
-          ) : (
-            <>
-              <DataSourcesResult value={value} loading={origin.query.loading} />
-              <div className={cx("result-foot")}>
-                <span>{resultSummary(value)}</span>
-                {copyButton(`result:${name}`, value)}
-                <IconAction label="Download" onClick={() => download(value, name)}>
-                  <Download size={16} aria-hidden />
-                </IconAction>
-              </div>
-            </>
-          ),
+        content: failure ? (
+          <DataSourcesResultError message={failure.message} />
+        ) : value === undefined ? (
+          <p className={cx("help")}>
+            {origin.query.loading
+              ? "Loading…"
+              : "No data came back. If the query failed, the dashboard shows why."}
+          </p>
+        ) : (
+          <>
+            <DataSourcesResult value={value} loading={origin.query.loading} />
+            <div className={cx("result-foot")}>
+              <span>{resultSummary(value)}</span>
+              {copyButton(`result:${name}`, value)}
+              <IconAction label="Download" onClick={() => download(value, name)}>
+                <Download size={16} aria-hidden />
+              </IconAction>
+            </div>
+          </>
+        ),
       },
     ];
   };
