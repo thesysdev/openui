@@ -67,13 +67,13 @@ So scripts have to run on the server, in a sandbox that:
 - **can call your other tools safely:** only the tools you registered, each call running on your server with the viewer's own access, so a script can combine data without reaching anything it shouldn't;
 - **keeps code on the server:** browsers get the dashboard, never the script, and nobody can swap in code of their own.
 
-## 3. Auth and sharing
+## Storage, auth and sharing
 
-A dashboard in your product belongs to one of your users, and everyone else must only ever see their own data.
+A dashboard in your product belongs to one of your users, and nobody should see data that isn't theirs. That takes three things:
 
-**Per-user tokens in the browser.** The browser has to read a user's dashboards without holding your API key. Your server mints a short-lived token with its key: it's scoped to one user, lasts 15 minutes, and can carry the user's groups. The organization always comes from your key, never from the browser, and a token can't be changed to claim another user. The client refreshes it before it expires.
-
-**Sharing that never shares data.** A dashboard is private to whoever created it. Its owner can share it with a user or a group, to view or to edit, and access is checked on every request, so removing a share takes effect at once. A shared dashboard shares its layout and queries, never results: its data tools always run as the viewer, and its scripts only run for users who can see it. Someone without access gets the same "not found" as for a dashboard that doesn't exist. Even while a dashboard is being built, each user's tool results are kept apart, so someone editing a shared dashboard never sees another user's data. Groups are yours, and OpenUI never stores who's in them.
+- **Storage that knows who owns what.** Each dashboard is saved with its owner, its program and its scripts, and the scripts stay on the server. A dashboard has its place as soon as its build starts, so it can be listed, shared or deleted before it's finished. The data the model looked at while building stays with the user who built it. For fast opens, each viewer's last results are kept for up to a day and are only shown for the version they came from.
+- **Per-user access in the browser.** The browser has to load a user's dashboards without ever holding your API key. That takes a short-lived token, minted by your server for one user, signed so it can't be altered to claim someone else, and refreshed before it expires.
+- **Sharing without sharing data.** When someone shares a dashboard with a person or a team, they share its layout and queries, never its results. Queries run as whoever is viewing, so your data tools can give two people different numbers on the same dashboard. Access is checked on every request, so removing a share takes effect on the next one, and someone without access can't tell the dashboard exists. Team membership travels in the token, so removing someone from a team takes effect when their token expires, within 15 minutes.
 
 ## 4. Edits and live updates
 
@@ -82,8 +82,6 @@ People don't build a dashboard once. They refine it, share it, and leave it open
 **Edits that keep what's there.** "Add a pie chart by payment method" should add a pie chart, not rebuild the dashboard and lose the filters someone tuned. OpenUI Lang's [incremental editing](/docs/openui-lang/incremental-editing) makes that possible: the model writes only the statements that change, and they're merged into the program. The API checks the merged program, keeps scripts that didn't change exactly as they were, and keeps everyone on the current version until the new one is ready; a failed edit leaves the dashboard as it was. A write only applies to the version it started from, so a second edit while one is running is told to try again instead of overwriting it.
 
 **Everyone watches the build.** A dashboard being built appears at once for everyone looking at it, showing what the builder is doing, then fills in as it's written. Viewers receive only the dashboard, never the model's commentary or any script code. If a connection drops, the page reconnects on its own, and an open dashboard picks up a new version, a rename or a change in access within 30 seconds. A build that stops making progress is marked as stalled instead of spinning forever.
-
-**Fast opens.** The API keeps each viewer's last results for up to a day and shows them the moment a dashboard opens, while the live queries catch up.
 
 ## 5. Models and cost
 
