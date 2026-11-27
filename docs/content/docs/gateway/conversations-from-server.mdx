@@ -89,15 +89,15 @@ do {
 
 ## Chat Completions and LangGraph messages
 
-`openui.chat.conversations` and `openui.langgraph.conversations` are `openui.conversations` in your SDK's messages. Their conversation calls are the same; only `items` changes:
+`openui.chat.conversations` and `openui.langgraph.conversations` are `openui.conversations` in your SDK's messages, in and out. Their conversation calls are the same; only `items` changes:
 
-|                                  | `items.create(id, messages, options?)` takes | `items.list(id, options?)` returns                                              |
-| -------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------- |
-| `openui.conversations`           | Items                                        | One page of items                                                               |
-| `openui.chat.conversations`      | Chat Completions messages                    | The whole thread, oldest first, as Chat Completions messages                    |
-| `openui.langgraph.conversations` | LangChain messages (`BaseMessage`)           | The whole thread, oldest first, as `{ role, content }` messages LangGraph takes |
+|                                  | `items.create(id, messages, options?)` takes                     | and returns                                         | `items.list(id, options?)` returns                                              |
+| -------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `openui.conversations`           | Items                                                            | The items as stored                                 | One page of items                                                               |
+| `openui.chat.conversations`      | Chat Completions messages                                        | The turn as stored, as Chat Completions messages    | The whole thread, oldest first, as Chat Completions messages                    |
+| `openui.langgraph.conversations` | LangChain messages (`BaseMessage`), or the plain ones it returns | The turn as stored, as `{ role, content }` messages | The whole thread, oldest first, as `{ role, content }` messages LangGraph takes |
 
-System messages are skipped: they're instructions, not history. A tool call is stored only with its result, so a turn stopped mid tool call leaves the thread valid for the next request. The message types come from `openai` and `@langchain/core`: install the one you use.
+System messages are skipped: they're instructions, not history. A tool call is stored only with its result, so a turn stopped mid tool call leaves the thread valid for the next request. What's skipped isn't stored, so `items.create` doesn't return it. The message types come from `openai` and `@langchain/core`: install the one you use.
 
 ```ts title="LangGraph"
 import { HumanMessage } from "@langchain/core/messages";
@@ -109,18 +109,7 @@ const { messages } = await graph.invoke({ messages: [...history, new HumanMessag
 await openui.langgraph.conversations.items.create(threadId, messages.slice(history.length));
 ```
 
-`items.list` returns plain objects, such as `{ role: "ai", content, tool_calls }`, so it never loads LangChain itself. LangGraph's `messages` reducer turns them into LangChain messages; elsewhere, use `coerceMessageLikeToMessage` from `@langchain/core/messages`.
-
-### Converting without storing
-
-The conversions are exported on their own, as `chatCompletionsConverter` and `langGraphConverter`. `toItems(messages)` turns a turn into items, and `fromItems(items)` turns stored items back into messages, oldest first:
-
-```ts
-import { chatCompletionsConverter } from "@openuidev/server";
-
-const items = chatCompletionsConverter.toItems(turn);
-const messages = chatCompletionsConverter.fromItems(storedItems);
-```
+`items.list` and `items.create` return plain objects, such as `{ role: "ai", content, tool_calls }`, so they never load LangChain themselves. LangGraph's `messages` reducer turns them into LangChain messages; elsewhere, use `coerceMessageLikeToMessage` from `@langchain/core/messages`. `items.create` takes them back as is, next to LangChain messages.
 
 ## The conversation
 

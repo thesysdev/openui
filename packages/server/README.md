@@ -124,11 +124,11 @@ await openui.chat.conversations.items.create(threadId, [
 `create({ title }, { userId })` names the owner, so their frontend token can read the
 conversation too, and `list({ userId })` lists only theirs.
 
-`openui.langgraph.conversations` does the same with LangChain messages: `items.create`
-takes `BaseMessage`s, and `items.list` returns `{ role, content }` messages that
-`graph.invoke({ messages })` takes. Their conversation calls (`list`, `create`, `get`,
-`update`, `delete`) are `openui.conversations`' own. To convert without storing, use
-`chatCompletionsConverter` or `langGraphConverter`: `toItems(messages)` and `fromItems(items)`.
+`items.create` resolves with the turn as stored, in the same messages. `openui.langgraph.conversations`
+does the same with LangChain messages: `items.create` takes `BaseMessage`s or the plain messages it
+returns, and both `items.create` and `items.list` return `{ role, content }` messages that
+`graph.invoke({ messages })` takes. Their conversation calls (`list`, `create`, `get`, `update`,
+`delete`) are `openui.conversations`' own.
 
 System and developer messages are skipped. A tool call is stored only together with its
 result, so a turn stopped mid tool call leaves the thread valid for the next request.
