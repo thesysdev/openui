@@ -85,7 +85,13 @@ Less to write means less to wait for. We gave both the signups example from the 
 
 That's about 15 times faster on Sonnet. It compares products, not models: a chat product timed with a stopwatch, against an API call. Most of the gap is likely the output itself, a page of HTML and JavaScript against six statements. See the [methodology](#methodology).
 
-{/* TODO: the two finished signups dashboards side by side, both showing 1,544 and +78. */}
+<figure>
+
+![The same weekly signups dashboard built twice from the same request and data. Left, Claude Data: a dark page with two tiles, 1,544 last week and +78 on the week before, and a bar chart of eight weeks with the last bar highlighted. Right, OpenUI Dashboards: two KPIs, 1,544 and +78, and a bar chart of the same eight weeks, drawn with the prebuilt dashboard library, with a Sources button at the top.](/images/blog/openui-dashboards-vs-claude-data/signups-side-by-side.webp)
+
+<figcaption>The same request and data. Left: Claude Data on claude.ai. Right: OpenUI Dashboards with the prebuilt dashboard library.</figcaption>
+
+</figure>
 
 Speed doesn't cost correctness. Before a dashboard is saved, it's rendered on the server with the real results of its queries, and anything that would render wrong, such as a chart reading a field the data doesn't have, is repaired. Claude Data checks its page too, but only once it's open in someone's browser.
 
@@ -112,6 +118,22 @@ pnpm db:reset
 pnpm dev                     # http://localhost:3000
 ```
 
+<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
+  <LazyVideo
+    src="/videos/blog/openui-dashboards-vs-claude-data/build.mp4"
+    poster="/videos/blog/openui-dashboards-vs-claude-data/build-poster.webp"
+    aria-label="OpenDashboards building a weekly signups dashboard from a chat request on a sample Postgres database: the dashboard appears as a skeleton at once, then fills in with two KPIs and a bar chart."
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+    className="block h-auto w-full"
+  />
+</div>
+
+<p className="text-sm text-fd-muted-foreground">OpenDashboards building a dashboard from a sample Postgres database, in real time.</p>
+
 You need Node 20.9 or later, pnpm, Docker, and a Thesys API key from [console.thesys.dev](https://console.thesys.dev); OpenUI Cloud has a free tier. Fork it as the start of dashboards in your own product, or read it as a reference integration.
 
 ## Data provenance
@@ -136,7 +158,21 @@ The renderer's bar gets an inspect toggle. With it on, clicking a component, or 
 - **Formula:** each statement between the query and the value, such as `latest = @Last(@Sort(weekly.rows, "week_start"))`.
 - **Filters:** the `$variables` the value reads, with their current values.
 
-{/* TODO: GIF of data provenance in OpenDashboards: turn on inspect, click a KPI, the Sources panel shows its query, formula and filters; click a chart, then change a filter and watch the panel follow. */}
+<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
+  <LazyVideo
+    src="/videos/blog/openui-dashboards-vs-claude-data/provenance.mp4"
+    poster="/videos/blog/openui-dashboards-vs-claude-data/provenance-poster.webp"
+    aria-label="Data provenance in OpenDashboards: Sources turned on, then clicking 1,544 and +78 on a weekly signups dashboard. The Sources panel shows +78 comes from the formula latest = @First(summary.rows), and summary from a SQL query on the weekly_signups table."
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+    className="block h-auto w-full"
+  />
+</div>
+
+In the video, the +78 traces back through `latest = @First(summary.rows)` to `summary`, the SQL query on `weekly_signups` that produced it. Nothing on the dashboard had to be marked for that to work.
 
 The panel is yours to replace: build your own Sources panel in your design, name your tools in your users' words, or add a "copy query" button. It works with any component library, with no change to your components.
 
