@@ -1,17 +1,17 @@
 ---
-title: "What it takes to ship AI-generated dashboards in your app"
-seoTitle: "How to build live dashboards like OpenDashboards, Claude Dashboards and Claude Data into your own app"
-description: "Claude Dashboards turns a question about your data into a live dashboard. This post walks through what it takes to build the same into your own agent: making sure every dashboard works, keeping the numbers right, letting users edit without breaking anything, sharing safely, and keeping token costs down, along with how we solve each of these in the OpenUI Dashboards API."
+title: "What it takes to ship AI dashboards in your app"
+seoTitle: "How to build AI dashboards like OpenDashboards, Claude Dashboards and Claude Data into your own app"
+description: "Claude Dashboards turns a question about your data into an AI dashboard. This post walks through what it takes to build the same into your own app: making sure every dashboard works, keeping the numbers right, letting users edit without breaking anything, sharing safely, and keeping token costs down, along with how we solve each of these in the OpenUI Dashboards API."
 author: Thesys Engineering Team
 date: 2026-11-27
 featured: false
 ---
 
-Claude Dashboards lets you ask Claude a question about your data and get a live dashboard in return. Claude generates the dashboard once, and every time someone opens it, it loads fresh data without making another model call. We [took it apart](https://www.openui.com/blog/how-claude-dashboards-work) earlier this month. In this post, we'll look at what it takes to build something similar into your own agent.
+Claude Dashboards lets you ask Claude a question about your data and get an AI dashboard in return. Claude generates the dashboard once, and every time someone opens it, it loads fresh data without making another model call. We [took it apart](https://www.openui.com/blog/how-claude-dashboards-work) earlier this month. In this post, we'll look at what it takes to build something similar into your own app.
 
 Getting an LLM to generate a dashboard is surprisingly easy. Getting it to work reliably in production is a different story. You need to make sure that:
 
-- Every generated dashboard actually works.
+- Every AI dashboard actually works.
 - The numbers it shows are accurate.
 - Users can edit a dashboard without breaking what's already there.
 - Dashboards can be shared without compromising data, security, or access permissions.
@@ -25,7 +25,7 @@ We've also built [OpenDashboards](https://opendashboards.com) on top of this API
   <LazyVideo
     src="/videos/dashboards/openui-dashboards.mp4"
     poster="/videos/dashboards/openui-dashboards-poster.jpg"
-    aria-label="An agent building a live dashboard from a chat request"
+    aria-label="An agent building an AI dashboard from a chat request"
     autoPlay
     muted
     loop
@@ -35,7 +35,7 @@ We've also built [OpenDashboards](https://opendashboards.com) on top of this API
   />
 </div>
 
-## Live dashboards rest on a declarative program, not generated code
+## AI dashboards rest on a declarative program, not generated code
 
 The OpenUI Dashboards API generates dashboards in [OpenUI Lang](https://www.openui.com/docs/openui-lang/overview). Instead of writing HTML or JavaScript, the model writes a short program that names components from your library. A `Query` in that program names one of your data tools, so the renderer loads fresh data every time the dashboard opens. OpenUI Lang has worked this way since v0.5 in April.
 
@@ -45,7 +45,7 @@ This matters for everything that follows. The program only describes the dashboa
 
 Whatever format the model writes, whether that's HTML, JSON or OpenUI Lang, even a good model will sometimes get the markup wrong, the queries wrong, or both. When that happens, whoever opens the dashboard gets an error or an empty page. Cheaper models get it wrong more often.
 
-In a demo, you can retry until it works. In your product, you can't hand a user a broken dashboard and ask them to try again.
+In a demo, you can retry until it works. In your app, you can't hand a user a broken dashboard and ask them to try again.
 
 In the OpenUI Dashboards API, we catch invalid OpenUI Lang and invalid queries before a dashboard is saved and fix them, so your users only ever get a dashboard that works.
 
@@ -65,7 +65,7 @@ With these checks, Claude Haiku 5.5 scored 110 out of 120 in a blind review on o
 
 <figure>
 
-![Claude Haiku 5.5 on our hardest dashboard requests. Quality, scored blind out of 120: 94 on its own, 110 with the checks. Dashboards that broke: about 14% on its own, none with the checks.](/images/blog/build-live-dashboards-into-your-app/haiku-harness.svg)
+![Claude Haiku 5.5 on our hardest dashboard requests. Quality, scored blind out of 120: 94 on its own, 110 with the checks. Dashboards that broke: about 14% on its own, none with the checks.](/images/blog/build-ai-dashboards-into-your-app/haiku-harness.svg)
 
 </figure>
 
@@ -79,8 +79,8 @@ In the OpenUI Dashboards API, [editing a dashboard](https://www.openui.com/docs/
 
 <div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
   <LazyVideo
-    src="/videos/blog/build-live-dashboards-into-your-app/edit.mp4"
-    poster="/videos/blog/build-live-dashboards-into-your-app/edit-poster.webp"
+    src="/videos/blog/build-ai-dashboards-into-your-app/edit.mp4"
+    poster="/videos/blog/build-ai-dashboards-into-your-app/edit-poster.webp"
     aria-label="An edit on a weekly signups dashboard at eight times speed: the request to add a third KPI goes in, the current dashboard stays on screen while the edit is built, then a new tile with the 4-week average appears next to the other two."
     autoPlay
     muted
@@ -107,7 +107,7 @@ In the OpenUI Dashboards API, sharing a dashboard with a person or a team shares
 
 ### Code execution
 
-If a dashboard can run code in the browser, anyone who can build a dashboard can put a harmful script in one and send you the link. Just opening it could steal your cookies or farm crypto in your browser. In a multi-tenant product, that's a compliance nightmare.
+If a dashboard can run code in the browser, anyone who can build a dashboard can put a harmful script in one and send you the link. Just opening it could steal your cookies or farm crypto in your browser. In a multi-tenant app, that's a compliance nightmare.
 
 Generating HTML or JavaScript is the default approach for a reason: it's flexible. But that flexibility is exactly the problem once dashboards can be shared.
 
