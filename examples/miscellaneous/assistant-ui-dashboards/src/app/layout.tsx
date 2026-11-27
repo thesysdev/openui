@@ -1,3 +1,4 @@
+import "@openuidev/react-ui/defaults.css";
 import type { Metadata } from "next";
 import "./globals.css";
 
