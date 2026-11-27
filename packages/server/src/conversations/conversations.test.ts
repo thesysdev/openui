@@ -184,8 +184,8 @@ describe("openui.chat.conversations and openui.langgraph.conversations", () => {
 
   it("items.create needs an array of messages", async () => {
     const { openui } = setup();
-    // @ts-expect-error messages, not one message
     expect(
+      // @ts-expect-error messages, not one message
       await caught(() => openui.chat.conversations.items.create("conv_1", "hi")),
     ).toMatchObject({ code: "invalid_input" });
   });
