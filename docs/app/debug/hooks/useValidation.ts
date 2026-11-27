@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { getComponentNames, getRootName, getSchema, type LibraryId } from "@paste/lib/libraries";
 import { EMPTY_OUTCOME, runValidation, type ValidationOutcome } from "@paste/lib/parse";
 import { loadLangCore } from "@paste/lib/versions/loader";
 import type { LoadedLangCore } from "@paste/lib/versions/types";
+import { useEffect, useMemo, useState } from "react";
 
 export interface ValidationState {
   outcome: ValidationOutcome;
@@ -28,7 +28,11 @@ function useDebounced<T>(value: T, ms: number): T {
  * Loads the selected lang-core version and derives debounced one-shot
  * validation from code / version / library.
  */
-export function useValidation(code: string, version: string, libraryId: LibraryId): ValidationState {
+export function useValidation(
+  code: string,
+  version: string,
+  libraryId: LibraryId,
+): ValidationState {
   // Which version a load completed FOR (the loaded module may be a fallback
   // with a different .version) — loading state is derived by comparison.
   const [loadState, setLoadState] = useState<{ requested: string; loaded: LoadedLangCore } | null>(

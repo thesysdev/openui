@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@openuidev/react-ui";
+import styles from "@paste/paste.module.css";
 import { HelpCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import styles from "@paste/paste.module.css";
 
 export function HelpDialog() {
   const [open, setOpen] = useState(false);

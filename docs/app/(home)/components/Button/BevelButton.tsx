@@ -35,9 +35,7 @@ export function BevelButton({
     secondary: styles.secondary,
   }[variant];
   const classes = [styles.button, variantClass, className].filter(Boolean).join(" ");
-  const externalProps = external
-    ? { target: "_blank", rel: "noopener noreferrer" }
-    : {};
+  const externalProps = external ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
   return (
     <a href={href} className={classes} {...externalProps}>

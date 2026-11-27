@@ -1,1 +1,160 @@
-{"chrome":{"light":{"radius":"16px","border":"rgba(0, 0, 0, 0.06)","background":"rgb(255, 255, 255)","shadow":"rgba(0, 0, 0, 0.04) 0px 3px 8px -3px, rgba(0, 0, 0, 0.02) 0px 1px 2px -2px","padding":"20px 24px"},"dark":{"radius":"16px","border":"rgba(255, 255, 255, 0.04)","background":"rgb(21, 21, 21)","shadow":"rgba(0, 0, 0, 0.22) 0px 2px 6px -2px, rgba(0, 0, 0, 0.16) 0px 3px 10px -3px","padding":"20px 24px"}},"channel":{"w":308,"barTop":101.890625,"pieTop":222.09375,"legend":139},"weeks":{"w":348,"h":310.890625,"parts":[{"kind":"text","text":"Paid conversions by week","x":25,"y":21,"w":175.7,"h":17,"size":14,"weight":"600","tracking":"normal"},{"kind":"text","text":"Paid conversions","x":41,"y":60.9,"w":96.9,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"box","x":25,"y":63.9,"w":10,"h":10,"r":3},{"kind":"box","x":75,"y":259.9,"w":240,"h":1,"r":0,"line":true},{"kind":"box","x":75,"y":220.4,"w":240,"h":1,"r":0,"line":true},{"kind":"box","x":75,"y":180.9,"w":240,"h":1,"r":0,"line":true},{"kind":"box","x":75,"y":141.4,"w":240,"h":1,"r":0,"line":true},{"kind":"box","x":75,"y":101.9,"w":240,"h":1,"r":0,"line":true},{"kind":"box","x":83.9,"y":168.2,"w":12,"h":91.6,"r":4},{"kind":"box","x":113.9,"y":162.4,"w":12,"h":97.5,"r":4},{"kind":"box","x":143.9,"y":157.8,"w":12,"h":102.1,"r":4},{"kind":"box","x":173.9,"y":152.6,"w":12,"h":107.3,"r":4},{"kind":"box","x":203.9,"y":145.7,"w":12,"h":114.2,"r":4},{"kind":"box","x":233.9,"y":139.4,"w":12,"h":120.5,"r":4},{"kind":"box","x":263.9,"y":130.2,"w":12,"h":129.7,"r":4},{"kind":"box","x":293.9,"y":115.0,"w":12,"h":144.9,"r":4},{"kind":"text","text":"Sep 29","x":69.9,"y":272.4,"w":40.2,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"Oct 13","x":132.2,"y":272.4,"w":35.6,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"Oct 27","x":191.3,"y":272.4,"w":37.5,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"Nov 17","x":281.1,"y":272.4,"w":37.8,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"0","x":55.4,"y":252.2,"w":7.6,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"350","x":40.9,"y":212.7,"w":22.1,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"700","x":41.2,"y":173.2,"w":21.8,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"1,050","x":32.7,"y":133.7,"w":30.3,"h":15,"size":12,"weight":"400","tracking":"normal"},{"kind":"text","text":"1,400","x":31.8,"y":94.2,"w":31.2,"h":15,"size":12,"weight":"400","tracking":"normal"}]}}
+{
+  "chrome": {
+    "light": {
+      "radius": "16px",
+      "border": "rgba(0, 0, 0, 0.06)",
+      "background": "rgb(255, 255, 255)",
+      "shadow": "rgba(0, 0, 0, 0.04) 0px 3px 8px -3px, rgba(0, 0, 0, 0.02) 0px 1px 2px -2px",
+      "padding": "20px 24px"
+    },
+    "dark": {
+      "radius": "16px",
+      "border": "rgba(255, 255, 255, 0.04)",
+      "background": "rgb(21, 21, 21)",
+      "shadow": "rgba(0, 0, 0, 0.22) 0px 2px 6px -2px, rgba(0, 0, 0, 0.16) 0px 3px 10px -3px",
+      "padding": "20px 24px"
+    }
+  },
+  "channel": { "w": 308, "barTop": 101.890625, "pieTop": 222.09375, "legend": 139 },
+  "weeks": {
+    "w": 348,
+    "h": 310.890625,
+    "parts": [
+      {
+        "kind": "text",
+        "text": "Paid conversions by week",
+        "x": 25,
+        "y": 21,
+        "w": 175.7,
+        "h": 17,
+        "size": 14,
+        "weight": "600",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "Paid conversions",
+        "x": 41,
+        "y": 60.9,
+        "w": 96.9,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      { "kind": "box", "x": 25, "y": 63.9, "w": 10, "h": 10, "r": 3 },
+      { "kind": "box", "x": 75, "y": 259.9, "w": 240, "h": 1, "r": 0, "line": true },
+      { "kind": "box", "x": 75, "y": 220.4, "w": 240, "h": 1, "r": 0, "line": true },
+      { "kind": "box", "x": 75, "y": 180.9, "w": 240, "h": 1, "r": 0, "line": true },
+      { "kind": "box", "x": 75, "y": 141.4, "w": 240, "h": 1, "r": 0, "line": true },
+      { "kind": "box", "x": 75, "y": 101.9, "w": 240, "h": 1, "r": 0, "line": true },
+      { "kind": "box", "x": 83.9, "y": 168.2, "w": 12, "h": 91.6, "r": 4 },
+      { "kind": "box", "x": 113.9, "y": 162.4, "w": 12, "h": 97.5, "r": 4 },
+      { "kind": "box", "x": 143.9, "y": 157.8, "w": 12, "h": 102.1, "r": 4 },
+      { "kind": "box", "x": 173.9, "y": 152.6, "w": 12, "h": 107.3, "r": 4 },
+      { "kind": "box", "x": 203.9, "y": 145.7, "w": 12, "h": 114.2, "r": 4 },
+      { "kind": "box", "x": 233.9, "y": 139.4, "w": 12, "h": 120.5, "r": 4 },
+      { "kind": "box", "x": 263.9, "y": 130.2, "w": 12, "h": 129.7, "r": 4 },
+      { "kind": "box", "x": 293.9, "y": 115.0, "w": 12, "h": 144.9, "r": 4 },
+      {
+        "kind": "text",
+        "text": "Sep 29",
+        "x": 69.9,
+        "y": 272.4,
+        "w": 40.2,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "Oct 13",
+        "x": 132.2,
+        "y": 272.4,
+        "w": 35.6,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "Oct 27",
+        "x": 191.3,
+        "y": 272.4,
+        "w": 37.5,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "Nov 17",
+        "x": 281.1,
+        "y": 272.4,
+        "w": 37.8,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "0",
+        "x": 55.4,
+        "y": 252.2,
+        "w": 7.6,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "350",
+        "x": 40.9,
+        "y": 212.7,
+        "w": 22.1,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "700",
+        "x": 41.2,
+        "y": 173.2,
+        "w": 21.8,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "1,050",
+        "x": 32.7,
+        "y": 133.7,
+        "w": 30.3,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      },
+      {
+        "kind": "text",
+        "text": "1,400",
+        "x": 31.8,
+        "y": 94.2,
+        "w": 31.2,
+        "h": 15,
+        "size": 12,
+        "weight": "400",
+        "tracking": "normal"
+      }
+    ]
+  }
+}

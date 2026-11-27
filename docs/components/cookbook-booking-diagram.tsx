@@ -57,8 +57,8 @@ export function CookbookBookingDiagram() {
           MCP server, which returns live prices from booking sites, and the model shows the stays as
           cards with photos. The guest picks one and sees a summary with a Continue button that
           opens the booking site, where they book and pay. The model writes every screen; the search
-          and the booking happen outside the chat. Your server also saves each turn to the thread's
-          Gateway conversation, so the thread reopens later with its messages.
+          and the booking happen outside the chat. Your server also saves each turn to the
+          thread&apos;s Gateway conversation, so the thread reopens later with its messages.
         </desc>
         <defs>
           <marker

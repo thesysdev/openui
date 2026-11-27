@@ -431,7 +431,7 @@ const config = {
         destination: "/docs/integrations",
         permanent: false,
       },
-            // Product rename: Paste → Debug. Keep the old path working.
+      // Product rename: Paste → Debug. Keep the old path working.
       {
         source: "/paste",
         destination: "/debug",

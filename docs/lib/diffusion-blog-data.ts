@@ -42,9 +42,33 @@ export type Stage = {
 // checkpoint ran under the define-before-use prompt it was trained on, so
 // unresolved and orphans are only comparable across stages as a sum.
 export const STAGES: Stage[] = [
-  { id: "base", label: "DiffusionGemma", complete: 24, schema: 693, unresolved: 1944, orphans: 165, statements: 7928 },
-  { id: "sft", label: "after supervised finetuning", complete: 53, schema: 292, unresolved: 55, orphans: 916, statements: 7684 },
-  { id: "a2", label: "OUI-1", complete: 132, schema: 14, unresolved: 49, orphans: 140, statements: 5372 },
+  {
+    id: "base",
+    label: "DiffusionGemma",
+    complete: 24,
+    schema: 693,
+    unresolved: 1944,
+    orphans: 165,
+    statements: 7928,
+  },
+  {
+    id: "sft",
+    label: "after supervised finetuning",
+    complete: 53,
+    schema: 292,
+    unresolved: 55,
+    orphans: 916,
+    statements: 7684,
+  },
+  {
+    id: "a2",
+    label: "OUI-1",
+    complete: 132,
+    schema: 14,
+    unresolved: 49,
+    orphans: 140,
+    statements: 5372,
+  },
 ];
 
 export const BOARD_RUNS = 184;
@@ -52,8 +76,18 @@ export const BOARD_RUNS = 184;
 // Median seconds per output on the same 20 light briefs, one request at a
 // time, vLLM 0.24 FP8 on one A100, the checkpoint's own sampler settings.
 export const SPEED_ARC = [
-  { id: "base", label: "DiffusionGemma", secPerScreen: 1.6, note: "short outputs, 22 tokens per statement" },
-  { id: "sft", label: "after supervised finetuning", secPerScreen: 4.3, note: "32 tokens per statement, about twice the denoising steps per token" },
+  {
+    id: "base",
+    label: "DiffusionGemma",
+    secPerScreen: 1.6,
+    note: "short outputs, 22 tokens per statement",
+  },
+  {
+    id: "sft",
+    label: "after supervised finetuning",
+    secPerScreen: 4.3,
+    note: "32 tokens per statement, about twice the denoising steps per token",
+  },
 ];
 
 // The appless phone library, 60 asks written independently of every training

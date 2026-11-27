@@ -38,9 +38,7 @@ const codeArtifactRenderer = defineArtifactRenderer({
 
     return {
       props: data,
-      meta: isStreaming
-        ? null
-        : { id: `code:${data.title}`, version: 1, heading: data.title },
+      meta: isStreaming ? null : { id: `code:${data.title}`, version: 1, heading: data.title },
     };
   },
 
@@ -54,9 +52,7 @@ const codeArtifactRenderer = defineArtifactRenderer({
     </button>
   ),
 
-  actual: (props) => (
-    <CodeBlock language={props.language || "text"} codeString={props.code} />
-  ),
+  actual: (props) => <CodeBlock language={props.language || "text"} codeString={props.code} />,
 });
 
 function tryParse(args: unknown): CodeArtifact | null {

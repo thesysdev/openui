@@ -122,10 +122,7 @@ function StepIllustration({ step, mobile }: { step: StepsAccordionItem; mobile?:
 function ProgressBar({ durationMs }: { durationMs: number }) {
   return (
     <span className={styles.progressTrack} aria-hidden="true">
-      <span
-        className={styles.progressFill}
-        style={{ animationDuration: `${durationMs}ms` }}
-      />
+      <span className={styles.progressFill} style={{ animationDuration: `${durationMs}ms` }} />
     </span>
   );
 }

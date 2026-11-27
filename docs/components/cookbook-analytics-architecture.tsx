@@ -179,8 +179,8 @@ export function CookbookAnalyticsArchitecture() {
           A chat interface, such as Agent Interface, sends the question to OpenUI Gateway, which
           runs the model. The model makes a tool call to your server, which runs a read-only query
           against your data and returns the tool result. Gateway then streams the answer back to the
-          chat interface. Your server saves each turn to the thread's Gateway conversation, and the
-          chat interface lists and reopens threads from there.
+          chat interface. Your server saves each turn to the thread&apos;s Gateway conversation, and
+          the chat interface lists and reopens threads from there.
         </desc>
         <defs>
           <marker

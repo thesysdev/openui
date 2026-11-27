@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@openuidev/react-ui";
-import { useMemo, useState } from "react";
 import type { ParseResult } from "@paste/lib/versions/types";
 import styles from "@paste/paste.module.css";
+import { useMemo, useState } from "react";
 
 const COLLAPSE_BYTES = 200 * 1024;
 

@@ -1,8 +1,8 @@
 "use client";
 
 import type { PlaybackState } from "@paste/lib/streaming/usePlayback";
-import { CheckCircle2, Circle, CircleDot, CircleMinus, CirclePlus, XCircle } from "lucide-react";
 import styles from "@paste/paste.module.css";
+import { CheckCircle2, Circle, CircleDot, CircleMinus, CirclePlus, XCircle } from "lucide-react";
 
 export function StreamTimeline({ state }: { state: PlaybackState }) {
   if (state.status === "idle") {
@@ -61,11 +61,7 @@ export function StreamTimeline({ state }: { state: PlaybackState }) {
             <tr
               key={row.i}
               className={
-                row.rootAppeared
-                  ? styles.rowAppeared
-                  : row.rootDropped
-                    ? styles.rowDropped
-                    : ""
+                row.rootAppeared ? styles.rowAppeared : row.rootDropped ? styles.rowDropped : ""
               }
             >
               <td>{row.i}</td>

@@ -78,7 +78,7 @@ The exported `ToolCallTimelineComponent` type defines its props:
 | `activities`       | `ToolActivity[]` | The turn's tool calls paired with their available results and current statuses.                        |
 | `steps`            | `TimelineStep[]` | Ordered rows: `{ type: "text", id, text }` or `{ type: "activity", activity }`.                        |
 | `isLast`           | `boolean`        | Whether this turn is currently live. It is `false` for completed turns, including the most recent one. |
-| `awaitingResponse` | `boolean`        | Whether the turn is live and its answer has not started, includes the delay after tool results arrive.  |
+| `awaitingResponse` | `boolean`        | Whether the turn is live and its answer has not started, includes the delay after tool results arrive. |
 
 This example starts collapsed and updates its tool count as activities arrive:
 

@@ -278,8 +278,8 @@ const ctx = useThreadContextStore();
   The exact return shapes of the detailed-view hooks and `useThreadContextStore` are internal
   store/view objects. For the common cases — opening the full view, listing a thread's artifacts —
   prefer the renderer `controls`
-  ([defineArtifactRenderer](/docs/agent/reference/define-artifact-renderer)) and
-  `useArtifactList` over reaching into these stores.
+  ([defineArtifactRenderer](/docs/agent/reference/define-artifact-renderer)) and `useArtifactList`
+  over reaching into these stores.
 </Callout>
 
 ---
@@ -301,22 +301,13 @@ const ctx = useThreadContextStore();
 | `useThreadContextStore`                                                                              | inside a thread                 | n/a                        |
 
 <Cards>
-  <Card
-    title="<AgentInterface> props"
-    href="/docs/agent/reference/agentinterface-props"
-  >
+  <Card title="<AgentInterface> props" href="/docs/agent/reference/agentinterface-props">
     Every prop AgentInterface accepts.
   </Card>
-  <Card
-    title="Adapters & formats"
-    href="/docs/agent/reference/adapters-and-formats"
-  >
+  <Card title="Adapters & formats" href="/docs/agent/reference/adapters-and-formats">
     The storage and LLM adapter shapes hooks read from.
   </Card>
-  <Card
-    title="defineArtifactRenderer"
-    href="/docs/agent/reference/define-artifact-renderer"
-  >
+  <Card title="defineArtifactRenderer" href="/docs/agent/reference/define-artifact-renderer">
     Register renderers and their preview/actual controls.
   </Card>
   <Card title="Components" href="/docs/agent/reference/components">

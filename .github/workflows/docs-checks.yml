@@ -1,0 +1,50 @@
+name: Docs checks
+
+# Lint, format and type checks for the docs site. Kept apart from Build JS so they
+# run only when the docs (or what they are checked with) change.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".prettierrc.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/docs-checks.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".prettierrc.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/docs-checks.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: v24.22.1
+          cache: pnpm
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint docs
+        run: pnpm --filter @openuidev/docs lint
+
+      - name: Check docs formatting
+        run: pnpm --filter @openuidev/docs format:check
+
+      - name: Type-check docs
+        run: pnpm --filter @openuidev/docs types:check

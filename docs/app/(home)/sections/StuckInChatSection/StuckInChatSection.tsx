@@ -1,9 +1,9 @@
 "use client";
 
 import { EyeSlash, LockSimple, Scroll } from "@phosphor-icons/react";
-import { GitHubBanner } from "../HeroSection/HeroSection";
 import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
 import { InstallSplitButton } from "../../openclaw-os/InstallSplitButton";
+import { GitHubBanner } from "../HeroSection/HeroSection";
 import styles from "./StuckInChatSection.module.css";
 
 const ICON_SIZE = 28;

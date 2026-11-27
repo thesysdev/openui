@@ -1,6 +1,6 @@
 import { gte, rcompare, valid } from "semver";
-import type { VersionList } from "./types";
 import { BUNDLED_LANG_CORE_VERSION } from "./loader";
+import type { VersionList } from "./types";
 
 const REGISTRY_URL = "https://registry.npmjs.org/@openuidev/lang-core";
 const CACHE_KEY = "paste:lang-core-versions:v1";
@@ -53,8 +53,7 @@ function group(versions: string[], latest: string | null): VersionList {
 function resolveList(versions: string[], npmLatest: string | null): VersionList {
   const bundled = BUNDLED_LANG_CORE_VERSION;
   const all = versions.includes(bundled) ? versions : [...versions, bundled];
-  const latest =
-    npmLatest && valid(npmLatest) && !gte(bundled, npmLatest) ? npmLatest : bundled;
+  const latest = npmLatest && valid(npmLatest) && !gte(bundled, npmLatest) ? npmLatest : bundled;
   return group(all, latest);
 }
 

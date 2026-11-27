@@ -61,8 +61,8 @@ export function CookbookComparisonDiagram() {
           meaning, and saved in a local database. Then, for each question, such as comparing revenue
           and R&D spending, the model picks what to compare, the best-matching page in each report
           is found for each item, and the answer appears in the chat as a table, charts, and quoted
-          sources. Finally, each question and answer is saved to the thread's Gateway conversation,
-          so the thread reopens later with its messages.
+          sources. Finally, each question and answer is saved to the thread&apos;s Gateway
+          conversation, so the thread reopens later with its messages.
         </desc>
         <defs>
           <marker

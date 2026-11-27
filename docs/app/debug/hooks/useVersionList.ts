@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { bundledOnlyList, fetchVersionList } from "@paste/lib/versions/registry";
 import type { VersionList } from "@paste/lib/versions/types";
+import { useCallback, useEffect, useState } from "react";
 
 export interface VersionListState {
   list: VersionList;

@@ -1,7 +1,7 @@
 import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
 import { TweetWall } from "../../components/TweetWall/TweetWall";
-import { TweetWallStats } from "./TweetWallStats";
 import styles from "./TweetWallSection.module.css";
+import { TweetWallStats } from "./TweetWallStats";
 
 /** Full-width social proof — not wrapped in the BuildChat card; sits on the home content band. */
 export function TweetWallSection() {

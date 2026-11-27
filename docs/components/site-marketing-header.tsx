@@ -11,6 +11,7 @@ import {
   SitePrimaryNav,
 } from "@/components/site-primary-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useHydrated } from "@/lib/use-hydrated";
 import { BookOpen, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
@@ -226,16 +227,13 @@ export function SiteMarketingHeader({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(borderMode === "always");
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
   const resolvedBrandVariant =
     brandVariant ?? (mounted && resolvedTheme === "dark" ? "dark" : "light");
 
   useEffect(() => {
-    if (borderMode === "always") {
-      setIsScrolled(true);
-      return;
-    }
+    // "always" is bordered regardless of scroll position (see isBordered).
+    if (borderMode === "always") return;
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);

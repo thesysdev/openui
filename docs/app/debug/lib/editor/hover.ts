@@ -1,5 +1,5 @@
-import { hoverTooltip } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
+import { hoverTooltip } from "@codemirror/view";
 
 interface PropSchema {
   type?: string | string[];

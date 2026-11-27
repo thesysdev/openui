@@ -38,11 +38,11 @@ client.chat.completions.create(
 
 ## Provider behavior
 
-| Provider                   | Behavior                                                                                                   |
-| :------------------------- | :--------------------------------------------------------------------------------------------------------- |
-| Anthropic (Claude)         | Content up to and including a marked block is cached. Without a breakpoint, your content is not cached.    |
+| Provider                   | Behavior                                                                                                    |
+| :------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| Anthropic (Claude)         | Content up to and including a marked block is cached. Without a breakpoint, your content is not cached.     |
 | OpenAI (GPT)               | A stable prompt prefix is cached automatically. Explicit caching requires GPT-5.6 or later (not supported). |
-| Google (Gemini) and others | Prefixes are cached automatically where the provider supports it. The breakpoint is ignored.               |
+| Google (Gemini) and others | Prefixes are cached automatically where the provider supports it. The breakpoint is ignored.                |
 
 For Anthropic models, caching your content is opt-in. OpenAI and Gemini cache eligible prefixes automatically.
 
