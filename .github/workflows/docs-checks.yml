@@ -1,6 +1,6 @@
 name: Docs checks
 
-# Lint and format checks for the docs site. Kept apart from Build JS so they
+# Lint, format and type checks for the docs site. Kept apart from Build JS so they
 # run only when the docs (or what they are checked with) change.
 on:
   push:
@@ -45,3 +45,6 @@ jobs:
 
       - name: Check docs formatting
         run: pnpm --filter @openuidev/docs format:check
+
+      - name: Type-check docs
+        run: pnpm --filter @openuidev/docs types:check
