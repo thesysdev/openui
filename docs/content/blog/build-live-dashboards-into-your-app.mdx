@@ -27,7 +27,7 @@ We built one and open-sourced it. [OpenDashboards](https://github.com/thesysdev/
 
 It's built on [OpenUI Lang](/docs/openui-lang/overview). The model writes a short program that names components from your library, and a `Query` in that program names one of your data tools, so the renderer loads fresh data every time the dashboard opens. OpenUI Lang has worked this way since v0.5 in April.
 
-Under the hood, OpenDashboards uses the [OpenUI Dashboards API](/docs/dashboards) to build and serve each dashboard. Here's what that API does, if you want to build something like it into your own app.
+Under the hood, OpenDashboards uses the [OpenUI Dashboards API](/docs/dashboards) to build and serve each dashboard. Here's what goes into it.
 
 ## Getting the numbers right
 
@@ -69,7 +69,7 @@ People don't build a dashboard once. They refine it, share it, and leave it open
   <LazyVideo
     src="/videos/blog/build-live-dashboards-into-your-app/edit.mp4"
     poster="/videos/blog/build-live-dashboards-into-your-app/edit-poster.webp"
-    aria-label="An edit on a weekly signups dashboard at four times speed: the request to add a 4-week rolling average goes in, the current dashboard stays on screen while the edit is built, then the new line chart appears below the bar chart."
+    aria-label="An edit on a weekly signups dashboard at eight times speed: the request to add a third KPI goes in, the current dashboard stays on screen while the edit is built, then a new tile with the 4-week average appears next to the other two."
     autoPlay
     muted
     loop
@@ -79,23 +79,9 @@ People don't build a dashboard once. They refine it, share it, and leave it open
   />
 </div>
 
-<p className="text-sm text-fd-muted-foreground">An edit in OpenDashboards, at 4× speed: the dashboard stays up while the new chart is built.</p>
+<p className="text-sm text-fd-muted-foreground">An edit in OpenDashboards, at 8× speed: the dashboard stays up while the new KPI is built, then it slots in.</p>
 
 **Live updates for everyone watching.** A dashboard being built should appear at once for everyone looking at it and fill in as it's written, showing only the dashboard, never the model's commentary or script code. Open dashboards should pick up a new version, a rename or a change in access on their own, reconnect when the connection drops, and show a build that has stopped making progress as stalled instead of spinning forever.
-
-<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
-  <LazyVideo
-    src="/videos/blog/build-live-dashboards-into-your-app/build.mp4"
-    poster="/videos/blog/build-live-dashboards-into-your-app/build-poster.webp"
-    aria-label="OpenDashboards building a weekly signups dashboard from a chat request on a sample Postgres database: the dashboard appears as a skeleton at once, then fills in with two KPIs and a bar chart."
-    autoPlay
-    muted
-    loop
-    playsInline
-    preload="metadata"
-    className="block h-auto w-full"
-  />
-</div>
 
 ## Storage and sharing
 
