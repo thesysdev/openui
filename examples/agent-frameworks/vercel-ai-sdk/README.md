@@ -37,7 +37,7 @@ The library module (`src/library.ts`) re-exports `library` from `@openuidev/inte
 
 Before development, builds and verification, `pnpm generate` runs `openui generate src/library.ts --spec --out src/generated/spec.json`. `cloudInstructions()` loads that spec and passes the library and prompt options separately to `generateSystemPrompt({ cloud: true, ... })`.
 
-The server (`src/app/api/chat/route.ts`) uses `streamText` with Cloud Completions (`POST /v1/embed/chat/completions`), `cloudInstructions()`, and the tools in `src/lib/tools.ts`. It returns `toUIMessageStreamResponse()` — the Vercel AI SDK's native UIMessage stream. The only required environment variable is `THESYS_API_KEY`; no `OPENAI_API_KEY` is needed.
+The server (`src/app/api/chat/route.ts`) uses `streamText` with Cloud Completions (`POST /v1/embed/chat/completions`), `cloudInstructions()`, and the tools in `src/lib/tools.ts`. It returns `toUIMessageStreamResponse()` — the Vercel AI SDK's native UIMessage stream. It also sends the chat's `threadId` in the `x-thesys-session-id` header, so the console shows the thread as one session. The only required environment variable is `THESYS_API_KEY`; no `OPENAI_API_KEY` is needed.
 
 The frontend (`src/app/page.tsx`) keeps `<AgentInterface />`, `fetchLLM`, the Vercel AI adapters and styles from `@openuidev/react-ui`. It passes the new `library` as `componentLibrary` and wraps the chat in the new library's `ThemeProvider`. Both providers receive the same `useSystemThemeMode()` value, so answers follow changes to the system's light/dark preference. Threads and messages persist in browser local storage.
 

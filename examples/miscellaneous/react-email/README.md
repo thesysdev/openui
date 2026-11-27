@@ -109,7 +109,7 @@ src/
 
 1. The library spec is generated at build time from `@openuidev/react-email`; the chat route wraps it in OpenUI Cloud's managed prompt
 2. User describes an email (or clicks a starter)
-3. The AI responds in OpenUI Lang format
+3. The AI responds in OpenUI Lang format. The chat route sends the chat's `threadId` in the `x-thesys-session-id` header, so the console shows the chat as one session
 4. The `Renderer` from `@openuidev/react-lang` parses and renders the email components in real time using `emailLibrary`
 5. Once streaming completes, `useEmailRendering` calls `render()` from `@react-email/render` with `{ pretty: true }` client-side to produce copyable, formatted HTML
 

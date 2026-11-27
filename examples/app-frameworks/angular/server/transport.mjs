@@ -62,13 +62,18 @@ export async function streamCompletion({
   model,
   baseUrl,
   messages,
+  sessionId,
   signal,
   onDelta,
 }) {
   const upstream = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     signal,
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      ...(sessionId ? { "x-thesys-session-id": sessionId } : {}),
+    },
     body: JSON.stringify({ model, messages, stream: true, max_completion_tokens: 6000 }),
   });
   if (!upstream.ok) {

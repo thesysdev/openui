@@ -42,7 +42,7 @@ function extractText(msg: any): string {
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages, threadId } = await req.json();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lastUserMsg = (messages as any[]).filter((m: any) => m.role === "user").pop();
@@ -56,6 +56,11 @@ export async function POST(req: Request) {
     messages: modelMessages,
     tools,
     stopWhen: stepCountIs(5),
+    // The chat's thread ID groups its turns into one session on the Gateway.
+    headers:
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
 
   result.text.then((text) => {

@@ -34,7 +34,7 @@ On the client, `<AgentInterface />` from `@openuidev/react-ui` provides the chat
 ```
 
 1. The user types a message. `<AgentInterface />` invokes `llm.send()`, which `POST`s to `/api/chat` with the full thread formatted via `openAIMessageFormat`.
-2. The API route loads the generated library spec, calls OpenUI Cloud's Chat Completions API, and runs app-owned tools with `runChatToolLoop`.
+2. The API route loads the generated library spec, calls OpenUI Cloud's Chat Completions API, and runs app-owned tools with `runChatToolLoop`. It sends the chat's `threadId` in the `x-thesys-session-id` header, so the console shows the thread as one session.
 3. Tool calls run server-side; results are appended as `role: "tool"` messages and the loop continues until the model answers.
 4. The model streams OpenUI Lang as Chat Completions SSE events.
 5. The client parses the events with `openAIAdapter()` and renders each node as a Material UI component as it streams in.

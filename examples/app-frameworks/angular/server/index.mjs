@@ -62,6 +62,11 @@ export function createHandler({
         throw new RequestError("Invalid JSON request.");
       }
       const history = validateMessages(body);
+      // The conversation's ID groups its turns into one session on the Gateway.
+      const sessionId =
+        typeof body.threadId === "string" && body.threadId.trim() && !/\p{Cc}/u.test(body.threadId)
+          ? body.threadId
+          : undefined;
       if (!apiKey)
         throw new RequestError(
           "Configure THESYS_API_KEY in the server's local environment file, then restart the example.",
@@ -85,6 +90,7 @@ export function createHandler({
         baseUrl,
         fetchImpl,
         messages,
+        sessionId,
         signal: controller.signal,
         onDelta: (text) => emit({ type: "delta", text }),
       });

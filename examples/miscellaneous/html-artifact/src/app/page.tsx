@@ -11,11 +11,11 @@ import {
 
 const { llm, storage } = localStorageChat(
   {
-    send: ({ messages, signal }) =>
+    send: ({ threadId, messages, signal }) =>
       fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: openAIMessageFormat.toApi(messages) }),
+        body: JSON.stringify({ threadId, messages: openAIMessageFormat.toApi(messages) }),
         signal,
       }),
     streamProtocol: openAIAdapter(),

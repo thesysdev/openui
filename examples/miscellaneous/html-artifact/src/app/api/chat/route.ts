@@ -11,12 +11,20 @@ const SSE_HEADERS = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { messages } = (await req.json()) as { messages: ChatCompletionMessageParam[] };
+  const { messages, threadId } = (await req.json()) as {
+    messages: ChatCompletionMessageParam[];
+    threadId?: unknown;
+  };
 
   // Chat Completions → POST /v1/embed/chat/completions
   const client = new OpenAI({
     apiKey: requiredEnv("THESYS_API_KEY"),
     baseURL: "https://api.thesys.dev/v1/embed",
+    // The chat's thread ID groups its turns into one session on the Gateway.
+    defaultHeaders:
+      typeof threadId === "string" && threadId.trim() && !/\p{Cc}/u.test(threadId)
+        ? { "x-thesys-session-id": threadId }
+        : undefined,
   });
 
   // A rejected key, rate limit, or bad request fails here, before streaming starts.

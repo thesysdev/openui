@@ -22,6 +22,9 @@ type ChatMessage =
 // The turn in progress, collected event by event; durable across hook steps.
 const turn = defineState<ChatMessage[]>("openui.history.turn", () => []);
 
+/** The OpenUI Cloud thread id; agent.ts sends it to the Gateway as the session ID. */
+export const gatewaySessionId = defineState<string>("openui.gatewaySessionId", () => "");
+
 const append = (message: ChatMessage) => turn.update((messages) => [...messages, message]);
 
 function threadIdOf(ctx: HookContext): string | undefined {
@@ -32,6 +35,10 @@ function threadIdOf(ctx: HookContext): string | undefined {
 /** Saves each completed turn so OpenUI Cloud storage can reload the thread. */
 export default defineHook({
   events: {
+    "turn.started"(_event, ctx) {
+      const threadId = threadIdOf(ctx) ?? "";
+      gatewaySessionId.update(() => (/\p{Cc}/u.test(threadId) ? "" : threadId));
+    },
     "message.received"(event) {
       turn.update(() => [{ role: "user", content: event.data.message }]);
     },

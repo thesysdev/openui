@@ -257,7 +257,7 @@ export class App {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ threadId: thread.id, messages: history }),
         signal: controller.signal,
       });
       if (!response.ok) {

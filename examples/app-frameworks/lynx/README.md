@@ -18,6 +18,8 @@ A full-stack chat application that streams model-generated [OpenUI Lang](https:/
 
 The client renders with `createOpenUiChatLibrary()` and the backend exports the same Chat library with `createOpenUiChatPromptLibrary()`. Both come from the same `@lynx-js/genui` version, so the prompt the model receives and the components the client renders share one contract.
 
+The app creates one ID for each conversation and sends it with each request. The backend sends it to OpenUI Gateway in the `x-thesys-session-id` header, so the console shows the conversation as one session. **New chat** starts a new ID.
+
 ## Project structure
 
 ```

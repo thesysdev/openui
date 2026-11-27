@@ -129,7 +129,7 @@ User types message
       → POST /api/threads/create  → INSERT into threads
   → ChatProvider calls processMessage
       → POST /api/chat with { messages, threadId }
-          → OpenUI Cloud streams assistant reply
+          → OpenUI Cloud streams assistant reply (x-thesys-session-id: threadId)
           → After stream: DELETE + re-INSERT all messages for thread_id
   → User reopens thread
       → ChatProvider calls loadThread

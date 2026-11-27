@@ -67,7 +67,7 @@ card (the tool's render) ◄─────────── streamed with the 
                      Query() ─► /api/interpreter ─► data tools, MCP tools, generated scripts
 ```
 
-1. The chat sends the thread to `/api/chat`, which streams a reply from OpenUI Gateway with two tools, `create_dashboard` and `edit_dashboard`.
+1. The chat sends the thread to `/api/chat`, which streams a reply from OpenUI Gateway with two tools, `create_dashboard` and `edit_dashboard`. The route sends the thread's ID in the `x-thesys-session-id` header, so the console shows the thread as one session.
 2. The model calls `create_dashboard` with a title and a description of the dashboard. Its `execute` runs on this server and calls `dashboards.create()`, which starts generating in OpenUI Cloud and returns as soon as the dashboard has an id. The result, written by OpenUI Cloud, is a sentence for the model plus the dashboard's reference, and the model replies in a sentence or two.
 3. assistant-ui renders the tool call with the toolkit's `render`: a card in the chat. When the result arrives, the card opens the dashboard beside the chat, and `LiveArtifactRenderer` streams it from OpenUI Cloud as it's generated.
 4. The dashboard loads its data with `Query()` calls. The renderer sends each one to `/api/interpreter`, where `dashboards.interpreter.execute()` runs the matching data tool or MCP tool on this server, or a script the dashboard was generated with, which calls the same tools.

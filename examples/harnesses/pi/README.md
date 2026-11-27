@@ -47,7 +47,9 @@ launch — see **Security** below.
 - **Model:** Pi calls OpenUI Cloud Chat Completions (`https://api.thesys.dev/v1/embed`) with
   `THESYS_API_KEY`. The default model is `google/gemini-3.6-flash-free`.
 - **Sessions:** each chat thread (a stable `threadId` from `fetchLLM`) maps to
-  one persistent Pi `AgentSession`, so multi-turn context is preserved.
+  one persistent Pi `AgentSession`, so multi-turn context is preserved. The session's model
+  sends the `threadId` in the `x-thesys-session-id` header, so the console shows the thread as
+  one session.
 
 ## Prerequisites
 
