@@ -1,0 +1,190 @@
+---
+title: "What it takes to build live AI dashboards yourself"
+seoTitle: "What it takes to build live AI dashboards like Claude Data in your own product"
+description: "OpenDashboards and the OpenUI stack are open source, so you can build live AI dashboards into your own product. This is what you'd add on top: a build harness that checks dashboards against real data, a sandbox for model-written code, auth and sharing, edits and live updates, and model routing. The OpenUI Dashboards API does all of it."
+author: Thesys Engineering Team
+date: 2026-11-27
+featured: false
+faq:
+  - question: "Can I build live AI dashboards with only the open-source OpenUI packages?"
+    answer:
+      - "The renderer, OpenUI Lang, the dashboard component library and the server SDK are MIT-licensed, and so is OpenDashboards, a complete app built on them. What isn't included is the service that builds each dashboard and serves it: a build harness that checks it against real data, a sandbox for model-written scripts, auth and sharing, edits and live updates, and model routing. You can build that service yourself, or use the OpenUI Dashboards API."
+  - question: "What does the OpenUI Dashboards API do?"
+    answer:
+      - "It builds and serves dashboards for your app. It turns your component library into a prompt, lets the model explore your data tools, checks the dashboard against real data and repairs it before saving, runs model-written scripts in a sandbox, streams builds to every viewer, and handles per-user tokens, sharing and model routing."
+  - question: "Does my data go through the API?"
+    answer:
+      - "Your data tools run on your own server, with your own auth. While a dashboard is being built, the results the model looks at pass through the API to the model provider you chose. When someone opens a dashboard, the queries run through your server, and the API keeps that viewer's last results for up to a day so the dashboard opens instantly next time."
+---
+
+## What are live AI dashboards?
+
+A live AI dashboard is built once by a model and loads fresh data every time someone opens it, with no model call. Anthropic brought the idea to Claude in October as Claude Dashboards, now called Claude Data, and we [took it apart](/blog/how-claude-dashboards-work) earlier this month.
+
+[OpenUI](https://github.com/thesysdev/openui) is our open-source stack for interfaces that models write. The model writes a short program in [OpenUI Lang](/docs/openui-lang/overview) that names components from your library, and a `Query` in that program names one of your data tools: a function on your server that returns data. The renderer calls it every time someone opens the dashboard. OpenUI Lang has worked this way since v0.5 in April.
+
+On top of it we built [OpenDashboards](https://github.com/thesysdev/opendashboards), a complete app for live AI dashboards, and open-sourced it under MIT. Connect a database or an analytics tool, ask in plain English, and get a dashboard you keep refining by chat. Click any number and it shows the query behind it.
+
+<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
+  <LazyVideo
+    src="/videos/blog/build-live-ai-dashboards-yourself/provenance.mp4"
+    poster="/videos/blog/build-live-ai-dashboards-yourself/provenance-poster.webp"
+    aria-label="OpenDashboards with Sources on: clicking 1,544 on a weekly signups dashboard opens a panel showing it comes from latest, a formula over summary, and summary, a Postgres query."
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+    className="block h-auto w-full"
+  />
+</div>
+
+OpenDashboards is the app: the chat, the connectors, the pages. Behind it sits a service that builds each dashboard and serves it to every reader, and in OpenDashboards that service is the [OpenUI Dashboards API](/docs/dashboards). This post walks through what that service does, because it's the part you'd write yourself if you built this without the API.
+
+| | Open source (MIT) | You'd build it, or use the API |
+| --- | --- | --- |
+| OpenUI Lang, renderer, dashboard components, server SDK | ✓ | |
+| Sources: where every number comes from | ✓ | |
+| OpenDashboards, the app | ✓ | |
+| A build harness that checks dashboards against real data | | ✓ |
+| A sandbox for model-written scripts | | ✓ |
+| Auth and sharing | | ✓ |
+| Edits and live updates | | ✓ |
+| Model routing and metering | | ✓ |
+
+## Fast enough to wait for
+
+Speed is the first thing a user notices. We gave Claude Data and the OpenUI Dashboards API the same request: eight weeks of signups, and "show last week's number, the change on the week before, and a bar chart per week".
+
+<figure>
+
+![The same weekly signups dashboard built twice from the same request and data. Left, Claude Data: a dark page with two tiles, 1,544 last week and +78 on the week before, and a bar chart of eight weeks. Right, OpenUI Dashboards: two KPIs, 1,544 and +78, and a bar chart of the same eight weeks, drawn with the prebuilt dashboard library.](/images/blog/build-live-ai-dashboards-yourself/signups-side-by-side.webp)
+
+<figcaption>The same request and data. Left: Claude Data on claude.ai. Right: the OpenUI Dashboards API.</figcaption>
+
+</figure>
+
+| | Time to a finished dashboard (median of 3) |
+| --- | --- |
+| Claude Data on claude.ai, Claude Opus 5.5 | 1 min 53 s |
+| OpenUI Dashboards API, Claude Sonnet 5.5 | **7.6 s** |
+| OpenUI Dashboards API, DeepSeek v4.1 Flash | 16.5 s |
+
+Both got the numbers right every time. This compares two products, not two models, and the API's time includes looking at the data and both checks below. Most of the difference is likely what the model writes: a few lines of OpenUI Lang that name existing components, instead of a page of HTML and JavaScript. That part is open source.
+
+A request this small is also the easy case. The rest of this post is about the hard ones: real schemas, real users and real data.
+
+## 1. A build harness that gets the numbers right
+
+Skip this and your dashboards will be confidently wrong. A model guesses a column name, binds a chart to a field the data doesn't have, or writes a program that doesn't parse, and nothing tells you until a user does.
+
+**A prompt built from your component library.** The model can only use components it knows precisely. The API generates the system prompt from your library's spec: every component's signature grouped by what it's for, the functions and filters, how data flows from a query into a chart, and your library's own rules and examples. Your data tools go in as typed signatures with an example of their output, so the model binds charts to fields that exist. When your library changes, the prompt changes with it.
+
+**An agent loop over your data.** A good dashboard starts with looking at the data, but your tools run on your server, not next to the model. So each build is a back-and-forth: the API returns the tool calls the model wants, your server runs them and sends the results back, and the model continues, for up to 20 rounds by default. When a number needs combining from several tools, the model writes a small script (more on those in the next section), and it runs once on the spot so the model sees the real result.
+
+**Checks before anything is saved.** Every dashboard is checked twice:
+
+- **Against your component library**, as it's written. Unknown components, missing arguments and wrong types are caught, and the model repairs the program, up to 3 attempts.
+- **Against your real data.** While exploring, the model already called your tools. The API renders the dashboard on the server with those same results, so a chart reading `rows.revenue` when the rows have `amount` is caught before anyone sees it, and goes back to the model along with the fields that do exist. A repair that drops every query, or most of the dashboard, is rejected.
+
+This is the harness OpenDashboards runs on, and the difference shows up in the numbers. We ran 27 dashboard requests over public data APIs, with no data shown to the model beforehand, and counted a build as clean when every query ran and every chart had data. Through the harness, 27 of 27 were clean. The same requests as a single model call with no checks came out clean 22 to 24 times across runs.
+
+**What you'd build:** a prompt generator kept in sync with your library, an agent loop that spans HTTP requests, a validator, a server-side renderer that runs a program against recorded tool results, and a repair loop that can't destroy the dashboard it's fixing.
+
+## 2. A sandbox for code a model wrote
+
+Skip this and you're running model-written code on your data every time a dashboard opens. Some numbers need logic, like grouping customers by age from their birth dates, and in OpenUI the model writes that as a small script. That code needs a cage.
+
+**A fresh sandbox for every run.** Each script runs in a new QuickJS virtual machine, compiled to WebAssembly, in its own worker, and is thrown away afterwards. The sandbox is the guarantee: the script gets your tools, its arguments and a console, and nothing else. There's no network to call and no filesystem to read.
+
+| Limit | Value |
+| --- | --- |
+| CPU | 500 ms of compute at a time |
+| Time | 2 s between tool calls, then the run is stopped |
+| Memory | 64 MB |
+| Tool calls | 48 per run |
+
+A script never reaches your tools directly. It pauses, its calls go back to your server to run as the viewer, and it resumes with the results. The paused state travels as a signed token, so it can't be altered, and it's useless after 10 minutes. As a second layer, a script is checked before it's saved: it must parse and call only your tools, and one that reaches for `fetch`, `eval` or `require` is rejected.
+
+**No model code in the browser.** If a model writes HTML or JavaScript into your page, every dashboard is a chance for cross-site scripting. Here you get a head start from the open-source renderer: it draws only components from your library and drops everything else, and nothing in it sets raw HTML or evaluates code. What you'd add is keeping scripts on the server. Browsers only ever receive the dashboard's program, the API looks up a script's code itself, and a request can't supply code of its own.
+
+**What you'd build:** an isolated runtime with CPU, memory and time limits, a pause-and-resume protocol for tool calls, signed state, script checks, and storage that keeps scripts away from browsers.
+
+## 3. Auth and sharing
+
+Share a dashboard carelessly and you've shared its owner's data. A dashboard in your product belongs to one of your users, and everyone else must only ever see their own data.
+
+**Per-user tokens in the browser.** The browser has to read a user's dashboards without holding your API key. Your server mints a short-lived token with its key: it's scoped to one user, lasts 15 minutes, and can carry the user's groups. The organization always comes from your key, never from the browser, and a token can't be changed to claim another user. The client refreshes it before it expires.
+
+**Sharing that never shares data.** A dashboard is private to whoever created it. Its owner can share it with a user or a group, to view or to edit, and access is checked on every request, so removing a share takes effect at once. A shared dashboard shares its layout and queries, never results: its data tools always run as the viewer, and its scripts only run for users who can see it. Someone without access gets the same "not found" as for a dashboard that doesn't exist. Even while a dashboard is being built, each user's tool results are kept apart, so someone editing a shared dashboard never sees another user's data. Groups are yours, and OpenUI never stores who's in them.
+
+**What you'd build:** a token service with signing and refresh, an access model with owners, shares and groups, and checks on every read and every script run.
+
+## 4. Edits and live updates
+
+Skip this and "add a pie chart" rebuilds the dashboard and loses the filters someone tuned, two editors overwrite each other, and the person with it open on a second screen sees a stale chart.
+
+**Edits that keep what's there.** The API edits by patch: the model writes only the parts that change, and the merged program is what gets checked. Scripts that didn't change are kept byte for byte. While an edit runs, everyone keeps seeing the current version, and a failed edit leaves it as it was. A write only applies to the version it started from, so a second edit while one is running is told to try again instead of overwriting it.
+
+**Everyone watches the build.** A dashboard being built appears at once for everyone looking at it, showing what the builder is doing, then fills in as it's written. Viewers receive only the dashboard, never the model's commentary or any script code. If a connection drops, the page reconnects on its own, and an open dashboard picks up a new version, a rename or a change in access within 30 seconds. A build that stops making progress is marked as stalled instead of spinning forever.
+
+**Fast opens.** The API keeps each viewer's last results for up to a day and shows them the moment a dashboard opens, while the live queries catch up.
+
+**What you'd build:** patch edits with version-checked writes and rollback, a store for builds in progress, a stream to every viewer with reconnects, change checks, stall detection, and a per-user results cache that's cleared on every new version.
+
+## 5. Models and cost
+
+You could put a router like OpenRouter or LiteLLM in front of your own harness, and get many models for free. What's left is the dashboard-specific part.
+
+A build makes several model calls with the same long prompt, so the API caches the prompt across the rounds of a build; on Claude, the cached part costs about 90% less. One reasoning-effort setting is translated into each provider's own form, so you can trade thinking for speed with one line. When a provider fails, the request moves to the next one. You can bring your own provider key. Every model call is metered as it happens, and a build is billed correctly even if the caller disconnects halfway.
+
+The model you pick also sets your cost per build. On the signups dashboard and a 14-day website-traffic dashboard, a build cost 1 to 3 cents in model usage on Claude Sonnet 5.5 and Gemini 3.8 Flash, and a third of a cent or less on DeepSeek v4.1 Flash, at list prices.
+
+**What you'd build:** a router integration, prompt caching across rounds, effort mapping per provider, and per-build metering.
+
+## When to build it yourself
+
+Building the service yourself is the right call when no data may leave your network even at build time, when you need to run every part on your own infrastructure, or when you already run a sandbox, an auth layer and a model gateway you'd rather extend. Everything in the open-source column above is yours either way.
+
+With the API, your data tools still run on your own server with your own auth. While a dashboard is being built, the results the model looks at pass through the API to the model provider you chose. When someone opens a dashboard, the queries run through your server, and the API keeps that viewer's last results for up to a day for fast opens.
+
+## Or use the OpenUI Dashboards API
+
+The OpenUI Dashboards API does all of the above. On your side, it's one definition:
+
+```ts title="lib/openui.ts"
+import { OpenUIClient } from "@openuidev/server";
+import spec from "../generated/spec.json"; // generated from your component library by the OpenUI CLI
+import { dataTools } from "./data"; // functions on your server that return data
+
+export const dashboards = new OpenUIClient().defineDashboard({
+  library: spec,
+  model: "anthropic/claude-sonnet-5.5",
+  tools: dataTools,
+});
+```
+
+Give `dashboards.create()` and `dashboards.edit()` to your chat agent as tools, or call them from your own code. The renderer shows the result in your app, drawn with your components.
+
+<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
+  <LazyVideo
+    src="/videos/blog/build-live-ai-dashboards-yourself/build.mp4"
+    poster="/videos/blog/build-live-ai-dashboards-yourself/build-poster.webp"
+    aria-label="OpenDashboards building a weekly signups dashboard from a chat request on a sample Postgres database: the dashboard appears as a skeleton at once, then fills in with two KPIs and a bar chart."
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+    className="block h-auto w-full"
+  />
+</div>
+
+- **Start building** with the [OpenUI Dashboards docs](/docs/dashboards), or create the example app in one command: `npx @openuidev/cli@latest create --example assistant-ui-dashboards`.
+- **See a complete app** in [OpenDashboards](https://github.com/thesysdev/opendashboards), or use it at [opendashboards.com](https://opendashboards.com).
+
+The Dashboards API is part of OpenUI Cloud, which has a [free tier](/docs/gateway/pricing-credits). The example app takes one command, so you can see every piece in this post running before you decide which of them to build yourself.
+
+## Methodology
+
+Speed: Claude Data on claude.ai on November 26, 2026, on the account's default model (Claude Opus 5.5), with the signups numbers pasted in, three chats, timed until the dashboard was drawn: 122, 113 and 109 seconds. The OpenUI Dashboards API through `@openuidev/server` 0.5.2 on November 25, 2026, with the numbers served by a data tool, three runs per model, timed until the dashboard was saved, and each saved query run again to check its data. Costs are model usage at OpenRouter list prices. Correctness: 27 dashboard requests over public data APIs, each build's queries run again afterwards. The limits in this post were read from the OpenUI Dashboards API's code on November 27, 2026, and can change.
