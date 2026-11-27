@@ -11,7 +11,6 @@ import httpx
 if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
     from openai.types.chat import ChatCompletionMessageParam
-    from openai.types.responses import ResponseInputItemParam
 from .artifacts import Artifacts, AsyncArtifacts
 from .artifacts.dashboards import AsyncDashboard, Dashboard, check_options
 from .artifacts.dashboards.types import ReasoningEffort
@@ -21,30 +20,22 @@ from .conversations import (
     Conversations,
     MessageConversations,
 )
-from .conversations.types import ConversationItem, LangGraphHistoryMessage
+from .conversations.types import LangGraphHistoryMessage
 from .core.cloud_config import PromptOptions
 from .core.errors import invalid_input
 from .core.http import DEFAULT_TIMEOUT, AsyncHttp, Cloud, SyncHttp
 from .frontend_token import FrontendToken, frontend_token_call
 from .interpreter.mcp import McpServers, data_tool_loader, mcp_servers
 from .interpreter.types import DataTool
-from .langgraph.messages import chat_to_langgraph_messages, langgraph_to_chat_messages
+from .langgraph.messages import langgraph_converter
 from .openai.autofix import AsyncChatAutofix, ChatAutofix, async_chat_autofix, chat_autofix
-from .openai.messages import chat_messages_to_items, items_to_chat_messages
+from .openai.messages import chat_completions_converter
 
 
 def _cloud(api_key: str | None, base_url: str | None, app_id: str | None) -> Cloud:
     if app_id is not None and (not isinstance(app_id, str) or not app_id.strip()):
         raise invalid_input("app_id must be a non-empty string")
     return Cloud(api_key, base_url, app_id)
-
-
-def _langgraph_to_items(messages: Sequence[BaseMessage]) -> list[ResponseInputItemParam]:
-    return chat_messages_to_items(langgraph_to_chat_messages(messages))
-
-
-def _items_to_langgraph(items: list[ConversationItem]) -> list[LangGraphHistoryMessage]:
-    return chat_to_langgraph_messages(items_to_chat_messages(items))
 
 
 C = TypeVar("C")
@@ -131,10 +122,10 @@ class OpenUIClient:
         self.artifacts = Artifacts(self._http)
         self.conversations = Conversations(self._http)
         chat: MessageConversations[ChatCompletionMessageParam, ChatCompletionMessageParam] = (
-            self.conversations._with_messages(chat_messages_to_items, items_to_chat_messages)
+            self.conversations._with_messages(chat_completions_converter)
         )
         langgraph: MessageConversations[BaseMessage, LangGraphHistoryMessage] = (
-            self.conversations._with_messages(_langgraph_to_items, _items_to_langgraph)
+            self.conversations._with_messages(langgraph_converter)
         )
         self.chat, self.langgraph = Chat(chat, self._http), LangGraph(langgraph)
 
@@ -205,10 +196,10 @@ class AsyncOpenUIClient:
         self.artifacts = AsyncArtifacts(self._http)
         self.conversations = AsyncConversations(self._http)
         chat: AsyncMessageConversations[ChatCompletionMessageParam, ChatCompletionMessageParam] = (
-            self.conversations._with_messages(chat_messages_to_items, items_to_chat_messages)
+            self.conversations._with_messages(chat_completions_converter)
         )
         langgraph: AsyncMessageConversations[BaseMessage, LangGraphHistoryMessage] = (
-            self.conversations._with_messages(_langgraph_to_items, _items_to_langgraph)
+            self.conversations._with_messages(langgraph_converter)
         )
         self.chat, self.langgraph = AsyncChat(chat, self._http), LangGraph(langgraph)
 

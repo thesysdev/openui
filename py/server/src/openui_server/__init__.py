@@ -8,6 +8,7 @@ from .autofix.create_autofix import AsyncAutofix, Autofix
 from .autofix.stream import AsyncAutofixStream, AutofixStream
 from .autofix.types import AutofixDiagnostic, AutofixError, AutofixResult
 from .client import AsyncOpenUIClient, OpenUIClient
+from .conversations.converter import ConversationItemConverter
 from .conversations.types import (
     Conversation,
     ConversationItem,
@@ -21,7 +22,9 @@ from .core.resource import Page
 from .frontend_token import FrontendToken
 from .interpreter.mcp import McpClient, McpConfig
 from .interpreter.types import DataTool, ExecutionContext, InterpreterRequest, ToolExecutionError
+from .langgraph.messages import langgraph_converter
 from .openai.autofix import AsyncChatAutofix, ChatAutofix
+from .openai.messages import chat_completions_converter
 
 __all__ = [
     "Artifact",
@@ -41,6 +44,7 @@ __all__ = [
     "ChatAutofix",
     "Conversation",
     "ConversationItem",
+    "ConversationItemConverter",
     "ConversationItemInput",
     "ConversationItemStatus",
     "Dashboard",
@@ -58,4 +62,6 @@ __all__ = [
     "PromptOptions",
     "ShareAccess",
     "ToolExecutionError",
+    "chat_completions_converter",
+    "langgraph_converter",
 ]

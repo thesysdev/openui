@@ -3,22 +3,19 @@
 from __future__ import annotations
 
 import builtins
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Generic, TypeVar
 from urllib.parse import quote
 
 from ..core.act_as import act_as
 from ..core.errors import invalid_input, invalid_response
-from ..core.http import AsyncHttp, Call, SyncHttp
+from ..core.http import AsyncHttp, Call, JsonObject, SyncHttp
 from ..core.resource import Order, Page, compact, id_path, query_number, timestamp, to_page
+from .converter import ConversationItemConverter
 from .types import Conversation, ConversationItem, ConversationItemInput, ConversationItemStatus
 
 In = TypeVar("In")
-
-
 Out = TypeVar("Out")
-
-
 ItemsT = TypeVar("ItemsT")
 
 
@@ -61,19 +58,19 @@ def _items_of(page: dict[str, Any]) -> list[ConversationItem]:
 
 
 class ConversationCalls:
-    """Each conversation call, built once for both clients."""
+    """Each conversation call, built once for both clients. Calls by id act as your org: apps
+    check the conversation's `user_id` themselves."""
 
     def __init__(self, app_id: str | None) -> None:
         self._app_id = app_id
 
-    def _as(self, user_id: str | None) -> dict[str, str | list[str]]:
-        return act_as(self._app_id, user_id, None)
-
     def list(
         self, user_id: str | None, limit: int | None, after: str | None, before: str | None
     ) -> Call[Page[Conversation]]:
+        # A filter on the owner: OpenUI Cloud lists their conversations in every app.
+        owner = act_as(self._app_id, user_id, None).get("user_id")
         query = {
-            **self._as(user_id),
+            "user_id": owner,
             "limit": query_number(limit),
             "after": after,
             "before": before,
@@ -88,71 +85,59 @@ class ConversationCalls:
             raise invalid_input(
                 "user_id is required: the conversation is that user's, for their frontend token"
             )
-        query = self._as(user_id)
-        body = compact(title=title, metadata=metadata)
-        return Call("POST", "/v1/conversations", to_conversation, query=query, body=body)
+        # The owner and the client's app go in the body: the API key names them on create.
+        body: JsonObject = {
+            **compact(title=title, metadata=metadata),
+            **act_as(self._app_id, user_id, None),
+        }
+        return Call("POST", "/v1/conversations", to_conversation, body=body)
 
-    def get(self, id: str, user_id: str | None) -> Call[Conversation]:
-        return Call("GET", _path(id), to_conversation, query=self._as(user_id))
+    def get(self, id: str) -> Call[Conversation]:
+        return Call("GET", _path(id), to_conversation)
 
     def update(
-        self,
-        id: str,
-        title: str | None,
-        metadata: Mapping[str, str] | None,
-        user_id: str | None,
+        self, id: str, title: str | None, metadata: Mapping[str, str] | None
     ) -> Call[Conversation]:
-        query = self._as(user_id)
         body = compact(title=title, metadata=metadata)
-        return Call("POST", _path(id), to_conversation, query=query, body=body)
+        return Call("POST", _path(id), to_conversation, body=body)
 
-    def delete(self, id: str, user_id: str | None) -> Call[None]:
-        return Call("DELETE", _path(id), lambda _: None, query=self._as(user_id))
+    def delete(self, id: str) -> Call[None]:
+        return Call("DELETE", _path(id), lambda _: None)
 
     def list_items(
         self,
         id: str,
-        user_id: str | None,
         limit: int | None,
         after: str | None,
         before: str | None,
         order: Order | None,
     ) -> Call[Page[ConversationItem]]:
-        query = {
-            **self._as(user_id),
-            "limit": query_number(limit),
-            "after": after,
-            "before": before,
-            "order": order,
-        }
+        query = {"limit": query_number(limit), "after": after, "before": before, "order": order}
         return Call("GET", _path(id, "/items"), lambda p: to_page(p, to_item), query=query)
 
     def create_items(
-        self, id: str, items: Sequence[ConversationItemInput], user_id: str | None
+        self, id: str, items: Sequence[ConversationItemInput]
     ) -> Call[builtins.list[ConversationItem]] | None:
         """None when there's nothing to add, so no request is made."""
         if not isinstance(items, list | tuple):
             raise invalid_input("items must be a list")
-        # Checked first, so a bad id or user_id fails even with no items.
-        path, query = _path(id, "/items"), self._as(user_id)
+        # Checked first, so a bad id fails even with no items.
+        path = _path(id, "/items")
         if not items:
             return None
-        return Call("POST", path, _items_of, query=query, body={"items": list(items)})
+        return Call("POST", path, _items_of, body={"items": list(items)})
 
-    def get_item(self, id: str, item_id: str, user_id: str | None) -> Call[ConversationItem]:
-        return Call("GET", _item_path(id, item_id), to_item, query=self._as(user_id))
+    def get_item(self, id: str, item_id: str) -> Call[ConversationItem]:
+        return Call("GET", _item_path(id, item_id), to_item)
 
     def update_item(
-        self,
-        id: str,
-        item_id: str,
-        content: Any,
-        status: ConversationItemStatus | None,
-        user_id: str | None,
+        self, id: str, item_id: str, content: Any, status: ConversationItemStatus | None
     ) -> Call[ConversationItem]:
-        query = self._as(user_id)
         body = compact(content=content, status=status)
-        return Call("POST", _item_path(id, item_id), to_item, query=query, body=body)
+        return Call("POST", _item_path(id, item_id), to_item, body=body)
+
+
+# ─── Sync ────────────────────────────────────────────────────────────────────────────────
 
 
 class ConversationItems:
@@ -165,29 +150,24 @@ class ConversationItems:
         self,
         id: str,
         *,
-        user_id: str | None = None,
         limit: int | None = None,
         after: str | None = None,
         before: str | None = None,
         order: Order | None = None,
     ) -> Page[ConversationItem]:
         """One page of items, newest first. `order="asc"` reads a thread from its start."""
-        return self._http.call(self._calls.list_items(id, user_id, limit, after, before, order))
+        return self._http.call(self._calls.list_items(id, limit, after, before, order))
 
     def create(
-        self,
-        id: str,
-        items: Sequence[ConversationItemInput],
-        *,
-        user_id: str | None = None,
+        self, id: str, items: Sequence[ConversationItemInput]
     ) -> builtins.list[ConversationItem]:
         """Adds items in order and returns them as stored. Add only the new turn: earlier items
         are already there. Up to 100 a call; none makes no call."""
-        call = self._calls.create_items(id, items, user_id)
+        call = self._calls.create_items(id, items)
         return [] if call is None else self._http.call(call)
 
-    def get(self, id: str, item_id: str, *, user_id: str | None = None) -> ConversationItem:
-        return self._http.call(self._calls.get_item(id, item_id, user_id))
+    def get(self, id: str, item_id: str) -> ConversationItem:
+        return self._http.call(self._calls.get_item(id, item_id))
 
     def update(
         self,
@@ -196,43 +176,35 @@ class ConversationItems:
         *,
         content: Any = None,
         status: ConversationItemStatus | None = None,
-        user_id: str | None = None,
     ) -> ConversationItem:
         """Only an item's content and status change."""
-        return self._http.call(self._calls.update_item(id, item_id, content, status, user_id))
+        return self._http.call(self._calls.update_item(id, item_id, content, status))
 
 
 class MessageItems(Generic[In, Out]):
-    """A conversation's items as one SDK's messages."""
+    """A conversation's items as one SDK's messages, through its converter."""
 
-    def __init__(
-        self,
-        items: ConversationItems,
-        to_items: Callable[[Sequence[In]], Sequence[ConversationItemInput]],
-        from_items: Callable[[builtins.list[ConversationItem]], list[Out]],
-    ) -> None:
-        self._items, self._to_items, self._from_items = items, to_items, from_items
+    def __init__(self, items: ConversationItems, converter: ConversationItemConverter[In, Out]):
+        self._items, self._converter = items, converter
 
-    def create(
-        self, id: str, messages: Sequence[In], *, user_id: str | None = None
-    ) -> builtins.list[ConversationItem]:
+    def create(self, id: str, messages: Sequence[In]) -> builtins.list[ConversationItem]:
         """Converts the messages to items and adds them in order, then returns the items as
         stored. Add only the new turn: earlier messages are already there."""
         if not isinstance(messages, list | tuple):
             raise invalid_input("messages must be a list")
-        return self._items.create(id, self._to_items(messages), user_id=user_id)
+        return self._items.create(id, self._converter.to_items(messages))
 
     # Every page, since a reply's text and its tool calls can sit on either side of one.
-    def list(self, id: str, *, user_id: str | None = None) -> builtins.list[Out]:
+    def list(self, id: str) -> builtins.list[Out]:
         """The whole thread as messages, oldest first, ready to send to the model."""
         thread: builtins.list[ConversationItem] = []
         after: str | None = None
         while True:
-            page = self._items.list(id, user_id=user_id, order="asc", limit=100, after=after)
+            page = self._items.list(id, order="asc", limit=100, after=after)
             thread += page.data
             after = page.last_id if page.has_more else None
             if not after:
-                return self._from_items(thread)
+                return self._converter.from_items(thread)
 
 
 class _BaseConversations(Generic[ItemsT]):
@@ -249,7 +221,8 @@ class _BaseConversations(Generic[ItemsT]):
         after: str | None = None,
         before: str | None = None,
     ) -> Page[Conversation]:
-        """One page of conversations, newest first."""
+        """One page of conversations, newest first. `user_id` lists only that user's, in every
+        app: take it from your session, never the browser."""
         return self._http.call(self._calls.list(user_id, limit, after, before))
 
     def create(
@@ -259,12 +232,12 @@ class _BaseConversations(Generic[ItemsT]):
         title: str | None = None,
         metadata: Mapping[str, str] | None = None,
     ) -> Conversation:
-        """Creates it for `user_id`, so their frontend token can read it too. Metadata: up to
-        16 pairs, keys up to 64 characters, values up to 512."""
+        """Creates it for `user_id`, in the client's app, so their frontend token can read it
+        too. Metadata: up to 16 pairs, keys up to 64 characters, values up to 512."""
         return self._http.call(self._calls.create(title, metadata, user_id))
 
-    def get(self, id: str, *, user_id: str | None = None) -> Conversation:
-        return self._http.call(self._calls.get(id, user_id))
+    def get(self, id: str) -> Conversation:
+        return self._http.call(self._calls.get(id))
 
     def update(
         self,
@@ -272,36 +245,34 @@ class _BaseConversations(Generic[ItemsT]):
         *,
         title: str | None = None,
         metadata: Mapping[str, str] | None = None,
-        user_id: str | None = None,
     ) -> Conversation:
-        return self._http.call(self._calls.update(id, title, metadata, user_id))
+        return self._http.call(self._calls.update(id, title, metadata))
 
-    def delete(self, id: str, *, user_id: str | None = None) -> None:
+    def delete(self, id: str) -> None:
         """Deleted conversations can't be restored."""
-        self._http.call(self._calls.delete(id, user_id))
+        self._http.call(self._calls.delete(id))
 
 
 class Conversations(_BaseConversations[ConversationItems]):
-    """Your users' conversations and their items. Without `user_id`, calls cover every user in
-    your org; with it, they act as that user, in the client's app. Take `user_id` from your
-    session, never from the browser."""
+    """Your users' conversations and their items, as your org. Before acting on an id from the
+    browser, check the conversation's `user_id` is the signed-in user."""
 
     def __init__(self, http: SyncHttp) -> None:
         calls = ConversationCalls(http.cloud.app_id)
         super().__init__(http, calls, ConversationItems(http, calls))
 
     def _with_messages(
-        self,
-        to_items: Callable[[Sequence[In]], Sequence[ConversationItemInput]],
-        from_items: Callable[[builtins.list[ConversationItem]], list[Out]],
+        self, converter: ConversationItemConverter[In, Out]
     ) -> MessageConversations[In, Out]:
-        """The same conversations, with items taken and read back as one SDK's messages."""
-        items = MessageItems(self.items, to_items, from_items)
-        return MessageConversations(self._http, self._calls, items)
+        """The same conversations, with items taken and read back through `converter`."""
+        return MessageConversations(self._http, self._calls, MessageItems(self.items, converter))
 
 
 class MessageConversations(_BaseConversations[MessageItems[In, Out]]):
     """`conversations`, with items taken and read back as one SDK's messages."""
+
+
+# ─── Async ───────────────────────────────────────────────────────────────────────────────
 
 
 class AsyncConversationItems:
@@ -314,28 +285,21 @@ class AsyncConversationItems:
         self,
         id: str,
         *,
-        user_id: str | None = None,
         limit: int | None = None,
         after: str | None = None,
         before: str | None = None,
         order: Order | None = None,
     ) -> Page[ConversationItem]:
-        return await self._http.call(
-            self._calls.list_items(id, user_id, limit, after, before, order)
-        )
+        return await self._http.call(self._calls.list_items(id, limit, after, before, order))
 
     async def create(
-        self,
-        id: str,
-        items: Sequence[ConversationItemInput],
-        *,
-        user_id: str | None = None,
+        self, id: str, items: Sequence[ConversationItemInput]
     ) -> builtins.list[ConversationItem]:
-        call = self._calls.create_items(id, items, user_id)
+        call = self._calls.create_items(id, items)
         return [] if call is None else await self._http.call(call)
 
-    async def get(self, id: str, item_id: str, *, user_id: str | None = None) -> ConversationItem:
-        return await self._http.call(self._calls.get_item(id, item_id, user_id))
+    async def get(self, id: str, item_id: str) -> ConversationItem:
+        return await self._http.call(self._calls.get_item(id, item_id))
 
     async def update(
         self,
@@ -344,38 +308,32 @@ class AsyncConversationItems:
         *,
         content: Any = None,
         status: ConversationItemStatus | None = None,
-        user_id: str | None = None,
     ) -> ConversationItem:
-        return await self._http.call(self._calls.update_item(id, item_id, content, status, user_id))
+        return await self._http.call(self._calls.update_item(id, item_id, content, status))
 
 
 class AsyncMessageItems(Generic[In, Out]):
     """`MessageItems`, for `AsyncOpenUIClient`."""
 
     def __init__(
-        self,
-        items: AsyncConversationItems,
-        to_items: Callable[[Sequence[In]], Sequence[ConversationItemInput]],
-        from_items: Callable[[builtins.list[ConversationItem]], list[Out]],
+        self, items: AsyncConversationItems, converter: ConversationItemConverter[In, Out]
     ) -> None:
-        self._items, self._to_items, self._from_items = items, to_items, from_items
+        self._items, self._converter = items, converter
 
-    async def create(
-        self, id: str, messages: Sequence[In], *, user_id: str | None = None
-    ) -> builtins.list[ConversationItem]:
+    async def create(self, id: str, messages: Sequence[In]) -> builtins.list[ConversationItem]:
         if not isinstance(messages, list | tuple):
             raise invalid_input("messages must be a list")
-        return await self._items.create(id, self._to_items(messages), user_id=user_id)
+        return await self._items.create(id, self._converter.to_items(messages))
 
-    async def list(self, id: str, *, user_id: str | None = None) -> builtins.list[Out]:
+    async def list(self, id: str) -> builtins.list[Out]:
         thread: builtins.list[ConversationItem] = []
         after: str | None = None
         while True:
-            page = await self._items.list(id, user_id=user_id, order="asc", limit=100, after=after)
+            page = await self._items.list(id, order="asc", limit=100, after=after)
             thread += page.data
             after = page.last_id if page.has_more else None
             if not after:
-                return self._from_items(thread)
+                return self._converter.from_items(thread)
 
 
 class _AsyncBaseConversations(Generic[ItemsT]):
@@ -403,8 +361,8 @@ class _AsyncBaseConversations(Generic[ItemsT]):
     ) -> Conversation:
         return await self._http.call(self._calls.create(title, metadata, user_id))
 
-    async def get(self, id: str, *, user_id: str | None = None) -> Conversation:
-        return await self._http.call(self._calls.get(id, user_id))
+    async def get(self, id: str) -> Conversation:
+        return await self._http.call(self._calls.get(id))
 
     async def update(
         self,
@@ -412,12 +370,11 @@ class _AsyncBaseConversations(Generic[ItemsT]):
         *,
         title: str | None = None,
         metadata: Mapping[str, str] | None = None,
-        user_id: str | None = None,
     ) -> Conversation:
-        return await self._http.call(self._calls.update(id, title, metadata, user_id))
+        return await self._http.call(self._calls.update(id, title, metadata))
 
-    async def delete(self, id: str, *, user_id: str | None = None) -> None:
-        await self._http.call(self._calls.delete(id, user_id))
+    async def delete(self, id: str) -> None:
+        await self._http.call(self._calls.delete(id))
 
 
 class AsyncConversations(_AsyncBaseConversations[AsyncConversationItems]):
@@ -428,11 +385,9 @@ class AsyncConversations(_AsyncBaseConversations[AsyncConversationItems]):
         super().__init__(http, calls, AsyncConversationItems(http, calls))
 
     def _with_messages(
-        self,
-        to_items: Callable[[Sequence[In]], Sequence[ConversationItemInput]],
-        from_items: Callable[[builtins.list[ConversationItem]], list[Out]],
+        self, converter: ConversationItemConverter[In, Out]
     ) -> AsyncMessageConversations[In, Out]:
-        items = AsyncMessageItems(self.items, to_items, from_items)
+        items = AsyncMessageItems(self.items, converter)
         return AsyncMessageConversations(self._http, self._calls, items)
 
 

@@ -14,8 +14,17 @@ if TYPE_CHECKING:
         ChatCompletionMessageParam,
         ChatCompletionMessageToolCallParam,
     )
-from ..conversations.types import LangGraphAIMessage, LangGraphHistoryMessage, LangGraphHumanMessage
+    from openai.types.responses import ResponseInputItemParam
+
+from ..conversations.converter import ConversationItemConverter
+from ..conversations.types import (
+    ConversationItem,
+    LangGraphAIMessage,
+    LangGraphHistoryMessage,
+    LangGraphHumanMessage,
+)
 from ..core.http import json_text
+from ..openai.messages import chat_completions_converter
 
 # Python's merged stream chunks keep their own type name.
 _AI_TYPES = ("ai", "AIMessageChunk")
@@ -165,3 +174,28 @@ def chat_to_langgraph_messages(
                 }
             )
     return result
+
+
+class LangGraphConverter(ConversationItemConverter["BaseMessage", "LangGraphHistoryMessage"]):
+    """LangGraph's LangChain messages to conversation items, through Chat Completions, and back
+    as plain messages `graph.invoke` takes."""
+
+    def to_items(self, messages: Sequence[BaseMessage]) -> list[ResponseInputItemParam]:
+        return chat_completions_converter.to_items(self.to_chat_messages(messages))
+
+    def from_items(self, items: Sequence[ConversationItem]) -> list[LangGraphHistoryMessage]:
+        return self.from_chat_messages(chat_completions_converter.from_items(items))
+
+    def to_chat_messages(self, messages: Sequence[BaseMessage]) -> list[ChatCompletionMessageParam]:
+        """A LangGraph turn as Chat Completions messages."""
+        return langgraph_to_chat_messages(messages)
+
+    def from_chat_messages(
+        self, messages: Sequence[ChatCompletionMessageParam]
+    ) -> list[LangGraphHistoryMessage]:
+        """Chat Completions messages as LangGraph takes them."""
+        return chat_to_langgraph_messages(messages)
+
+
+langgraph_converter = LangGraphConverter()
+"""LangChain messages to conversation items and back: `openui.langgraph.conversations` uses it."""

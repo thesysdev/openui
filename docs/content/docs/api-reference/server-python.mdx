@@ -55,9 +55,11 @@ OpenUIClient(
 
 ## Acting as a user
 
-Calls that take `user_id` act as that user and get what their frontend token would. Without `user_id`, a call acts as your org and sees every user's data. Take `user_id` and `group_ids` from your session, never from the browser.
+Artifact calls that take `user_id` act as that user and get what their frontend token would. Without `user_id`, they act as your org and see every user's artifacts. Take `user_id` and `group_ids` from your session, never from the browser.
 
 `group_ids` (up to 10) are the groups the user is in, from your own system. They need `user_id`.
+
+Conversation calls work differently: they go by id, as your org. See [Conversations](#conversations).
 
 ## `create_frontend_token(*, user_id, group_ids=None)`
 
@@ -79,7 +81,15 @@ def create_frontend_token(
 
 ## Conversations
 
-### `chat.conversations.items.create(id, messages, *, user_id=None)`
+Calls go by id with your API key, as your org. Before acting on a conversation id from the browser, `get` it and check its `user_id` is the signed-in user, taken from your session. `create` names the owner. If your frontend tokens carry an app id, pass the same `app_id` to the client.
+
+```python
+conversation = openui.conversations.get(thread_id)
+if conversation.user_id != session.user_id:
+    raise HTTPException(404)
+```
+
+### `chat.conversations.items.create(id, messages)`
 
 Store the new turn as conversation items. Earlier messages are already stored, so passing the full history duplicates them.
 
@@ -90,24 +100,19 @@ openui.chat.conversations.items.create(
         {"role": "user", "content": last_user_text},
         {"role": "assistant", "content": assistant_text},
     ],
-    user_id=user_id,
 )
 ```
 
 ```python tab="LangGraph" tab-group="py-history"
 state = await graph.ainvoke({"messages": [*history, HumanMessage(text)]})
 
-await openui.langgraph.conversations.items.create(
-    thread_id, state["messages"][len(history):], user_id=user_id
-)
+await openui.langgraph.conversations.items.create(thread_id, state["messages"][len(history) :])
 ```
 
 ```python
 def create(
     id: str,
     messages: Sequence[ChatCompletionMessageParam],  # LangGraph: Sequence[BaseMessage]
-    *,
-    user_id: str | None = None,
 ) -> list[ConversationItem]
 ```
 
@@ -115,12 +120,12 @@ def create(
 - A tool call is stored only together with its result, so a turn stopped mid tool call leaves the thread valid.
 - It returns the items as stored. With nothing to store, it returns `[]` and sends no request.
 
-### `chat.conversations.items.list(id, *, user_id=None)`
+### `chat.conversations.items.list(id)`
 
 Read the whole thread, oldest first, ready to send to the model. It reads every page.
 
 ```python tab="Chat Completions" tab-group="py-history"
-history = openui.chat.conversations.items.list(thread_id, user_id=user_id)
+history = openui.chat.conversations.items.list(thread_id)
 
 completion = client.chat.completions.create(
     model=model, messages=[system_message, *history, user_message]
@@ -128,13 +133,13 @@ completion = client.chat.completions.create(
 ```
 
 ```python tab="LangGraph" tab-group="py-history"
-history = await openui.langgraph.conversations.items.list(thread_id, user_id=user_id)
+history = await openui.langgraph.conversations.items.list(thread_id)
 
 await graph.ainvoke({"messages": [*history, HumanMessage(text)]})
 ```
 
 ```python
-def list(id: str, *, user_id: str | None = None) -> list[ChatCompletionMessageParam]
+def list(id: str) -> list[ChatCompletionMessageParam]
 # LangGraph: list[LangGraphHistoryMessage], plain {"role": "human" | "ai" | "tool", ...} dicts
 ```
 
@@ -146,15 +151,15 @@ def list(id: str, *, user_id: str | None = None) -> list[ChatCompletionMessagePa
 `openui.conversations`, `openui.chat.conversations` and `openui.langgraph.conversations` all have these:
 
 ```python
-conversation = openui.conversations.create(user_id=user_id, title="Trip to Paris")
+conversation = openui.conversations.create(user_id=session.user_id, title="Trip to Paris")
 ```
 
 ```python
 def list(*, user_id=None, limit=None, after=None, before=None) -> Page[Conversation]  # newest first
 def create(*, user_id: str, title=None, metadata=None) -> Conversation
-def get(id, *, user_id=None) -> Conversation
-def update(id, *, title=None, metadata=None, user_id=None) -> Conversation
-def delete(id, *, user_id=None) -> None
+def get(id) -> Conversation
+def update(id, *, title=None, metadata=None) -> Conversation
+def delete(id) -> None
 
 @dataclass(frozen=True)
 class Conversation:
@@ -162,7 +167,7 @@ class Conversation:
     created_at: datetime  # UTC
     title: str | None
     metadata: dict[str, str] | None  # up to 16 pairs
-    user_id: str | None
+    user_id: str | None  # the owner
     app_id: str | None
 
 @dataclass(frozen=True)
@@ -173,20 +178,44 @@ class Page(Generic[T]):
     last_id: str | None  # pass as `after` for the next page
 ```
 
-`create` requires `user_id`: a conversation with no owner can't be read from the user's browser. Deleted conversations can't be restored.
+`create` requires `user_id`, the owner: a conversation with no owner can't be read from the user's browser. `list` takes it to list only that user's conversations, in every app. Deleted conversations can't be restored.
 
 ### Raw items
 
 `openui.conversations.items` reads and writes items in OpenAI's Conversations API shape, as plain dicts. An item read back can be stored again as is.
 
 ```python
-def list(id, *, user_id=None, limit=None, after=None, before=None, order=None) -> Page[ConversationItem]
-def create(id, items: Sequence[ConversationItemInput], *, user_id=None) -> list[ConversationItem]
-def get(id, item_id, *, user_id=None) -> ConversationItem
-def update(id, item_id, *, content=None, status=None, user_id=None) -> ConversationItem
+def list(id, *, limit=None, after=None, before=None, order=None) -> Page[ConversationItem]
+def create(id, items: Sequence[ConversationItemInput]) -> list[ConversationItem]
+def get(id, item_id) -> ConversationItem
+def update(id, item_id, *, content=None, status=None) -> ConversationItem
 ```
 
 `order="asc"` reads a thread from its start. `create` takes up to 100 items a call. `update` changes only an item's content and status.
+
+### Converters
+
+Convert without storing: `chat_completions_converter` and `langgraph_converter` are the conversions `openui.chat` and `openui.langgraph` use.
+
+```python
+from openui_server import chat_completions_converter
+
+items = chat_completions_converter.to_items(turn)  # a turn as items to store
+messages = chat_completions_converter.from_items(stored_items)  # stored items, oldest first
+```
+
+```python
+class ConversationItemConverter(ABC, Generic[In, Out]):
+    def to_items(self, messages: Sequence[In]) -> Sequence[ConversationItemInput]: ...
+    def from_items(self, items: Sequence[ConversationItem]) -> list[Out]: ...
+
+chat_completions_converter: ConversationItemConverter[ChatCompletionMessageParam, ChatCompletionMessageParam]
+langgraph_converter: ConversationItemConverter[BaseMessage, LangGraphHistoryMessage]
+```
+
+- `to_items` skips system messages and unpaired tool calls, as `items.create` does. `from_items` keeps a tool call only with its result.
+- `langgraph_converter` also has `to_chat_messages` and `from_chat_messages`, which convert between LangChain and Chat Completions messages.
+- Subclass `ConversationItemConverter` to store another SDK's messages, then pass its `to_items` result to `openui.conversations.items.create`.
 
 ## Artifacts
 
@@ -499,6 +528,6 @@ Failed calls raise `OpenUIApiError` with a `code` and the HTTP `status`. Interpr
 
 - `missing_api_key`: no `api_key` and no `THESYS_API_KEY`.
 - `invalid_input`: a required argument is missing or empty, such as `user_id` on `conversations.create`.
-- `404`: the conversation or artifact doesn't exist, or the user can't open it.
+- `404`: the conversation, item or artifact doesn't exist, or the user can't open the artifact.
 
 Autofix raises `AutofixError` with a `code`: `invalid_library`, `missing_api_key`, `generation_too_large`, `http_error`, `invalid_response` or `fix_failed`. Reading a stream twice raises `stream_consumed`; reading `result` before the end raises `stream_pending`, or `stream_stopped` after an early stop.

@@ -18,9 +18,11 @@ openui = OpenUIClient()  # reads THESYS_API_KEY
 # Return this from your frontend token route as is.
 token = openui.create_frontend_token(user_id=session.user_id)
 
-# Store a turn, then read the whole thread back for the next request.
-openui.chat.conversations.items.create(thread_id, new_messages, user_id=session.user_id)
-history = openui.chat.conversations.items.list(thread_id, user_id=session.user_id)
+# A conversation belongs to the user who creates it. Calls by id act as your org, so check
+# the owner before using an id from the browser.
+thread = openui.conversations.create(user_id=session.user_id)
+openui.chat.conversations.items.create(thread.id, new_messages)  # store a turn
+history = openui.chat.conversations.items.list(thread.id)  # the whole thread, for the next request
 ```
 
 Use `AsyncOpenUIClient` for asyncio apps (FastAPI, LangGraph): every call is the same, awaited.

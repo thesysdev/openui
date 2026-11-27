@@ -6,6 +6,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
+from ..conversations.converter import ConversationItemConverter
+
 if TYPE_CHECKING:
     from openai.types.chat import (
         ChatCompletionAssistantMessageParam,
@@ -215,3 +217,26 @@ def items_to_chat_messages(items: Sequence[ConversationItem]) -> list[ChatComple
             )
             reply = None
     return messages
+
+
+class ChatCompletionsConverter(
+    ConversationItemConverter["ChatCompletionMessageParam", "ChatCompletionMessageParam"]
+):
+    """Chat Completions messages to conversation items and back."""
+
+    def to_items(
+        self, messages: Sequence[ChatCompletionMessageParam]
+    ) -> list[ResponseInputItemParam]:
+        """A new turn as items. Skips system and developer messages, and tool calls without a
+        result or results without a call."""
+        return chat_messages_to_items(messages)
+
+    def from_items(self, items: Sequence[ConversationItem]) -> list[ChatCompletionMessageParam]:
+        """Stored items, oldest first, as Chat Completions messages. Keeps a tool call only with
+        its result, and skips other item types, such as `reasoning`."""
+        return items_to_chat_messages(items)
+
+
+chat_completions_converter = ChatCompletionsConverter()
+"""Chat Completions messages to conversation items and back: `openui.chat.conversations` uses
+it."""
