@@ -3,6 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { Button, Heading, Img, Section, Text } from "@react-email/components";
 import { z } from "zod/v4";
+import { safeColor } from "../safeColor";
 
 export const EmailProductCard = defineComponent({
   name: "EmailProductCard",
@@ -20,7 +21,7 @@ export const EmailProductCard = defineComponent({
   description:
     "Product showcase card with hero image, optional category, title, description, price, and buy button.",
   component: ({ props }) => {
-    const bg = (props.buttonColor as string) ?? "#4F46E5";
+    const bg = safeColor(props.buttonColor, "#4F46E5");
     return (
       <Section style={{ marginTop: 16, marginBottom: 16 }}>
         <Img

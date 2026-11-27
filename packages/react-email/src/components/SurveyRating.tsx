@@ -3,6 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Heading, Row, Section, Text } from "@react-email/components";
 import { z } from "zod/v4";
+import { safeColor } from "../safeColor";
 
 export const EmailSurveyRating = defineComponent({
   name: "EmailSurveyRating",
@@ -14,7 +15,7 @@ export const EmailSurveyRating = defineComponent({
   description:
     "Rating survey section with a question and 1-5 numbered buttons. Great for feedback and NPS emails.",
   component: ({ props }) => {
-    const bg = (props.buttonColor as string) ?? "#4F46E5";
+    const bg = safeColor(props.buttonColor, "#4F46E5");
 
     return (
       <Section style={{ textAlign: "center", paddingTop: 16, paddingBottom: 16 }}>
