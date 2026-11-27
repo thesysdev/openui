@@ -92,6 +92,25 @@ Use GitHub Issues for feature requests. Please include:
 - Alternatives you considered.
 - Examples, screenshots, or code snippets when helpful.
 
+## Labels and triage
+
+Two workflows label issues and pull requests.
+
+[`auto-label.yml`](./.github/workflows/auto-label.yml) adds `type:` and `component:` labels when an issue or PR is opened or edited. The type comes from a conventional-commit title (`fix(react-lang): ...` gets `type: bug` and `component: react-lang`) or from the issue template. PRs get `component:` labels from the files they change, and issues from the package names they mention. It also adds `community: lab project` to project submissions and changes to `docs/lib/lab-projects.ts`, `community: adopters` to `ADOPTERS.md` changes, and `community: collab request` to partnership and integration requests. It only adds labels, so fix any wrong ones by hand.
+
+[`triage.yml`](./.github/workflows/triage.yml) keeps `status: needs-triage` on the items that need a maintainer and takes it off the rest. It runs on issue, comment and review events, and once a day for every open item. An external contributor is anyone who isn't an owner, member or collaborator.
+
+- An item with `status: waiting-for-author-response` is never flagged. The label is removed when someone outside the team replies.
+- An item with `status: assigned-for-triage` is flagged if nobody is assigned, or if the label was added more than 14 days ago.
+- A PR is flagged when it was opened by an external contributor and no maintainer has replied since their last comment.
+- An issue is flagged when any of these is true:
+  - It has external input (opened or commented by an external contributor) and no priority label (`P0`–`P3`).
+  - It is `P0` or `P1` with no assignee.
+  - It is assigned and is `P0` with no activity for a day, or `P1` with none for 30 days.
+  - It is unassigned and the latest comment is from an external contributor.
+
+To clear the flag, reply, set a priority, assign someone, or add `status: waiting-for-author-response`. The rules live in [`.github/scripts/triage.mjs`](./.github/scripts/triage.mjs). Test them with `node --test .github/scripts/*.test.mjs`.
+
 ## Contribution Guidelines
 
 Please keep contributions focused and easy to review. Large refactors, public API changes, dependency changes, or changes that affect multiple packages should be discussed carefully in the issue before implementation starts.
