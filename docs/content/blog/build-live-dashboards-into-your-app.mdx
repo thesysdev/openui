@@ -34,20 +34,20 @@ Under the hood, OpenDashboards uses the [OpenUI Dashboards API](/docs/dashboards
 A model can write a dashboard that looks fine and shows the wrong thing: a chart that reads a column that doesn't exist, or a total over the wrong rows. This is where we put most of our effort.
 
 - **A prompt tuned for dashboards.** It's generated from your component library, with rules for what makes a good dashboard: how to lay out a page, when to add filters and previous periods, how to label numbers.
-- **Checks before and after the model writes.** Before, the model looks at your data by calling your tools, so its charts are bound to fields that exist. After, tools verify that every query and script it wrote matches the shape of what your tools actually return.
-- **A replay before saving.** The finished dashboard and its scripts are run again on the server with your real data. Anything that would come out empty or broken goes back to the model to fix, so the dashboard works the first time someone opens it, without a round of "this chart is empty, fix it".
+- **Checks before and after the model writes.** Before, the model looks at your data by calling your tools, so its charts are bound to fields that exist. After, we check that every query and script it wrote matches the shape of what your tools actually return: a chart reading `rows.revenue` when the rows have `amount` is caught before anyone sees it.
+- **A replay before saving.** The finished dashboard and its scripts are run again on the server with your real data. Anything that would come out empty or broken goes back to the model to fix, so broken charts are caught before anyone opens the dashboard, without a round of "this chart is empty, fix it".
 
-We built it to work with any size of model, so you can choose by cost. On our hardest set of requests (funnels, retention cohorts, web vitals, revenue against a target), Claude Haiku 5.5 scored 110 out of 120 in a blind review through the harness, against 94 on its own, and none of its dashboards broke. DeepSeek v4.1 Flash built every test dashboard correctly at a third of a cent per build.
+We built it to work with any size of model, so you can choose by cost. On our hardest set of requests (funnels, retention cohorts, web vitals, revenue against a target), Claude Haiku 5.5 scored 110 out of 120 in a blind review with these checks, against 94 on its own. On its own, about 1 in 7 of its dashboards broke; with the checks, none did. DeepSeek v4.1 Flash built every test dashboard correctly at a third of a cent per build.
 
 <figure>
 
-![Claude Haiku 5.5 on our hardest dashboard requests. Quality, scored blind out of 120: 94 on its own, 110 with the harness. Dashboards that broke: 1 of 7 on its own, 0 of 8 with the harness.](/images/blog/build-live-dashboards-into-your-app/haiku-harness.svg)
+![Claude Haiku 5.5 on our hardest dashboard requests. Quality, scored blind out of 120: 94 on its own, 110 with the checks. Dashboards that broke: about 14% on its own, none with the checks.](/images/blog/build-live-dashboards-into-your-app/haiku-harness.svg)
 
 </figure>
 
 ## Keeping it safe
 
-OpenUI Lang has no HTML or JavaScript in it. The model names components from your library, and data comes in through `Query`, which calls one of your tools and puts its result straight into those components. There's no code between your data and the screen, so a dashboard on its own can't run anything.
+OpenUI Lang has no HTML or JavaScript in it. The model names components from your library, and data comes in through `Query`, which calls one of your tools and puts its result straight into those components. There's no code between your data and the screen, so a dashboard on its own can't run code.
 
 Some numbers need real logic, like grouping customers by age or combining two tools into one metric. For those, the model writes a small JavaScript script. Scripts make dashboards far more flexible, but they're code a model wrote. If they ran in the browser, anyone could build a dashboard with a harmful script, share it, and have it run in every viewer's browser with that viewer's access.
 
@@ -101,7 +101,7 @@ People don't build a dashboard once. They refine it, share it, and leave it open
 
 A dashboard in your product belongs to one of your users, and nobody should see data that isn't theirs. That takes two things:
 
-- **Storage that knows who owns what.** Each dashboard is saved with its owner, its program and its scripts, and the scripts stay on the server. A dashboard has its place as soon as its build starts, so it can be listed, shared or deleted before it's finished. The data the model looked at while building stays with the user who built it. For fast opens, each viewer's last results are kept for up to a day and are only shown for the version they came from. Your data tools themselves always run on your own server; while a dashboard is being built, the results the model looks at pass through to the model provider you chose.
+- **Storage that knows who owns what.** Each dashboard is saved with its owner, its program and its scripts, and the scripts stay on the server. A dashboard is saved as soon as its build starts, so it can be listed, shared or deleted before it's finished. The data the model looked at while building stays with the user who built it. For fast opens, each viewer's last results are kept for up to a day and are only shown for the version they came from. Your data tools themselves always run on your own server; while a dashboard is being built, the results the model looks at pass through to the model provider you chose.
 - **Sharing without sharing data.** When someone shares a dashboard with a person or a team, they share its layout and queries, never its results. Queries run as whoever is viewing, so your data tools can give two people different numbers on the same dashboard. Access is checked on every request, so removing a share takes effect on the next one, and someone without access can't tell the dashboard exists. Team membership travels in the token, so removing someone from a team takes effect when their token expires, within 15 minutes.
 
 ## Use the OpenUI Dashboards API
