@@ -223,7 +223,11 @@ export function renderChartPng(spec: ChartSpec, options: ChartRenderOptions = {}
   const theme = THEMES[options.theme ?? "light"];
   const html = renderToStaticMarkup(<ChartElement spec={spec} theme={theme} />);
   const match = html.match(/<svg[\s\S]*<\/svg>/);
-  if (!match) throw new Error("chart produced no <svg>");
+  if (!match) {
+    throw new Error(
+      "chart produced no <svg>. renderChartPng needs recharts 2 (npm install recharts@^2.15); recharts 3 renders nothing on the server.",
+    );
+  }
   let svg = match[0];
   if (!/xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
   svg = injectLegend(svg, legendEntries(spec), theme.legend);

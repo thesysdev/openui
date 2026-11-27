@@ -289,7 +289,8 @@ The model emits `Chart(type, labels, values, title?, series?, xLabel?, yLabel?)`
 `line`, `pie`, or `area`. Slack renders them natively as interactive `data_visualization` blocks
 (up to 2 per message). Teams, Telegram, and WhatsApp receive PNGs from the opt-in rasterizer at
 `@openuidev/channels/ui/charts`, which needs the optional peer dependencies `react`, `react-dom`,
-`recharts`, and `@resvg/resvg-js`.
+`recharts` 2, and `@resvg/resvg-js`. recharts 3 is not supported: it lays charts out in effects,
+which never run during server rendering, so it renders an empty chart.
 
 ## Development
 
