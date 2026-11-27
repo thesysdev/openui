@@ -13,6 +13,10 @@
 //   3. Peer-floor rule: a breaking bump targets a package that others declare
 //      as an internal peerDependency, and those dependents' package.json files
 //      are untouched in this PR — their bounded peer windows may need moving.
+//   4. Python parity: a Python SDK ships with its npm twin's version (see
+//      scripts/sync-python-version.mjs), so its changes need the twin's
+//      changeset (check 1), and a change to one side's source should usually
+//      come with the same change on the other.
 //
 // This intentionally approximates `changeset version` (fixed groups, cascades
 // through workspace:-protocol runtime dependencies). If config options beyond
@@ -54,6 +58,8 @@ const main = () => {
     });
   }
   const packageByDir = new Map([...packages].map(([name, p]) => [p.dir, name]));
+  // Python SDK dir -> its npm twin, which releases it at the same version.
+  const pythonTwins = new Map([["py/openui-server", "@openuidev/server"]]);
 
   const config = JSON.parse(readFileSync(".changeset/config.json", "utf8"));
   const fixedGroups = config.fixed ?? [];
@@ -135,7 +141,11 @@ const main = () => {
   const touchedNames = [
     ...new Set(
       changedFiles
-        .map((f) => packageByDir.get(f.match(/^packages\/([^/]+)\//)?.[1]))
+        .map(
+          (f) =>
+            packageByDir.get(f.match(/^packages\/([^/]+)\//)?.[1]) ??
+            pythonTwins.get(f.match(/^(py\/[^/]+)\//)?.[1]),
+        )
         .filter(Boolean),
     ),
   ];
@@ -177,6 +187,20 @@ const main = () => {
           `but ${manifestPath} is untouched in this PR. Confirm compatibility or move the peer window in this PR.`,
       );
     }
+  }
+
+  // 4. Python parity: the public code changed on one side only.
+  for (const [pyDir, name] of pythonTwins) {
+    const npmSrc = `packages/${packages.get(name)?.dir}/src/`;
+    const pySrc = `${pyDir}/src/`;
+    const npmChanged = changedFiles.some((f) => f.startsWith(npmSrc) && !/\.test\.ts$/.test(f));
+    const pyChanged = changedFiles.some((f) => f.startsWith(pySrc));
+    if (npmChanged === pyChanged) continue;
+    const [changed, untouched] = npmChanged ? [npmSrc, pySrc] : [pySrc, npmSrc];
+    warnings.push(
+      `\`${changed}\` changed but \`${untouched}\` didn't. \`${name}\` and \`${pyDir}\` ` +
+        "release together at one version: make the same change on the other side, unless it's internal to one.",
+    );
   }
 
   report(

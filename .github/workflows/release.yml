@@ -52,6 +52,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Create Version Packages PR or publish
+        id: changesets
         uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
           # The action execs this without a shell, so compound commands must
@@ -71,3 +72,26 @@ jobs:
         # Note: npm provenance is generated automatically with trusted
         # publishing; each package must have this workflow registered as a
         # trusted publisher on npmjs.com.
+
+      # openui-server is @openuidev/server in Python and releases at the same version
+      # (scripts/sync-python-version.mjs). Once that version is on npm, publish it to PyPI
+      # if it isn't there yet, so a failed upload is retried on the next push to main.
+      # PyPI needs this workflow registered as a trusted publisher for openui-server.
+      - name: Set up uv
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        uses: astral-sh/setup-uv@v6
+
+      - name: Publish openui-server to PyPI
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        working-directory: py/openui-server
+        run: |
+          node ../../scripts/sync-python-version.mjs --check
+          version=$(node -p 'require("../../packages/server/package.json").version')
+          if ! npm view "@openuidev/server@$version" version | grep -q .; then
+            echo "@openuidev/server@$version isn't on npm: skipping PyPI"
+          elif curl -sfo /dev/null "https://pypi.org/pypi/openui-server/$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)/json"; then
+            echo "openui-server is already on PyPI at this version"
+          else
+            uv build
+            uv publish --trusted-publishing always
+          fi
