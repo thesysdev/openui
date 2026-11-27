@@ -58,6 +58,12 @@ for (const item of page.data) {
 | `GET` / `POST`            | `/v1/conversations`                                   | List or create conversations.               |
 | `GET` / `POST` / `DELETE` | `/v1/conversations/{conversation_id}`                 | Retrieve, update, or delete a conversation. |
 | `GET` / `POST`            | `/v1/conversations/{conversation_id}/items`           | List or add conversation items.             |
-| `GET` / `DELETE`          | `/v1/conversations/{conversation_id}/items/{item_id}` | Retrieve or delete one item.                |
+| `GET` / `POST`            | `/v1/conversations/{conversation_id}/items/{item_id}` | Retrieve or update one item.                |
 
 Server calls use the API key described in [Authentication](/docs/gateway/authentication). Browser access should use a scoped, short-lived frontend token rather than the server key.
+
+## Owners, from your server
+
+With the API key, every call covers your whole org. To make a conversation one user's, send `user_id`, and `app_id` if their frontend token has one, in the `POST /v1/conversations` body: their frontend token can then read it. `GET /v1/conversations?user_id=<id>` lists that user's conversations, in every app.
+
+Calls by id with the API key aren't limited to one user. Before acting on a conversation id from the browser, check the conversation's `user_id` is the signed-in user. On your server, [`openui.conversations`](/docs/gateway/conversations-from-server) sets the owner and returns it as `userId`.

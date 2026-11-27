@@ -89,4 +89,8 @@ const conversations = await response.json();
 
 Use the frontend token for Conversations endpoints only. When it expires, request a new token from your backend.
 
+### Users' conversations from your server
+
+Your server doesn't need a frontend token to read or write one user's conversations. With the API key, [`openui.conversations`](/docs/gateway/conversations-from-server) reads any conversation in your org, so check its `userId` is the signed-in user before using a conversation id from the browser.
+
 Continue with the [Conversations API](/docs/gateway/api/conversations) for the storage endpoints that use these credentials.

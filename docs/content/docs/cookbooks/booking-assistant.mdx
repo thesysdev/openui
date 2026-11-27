@@ -256,7 +256,7 @@ Chat Completions does not store conversations, so the chat route loads each thre
 
 <Callout type="info" title="Thread storage">
 
-`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each turn, tool calls included, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
+`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each turn, tool calls included, to its [Gateway conversation](/docs/gateway/conversations-from-server), so threads and their messages stay after a reload.
 
 </Callout>
 
@@ -294,7 +294,7 @@ This example runs locally without authentication. Before deploying it, add [auth
 - [`@openuidev/react-headless`](/docs/api-reference/react-headless): `fetchLLM()`, `openAIReadableStreamAdapter()`, and `useOpenuiCloudStorage()`, which the example imports through `@openuidev/react-ui`.
 - [`@openuidev/react-lang`](/docs/api-reference/react-lang): `createLibrary()` and `defineComponent()`.
 - [`@openuidev/lang-core`](/docs/openui-lang/system-prompts): `generateSystemPrompt()`.
-- [`@openuidev/server`](/docs/api-reference/server#conversation-history): `storeChatCompletionHistory()`.
+- [`@openuidev/server`](/docs/gateway/conversations-from-server): saves each turn to the thread's Gateway conversation.
 - [`@openuidev/cli`](/docs/api-reference/cli): `openui generate`.
 - [OpenAI SDK](https://github.com/openai/openai-node): `runTools()` and `toReadableStream()`.
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk): the Streamable HTTP client that calls trivago's MCP server.

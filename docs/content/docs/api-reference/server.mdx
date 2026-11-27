@@ -3,7 +3,7 @@ title: "@openuidev/server"
 description: API reference for Autofix helpers and conversation history persistence on the OpenUI Gateway.
 ---
 
-Server utilities for OpenUI Gateway. Validate and repair model-generated OpenUI Lang, and persist a completed turn as Conversations API items. Autofix lives on `OpenUIClient` and calls the [Autofix HTTP API](/docs/autofix).
+Server utilities for OpenUI Gateway. Validate and repair model-generated OpenUI Lang, and persist a completed turn as Conversations API items. Both live on `OpenUIClient`; Autofix calls the [Autofix HTTP API](/docs/autofix).
 
 ## Install
 
@@ -25,12 +25,7 @@ npm install @openuidev/server
 
 ## The client
 
-| Import from                | Use it for                                                       |
-| :------------------------- | :--------------------------------------------------------------- |
-| `@openuidev/server`        | `OpenUIClient`: Autofix                                          |
-| `@openuidev/server/openai` | `storeChatCompletionHistory` and `chatCompletionMessagesToItems` |
-
-Create the client once, on your server. It reads your API key from `THESYS_API_KEY` unless you pass `apiKey`.
+Import everything from `@openuidev/server`. Create the client once, on your server. It reads your API key from `THESYS_API_KEY` unless you pass `apiKey`.
 
 ```ts
 import { OpenUIClient } from "@openuidev/server";
@@ -244,56 +239,161 @@ Autofix throws `AutofixError`, exported from `@openuidev/server`, with a `code` 
 
 ## Conversation history
 
-Persist only the new turn — not the full `messages` array — or items will be duplicated. Use the master API key. System and developer messages are skipped.
+Store each turn in an OpenUI Cloud conversation, and read the thread back for the next request, in your SDK's messages, with the same `openui` client.
 
-A tool call is stored only together with its result, so a turn stopped mid tool call is saved without that call and the thread stays valid for the next request.
+- `openui.chat.conversations` takes and returns Chat Completions messages. Its types come from the optional `openai` peer.
+- `openui.langgraph.conversations` takes LangChain messages. Its types come from the optional `@langchain/core` peer.
 
-### `storeChatCompletionHistory(options)`
+Calls go by id with your API key, as your org. Before acting on a conversation id from the browser, `get` it and check its `userId` is the signed-in user, taken from your session. `create` names the owner; if your frontend tokens carry an app id, pass the same `appId` to `new OpenUIClient()`.
 
-```ts
-import { storeChatCompletionHistory } from "@openuidev/server/openai";
+### `items.create(id, messages, options?)`
 
-await storeChatCompletionHistory({
-  apiKey: process.env.THESYS_API_KEY!,
-  conversationId: threadId,
-  messages: [
-    { role: "user", content: lastUserText },
-    { role: "assistant", content: assistantText },
-  ],
-});
-```
+Store the new turn. Earlier messages are already stored, so passing the full history duplicates them.
 
-```ts
-function storeChatCompletionHistory(options: {
-  apiKey: string;
-  conversationId: string;
-  messages: ChatCompletionMessageParam[];
-  apiBaseUrl?: string;
-  fetch?: typeof fetch;
-}): Promise<ConversationItemList>;
-```
-
-### `chatCompletionMessagesToItems(messages)`
-
-Convert Chat Completions messages to Conversations API items without posting.
-
-```ts
-import { chatCompletionMessagesToItems } from "@openuidev/server/openai";
-
-chatCompletionMessagesToItems([
-  { role: "user", content: "hello" },
-  { role: "assistant", content: "hi" },
+```ts tab="Chat Completions" tab-group="history-sdk"
+await openui.chat.conversations.items.create(threadId, [
+  { role: "user", content: lastUserText },
+  { role: "assistant", content: assistantText },
 ]);
 ```
 
+```ts tab="LangGraph" tab-group="history-sdk"
+const { messages } = await graph.invoke({ messages: [...history, new HumanMessage(text)] });
+
+await openui.langgraph.conversations.items.create(threadId, messages.slice(history.length));
+```
+
+```ts
+function create(
+  id: string,
+  messages: readonly ChatCompletionMessageParam[], // LangGraph: readonly BaseMessage[]
+  options?: { signal?: AbortSignal },
+): Promise<ConversationItem[]>;
+```
+
+- System and developer messages are skipped.
+- A tool call is stored only together with its result, so a turn stopped mid tool call leaves the thread valid for the next request.
+- It resolves with the items as stored. With nothing to store, it resolves with `[]` and sends no request.
+
+### `items.list(id, options?)`
+
+Read the whole thread, oldest first, ready to send to the model. It reads every page.
+
+```ts tab="Chat Completions" tab-group="history-sdk"
+const history = await openui.chat.conversations.items.list(threadId);
+
+const completion = await client.chat.completions.create({
+  model,
+  messages: [systemMessage, ...history, userMessage],
+});
+```
+
+```ts tab="LangGraph" tab-group="history-sdk"
+const history = await openui.langgraph.conversations.items.list(threadId);
+
+await graph.invoke({ messages: [...history, new HumanMessage(text)] });
+```
+
+```ts
+function list(
+  id: string,
+  options?: { signal?: AbortSignal },
+): Promise<ChatCompletionMessageParam[]>; // LangGraph: Promise<LangGraphHistoryMessage[]>
+
+type LangGraphHistoryMessage =
+  | { role: "human"; content: MessageContent }
+  | { role: "ai"; content: string; tool_calls?: ToolCall[] }
+  | { role: "tool"; content: string; tool_call_id: string };
+```
+
+- User images come back as `image_url` parts. Other stored items, such as `reasoning`, are skipped.
+- LangGraph messages are plain objects. `graph.invoke`, or `coerceMessageLikeToMessage` from `@langchain/core/messages`, turns them into LangChain messages.
+
+### Conversation calls
+
+Both namespaces also have the conversation calls of `openui.conversations`:
+
+```ts
+interface ConversationCalls {
+  list(params?: {
+    userId?: string;
+    limit?: number;
+    after?: string;
+    before?: string;
+  }): Promise<CloudConversationList>; // newest first; with userId, that user's in every app
+  create(
+    params: { title?: string; metadata?: Record<string, string> },
+    options: { userId: string },
+  ): Promise<CloudConversation>;
+  get(id: string, options?: { signal?: AbortSignal }): Promise<CloudConversation>;
+  update(
+    id: string,
+    params: { title?: string; metadata?: Record<string, string> },
+    options?: { signal?: AbortSignal },
+  ): Promise<CloudConversation>;
+  delete(id: string, options?: { signal?: AbortSignal }): Promise<void>;
+}
+
+interface CloudConversation {
+  id: string;
+  title?: string;
+  metadata?: Record<string, string>;
+  userId?: string;
+  appId?: string;
+  createdAt: number; // ms
+}
+
+interface CloudConversationList {
+  data: CloudConversation[];
+  hasMore: boolean;
+  firstId?: string;
+  lastId?: string;
+}
+```
+
+`create` requires `userId`, the owner: a conversation with no owner can't be read from the user's browser. `list` takes it to list only that user's conversations. Every call also takes `signal`.
+
+### Converters
+
+Convert without storing: `chatCompletionsConverter` and `langGraphConverter` are the conversions `openui.chat` and `openui.langgraph` use.
+
+```ts
+import { chatCompletionsConverter } from "@openuidev/server";
+
+const items = chatCompletionsConverter.toItems(turn); // a turn as items to store
+const messages = chatCompletionsConverter.fromItems(storedItems); // stored items, oldest first
+```
+
+```ts
+abstract class ConversationItemConverter<Input, Output = Input> {
+  toItems(messages: readonly Input[]): ConversationItemInput[];
+  fromItems(items: readonly ConversationItem[]): Output[];
+}
+
+const chatCompletionsConverter: ConversationItemConverter<ChatCompletionMessageParam>;
+const langGraphConverter: ConversationItemConverter<BaseMessage, LangGraphHistoryMessage>;
+```
+
+`toItems` skips system messages and unpaired tool calls, as `items.create` does. `fromItems` keeps a tool call only with its result.
+
+### Errors
+
+Failed calls throw `OpenUIApiError` with a `code` and the HTTP `status`:
+
+- `404`: the conversation or item doesn't exist.
+- `invalid_input`: `messages` isn't an array, or `userId` is empty.
+
 ## Exports
 
-| Entry point                | Export                              | Description                                             |
-| :------------------------- | :---------------------------------- | :------------------------------------------------------ |
-| `@openuidev/server`        | `OpenUIClient`                      | Autofix                                                 |
-| `@openuidev/server`        | `OpenUIApiError`                    | Error with `code` and `status`                          |
-| `@openuidev/server`        | `AutofixError`                      | Autofix error with `code`, and `status` on `http_error` |
-| `@openuidev/server`        | `AutofixResult`, `AutofixStream`    | Types of `fix()` and `stream()` results                 |
-| `@openuidev/server/openai` | `storeChatCompletionHistory`        | Persist a Chat Completions turn                         |
-| `@openuidev/server/openai` | `chatCompletionMessagesToItems`     | Convert messages to Conversations API items             |
-| `@openuidev/server/openai` | `StoreChatCompletionHistoryOptions` | History helper configuration                            |
+All from `@openuidev/server`.
+
+| Export                                           | Description                                                            |
+| :----------------------------------------------- | :--------------------------------------------------------------------- |
+| `OpenUIClient`                                   | Autofix, `openui.chat.conversations`, `openui.langgraph.conversations` |
+| `OpenUIApiError`                                 | Error with `code` and `status`                                         |
+| `AutofixError`                                   | Autofix error with `code`, and `status` on `http_error`                |
+| `AutofixResult`, `AutofixStream`                 | Types of `fix()` and `stream()` results                                |
+| `ChatConversations`, `LangGraphConversations`    | Types of the two namespaces                                            |
+| `LangGraphHistoryMessage`                        | A message from `openui.langgraph.conversations.items.list`             |
+| `chatCompletionsConverter`, `langGraphConverter` | Convert messages to conversation items and back                        |
+| `ConversationItemConverter`                      | Type of the two converters                                             |
