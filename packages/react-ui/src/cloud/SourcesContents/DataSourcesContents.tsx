@@ -15,6 +15,7 @@ import {
   type Origin,
 } from "./describe";
 import { CopyButton, CopyStatus, IconAction, useCopy } from "./parts";
+import { queryError } from "./queryError";
 import { partClass } from "./sourcesDialog.styles";
 import type { DataSourcesContentsProps, DataSourcesSelection } from "./types";
 
@@ -169,6 +170,7 @@ export function DataSourcesContents({
   ): Row[] => {
     const origin = originOf(name, current.queries[name]!, describeSource);
     const value = unwrapResult(origin.query.data);
+    const failure = queryError(origin.query);
     return [
       {
         id: `query:${name}`,
@@ -182,8 +184,8 @@ export function DataSourcesContents({
         label: "Result",
         note: labelled ? name : undefined,
         defaultOpen: open === "result",
-        content: origin.query.error ? (
-          <DataSourcesResultError message={origin.query.error.message} />
+        content: failure ? (
+          <DataSourcesResultError message={failure.message} />
         ) : value === undefined ? (
           <p className={cx("help")}>
             {origin.query.loading

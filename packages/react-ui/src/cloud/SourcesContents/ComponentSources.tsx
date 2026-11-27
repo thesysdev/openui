@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { DataSourcesResult, DataSourcesResultError } from "./DataSourcesContents";
 import { originOf, resultSummary, unwrapResult, type Describe } from "./describe";
 import { CopyButton, CopyStatus, useCopy } from "./parts";
+import { queryError } from "./queryError";
 import type { Source } from "./sourceIndex";
 import { partClass as cx } from "./sourcesDialog.styles";
 
@@ -60,7 +61,7 @@ export function sourceEntry(
     result: {
       value: unwrapResult(source.query.data),
       loading: source.query.loading,
-      error: source.query.error?.message,
+      error: queryError(source.query)?.message,
     },
   };
 }

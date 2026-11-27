@@ -3,6 +3,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataSourcesContents, sourcesTitle } from "../DataSourcesContents";
+import { withQueryErrors } from "../queryError";
 import { describeSource, sources } from "../stories/fixtures";
 import type { DataSourcesContentsProps } from "../types";
 
@@ -85,17 +86,16 @@ describe("DataSourcesContents", () => {
     const message = "The query timed out";
     render({
       selection: { id: "revenue" },
-      sources: {
-        ...sources,
-        queries: {
-          ...sources.queries,
-          revenueQ: {
-            ...sources.queries["revenueQ"]!,
-            data: { rows: [] },
-            error: { source: "query", code: "tool-error", message, statementId: "revenueQ" },
+      sources: withQueryErrors(
+        {
+          ...sources,
+          queries: {
+            ...sources.queries,
+            revenueQ: { ...sources.queries["revenueQ"]!, data: { rows: [] } },
           },
         },
-      },
+        [{ source: "query", code: "tool-error", message, statementId: "revenueQ" }],
+      ),
     });
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(message);
     expect(text()).not.toContain("No rows returned.");

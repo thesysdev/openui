@@ -1,8 +1,15 @@
 "use client";
 
 import type { Interpreter } from "@openuidev/react-headless";
-import { Renderer, useDataSources, type Library, type RendererProps } from "@openuidev/react-lang";
-import { useCallback, useContext, useEffect } from "react";
+import {
+  Renderer,
+  useDataSources,
+  useRendererQuery,
+  type Library,
+  type RendererProps,
+} from "@openuidev/react-lang";
+import { useCallback, useContext, useEffect, useMemo } from "react";
+import { withQueryErrors } from "../SourcesContents/queryError";
 import {
   ArtifactRendererRoot,
   slots,
@@ -56,7 +63,10 @@ function ProvenanceBridge() {
 function SourcesWriter() {
   const provenance = useContext(ProvenanceContext)!;
   const store = provenance.internal.sourcesStore;
-  const sources = useDataSources();
+  const found = useDataSources();
+  // The same failures the dashboard's cards read, so Sources says why a card is empty.
+  const { errors } = useRendererQuery();
+  const sources = useMemo(() => withQueryErrors(found, errors), [found, errors]);
   // Into the store, not the root's state: a write reaches only the Sources dialog and inspect
   // mode's outlines, never back here.
   useEffect(() => {

@@ -57,7 +57,7 @@ afterEach(() => {
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 400)));
 
 const isRevenueQuery = (request: Parameters<typeof interpreter>[0]) =>
-  request.name === "postgres_query" && String(request.arguments.sql).includes("sum(total)");
+  request.name === "postgres_query" && String(request.arguments["sql"]).includes("sum(total)");
 
 async function mount(toolbar?: ReactNode, runQuery = interpreter) {
   const { Chrome, ProvenanceToggle, Content, Provenance } = LiveArtifactRenderer;
