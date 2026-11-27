@@ -1,4 +1,5 @@
 ---
+"@openuidev/lang-core": patch
 "@openuidev/react-lang": patch
 "@openuidev/react-ui": patch
 ---

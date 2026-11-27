@@ -96,7 +96,6 @@ interface QueryEntry {
   /** A query in waitFor has no result yet. */
   waiting?: boolean;
   waitFor?: string[];
-  error?: OpenUIError;
 }
 
 interface MutationEntry {
@@ -109,7 +108,7 @@ interface CacheEntry {
   data: unknown;
   inFlight: boolean;
   /** The last fetch failed; refetched only on invalidate or refresh. */
-  failed?: boolean;
+  error?: Pick<OpenUIError, "code" | "message" | "hint">;
 }
 
 // ── Utilities ────────────────────────────────────────────────────────────────
@@ -203,7 +202,16 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         out.__openui_loading.push(sid);
         if (q.everFetched) out.__openui_refetching.push(sid);
       }
-      if (q.error) out.__openui_errors.push(q.error);
+      const error = cache.get(q.cacheKey)?.error;
+      if (error) {
+        out.__openui_errors.push({
+          source: "query",
+          statementId: sid,
+          component: "Query",
+          toolName: q.toolName,
+          ...error,
+        });
+      }
     }
 
     for (const [sid, m] of mutations) {
@@ -265,9 +273,8 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       }
 
       entry.data = data ?? null;
-      entry.failed = false;
+      entry.error = undefined;
       current.everFetched = true;
-      for (const q of queries.values()) if (q.cacheKey === fetchKey) q.error = undefined;
 
       // Clear prevCacheKey first so cleanup does not see it as in use
       if (current.prevCacheKey && current.prevCacheKey !== fetchKey) {
@@ -294,11 +301,10 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
                 code: "tool-error" as const,
                 message: `Query "${toolName}" failed: ${err instanceof Error ? err.message : String(err)}`,
               };
-      // Every query on this key shares the failure
-      for (const [sid, q] of queries) {
+      for (const q of queries.values()) {
         if (q.cacheKey !== fetchKey) continue;
-        q.error = { source: "query", statementId: sid, component: "Query", toolName, ...failure };
-        entry.failed = true;
+        entry.error = failure;
+        break;
       }
       console.error(`Query "${toolName}" failed:`, err);
     } finally {
@@ -425,7 +431,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       if (q.waiting) continue;
 
       const entry = cache.get(cacheKey);
-      const settled = entry && (entry.data !== undefined || entry.failed);
+      const settled = entry && (entry.data !== undefined || entry.error);
       if (toolProvider && !settled && !entry?.inFlight) {
         executeFetch(cacheKey, node.statementId);
       }

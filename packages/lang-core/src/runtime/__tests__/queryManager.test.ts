@@ -18,6 +18,35 @@ async function flushMicrotasks() {
   for (let i = 0; i < 5; i++) await Promise.resolve();
 }
 
+it("reports only the error for a query's current cache key", async () => {
+  const data = { rows: [{ total: 10 }] };
+  const callTool = vi
+    .fn()
+    .mockResolvedValueOnce(data)
+    .mockRejectedValueOnce(new Error("No access"));
+  const qm = createQueryManager({ callTool } as ToolProvider);
+  const rangeA = { ...node("sales"), args: { range: "A" } };
+  const rangeB = { ...node("sales"), args: { range: "B" } };
+  const failure = [{ statementId: "sales", message: 'Query "get_data" failed: No access' }];
+
+  qm.evaluateQueries([rangeA]);
+  await flushMicrotasks();
+  expect(qm.getResult("sales")).toEqual(data);
+  expect(qm.getSnapshot().__openui_errors).toEqual([]);
+
+  qm.evaluateQueries([rangeB]);
+  await flushMicrotasks();
+  expect(qm.getSnapshot().__openui_errors).toMatchObject(failure);
+
+  qm.evaluateQueries([rangeA]);
+  expect(qm.getResult("sales")).toEqual(data);
+  expect(qm.getSnapshot().__openui_errors).toEqual([]);
+
+  qm.evaluateQueries([rangeB]);
+  expect(qm.getSnapshot().__openui_errors).toMatchObject(failure);
+  expect(callTool).toHaveBeenCalledTimes(2);
+});
+
 describe("QueryManager refresh interval lifecycle", () => {
   beforeEach(() => {
     vi.useFakeTimers();
