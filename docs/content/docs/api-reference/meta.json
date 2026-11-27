@@ -19,6 +19,7 @@
     "channels",
     "---Server---",
     "server",
+    "server-python",
     "---Component libraries---",
     "react-email",
     "---Tooling---",
