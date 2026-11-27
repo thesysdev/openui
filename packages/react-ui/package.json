@@ -130,7 +130,7 @@
   },
   "peerDependencies": {
     "@openuidev/react-headless": ">=0.18.2 <0.21.0",
-    "@openuidev/react-lang": ">=1.2.0 <2.0.0",
+    "@openuidev/react-lang": ">=1.2.1 <2.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zustand": "catalog:",
