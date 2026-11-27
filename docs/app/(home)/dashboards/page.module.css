@@ -126,6 +126,11 @@
   margin-top: 64px;
 }
 
+/* The "Works with" panel, which runs edge to edge on phones: within this page's gutter. */
+.stack {
+  --fold-gutter: var(--dash-gutter);
+}
+
 /* ---------- Numbers ---------- */
 
 /* A light band: one line of heading, three figures, one link. */

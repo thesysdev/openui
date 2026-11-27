@@ -16,6 +16,7 @@ import { DashboardFeatures } from "./DashboardFeatures";
 import { DashboardHeroStage, ModelProof } from "./DashboardHero";
 import { DashboardIntegration } from "./DashboardIntegration";
 import { DashboardNumbers } from "./DashboardNumbers";
+import { DashboardStack } from "./DashboardStack";
 import { DashboardStory } from "./DashboardStory";
 import { FaqSection } from "./FaqSection";
 import styles from "./page.module.css";
@@ -100,6 +101,8 @@ export default function DashboardsPage() {
         <DashboardStory />
 
         <DashboardFeatures />
+
+        <DashboardStack />
 
         <DashboardNumbers />
 
