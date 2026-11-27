@@ -248,6 +248,44 @@ describe("getSchemaId fallback", () => {
   });
 });
 
+// ─── enum signatures ────────────────────────────────────────────────────────
+
+describe("enum signatures", () => {
+  enum Size {
+    Small = "sm",
+    Large = "lg",
+  }
+  enum Level {
+    Low = 1,
+    High = 2,
+  }
+
+  const Badge = defineComponent({
+    name: "Badge",
+    props: z.object({
+      size: z.enum(Size),
+      tone: z.enum({ Info: "info", Warn: "warn" }).optional(),
+      level: z.enum(Level).optional(),
+      kind: z.enum(["a", "b"]).optional(),
+    }),
+    description: "badge",
+    component: Dummy,
+  });
+  const lib = createLibrary({ components: [Badge], root: "Badge" });
+
+  it("lists the values an enum accepts, not its keys", () => {
+    expect(lib.toSpec().components["Badge"]?.signature).toBe(
+      'Badge(size: "sm" | "lg", tone?: "info" | "warn", level?: 1 | 2, kind?: "a" | "b")',
+    );
+  });
+
+  it("the value the signature shows parses without errors", () => {
+    const result = createParser(lib.toJSONSchema(), "Badge").parse('root = Badge("sm", "info", 2)');
+    expect(result.meta.errors).toEqual([]);
+    expect(result.root?.props).toMatchObject({ size: "sm", tone: "info", level: 2 });
+  });
+});
+
 // ─── assertV4Schema ─────────────────────────────────────────────────────────
 
 describe("assertV4Schema", () => {
