@@ -148,7 +148,7 @@ describe("storeChatCompletionHistory", () => {
   it("POSTs converted items to the Conversations API", async () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ object: "list", data: [{ id: "item_1" }] }),
+      json: async () => ({ object: "list", data: [{ id: "item_1", type: "message" }] }),
     });
 
     const result = await storeChatCompletionHistory({
@@ -186,7 +186,13 @@ describe("storeChatCompletionHistory", () => {
         },
       ],
     });
-    expect(result).toEqual({ object: "list", data: [{ id: "item_1" }] });
+    expect(result).toEqual({
+      object: "list",
+      data: [{ id: "item_1", type: "message" }],
+      first_id: "item_1",
+      last_id: "item_1",
+      has_more: false,
+    });
   });
 
   it("does not fetch when there is nothing to store", async () => {
@@ -211,7 +217,7 @@ describe("storeChatCompletionHistory", () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 404,
-      text: async () => "conversation not found",
+      json: async () => ({ error: { message: "Conversation not found" } }),
     });
 
     await expect(
@@ -221,7 +227,11 @@ describe("storeChatCompletionHistory", () => {
         messages: [{ role: "user", content: "hello" }],
         fetch,
       }),
-    ).rejects.toThrow("store chat completion history failed: 404 conversation not found");
+    ).rejects.toMatchObject({
+      name: "OpenUIApiError",
+      status: 404,
+      message: "Conversation not found",
+    });
   });
 
   it("honors apiBaseUrl and strips a trailing slash", async () => {
