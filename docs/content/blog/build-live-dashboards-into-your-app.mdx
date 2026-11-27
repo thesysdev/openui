@@ -68,6 +68,7 @@ We measure the harness as we tune it, and the gains are large:
 
 - **Quality.** The same model, Claude Haiku 5.5, built the same six dashboards as a single call and through the harness, and a reviewer scored them blind. The harness lifted the score from 94 to 110 out of 120.
 - **Correctness.** Across 27 dashboard requests over public data APIs, with no data shown to the model beforehand, every build through the harness came out clean: every query ran and every chart had data. The same requests as a single call came out clean 22 to 24 times.
+- **Small models.** The harness carries cheap models too. DeepSeek v4.1 Flash built our signups and website-traffic dashboards correctly in all 6 runs, with data in every panel and the right numbers, for a third of a cent or less per build. It was slower and less predictable than Sonnet, but just as correct.
 - **Speed.** Thinking effort turned out to matter more than the model. Adding filters and previous periods to a full web-analytics dashboard took 301 seconds on Claude Sonnet 5.5 at its default effort, most of it hidden thinking. On Gemini 4 Neon at low effort it took 90 seconds, with every build clean, and that's what OpenDashboards uses.
 
 ## 2. Running model-written scripts safely
