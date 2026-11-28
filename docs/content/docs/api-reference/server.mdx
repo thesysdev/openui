@@ -1,9 +1,13 @@
 ---
 title: "@openuidev/server"
-description: API reference for OpenUIClient, which builds dashboards, manages artifacts and conversations, mints frontend tokens and runs Autofix on your server.
+description: API reference for OpenUIClient on your server, covering conversations, artifacts and dashboards, and SDK integrations with Autofix.
 ---
 
-`@openuidev/server` connects your server to OpenUI Gateway. One client, `OpenUIClient`, builds and runs dashboards, manages saved artifacts and conversations, mints your users' frontend tokens, and repairs generated OpenUI Lang with Autofix. It holds your API key, so use it only on the server.
+`@openuidev/server` connects your server to OpenUI Gateway. One client, `OpenUIClient`, holds your API key, so use it only on the server. This reference covers it in three parts:
+
+- [Conversations](#conversations): your users' conversations and their items.
+- [Artifacts](#artifacts): saved dashboards, slides and reports, and building dashboards.
+- [SDK integrations](#sdk-integrations): conversations in your SDK's messages, and Autofix for its output.
 
 Import everything from `@openuidev/server`.
 
@@ -34,7 +38,9 @@ Some parts use an optional peer. Install it only if you use that part:
 | `@langchain/core`           | `openui.langgraph`                                    |
 | `@modelcontextprotocol/sdk` | An MCP `Client` to pass as `mcp` to `defineDashboard` |
 
-## `new OpenUIClient(options?)`
+## Client
+
+### `new OpenUIClient(options?)`
 
 ```ts title="lib/openui.ts"
 import { OpenUIClient } from "@openuidev/server";
@@ -55,7 +61,7 @@ new OpenUIClient(options?: {
 - With `appId`, frontend tokens, conversations and artifacts belong to that app, and scripts run only from it.
 - Calls act as your org, or as one of your users when you pass their `userId`, plus `groupIds` so group shares count. Take the user from your session, never from the browser. Dashboard calls always act as the user in `context`, and conversation calls by id always act as your org.
 
-## `openui.createFrontendToken(params, options?)`
+### `openui.createFrontendToken(params, options?)`
 
 Mints a frontend token for the signed-in user. The browser uses it to read their artifacts and conversations. Return it from your token route as is.
 
@@ -87,7 +93,160 @@ function createFrontendToken(
 
 See [Authentication](/docs/dashboards/authentication).
 
-## Dashboards
+## Conversations
+
+`openui.conversations` manages your users' conversations and their items, in OpenAI's Conversations API item shape. To store and read your SDK's messages instead, use [`openui.chat` or `openui.langgraph`](#conversation-messages).
+
+```ts
+// A conversation id from the browser isn't proof: check it's the user's
+const conversation = await openui.conversations.get(threadId);
+if (conversation.userId !== session.user.id) return new Response("Not found", { status: 404 });
+
+const created = await openui.conversations.create(
+  { title: "Q3 planning" },
+  { userId: session.user.id },
+);
+const page = await openui.conversations.items.list(created.id, { order: "asc" });
+```
+
+```ts
+type Options = { signal?: AbortSignal };
+type Page = { limit?: number; after?: string; before?: string };
+type List<T> = { data: T[]; hasMore: boolean; firstId?: string; lastId?: string };
+
+interface Conversations {
+  list(params?: Options & Page & { userId?: string }): Promise<List<CloudConversation>>;
+  create(
+    params: { title?: string; metadata?: Record<string, string> },
+    options: Options & { userId: string },
+  ): Promise<CloudConversation>;
+  get(id: string, options?: Options): Promise<CloudConversation>;
+  update(
+    id: string,
+    params: { title?: string; metadata?: Record<string, string> },
+    options?: Options,
+  ): Promise<CloudConversation>;
+  delete(id: string, options?: Options): Promise<void>;
+  items: {
+    list(
+      id: string,
+      params?: Options & Page & { order?: "asc" | "desc" },
+    ): Promise<List<ConversationItem>>;
+    create(
+      id: string,
+      items: readonly ConversationItemInput[],
+      options?: Options,
+    ): Promise<ConversationItem[]>;
+    get(id: string, itemId: string, options?: Options): Promise<ConversationItem>;
+    update(
+      id: string,
+      itemId: string,
+      params: { content?: unknown; status?: ConversationItemStatus },
+      options?: Options,
+    ): Promise<ConversationItem>;
+  };
+}
+
+interface CloudConversation {
+  id: string;
+  title?: string;
+  metadata?: Record<string, string>;
+  userId?: string; // the owner
+  appId?: string;
+  createdAt: number; // unix milliseconds
+}
+
+type ConversationItemInput =
+  | { type: "message"; role: "user" | "assistant"; content: string | ConversationContentPart[] }
+  | { type: "function_call"; call_id: string; name: string; arguments: string }
+  | { type: "function_call_output"; call_id: string; output: string };
+```
+
+- Calls by id act as your org. Before acting on an id from the browser, check the conversation's `userId` is the signed-in user.
+- `create` needs the owner's `userId`, so their frontend token can read the conversation. It belongs to the client's `appId`. `metadata` holds up to 16 pairs, with keys up to 64 characters and values up to 512.
+- `list` is newest first, and with `userId` lists only that user's conversations, in every app. `items.list` is newest first unless you pass `order: "asc"`.
+- `items.create` adds only the new turn, up to 100 items, and sends no request for none. System messages can't be stored. Stored items keep OpenAI's shape, with `created_at` in unix seconds: narrow on `type`.
+- `items.update` changes only an item's `content` and `status`. Deleted conversations can't be restored.
+
+See [Conversations from your server](/docs/gateway/conversations-from-server).
+
+## Artifacts
+
+Saved dashboards, slides and reports. `openui.artifacts` reads and manages them, and `openui.defineDashboard` builds dashboards.
+
+### `openui.artifacts`
+
+Pass `userId` and `groupIds` to act as that user, seeing what their frontend token would, or neither to act as your org.
+
+```ts
+const asUser = { userId: session.user.id, groupIds: session.user.teamIds };
+
+const page = await openui.artifacts.list({ ...asUser, kind: "dashboard", limit: 20 });
+await openui.artifacts.update(id, { name: "Orders by region" }, asUser);
+await openui.artifacts.share(id, { type: "group", id: "team:sales", access: "view" }, asUser);
+await openui.artifacts.pin(id, asUser);
+```
+
+```ts
+type AsUser = { userId?: string; groupIds?: string[]; signal?: AbortSignal };
+type Target = { type: "user" | "group"; id: string };
+
+interface Artifacts {
+  list(
+    params?: AsUser & {
+      kind?: CloudArtifact["kind"] | CloudArtifact["kind"][];
+      name?: string; // case-insensitive match
+      pinned?: boolean;
+      isOwner?: boolean; // needs userId
+      conversationId?: string;
+      limit?: number; // 1 to 100
+      after?: string; // the last page's lastId
+      before?: string; // the last page's firstId
+      order?: "asc" | "desc";
+    },
+  ): Promise<{ data: CloudArtifact[]; hasMore: boolean; firstId?: string; lastId?: string }>;
+  get(id: string, options?: AsUser): Promise<CloudArtifact>;
+  update(
+    id: string,
+    params: { name?: string; content?: string },
+    options?: AsUser,
+  ): Promise<CloudArtifact>;
+  delete(id: string, options?: AsUser): Promise<void>;
+  pin(id: string, options: AsUser & { userId: string }): Promise<CloudArtifact>;
+  unpin(id: string, options: AsUser & { userId: string }): Promise<CloudArtifact>;
+  share(
+    id: string,
+    params: Target & { access: "view" | "edit" },
+    options?: AsUser,
+  ): Promise<CloudArtifact>;
+  unshare(id: string, target: Target, options?: AsUser): Promise<CloudArtifact>;
+}
+
+interface CloudArtifact {
+  id: string;
+  kind: "dashboard" | "slides" | "report";
+  name?: string;
+  content: string; // the OpenUI Lang program
+  version?: string;
+  pinned: boolean;
+  isOwner: boolean;
+  isEditable: boolean;
+  shares?: Array<Target & { access: "view" | "edit"; createdBy: string; createdAt: number }>;
+  conversationId?: string;
+  userId?: string;
+  appId?: string;
+  createdAt: number; // unix milliseconds
+  updatedAt?: number;
+}
+```
+
+- `list` is newest first. While `hasMore`, pass `lastId` as `after` for the next page.
+- `update` saves `content` as a new version, and a `name` alone renames. Acting as a user, `update`, `share` and `unshare` need edit access.
+- `pin` and `unpin` need `userId`: each user pins their own.
+- `view` opens and runs an artifact, and `edit` also edits, renames and shares it. Sharing again changes the access, and removing a share that isn't there does nothing.
+- Deleted artifacts can't be restored.
+
+See [Manage from your server](/docs/dashboards/manage-from-server).
 
 ### `openui.defineDashboard(options)`
 
@@ -197,165 +356,24 @@ interface ExecutionContext {
 
 See [Generate](/docs/dashboards/generate), [Render](/docs/dashboards/render) and [Add to your agent](/docs/dashboards/add-to-your-agent).
 
-## Artifacts
+## SDK integrations
 
-`openui.artifacts` reads and manages saved dashboards, slides and reports. Pass `userId` and `groupIds` to act as that user, seeing what their frontend token would, or neither to act as your org.
+The client has a namespace for each SDK it works with. Each takes and returns that SDK's own types.
 
-```ts
-const asUser = { userId: session.user.id, groupIds: session.user.teamIds };
+| Namespace          | SDK                     | Has                                 | Types from        |
+| :----------------- | :---------------------- | :---------------------------------- | :---------------- |
+| `openui.chat`      | OpenAI Chat Completions | `conversations` and `createAutofix` | `openai`          |
+| `openui.langgraph` | LangGraph               | `conversations`                     | `@langchain/core` |
+| `openui.ai`        | Vercel AI SDK           | `createAutofix`                     | `ai`              |
 
-const page = await openui.artifacts.list({ ...asUser, kind: "dashboard", limit: 20 });
-await openui.artifacts.update(id, { name: "Orders by region" }, asUser);
-await openui.artifacts.share(id, { type: "group", id: "team:sales", access: "view" }, asUser);
-await openui.artifacts.pin(id, asUser);
-```
+### Conversation messages
 
-```ts
-type AsUser = { userId?: string; groupIds?: string[]; signal?: AbortSignal };
-type Target = { type: "user" | "group"; id: string };
+`openui.chat.conversations` and `openui.langgraph.conversations` have the same calls as [`openui.conversations`](#conversations), but their items go in and come out as your SDK's messages:
 
-interface Artifacts {
-  list(
-    params?: AsUser & {
-      kind?: CloudArtifact["kind"] | CloudArtifact["kind"][];
-      name?: string; // case-insensitive match
-      pinned?: boolean;
-      isOwner?: boolean; // needs userId
-      conversationId?: string;
-      limit?: number; // 1 to 100
-      after?: string; // the last page's lastId
-      before?: string; // the last page's firstId
-      order?: "asc" | "desc";
-    },
-  ): Promise<{ data: CloudArtifact[]; hasMore: boolean; firstId?: string; lastId?: string }>;
-  get(id: string, options?: AsUser): Promise<CloudArtifact>;
-  update(
-    id: string,
-    params: { name?: string; content?: string },
-    options?: AsUser,
-  ): Promise<CloudArtifact>;
-  delete(id: string, options?: AsUser): Promise<void>;
-  pin(id: string, options: AsUser & { userId: string }): Promise<CloudArtifact>;
-  unpin(id: string, options: AsUser & { userId: string }): Promise<CloudArtifact>;
-  share(
-    id: string,
-    params: Target & { access: "view" | "edit" },
-    options?: AsUser,
-  ): Promise<CloudArtifact>;
-  unshare(id: string, target: Target, options?: AsUser): Promise<CloudArtifact>;
-}
+- `openui.chat.conversations` takes and returns Chat Completions messages.
+- `openui.langgraph.conversations` takes LangChain messages, or the plain ones it returns, and returns plain `{ role, content }` messages that `graph.invoke` takes.
 
-interface CloudArtifact {
-  id: string;
-  kind: "dashboard" | "slides" | "report";
-  name?: string;
-  content: string; // the OpenUI Lang program
-  version?: string;
-  pinned: boolean;
-  isOwner: boolean;
-  isEditable: boolean;
-  shares?: Array<Target & { access: "view" | "edit"; createdBy: string; createdAt: number }>;
-  conversationId?: string;
-  userId?: string;
-  appId?: string;
-  createdAt: number; // unix milliseconds
-  updatedAt?: number;
-}
-```
-
-- `list` is newest first. While `hasMore`, pass `lastId` as `after` for the next page.
-- `update` saves `content` as a new version, and a `name` alone renames. Acting as a user, `update`, `share` and `unshare` need edit access.
-- `pin` and `unpin` need `userId`: each user pins their own.
-- `view` opens and runs an artifact, and `edit` also edits, renames and shares it. Sharing again changes the access, and removing a share that isn't there does nothing.
-- Deleted artifacts can't be restored.
-
-See [Manage from your server](/docs/dashboards/manage-from-server).
-
-## Conversations
-
-`openui.conversations` manages your users' conversations and their items, in OpenAI's Conversations API item shape. To store and read your SDK's messages instead, use [`openui.chat` or `openui.langgraph`](#sdk-messages).
-
-```ts
-// A conversation id from the browser isn't proof: check it's the user's
-const conversation = await openui.conversations.get(threadId);
-if (conversation.userId !== session.user.id) return new Response("Not found", { status: 404 });
-
-const created = await openui.conversations.create(
-  { title: "Q3 planning" },
-  { userId: session.user.id },
-);
-const page = await openui.conversations.items.list(created.id, { order: "asc" });
-```
-
-```ts
-type Options = { signal?: AbortSignal };
-type Page = { limit?: number; after?: string; before?: string };
-type List<T> = { data: T[]; hasMore: boolean; firstId?: string; lastId?: string };
-
-interface Conversations {
-  list(params?: Options & Page & { userId?: string }): Promise<List<CloudConversation>>;
-  create(
-    params: { title?: string; metadata?: Record<string, string> },
-    options: Options & { userId: string },
-  ): Promise<CloudConversation>;
-  get(id: string, options?: Options): Promise<CloudConversation>;
-  update(
-    id: string,
-    params: { title?: string; metadata?: Record<string, string> },
-    options?: Options,
-  ): Promise<CloudConversation>;
-  delete(id: string, options?: Options): Promise<void>;
-  items: {
-    list(
-      id: string,
-      params?: Options & Page & { order?: "asc" | "desc" },
-    ): Promise<List<ConversationItem>>;
-    create(
-      id: string,
-      items: readonly ConversationItemInput[],
-      options?: Options,
-    ): Promise<ConversationItem[]>;
-    get(id: string, itemId: string, options?: Options): Promise<ConversationItem>;
-    update(
-      id: string,
-      itemId: string,
-      params: { content?: unknown; status?: ConversationItemStatus },
-      options?: Options,
-    ): Promise<ConversationItem>;
-  };
-}
-
-interface CloudConversation {
-  id: string;
-  title?: string;
-  metadata?: Record<string, string>;
-  userId?: string; // the owner
-  appId?: string;
-  createdAt: number; // unix milliseconds
-}
-
-type ConversationItemInput =
-  | { type: "message"; role: "user" | "assistant"; content: string | ConversationContentPart[] }
-  | { type: "function_call"; call_id: string; name: string; arguments: string }
-  | { type: "function_call_output"; call_id: string; output: string };
-```
-
-- Calls by id act as your org. Before acting on an id from the browser, check the conversation's `userId` is the signed-in user.
-- `create` needs the owner's `userId`, so their frontend token can read the conversation. It belongs to the client's `appId`. `metadata` holds up to 16 pairs, with keys up to 64 characters and values up to 512.
-- `list` is newest first, and with `userId` lists only that user's conversations, in every app. `items.list` is newest first unless you pass `order: "asc"`.
-- `items.create` adds only the new turn, up to 100 items, and sends no request for none. System messages can't be stored. Stored items keep OpenAI's shape, with `created_at` in unix seconds: narrow on `type`.
-- `items.update` changes only an item's `content` and `status`. Deleted conversations can't be restored.
-
-See [Conversations from your server](/docs/gateway/conversations-from-server).
-
-## SDK messages
-
-`openui.chat.conversations` and `openui.langgraph.conversations` have the same calls as `openui.conversations`, but their items go in and come out as your SDK's messages:
-
-- `openui.chat.conversations` takes and returns Chat Completions messages. Its types come from `openai`.
-- `openui.langgraph.conversations` takes LangChain messages, or the plain ones it returns, and returns plain `{ role, content }` messages that `graph.invoke` takes. Its types come from `@langchain/core`.
-
-### `items.create(id, messages, options?)`
+#### `items.create(id, messages, options?)`
 
 Stores the new turn, and resolves with it as stored, in the same shape `items.list` returns.
 
@@ -385,7 +403,7 @@ function create(
 - A tool call is stored only together with its result, so a turn stopped mid tool call leaves the thread valid for the next request.
 - What's skipped isn't stored, so it isn't in the result. With nothing to store, it resolves with `[]` and sends no request.
 
-### `items.list(id, options?)`
+#### `items.list(id, options?)`
 
 Reads the whole thread, oldest first, ready to send to the model. It reads every page.
 
@@ -419,11 +437,11 @@ type LangGraphHistoryMessage =
 - User images come back as `image_url` parts. Other stored items, such as `reasoning`, are skipped.
 - LangGraph messages are plain objects. `graph.invoke`, or `coerceMessageLikeToMessage` from `@langchain/core/messages`, turns them into LangChain messages.
 
-## Autofix
+### Autofix
 
 Autofix checks generated OpenUI Lang against your library and repairs invalid output through the [Autofix API](/docs/autofix).
 
-### `createAutofix(params)`
+#### `createAutofix(params)`
 
 Creates the Autofix helpers for your SDK: `openui.chat.createAutofix` for Chat Completions, `openui.ai.createAutofix` for the Vercel AI SDK.
 
@@ -449,7 +467,7 @@ function createAutofix(params: { library: LibrarySpec & { schema: LibraryJSONSch
 - Use the spec from `openui generate --spec`, for the same library as your renderer. It needs `schema`.
 - Requests use the client's API key, `baseUrl` and `fetch`.
 
-### `autofix.fix(input)`
+#### `autofix.fix(input)`
 
 Checks completed OpenUI text. Valid output is returned as is. Invalid output is sent to the Autofix API.
 
@@ -491,7 +509,7 @@ interface AutofixDiagnostic {
 - On `fixed`, `content` is the program the Autofix API returned.
 - Valid output needs no request, so it needs no API key.
 
-### `autofix.stream(input)`
+#### `autofix.stream(input)`
 
 Wraps your SDK's stream. It forwards every event, and inserts a repair before the stream completes when the finished UI is invalid.
 
@@ -561,7 +579,7 @@ const settled = await output.result;
 if (settled?.content) await save(settled.content);
 ```
 
-### Autofix errors
+#### Autofix errors
 
 Autofix throws `AutofixError`, with a `code`:
 
@@ -621,7 +639,8 @@ function errorResponse(error: unknown) {
 Types:
 
 - **Client:** `OpenUIClientOptions`, `CloudList`.
-- **Dashboards:** `Dashboard`, `DashboardOptions`, `DataTool`, `ExecutionContext`, `InterpreterRequest`, `McpConfig`, `McpToolClient`.
+- **Conversations:** `CloudConversation`, `CloudConversationList`, `ConversationMetadata`, `ConversationItem`, `ConversationItemInput`, `ConversationItemList`, `ConversationItemStatus`, `ConversationContentPart`, `ListConversationsParams`, `ListConversationItemsParams`.
 - **Artifacts:** `CloudArtifact`, `CloudArtifactList`, `CloudArtifactShare`, `ListArtifactsParams`, `ShareArtifactParams`, `ArtifactShareTarget`.
-- **Conversations:** `CloudConversation`, `CloudConversationList`, `ConversationMetadata`, `ConversationItem`, `ConversationItemInput`, `ConversationItemList`, `ConversationItemStatus`, `ConversationContentPart`, `ListConversationsParams`, `ListConversationItemsParams`, `ChatConversations`, `LangGraphConversations`, `LangGraphHistoryMessage`, `MessageConversations`, `MessageConversationItems`.
+- **Dashboards:** `Dashboard`, `DashboardOptions`, `DataTool`, `ExecutionContext`, `InterpreterRequest`, `McpConfig`, `McpToolClient`.
+- **SDK integrations:** `ChatConversations`, `LangGraphConversations`, `LangGraphHistoryMessage`, `MessageConversations`, `MessageConversationItems`.
 - **Autofix:** `ChatAutofix`, `AIAutofix`, `AutofixHelpers`, `CreateAutofixParams`, `AutofixInput`, `AutofixStreamInput`, `AutofixResult`, `AutofixDiagnostic`, `AutofixStream`.
