@@ -297,6 +297,10 @@ function defineDashboard<Context extends ExecutionContext = ExecutionContext>(op
 
 See [Define dashboards](/docs/dashboards/define-dashboards).
 
+#### MCP servers
+
+The `mcp` option offers an MCP server's tools to dashboards. Pass a client with `listTools` and `callTool`, such as `Client` from `@modelcontextprotocol/sdk`, or `{ client, include, outputs, connect }`, or an array of them. The tools the server marks read-only (`readOnlyHint`) are offered by default. `include` picks others, `outputs` gives example results, and `connect(context)` returns a client with the user's credentials. See [Connect data](/docs/dashboards/connect-data#mcp-servers).
+
 ### Dashboard methods
 
 `defineDashboard` returns `dashboards`. Each method takes the signed-in user as `context`, and acts as them.
@@ -349,10 +353,6 @@ interface ExecutionContext {
 - `prompt` is all the builder sees, so include any data it needs. A new dashboard is the user's alone until it's shared. Its owner can edit it, and so can anyone it's shared with for editing.
 - **`get`** reads a dashboard the user can open. Give the model its `name` and `content`, or the renderer its `id`.
 - **`interpreter.execute`** runs your tool when `name` is one. Otherwise it runs a script the model wrote, from the dashboard `id` names, for users who can open it. A script for an older `version` than the saved one is refused with `409`. `timeoutMs` covers the whole run: default 60 seconds. Failures throw `ToolExecutionError`: `tool_not_found` (404), `tool_timeout` (504), `script_limit` or the script's own code (502), `invalid_input`, or the Gateway's code and status.
-
-#### MCP servers
-
-`mcp` on `defineDashboard` offers an MCP server's tools to dashboards. Pass a client with `listTools` and `callTool`, such as `Client` from `@modelcontextprotocol/sdk`, or `{ client, include, outputs, connect }`, or an array of them. The tools the server marks read-only (`readOnlyHint`) are offered by default. `include` picks others, `outputs` gives example results, and `connect(context)` returns a client with the user's credentials. See [Connect data](/docs/dashboards/connect-data#mcp-servers).
 
 See [Generate](/docs/dashboards/generate), [Render](/docs/dashboards/render) and [Add to your agent](/docs/dashboards/add-to-your-agent).
 
