@@ -31,12 +31,14 @@ npm install @openuidev/server
 
 Some parts use an optional peer. Install it only if you use that part:
 
-| Peer                        | Used by                                               |
-| :-------------------------- | :---------------------------------------------------- |
-| `openai`                    | `openui.chat`, for its Chat Completions types         |
-| `ai`                        | `openui.ai`, for its Vercel AI SDK types              |
-| `@langchain/core`           | `openui.langgraph`                                    |
-| `@modelcontextprotocol/sdk` | An MCP `Client` to pass as `mcp` to `defineDashboard` |
+| Peer                           | Used by                                                |
+| :----------------------------- | :----------------------------------------------------- |
+| `openai`                       | `openui.chat`, for its Chat Completions types          |
+| `ai`                           | `openui.ai`, for its Vercel AI SDK types               |
+| `@langchain/core`              | `openui.langgraph`                                     |
+| `@modelcontextprotocol/sdk`    | An MCP `Client` to pass as `mcp` to `defineDashboard`  |
+| `@modelcontextprotocol/server` | `dashboards.mcpServer()` and `dashboards.mcpHandler()` |
+| `@modelcontextprotocol/client` | `dashboards.mcpHandler().transport()`                  |
 
 ## Client
 
@@ -313,6 +315,9 @@ const response = await dashboards.create({ title: "Orders, last 30 days", prompt
 await dashboards.edit({ id, prompt: "Add a chart of refunds by reason." }, user);
 const { name, content } = await dashboards.get({ id }, user);
 
+// create_dashboard, edit_dashboard and get_dashboard, for your agent
+const tools = await dashboards.tools(user);
+
 // In your interpreter route: run the renderer's data request, and return { result }
 const result = await dashboards.interpreter.execute(await request.json(), user, { signal });
 ```
@@ -334,6 +339,9 @@ interface Dashboard<Context extends ExecutionContext> {
     context: Context,
     options?: { signal?: AbortSignal },
   ): Promise<CloudArtifact>;
+  tools(
+    context: Context | ((callContext: unknown) => Context | Promise<Context>),
+  ): Promise<Record<"create_dashboard" | "edit_dashboard" | "get_dashboard", DashboardTool>>;
   interpreter: {
     execute(
       request: { name: string; arguments?: Record<string, unknown>; id?: string; version?: string },
@@ -352,9 +360,46 @@ interface ExecutionContext {
 - **`create` and `edit`** run the model's tool rounds, typically 20 to 45 seconds. Once generation starts, they resolve with the tool response: return it from your tool as is, and pass it to `LiveArtifactRenderer` as `response`. Later failures show in the renderer. With `{ stream: true }`, they yield a message once the dashboard has an id, and a last one once it's saved or failed: return the last one.
 - `prompt` is all the builder sees, so include any data it needs. A new dashboard is the user's alone until it's shared. Its owner can edit it, and so can anyone it's shared with for editing.
 - **`get`** reads a dashboard the user can open. Give the model its `name` and `content`, or the renderer its `id`.
+- **`tools`** returns the three tools your agent needs, with descriptions tuned for models. Each is `{ name, description, inputSchema, execute }`, and `inputSchema` is both a JSON Schema and a Standard Schema. The AI SDK takes the record as is; for LangChain, map each to `tool(t.execute, { name: t.name, description: t.description, schema: t.inputSchema })`. Pass a function to find the user for each call. A failure throws a sentence the model can act on.
 - **`interpreter.execute`** runs your tool when `name` is one. Otherwise it runs a script the model wrote, from the dashboard `id` names, for users who can open it. A script for an older `version` than the saved one is refused with `409`. `timeoutMs` covers the whole run: default 60 seconds. Failures throw `ToolExecutionError`: `tool_not_found` (404), `tool_timeout` (504), `script_limit` or the script's own code (502), `invalid_input`, or the Gateway's code and status.
 
 See [Generate](/docs/dashboards/generate), [Render](/docs/dashboards/render) and [Add to your agent](/docs/dashboards/add-to-your-agent).
+
+### `dashboards.mcpServer()` and `dashboards.mcpHandler()`
+
+The same dashboard tools over MCP, for agents that connect to MCP servers.
+
+```ts title="app/api/mcp/route.ts"
+import { dashboards } from "@/lib/openui";
+import { getSession } from "@/lib/auth"; // your session lookup
+
+const mcp = dashboards.mcpHandler(async (request) => {
+  const session = await getSession(request);
+  return session ? { userId: session.user.id } : null; // null answers 401
+});
+
+export const POST = mcp.fetch;
+```
+
+```ts
+function mcpServer(context: Context): Promise<McpServer>;
+
+function mcpHandler(
+  context:
+    | Context
+    | ((request: Request, authInfo?: McpAuthInfo) => Context | null | Promise<Context | null>),
+): {
+  url: string;
+  fetch(input: string | URL | Request, init?: object): Promise<Response>;
+  transport(): Promise<McpClientTransport>;
+  close(): Promise<void>;
+};
+```
+
+- `mcpServer` returns an MCP SDK v2 `McpServer` for one user, for SDKs that take a server. It also sends the model instructions on using the tools.
+- `mcpHandler` serves the tools over Streamable HTTP, for a fixed user or one your function finds per request. Return `null` to answer `401`; a thrown `Response` is sent as is. As a route, `fetch(request, { authInfo })` passes on auth your middleware already verified.
+- For an MCP client in the same process, pass it `await mcp.transport()`. `url` is a placeholder for it and is never contacted. `close()` stops builds in flight.
+- Both need `@modelcontextprotocol/server`, and `transport()` also needs `@modelcontextprotocol/client`. Without them, the call throws `OpenUIApiError` with code `missing_dependency`.
 
 ## SDK integrations
 
@@ -605,13 +650,14 @@ Every error has a `code` string, and `status` when there's an HTTP status to rep
 | `ToolExecutionError` | `interpreter.execute`, and a bad `context` on any dashboard call               |
 | `AutofixError`       | Autofix; see [Autofix errors](#autofix-errors)                                 |
 
-| `code`             | `status`      | When                                                                                     |
-| :----------------- | :------------ | :--------------------------------------------------------------------------------------- |
-| `missing_api_key`  | none          | No API key: pass `apiKey` or set `THESYS_API_KEY`                                        |
-| `invalid_input`    | none or `400` | A bad argument, caught before any request                                                |
-| `invalid_library`  | none          | `defineDashboard` couldn't build a prompt from `library`                                 |
-| `invalid_response` | `502`         | The Gateway's response couldn't be read                                                  |
-| the Gateway's      | the Gateway's | The Gateway refused the call, such as `404` for an artifact the user can't see, or `429` |
+| `code`               | `status`      | When                                                                                     |
+| :------------------- | :------------ | :--------------------------------------------------------------------------------------- |
+| `missing_api_key`    | none          | No API key: pass `apiKey` or set `THESYS_API_KEY`                                        |
+| `invalid_input`      | none or `400` | A bad argument, caught before any request                                                |
+| `invalid_library`    | none          | `defineDashboard` couldn't build a prompt from `library`                                 |
+| `missing_dependency` | none          | An optional peer the call needs isn't installed                                          |
+| `invalid_response`   | `502`         | The Gateway's response couldn't be read                                                  |
+| the Gateway's        | the Gateway's | The Gateway refused the call, such as `404` for an artifact the user can't see, or `429` |
 
 Return the `code` and `status` from your routes:
 
@@ -641,6 +687,6 @@ Types:
 - **Client:** `OpenUIClientOptions`, `CloudList`.
 - **Conversations:** `CloudConversation`, `CloudConversationList`, `ConversationMetadata`, `ConversationItem`, `ConversationItemInput`, `ConversationItemList`, `ConversationItemStatus`, `ConversationContentPart`, `ListConversationsParams`, `ListConversationItemsParams`.
 - **Artifacts:** `CloudArtifact`, `CloudArtifactList`, `CloudArtifactShare`, `ListArtifactsParams`, `ShareArtifactParams`, `ArtifactShareTarget`.
-- **Dashboards:** `Dashboard`, `DashboardOptions`, `DataTool`, `ExecutionContext`, `InterpreterRequest`, `McpConfig`, `McpToolClient`.
+- **Dashboards:** `Dashboard`, `DashboardOptions`, `DataTool`, `ExecutionContext`, `InterpreterRequest`, `McpConfig`, `McpToolClient`, `DashboardTool`, `DashboardTools`, `DashboardToolSchema`, `DashboardMcpServer`, `DashboardMcpHandler`, `McpResolve`, `McpAuthInfo`, `McpFetch`, `McpClientTransport`.
 - **SDK integrations:** `ChatConversations`, `LangGraphConversations`, `LangGraphHistoryMessage`, `MessageConversations`, `MessageConversationItems`.
 - **Autofix:** `ChatAutofix`, `AIAutofix`, `AutofixHelpers`, `CreateAutofixParams`, `AutofixInput`, `AutofixStreamInput`, `AutofixResult`, `AutofixDiagnostic`, `AutofixStream`.

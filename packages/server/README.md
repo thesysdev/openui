@@ -163,3 +163,34 @@ example `export const maxDuration = 300` on Vercel).
 The model may call your data tools for up to 20 rounds before it must write the dashboard. Set
 `maxToolRounds` in `defineDashboard` to change that. With `0` the model calls none of your tools
 directly; it still saves and runs its data scripts, which call them.
+
+## Dashboard tools for your agent
+
+`create_dashboard`, `edit_dashboard` and `get_dashboard`, with tuned descriptions, ready for your
+agent. Pass the signed-in user, or a function that finds them per call.
+
+```ts
+const tools = await dashboards.tools({ userId });
+
+streamText({ model, messages, tools }); // AI SDK: as is
+Object.values(tools).map((t) =>
+  tool(t.execute, { name: t.name, description: t.description, schema: t.inputSchema }),
+); // LangChain: one line
+```
+
+Or over MCP, with `@modelcontextprotocol/server` installed (and `@modelcontextprotocol/client` for
+`transport()`):
+
+```ts
+const mcp = dashboards.mcpHandler({ userId });
+createMCPClient({ transport: await mcp.transport() }); // an MCP client in this process
+
+export const POST = dashboards.mcpHandler(async (request) => {
+  const session = await getSession(request);
+  return session ? { userId: session.user.id } : null; // null answers 401
+}).fetch; // a route, for agents elsewhere
+
+const server = await dashboards.mcpServer({ userId }); // SDKs that take a server
+```
+
+Pass the create and edit results to `LiveArtifactRenderer` as `response`, as they come.
