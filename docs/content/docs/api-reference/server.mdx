@@ -1,10 +1,15 @@
 ---
 title: "@openuidev/server"
-description: API reference for Autofix helpers and conversation history persistence on the OpenUI Gateway.
+description: API reference for OpenUIClient on your server, covering conversations, artifacts and dashboards, and SDK integrations with Autofix.
 ---
 
-Server utilities for OpenUI Gateway. Validate and repair model-generated OpenUI Lang, and persist a completed turn as Conversations API items.
-Import from the subpath that matches your SDK. The helpers call [Autofix HTTP API](/docs/autofix).
+`@openuidev/server` connects your server to OpenUI Gateway. One client, `OpenUIClient`, holds your API key, so use it only on the server. This reference covers it in three parts:
+
+- [Conversations](#conversations): your users' conversations and their items.
+- [Artifacts](#artifacts): saved dashboards, slides and reports, and building dashboards.
+- [SDK integrations](#sdk-integrations): conversations in your SDK's messages, and Autofix for its output.
+
+Import everything from `@openuidev/server`.
 
 ## Install
 
@@ -24,96 +29,455 @@ yarn add @openuidev/server
 npm install @openuidev/server
 ```
 
-## Import paths
+Some parts use an optional peer. Install it only if you use that part:
 
-| Import from                | Autofix                                    | History helpers                                               |
-| :------------------------- | :----------------------------------------- | :------------------------------------------------------------ |
-| `@openuidev/server/openai` | `completions.fix` and `completions.stream` | `storeChatCompletionHistory`, `chatCompletionMessagesToItems` |
-| `@openuidev/server/vercel` | `ai.fix` and `ai.stream`                   | —                                                             |
+| Peer                        | Used by                                               |
+| :-------------------------- | :---------------------------------------------------- |
+| `openai`                    | `openui.chat`, for its Chat Completions types         |
+| `ai`                        | `openui.ai`, for its Vercel AI SDK types              |
+| `@langchain/core`           | `openui.langgraph`                                    |
+| `@modelcontextprotocol/sdk` | An MCP `Client` to pass as `mcp` to `defineDashboard` |
 
-Pair each Autofix stream with the matching frontend adapter: `openAIAdapter()` or `useChat`.
+## Client
 
-## `createAutofix(options)`
+### `new OpenUIClient(options?)`
 
-Use the spec from `openui generate --spec` for the same library as your renderer, including its `schema`.
+```ts title="lib/openui.ts"
+import { OpenUIClient } from "@openuidev/server";
 
-```ts tab="OpenAI" tab-group="autofix-sdk"
-import { createAutofix } from "@openuidev/server/openai";
-import library from "./openui.spec.json";
+export const openui = new OpenUIClient();
+```
 
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
+```ts
+new OpenUIClient(options?: {
+  apiKey?: string; // default: THESYS_API_KEY
+  baseUrl?: string; // default: https://api.thesys.dev
+  appId?: string; // your app, when one API key serves several
+  fetch?: typeof globalThis.fetch;
 });
 ```
 
-```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
-import { createAutofix } from "@openuidev/server/vercel";
-import library from "./openui.spec.json";
+- The key is read on each request, so a missing key fails the first call with `missing_api_key`, not the constructor.
+- With `appId`, frontend tokens, conversations and artifacts belong to that app, and scripts run only from it.
+- Calls act as your org, or as one of your users when you pass their `userId`, plus `groupIds` so group shares count. Take the user from your session, never from the browser. Dashboard calls always act as the user in `context`, and conversation calls by id always act as your org.
 
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
+### `openui.createFrontendToken(params, options?)`
+
+Mints a frontend token for the signed-in user. The browser uses it to read their artifacts and conversations. Return it from your token route as is.
+
+```ts title="app/api/frontend-token/route.ts"
+import { openui } from "@/lib/openui";
+import { getSession } from "@/lib/auth"; // your session lookup
+
+export async function POST(request: Request) {
+  const session = await getSession(request);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const token = await openui.createFrontendToken(
+    { userId: session.user.id, groupIds: session.user.teamIds },
+    { signal: request.signal },
+  );
+  return Response.json(token, { headers: { "Cache-Control": "private, no-store" } });
+}
 ```
 
-```ts tab="Non-streaming" tab-group="autofix-sdk"
-import { createAutofix } from "@openuidev/server/openai";
-// import { createAutofix } from "@openuidev/server/vercel";
-import library from "./openui.spec.json";
+```ts
+function createFrontendToken(
+  params: { userId: string; groupIds?: string[] },
+  options?: { signal?: AbortSignal },
+): Promise<{ token: string; expires_at: number }>;
+```
 
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
+- `token` is `fct_…`, and `expires_at` is in unix seconds. `OpenUICloudProvider` reads this shape.
+- `userId` is required. A user has up to 10 `groupIds`, each up to 64 characters. A change shows on the next token.
+
+See [Authentication](/docs/dashboards/authentication).
+
+## Conversations
+
+`openui.conversations` manages your users' conversations and their items, in OpenAI's Conversations API item shape. To store and read your SDK's messages instead, use [`openui.chat` or `openui.langgraph`](#conversation-messages).
+
+```ts
+// A conversation id from the browser isn't proof: check it's the user's
+const conversation = await openui.conversations.get(threadId);
+if (conversation.userId !== session.user.id) return new Response("Not found", { status: 404 });
+
+const created = await openui.conversations.create(
+  { title: "Q3 planning" },
+  { userId: session.user.id },
+);
+const page = await openui.conversations.items.list(created.id, { order: "asc" });
+```
+
+```ts
+type Options = { signal?: AbortSignal };
+type Page = { limit?: number; after?: string; before?: string };
+type List<T> = { data: T[]; hasMore: boolean; firstId?: string; lastId?: string };
+
+interface Conversations {
+  list(params?: Options & Page & { userId?: string }): Promise<List<CloudConversation>>;
+  create(
+    params: { title?: string; metadata?: Record<string, string> },
+    options: Options & { userId: string },
+  ): Promise<CloudConversation>;
+  get(id: string, options?: Options): Promise<CloudConversation>;
+  update(
+    id: string,
+    params: { title?: string; metadata?: Record<string, string> },
+    options?: Options,
+  ): Promise<CloudConversation>;
+  delete(id: string, options?: Options): Promise<void>;
+  items: {
+    list(
+      id: string,
+      params?: Options & Page & { order?: "asc" | "desc" },
+    ): Promise<List<ConversationItem>>;
+    create(
+      id: string,
+      items: readonly ConversationItemInput[],
+      options?: Options,
+    ): Promise<ConversationItem[]>;
+    get(id: string, itemId: string, options?: Options): Promise<ConversationItem>;
+    update(
+      id: string,
+      itemId: string,
+      params: { content?: unknown; status?: ConversationItemStatus },
+      options?: Options,
+    ): Promise<ConversationItem>;
+  };
+}
+
+interface CloudConversation {
+  id: string;
+  title?: string;
+  metadata?: Record<string, string>;
+  userId?: string; // the owner
+  appId?: string;
+  createdAt: number; // unix milliseconds
+}
+
+type ConversationItemInput =
+  | { type: "message"; role: "user" | "assistant"; content: string | ConversationContentPart[] }
+  | { type: "function_call"; call_id: string; name: string; arguments: string }
+  | { type: "function_call_output"; call_id: string; output: string };
+```
+
+- Calls by id act as your org. Before acting on an id from the browser, check the conversation's `userId` is the signed-in user.
+- `create` needs the owner's `userId`, so their frontend token can read the conversation. It belongs to the client's `appId`. `metadata` holds up to 16 pairs, with keys up to 64 characters and values up to 512.
+- `list` is newest first, and with `userId` lists only that user's conversations, in every app. `items.list` is newest first unless you pass `order: "asc"`.
+- `items.create` adds only the new turn, up to 100 items, and sends no request for none. System messages can't be stored. Stored items keep OpenAI's shape, with `created_at` in unix seconds: narrow on `type`.
+- `items.update` changes only an item's `content` and `status`. Deleted conversations can't be restored.
+
+See [Conversations from your server](/docs/gateway/conversations-from-server).
+
+## Artifacts
+
+Saved dashboards, slides and reports. `openui.artifacts` reads and manages them, and `openui.defineDashboard` builds dashboards.
+
+### `openui.artifacts`
+
+Pass `userId` and `groupIds` to act as that user, seeing what their frontend token would, or neither to act as your org.
+
+```ts
+const asUser = { userId: session.user.id, groupIds: session.user.teamIds };
+
+const page = await openui.artifacts.list({ ...asUser, kind: "dashboard", limit: 20 });
+await openui.artifacts.update(id, { name: "Orders by region" }, asUser);
+await openui.artifacts.share(id, { type: "group", id: "team:sales", access: "view" }, asUser);
+await openui.artifacts.pin(id, asUser);
+```
+
+```ts
+type AsUser = { userId?: string; groupIds?: string[]; signal?: AbortSignal };
+type Target = { type: "user" | "group"; id: string };
+
+interface Artifacts {
+  list(
+    params?: AsUser & {
+      kind?: CloudArtifact["kind"] | CloudArtifact["kind"][];
+      name?: string; // case-insensitive match
+      pinned?: boolean;
+      isOwner?: boolean; // needs userId
+      conversationId?: string;
+      limit?: number; // 1 to 100
+      after?: string; // the last page's lastId
+      before?: string; // the last page's firstId
+      order?: "asc" | "desc";
+    },
+  ): Promise<{ data: CloudArtifact[]; hasMore: boolean; firstId?: string; lastId?: string }>;
+  get(id: string, options?: AsUser): Promise<CloudArtifact>;
+  update(
+    id: string,
+    params: { name?: string; content?: string },
+    options?: AsUser,
+  ): Promise<CloudArtifact>;
+  delete(id: string, options?: AsUser): Promise<void>;
+  pin(id: string, options: AsUser & { userId: string }): Promise<CloudArtifact>;
+  unpin(id: string, options: AsUser & { userId: string }): Promise<CloudArtifact>;
+  share(
+    id: string,
+    params: Target & { access: "view" | "edit" },
+    options?: AsUser,
+  ): Promise<CloudArtifact>;
+  unshare(id: string, target: Target, options?: AsUser): Promise<CloudArtifact>;
+}
+
+interface CloudArtifact {
+  id: string;
+  kind: "dashboard" | "slides" | "report";
+  name?: string;
+  content: string; // the OpenUI Lang program
+  version?: string;
+  pinned: boolean;
+  isOwner: boolean;
+  isEditable: boolean;
+  shares?: Array<Target & { access: "view" | "edit"; createdBy: string; createdAt: number }>;
+  conversationId?: string;
+  userId?: string;
+  appId?: string;
+  createdAt: number; // unix milliseconds
+  updatedAt?: number;
+}
+```
+
+- `list` is newest first. While `hasMore`, pass `lastId` as `after` for the next page.
+- `update` saves `content` as a new version, and a `name` alone renames. Acting as a user, `update`, `share` and `unshare` need edit access.
+- `pin` and `unpin` need `userId`: each user pins their own.
+- `view` opens and runs an artifact, and `edit` also edits, renames and shares it. Sharing again changes the access, and removing a share that isn't there does nothing.
+- Deleted artifacts can't be restored.
+
+See [Manage from your server](/docs/dashboards/manage-from-server).
+
+### `openui.defineDashboard(options)`
+
+Sets up how every dashboard is built: the components, the model and the data tools. Define it once.
+
+```ts title="lib/openui.ts"
+import { OpenUIClient } from "@openuidev/server";
+import spec from "../generated/spec.json";
+import { dataTools } from "./data";
+
+export const openui = new OpenUIClient();
+
+export const dashboards = openui.defineDashboard({
+  library: spec,
+  model: "anthropic/claude-sonnet-5.5",
+  tools: dataTools,
+  instructions: "An online store. Revenue is in USD. Weeks start on Monday.",
 });
 ```
 
 ```ts
-function createAutofix(options: {
-  apiKey: string;
-  library: LibrarySpec & { schema: LibraryJSONSchema };
-  apiBaseUrl?: string; // defaults to https://api.thesys.dev
-  fetch?: typeof globalThis.fetch;
-}): Autofix;
+function defineDashboard<Context extends ExecutionContext = ExecutionContext>(options: {
+  library: LibrarySpec;
+  model: string;
+  tools?: Record<string, DataTool<Context>>;
+  mcp?: McpToolClient | McpConfig<Context> | Array<McpToolClient | McpConfig<Context>>;
+  instructions?: string;
+  promptOptions?: { preamble?: string; examples?: string[]; additionalRules?: string[] };
+  reasoningEffort?: "minimal" | "low" | "medium" | "high";
+  maxToolRounds?: number;
+}): Dashboard<Context>;
 ```
 
-From `@openuidev/server/openai`, `Autofix` is `{ completions: { fix, stream } }`. From `@openuidev/server/vercel`, it is `{ ai: { fix, stream } }`.
+| Option            | Description                                                                                                                              |
+| :---------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| `library`         | The component library's spec: `openui generate --spec` JSON, or `library.toSpec()`.                                                      |
+| `model`           | The model that builds and edits dashboards, as `provider/model`.                                                                         |
+| `tools`           | Your data tools, each `{ description, parameters, output, execute }`. See [Connect data](/docs/dashboards/connect-data).                 |
+| `mcp`             | MCP servers whose tools dashboards can call. See [MCP servers](#mcp-servers).                                                            |
+| `instructions`    | Your business context: what it does, who reads the dashboards, your terms, calendar and units. The same for every user.                  |
+| `promptOptions`   | `preamble`, `examples` and `additionalRules` added to the prompt.                                                                        |
+| `reasoningEffort` | How much the model thinks, for models that can.                                                                                          |
+| `maxToolRounds`   | Tool-call rounds before the model must write the dashboard. Default: `20`. With `0`, the model calls no tools, but its scripts still do. |
 
-## `fix(input)`
+- `tools`, `mcp`, or both are required.
+- Bad options throw at once: `invalid_input` for a missing `model`, `library` or data tools, and `invalid_library` for a spec the prompt can't be built from.
+- Add your own fields to the context with the generic: `openui.defineDashboard<{ userId: string; accountId: string }>(…)`. Your tools then get them typed.
 
-Validate completed OpenUI text. Valid output is returned as-is. Invalid output is sent to `POST /v1/autofix`.
+See [Define dashboards](/docs/dashboards/define-dashboards).
 
-```ts tab="OpenAI" tab-group="autofix-sdk"
-const result = await autofix.completions.fix({ generation, messages, signal });
+#### MCP servers
 
-if (result.content !== null) {
-  // already_valid or fixed — use result.content
-} else {
-  // fix_failed — choose a fallback
-  console.warn(result.unfixedErrors);
+The `mcp` option offers an MCP server's tools to dashboards. Pass a client with `listTools` and `callTool`, such as `Client` from `@modelcontextprotocol/sdk`, or `{ client, include, outputs, connect }`, or an array of them. The tools the server marks read-only (`readOnlyHint`) are offered by default. `include` picks others, `outputs` gives example results, and `connect(context)` returns a client with the user's credentials. See [Connect data](/docs/dashboards/connect-data#mcp-servers).
+
+### Dashboard methods
+
+`defineDashboard` returns `dashboards`. Each method takes the signed-in user as `context`, and acts as them.
+
+```ts
+const user = { userId: session.user.id, groupIds: session.user.teamIds };
+
+// Build or change a dashboard. Return `response` from your tool and render it.
+const response = await dashboards.create({ title: "Orders, last 30 days", prompt }, user);
+await dashboards.edit({ id, prompt: "Add a chart of refunds by reason." }, user);
+const { name, content } = await dashboards.get({ id }, user);
+
+// In your interpreter route: run the renderer's data request, and return { result }
+const result = await dashboards.interpreter.execute(await request.json(), user, { signal });
+```
+
+```ts
+interface Dashboard<Context extends ExecutionContext> {
+  create(
+    params: { title: string; prompt: string },
+    context: Context,
+    options?: { signal?: AbortSignal; stream?: boolean },
+  ): Promise<string>; // AsyncIterable<string> with { stream: true }
+  edit(
+    params: { id: string; prompt: string },
+    context: Context,
+    options?: { signal?: AbortSignal; stream?: boolean },
+  ): Promise<string>; // AsyncIterable<string> with { stream: true }
+  get(
+    params: { id: string },
+    context: Context,
+    options?: { signal?: AbortSignal },
+  ): Promise<CloudArtifact>;
+  interpreter: {
+    execute(
+      request: { name: string; arguments?: Record<string, unknown>; id?: string; version?: string },
+      context: Context,
+      options?: { signal?: AbortSignal; timeoutMs?: number },
+    ): Promise<unknown>;
+  };
 }
+
+interface ExecutionContext {
+  userId: string;
+  groupIds?: string[];
+}
+```
+
+- **`create` and `edit`** run the model's tool rounds, typically 20 to 45 seconds. Once generation starts, they resolve with the tool response: return it from your tool as is, and pass it to `LiveArtifactRenderer` as `response`. Later failures show in the renderer. With `{ stream: true }`, they yield a message once the dashboard has an id, and a last one once it's saved or failed: return the last one.
+- `prompt` is all the builder sees, so include any data it needs. A new dashboard is the user's alone until it's shared. Its owner can edit it, and so can anyone it's shared with for editing.
+- **`get`** reads a dashboard the user can open. Give the model its `name` and `content`, or the renderer its `id`.
+- **`interpreter.execute`** runs your tool when `name` is one. Otherwise it runs a script the model wrote, from the dashboard `id` names, for users who can open it. A script for an older `version` than the saved one is refused with `409`. `timeoutMs` covers the whole run: default 60 seconds. Failures throw `ToolExecutionError`: `tool_not_found` (404), `tool_timeout` (504), `script_limit` or the script's own code (502), `invalid_input`, or the Gateway's code and status.
+
+See [Generate](/docs/dashboards/generate), [Render](/docs/dashboards/render) and [Add to your agent](/docs/dashboards/add-to-your-agent).
+
+## SDK integrations
+
+The client has a namespace for each SDK it works with. Each takes and returns that SDK's own types.
+
+| Namespace          | SDK                     | Has                                 | Types from        |
+| :----------------- | :---------------------- | :---------------------------------- | :---------------- |
+| `openui.chat`      | OpenAI Chat Completions | `conversations` and `createAutofix` | `openai`          |
+| `openui.langgraph` | LangGraph               | `conversations`                     | `@langchain/core` |
+| `openui.ai`        | Vercel AI SDK           | `createAutofix`                     | `ai`              |
+
+### Conversation messages
+
+`openui.chat.conversations` and `openui.langgraph.conversations` have the same calls as [`openui.conversations`](#conversations), but their items go in and come out as your SDK's messages:
+
+- `openui.chat.conversations` takes and returns Chat Completions messages.
+- `openui.langgraph.conversations` takes LangChain messages, or the plain ones it returns, and returns plain `{ role, content }` messages that `graph.invoke` takes.
+
+#### `items.create(id, messages, options?)`
+
+Stores the new turn, and resolves with it as stored, in the same shape `items.list` returns.
+
+```ts tab="Chat Completions" tab-group="history-sdk"
+await openui.chat.conversations.items.create(threadId, [
+  { role: "user", content: lastUserText },
+  { role: "assistant", content: assistantText },
+]);
+```
+
+```ts tab="LangGraph" tab-group="history-sdk"
+const { messages } = await graph.invoke({ messages: [...history, new HumanMessage(text)] });
+
+await openui.langgraph.conversations.items.create(threadId, messages.slice(history.length));
+```
+
+```ts
+function create(
+  id: string,
+  messages: readonly ChatCompletionMessageParam[], // LangGraph: readonly (BaseMessage | LangGraphHistoryMessage)[]
+  options?: { signal?: AbortSignal },
+): Promise<ChatCompletionMessageParam[]>; // LangGraph: Promise<LangGraphHistoryMessage[]>
+```
+
+- Pass only the new turn. Earlier messages are already stored, so the full history would duplicate them.
+- System and developer messages are skipped.
+- A tool call is stored only together with its result, so a turn stopped mid tool call leaves the thread valid for the next request.
+- What's skipped isn't stored, so it isn't in the result. With nothing to store, it resolves with `[]` and sends no request.
+
+#### `items.list(id, options?)`
+
+Reads the whole thread, oldest first, ready to send to the model. It reads every page.
+
+```ts tab="Chat Completions" tab-group="history-sdk"
+const history = await openui.chat.conversations.items.list(threadId);
+
+const completion = await client.chat.completions.create({
+  model,
+  messages: [systemMessage, ...history, userMessage],
+});
+```
+
+```ts tab="LangGraph" tab-group="history-sdk"
+const history = await openui.langgraph.conversations.items.list(threadId);
+
+await graph.invoke({ messages: [...history, new HumanMessage(text)] });
+```
+
+```ts
+function list(
+  id: string,
+  options?: { signal?: AbortSignal },
+): Promise<ChatCompletionMessageParam[]>; // LangGraph: Promise<LangGraphHistoryMessage[]>
+
+type LangGraphHistoryMessage =
+  | { role: "human"; content: MessageContent }
+  | { role: "ai"; content: string; tool_calls?: ToolCall[] }
+  | { role: "tool"; content: string; tool_call_id: string };
+```
+
+- User images come back as `image_url` parts. Other stored items, such as `reasoning`, are skipped.
+- LangGraph messages are plain objects. `graph.invoke`, or `coerceMessageLikeToMessage` from `@langchain/core/messages`, turns them into LangChain messages.
+
+### Autofix
+
+Autofix checks generated OpenUI Lang against your library and repairs invalid output through the [Autofix API](/docs/autofix).
+
+#### `createAutofix(params)`
+
+Creates the Autofix helpers for your SDK: `openui.chat.createAutofix` for Chat Completions, `openui.ai.createAutofix` for the Vercel AI SDK.
+
+```ts tab="Chat Completions" tab-group="autofix-sdk"
+import library from "./openui.spec.json";
+
+export const autofix = openui.chat.createAutofix({ library });
 ```
 
 ```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
-const result = await autofix.ai.fix({ generation, messages, signal });
+import library from "./openui.spec.json";
 
-if (result.content !== null) {
-  // already_valid or fixed — use result.content
-} else {
-  // fix_failed — choose a fallback
-  console.warn(result.unfixedErrors);
-}
+export const autofix = openui.ai.createAutofix({ library });
 ```
 
-```ts tab="Non-streaming" tab-group="autofix-sdk"
-const result = await autofix.completions.fix({ generation, messages, signal });
-// const result = await autofix.ai.fix({ generation, messages, signal });
+```ts
+function createAutofix(params: { library: LibrarySpec & { schema: LibraryJSONSchema } }): {
+  fix;
+  stream;
+};
+```
+
+- Use the spec from `openui generate --spec`, for the same library as your renderer. It needs `schema`.
+- Requests use the client's API key, `baseUrl` and `fetch`.
+
+#### `autofix.fix(input)`
+
+Checks completed OpenUI text. Valid output is returned as is. Invalid output is sent to the Autofix API.
+
+```ts
+const result = await autofix.fix({ generation, messages, signal });
 
 if (result.content !== null) {
-  // already_valid or fixed — use result.content
+  // already_valid or fixed: use result.content
 } else {
-  // fix_failed — choose a fallback
-  console.warn(result.unfixedErrors);
+  console.warn(result.unfixedErrors); // fix_failed: choose a fallback
 }
 ```
 
@@ -123,11 +487,7 @@ function fix(input: {
   messages?: ChatCompletionMessageParam[];
   signal?: AbortSignal;
 }): Promise<AutofixResult>;
-```
 
-`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. On `fixed`, `content` is the program the Autofix API returned.
-
-```ts
 type AutofixResult = {
   original: string;
   fixedErrors: AutofixDiagnostic[];
@@ -145,40 +505,19 @@ interface AutofixDiagnostic {
 }
 ```
 
-## `stream(input)`
+- `generation` is the completed OpenUI text, up to 100,000 characters. `messages` is the conversation before it.
+- On `fixed`, `content` is the program the Autofix API returned.
+- Valid output needs no request, so it needs no API key.
 
-Wrap a native SDK stream. The helper forwards provider events and inserts a repair before the stream completes when the finished UI is invalid.
+#### `autofix.stream(input)`
 
-```ts
-function stream(input: {
-  stream: AsyncIterable<Chunk> & { controller?: AbortController };
-  messages?: ChatCompletionMessageParam[];
-  signal?: AbortSignal;
-}): AutofixStream<Chunk>;
-```
+Wraps your SDK's stream. It forwards every event, and inserts a repair before the stream completes when the finished UI is invalid.
 
-Use `autofix.completions.stream()` with a native Chat Completions stream, or `autofix.ai.stream()` with `toUIMessageStream({ stream: result.stream })` — not the raw `result.stream`.
-
-```ts
-interface AutofixStream<T> {
-  chunks: AsyncIterable<T>;
-  toResponse(): Response;
-  result: Promise<AutofixResult | null>;
-}
-```
-
-Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes. Persist `result.content` when it is a string — that is the Autofix program, not the joined stream text. `result` is `null` when Autofix did not run.
-
-```ts title="app/api/chat/route.ts" tab="OpenAI" tab-group="autofix-sdk"
+```ts title="app/api/chat/route.ts" tab="Chat Completions" tab-group="autofix-sdk"
 import OpenAI from "openai";
-import { createAutofix } from "@openuidev/server/openai";
-import library from "./openui.spec.json";
+import { autofix } from "@/lib/autofix";
 
 const model = new OpenAI();
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
 
 export async function POST(request: Request) {
   const { messages } = await request.json();
@@ -187,148 +526,121 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.completions
-    .stream({ stream: source, messages, signal: request.signal })
-    .toResponse();
+  return autofix.stream({ stream: source, messages, signal: request.signal }).toResponse();
 }
 ```
 
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
 import { streamText, toUIMessageStream } from "ai";
-import { createAutofix } from "@openuidev/server/vercel";
-import library from "./openui.spec.json";
+import { autofix } from "@/lib/autofix";
 
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
+export async function POST(request: Request) {
+  const { prompt } = await request.json();
+  const result = streamText({
+    model: "openai/gpt-5.5",
+    system: systemPrompt,
+    prompt,
+    abortSignal: request.signal,
+  });
 
-const result = streamText({
-  model: "openai/gpt-5.5",
-  system: systemPrompt,
-  prompt: "Show a greeting card",
-  abortSignal: signal,
-});
-
-return autofix.ai
-  .stream({
-    stream: toUIMessageStream({ stream: result.stream }),
-    signal,
-  })
-  .toResponse();
-```
-
-```ts title="server.ts" tab="Non-streaming" tab-group="autofix-sdk"
-const result = await autofix.completions.fix({ generation, messages, signal });
-// const result = await autofix.ai.fix({ generation, messages, signal });
-
-if (result.content !== null) {
-  // already_valid or fixed — use result.content
-} else {
-  console.warn(result.unfixedErrors);
+  return autofix
+    .stream({ stream: toUIMessageStream({ stream: result.stream }), signal: request.signal })
+    .toResponse();
 }
 ```
 
-```ts tab="OpenAI" tab-group="autofix-sdk"
-const output = autofix.completions.stream({ stream: source, messages, signal });
+```ts
+function stream(input: {
+  stream: AsyncIterable<Chunk> & { controller?: AbortController };
+  messages?: ChatCompletionMessageParam[];
+  signal?: AbortSignal;
+}): AutofixStream<Chunk>;
+
+interface AutofixStream<Chunk> {
+  chunks: AsyncIterable<Chunk>;
+  toResponse(): Response;
+  result: Promise<AutofixResult | null>;
+}
+```
+
+- From `openui.chat`, pass a Chat Completions stream; `toResponse()` is the SSE the frontend `openAIAdapter()` reads. From `openui.ai`, pass `toUIMessageStream({ stream: result.stream })`, not `result.stream`; `toResponse()` is the UI message stream `useChat` reads.
+- Read `chunks` or call `toResponse()`, once. `result` settles after that.
+- Save `result.content` when it's a string: that's the final program, not the joined stream text. `result` is `null` when Autofix didn't run.
+- A failed repair throws `AutofixError` with code `fix_failed`.
+
+```ts
+const output = autofix.stream({ stream: source, messages, signal });
 
 for await (const chunk of output.chunks) {
-  // Native SDK events, including any appended correction
+  // your SDK's events, including any repair
 }
 
 const settled = await output.result;
-if (settled?.content) {
-  // Persist settled.content
-}
+if (settled?.content) await save(settled.content);
 ```
 
-```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
-const output = autofix.ai.stream({
-  stream: toUIMessageStream({ stream: result.stream }),
-  signal,
-});
+#### Autofix errors
 
-for await (const chunk of output.chunks) {
-  // Native SDK events, including any appended correction
-}
-
-const settled = await output.result;
-if (settled?.content) {
-  // Persist settled.content
-}
-```
-
-```ts tab="Non-streaming" tab-group="autofix-sdk"
-if (result.content) {
-  // Persist result.content
-}
-```
-
-A failed repair on a stream throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
-
-### Stream errors
-
-Thrown errors include a `code` string:
+Autofix throws `AutofixError`, with a `code`:
 
 | `code`                 | When                                               |
 | :--------------------- | :------------------------------------------------- |
+| `missing_api_key`      | No API key: pass `apiKey` or set `THESYS_API_KEY`  |
 | `invalid_library`      | `library.schema` is missing                        |
-| `generation_too_large` | Generation exceeds 100,000 characters              |
-| `http_error`           | Autofix HTTP request failed (`status` is set)      |
-| `invalid_response`     | Autofix response could not be read                 |
+| `generation_too_large` | The generation is over 100,000 characters          |
+| `http_error`           | The Autofix request failed. `status` is set.       |
+| `invalid_response`     | The Autofix response couldn't be read              |
 | `stream_consumed`      | `chunks` or `toResponse()` was used more than once |
-| `fix_failed`           | Streamed generation could not be repaired          |
+| `fix_failed`           | A streamed generation couldn't be repaired         |
 
-## Conversation history
+On `fix_failed`, `error.result` holds the diagnostics.
 
-Persist only the new turn — not the full `messages` array — or items will be duplicated. Use the master API key. System and developer messages are skipped.
+## Errors
 
-A tool call is stored only together with its result, so a turn stopped mid tool call is saved without that call and the thread stays valid for the next request.
+Every error has a `code` string, and `status` when there's an HTTP status to report.
 
-### `storeChatCompletionHistory(options)`
+| Class                | Thrown by                                                                      |
+| :------------------- | :----------------------------------------------------------------------------- |
+| `OpenUIApiError`     | The client, `artifacts`, `conversations`, dashboards and `createFrontendToken` |
+| `ToolExecutionError` | `interpreter.execute`, and a bad `context` on any dashboard call               |
+| `AutofixError`       | Autofix; see [Autofix errors](#autofix-errors)                                 |
 
-```ts
-import { storeChatCompletionHistory } from "@openuidev/server/openai";
+| `code`             | `status`      | When                                                                                     |
+| :----------------- | :------------ | :--------------------------------------------------------------------------------------- |
+| `missing_api_key`  | none          | No API key: pass `apiKey` or set `THESYS_API_KEY`                                        |
+| `invalid_input`    | none or `400` | A bad argument, caught before any request                                                |
+| `invalid_library`  | none          | `defineDashboard` couldn't build a prompt from `library`                                 |
+| `invalid_response` | `502`         | The Gateway's response couldn't be read                                                  |
+| the Gateway's      | the Gateway's | The Gateway refused the call, such as `404` for an artifact the user can't see, or `429` |
 
-await storeChatCompletionHistory({
-  apiKey: process.env.THESYS_API_KEY!,
-  conversationId: threadId,
-  messages: [
-    { role: "user", content: lastUserText },
-    { role: "assistant", content: assistantText },
-  ],
-});
-```
-
-```ts
-function storeChatCompletionHistory(options: {
-  apiKey: string;
-  conversationId: string;
-  messages: ChatCompletionMessageParam[];
-  apiBaseUrl?: string;
-  fetch?: typeof fetch;
-}): Promise<ConversationItemList>;
-```
-
-### `chatCompletionMessagesToItems(messages)`
-
-Convert Chat Completions messages to Conversations API items without posting.
+Return the `code` and `status` from your routes:
 
 ```ts
-import { chatCompletionMessagesToItems } from "@openuidev/server/openai";
+import { OpenUIApiError, ToolExecutionError } from "@openuidev/server";
 
-chatCompletionMessagesToItems([
-  { role: "user", content: "hello" },
-  { role: "assistant", content: "hi" },
-]);
+function errorResponse(error: unknown) {
+  if (error instanceof OpenUIApiError || error instanceof ToolExecutionError) {
+    return Response.json(
+      { error: { code: error.code, message: error.message } },
+      { status: error.status ?? 500 },
+    );
+  }
+  return Response.json({ error: { code: "internal_error" } }, { status: 500 });
+}
 ```
 
 ## Exports
 
-| Entry point                | Export                              | Description                                            |
-| :------------------------- | :---------------------------------- | :----------------------------------------------------- |
-| `@openuidev/server/openai` | `createAutofix`                     | Chat Completions Autofix: `completions.fix` / `stream` |
-| `@openuidev/server/openai` | `storeChatCompletionHistory`        | Persist a Chat Completions turn                        |
-| `@openuidev/server/openai` | `chatCompletionMessagesToItems`     | Convert messages to Conversations API items            |
-| `@openuidev/server/openai` | `StoreChatCompletionHistoryOptions` | History helper configuration                           |
-| `@openuidev/server/vercel` | `createAutofix`                     | Vercel AI SDK Autofix: `ai.fix` / `ai.stream`          |
+| Export                                                 | Description                  |
+| :----------------------------------------------------- | :--------------------------- |
+| `OpenUIClient`                                         | The client                   |
+| `OpenUIApiError`, `ToolExecutionError`, `AutofixError` | The [error classes](#errors) |
+
+Types:
+
+- **Client:** `OpenUIClientOptions`, `CloudList`.
+- **Conversations:** `CloudConversation`, `CloudConversationList`, `ConversationMetadata`, `ConversationItem`, `ConversationItemInput`, `ConversationItemList`, `ConversationItemStatus`, `ConversationContentPart`, `ListConversationsParams`, `ListConversationItemsParams`.
+- **Artifacts:** `CloudArtifact`, `CloudArtifactList`, `CloudArtifactShare`, `ListArtifactsParams`, `ShareArtifactParams`, `ArtifactShareTarget`.
+- **Dashboards:** `Dashboard`, `DashboardOptions`, `DataTool`, `ExecutionContext`, `InterpreterRequest`, `McpConfig`, `McpToolClient`.
+- **SDK integrations:** `ChatConversations`, `LangGraphConversations`, `LangGraphHistoryMessage`, `MessageConversations`, `MessageConversationItems`.
+- **Autofix:** `ChatAutofix`, `AIAutofix`, `AutofixHelpers`, `CreateAutofixParams`, `AutofixInput`, `AutofixStreamInput`, `AutofixResult`, `AutofixDiagnostic`, `AutofixStream`.

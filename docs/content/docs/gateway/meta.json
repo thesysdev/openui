@@ -5,6 +5,7 @@
     "index",
     "generate-openui-lang",
     "authentication",
+    "conversations-from-server",
     "models",
     "reliability",
     "prompt-caching",

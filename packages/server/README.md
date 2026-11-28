@@ -6,18 +6,17 @@ Server utilities for OpenUI & OpenUI Gateway.
 
 ## Autofix
 
-Prefer this package over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
+Prefer this package over calling the endpoint yourself. Create an `OpenUIClient` and call `openui.chat.createAutofix` for Chat Completions or `openui.ai.createAutofix` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server: the client reads `THESYS_API_KEY`.
 
 ### Configure once
 
 ```ts
-import { createAutofix } from "@openuidev/server/openai";
+import { OpenUIClient } from "@openuidev/server";
 import library from "./openui.spec.json";
 
-export const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
+const openui = new OpenUIClient();
+
+export const autofix = openui.chat.createAutofix({ library });
 ```
 
 ### Fix a completed generation
@@ -25,7 +24,7 @@ export const autofix = createAutofix({
 ```ts
 import { autofix } from "./lib/autofix";
 
-const result = await autofix.completions.fix({ generation, messages, signal });
+const result = await autofix.fix({ generation, messages, signal });
 
 if (result.status === "fix_failed") {
   console.warn(result.unfixedErrors);
@@ -51,9 +50,7 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.completions
-    .stream({ stream: source, messages, signal: request.signal })
-    .toResponse();
+  return autofix.stream({ stream: source, messages, signal: request.signal }).toResponse();
 }
 ```
 
@@ -63,13 +60,10 @@ Return SSE for the frontend `openAIAdapter()`. `autofix.responses` is not suppor
 
 ```ts
 import { streamText, toUIMessageStream } from "ai";
-import { createAutofix } from "@openuidev/server/vercel";
+import { OpenUIClient } from "@openuidev/server";
 import library from "./openui.spec.json";
 
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
+const autofix = new OpenUIClient().ai.createAutofix({ library });
 
 const result = streamText({
   model: "openai/gpt-5.5",
@@ -78,7 +72,7 @@ const result = streamText({
   abortSignal: signal,
 });
 
-return autofix.ai
+return autofix
   .stream({
     stream: toUIMessageStream({ stream: result.stream }),
     signal,
@@ -100,65 +94,45 @@ Use either `chunks` or `toResponse()` once. `result` settles after that consumer
 
 `result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
 
-`apiBaseUrl` overrides the Gateway origin. `fetch` supports custom transports or mocks.
+Pass `baseUrl` or `fetch` to `new OpenUIClient()` to change the Gateway origin or the transport. Failures throw `AutofixError` with a `code`.
 
 ## Conversation history
 
-Persist a Chat Completions turn as Conversations API items. Pass only the new turn —
-last user message plus the assembled assistant reply — not the full `messages` array.
-Use the master API key.
-
-A tool call is stored only together with its result, in the tool messages right after
-it. A turn stopped mid tool call is saved without that call, so the thread stays valid
-for the next request.
+Store each turn in an OpenUI Cloud conversation, and read the thread back for the next
+request, in your SDK's messages. Use the API key on your server. Calls go by id, as your
+org, so check a thread id from the browser is the signed-in user's first.
 
 ```ts
-import { storeChatCompletionHistory } from "@openuidev/server/openai";
+import { OpenUIClient } from "@openuidev/server";
 
-await storeChatCompletionHistory({
-  apiKey: process.env.THESYS_API_KEY!,
-  conversationId: threadId,
-  messages: [
-    { role: "user", content: lastUserText },
-    { role: "assistant", content: assistantText },
-  ],
-});
-```
+const openui = new OpenUIClient(); // reads THESYS_API_KEY
 
-Convert without posting:
+// A thread id from the browser isn't proof: check it's the signed-in user's.
+const conversation = await openui.conversations.get(threadId);
+if (conversation.userId !== userId) throw new Error("Not found");
 
-```ts
-import { chatCompletionMessagesToItems } from "@openuidev/server/openai";
+// The thread so far, oldest first, as Chat Completions messages.
+const history = await openui.chat.conversations.items.list(threadId);
 
-chatCompletionMessagesToItems([
-  { role: "user", content: "hello" },
-  { role: "assistant", content: "hi" },
+// Store only the new turn: earlier messages are already there.
+await openui.chat.conversations.items.create(threadId, [
+  { role: "user", content: lastUserText },
+  { role: "assistant", content: assistantText },
 ]);
 ```
 
-### LangGraph
+`create({ title }, { userId })` names the owner, so their frontend token can read the
+conversation too, and `list({ userId })` lists only theirs.
 
-Import `storeLangGraphHistory` from `@openuidev/server/langgraph`. Pass completed
-`BaseMessage` instances from `@langchain/core/messages`, the message types used
-by LangGraph. This entry point requires the optional `@langchain/core` peer
-dependency; other server entry points do not.
+`items.create` resolves with the turn as stored, in the same messages. `openui.langgraph.conversations`
+does the same with LangChain messages: `items.create` takes `BaseMessage`s or the plain messages it
+returns, and both `items.create` and `items.list` return `{ role, content }` messages that
+`graph.invoke({ messages })` takes. Their conversation calls (`list`, `create`, `get`, `update`,
+`delete`) are `openui.conversations`' own.
 
-```ts
-import { storeLangGraphHistory } from "@openuidev/server/langgraph";
-
-await storeLangGraphHistory({
-  apiKey: process.env.THESYS_API_KEY!,
-  conversationId: threadId,
-  messages: newTurnMessages,
-});
-```
-
-Store only the new turn, including tool calls and results. Passing the full
-replayed history or individual streaming chunks creates duplicate items.
-The conversation must already exist. System/developer instructions are skipped;
-text and user `image_url` blocks are supported. Use `langGraphMessagesToItems`
-for conversion without a network request. `apiBaseUrl` and `fetch` work as in
-`storeChatCompletionHistory`; storage failures reject the returned promise.
+System and developer messages are skipped. A tool call is stored only together with its
+result, so a turn stopped mid tool call leaves the thread valid for the next request.
+Types come from the optional `openai` and `@langchain/core` peers: install the one you use.
 
 ## Showing a dashboard while it builds
 
