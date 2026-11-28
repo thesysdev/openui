@@ -1,0 +1,211 @@
+/* A white card on the white hero shell, so a hairline carries the edge. The
+   app screen on the left, the offer on the right. The whole card is the
+   click target (see .cta). */
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 4rem auto 0;
+  /* No padding: the card's own edges cut the tilted screen. */
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--home-hairline);
+  border-radius: 16px;
+  background: var(--openui-foreground);
+  transition: border-color 150ms ease;
+}
+
+/* No shadow on the card. Hover adds one thing: a slightly stronger edge. */
+.card:hover {
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="dark"] .card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.card:has(.cta:focus-visible) {
+  outline: 2px solid var(--openui-text-neutral-primary);
+  outline-offset: 2px;
+}
+
+/* The app window, centred and upright, cut by the card's bottom edge. */
+.media {
+  position: relative;
+  min-width: 0;
+  min-height: 300px;
+  overflow: hidden;
+}
+
+/* The white rim: 8px around the screen. Its radius is concentric with the
+   screen's own corner (~6px at this size) plus the rim. */
+.frame {
+  position: absolute;
+  top: 56px;
+  left: 8%;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: 84%;
+  padding: 8px;
+  border-radius: 14px;
+  /* Plain white, held by a hairline and a subtle drop shadow. */
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px -8px rgba(0, 0, 0, 0.08);
+}
+
+/* A soft shadow behind the window, darkest at the bottom and fading out
+   toward the top. */
+.frame::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 8% -24px 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0));
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .frame {
+  background: #222223;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 8px 24px -8px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .frame::before {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0));
+}
+
+/* Copy at the top, the button at the bottom. */
+.body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 32px 32px 32px 24px;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Sits above the title, naming what the card offers. */
+.chip {
+  align-self: flex-start;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--home-surface-raised);
+  font-family: var(--home-font-text);
+  font-size: var(--home-label-size);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: var(--home-heading-size);
+  font-weight: 500;
+  line-height: var(--home-heading-leading);
+  letter-spacing: var(--home-heading-tracking);
+  color: var(--openui-text-neutral-primary);
+}
+
+.description {
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* Numbered steps: a small neutral tile per number, text on the same line. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+  color: var(--openui-text-neutral-primary);
+}
+
+.stepNumber {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  /* Centres the 20px tile on the first line of text when a step wraps. */
+  margin-top: calc((var(--home-body-size) * var(--home-body-leading) - 20px) / 2);
+  border-radius: 6px;
+  background: var(--home-surface-raised);
+  font-size: var(--home-label-size);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* Stretch the button's hit area over the whole card. */
+.cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+}
+
+[data-theme="dark"] .card {
+  background: #0e0e0e;
+}
+
+[data-theme="dark"] .chip,
+[data-theme="dark"] .stepNumber {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Phones: the screen on top, then the copy, then a full-width button. */
+@media (max-width: 767px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 2rem;
+  }
+
+  .media {
+    min-height: 180px;
+  }
+
+  .frame {
+    top: 36px;
+  }
+
+  .body {
+    align-items: stretch;
+    padding: 20px 16px 16px;
+  }
+
+  .cta {
+    width: 100%;
+  }
+}
