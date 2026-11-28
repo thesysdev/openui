@@ -239,7 +239,7 @@ export async function POST(request: Request) {
 
   for (let step = 0; step < 4; step++) {
     const completion = await gateway.chat.completions.create({
-      model: "anthropic/claude-sonnet-5.5",
+      model: "google/gemini-4-neon",
       messages: history,
       tools: dashboardTools,
     });
@@ -284,7 +284,7 @@ export async function POST(request: Request) {
   const tools = dashboardTools({ userId: session.user.id });
 
   const result = streamText({
-    model: gateway.chat("anthropic/claude-sonnet-5.5"),
+    model: gateway.chat("google/gemini-4-neon"),
     system: systemPrompt,
     messages: await convertToModelMessages(messages, { tools }),
     tools,
