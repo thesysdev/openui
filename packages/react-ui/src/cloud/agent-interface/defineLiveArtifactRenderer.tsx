@@ -8,7 +8,10 @@ import {
 import type { Library } from "@openuidev/react-lang";
 import clsx from "clsx";
 import type { ReactNode } from "react";
-import { parseArtifactReference } from "../CloudArtifact/artifactReference";
+import {
+  parseArtifactReference,
+  type ArtifactToolResponse,
+} from "../CloudArtifact/artifactReference";
 import { LiveArtifactRenderer } from "../CloudArtifact/ArtifactRenderer";
 import { names, styles } from "../CloudArtifact/cloudArtifact.styles";
 import { DashboardCard, DashboardIllustration } from "./DashboardCard";
@@ -31,7 +34,7 @@ export interface LiveArtifactRendererOptions {
 }
 
 interface DashboardArtifactProps {
-  response?: string;
+  response?: ArtifactToolResponse;
   id?: string;
 }
 
@@ -72,7 +75,8 @@ export function defineLiveArtifactRenderer({
       // The call is still running: the renderer is pending until its result lands. A stopped
       // call renders nothing, so nothing is left loading.
       if (response == null) return isStreaming ? { props: {}, meta: null } : null;
-      if (typeof response !== "string" || !response) return null;
+      // A string, or an MCP tool result, as the framework hands it over.
+      if (!response) return null;
       const reference = parseArtifactReference(response);
       return {
         props: { response },

@@ -32,7 +32,7 @@ import {
 import { createPortal } from "react-dom";
 import { shallow } from "zustand/shallow";
 import { cacheFor, type ArtifactCache } from "./artifactCache";
-import { parseArtifactReference } from "./artifactReference";
+import { parseArtifactReference, type ArtifactToolResponse } from "./artifactReference";
 import { names, styles } from "./cloudArtifact.styles";
 import {
   anchorOf,
@@ -88,7 +88,7 @@ export interface ArtifactRendererBaseProps {
    * artifact is still running, and the `Pending` slot shows. It keeps showing while a dashboard is
    * built, until it starts writing. Unmount it if the call ends without a result.
    */
-  response?: string | null;
+  response?: ArtifactToolResponse | null;
   /** Instead of `response`, the artifact's id. */
   id?: string;
   /** The artifact's saved content, if you keep artifacts in your own storage. */
