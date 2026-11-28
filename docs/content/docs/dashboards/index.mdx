@@ -64,7 +64,7 @@ A dashboard can reload its data on an interval while it's open, such as every 30
 
 ### Computed fields
 
-A generated script derives new metrics from the results of your data tools. The script runs in OpenUI's JS interpreter, a [sandbox](/docs/dashboards/security#the-script-sandbox) with no network or file access, and can call only your data tools. For example, a dashboard can group customers by age range from a tool that returns each customer's birth date, without a new endpoint.
+A generated script derives new metrics from the results of your data tools. The script runs in OpenUI's [JS interpreter](/docs/dashboards/security#the-js-interpreter), which has no network or file access, and can call only your data tools. For example, a dashboard can group customers by age range from a tool that returns each customer's birth date, without a new endpoint.
 
 ### Interactive filters
 

@@ -1,6 +1,6 @@
 ---
 title: Security
-description: What runs in the browser, how scripts are sandboxed, and what data goes to the model provider.
+description: What runs in the browser, how the JS interpreter runs scripts, and what data goes to the model provider.
 ---
 
 A dashboard is written by a model, shown to your users, and loads data from your APIs. This page covers what runs where, and which data leaves your server.
@@ -11,9 +11,9 @@ The model writes dashboards in [OpenUI Lang](/docs/openui-lang/overview), which 
 
 For example, a dashboard can't add a `<script>` tag, load a page from another site, or call `fetch`. OpenUI Lang has no way to write them.
 
-## The script sandbox
+## The JS interpreter
 
-A script derives data the tools don't return directly, such as revenue per customer from orders and customers. Scripts are JavaScript, so they run in OpenUI's JS interpreter, a sandbox:
+A script derives data the tools don't return directly, such as revenue per customer from orders and customers. Scripts are JavaScript, so they run in OpenUI's JS interpreter:
 
 - **A fresh VM for each run:** Each run starts in a new QuickJS virtual machine compiled to WebAssembly. Nothing carries over from another run or another user.
 - **No network or files:** The VM has no `fetch`, sockets, file system, or Node.js APIs.
@@ -71,7 +71,7 @@ Not sent to the model provider:
 When a dashboard opens:
 
 - **A query that calls a data tool** goes from the browser to your interpreter route and back. It never reaches OpenUI.
-- **A script's tool results** go to OpenUI's sandbox for that run only, so the script can compute its result. No model sees them.
+- **A script's tool results** go to OpenUI's JS interpreter for that run only, so the script can compute its result. No model sees them.
 
 ## What OpenUI stores
 

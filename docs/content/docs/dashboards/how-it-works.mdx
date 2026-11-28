@@ -16,7 +16,7 @@ A dashboard is generated once and loads its data every time it opens.
 
 **Generate:** The user asks for a dashboard in the chat. The agent calls a tool that creates the dashboard. OpenUI's model first [calls your data tools](#tools-during-the-build) to see real data, then writes the dashboard from the component library. For data that has to be derived, such as a metric that combines several data tools, it also writes a script and runs it once. The dashboard is [checked and repaired](#how-a-dashboard-is-checked) before it's saved. The tool returns a response, and the chat renders the dashboard from it.
 
-**Load data:** Each time it opens, the dashboard calls its data tools for live data, without a model call. Scripts run in OpenUI's JS interpreter, a [sandbox](/docs/dashboards/security#the-script-sandbox), and call the data tools they need.
+**Load data:** Each time it opens, the dashboard calls its data tools for live data, without a model call. Scripts run in OpenUI's [JS interpreter](/docs/dashboards/security#the-js-interpreter) and call the data tools they need.
 
 **Edit:** A follow-up request calls a tool that edits the dashboard. The model calls the data tools that new or changed queries need, and OpenUI patches only the parts the request describes. Renderers keep showing the current version until the new one is ready.
 
@@ -57,7 +57,7 @@ The model that builds and edits dashboards: any supported model. Its output is c
 
 ### JS interpreter
 
-A dashboard can run a generated script that calls several data tools and computes new metrics from their results. Scripts run in OpenUI's JS interpreter, a sandbox with no network or file access, and never reach the browser. See [Security](/docs/dashboards/security#the-script-sandbox).
+A dashboard can run a generated script that calls several data tools and computes new metrics from their results. Scripts run in OpenUI's JS interpreter, which has no network or file access, and never reach the browser. See [Security](/docs/dashboards/security#the-js-interpreter).
 
 ### Renderer
 
