@@ -25,6 +25,7 @@ export function makeStore(overrides: MakeStoreOverrides = {}) {
       }),
       getMessages: vi.fn().mockResolvedValue([]),
       updateThread: vi.fn(async (t) => t),
+      cacheMessages: vi.fn().mockResolvedValue(undefined),
       deleteThread: vi.fn().mockResolvedValue(undefined),
       ...threadOverrides,
     },
