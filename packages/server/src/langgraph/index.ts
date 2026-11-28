@@ -3,7 +3,7 @@ import {
   storeConversationItems,
   type StoreChatCompletionHistoryOptions,
 } from "../openai/store-conversation-items";
-import { langGraphConverter } from "./messages";
+import { langGraphAdapter } from "./messages";
 
 export type StoreLangGraphHistoryOptions = Omit<StoreChatCompletionHistoryOptions, "messages"> & {
   /** Only completed messages from the new turn, never the full replay. */
@@ -16,7 +16,7 @@ export type StoreLangGraphHistoryOptions = Omit<StoreChatCompletionHistoryOption
  * @deprecated Use `openui.langgraph.conversations.items.create()`, which converts and stores.
  */
 export function langGraphMessagesToItems(messages: readonly BaseMessage[]) {
-  return langGraphConverter.toItems(messages);
+  return langGraphAdapter.toItems(messages);
 }
 
 /**
@@ -25,5 +25,5 @@ export function langGraphMessagesToItems(messages: readonly BaseMessage[]) {
  * @deprecated Use `openui.langgraph.conversations.items.create(conversationId, messages)`.
  */
 export function storeLangGraphHistory(options: StoreLangGraphHistoryOptions) {
-  return storeConversationItems(options, langGraphConverter.toItems(options.messages));
+  return storeConversationItems(options, langGraphAdapter.toItems(options.messages));
 }

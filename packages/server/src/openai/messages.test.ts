@@ -1,12 +1,12 @@
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { describe, expect, it } from "vitest";
 import { stored } from "../__tests__/conversation-items";
-import { chatCompletionsConverter } from "./messages";
+import { chatCompletionsAdapter } from "./messages";
 
-describe("chatCompletionsConverter.fromItems", () => {
+describe("chatCompletionsAdapter.fromItems", () => {
   it("rebuilds a turn: a reply's text and its tool calls are one assistant message", () => {
     expect(
-      chatCompletionsConverter.fromItems(
+      chatCompletionsAdapter.fromItems(
         stored([
           { type: "message", role: "user", content: [{ type: "input_text", text: "Weather?" }] },
           {
@@ -39,7 +39,7 @@ describe("chatCompletionsConverter.fromItems", () => {
 
   it("gives a tool call with no text before it an assistant message of its own", () => {
     expect(
-      chatCompletionsConverter.fromItems(
+      chatCompletionsAdapter.fromItems(
         stored([
           { type: "message", role: "user", content: "Go" },
           { type: "function_call", call_id: "c1", name: "run", arguments: "{}" },
@@ -59,7 +59,7 @@ describe("chatCompletionsConverter.fromItems", () => {
 
   it("keeps user images as image_url parts", () => {
     expect(
-      chatCompletionsConverter.fromItems(
+      chatCompletionsAdapter.fromItems(
         stored([
           {
             type: "message",
@@ -84,7 +84,7 @@ describe("chatCompletionsConverter.fromItems", () => {
 
   it("drops tool calls and results without their pair, and other item types", () => {
     expect(
-      chatCompletionsConverter.fromItems(
+      chatCompletionsAdapter.fromItems(
         stored([
           { type: "reasoning", summary: [] },
           { type: "function_call", call_id: "stopped", name: "slow", arguments: "{}" },
@@ -96,7 +96,7 @@ describe("chatCompletionsConverter.fromItems", () => {
   });
 
   it("joins a tool result given as parts", () => {
-    const messages = chatCompletionsConverter.fromItems(
+    const messages = chatCompletionsAdapter.fromItems(
       stored([
         { type: "function_call", call_id: "c1", name: "list", arguments: "{}" },
         {
@@ -113,7 +113,7 @@ describe("chatCompletionsConverter.fromItems", () => {
   });
 });
 
-describe("chatCompletionsConverter round trip", () => {
+describe("chatCompletionsAdapter round trip", () => {
   it("reads back the stored turn as the messages it came from, minus system messages", () => {
     const turn: ChatCompletionMessageParam[] = [
       { role: "system", content: "Be brief." },
@@ -128,7 +128,7 @@ describe("chatCompletionsConverter round trip", () => {
       { role: "tool", tool_call_id: "t1", content: "booked" },
       { role: "assistant", content: "Done." },
     ];
-    const items = stored(chatCompletionsConverter.toItems(turn));
-    expect(chatCompletionsConverter.fromItems(items)).toEqual(turn.slice(1));
+    const items = stored(chatCompletionsAdapter.toItems(turn));
+    expect(chatCompletionsAdapter.fromItems(items)).toEqual(turn.slice(1));
   });
 });

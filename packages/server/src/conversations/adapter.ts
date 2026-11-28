@@ -1,7 +1,7 @@
 import type { ConversationContentPart, ConversationItem, ConversationItemInput } from "./types";
 
 /** Turns one SDK's messages into conversation items, and stored items back into them. */
-export abstract class ConversationItemConverter<Input, Output = Input> {
+export abstract class ConversationItemAdapter<Input, Output = Input> {
   /** A new turn as items to store. */
   abstract toItems(messages: readonly Input[]): ConversationItemInput[];
 

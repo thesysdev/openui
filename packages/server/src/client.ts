@@ -3,7 +3,7 @@ import { defineDashboard } from "./artifacts/dashboards";
 import type { Dashboard, DashboardOptions } from "./artifacts/dashboards/types";
 import type { Artifacts } from "./artifacts/types";
 import type { CreateAutofixParams } from "./autofix/types";
-import { createConversations, withMessages } from "./conversations";
+import { createConversations, withAdapter } from "./conversations";
 import type {
   ChatConversations,
   Conversations,
@@ -17,9 +17,9 @@ import {
   type FrontendToken,
 } from "./frontend-token";
 import type { ExecutionContext } from "./interpreter/types";
-import { langGraphConverter } from "./langgraph/messages";
+import { langGraphAdapter } from "./langgraph/messages";
 import { chatAutofix, type ChatAutofix } from "./openai/autofix";
-import { chatCompletionsConverter } from "./openai/messages";
+import { chatCompletionsAdapter } from "./openai/messages";
 import { aiAutofix, type AIAutofix } from "./vercel/autofix";
 
 /** One client for OpenUI Cloud on your server. Reads `THESYS_API_KEY` unless you pass `apiKey`. */
@@ -55,11 +55,11 @@ export class OpenUIClient {
     this.artifacts = createArtifacts(this.api);
     this.conversations = createConversations(this.api);
     this.chat = {
-      conversations: withMessages(this.conversations, chatCompletionsConverter),
+      conversations: withAdapter(this.conversations, chatCompletionsAdapter),
       createAutofix: (params) => chatAutofix(this.api, params),
     };
     this.langgraph = {
-      conversations: withMessages(this.conversations, langGraphConverter),
+      conversations: withAdapter(this.conversations, langGraphAdapter),
     };
     this.ai = { createAutofix: (params) => aiAutofix(this.api, params) };
   }

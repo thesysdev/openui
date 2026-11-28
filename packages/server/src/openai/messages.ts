@@ -12,11 +12,11 @@ import type {
   ResponseInputMessageContentList,
 } from "openai/resources/responses/responses";
 import {
-  ConversationItemConverter,
+  ConversationItemAdapter,
   pairedCallIds,
   textOf,
   toolOutputText,
-} from "../conversations/converter";
+} from "../conversations/adapter";
 import type { ConversationContentPart, ConversationItem } from "../conversations/types";
 
 // Only openai's types are imported, so the root entry never loads the openai package.
@@ -110,7 +110,7 @@ function userMessageContent(
 }
 
 /** Chat Completions messages to conversation items and back. */
-export class ChatCompletionsConverter extends ConversationItemConverter<ChatCompletionMessageParam> {
+export class ChatCompletionsAdapter extends ConversationItemAdapter<ChatCompletionMessageParam> {
   /**
    * Chat Completions messages as Conversations API items. Pass only the new turn. Skips
    * system/developer messages and unpaired tool calls or results.
@@ -208,4 +208,4 @@ export class ChatCompletionsConverter extends ConversationItemConverter<ChatComp
 }
 
 /** Converts Chat Completions messages to conversation items and back. */
-export const chatCompletionsConverter = new ChatCompletionsConverter();
+export const chatCompletionsAdapter = new ChatCompletionsAdapter();

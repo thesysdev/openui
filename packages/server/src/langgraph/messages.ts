@@ -13,11 +13,11 @@ import type {
   ResponseInputMessageContentList,
 } from "openai/resources/responses/responses";
 import {
-  ConversationItemConverter,
+  ConversationItemAdapter,
   pairedCallIds,
   textOf,
   toolOutputText,
-} from "../conversations/converter";
+} from "../conversations/adapter";
 import type {
   ConversationContentPart,
   ConversationItem,
@@ -123,7 +123,7 @@ function turnMessageOf(message: LangGraphMessage): TurnMessage | undefined {
 }
 
 /** LangChain messages to conversation items and back. */
-export class LangGraphConverter extends ConversationItemConverter<
+export class LangGraphAdapter extends ConversationItemAdapter<
   LangGraphMessage,
   LangGraphHistoryMessage
 > {
@@ -217,4 +217,4 @@ export class LangGraphConverter extends ConversationItemConverter<
 }
 
 /** Converts LangChain messages to conversation items and back. */
-export const langGraphConverter = new LangGraphConverter();
+export const langGraphAdapter = new LangGraphAdapter();

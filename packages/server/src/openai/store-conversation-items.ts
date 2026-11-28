@@ -4,7 +4,7 @@ import type { ResponseInputItem } from "openai/resources/responses/responses";
 import { createConversations } from "../conversations";
 import type { ConversationItemInput } from "../conversations/types";
 import { createCloudApi } from "../core/http";
-import { chatCompletionsConverter } from "./messages";
+import { chatCompletionsAdapter } from "./messages";
 
 export type StoreChatCompletionHistoryOptions = {
   apiKey: string;
@@ -36,7 +36,7 @@ export type StoreChatCompletionHistoryOptions = {
 export function chatCompletionMessagesToItems(
   messages: ChatCompletionMessageParam[],
 ): ResponseInputItem[] {
-  return chatCompletionsConverter.toItems(messages);
+  return chatCompletionsAdapter.toItems(messages);
 }
 
 /**
@@ -48,7 +48,7 @@ export function chatCompletionMessagesToItems(
 export function storeChatCompletionHistory(
   options: StoreChatCompletionHistoryOptions,
 ): Promise<ConversationItemList> {
-  return storeConversationItems(options, chatCompletionsConverter.toItems(options.messages));
+  return storeConversationItems(options, chatCompletionsAdapter.toItems(options.messages));
 }
 
 /** Adds items to a conversation as your org, and returns them as OpenAI's list. */

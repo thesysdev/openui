@@ -3,7 +3,7 @@ import { invalidInput, invalidResponse } from "../core/errors";
 import { isRecord } from "../core/guards";
 import type { CloudApi } from "../core/http";
 import { idPath, queryNumber, requireId, toList } from "../core/resource";
-import type { ConversationItemConverter } from "./converter";
+import type { ConversationItemAdapter } from "./adapter";
 import type {
   CloudConversation,
   ConversationItem,
@@ -132,10 +132,10 @@ export function createConversations(api: CloudApi): Conversations {
   };
 }
 
-/** `conversations`, with items taken and returned as one SDK's messages, through `converter`. */
-export function withMessages<Input, Output>(
+/** `conversations`, with items taken and returned as one SDK's messages, through `adapter`. */
+export function withAdapter<Input, Output>(
   conversations: Conversations,
-  converter: ConversationItemConverter<Input, Output>,
+  adapter: ConversationItemAdapter<Input, Output>,
 ): MessageConversations<Input, Output> {
   const { items, ...rest } = conversations;
   return {
@@ -143,7 +143,7 @@ export function withMessages<Input, Output>(
     items: {
       async create(id, messages, options) {
         if (!Array.isArray(messages)) invalidInput("messages must be an array");
-        return converter.fromItems(await items.create(id, converter.toItems(messages), options));
+        return adapter.fromItems(await items.create(id, adapter.toItems(messages), options));
       },
 
       // Every page, since a reply's text and its tool calls can sit on either side of one.
@@ -155,7 +155,7 @@ export function withMessages<Input, Output>(
           thread.push(...page.data);
           after = page.hasMore ? page.lastId : undefined;
         } while (after);
-        return converter.fromItems(thread);
+        return adapter.fromItems(thread);
       },
     },
   };

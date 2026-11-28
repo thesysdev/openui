@@ -7,12 +7,12 @@ import {
 } from "@langchain/core/messages";
 import { describe, expect, it } from "vitest";
 import { stored } from "../__tests__/conversation-items";
-import { langGraphConverter } from "./messages";
+import { langGraphAdapter } from "./messages";
 
-describe("langGraphConverter.toItems", () => {
+describe("langGraphAdapter.toItems", () => {
   it("converts a turn with a tool call, skipping system messages", () => {
     expect(
-      langGraphConverter.toItems([
+      langGraphAdapter.toItems([
         new SystemMessage("Be brief."),
         new HumanMessage("Table for 2 at 8?"),
         new AIMessage({
@@ -40,7 +40,7 @@ describe("langGraphConverter.toItems", () => {
   });
 
   it("keeps text and image blocks, defaulting an image's detail to auto", () => {
-    const [item] = langGraphConverter.toItems([
+    const [item] = langGraphAdapter.toItems([
       new HumanMessage({
         content: [
           { type: "text", text: "Compare " },
@@ -63,7 +63,7 @@ describe("langGraphConverter.toItems", () => {
 
   it("drops a tool call with no result and a result with no call", () => {
     expect(
-      langGraphConverter.toItems([
+      langGraphAdapter.toItems([
         new AIMessage({
           content: "",
           tool_calls: [{ id: "stopped", name: "slow", args: {}, type: "tool_call" }],
@@ -77,7 +77,7 @@ describe("langGraphConverter.toItems", () => {
   });
 
   it("stores an empty tool result as {}", () => {
-    const items = langGraphConverter.toItems([
+    const items = langGraphAdapter.toItems([
       new AIMessage({
         content: "",
         tool_calls: [{ id: "t1", name: "ping", args: {}, type: "tool_call" }],
@@ -88,10 +88,10 @@ describe("langGraphConverter.toItems", () => {
   });
 });
 
-describe("langGraphConverter.fromItems", () => {
+describe("langGraphAdapter.fromItems", () => {
   it("returns plain messages, with tool calls on the AI message before them", () => {
     expect(
-      langGraphConverter.fromItems(
+      langGraphAdapter.fromItems(
         stored([
           { type: "message", role: "user", content: "Book a table" },
           {
@@ -125,7 +125,7 @@ describe("langGraphConverter.fromItems", () => {
 
   it("keeps user images as image_url blocks", () => {
     expect(
-      langGraphConverter.fromItems(
+      langGraphAdapter.fromItems(
         stored([
           {
             type: "message",
@@ -150,7 +150,7 @@ describe("langGraphConverter.fromItems", () => {
 
   it("drops tool calls and results without their pair, and other item types", () => {
     expect(
-      langGraphConverter.fromItems(
+      langGraphAdapter.fromItems(
         stored([
           { type: "reasoning", summary: [] },
           { type: "function_call", call_id: "stopped", name: "slow", arguments: "{}" },
@@ -162,7 +162,7 @@ describe("langGraphConverter.fromItems", () => {
   });
 });
 
-describe("langGraphConverter round trip", () => {
+describe("langGraphAdapter round trip", () => {
   it("reads back messages LangChain turns into the same messages, which store as the same items", () => {
     const turn = [
       new HumanMessage("Table for 2 at 8?"),
@@ -175,19 +175,19 @@ describe("langGraphConverter round trip", () => {
       new ToolMessage({ tool_call_id: "t1", content: "confirmed" }),
       new AIMessage("Booked for 8pm."),
     ];
-    const items = langGraphConverter.toItems(turn);
-    const history = langGraphConverter.fromItems(stored(items)).map(coerceMessageLikeToMessage);
+    const items = langGraphAdapter.toItems(turn);
+    const history = langGraphAdapter.fromItems(stored(items)).map(coerceMessageLikeToMessage);
 
     expect(history.map((message) => message.type)).toEqual(["human", "ai", "tool", "ai"]);
     expect(AIMessage.isInstance(history[1]) && history[1].tool_calls?.[0]?.args).toEqual({
       people: 2,
       at: "20:00",
     });
-    expect(langGraphConverter.toItems(history)).toEqual(items);
+    expect(langGraphAdapter.toItems(history)).toEqual(items);
   });
 
   it("stores the plain messages fromItems returns as the same items", () => {
-    const items = langGraphConverter.toItems([
+    const items = langGraphAdapter.toItems([
       new HumanMessage("Table for 2 at 8?"),
       new AIMessage({
         content: "Booking.",
@@ -195,7 +195,7 @@ describe("langGraphConverter round trip", () => {
       }),
       new ToolMessage({ tool_call_id: "t1", content: "confirmed" }),
     ]);
-    const plain = langGraphConverter.fromItems(stored(items));
-    expect(langGraphConverter.toItems(plain)).toEqual(items);
+    const plain = langGraphAdapter.fromItems(stored(items));
+    expect(langGraphAdapter.toItems(plain)).toEqual(items);
   });
 });
