@@ -18,18 +18,7 @@ A script derives data the tools don't return directly, such as revenue per custo
 - **A fresh VM for each run:** Each run starts in a new QuickJS virtual machine compiled to WebAssembly. Nothing carries over from another run or another user.
 - **No network or files:** The VM has no `fetch`, sockets, file system, or Node.js APIs.
 - **Your data tools only:** A script gets data only by calling the data tools passed to `defineDashboard`. Each call runs on your server, through your interpreter route, with the viewer's `context`.
-- **Limits:** A run stops with an error when it goes over one of these:
-
-| Limit                          | Value                                                                                                                                                    |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Memory                         | 64 MB per VM                                                                                                                                             |
-| Compute                        | 0.5 seconds at a time, and 2 seconds in all between tool calls                                                                                           |
-| Tool calls                     | 48 per run                                                                                                                                               |
-| A tool result the script reads | 1 MB                                                                                                                                                     |
-| The script's result            | 1 MB                                                                                                                                                     |
-| Total time                     | The interpreter's `timeoutMs`, 60 seconds by default, including your tools. See [Connect data](/docs/dashboards/connect-data#add-the-interpreter-route). |
-
-The renderer shows the error in the dashboard's error slot.
+- **Limits:** A run stops with an error if it uses too much memory or time, calls too many tools, or returns too much data. The renderer shows the error in the dashboard's error slot.
 
 ## Scripts never reach the browser
 
@@ -49,15 +38,15 @@ Data tools are part of your API, so treat them like any other route:
 
 The model provider is the provider of the `model` in `defineDashboard`, such as Anthropic for `anthropic/claude-sonnet-5.5`. The model is called only while a dashboard is built or edited:
 
-| What's sent                                                                                 | When                                               |
-| ------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| The prompt passed to `create` or `edit`                                                     | Every build and edit                               |
-| Your component library's spec, `instructions`, and `promptOptions`                          | Every build and edit                               |
-| Each data tool's name, description, parameters, and `output` example                        | Every build and edit                               |
-| The results of the data tools the model calls, run with the creator's or editor's `context` | During the build or edit                           |
-| The result of each script's run                                                             | During the build or edit                           |
-| The dashboard's current program and scripts                                                 | Every edit                                         |
-| The editing user's earlier builds of the dashboard, with their tool results                 | Edits within 5 hours of the dashboard's last build |
+| What's sent                                                                                 | When                     |
+| ------------------------------------------------------------------------------------------- | ------------------------ |
+| The prompt passed to `create` or `edit`                                                     | Every build and edit     |
+| Your component library's spec, `instructions`, and `promptOptions`                          | Every build and edit     |
+| Each data tool's name, description, parameters, and `output` example                        | Every build and edit     |
+| The results of the data tools the model calls, run with the creator's or editor's `context` | During the build or edit |
+| The result of each script's run                                                             | During the build or edit |
+| The dashboard's current program and scripts                                                 | Every edit               |
+| The editing user's earlier builds of the dashboard, with their tool results                 | Edits soon after a build |
 
 See [How a dashboard is built](/docs/dashboards/how-it-works#how-a-dashboard-is-built) for how to limit the tool results the model sees.
 
@@ -76,7 +65,7 @@ When a dashboard opens:
 ## What OpenUI stores
 
 - **The dashboard:** its OpenUI Lang program, its scripts, its owner, and its shares, until it's deleted.
-- **Each user's recent builds of a dashboard:** their messages and tool results, with each result cut to 20 KB, kept until 5 hours after the dashboard's last build, so a follow-up edit can reuse them. One user's builds are never sent with another user's edit.
+- **Each user's recent builds of a dashboard:** their messages and tool results, kept for a few hours after the dashboard's last build, so a follow-up edit can reuse them. One user's builds are never sent with another user's edit.
 
 ## Access
 
