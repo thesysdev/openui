@@ -25,7 +25,7 @@ const response = await dashboards.edit(
 
 Only the dashboard's owner, and users it's [shared with](/docs/dashboards/sharing) to edit, can edit it. `context` says who's asking: `userId`, plus `groupIds` if you share with groups.
 
-`edit` resolves with a response, like [`create`](/docs/dashboards/generate#the-response). Return it as the tool result, or pass it to the renderer.
+`edit` returns a response, like [`create`](/docs/dashboards/generate#the-response). Return it as the tool result, or pass it to the renderer. With `{ stream: true }`, it streams the edit the same way, and the last response, "Edited…" or "Couldn't…", arrives once the edit is saved or failed. See [Stream the build](/docs/dashboards/generate#stream-the-build). Without `stream`, `edit` resolves once the edit starts, after the model has checked your data, and doesn't report a later failure.
 
 ## Get the id
 
