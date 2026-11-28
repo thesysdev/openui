@@ -55,13 +55,17 @@ The model never gets:
 
 ## Data when a dashboard opens
 
-- **Data tool queries** go from the browser to your server and back. They never reach OpenUI.
-- **A script's tool results** go to OpenUI only for that run, so the script can compute its result. No model sees them.
+- **Data tool queries** go from the browser to your server and back.
+- **A script's tool results** go to OpenUI only for that run, so the script can compute its result.
+- **Each query's last result** is saved in OpenUI by the browser, so the dashboard can show it while it reloads next time. See [What OpenUI stores](#what-openui-stores).
+
+No model sees any of this data.
 
 ## What OpenUI stores
 
 - **The dashboard:** its OpenUI Lang, scripts, owner, and shares, until it's deleted.
 - **Recent builds:** each user's messages and tool results, for a few hours after the dashboard's last build, so a follow-up edit can reuse them. One user's builds are never sent with another user's edit.
+- **Recent query results:** each user's last result for each query, for up to a day, so the dashboard can show it while it reloads. They're dropped when the dashboard changes. To turn this off, pass `cacheQueryResults: false` to `OpenUICloudProvider`.
 
 ## Access
 
