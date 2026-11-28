@@ -22,17 +22,7 @@ A dashboard is generated once and loads its data every time it opens.
 
 ## Tools during the build
 
-The model calls your data tools while it builds or edits a dashboard, as an agent would. It uses them to find what data there is, and to see the real result of each query the dashboard will make. Each call runs on your server inside `create` or `edit`, with the `context` passed to it: the creator's for a new dashboard, the editor's for an edit.
-
-The results go to OpenUI and to the provider of the model that builds the dashboard. For example, a request for "orders by day for the last 30 days" calls `get_orders_by_day` with `{ "days": 30 }` as the creator, and the model reads the 30 rows it returns.
-
-For privacy and compliance reviews, this means:
-
-- **The model sees real data:** whatever your tools return for the creator. Return only the fields a dashboard needs, and keep results small.
-- **Tools run without asking the user:** Offer only read-only tools.
-- **You can turn it off:** With `maxToolRounds: 0` in `defineDashboard`, the model calls no data tool directly. It still runs each script it writes once, so it sees the scripts' results.
-
-See [Security](/docs/dashboards/security#what-goes-to-the-model-provider) for everything the provider receives.
+While it builds or edits a dashboard, the model calls your data tools to see the real data. Each call runs on your server with the creator's `context`, or the editor's for an edit, and the results go to OpenUI and the model provider. For example, "orders by day for the last 30 days" calls `get_orders_by_day` with `{ "days": 30 }`, and the model reads the 30 rows. Return only the fields a dashboard needs, and offer only read-only tools, since the model calls them without asking the user. To turn this off, set `maxToolRounds: 0` in `defineDashboard`. The model then sees only the results of the scripts it writes. See [Security](/docs/dashboards/security#what-goes-to-the-model-provider) for everything the model provider receives.
 
 ## How a dashboard is checked
 
