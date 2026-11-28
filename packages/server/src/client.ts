@@ -3,6 +3,12 @@ import { defineDashboard } from "./artifacts/dashboards";
 import type { Dashboard, DashboardOptions } from "./artifacts/dashboards/types";
 import type { Artifacts } from "./artifacts/types";
 import type { CreateAutofixParams } from "./autofix/types";
+import { createConversations, withAdapter } from "./conversations";
+import type {
+  ChatConversations,
+  Conversations,
+  LangGraphConversations,
+} from "./conversations/types";
 import { createCloudApi, type CloudApi, type OpenUIClientOptions } from "./core/http";
 import type { RequestOptions } from "./core/resource";
 import {
@@ -11,7 +17,9 @@ import {
   type FrontendToken,
 } from "./frontend-token";
 import type { ExecutionContext } from "./interpreter/types";
+import { langGraphAdapter } from "./langgraph/messages";
 import { chatAutofix, type ChatAutofix } from "./openai/autofix";
+import { chatCompletionsAdapter } from "./openai/messages";
 import { aiAutofix, type AIAutofix } from "./vercel/autofix";
 
 /** One client for OpenUI Cloud on your server. Reads `THESYS_API_KEY` unless you pass `apiKey`. */
@@ -21,11 +29,23 @@ export class OpenUIClient {
   /** Your saved artifacts. Without `userId`, calls cover your whole org; with it, that user. */
   readonly artifacts: Artifacts;
 
+  /** Your users' conversations. Without `userId`, calls cover your org; with it, that user. */
+  readonly conversations: Conversations;
+
   /**
-   * Chat Completions: `createAutofix({ library })`, which returns `{ fix, stream }`. Types come
-   * from `openai`.
+   * Chat Completions: `conversations` with items as its messages, and `createAutofix({ library })`,
+   * which returns `{ fix, stream }`. Types come from `openai`.
    */
-  readonly chat: { createAutofix(params: CreateAutofixParams): ChatAutofix };
+  readonly chat: {
+    readonly conversations: ChatConversations;
+    createAutofix(params: CreateAutofixParams): ChatAutofix;
+  };
+
+  /**
+   * `conversations`, with items as LangChain messages; `items.list` returns what `graph.invoke`
+   * takes. Types come from `@langchain/core`.
+   */
+  readonly langgraph: { readonly conversations: LangGraphConversations };
 
   /** The Vercel AI SDK: `createAutofix({ library })` returns `{ fix, stream }`. Types come from `ai`. */
   readonly ai: { createAutofix(params: CreateAutofixParams): AIAutofix };
@@ -33,7 +53,14 @@ export class OpenUIClient {
   constructor(options: OpenUIClientOptions = {}) {
     this.api = createCloudApi(options);
     this.artifacts = createArtifacts(this.api);
-    this.chat = { createAutofix: (params) => chatAutofix(this.api, params) };
+    this.conversations = createConversations(this.api);
+    this.chat = {
+      conversations: withAdapter(this.conversations, chatCompletionsAdapter),
+      createAutofix: (params) => chatAutofix(this.api, params),
+    };
+    this.langgraph = {
+      conversations: withAdapter(this.conversations, langGraphAdapter),
+    };
     this.ai = { createAutofix: (params) => aiAutofix(this.api, params) };
   }
 

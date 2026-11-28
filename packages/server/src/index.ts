@@ -18,8 +18,26 @@ export type {
   CreateAutofixParams,
 } from "./autofix/types";
 export { OpenUIClient } from "./client";
+export type {
+  ChatConversations,
+  CloudConversation,
+  CloudConversationList,
+  ConversationContentPart,
+  ConversationItem,
+  ConversationItemInput,
+  ConversationItemList,
+  ConversationItemStatus,
+  ConversationMetadata,
+  LangGraphConversations,
+  LangGraphHistoryMessage,
+  ListConversationItemsParams,
+  ListConversationsParams,
+  MessageConversationItems,
+  MessageConversations,
+} from "./conversations/types";
 export { OpenUIApiError } from "./core/errors";
 export type { OpenUIClientOptions } from "./core/http";
+export type { CloudList } from "./core/resource";
 export type { McpConfig, McpToolClient } from "./interpreter/mcp";
 export { ToolExecutionError } from "./interpreter/types";
 export type { DataTool, ExecutionContext, InterpreterRequest } from "./interpreter/types";
