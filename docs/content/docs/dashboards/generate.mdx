@@ -44,8 +44,8 @@ The model that builds the dashboard sees the prompt, the component library, and 
 
 For example, "revenue by plan for the last 90 days as a stacked bar chart, with a plan filter" builds a better dashboard than "a revenue dashboard".
 
-## When generation finishes
+## When the dashboard is saved
 
-The dashboard is saved when generation finishes. After that, it appears in the [dashboard list](/docs/dashboards/list) and can be [rendered](/docs/dashboards/render).
+The dashboard is saved as soon as its build starts, with its title and no content yet. From then on, it's in the [dashboard list](/docs/dashboards/list), and it can be [shared](/docs/dashboards/sharing), renamed, or [rendered](/docs/dashboards/render) by id, which streams the build. Its content is saved when generation finishes. Until then, an [edit](/docs/dashboards/edit) is rejected with a 409.
 
-If generation fails, the renderer shows the error in its `Error` slot. Errors before generation starts, such as a missing `userId`, reject the `create` call with an `OpenUIApiError` that has a `code` and an HTTP `status`.
+If generation fails, the renderer shows the error in its `Error` slot, and the new dashboard is deleted. Errors before generation starts, such as a missing `userId`, reject the `create` call with an `OpenUIApiError` that has a `code` and an HTTP `status`.

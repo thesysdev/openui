@@ -114,7 +114,7 @@ Pass the id to `LiveArtifactRenderer`:
 />
 ```
 
-A renderer opened by id shows the latest version, and switches when an edit finishes, like one opened from a tool response.
+A renderer opened by id shows the latest version, and switches when an edit finishes, like one opened from a tool response. If the dashboard is still being built, the renderer streams the build.
 
 ## Pinned and recent
 
@@ -146,18 +146,4 @@ const shared = useArtifactList({ filter: { type: "dashboard", isOwner: false } }
 
 ## New dashboards
 
-A new dashboard joins the list when it finishes generating and is saved. To show it right away, call `refresh` when a renderer stops streaming:
-
-```tsx
-function RefreshWhenSaved({ onSaved }: { onSaved: () => void }) {
-  const { isStreaming } = useArtifactRenderer();
-  const wasStreaming = useRef(isStreaming);
-  useEffect(() => {
-    if (wasStreaming.current && !isStreaming) onSaved();
-    wasStreaming.current = isStreaming;
-  }, [isStreaming, onSaved]);
-  return null;
-}
-```
-
-Render it in the children of a renderer slot, such as a custom `Chrome`, and pass the list's `refresh` as `onSaved`.
+A new dashboard joins the list as soon as its build starts, before it's finished. To show it right away, call the list's `refresh` when the renderer for the new dashboard mounts. If the build fails, the dashboard is deleted, and it leaves the list on the next refresh.
