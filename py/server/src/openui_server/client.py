@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 import httpx
 
 if TYPE_CHECKING:
-    from langchain_core.messages import BaseMessage
     from openai.types.chat import ChatCompletionMessageParam
 from .artifacts import Artifacts, AsyncArtifacts
 from .artifacts.dashboards import AsyncDashboard, Dashboard, check_options
@@ -27,7 +26,7 @@ from .core.http import DEFAULT_TIMEOUT, AsyncHttp, Cloud, SyncHttp
 from .frontend_token import FrontendToken, frontend_token_call
 from .interpreter.mcp import McpServers, data_tool_loader, mcp_servers
 from .interpreter.types import DataTool
-from .langgraph.messages import langgraph_converter
+from .langgraph.messages import LangGraphMessage, langgraph_converter
 from .openai.autofix import AsyncChatAutofix, ChatAutofix, async_chat_autofix, chat_autofix
 from .openai.messages import chat_completions_converter
 
@@ -81,8 +80,9 @@ class AsyncChat:
 
 @dataclass(frozen=True, slots=True)
 class LangGraph(Generic[C]):
-    """LangGraph (`openui.langgraph`): `conversations` with items as LangChain messages;
-    `items.list` returns what `graph.invoke` takes. Types come from `langchain-core`."""
+    """LangGraph (`openui.langgraph`): `conversations` with items as LangGraph's messages.
+    `items.create` takes LangChain messages, or the plain ones `items.list` returns; both return
+    plain messages `graph.invoke` takes. Types come from `langchain-core`."""
 
     conversations: C
 
@@ -104,10 +104,10 @@ class OpenUIClient:
     chat: Chat
     """Chat Completions: `chat.conversations` takes and returns its messages, and
     `chat.create_autofix(library=...)` checks and repairs model output in OpenUI Lang."""
-    langgraph: LangGraph[MessageConversations[BaseMessage, LangGraphHistoryMessage]]
+    langgraph: LangGraph[MessageConversations[LangGraphMessage, LangGraphHistoryMessage]]
     """`langgraph.conversations`: `conversations`, in LangGraph's messages. `items.create`
-    takes LangChain messages, and `items.list` reads a whole thread back as messages
-    `graph.invoke` takes."""
+    takes LangChain messages, or the plain ones `items.list` returns, and both return plain
+    messages `graph.invoke` takes."""
 
     def __init__(
         self,
@@ -124,7 +124,7 @@ class OpenUIClient:
         chat: MessageConversations[ChatCompletionMessageParam, ChatCompletionMessageParam] = (
             self.conversations._with_messages(chat_completions_converter)
         )
-        langgraph: MessageConversations[BaseMessage, LangGraphHistoryMessage] = (
+        langgraph: MessageConversations[LangGraphMessage, LangGraphHistoryMessage] = (
             self.conversations._with_messages(langgraph_converter)
         )
         self.chat, self.langgraph = Chat(chat, self._http), LangGraph(langgraph)
@@ -181,7 +181,7 @@ class AsyncOpenUIClient:
     artifacts: AsyncArtifacts
     conversations: AsyncConversations
     chat: AsyncChat
-    langgraph: LangGraph[AsyncMessageConversations[BaseMessage, LangGraphHistoryMessage]]
+    langgraph: LangGraph[AsyncMessageConversations[LangGraphMessage, LangGraphHistoryMessage]]
 
     def __init__(
         self,
@@ -198,7 +198,7 @@ class AsyncOpenUIClient:
         chat: AsyncMessageConversations[ChatCompletionMessageParam, ChatCompletionMessageParam] = (
             self.conversations._with_messages(chat_completions_converter)
         )
-        langgraph: AsyncMessageConversations[BaseMessage, LangGraphHistoryMessage] = (
+        langgraph: AsyncMessageConversations[LangGraphMessage, LangGraphHistoryMessage] = (
             self.conversations._with_messages(langgraph_converter)
         )
         self.chat, self.langgraph = AsyncChat(chat, self._http), LangGraph(langgraph)

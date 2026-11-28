@@ -1,21 +1,16 @@
-"""Converters: the same output as the TypeScript SDK's on the same input."""
+"""The converters behind `openui.chat` and `openui.langgraph`: the same output as the
+TypeScript SDK's on the same input."""
 
 from __future__ import annotations
 
-import json
-from collections.abc import Sequence
 from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.messages.utils import convert_to_messages
 from support import GOLDEN
 
-from openui_server import (
-    ConversationItem,
-    ConversationItemConverter,
-    chat_completions_converter,
-    langgraph_converter,
-)
+from openui_server.langgraph.messages import langgraph_converter
+from openui_server.openai.messages import chat_completions_converter
 
 CASES = GOLDEN["converters"]
 
@@ -128,16 +123,18 @@ def test_langgraph_to_items_pairs_calls_across_the_turn() -> None:
     ]
 
 
-def test_a_converter_for_another_sdk() -> None:
-    class TextConverter(ConversationItemConverter[str, str]):
-        def to_items(self, messages: Sequence[str]) -> list[dict[str, Any]]:
-            return [{"type": "message", "role": "user", "content": m} for m in messages]
-
-        def from_items(self, items: Sequence[ConversationItem]) -> list[str]:
-            return [json.dumps(item["content"]) for item in items]
-
-    converter = TextConverter()
-    assert converter.from_items(converter.to_items(["hi"])) == ['"hi"']
+def test_langgraph_stores_its_plain_messages_as_the_same_items() -> None:
+    # What `items.list` returns goes back into `items.create` unchanged.
+    items = langgraph_converter.to_items(
+        [
+            HumanMessage("Table for 2 at 8?"),
+            AIMessage("Booking.", tool_calls=[{"id": "t1", "name": "book", "args": {"people": 2}}]),
+            ToolMessage("confirmed", tool_call_id="t1"),
+        ]
+    )
+    stored = [{**item, "id": f"item_{i}"} for i, item in enumerate(items)]
+    plain = langgraph_converter.from_items(stored)
+    assert langgraph_converter.to_items(plain) == items
 
 
 def _calls_and_result() -> list[dict[str, Any]]:

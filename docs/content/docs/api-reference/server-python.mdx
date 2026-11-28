@@ -91,7 +91,7 @@ if conversation.user_id != session.user_id:
 
 ### `chat.conversations.items.create(id, messages)`
 
-Store the new turn as conversation items. Earlier messages are already stored, so passing the full history duplicates them.
+Store the new turn, and get it back as stored, in the format `items.list` returns. Earlier messages are already stored, so passing the full history duplicates them.
 
 ```python tab="Chat Completions" tab-group="py-history"
 openui.chat.conversations.items.create(
@@ -112,13 +112,15 @@ await openui.langgraph.conversations.items.create(thread_id, state["messages"][l
 ```python
 def create(
     id: str,
-    messages: Sequence[ChatCompletionMessageParam],  # LangGraph: Sequence[BaseMessage]
-) -> list[ConversationItem]
+    messages: Sequence[ChatCompletionMessageParam],
+) -> list[ChatCompletionMessageParam]
+# LangGraph: Sequence[BaseMessage | LangGraphHistoryMessage] in, list[LangGraphHistoryMessage] out
 ```
 
 - System and developer messages are skipped.
 - A tool call is stored only together with its result, so a turn stopped mid tool call leaves the thread valid.
-- It returns the items as stored. With nothing to store, it returns `[]` and sends no request.
+- It returns what was stored, without the skipped messages. With nothing to store, it returns `[]` and sends no request.
+- LangGraph also takes the plain messages `items.list` returns, so they go back in as they come out.
 
 ### `chat.conversations.items.list(id)`
 
@@ -192,29 +194,6 @@ def update(id, item_id, *, content=None, status=None) -> ConversationItem
 ```
 
 `order="asc"` reads a thread from its start. `create` takes up to 100 items a call. `update` changes only an item's content and status.
-
-### Converters
-
-Convert without storing: `chat_completions_converter` and `langgraph_converter` are the conversions `openui.chat` and `openui.langgraph` use.
-
-```python
-from openui_server import chat_completions_converter
-
-items = chat_completions_converter.to_items(turn)  # a turn as items to store
-messages = chat_completions_converter.from_items(stored_items)  # stored items, oldest first
-```
-
-```python
-class ConversationItemConverter(ABC, Generic[In, Out]):
-    def to_items(self, messages: Sequence[In]) -> Sequence[ConversationItemInput]: ...
-    def from_items(self, items: Sequence[ConversationItem]) -> list[Out]: ...
-
-chat_completions_converter: ConversationItemConverter[ChatCompletionMessageParam, ChatCompletionMessageParam]
-langgraph_converter: ConversationItemConverter[BaseMessage, LangGraphHistoryMessage]
-```
-
-- `to_items` skips system messages and unpaired tool calls, as `items.create` does. `from_items` keeps a tool call only with its result.
-- Subclass `ConversationItemConverter` to store another SDK's messages, then pass its `to_items` result to `openui.conversations.items.create`.
 
 ## Artifacts
 

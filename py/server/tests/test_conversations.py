@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
+from typing import Any
 
+import httpx
 import pytest
 from support import FakeCloud, settle
 
@@ -134,6 +137,66 @@ async def test_chat_list_reads_every_page_oldest_first(cloud: FakeCloud, kind: s
         {"limit": ["100"], "order": ["asc"]},
         {"limit": ["100"], "after": ["i1"], "order": ["asc"]},
     ]
+
+
+def stored(request: httpx.Request) -> dict[str, Any]:
+    """The items API: stores the items it's sent, in order, and returns them."""
+    items = json.loads(request.content)["items"]
+    return {"data": [{**item, "id": f"item_{i}"} for i, item in enumerate(items)]}
+
+
+async def test_chat_create_returns_the_turn_as_stored_as_messages(
+    cloud: FakeCloud, kind: str
+) -> None:
+    cloud.on("POST", "/v1/conversations/c1/items", stored)
+    turn = [
+        {"role": "system", "content": "rules"},
+        {"role": "user", "content": "hi"},
+        {"role": "assistant", "content": "hello"},
+    ]
+    returned = await settle(cloud.client(kind).chat.conversations.items.create("c1", turn))
+    assert cloud.last.body == {
+        "items": [
+            {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "hi"}]},
+            {
+                "type": "message",
+                "role": "assistant",
+                "content": [{"type": "output_text", "text": "hello"}],
+            },
+        ]
+    }
+    # The system message isn't stored, so it isn't returned.
+    assert returned == turn[1:]
+
+
+async def test_langgraph_create_takes_and_returns_plain_messages(
+    cloud: FakeCloud, kind: str
+) -> None:
+    cloud.on("POST", "/v1/conversations/c1/items", stored)
+    turn = [
+        {"role": "human", "content": "Book a table"},
+        {
+            "role": "ai",
+            "content": "",
+            "tool_calls": [
+                {"type": "tool_call", "id": "t1", "name": "book", "args": {"people": 2}}
+            ],
+        },
+        {"role": "tool", "content": "booked", "tool_call_id": "t1"},
+    ]
+    returned = await settle(cloud.client(kind).langgraph.conversations.items.create("c1", turn))
+    assert returned == turn
+    assert cloud.last.body == {
+        "items": [
+            {
+                "type": "message",
+                "role": "user",
+                "content": [{"type": "input_text", "text": "Book a table"}],
+            },
+            {"type": "function_call", "call_id": "t1", "name": "book", "arguments": '{"people":2}'},
+            {"type": "function_call_output", "call_id": "t1", "output": "booked"},
+        ]
+    }
 
 
 async def test_message_forms_share_the_conversation_calls(cloud: FakeCloud, kind: str) -> None:

@@ -182,17 +182,19 @@ class ConversationItems:
 
 
 class MessageItems(Generic[In, Out]):
-    """A conversation's items as one SDK's messages, through its converter."""
+    """A conversation's items as one SDK's messages, in and out, through its converter."""
 
     def __init__(self, items: ConversationItems, converter: ConversationItemConverter[In, Out]):
         self._items, self._converter = items, converter
 
-    def create(self, id: str, messages: Sequence[In]) -> builtins.list[ConversationItem]:
-        """Converts the messages to items and adds them in order, then returns the items as
-        stored. Add only the new turn: earlier messages are already there."""
+    def create(self, id: str, messages: Sequence[In]) -> builtins.list[Out]:
+        """Adds the new turn and returns it as stored, in the shape `list` returns: without
+        system messages, or tool calls and results missing their pair. Add only the new turn:
+        earlier messages are already there."""
         if not isinstance(messages, list | tuple):
             raise invalid_input("messages must be a list")
-        return self._items.create(id, self._converter.to_items(messages))
+        stored = self._items.create(id, self._converter.to_items(messages))
+        return self._converter.from_items(stored)
 
     # Every page, since a reply's text and its tool calls can sit on either side of one.
     def list(self, id: str) -> builtins.list[Out]:
@@ -320,10 +322,11 @@ class AsyncMessageItems(Generic[In, Out]):
     ) -> None:
         self._items, self._converter = items, converter
 
-    async def create(self, id: str, messages: Sequence[In]) -> builtins.list[ConversationItem]:
+    async def create(self, id: str, messages: Sequence[In]) -> builtins.list[Out]:
         if not isinstance(messages, list | tuple):
             raise invalid_input("messages must be a list")
-        return await self._items.create(id, self._converter.to_items(messages))
+        stored = await self._items.create(id, self._converter.to_items(messages))
+        return self._converter.from_items(stored)
 
     async def list(self, id: str) -> builtins.list[Out]:
         thread: builtins.list[ConversationItem] = []
