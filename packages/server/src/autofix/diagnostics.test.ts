@@ -1,6 +1,6 @@
 import { parse } from "@openuidev/lang-core";
 import { expect, it } from "vitest";
-import { errorsOf } from "./utils";
+import { errorsOf } from "./diagnostics";
 
 const schema = new Map([["Card", { params: [{ name: "children", required: true }] }]]);
 

@@ -1,3 +1,4 @@
+import { isIdList } from "../core/guards";
 import type { McpServers } from "./mcp";
 
 /** Provider-neutral metadata passed to generation, without server handlers. */
@@ -9,28 +10,17 @@ export interface ToolDefinition {
   output?: unknown;
 }
 
-/**
- * Runs a data tool on your server. `context` is whatever you pass to
- * `interpreter.execute`, untouched, such as the signed-in user.
- */
-/**
- * Who a call is for: the signed-in user, from your session. Add anything else
- * your tools need; they get the whole object.
- */
+/** Who a call is for: the signed-in user, from your session, plus anything your tools need. */
 export interface ExecutionContext {
   userId: string;
   /**
-   * The groups the user is in, from your own system: dashboards shared with any of them are
-   * theirs to open. Pass the same value everywhere you pass `userId`. Up to 10, each up to 64
-   * characters.
+   * The user's groups, from your system: dashboards shared with them are theirs to open.
+   * Pass it wherever you pass `userId`. Up to 10, each up to 64 characters.
    */
   groupIds?: string[];
 }
 
-/**
- * Every call needs `context.userId`, and `groupIds`, when set, must be ids. The types require
- * both; this catches callers they don't check.
- */
+/** Checks `context.userId` and `groupIds` at runtime, for callers the types don't check. */
 export function assertUserIdRequired(context: unknown): asserts context is ExecutionContext {
   const { userId, groupIds } = (context ?? {}) as { userId?: unknown; groupIds?: unknown };
   if (typeof userId !== "string" || !userId.trim()) {
@@ -47,11 +37,6 @@ export function assertUserIdRequired(context: unknown): asserts context is Execu
       400,
     );
   }
-}
-
-/** An array of non-empty strings, such as `groupIds`. */
-export function isIdList(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((id) => typeof id === "string" && id.trim() !== "");
 }
 
 export type ToolHandler<Context extends ExecutionContext = ExecutionContext> = (
@@ -92,9 +77,8 @@ export type InterpreterOptions<Context extends ExecutionContext = ExecutionConte
 
 export interface Interpreter<Context extends ExecutionContext = ExecutionContext> {
   /**
-   * `context` reaches your tools as is. Generated scripts run only for users
-   * who can open the artifact: its owner, or anyone it's shared with through
-   * `context.userId` or `context.groupIds`.
+   * `context` reaches your tools as is. Generated scripts run only for users who can open
+   * the artifact: its owner, or anyone it's shared with.
    */
   execute(
     request: InterpreterRequest,

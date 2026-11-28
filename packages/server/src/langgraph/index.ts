@@ -3,8 +3,8 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 import {
   chatCompletionMessagesToItems,
   storeChatCompletionHistory,
-} from "../openai/store-conversation-items.js";
-import type { StoreChatCompletionHistoryOptions } from "../openai/types.js";
+  type StoreChatCompletionHistoryOptions,
+} from "../openai/store-conversation-items";
 
 export type StoreLangGraphHistoryOptions = Omit<StoreChatCompletionHistoryOptions, "messages"> & {
   /** Only completed messages from the new turn, never the full replay. */

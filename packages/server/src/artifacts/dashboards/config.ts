@@ -3,7 +3,7 @@ import {
   type CloudPromptOptions,
   type LibrarySpec,
 } from "@openuidev/lang-core";
-import type { ToolDefinition } from "../tools/types";
+import type { ToolDefinition } from "../../interpreter/types";
 
 const CONFIG_MARKER = "]]>openui:config\n";
 
@@ -19,12 +19,7 @@ export interface ArtifactCall {
   maxToolRounds?: number;
 }
 
-/**
- * OpenUI Cloud's config block for an artifact: lang-core writes the library
- * part (`chatLibrary`, `systemPromptOptions`), and each call adds its own
- * under `artifact`: data tools, title and edit target. Your instructions
- * follow the block as prose.
- */
+/** OpenUI Cloud's config block: the library part, each call's `artifact`, then your instructions. */
 export function artifactConfig(
   library: LibrarySpec,
   promptOptions?: CloudPromptOptions,

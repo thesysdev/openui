@@ -1,30 +1,42 @@
-import { isRecord } from "../client/api";
+import { isRecord } from "../../core/guards";
 import {
   ToolExecutionError,
   type DataTool,
   type ExecutionContext,
   type Interpreter,
-} from "./types";
+} from "../../interpreter/types";
 
-/** The model saves one of the dashboard's scripts and runs it once: `{ name, code, args? }`.
- *  OpenUI Cloud keeps the code; this runs it by name, as a dashboard runs its scripts. */
+/** The model's tool to save a script in OpenUI Cloud and run it once: `{ name, code, args? }`. */
 export const CREATE_SCRIPT_TOOL = "openui_create_script";
 
 /** A tool call's result, as the model gets it back. */
 export type ToolMessage = { role: "tool"; tool_call_id: string; content: string };
 
-/** Runs one round of the model's tool calls; each run has the interpreter's timeout. */
-export async function runToolRound<Context extends ExecutionContext>(
-  calls: Array<{ id: string; function?: { name?: string; arguments?: string } }>,
-  tools: Record<string, DataTool<Context>>,
-  context: Context,
-  callerSignal: AbortSignal | undefined,
-  interpreter: Interpreter<Context>,
-  /** The dashboard being built: its saved scripts run by it. */
-  artifactId: string,
+/** One of the model's tool calls, as OpenUI Cloud sends it. */
+export type ModelToolCall = { id: string; function?: { name?: string; arguments?: string } };
+
+export interface ToolRound<Context extends ExecutionContext> {
+  calls: ModelToolCall[];
+  tools: Record<string, DataTool<Context>>;
+  context: Context;
+  signal: AbortSignal | undefined;
+  interpreter: Interpreter<Context>;
+  /** The dashboard being built, whose saved scripts run by its id. */
+  artifactId: string;
   /** The build's version: OpenUI Cloud runs a saved script from the build in progress. */
-  version: string | undefined,
-): Promise<ToolMessage[]> {
+  version: string | undefined;
+}
+
+/** Runs one round of the model's tool calls; each run has the interpreter's timeout. */
+export async function runToolRound<Context extends ExecutionContext>({
+  calls,
+  tools,
+  context,
+  signal: callerSignal,
+  interpreter,
+  artifactId,
+  version,
+}: ToolRound<Context>): Promise<ToolMessage[]> {
   callerSignal?.throwIfAborted();
   const executionOptions = callerSignal ? { signal: callerSignal } : {};
   return Promise.all(

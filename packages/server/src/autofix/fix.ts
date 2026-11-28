@@ -1,21 +1,13 @@
 import { generateSystemPrompt, type Parser } from "@openuidev/lang-core";
-import type { AutofixInput, AutofixOptions, AutofixResult } from "./types";
+import { OpenUIApiError } from "../core/errors";
+import type { CloudApi } from "../core/http";
+import { errorsOf, readCompletion, repairContext } from "./diagnostics";
+import type { AutofixInput, AutofixResult, CreateAutofixParams } from "./types";
 import { AutofixError, MAX_AUTOFIX_GENERATION_LENGTH } from "./types";
-import { errorsOf, readCompletion, repairContext } from "./utils";
 
 // Return valid programs unchanged and send invalid programs to the Autofix API.
 export async function fixGeneration(
-  {
-    library,
-    apiKey,
-    parser,
-    endpoint,
-    fetchFn,
-  }: Pick<AutofixOptions, "library" | "apiKey"> & {
-    parser: Parser;
-    endpoint: string;
-    fetchFn: typeof globalThis.fetch;
-  },
+  { library, parser, api }: CreateAutofixParams & { parser: Parser; api: CloudApi },
   { generation, messages = [], signal }: AutofixInput,
 ): Promise<AutofixResult> {
   signal?.throwIfAborted();
@@ -33,18 +25,25 @@ export async function fixGeneration(
     };
   }
 
-  const response = await fetchFn(endpoint, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      messages: [
-        { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
-        ...repairContext(messages),
-        { role: "assistant", content: generation },
-      ],
-    }),
-    signal,
-  });
+  let response: Response;
+  try {
+    response = await api.request("POST", "/v1/autofix", {
+      body: {
+        messages: [
+          { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
+          ...repairContext(messages),
+          { role: "assistant", content: generation },
+        ],
+      },
+      signal,
+    });
+  } catch (error) {
+    // The client's own failures, such as a missing API key, fail Autofix like any other.
+    if (error instanceof OpenUIApiError) {
+      throw new AutofixError(error.message, error.code, error.status);
+    }
+    throw error;
+  }
   signal?.throwIfAborted();
   if (!response.ok) {
     throw new AutofixError(

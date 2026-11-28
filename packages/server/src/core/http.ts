@@ -1,8 +1,19 @@
-import { THESYS_API_BASE_URL } from "../shared/constants";
-import { OpenUIApiError, type OpenUIClientOptions } from "./types";
+import { THESYS_API_BASE_URL } from "./constants";
+import { invalidResponse, OpenUIApiError } from "./errors";
+import { isRecord } from "./guards";
 
-export const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
+export interface OpenUIClientOptions {
+  /** Defaults to the `THESYS_API_KEY` environment variable. */
+  apiKey?: string;
+  /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
+  baseUrl?: string;
+  /**
+   * Your app, when one API key serves several: users' frontend tokens and
+   * artifacts belong to it, and generated scripts run only from it.
+   */
+  appId?: string;
+  fetch?: typeof globalThis.fetch;
+}
 
 /** Query string values; `undefined` ones are left out, arrays repeat the name. */
 export type CloudQuery = Record<string, string | readonly string[] | undefined>;
@@ -19,31 +30,34 @@ export interface CloudSendOptions {
 export interface CloudApi {
   /** The client's app, if it has one. */
   readonly appId?: string;
+  /** Sends a request with the API key and resolves with the raw response, whatever its status. */
+  request(
+    method: "GET" | "POST" | "DELETE",
+    path: string,
+    options?: CloudSendOptions,
+  ): Promise<Response>;
   /** Sends a request and resolves with the JSON object OpenUI Cloud returns. */
   send(
     method: "GET" | "POST" | "DELETE",
     path: string,
     options?: CloudSendOptions,
   ): Promise<Record<string, unknown>>;
-  /** POSTs JSON and resolves with the JSON object OpenUI Cloud returns. */
-  post(
-    path: string,
-    body: unknown,
-    signal?: AbortSignal,
-    headers?: Record<string, string>,
-  ): Promise<Record<string, unknown>>;
   /** POSTs JSON with `stream: true` and yields each event OpenUI Cloud sends, until `[DONE]`. */
   stream(path: string, body: unknown, signal?: AbortSignal): AsyncIterable<Record<string, unknown>>;
 }
 
+/** The response's JSON, or `undefined` when it has none. */
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return undefined;
+  }
+}
+
 /** The error a failed OpenUI Cloud response describes. */
 export async function apiError(response: Response): Promise<OpenUIApiError> {
-  let result: unknown;
-  try {
-    result = await response.json();
-  } catch {
-    result = undefined;
-  }
+  const result = await readJson(response);
   const error = isRecord(result) && isRecord(result["error"]) ? result["error"] : undefined;
   const message = error?.["message"] ?? (isRecord(result) ? result["message"] : undefined);
   return new OpenUIApiError(
@@ -59,6 +73,9 @@ const envApiKey = (): string | undefined =>
   ];
 
 export function createCloudApi(options: OpenUIClientOptions): CloudApi {
+  if (options.appId !== undefined && (typeof options.appId !== "string" || !options.appId.trim())) {
+    throw new OpenUIApiError("appId must be a non-empty string", "invalid_input");
+  }
   const base = (options.baseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "");
   const fetchFn: typeof globalThis.fetch = (input, init) =>
     (options.fetch ?? globalThis.fetch)(input, init);
@@ -86,12 +103,12 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
     return `${base}${path}${qs ? `?${qs}` : ""}`;
   }
 
-  async function send(
+  async function request(
     method: "GET" | "POST" | "DELETE",
     path: string,
     { query, body, signal, headers }: CloudSendOptions = {},
   ) {
-    const response = await fetchFn(url(path, query), {
+    return fetchFn(url(path, query), {
       method,
       headers: {
         ...headers,
@@ -101,35 +118,24 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
       ...(body !== undefined && { body: JSON.stringify(body) }),
       signal,
     });
+  }
+
+  async function send(method: "GET" | "POST" | "DELETE", path: string, options?: CloudSendOptions) {
+    const response = await request(method, path, options);
     if (!response.ok) throw await apiError(response);
-    let result: unknown;
-    try {
-      result = await response.json();
-    } catch {
-      result = undefined;
-    }
-    if (!isRecord(result)) {
-      throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
-    }
+    const result = await readJson(response);
+    if (!isRecord(result)) throw invalidResponse();
     return result;
   }
 
-  /** POSTs JSON with `stream: true` and yields each event OpenUI Cloud sends, until `[DONE]`. */
   async function* stream(path: string, body: unknown, signal?: AbortSignal) {
-    const response = await fetchFn(url(path), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "text/event-stream",
-        Authorization: authorization(),
-      },
-      body: JSON.stringify({ ...(body as object), stream: true }),
+    const response = await request("POST", path, {
+      body: { ...(body as object), stream: true },
       signal,
+      headers: { Accept: "text/event-stream" },
     });
     if (!response.ok) throw await apiError(response);
-    if (!response.body) {
-      throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
-    }
+    if (!response.body) throw invalidResponse();
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
     let buffer = "";
     try {
@@ -157,8 +163,8 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
 
   return {
     ...(options.appId !== undefined && { appId: options.appId }),
+    request,
     send,
-    post: (path, body, signal, headers) => send("POST", path, { body, signal, headers }),
     stream,
   };
 }

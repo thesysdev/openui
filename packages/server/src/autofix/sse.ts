@@ -24,7 +24,6 @@ export function toSSE<T>(
           controller.error(error);
         }
       },
-      // Stop upstream work when the HTTP consumer disconnects.
       cancel(reason) {
         cancel(reason);
         void iterator.return?.().catch(() => {});

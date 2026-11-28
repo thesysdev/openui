@@ -1,16 +1,26 @@
-import { createAutofix as createAutofixPipeline } from "../shared/create-autofix";
-import type { AutofixOptions } from "../shared/types";
-import { openAIAdapter } from "./adapter";
+import { standaloneApi } from "../autofix/create-autofix";
+import type { AutofixOptions } from "../autofix/types";
+import { chatAutofix, type ChatAutofix } from "./autofix";
 
+export { AutofixError } from "../autofix/types";
+export type {
+  AutofixDiagnostic,
+  AutofixOptions,
+  AutofixResult,
+  AutofixStream,
+} from "../autofix/types";
+export type { ChatAutofix } from "./autofix";
 export {
   chatCompletionMessagesToItems,
   storeChatCompletionHistory,
 } from "./store-conversation-items";
-export type { StoreChatCompletionHistoryOptions } from "./types";
+export type { StoreChatCompletionHistoryOptions } from "./store-conversation-items";
 
-// Create validation and repair helpers for OpenAI Chat Completions and Responses.
-export function createAutofix(options: AutofixOptions) {
-  return {
-    completions: createAutofixPipeline(options, openAIAdapter),
-  };
+/**
+ * Validation and repair helpers for Chat Completions.
+ *
+ * @deprecated Use `new OpenUIClient().chat.createAutofix({ library })`.
+ */
+export function createAutofix(options: AutofixOptions): { completions: ChatAutofix } {
+  return { completions: chatAutofix(standaloneApi(options), options) };
 }

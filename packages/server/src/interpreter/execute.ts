@@ -1,6 +1,8 @@
-import { isRecord, type CloudApi } from "../client/api";
-import { OpenUIApiError } from "../client/types";
-import { abortable } from "../shared/abort";
+import { abortable } from "../core/abort";
+import { actAsFields } from "../core/act-as";
+import { OpenUIApiError } from "../core/errors";
+import { isRecord } from "../core/guards";
+import type { CloudApi } from "../core/http";
 import { mcpServers, mcpToolLoader, mergeTools } from "./mcp";
 import {
   assertUserIdRequired,
@@ -38,7 +40,7 @@ export function toToolDefinitions(
   }));
 }
 
-/** Your data tools and your MCP servers', merged. MCP tools are listed on first use, then reused. */
+/** Your data tools and your MCP servers', merged. MCP tools are listed once, on first use. */
 export function dataToolLoader<Context extends ExecutionContext>(
   options: InterpreterOptions<Context>,
 ): () => Promise<Record<string, DataTool<Context>>> {
@@ -114,14 +116,12 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
           404,
         );
       }
-      // Only users who can open the artifact can run its scripts: its owner, or anyone it's shared with.
+      // As the user: only those who can open the artifact can run its scripts.
       const source = {
         artifact_id: input.id,
         ...(typeof input.version === "string" &&
           input.version && { artifact_version: input.version }),
-        user_id: context.userId,
-        ...(context.groupIds?.length && { group_ids: context.groupIds }),
-        ...(api.appId !== undefined && { app_id: api.appId }),
+        ...actAsFields(api, context),
       };
 
       let state: string | undefined;
@@ -229,7 +229,7 @@ export function createInterpreter<Context extends ExecutionContext = ExecutionCo
     signal: AbortSignal,
   ): Promise<Record<string, unknown>> {
     try {
-      return await api.post("/v1/app/execute", body, signal);
+      return await api.send("POST", "/v1/app/execute", { body, signal });
     } catch (error) {
       signal.throwIfAborted();
       if (error instanceof OpenUIApiError) {
