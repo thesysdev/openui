@@ -3,20 +3,20 @@ title: Connect data
 description: Define the data tools dashboards call, connect MCP servers, and run queries through an interpreter route.
 ---
 
-A dashboard loads its data through data tools: functions on your server that return JSON. The model sees each tool's description, arguments, and an example output when it builds the dashboard. The browser runs the tools through an interpreter route on your server every time the dashboard opens.
+A dashboard loads its data through data tools: functions on your server that return JSON. When it builds the dashboard, the model sees each tool's description, arguments, and an example output, and [calls the tools](/docs/dashboards/how-it-works#how-a-dashboard-is-built) to see their real results. The browser runs the tools through an interpreter route on your server every time the dashboard opens.
 
-To derive data, the model can also write a script that calls several tools and combines their results. Scripts run in the OpenUI JS interpreter for safe execution, and can only call the tools passed to `defineDashboard`.
+To derive data, the model can also write a script that calls several tools and combines their results. Scripts run in the [OpenUI JS interpreter](/docs/dashboards/security#the-js-interpreter) and can only call the tools passed to `defineDashboard`.
 
 ## Define a data tool
 
 A data tool has four fields:
 
-| Field         | Description                                                                                          |
-| ------------- | ---------------------------------------------------------------------------------------------------- |
-| `description` | What the tool returns and when to use it.                                                            |
-| `parameters`  | A JSON Schema for the arguments.                                                                     |
-| `output`      | An example result. The model reads its shape to bind components to fields. It's never shown as data. |
-| `execute`     | `(args, context, { signal })`, which returns the result. Runs on your server.                        |
+| Field         | Description                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| `description` | What the tool returns and when to use it.                                                |
+| `parameters`  | A JSON Schema for the arguments.                                                         |
+| `output`      | An example result. The model plans its queries from its shape. It's never shown as data. |
+| `execute`     | `(args, context, { signal })`, which returns the result. Runs on your server.            |
 
 For example, a tool that returns orders per day:
 
@@ -52,22 +52,22 @@ Pass the tools to `defineDashboard`:
 ```ts title="lib/openui.ts"
 export const dashboards = openui.defineDashboard({
   library: spec,
-  model: "anthropic/claude-sonnet-5.5",
+  model: "google/gemini-4-neon",
   tools: dataTools,
 });
 ```
 
 ### Guidelines
 
-- **Keep `output` static:** Defining the dashboard never calls a tool, so the example has to be written out. Match the real shape exactly, including nesting and field names.
+- **Match `output` to the real shape:** Include the same nesting and field names. The model plans its queries from the example, and the build [checks them](/docs/dashboards/how-it-works#how-a-dashboard-is-built) against the real result, so a mismatch costs a repair. A query on a tool the build didn't call, such as with `maxToolRounds: 0`, isn't checked at all, and the example is all the model has.
 - **Read arguments leniently:** A filter nobody has picked yet arrives as `""` or `null`. Treat those as unset, and clamp limits instead of rejecting them.
-- **Return only what the dashboard needs:** Results go to the browser as is.
+- **Return only what the dashboard needs:** Results go to the browser as is, and to the model while a dashboard is built.
 - **Honor `signal`:** It aborts when the dashboard's request ends or the time budget runs out.
-- **Prefer read-only tools:** A dashboard runs its queries on every view, and scripts can call any tool in the list.
+- **Prefer read-only tools:** The model calls tools while it builds, a dashboard runs its queries on every view, and scripts can call any tool in the list. None of these asks the user first.
 
 ## Use the context
 
-`execute` receives the `context` passed to the interpreter, unchanged. Use it to return only the data the signed-in user may see:
+`execute` receives the `context` unchanged: the one passed to `create` or `edit` while a dashboard is built, and the one passed to the interpreter when it opens. Use it to return only the data the signed-in user may see:
 
 ```ts
 execute: async (args, context, { signal }) => {
@@ -93,7 +93,7 @@ export const dashboards = openui.defineDashboard<Context>({/* … */});
 ```ts title="lib/openui.ts"
 export const dashboards = openui.defineDashboard({
   library: spec,
-  model: "anthropic/claude-sonnet-5.5",
+  model: "google/gemini-4-neon",
   tools: dataTools,
   mcp: {
     client: mcpClient,
@@ -150,7 +150,7 @@ export async function POST(request: Request) {
 }
 ```
 
-`execute` runs the named data tool directly. When the name is a generated script, it runs the script in the OpenUI JS interpreter for safe execution. The script calls your tools on this server through the same handlers. Scripts run only for users who can open the dashboard: its owner, and anyone it's [shared with](/docs/dashboards/sharing). Your tools get the viewer's `context`, so each user sees their own data.
+`execute` runs the named data tool directly. When the name is a generated script, it runs the script in the [OpenUI JS interpreter](/docs/dashboards/security#the-js-interpreter). The script calls your tools on this server through the same handlers. Scripts run only for users who can open the dashboard: its owner, and anyone it's [shared with](/docs/dashboards/sharing). Your tools get the viewer's `context`, so each user sees their own data.
 
 | Option      | Description                                                  |
 | ----------- | ------------------------------------------------------------ |

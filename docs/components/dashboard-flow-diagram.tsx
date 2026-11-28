@@ -60,7 +60,7 @@ export function DashboardFlowDiagram() {
     <DiagramFrame
       id={m}
       title="How dashboards work"
-      description="1. The user asks for a dashboard in the chat, and the agent on your server receives the message. 2. The agent's create_dashboard or edit_dashboard tool calls dashboards.create() or dashboards.edit(), and OpenUI's generator starts building the dashboard. 3. The call returns a response right away. 4. The agent returns the response as the tool result. 5. The chat passes the result to LiveArtifactRenderer. 6. The dashboard's Query() calls go to the interpreter route on your server. 7. A generated script runs in OpenUI's JS interpreter, a secure execution environment. 8. The script calls your data tools on your server. 9. The results return to the renderer."
+      description="1. The user asks for a dashboard in the chat, and the agent on your server receives the message. 2. The agent's create_dashboard or edit_dashboard tool calls dashboards.create() or dashboards.edit(), and OpenUI's generator starts building the dashboard. The generator first asks your server to run your data tools, with the creator's context, to see real data. 3. The call returns a response once the dashboard starts generating. 4. The agent returns the response as the tool result. 5. The chat passes the result to LiveArtifactRenderer. 6. The dashboard's Query() calls go to the interpreter route on your server. 7. A generated script runs in OpenUI's JS interpreter. 8. The script calls your data tools on your server. 9. The results return to the renderer."
       width={1020}
       height={520}
       minWidth={640}
@@ -94,7 +94,7 @@ export function DashboardFlowDiagram() {
         height={170}
         icon={Sparkles}
         title="Generator"
-        lines={["Builds the", "dashboard from", "your library"]}
+        lines={["Calls your tools,", "then builds from", "your library"]}
         highlight
       />
       <Node
@@ -123,7 +123,7 @@ export function DashboardFlowDiagram() {
         height={170}
         icon={ShieldCheck}
         title="JS interpreter"
-        lines={["Secure execution", "of generated", "scripts"]}
+        lines={["Runs the", "generated", "scripts"]}
         highlight
       />
 

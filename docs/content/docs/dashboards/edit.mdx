@@ -27,6 +27,8 @@ Only the dashboard's owner, and users it's [shared with](/docs/dashboards/sharin
 
 `edit` resolves with a response, like [`create`](/docs/dashboards/generate#the-response). Return it as the tool result, or pass it to the renderer.
 
+A dashboard takes one edit at a time. While it's being created or edited, another `edit` is rejected, not queued: it throws an `OpenUIApiError` with `status` 409. Return the error's message to the model, so it can ask the user to try again. An edit that stops partway frees the dashboard within 5 minutes.
+
 ## Get the id
 
 The id comes from one of two places:

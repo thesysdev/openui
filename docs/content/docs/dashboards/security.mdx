@@ -1,0 +1,73 @@
+---
+title: Security
+description: What runs in the browser, where scripts run, and what data the model sees.
+---
+
+A model writes each dashboard, your users open it, and it loads data from your server. This page covers what runs where, and which data leaves your server.
+
+## No generated code runs in the browser
+
+The model writes dashboards in [OpenUI Lang](/docs/openui-lang/overview), which has no HTML or JavaScript. The renderer only draws your components, runs OpenUI Lang's built-in functions, and calls your data tools. Anything else is an error. For example, a dashboard can't add a `<script>` tag, load another site, or call `fetch`.
+
+## The JS interpreter
+
+Some data has to be computed, such as revenue per customer from orders and customers. For that, the model writes a JavaScript script, and OpenUI runs it in its JS interpreter:
+
+- **A new VM each time:** Each run starts in a fresh QuickJS virtual machine, built on WebAssembly. Nothing carries over between runs or users.
+- **No network or files:** A script can't call `fetch`, open files, or use Node.js.
+- **Only your data tools:** A script gets data only from your data tools. Each call runs on your server with the viewer's `context`.
+- **Limits:** A run stops with an error if it uses too much memory or time, calls too many tools, or returns too much data. The dashboard shows the error.
+
+## Scripts never reach the browser
+
+The browser gets only the dashboard's OpenUI Lang. Scripts stay in OpenUI. To run one, the renderer sends its name to your server, your server passes it to OpenUI, and OpenUI runs it.
+
+Only users who can open the dashboard can run its scripts: the owner, and anyone it's [shared with](/docs/dashboards/sharing).
+
+## Your data tools
+
+Treat data tools like any other API route:
+
+- **They run on your server:** OpenUI never calls your database or APIs. MCP tools are called from your server too.
+- **Check access in each tool:** The browser can call any of your data tools with any arguments. Use `context` to return only what the signed-in user may see, and check the arguments like any user input.
+- **Offer read-only tools:** The model calls tools while it builds, dashboards call them each time they open, and scripts can call any of them. None of these asks the user first. From an MCP server, only read-only tools are offered by default.
+
+## What goes to the model provider
+
+The model provider runs the `model` in `defineDashboard`, such as Google for `google/gemini-4-neon`. The model only runs while a dashboard is built or edited. It gets:
+
+| What                                                                 | When                     |
+| -------------------------------------------------------------------- | ------------------------ |
+| The prompt passed to `create` or `edit`                              | Every build and edit     |
+| Your component library, `instructions`, and `promptOptions`          | Every build and edit     |
+| Each data tool's name, description, parameters, and `output` example | Every build and edit     |
+| Results of the data tools the model calls, as the creator or editor  | During a build or edit   |
+| Each script's result                                                 | During a build or edit   |
+| The dashboard's current OpenUI Lang and scripts                      | Every edit               |
+| The same user's earlier builds of the dashboard                      | Edits soon after a build |
+
+To limit what the model sees, see [How a dashboard is built](/docs/dashboards/how-it-works#how-a-dashboard-is-built).
+
+The model never gets:
+
+- **Data loaded when a dashboard opens:** Opening, filtering, and refreshing a dashboard doesn't call the model.
+- **`context`:** It stays on your server. Only `userId` and `groupIds` go to OpenUI, for ownership and sharing.
+
+## Data when a dashboard opens
+
+- **Data tool queries** go from the browser to your server and back.
+- **A script's tool results** go to OpenUI only for that run, so the script can compute its result.
+- **Each query's last result** is saved in OpenUI by the browser, so the dashboard can show it while it reloads next time. See [What OpenUI stores](#what-openui-stores).
+
+No model sees any of this data.
+
+## What OpenUI stores
+
+- **The dashboard:** its OpenUI Lang, scripts, owner, and shares, until it's deleted.
+- **Recent builds:** each user's messages and tool results, for a few hours after the dashboard's last build, so a follow-up edit can reuse them. One user's builds are never sent with another user's edit.
+- **Recent query results:** each user's last result for each query, for up to a day, so the dashboard can show it while it reloads. They're dropped when the dashboard changes. To turn this off, pass `cacheQueryResults: false` to `OpenUICloudProvider`.
+
+## Access
+
+- **Authentication:** Your server uses the API key, which never reaches the browser. The browser uses a short-lived token for one user. See [Authentication](/docs/dashboards/authentication).
+- **Sharing:** A dashboard belongs to the user who created it. Others can view or edit it only once it's shared with them. See [Sharing](/docs/dashboards/sharing).
