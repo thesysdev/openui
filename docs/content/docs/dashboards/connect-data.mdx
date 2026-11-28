@@ -3,7 +3,7 @@ title: Connect data
 description: Define the data tools dashboards call, connect MCP servers, and run queries through an interpreter route.
 ---
 
-A dashboard loads its data through data tools: functions on your server that return JSON. When it builds the dashboard, the model sees each tool's description, arguments, and an example output, and [calls the tools](/docs/dashboards/how-it-works#tools-during-the-build) to see their real results. The browser runs the tools through an interpreter route on your server every time the dashboard opens.
+A dashboard loads its data through data tools: functions on your server that return JSON. When it builds the dashboard, the model sees each tool's description, arguments, and an example output, and [calls the tools](/docs/dashboards/how-it-works#how-a-dashboard-is-built) to see their real results. The browser runs the tools through an interpreter route on your server every time the dashboard opens.
 
 To derive data, the model can also write a script that calls several tools and combines their results. Scripts run in the [OpenUI JS interpreter](/docs/dashboards/security#the-js-interpreter) and can only call the tools passed to `defineDashboard`.
 
@@ -59,7 +59,7 @@ export const dashboards = openui.defineDashboard({
 
 ### Guidelines
 
-- **Match `output` to the real shape:** Include the same nesting and field names. The model plans its queries from the example, and the build [checks them](/docs/dashboards/how-it-works#how-a-dashboard-is-checked) against the real result, so a mismatch costs a repair. A query on a tool the build didn't call, such as with `maxToolRounds: 0`, isn't checked at all, and the example is all the model has.
+- **Match `output` to the real shape:** Include the same nesting and field names. The model plans its queries from the example, and the build [checks them](/docs/dashboards/how-it-works#how-a-dashboard-is-built) against the real result, so a mismatch costs a repair. A query on a tool the build didn't call, such as with `maxToolRounds: 0`, isn't checked at all, and the example is all the model has.
 - **Read arguments leniently:** A filter nobody has picked yet arrives as `""` or `null`. Treat those as unset, and clamp limits instead of rejecting them.
 - **Return only what the dashboard needs:** Results go to the browser as is, and to the model while a dashboard is built.
 - **Honor `signal`:** It aborts when the dashboard's request ends or the time budget runs out.
