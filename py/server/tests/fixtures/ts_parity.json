@@ -1,0 +1,1648 @@
+{
+ "_about": "Outputs of the TypeScript @openuidev/server on the same inputs, so these tests keep the Python SDK at parity. Regenerate them from a TS build when its converters, config block, dashboard tools or Autofix change.",
+ "library": {
+  "id": "demo",
+  "root": "Stack",
+  "components": {
+   "Stack": {
+    "signature": "Stack(children: Card[])",
+    "description": "A vertical stack"
+   },
+   "Card": {
+    "signature": "Card(title: string, value?: number)",
+    "description": "A KPI card — ünïcode"
+   }
+  },
+  "componentGroups": [
+   {
+    "name": "Layout",
+    "components": [
+     "Stack",
+     "Card"
+    ],
+    "notes": [
+     "Use Stack at the root"
+    ]
+   }
+  ],
+  "schema": {
+   "$defs": {
+    "Stack": {
+     "type": "object",
+     "properties": {
+      "children": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/Card"
+       }
+      }
+     },
+     "required": [
+      "children"
+     ]
+    },
+    "Card": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "type": "string"
+      },
+      "value": {
+       "type": "number",
+       "minimum": 0
+      }
+     },
+     "required": [
+      "title"
+     ]
+    }
+   }
+  }
+ },
+ "converters": {
+  "chat_turn": [
+   {
+    "role": "system",
+    "content": "You are helpful"
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Show "
+     },
+     {
+      "type": "image_url",
+      "image_url": {
+       "url": "https://x/b.png"
+      }
+     }
+    ]
+   },
+   {
+    "role": "assistant",
+    "content": "Sure",
+    "tool_calls": [
+     {
+      "id": "x1",
+      "type": "function",
+      "function": {
+       "name": "get_sales",
+       "arguments": ""
+      }
+     },
+     {
+      "id": "x2",
+      "type": "function",
+      "function": {
+       "name": "get_costs",
+       "arguments": "{\"q\":3}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "x1",
+    "content": [
+     {
+      "type": "text",
+      "text": "{\"rows\":2}"
+     }
+    ]
+   },
+   {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Here "
+     },
+     {
+      "type": "refusal",
+      "refusal": "no"
+     },
+     {
+      "type": "text",
+      "text": "you go"
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "zz",
+    "content": "orphan"
+   },
+   {
+    "role": "user",
+    "content": ""
+   }
+  ],
+  "stored_items": [
+   {
+    "id": "i4",
+    "object": "conversation.item",
+    "type": "function_call_output",
+    "call_id": "call_1",
+    "output": "{\"rows\":1}"
+   },
+   {
+    "id": "i5",
+    "object": "conversation.item",
+    "type": "function_call",
+    "call_id": "call_2",
+    "name": "lost",
+    "arguments": "{}"
+   },
+   {
+    "id": "i6",
+    "object": "conversation.item",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+     {
+      "type": "output_text",
+      "text": "Done"
+     }
+    ]
+   },
+   {
+    "id": "i7",
+    "object": "conversation.item",
+    "type": "reasoning",
+    "summary": []
+   },
+   {
+    "id": "i8",
+    "object": "conversation.item",
+    "type": "function_call_output",
+    "call_id": "call_9",
+    "output": [
+     {
+      "type": "input_text",
+      "text": "orphan"
+     }
+    ]
+   }
+  ],
+  "chat_to_items": [
+   {
+    "type": "message",
+    "role": "user",
+    "content": [
+     {
+      "type": "input_text",
+      "text": "Show "
+     },
+     {
+      "type": "input_image",
+      "image_url": "https://x/b.png",
+      "detail": "auto"
+     }
+    ]
+   },
+   {
+    "type": "message",
+    "role": "assistant",
+    "content": [
+     {
+      "type": "output_text",
+      "text": "Sure"
+     }
+    ]
+   },
+   {
+    "type": "function_call",
+    "call_id": "x1",
+    "name": "get_sales",
+    "arguments": "{}"
+   },
+   {
+    "type": "function_call_output",
+    "call_id": "x1",
+    "output": "{\"rows\":2}"
+   },
+   {
+    "type": "message",
+    "role": "assistant",
+    "content": [
+     {
+      "type": "output_text",
+      "text": "Here you go"
+     }
+    ]
+   }
+  ],
+  "chat_from_items": [
+   {
+    "role": "assistant",
+    "content": "Done"
+   }
+  ],
+  "langgraph_to_items": [
+   {
+    "type": "message",
+    "role": "user",
+    "content": [
+     {
+      "type": "input_text",
+      "text": "hi"
+     },
+     {
+      "type": "input_image",
+      "image_url": "https://x/c.png",
+      "detail": "low"
+     },
+     {
+      "type": "input_image",
+      "image_url": "https://x/d.png",
+      "detail": "auto"
+     }
+    ]
+   },
+   {
+    "type": "message",
+    "role": "assistant",
+    "content": [
+     {
+      "type": "output_text",
+      "text": "Calling"
+     }
+    ]
+   },
+   {
+    "type": "function_call",
+    "call_id": "g1",
+    "name": "get_sales",
+    "arguments": "{\"region\":\"EU\"}"
+   },
+   {
+    "type": "function_call_output",
+    "call_id": "g1",
+    "output": "{\"rows\":3}"
+   },
+   {
+    "type": "message",
+    "role": "assistant",
+    "content": [
+     {
+      "type": "output_text",
+      "text": "All done"
+     }
+    ]
+   }
+  ],
+  "langgraph_from_items": [
+   {
+    "role": "ai",
+    "content": "Done"
+   }
+  ]
+ },
+ "dashboard": {
+  "first_request": {
+   "model": "anthropic/claude-sonnet-4.6",
+   "messages": [
+    {
+     "role": "system",
+     "content": "]]>openui:config\n{\"chatLibrary\":{\"id\":\"demo\",\"root\":\"Stack\",\"componentGroups\":[{\"name\":\"Layout\",\"components\":[\"Stack\",\"Card\"],\"notes\":[\"Use Stack at the root\"]}],\"schema\":{\"$defs\":{\"Stack\":{\"type\":\"object\",\"properties\":{\"children\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/$defs/Card\"}}},\"required\":[\"children\"]},\"Card\":{\"type\":\"object\",\"properties\":{\"title\":{\"type\":\"string\"},\"value\":{\"type\":\"number\",\"minimum\":0}},\"required\":[\"title\"]}}}},\"systemPromptOptions\":{\"examples\":[\"root = Stack([])\"],\"additionalRules\":[\"Be brief\"]},\"artifact\":{\"tools\":[{\"name\":\"get_sales\",\"parameters\":{\"type\":\"object\",\"properties\":{\"region\":{\"type\":\"string\"}}},\"description\":\"Sales by region\",\"output\":{\"rows\":[]}}],\"title\":\"Q3\",\"maxToolRounds\":3}}"
+    },
+    {
+     "role": "user",
+     "content": "Sales"
+    }
+   ],
+   "reasoning_effort": "low",
+   "user_id": "u1",
+   "app_id": "app1"
+  }
+ },
+ "dashboard_tools": {
+  "data_tools": {
+   "get_sales": "Sales by region (net of returns). Totals per quarter for the signed-in user's accounts.",
+   "list_customers": "Customers with their plan, region, owner, signup date, last activity, lifetime value, open tickets, renewal date, account health score and notes from the account team, newest first, paginated.",
+   "nodesc": ""
+  },
+  "tools": {
+   "create_dashboard": {
+    "name": "create_dashboard",
+    "description": "Create a new live dashboard for the user. Use it only when the user asks for a new dashboard; to change an existing one, call edit_dashboard. The dashboard loads its data live every time it opens, so describe what to show and never include numbers. Returns once the dashboard starts building (usually 20-45 s). The user watches it build, so then reply in ONE short sentence that names the dashboard and offers one change. Don't list its sections or repeat the result.\n\nDashboards can show this data, and nothing else:\n- get_sales: Sales by region\n- list_customers: Customers with their plan, region, owner, signup date, last activity, lifetime value, open tickets, renewal date, account health score and notes from the…\n- nodesc: ",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "type": "string",
+       "description": "A short title the user will recognise, such as \"Orders, last 30 days\"."
+      },
+      "prompt": {
+       "type": "string",
+       "description": "The complete brief. The builder sees only this, not the chat: the question the dashboard answers, its sections, metrics, charts, tables and filters, the time range, and which data each part uses. Include every name, id and preference from the conversation. Ask only for what the user wants; don't add sections they didn't ask for. No numbers."
+      }
+     },
+     "required": [
+      "title",
+      "prompt"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "edit_dashboard": {
+    "name": "edit_dashboard",
+    "description": "Change an existing dashboard in place: add, remove or rework sections, charts, tables or filters. \"It\" or \"this\" means the dashboard you created or changed last; use its id. Prefer this over create_dashboard unless the user asks for a new dashboard. Make one change per call. Returns once the change starts; the user sees the dashboard update, so then reply in ONE short sentence saying what changed.",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string",
+       "description": "The dashboard's id (art_…), from the create_dashboard, edit_dashboard or get_dashboard result for it."
+      },
+      "prompt": {
+       "type": "string",
+       "description": "The change, written to stand alone: what to add, remove or change, and which data it uses. No numbers."
+      }
+     },
+     "required": [
+      "id",
+      "prompt"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "get_dashboard": {
+    "name": "get_dashboard",
+    "description": "Read a dashboard the user can open: its name, its layout as an OpenUI program (sections, charts, tables, and the data each uses) and whether the user can edit it. It has no numbers; the dashboard loads them when it opens. Use it to answer questions about a dashboard, or before changing one from an earlier conversation. Answer from it in plain words; don't paste the program. If isEditable is false, don't call edit_dashboard: offer to create a new dashboard instead.",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string",
+       "description": "The dashboard's id (art_…), from the create_dashboard, edit_dashboard or get_dashboard result for it."
+      }
+     },
+     "required": [
+      "id"
+     ],
+     "additionalProperties": false
+    }
+   }
+  },
+  "mcp_instructions": "Build and change live dashboards for the signed-in user. A dashboard loads its own data every time it opens, so you never see its numbers and must not state any.\n- Call create_dashboard only when the user asks for a new dashboard. \"It\" or \"this\" means the dashboard you made or changed last: change it with edit_dashboard and its id.\n- Write each prompt as a complete brief. The builder sees only the prompt, not this conversation.\n- Build what the user asked for. Don't add sections they didn't ask for; if the request is vague, pick a sensible set and say so.\n- To answer a question about a dashboard, or before changing one from an earlier conversation, read it with get_dashboard.\n- The user watches the dashboard build, so after a create or edit reply in ONE short sentence: name the dashboard and offer one change. Example: \"Your sales by region dashboard is on its way. Want a filter by quarter too?\" Don't list its sections, charts or numbers, and don't repeat the tool result.",
+  "mcp_tools": [
+   {
+    "name": "create_dashboard",
+    "title": "Create dashboard",
+    "description": "Create a new live dashboard for the user. Use it only when the user asks for a new dashboard; to change an existing one, call edit_dashboard. The dashboard loads its data live every time it opens, so describe what to show and never include numbers. Returns once the dashboard starts building (usually 20-45 s). The user watches it build, so then reply in ONE short sentence that names the dashboard and offers one change. Don't list its sections or repeat the result.\n\nDashboards can show this data, and nothing else:\n- get_sales: Sales by region\n- list_customers: Customers with their plan, region, owner, signup date, last activity, lifetime value, open tickets, renewal date, account health score and notes from the…\n- nodesc: ",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "type": "string",
+       "description": "A short title the user will recognise, such as \"Orders, last 30 days\"."
+      },
+      "prompt": {
+       "type": "string",
+       "description": "The complete brief. The builder sees only this, not the chat: the question the dashboard answers, its sections, metrics, charts, tables and filters, the time range, and which data each part uses. Include every name, id and preference from the conversation. Ask only for what the user wants; don't add sections they didn't ask for. No numbers."
+      }
+     },
+     "required": [
+      "title",
+      "prompt"
+     ],
+     "additionalProperties": false
+    },
+    "annotations": {
+     "readOnlyHint": false,
+     "destructiveHint": false,
+     "idempotentHint": false,
+     "openWorldHint": false
+    }
+   },
+   {
+    "name": "edit_dashboard",
+    "title": "Edit dashboard",
+    "description": "Change an existing dashboard in place: add, remove or rework sections, charts, tables or filters. \"It\" or \"this\" means the dashboard you created or changed last; use its id. Prefer this over create_dashboard unless the user asks for a new dashboard. Make one change per call. Returns once the change starts; the user sees the dashboard update, so then reply in ONE short sentence saying what changed.",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string",
+       "description": "The dashboard's id (art_…), from the create_dashboard, edit_dashboard or get_dashboard result for it."
+      },
+      "prompt": {
+       "type": "string",
+       "description": "The change, written to stand alone: what to add, remove or change, and which data it uses. No numbers."
+      }
+     },
+     "required": [
+      "id",
+      "prompt"
+     ],
+     "additionalProperties": false
+    },
+    "annotations": {
+     "readOnlyHint": false,
+     "destructiveHint": false,
+     "idempotentHint": false,
+     "openWorldHint": false
+    }
+   },
+   {
+    "name": "get_dashboard",
+    "title": "Read dashboard",
+    "description": "Read a dashboard the user can open: its name, its layout as an OpenUI program (sections, charts, tables, and the data each uses) and whether the user can edit it. It has no numbers; the dashboard loads them when it opens. Use it to answer questions about a dashboard, or before changing one from an earlier conversation. Answer from it in plain words; don't paste the program. If isEditable is false, don't call edit_dashboard: offer to create a new dashboard instead.",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string",
+       "description": "The dashboard's id (art_…), from the create_dashboard, edit_dashboard or get_dashboard result for it."
+      }
+     },
+     "required": [
+      "id"
+     ],
+     "additionalProperties": false
+    },
+    "annotations": {
+     "readOnlyHint": true,
+     "destructiveHint": false,
+     "idempotentHint": true,
+     "openWorldHint": false
+    }
+   }
+  ]
+ },
+ "autofix": {
+  "cases": {
+   "valid-fenced": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "Here:\n```openui\n"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "root = Stack([c1])\n"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "c1 = Card(\"Sales\", 3)\n``"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "`\nDone"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "stop"
+      }
+     ]
+    }
+   ],
+   "broken-fenced": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "Here:\n```openui\n"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "root = Stack([c1, c2])\n"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "c1 = Card(\"Sales\", 3)\n``"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "`\nDone"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "stop"
+      }
+     ]
+    }
+   ],
+   "hopeless": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "```openui\nroot = Stack([zz])\n```"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "stop"
+      }
+     ]
+    }
+   ],
+   "prose": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "Hello "
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "there"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "stop"
+      }
+     ]
+    }
+   ],
+   "tools": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "root = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)",
+        "tool_calls": [
+         {
+          "index": 0,
+          "id": "t1",
+          "type": "function",
+          "function": {
+           "name": "f",
+           "arguments": "{}"
+          }
+         }
+        ]
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "tool_calls"
+      }
+     ]
+    }
+   ],
+   "cloud-markers": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "]]>openui:content\n```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n```\n]]>openui:end"
+       },
+       "finish_reason": null
+      }
+     ],
+     "service_tier": "default"
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "stop"
+      }
+     ],
+     "service_tier": "default"
+    }
+   ],
+   "unfenced-root": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "root = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "stop"
+      }
+     ]
+    }
+   ],
+   "length-cut": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "role": "assistant",
+        "content": "```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n```"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "length"
+      }
+     ]
+    }
+   ],
+   "two-choices": [
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {
+        "content": "```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n```"
+       },
+       "finish_reason": null
+      },
+      {
+       "index": 1,
+       "delta": {
+        "content": "Just text"
+       },
+       "finish_reason": null
+      }
+     ]
+    },
+    {
+     "id": "cc1",
+     "object": "chat.completion.chunk",
+     "created": 1,
+     "model": "m",
+     "choices": [
+      {
+       "index": 0,
+       "delta": {},
+       "finish_reason": "stop"
+      },
+      {
+       "index": 1,
+       "delta": {},
+       "finish_reason": "stop"
+      }
+     ]
+    }
+   ]
+  },
+  "history": [
+   {
+    "role": "system",
+    "content": "You build UIs"
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Show sales"
+     },
+     {
+      "type": "image_url",
+      "image_url": {
+       "url": "x"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "t",
+    "content": "ignored"
+   },
+   {
+    "role": "assistant",
+    "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   }
+  ],
+  "streams": {
+   "valid-fenced": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "Here:\n```openui\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "root = Stack([c1])\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "c1 = Card(\"Sales\", 3)\n``"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "```\nDone"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": {
+     "status": "already_valid",
+     "original": "Here:\n```openui\nroot = Stack([c1])\nc1 = Card(\"Sales\", 3)\n```\nDone",
+     "content": "Here:\n```openui\nroot = Stack([c1])\nc1 = Card(\"Sales\", 3)\n```\nDone",
+     "fixedErrors": [],
+     "unfixedErrors": []
+    }
+   },
+   "broken-fenced": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "Here:\n```openui\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "root = Stack([c1, c2])\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "c1 = Card(\"Sales\", 3)\n``"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "```\nDone"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": {
+     "status": "fixed",
+     "content": "```openui\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n```",
+     "fixedErrors": [
+      {
+       "code": "unresolved",
+       "message": "Reference \"c2\" is not defined",
+       "statementId": "c2"
+      }
+     ],
+     "unfixedErrors": [],
+     "original": "Here:\n```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n```\nDone"
+    }
+   },
+   "hopeless": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "```openui\nroot = Stack([zz])\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       }
+      ]
+     }
+    ],
+    "error": "fix_failed",
+    "result": {
+     "rejected": "fix_failed"
+    }
+   },
+   "prose": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "Hello "
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "there"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": null
+   },
+   "tools": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "root = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)",
+         "tool_calls": [
+          {
+           "index": 0,
+           "id": "t1",
+           "type": "function",
+           "function": {
+            "name": "f",
+            "arguments": "{}"
+           }
+          }
+         ]
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "tool_calls"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": null
+   },
+   "cloud-markers": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "]]>openui:content\n```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n"
+        },
+        "finish_reason": null
+       }
+      ],
+      "service_tier": "default"
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       }
+      ],
+      "service_tier": "default"
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "service_tier": "default",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "service_tier": "default",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "```\n]]>openui:end"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "service_tier": "default",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": {
+     "status": "fixed",
+     "content": "```openui\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n```",
+     "fixedErrors": [
+      {
+       "code": "unresolved",
+       "message": "Reference \"c2\" is not defined",
+       "statementId": "c2"
+      }
+     ],
+     "unfixedErrors": [],
+     "original": "]]>openui:content\n```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n```\n]]>openui:end"
+    }
+   },
+   "unfenced-root": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "root = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": {
+     "status": "fixed",
+     "content": "```openui\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n```",
+     "fixedErrors": [
+      {
+       "code": "unresolved",
+       "message": "Reference \"c2\" is not defined",
+       "statementId": "c2"
+      }
+     ],
+     "unfixedErrors": [],
+     "original": "root = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)"
+    }
+   },
+   "length-cut": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "role": "assistant",
+         "content": "```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "```"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": null
+   },
+   "two-choices": {
+    "chunks": [
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n"
+        },
+        "finish_reason": null
+       },
+       {
+        "index": 1,
+        "delta": {
+         "content": "Just text"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": ""
+        },
+        "finish_reason": null
+       },
+       {
+        "index": 1,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {
+         "content": "```"
+        },
+        "finish_reason": null
+       }
+      ]
+     },
+     {
+      "id": "cc1",
+      "object": "chat.completion.chunk",
+      "created": 1,
+      "model": "m",
+      "choices": [
+       {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop"
+       }
+      ]
+     }
+    ],
+    "error": null,
+    "result": {
+     "status": "fixed",
+     "content": "```openui\nroot = Stack([c1])\nc1 = Card(\"Fixed\", 1)\n```",
+     "fixedErrors": [
+      {
+       "code": "unresolved",
+       "message": "Reference \"c2\" is not defined",
+       "statementId": "c2"
+      }
+     ],
+     "unfixedErrors": [],
+     "original": "```openui\nroot = Stack([c1, c2])\nc1 = Card(\"Sales\", 3)\n```"
+    }
+   }
+  }
+ }
+}

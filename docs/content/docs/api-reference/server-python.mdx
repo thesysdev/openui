@@ -1,0 +1,511 @@
+---
+title: "openui-server (Python)"
+description: "API reference for the Python server SDK: frontend tokens, conversations, artifacts, live dashboards and Autofix on OpenUI Cloud."
+---
+
+`openui-server` is [`@openuidev/server`](/docs/api-reference/server) in Python. It has the same calls, with Python names: `user_id` for `userId`, keyword arguments for option objects. Both packages are released together at the same version, so `openui-server==0.6.0` matches `@openuidev/server@0.6.0`.
+
+## Install
+
+```bash tab="pip" tab-group="py-pkg"
+pip install openui-server
+```
+
+```bash tab="uv" tab-group="py-pkg"
+uv add openui-server
+```
+
+```bash tab="poetry" tab-group="py-pkg"
+poetry add openui-server
+```
+
+Python 3.11 or later. The package needs only `httpx`. It uses the `openai`, `langchain-core` and `mcp` packages' types for type checkers, but never imports them.
+
+## Clients
+
+```python tab="Sync" tab-group="py-client"
+from openui_server import OpenUIClient
+
+openui = OpenUIClient()  # reads THESYS_API_KEY
+```
+
+```python tab="Async" tab-group="py-client"
+from openui_server import AsyncOpenUIClient
+
+openui = AsyncOpenUIClient()  # reads THESYS_API_KEY
+```
+
+```python
+OpenUIClient(
+    *,
+    api_key: str | None = None,          # default: THESYS_API_KEY
+    base_url: str | None = None,         # default: https://api.thesys.dev
+    app_id: str | None = None,
+    timeout: float | httpx.Timeout = 600,
+    http_client: httpx.Client | None = None,  # AsyncOpenUIClient: httpx.AsyncClient
+)
+```
+
+- Create one client and reuse it. `close()` (async: `aclose()`) closes its connections, and both clients work as context managers.
+- `app_id`: your app, when one API key serves several. Frontend tokens, conversations and artifacts then belong to that app.
+- `http_client`: your own httpx client, for proxies or custom transports. The SDK never closes it.
+- The API key is read on each call, so creating the client at import time never fails.
+
+`AsyncOpenUIClient` has the same calls, awaited. Pick it for asyncio apps such as FastAPI and LangGraph. Its dashboards can also use MCP tools and `async def` data tools.
+
+## Acting as a user
+
+Artifact calls that take `user_id` act as that user and get what their frontend token would. Without `user_id`, they act as your org and see every user's artifacts. Take `user_id` and `group_ids` from your session, never from the browser.
+
+`group_ids` (up to 10) are the groups the user is in, from your own system. They need `user_id`.
+
+Conversation calls work differently: they go by id, as your org. See [Conversations](#conversations).
+
+## `create_frontend_token(*, user_id, group_ids=None)`
+
+```python
+@app.post("/api/frontend-token")
+def frontend_token(session: Session = Depends(get_session)):
+    token = openui.create_frontend_token(user_id=session.user_id)
+    return JSONResponse(token, headers={"Cache-Control": "private, no-store"})
+```
+
+```python
+def create_frontend_token(
+    *, user_id: str, group_ids: Sequence[str] | None = None
+) -> FrontendToken  # {"token": "fct_…", "expires_at": <unix seconds>}
+```
+
+- Return the dict unchanged: the browser reads that shape.
+- The token keeps `group_ids` until it expires, after 15 minutes.
+
+## Conversations
+
+Calls go by id with your API key, as your org. Before acting on a conversation id from the browser, `get` it and check its `user_id` is the signed-in user, taken from your session. `create` names the owner. If your frontend tokens carry an app id, pass the same `app_id` to the client.
+
+```python
+conversation = openui.conversations.get(thread_id)
+if conversation.user_id != session.user_id:
+    raise HTTPException(404)
+```
+
+### `chat.conversations.items.create(id, messages)`
+
+Store the new turn, and get it back as stored, in the format `items.list` returns. Earlier messages are already stored, so passing the full history duplicates them.
+
+```python tab="Chat Completions" tab-group="py-history"
+openui.chat.conversations.items.create(
+    thread_id,
+    [
+        {"role": "user", "content": last_user_text},
+        {"role": "assistant", "content": assistant_text},
+    ],
+)
+```
+
+```python tab="LangGraph" tab-group="py-history"
+state = await graph.ainvoke({"messages": [*history, HumanMessage(text)]})
+
+await openui.langgraph.conversations.items.create(thread_id, state["messages"][len(history) :])
+```
+
+```python
+def create(
+    id: str,
+    messages: Sequence[ChatCompletionMessageParam],
+) -> list[ChatCompletionMessageParam]
+# LangGraph: Sequence[BaseMessage | LangGraphHistoryMessage] in, list[LangGraphHistoryMessage] out
+```
+
+- System and developer messages are skipped.
+- A tool call is stored only together with its result, so a turn stopped mid tool call leaves the thread valid.
+- It returns what was stored, without the skipped messages. With nothing to store, it returns `[]` and sends no request.
+- LangGraph also takes the plain messages `items.list` returns, so they go back in as they come out.
+
+### `chat.conversations.items.list(id)`
+
+Read the whole thread, oldest first, ready to send to the model. It reads every page.
+
+```python tab="Chat Completions" tab-group="py-history"
+history = openui.chat.conversations.items.list(thread_id)
+
+completion = client.chat.completions.create(
+    model=model, messages=[system_message, *history, user_message]
+)
+```
+
+```python tab="LangGraph" tab-group="py-history"
+history = await openui.langgraph.conversations.items.list(thread_id)
+
+await graph.ainvoke({"messages": [*history, HumanMessage(text)]})
+```
+
+```python
+def list(id: str) -> list[ChatCompletionMessageParam]
+# LangGraph: list[LangGraphHistoryMessage], plain {"role": "human" | "ai" | "tool", ...} dicts
+```
+
+- User images come back as `image_url` parts. Other stored items, such as `reasoning`, are skipped.
+- LangGraph's `add_messages` reducer turns the dicts into LangChain messages.
+
+### Conversation calls
+
+`openui.conversations`, `openui.chat.conversations` and `openui.langgraph.conversations` all have these:
+
+```python
+conversation = openui.conversations.create(user_id=session.user_id, title="Trip to Paris")
+```
+
+```python
+def list(*, user_id=None, limit=None, after=None, before=None) -> Page[Conversation]  # newest first
+def create(*, user_id: str, title=None, metadata=None) -> Conversation
+def get(id) -> Conversation
+def update(id, *, title=None, metadata=None) -> Conversation
+def delete(id) -> None
+
+@dataclass(frozen=True)
+class Conversation:
+    id: str
+    created_at: datetime  # UTC
+    title: str | None
+    metadata: dict[str, str] | None  # up to 16 pairs
+    user_id: str | None  # the owner
+    app_id: str | None
+
+@dataclass(frozen=True)
+class Page(Generic[T]):
+    data: list[T]
+    has_more: bool
+    first_id: str | None
+    last_id: str | None  # pass as `after` for the next page
+```
+
+`create` requires `user_id`, the owner: a conversation with no owner can't be read from the user's browser. `list` takes it to list only that user's conversations, in every app. Deleted conversations can't be restored.
+
+### Raw items
+
+`openui.conversations.items` reads and writes items in OpenAI's Conversations API shape, as plain dicts. An item read back can be stored again as is.
+
+```python
+def list(id, *, limit=None, after=None, before=None, order=None) -> Page[ConversationItem]
+def create(id, items: Sequence[ConversationItemInput]) -> list[ConversationItem]
+def get(id, item_id) -> ConversationItem
+def update(id, item_id, *, content=None, status=None) -> ConversationItem
+```
+
+`order="asc"` reads a thread from its start. `create` takes up to 100 items a call. `update` changes only an item's content and status.
+
+## Artifacts
+
+`openui.artifacts` reads and manages saved artifacts, such as dashboards. These calls also take `group_ids`, so artifacts shared with the user's groups count.
+
+```python
+page = openui.artifacts.list(user_id=user_id, kind="dashboard", pinned=True)
+openui.artifacts.share(dashboard_id, group="sales", access="view", user_id=user_id)
+```
+
+```python
+def list(*, user_id=None, group_ids=None, kind=None, name=None, pinned=None, is_owner=None,
+         conversation_id=None, limit=None, after=None, before=None, order=None) -> Page[Artifact]
+def get(id, *, user_id=None, group_ids=None) -> Artifact
+def update(id, *, name=None, content=None, user_id=None, group_ids=None) -> Artifact
+def delete(id, *, user_id=None, group_ids=None) -> None
+def pin(id, *, user_id: str, group_ids=None) -> Artifact
+def unpin(id, *, user_id: str, group_ids=None) -> Artifact
+def share(id, *, user=None, group=None, access: "view" | "edit", user_id=None, group_ids=None) -> Artifact
+def unshare(id, *, user=None, group=None, user_id=None, group_ids=None) -> Artifact
+```
+
+- `kind` takes one kind or a list: `"dashboard"`, `"slides"`, `"report"`. `name` matches case-insensitively. `is_owner` needs `user_id`.
+- `update` with `content` saves an edited program as a new version. With `name` alone, it renames.
+- `pin` and `unpin` need `user_id`: each user pins their own.
+- `share` and `unshare` take exactly one `user` or `group` id. `view` opens and runs the artifact; `edit` also edits, renames and shares it. Sharing again changes the access. Removing a share that isn't there does nothing.
+
+`Artifact` has `id`, `kind`, `name`, `content` (the openui-lang program), `version`, `pinned`, `is_owner`, `is_editable`, `shares`, `conversation_id`, `user_id`, `app_id`, `created_at` and `updated_at`.
+
+## Dashboards
+
+### `define_dashboard(*, library, model, tools, ...)`
+
+```python
+import json
+from openui_server import DataTool
+
+def get_sales(args, context):
+    return db.sales(region=args.get("region"), user=context["user_id"])
+
+dashboards = openui.define_dashboard(
+    library=json.load(open("openui.spec.json")),
+    model="anthropic/claude-sonnet-4.6",
+    tools={
+        "get_sales": DataTool(
+            description="Sales totals by region",
+            parameters={"type": "object", "properties": {"region": {"type": "string"}}},
+            output={"rows": [{"region": "EMEA", "total": 1200}]},
+            execute=get_sales,
+        )
+    },
+)
+```
+
+```python
+def define_dashboard(
+    *,
+    library: Mapping[str, Any],         # the JSON `openui generate --spec` writes
+    model: str,                         # "provider/model"
+    tools: Mapping[str, DataTool],      # async client: optional with `mcp`
+    mcp: McpClient | McpConfig | Sequence[...] | None = None,  # async client only
+    reasoning_effort: "minimal" | "low" | "medium" | "high" | None = None,
+    max_tool_rounds: int | None = None,  # default 20
+    prompt_options: PromptOptions | None = None,  # examples, preamble, additional_rules
+) -> Dashboard
+```
+
+- `DataTool.execute(args, context)` gets the call's arguments and your context dict as is, and returns JSON data. On the async client it may be an `async def`. A plain `def` runs in a worker thread there, so it doesn't block the event loop.
+- `max_tool_rounds`: rounds of direct tool calls before the model must write the dashboard. With `0`, the model still saves and runs its data scripts.
+- An invalid library fails here, with code `invalid_library`.
+
+### `create(*, title, prompt, context, stream=False)` and `edit(*, id, prompt, context, stream=False)`
+
+```python
+context = {"user_id": session.user_id, "group_ids": session.team_ids}
+
+reply = dashboards.create(title="Q3 sales", prompt="Sales by region for Q3", context=context)
+
+for message in dashboards.edit(id=dashboard_id, prompt="Add a trend line", context=context, stream=True):
+    send_to_client(message)
+```
+
+- Each call runs the model's tool rounds against your tools (typically 20 to 45 seconds). Then it returns the tool response once the dashboard starts generating. Return it from your agent's tool as is, and pass it to the renderer.
+- With `stream=True`, it yields two messages instead: one as soon as the dashboard has an id, and one once it's saved or failed. Return the last one to your model. On the async client, `await` the call to get the async iterator.
+- `context` is a dict with `user_id` (required), optional `group_ids`, and anything else your tools need. A new dashboard belongs to `context["user_id"]`. `edit` works for its owner and anyone it's shared with for editing.
+- `prompt` is all the model sees, so include any data it needs.
+
+### `get(*, id, context)`
+
+Reads a dashboard the user can open: their own, or one shared with them. Give the model its `name` and `content`, or the renderer its `id`. It returns an `Artifact`.
+
+### `interpreter.execute(request, context, *, timeout=None)`
+
+The renderer sends each of the dashboard's data requests to your interpreter route. Pass the request body and the signed-in user:
+
+```python
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from openui_server import OpenUIApiError, ToolExecutionError
+
+@app.post("/api/interpreter")
+async def interpreter(request: Request, session: Session = Depends(get_session)):
+    try:
+        result = await dashboards.interpreter.execute(
+            await request.json(), {"user_id": session.user_id}
+        )
+        return {"result": result}
+    except (ToolExecutionError, OpenUIApiError) as error:
+        return JSONResponse(
+            {"error": {"code": error.code, "message": error.message}},
+            status_code=error.status or 500,
+        )
+```
+
+- A name that's one of your tools runs that tool. A generated script runs in OpenUI Cloud and calls your tools on this server.
+- Scripts run only for users who can open the dashboard: its owner, and anyone it's shared with.
+- `timeout`: the whole run's budget in seconds, your tools included. Default: 60. The sync client checks it between tool calls, since a running sync tool can't be stopped.
+
+### `tools(context)`
+
+`create_dashboard`, `edit_dashboard` and `get_dashboard`, ready for your agent, so you don't write them yourself. The descriptions carry the rules agents need: no numbers in prompts, edit over create, and a one-sentence reply while the user watches the dashboard build.
+
+```python
+tools = await dashboards.tools({"user_id": session.user_id})  # sync client: no await
+
+# LangChain: one line per tool, since LangChain passes keyword arguments.
+from langchain_core.tools import StructuredTool
+
+agent_tools = [
+    StructuredTool.from_function(
+        coroutine=lambda t=t, **args: t.execute(args),
+        name=t.name,
+        description=t.description,
+        args_schema=t.input_schema,
+    )
+    for t in tools.values()
+]
+```
+
+```python
+def tools(context: ExecutionContext | Callable[[Any], ExecutionContext]) -> dict[str, DashboardTool]
+
+@dataclass(frozen=True)
+class DashboardTool:  # AsyncDashboardTool: execute is async
+    name: str
+    description: str
+    input_schema: dict[str, Any]  # JSON Schema: every property a required string
+    execute: Callable[[Mapping[str, Any], Any], str]  # execute(input, call_context=None)
+```
+
+- Pass the signed-in user's context, or a function that finds it from your framework's call context: `execute(input, call_context)` passes `call_context` to it. On the async client it may be `async`.
+- `create_dashboard` and `edit_dashboard` return the tool response with a one-line reply reminder after it. Pass the response to the renderer as is. `get_dashboard` returns `{"name", "content", "isEditable"}` as JSON.
+- A failed call raises `ToolExecutionError` with a sentence the model can act on, such as "No dashboard with id art_1 that this user can open." The original error is its `__cause__`, and its `code` and `status` are kept.
+- `create_dashboard`'s description lists your data tools, so the agent knows what dashboards can show.
+
+### `mcp_server(context)`
+
+The same tools as an MCP server, on `AsyncOpenUIClient`. It returns the MCP SDK's own `Server`, so you can connect a client to it in this process, or serve it over HTTP:
+
+```python
+from mcp.client.client import Client
+
+server = dashboards.mcp_server({"user_id": session.user_id})
+async with Client(server) as client:  # in this process
+    ...
+```
+
+```python
+from contextlib import asynccontextmanager
+
+def resolve(request):
+    user = request.state.user if request is not None else None  # set by your auth middleware
+    return {"user_id": user.id} if user else None
+
+
+@asynccontextmanager
+async def lifespan(app):
+    async with mcp.session_manager.run():
+        yield
+
+mcp = dashboards.mcp_server(resolve)
+app = FastAPI(lifespan=lifespan)
+app.mount("/dashboards", mcp.streamable_http_app(stateless_http=True))  # serves /dashboards/mcp
+```
+
+```python
+def mcp_server(
+    context: ExecutionContext | Callable[[Request | None], ExecutionContext | None],
+) -> mcp.server.lowlevel.Server
+```
+
+- `context` is one user, or `resolve(request)`, which finds each call's user from the HTTP request (`None` in process). Returning `None` refuses the call. Reject unauthenticated requests in your auth middleware too.
+- Results match `tools()`: the response is the first text part and the reply reminder the second, so renderers read the first. Failures come back as `isError` results with the same sentences.
+- The server's `instructions` repeat the rules, for MCP clients that read them.
+- Mounted inside another app, start its session manager in that app's lifespan, as above. Behind a real host name, pass `transport_security` to `streamable_http_app()`: the SDK's DNS rebinding protection only allows local hosts by default.
+- It returns at once, so you can build and mount it at import time. Your data tools are loaded when a client first lists the tools.
+- Needs `pip install 'openui-server[mcp]'` (the `mcp` package, 2.0 or later). Without it, the call raises `missing_dependency`.
+
+### MCP tools
+
+On `AsyncOpenUIClient`, `mcp=` adds an MCP server's tools as data tools. Pass an `mcp.ClientSession`, an `McpConfig`, or a list of them:
+
+```python
+from openui_server import McpConfig
+
+dashboards = openui.define_dashboard(
+    library=library,
+    model=model,
+    mcp=McpConfig(client=session, include=["list_orders", "get_order"]),
+)
+```
+
+- By default, only the tools the server marks read-only (`readOnlyHint`) are offered, since scripts run on every view.
+- `include`: tool names, or a function that takes the listed tool.
+- `outputs`: example outputs by MCP tool name.
+- `connect(context)`: the client each call goes through, such as one with the user's own credentials.
+- Tool names are cleaned up for generation (`list-orders` becomes `list_orders`). Empty optional arguments are left out.
+
+## Autofix
+
+Validate and repair model output in OpenUI Lang, finished or streamed, with the [Autofix API](/docs/autofix). For OpenAI Chat Completions, create it from the client, for one library:
+
+```python
+import json
+
+autofix = openui.chat.create_autofix(library=json.load(open("openui.spec.json")))
+```
+
+```python
+def create_autofix(*, library: Mapping[str, Any]) -> ChatAutofix  # AsyncOpenUIClient: AsyncChatAutofix
+```
+
+- Use the spec `openui generate --spec` writes for the same components as your renderer, including its `schema`. An invalid one raises `AutofixError` with code `invalid_library`.
+- It uses the client's API key, `base_url` and `http_client`.
+- The Autofix API checks every OpenUI Lang generation. The JavaScript package parses each one locally first and sends only broken ones; Python has no OpenUI Lang parser, so a valid program adds one request. That request isn't billed: only a call that ran a repair is.
+- Because of that, if the Autofix API can't be reached, a valid program's check fails too.
+
+### `fix(*, generation, messages=None)`
+
+```python
+result = autofix.fix(generation=text, messages=history)
+
+if result.content is not None:
+    save(result.content)  # already_valid or fixed
+else:
+    log.warning(result.unfixed_errors)  # fix_failed: choose a fallback
+```
+
+```python
+def fix(
+    *, generation: str, messages: Sequence[ChatCompletionMessageParam] | None = None
+) -> AutofixResult
+
+@dataclass(frozen=True)
+class AutofixResult:
+    status: "already_valid" | "fixed" | "fix_failed"
+    original: str
+    content: str | None  # None only when fix_failed
+    fixed_errors: list[AutofixDiagnostic]
+    unfixed_errors: list[AutofixDiagnostic]
+
+@dataclass(frozen=True)
+class AutofixDiagnostic:
+    code: str
+    message: str
+    component: str | None
+    path: str | None
+    statement_id: str | None
+```
+
+`generation` is the finished OpenUI text. `messages` is the conversation before it; the last 20 text messages, up to 8,000 characters, go with the request. A generation over 100,000 characters raises `generation_too_large`.
+
+### `stream(*, stream, messages=None)`
+
+Wrap a Chat Completions stream. Chunks pass through, and when the finished UI answer is invalid, its repair is inserted before the stream completes:
+
+```python
+from fastapi.responses import StreamingResponse
+from openai import OpenAI
+
+model = OpenAI()
+
+
+@app.post("/api/chat")
+def chat(body: ChatRequest):
+    source = model.chat.completions.create(model="openai/gpt-5.5", messages=body.messages, stream=True)
+    fixed = autofix.stream(stream=source, messages=body.messages)
+    return StreamingResponse(
+        fixed.sse(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+```
+
+```python
+class AutofixStream(Generic[Chunk]):  # AsyncAutofixStream: async iterators
+    chunks: Iterator[Chunk]  # the stream's own chunk type, with any repair inserted
+    def sse(self) -> Iterator[str]: ...  # Chat Completions SSE, ending with data: [DONE]
+    result: AutofixResult | None  # once the stream has ended
+```
+
+- Read `chunks` or `sse()`, once. Chunks keep their type: openai-python's `ChatCompletionChunk` models, or dicts.
+- Persist `result.content` when it's a string: that's the checked program, not the joined stream text. `result` is `None` when Autofix didn't run, such as for a plain-text reply or a tool call.
+- A repair that fails raises `AutofixError` with code `fix_failed` while reading, with the Autofix result as `error.result`. `result` raises the same error afterwards.
+- Stopping early closes the upstream stream. Pair the stream with `openAIAdapter()` on the frontend.
+
+## Errors
+
+Failed calls raise `OpenUIApiError` with a `code` and the HTTP `status`. Interpreter and data tool failures raise `ToolExecutionError`, with codes such as `tool_not_found`, `tool_timeout` and `script_limit`.
+
+- `missing_api_key`: no `api_key` and no `THESYS_API_KEY`.
+- `invalid_input`: a required argument is missing or empty, such as `user_id` on `conversations.create`.
+- `404`: the conversation, item or artifact doesn't exist, or the user can't open the artifact.
+
+Autofix raises `AutofixError` with a `code`: `invalid_library`, `missing_api_key`, `generation_too_large`, `http_error`, `invalid_response` or `fix_failed`. Reading a stream twice raises `stream_consumed`; reading `result` before the end raises `stream_pending`, or `stream_stopped` after an early stop.

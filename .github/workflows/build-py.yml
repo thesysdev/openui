@@ -1,0 +1,60 @@
+name: Build Python
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "py/**"
+      # A version bump on the npm twin must reach the Python package too.
+      - "packages/server/package.json"
+      - "scripts/sync-python-version.mjs"
+      - ".github/workflows/build-py.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "py/**"
+      - "packages/server/package.json"
+      - "scripts/sync-python-version.mjs"
+      - ".github/workflows/build-py.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # The oldest and newest Python the package supports.
+        python: ["3.11", "3.14"]
+    defaults:
+      run:
+        working-directory: py/server
+    steps:
+      - uses: actions/checkout@v4
+
+      # openui-server releases with @openuidev/server, at the same version.
+      - name: Version matches @openuidev/server
+        run: node ../../scripts/sync-python-version.mjs --check
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check
+
+      - name: Format
+        run: uv run ruff format --check
+
+      - name: Types
+        run: uv run mypy
+
+      - name: Tests
+        run: uv run pytest
+
+      - name: Build
+        run: uv build
