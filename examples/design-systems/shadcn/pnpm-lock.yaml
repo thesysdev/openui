@@ -15,14 +15,14 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(zod@4.5.4)
       '@openuidev/react-headless':
-        specifier: 0.18.8
-        version: 0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.18.12
+        version: 0.18.12(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang':
         specifier: 1.1.1
         version: 1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@openuidev/react-ui':
-        specifier: 0.18.7
-        version: 0.18.7(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.18.12
+        version: 0.18.12(@openuidev/react-headless@0.18.12(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@radix-ui/react-accordion':
         specifier: ^1.2.3
         version: 1.2.20(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -934,8 +934,17 @@ packages:
   '@openuidev/observability@0.0.4':
     resolution: {integrity: sha512-4fjIrWu3TqTlfDE/m7cG10CH1vV7wQk5GPwMOmXeF9vJtkg92dg4Bdk3AjKgud7H7Xypwwjgt52VcLGZCE2CJQ==}
 
-  '@openuidev/react-headless@0.18.8':
-    resolution: {integrity: sha512-JByY5gvCk0V/Qj6SHOUNd+8KLC2e+5dc02EZNaZyAGiZZPdYFLYaVZs6Y4HUYfBBZzhMYI7xs7qoBhO2w036SA==}
+  '@openuidev/react-components@0.0.5':
+    resolution: {integrity: sha512-12EBPp8td5OoALz8s9piinDDR/fOxUWyd1uPuMRi1dL486ov0CiJbZJ1m8Mb1b7QLHZYxnwa953bleypM07Meg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    peerDependencies:
+      react: ^18.3.1 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+      zod: ^3.25.0 || ^4.0.0
+      zustand: ^4.5.5
+
+  '@openuidev/react-headless@0.18.12':
+    resolution: {integrity: sha512-aPwLzb6WwJ+ESuSWrSBHaqFFQDKdYnXYyX0MgVxk3WSCCRG5d1zdTtn8pLHcJ9+AzdBBE7KUIfi5VazBJplA9Q==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -960,8 +969,8 @@ packages:
       react-native:
         optional: true
 
-  '@openuidev/react-ui@0.18.7':
-    resolution: {integrity: sha512-06CAEPmC3qo6irt0kFpW9ftKXrc59vm4nu3XA35jz929Awf2eLiqZs0qVMI8/6WuczAdvpLUEVt1UbgDAdXlQw==}
+  '@openuidev/react-ui@0.18.12':
+    resolution: {integrity: sha512-Q8eBfzCXCFEAUGzM+h13nAQuDfEKFa+eTRTWUPZH3x5nX3ohRLdZTLf6gDgcuLImqGpC23m2YiM9XQrsJGXI/g==}
     peerDependencies:
       '@openuidev/react-headless': '>=0.18.2 <0.19.0'
       '@openuidev/react-lang': '>=1.0.0 <2.0.0'
@@ -4743,7 +4752,51 @@ snapshots:
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-components@0.0.5(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+    dependencies:
+      '@floating-ui/react-dom': 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-accordion': 1.2.20(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-aspect-ratio': 1.1.15(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-checkbox': 1.3.11(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-label': 2.1.15(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-radio-group': 1.4.7(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-select': 2.3.7(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-separator': 1.1.15(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-slider': 1.4.7(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-slot': 1.3.3(@types/react@19.2.18)(react@19.2.3)
+      '@radix-ui/react-switch': 1.3.7(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-tabs': 1.1.21(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-toggle-group': 1.1.19(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-tooltip': 1.2.16(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@tanstack/react-table': 8.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      clsx: 2.1.1
+      d3-scale: 4.0.2
+      d3-selection: 3.0.0
+      d3-shape: 3.2.0
+      date-fns: 4.4.0
+      goober: 2.1.19(csstype@3.2.3)
+      katex: 0.16.47
+      lodash-es: 4.18.1
+      lucide-react: 0.562.0(react@19.2.3)
+      react: 19.2.3
+      react-day-picker: 9.14.0(react@19.2.3)
+      react-dom: 19.2.3(react@19.2.3)
+      react-markdown: 10.1.0(@types/react@19.2.18)(react@19.2.3)
+      react-syntax-highlighter: 16.1.1(react@19.2.3)
+      rehype-katex: 7.0.1
+      remark-breaks: 4.0.0
+      remark-gfm: 4.0.1
+      remark-math: 6.0.0
+      unist-util-visit: 5.1.0
+      zod: 4.5.4
+      zustand: 4.5.7(@types/react@19.2.18)(react@19.2.3)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - csstype
+      - supports-color
+
+  '@openuidev/react-headless@0.18.12(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4
@@ -4760,10 +4813,11 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.3(react@19.2.3)
 
-  '@openuidev/react-ui@0.18.7(@openuidev/react-headless@0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-ui@0.18.12(@openuidev/react-headless@0.18.12(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@openuidev/react-headless': 0.18.8(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+      '@openuidev/react-components': 0.0.5(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+      '@openuidev/react-headless': 0.18.12(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang': 1.1.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@radix-ui/react-accordion': 1.2.20(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-aspect-ratio': 1.1.15(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
