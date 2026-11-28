@@ -36,7 +36,7 @@ See [Security](/docs/dashboards/security#what-goes-to-the-model-provider) for ev
 
 ## How a dashboard is checked
 
-The model builds from a prompt made for dashboards, and calls each data tool a query uses to see real results before it writes. As it streams, each statement is checked against your component library, each query must name a data tool or script, and each script must call only your data tools and run without an error. Before the dashboard is saved, it's replayed on the real results, which catches a field the data doesn't have, such as `orders.totl` for `orders.total`. Anything wrong goes back to the model to repair, and if a repair fails, the dashboard is saved as built. The model plans its queries from each tool's `output` example, so the example has to match the real shape. See [Connect data](/docs/dashboards/connect-data#guidelines).
+The model works from a prompt made for dashboards. Before it writes, it calls your data tools to see the real data. While it writes, OpenUI checks that it uses only your components and data tools, and that each script it writes runs without an error. When it's done, the dashboard is run once on the real data to catch mistakes, such as `orders.totl` instead of `orders.total`. The model fixes what's wrong. If it can't, the dashboard is saved as it is. The model plans its queries from each tool's `output` example, so make the example match what the tool really returns. See [Connect data](/docs/dashboards/connect-data#guidelines).
 
 ## Key concepts
 
