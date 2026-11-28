@@ -18,6 +18,7 @@ import { DashboardIntegration } from "./DashboardIntegration";
 import { DashboardNumbers } from "./DashboardNumbers";
 import { DashboardStory } from "./DashboardStory";
 import { FaqSection } from "./FaqSection";
+import { OpenDashboardsCard } from "./OpenDashboardsCard";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -94,6 +95,9 @@ export default function DashboardsPage() {
           mobilePreviewSlot={<DashboardHeroStage />}
         />
         <LogoStrip title="Teams building with OpenUI" />
+        <div className={styles.container}>
+          <OpenDashboardsCard />
+        </div>
       </div>
 
       <main>

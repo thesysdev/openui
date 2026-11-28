@@ -1,0 +1,221 @@
+/* Colours for the drawn Open Dashboards screen. Light and dark are tuned
+   separately; the series hues stay put and only their lightness shifts. */
+.screen {
+  --od-surface: #ffffff;
+  --od-sunk: #fafafa;
+  --od-fill: rgba(0, 0, 0, 0.04);
+  --od-line: rgba(0, 0, 0, 0.07);
+  --od-text: #0a0a0a;
+  --od-muted: #6b6b70;
+  --od-faint: #9b9ba1;
+  --od-up: #16a34a;
+  --od-s1: #5b55e6;
+  --od-s2: #22b573;
+  --od-s3: #f2c230;
+  --od-s4: #e2506f;
+  --od-stripe: #635bff;
+  --od-postgres: #2f6feb;
+
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--home-font-text);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme="dark"] .screen {
+  --od-surface: #141414;
+  --od-sunk: #101010;
+  --od-fill: rgba(255, 255, 255, 0.06);
+  --od-line: rgba(255, 255, 255, 0.08);
+  --od-text: #f2f2f3;
+  --od-muted: #a1a1a8;
+  --od-faint: #6e6e75;
+  --od-up: #3ecf7a;
+  --od-s1: #7a74f0;
+  --od-s2: #34c785;
+  --od-s3: #f0c54a;
+  --od-s4: #ec6a86;
+}
+
+/* Surfaces and strokes */
+.surface {
+  fill: var(--od-surface);
+}
+
+.sunk {
+  fill: var(--od-sunk);
+}
+
+.fill {
+  fill: var(--od-fill);
+}
+
+.card,
+.chip,
+.button,
+.input {
+  fill: var(--od-surface);
+  stroke: var(--od-line);
+  stroke-width: 1;
+}
+
+.line {
+  stroke: var(--od-line);
+  stroke-width: 1;
+}
+
+.grid {
+  stroke: var(--od-line);
+  stroke-width: 1;
+}
+
+.frame {
+  fill: none;
+  stroke: var(--od-line);
+  stroke-width: 1;
+}
+
+/* Text */
+.text {
+  fill: var(--od-text);
+}
+
+.muted {
+  fill: var(--od-muted);
+}
+
+.faint {
+  fill: var(--od-faint);
+}
+
+.up {
+  fill: var(--od-up);
+  font-weight: 500;
+}
+
+.brand {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.value {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.small {
+  font-size: 13px;
+}
+
+.tiny {
+  font-size: 11px;
+}
+
+.tinyStrong {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Icons (lucide draws with currentColor) */
+.icon {
+  color: var(--od-text);
+}
+
+.iconMuted {
+  color: var(--od-muted);
+}
+
+.check {
+  color: var(--od-up);
+}
+
+.logo {
+  transition: filter 150ms ease;
+}
+
+[data-theme="dark"] .logo {
+  filter: invert(1);
+}
+
+/* Source marks */
+.stripe {
+  fill: var(--od-stripe);
+}
+
+.postgres {
+  fill: var(--od-postgres);
+}
+
+.markText,
+.markTextSmall {
+  fill: #fff;
+  font-weight: 600;
+}
+
+.markText {
+  font-size: 11px;
+}
+
+.markTextSmall {
+  font-size: 9px;
+}
+
+.markIcon {
+  color: #fff;
+}
+
+/* Series */
+.s1 {
+  fill: var(--od-s1);
+  stroke: var(--od-s1);
+}
+
+.s2 {
+  fill: var(--od-s2);
+  stroke: var(--od-s2);
+}
+
+.s3 {
+  fill: var(--od-s3);
+  stroke: var(--od-s3);
+}
+
+.s4 {
+  fill: var(--od-s4);
+  stroke: var(--od-s4);
+}
+
+rect.s1,
+rect.s2,
+rect.s3,
+rect.s4 {
+  stroke: none;
+}
+
+.arc {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+/* Composer */
+.send {
+  fill: var(--od-text);
+}
+
+.sendIcon {
+  color: var(--od-surface);
+}

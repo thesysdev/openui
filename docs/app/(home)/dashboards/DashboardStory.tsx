@@ -136,7 +136,7 @@ export function DashboardStory() {
 
   return (
     <section
-      className={`${page.section} ${page.sectionWide}`}
+      className={`${page.section} ${page.sectionWide} ${page.afterHero}`}
       aria-labelledby="dashboard-story-title"
     >
       <div className={page.container}>

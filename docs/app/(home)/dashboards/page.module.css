@@ -39,6 +39,11 @@
   padding-top: var(--dash-space-wide);
 }
 
+/* The first section sits closer to the Open Dashboards card above it. */
+.section.sectionWide.afterHero {
+  padding-top: var(--dash-space);
+}
+
 /* Section lockup: heading on the left, lead on the right (as on Gateway). The
    lead takes the hero subtitle's 400px column, so both share one edge. */
 .lockup {
