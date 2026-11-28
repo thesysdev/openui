@@ -47,3 +47,24 @@ The model applies the change to the saved dashboard, so describe only what chang
 1. The open dashboard stays on screen.
 2. When the new version is ready, every renderer showing the dashboard switches to it, including renderers opened from the list.
 3. The dashboard loads its data again for the new version.
+
+## Two edits at once
+
+A dashboard takes one change at a time. While an edit runs, including while the model calls your data tools, another `edit` of the same dashboard is rejected, not queued. It throws an `OpenUIApiError` with `status` 409, and the first edit carries on. The same happens while the dashboard is still being created.
+
+For example, two users share a dashboard. One asks for a refunds chart, and a few seconds later the other asks to remove a section. The second `edit` throws at once, and its message says to try again in a minute. Return the message to the model, so it can tell the user:
+
+```ts
+import { OpenUIApiError } from "@openuidev/server";
+
+try {
+  return await dashboards.edit({ id, prompt }, { userId: session.user.id });
+} catch (error) {
+  if (error instanceof OpenUIApiError && error.status === 409) return error.message;
+  throw error;
+}
+```
+
+Once the first edit is saved, the user can ask again, and the second edit applies to the new version.
+
+If an edit stops partway, such as when your server restarts during the model's tool calls, the dashboard is free again within 5 minutes. The user who started that edit can start a new one right away.

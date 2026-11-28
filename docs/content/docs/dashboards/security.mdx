@@ -1,0 +1,84 @@
+---
+title: Security
+description: What runs in the browser, how scripts are sandboxed, and what data goes to the model provider.
+---
+
+A dashboard is written by a model, shown to your users, and loads data from your APIs. This page covers what runs where, and which data leaves your server.
+
+## No generated code runs in the browser
+
+The model writes dashboards in [OpenUI Lang](/docs/openui-lang/overview), which has no HTML or JavaScript. The renderer draws only components from your library, and calls only built-in functions, your library's functions, and your data tools through the interpreter route. Anything else is an error, not code that runs.
+
+For example, a dashboard can't add a `<script>` tag, load a page from another site, or call `fetch`. OpenUI Lang has no way to write them.
+
+## The script sandbox
+
+A script derives data the tools don't return directly, such as revenue per customer from orders and customers. Scripts are JavaScript, so they run in OpenUI's JS interpreter, a sandbox:
+
+- **A fresh VM for each run:** Each run starts in a new QuickJS virtual machine compiled to WebAssembly. Nothing carries over from another run or another user.
+- **No network or files:** The VM has no `fetch`, sockets, file system, or Node.js APIs.
+- **Your data tools only:** A script gets data only by calling the data tools passed to `defineDashboard`. Each call runs on your server, through your interpreter route, with the viewer's `context`.
+- **Limits:** A run stops with an error when it goes over one of these:
+
+| Limit                          | Value                                                                                                                                                    |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Memory                         | 64 MB per VM                                                                                                                                             |
+| Compute                        | 0.5 seconds at a time, and 2 seconds in all between tool calls                                                                                           |
+| Tool calls                     | 48 per run                                                                                                                                               |
+| A tool result the script reads | 1 MB                                                                                                                                                     |
+| The script's result            | 1 MB                                                                                                                                                     |
+| Total time                     | The interpreter's `timeoutMs`, 60 seconds by default, including your tools. See [Connect data](/docs/dashboards/connect-data#add-the-interpreter-route). |
+
+The renderer shows the error in the dashboard's error slot.
+
+## Scripts never reach the browser
+
+The browser gets only the dashboard's OpenUI Lang program. Its scripts stay in OpenUI: the renderer asks your interpreter route for a script by name, your server passes the name on, and OpenUI runs it.
+
+A script runs only for users who can open the dashboard: its owner, and anyone it's [shared with](/docs/dashboards/sharing).
+
+## Your data tools
+
+Data tools are part of your API, so treat them like any other route:
+
+- **They run on your server:** OpenUI never calls your database or APIs itself. MCP tools are called from your server too, with the client you pass.
+- **Check access in each tool:** The interpreter route runs any of your data tools with the arguments the browser sends. Use `context` to return only what the signed-in user may see, and validate the arguments as you would any user input.
+- **Offer read-only tools:** The model calls tools while it builds, a dashboard runs its queries on every view, and scripts can call any tool in the list. None of these asks the user first. From an MCP server, only tools marked read-only are offered by default.
+
+## What goes to the model provider
+
+The model provider is the provider of the `model` in `defineDashboard`, such as Anthropic for `anthropic/claude-sonnet-5.5`. The model is called only while a dashboard is built or edited:
+
+| What's sent                                                                                 | When                                               |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| The prompt passed to `create` or `edit`                                                     | Every build and edit                               |
+| Your component library's spec, `instructions`, and `promptOptions`                          | Every build and edit                               |
+| Each data tool's name, description, parameters, and `output` example                        | Every build and edit                               |
+| The results of the data tools the model calls, run with the creator's or editor's `context` | During the build or edit                           |
+| The result of each script's run                                                             | During the build or edit                           |
+| The dashboard's current program and scripts                                                 | Every edit                                         |
+| The editing user's earlier builds of the dashboard, with their tool results                 | Edits within 5 hours of the dashboard's last build |
+
+See [Tools during the build](/docs/dashboards/how-it-works#tools-during-the-build) for how to limit the tool results the model sees.
+
+Not sent to the model provider:
+
+- **Data loaded when a dashboard opens:** Opening, filtering, and refreshing a dashboard calls no model.
+- **`context`:** It stays on your server. Only `userId` and `groupIds` go to OpenUI, for ownership and sharing.
+
+## Data at view time
+
+When a dashboard opens:
+
+- **A query that calls a data tool** goes from the browser to your interpreter route and back. It never reaches OpenUI.
+- **A script's tool results** go to OpenUI's sandbox for that run only, so the script can compute its result. No model sees them.
+
+## What OpenUI stores
+
+- **The dashboard:** its OpenUI Lang program, its scripts, its owner, and its shares, until it's deleted.
+- **Each user's recent builds of a dashboard:** their messages and tool results, with each result cut to 20 KB, kept until 5 hours after the dashboard's last build, so a follow-up edit can reuse them. One user's builds are never sent with another user's edit.
+
+## Access
+
+- **Authentication:** Your server uses the API key, which never reaches the browser. The browser uses a short-lived frontend token scoped to one user. See [Authentication](/docs/dashboards/authentication).
+- **Sharing:** A dashboard belongs to the user who created it. Other users can view or edit it only when it's shared with them. See [Sharing](/docs/dashboards/sharing).

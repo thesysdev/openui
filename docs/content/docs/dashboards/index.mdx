@@ -64,7 +64,7 @@ A dashboard can reload its data on an interval while it's open, such as every 30
 
 ### Computed fields
 
-A generated script derives new metrics from the results of your data tools. The script runs in OpenUI's JS interpreter, with secure execution, and can call only your data tools. For example, a dashboard can group customers by age range from a tool that returns each customer's birth date, without a new endpoint.
+A generated script derives new metrics from the results of your data tools. The script runs in OpenUI's JS interpreter, a [sandbox](/docs/dashboards/security#the-script-sandbox) with no network or file access, and can call only your data tools. For example, a dashboard can group customers by age range from a tool that returns each customer's birth date, without a new endpoint.
 
 ### Interactive filters
 
@@ -80,7 +80,7 @@ A follow-up request patches only the parts of the dashboard it describes. The re
 
 ### Validated output
 
-The model's output is checked against the component library as it's generated. Invalid output, such as an unknown component or a missing argument, is repaired before the dashboard renders.
+The model runs each query on your real data before it writes the dashboard. The output is checked against the component library as it's generated, queries and scripts are checked against your tools, and the finished dashboard is replayed on the real data before it's saved. Problems, such as an unknown component or a field the data doesn't have, are repaired. See [How a dashboard is checked](/docs/dashboards/how-it-works#how-a-dashboard-is-checked).
 
 ### Hundreds of models
 

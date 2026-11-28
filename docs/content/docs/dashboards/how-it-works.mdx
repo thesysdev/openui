@@ -14,21 +14,50 @@ A dashboard is generated once and loads its data every time it opens.
 - **Component library:** The charts, tables, KPIs, and filters dashboards are built from. Use the prebuilt dashboard library, or your design system's components.
 - **Data tools:** The APIs a dashboard can call for its data, such as "orders by day". They run on your server, or come from an MCP server.
 
-**Generate:** The user asks for a dashboard in the chat. The agent calls a tool that creates the dashboard, and OpenUI generates it from the component library, validating and repairing the output as it's built. For data that has to be derived, such as a metric that combines several data tools, OpenUI also generates a script. The tool returns a response, and the chat renders the dashboard from it.
+**Generate:** The user asks for a dashboard in the chat. The agent calls a tool that creates the dashboard. OpenUI's model first [calls your data tools](#tools-during-the-build) to see real data, then writes the dashboard from the component library. For data that has to be derived, such as a metric that combines several data tools, it also writes a script and runs it once. The dashboard is [checked and repaired](#how-a-dashboard-is-checked) before it's saved. The tool returns a response, and the chat renders the dashboard from it.
 
-**Load data:** Each time it opens, the dashboard calls its data tools for live data. Scripts run in OpenUI's JS interpreter, with secure execution, and call the data tools they need.
+**Load data:** Each time it opens, the dashboard calls its data tools for live data, without a model call. Scripts run in OpenUI's JS interpreter, a [sandbox](/docs/dashboards/security#the-script-sandbox), and call the data tools they need.
 
-**Edit:** A follow-up request calls a tool that edits the dashboard. OpenUI patches only the parts the request describes. Renderers keep showing the current version until the new one is ready.
+**Edit:** A follow-up request calls a tool that edits the dashboard. The model calls the data tools that new or changed queries need, and OpenUI patches only the parts the request describes. Renderers keep showing the current version until the new one is ready.
+
+## Tools during the build
+
+The model calls your data tools while it builds or edits a dashboard, as an agent would. It uses them to find what data there is, and to see the real result of each query the dashboard will make. Each call runs on your server inside `create` or `edit`, with the `context` passed to it: the creator's for a new dashboard, the editor's for an edit.
+
+The results go to OpenUI and to the provider of the model that builds the dashboard. For example, a request for "orders by day for the last 30 days" calls `get_orders_by_day` with `{ "days": 30 }` as the creator, and the model reads the 30 rows it returns.
+
+For privacy and compliance reviews, this means:
+
+- **The model sees real data:** whatever your tools return for the creator. Return only the fields a dashboard needs, and keep results small.
+- **Tools run without asking the user:** Offer only read-only tools.
+- **You can turn it off:** With `maxToolRounds: 0` in `defineDashboard`, the model calls no data tool directly. It still runs each script it writes once, so it sees the scripts' results.
+
+See [Security](/docs/dashboards/security#what-goes-to-the-model-provider) for everything the provider receives.
+
+## How a dashboard is checked
+
+A dashboard is checked at each step of the build. Anything wrong goes back to the model to repair:
+
+1. **A prompt made for dashboards:** The model builds from a prompt written for dashboards, generated from your component library, data tools, and instructions. It tells the model to run each query on real data before it writes.
+2. **Real data first:** The model calls each data tool a query uses, with the same arguments, and runs each script once.
+3. **OpenUI Lang:** Each statement is checked against the component library as it streams. An unknown component or a missing argument is repaired.
+4. **Queries:** A query that names neither a data tool nor one of the dashboard's scripts is caught.
+5. **Scripts:** Each script must parse, call only your data tools, and run without an error during the build.
+6. **Replay on real data:** Before the dashboard is saved, it's evaluated once with the real results from step 2. Reading a field the data doesn't have, or passing a component a value of the wrong kind, is caught.
+
+For example, if `get_orders` returned `{ "total": 42 }`, then `Text(orders.totl)` is caught in step 6 and repaired to `orders.total`. If a repair doesn't fix a problem, the dashboard is saved as built.
+
+The model plans its queries from each tool's `output` example, so the example has to match the real shape. See [Connect data](/docs/dashboards/connect-data#guidelines).
 
 ## Key concepts
 
 ### Model
 
-The model that builds and edits dashboards: any supported model. Its output is validated and repaired before it renders. See [Define dashboards](/docs/dashboards/define-dashboards).
+The model that builds and edits dashboards: any supported model. Its output is checked and repaired before it's saved. See [Define dashboards](/docs/dashboards/define-dashboards).
 
 ### JS interpreter
 
-A dashboard can run a generated script that calls several data tools and computes new metrics from their results. Scripts run in OpenUI's JS interpreter, with secure execution. See [Connect data](/docs/dashboards/connect-data#add-the-interpreter-route).
+A dashboard can run a generated script that calls several data tools and computes new metrics from their results. Scripts run in OpenUI's JS interpreter, a sandbox with no network or file access, and never reach the browser. See [Security](/docs/dashboards/security#the-script-sandbox).
 
 ### Renderer
 
