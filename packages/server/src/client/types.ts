@@ -41,6 +41,16 @@ export type DashboardOptions<Context extends ExecutionContext = ExecutionContext
    * calls none of your tools directly; it still saves and runs its data scripts, which call them.
    */
   maxToolRounds?: number;
+  /**
+   * `"none"` builds each dashboard in one request: the model doesn't call your tools or run
+   * scripts first, and writes the dashboard straight from its prompt, so it's faster and
+   * cheaper. Use it when your own agent has already looked at the data and puts what it found
+   * (tables, columns, event names, tool arguments) in the prompt. The dashboard isn't checked
+   * against real data before it's saved, and `maxToolRounds` doesn't apply. Your `tools` and
+   * `mcp` are still required: the dashboard's queries call them. Default `"auto"`: the model
+   * looks at the data first.
+   */
+  toolChoice?: "auto" | "none";
   promptOptions?: ArtifactPromptOptions;
   /**
    * Your business context: what it does, who reads the dashboards, your terms,
@@ -74,7 +84,7 @@ export interface RequestOptions {
 
 /**
  * Creates and edits live dashboards. Each call first runs the model's tool rounds against your
- * tools (typically 20-45 s), then resolves, once the dashboard starts generating, with the tool's
+ * tools (typically 20-45 s; none with `toolChoice: "none"`), then resolves, once the dashboard starts generating, with the tool's
  * response: return it from your tool as is, and pass it to the renderer. A plain call doesn't
  * report a failure after that point.
  *

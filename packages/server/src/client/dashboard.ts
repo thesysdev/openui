@@ -37,6 +37,7 @@ export function defineDashboard<Context extends ExecutionContext>(
     model,
     reasoningEffort,
     maxToolRounds,
+    toolChoice,
     promptOptions,
     instructions,
     tools,
@@ -50,6 +51,9 @@ export function defineDashboard<Context extends ExecutionContext>(
   }
   if (instructions !== undefined && typeof instructions !== "string") {
     invalidInput("instructions must be a string");
+  }
+  if (toolChoice !== undefined && toolChoice !== "auto" && toolChoice !== "none") {
+    invalidInput('toolChoice must be "auto" or "none"');
   }
   if (!isRecord(tools) && mcpServers(mcp).length === 0) {
     invalidInput("Dashboards need data tools: pass `tools`, `mcp`, or both");
@@ -115,6 +119,8 @@ export function defineDashboard<Context extends ExecutionContext>(
     messages,
     ...(artifactId !== undefined && { artifact_id: artifactId }),
     ...(reasoningEffort !== undefined && { reasoning_effort: reasoningEffort }),
+    // A build's first request only: later ones carry tool results.
+    ...(toolChoice !== undefined && artifactId === undefined && { tool_choice: toolChoice }),
     user_id: context.userId,
     // An edit can come from a share to one of the user's groups; a new dashboard is the user's alone.
     ...(edit && context.groupIds?.length && { group_ids: context.groupIds }),
